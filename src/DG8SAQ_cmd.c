@@ -8,6 +8,7 @@
 
 
 #include <stdint.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "wdt.h"
@@ -20,6 +21,10 @@
 #include "Si570.h"
 #include "AD7991.h"
 #include "TMP100.h"
+#include "usb_drv.h"
+#include "usb_descriptors.h"
+#include "usb_standard_request.h"
+#include "usb_specific_request.h"
 
 // This var is used to pass frequency from USB input command
 volatile uint32_t freq_from_usb;		// New Frequency from USB
@@ -41,7 +46,8 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 	Buf16 = (uint16_t*)Buffer;
 	int x;
 
-	LED_Toggle(LED1);
+//	LED_Toggle(LED1);
+
 
 	switch (type)
 	{
@@ -124,6 +130,7 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 					flashc_memset16((void *)&nvram_cdata.SmoothTunePPM, *Buf16, sizeof(uint16_t), TRUE);
 				}
 	}
+
 }
 
 
@@ -131,6 +138,7 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
  @brief Process USB query commands and return a result (flexible size data payload)
 		This function processes control of all USB commands except for 0x30 - 0x35
 */
+
 uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* Buffer)
 {
 	int x;
@@ -140,7 +148,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 	Buf32 = (uint32_t*)Buffer;
 	Buf16 = (uint16_t*)Buffer;
 
-	LED_Toggle(LED1);
+//	LED_Toggle(LED1);
 
 	switch (type)
 	{
@@ -158,7 +166,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 		// Low Pass filter select signals.  A later project, if needed.
 		//
 
-		// Todo
 		#if ENCODER_INT_STYLE || ENCODER_SCAN_STYLE	// Shaft Encoder VFO function
 											// Protect Shaft encoder bits
 		IO_DDR_MP = rq ->wValue.b0 & ~(ENC_A_PIN | ENC_B_PIN | ENC_PUSHB_PIN);
@@ -315,8 +322,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 
 
 		case 0x3c:								// Return the startup frequency
-			// Todo: eeprom_read_block(replyBuf, &E.Freq[rq->wIndex.b0], sizeof(E.Freq[rq->wIndex.b0]));
-			*Buf32 = cdata.Freq[0];	// Temporary
+			*Buf32 = nvram_cdata.Freq[wIndex];
 			return sizeof(uint32_t);
 
 
@@ -461,6 +467,18 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			if (gpio_get_pin_value(GPIO_CW_KEY_2)) Buffer[0] |= REG_CWLONG;
         	return sizeof(uint8_t);
 
+		case 0x52:								// read CW & PTT key levels
+			Buffer[0] = 0x00;
+			// read pin and set regbit accordingly
+			if (gpio_get_pin_value(GPIO_CW_KEY_1)) Buffer[0] |= REG_CWSHORT;
+			// read pin and set regbit accordingly
+			if (gpio_get_pin_value(GPIO_CW_KEY_2)) Buffer[0] |= REG_CWLONG;
+			if (gpio_get_pin_value(PTT_1)) Buffer[0] |= REG_PTT_1;
+			if (gpio_get_pin_value(PTT_2)) Buffer[0] |= REG_PTT_2;
+			if (gpio_get_pin_value(PTT_3)) Buffer[0] |= REG_PTT_3;
+			if (TX_state) Buffer[0] |= REG_TX_state;
+
+        	return sizeof(uint8_t);
 
 		case 0x61:		// Read ADC inputs,
 						// Index byte points to which ADC input to read.
@@ -635,7 +653,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 						break;
 					case 4:						// Fullscale Power Bargraph value
 						flashc_memset8((void *)&nvram_cdata.PWR_fullscale, wValue, sizeof(uint8_t), TRUE);
-						// Todo eeprom_write_block(&rq->wValue.b0, &E.PWR_fullscale, sizeof (E.PWR_fullscale));
 						*Buf16 = cdata.PWR_fullscale = wValue;
 						break;
 					case 5:						// Fullscale SWR Bargraph value
@@ -760,8 +777,39 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			pcf8574_in_byte(wIndex, Buffer);
 			return sizeof(uint8_t);
 
+		case 0x71:
+			/*
+				switch (wValue){
+					case 0:
+						if (current_freq.frequency != 48000) {
+							current_freq.frequency = 48000;
+							freq_changed = TRUE;
+						}
+						break;
+					case 1:
+						if (current_freq.frequency != 96000){
+							current_freq.frequency = 96000;
+							freq_changed = TRUE;
+						}
+						break;
+					case 2:
+						if (current_freq.frequency != 192000){
+							current_freq.frequency = 192000;
+							freq_changed = TRUE;
+						}
+						break;
+					default:
+						break;
+					}
+			*/
+
+				*Buffer = 0;
+				return sizeof(uint8_t);
+
 		default:
 			return 1; //break;
 	}
-	return 1;
+
+		return 1;
+
 }
