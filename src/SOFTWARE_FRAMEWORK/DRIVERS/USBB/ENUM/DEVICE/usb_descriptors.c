@@ -262,9 +262,9 @@ const S_usb_user_configuration_descriptor usb_conf_desc_fs =
     ,  MIC_FEATURE_UNIT_ID
     ,  MIC_FEATURE_UNIT_SOURCE_ID
     ,  MIC_FEATURE_UNIT_CONTROL_SIZE
-    ,  Usb_format_mcu_to_usb_data(16, MIC_BMA_CONTROLS_0)
-    ,  Usb_format_mcu_to_usb_data(16, MIC_BMA_CONTROLS_1)
-    ,  Usb_format_mcu_to_usb_data(16, MIC_BMA_CONTROLS_2)
+    ,  MIC_BMA_CONTROLS_0
+    ,  MIC_BMA_CONTROLS_1
+    ,  MIC_BMA_CONTROLS_2
     ,  MIC_FEATURE_UNIT_CH_NAME_ID
     }
  ,
@@ -296,9 +296,9 @@ const S_usb_user_configuration_descriptor usb_conf_desc_fs =
      ,  SPK_FEATURE_UNIT_ID
      ,  SPK_FEATURE_UNIT_SOURCE_ID
      ,  SPK_FEATURE_UNIT_CONTROL_SIZE
-     ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_0)
-     ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_1)
-     ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_2)
+     ,  SPK_FEATURE_UNIT_BMA_CONTROLS_0
+     ,  SPK_FEATURE_UNIT_BMA_CONTROLS_1
+     ,  SPK_FEATURE_UNIT_BMA_CONTROLS_2
      ,  SPK_FEATURE_UNIT_CH_NAME_ID
      }
   ,
@@ -563,9 +563,9 @@ const S_usb_user_configuration_descriptor usb_conf_desc_hs =
   ,  MIC_FEATURE_UNIT_ID
   ,  MIC_FEATURE_UNIT_SOURCE_ID
   ,  MIC_FEATURE_UNIT_CONTROL_SIZE
-  ,  Usb_format_mcu_to_usb_data(16, MIC_BMA_CONTROLS_0)
-  ,  Usb_format_mcu_to_usb_data(16, MIC_BMA_CONTROLS_1)
-  ,  Usb_format_mcu_to_usb_data(16, MIC_BMA_CONTROLS_2)
+  ,  MIC_BMA_CONTROLS_0
+  ,  MIC_BMA_CONTROLS_1
+  ,  MIC_BMA_CONTROLS_2
   ,  MIC_FEATURE_UNIT_CH_NAME_ID
   }
 ,
@@ -597,9 +597,9 @@ const S_usb_user_configuration_descriptor usb_conf_desc_hs =
    ,  SPK_FEATURE_UNIT_ID
    ,  SPK_FEATURE_UNIT_SOURCE_ID
    ,  SPK_FEATURE_UNIT_CONTROL_SIZE
-   ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_0)
-   ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_1)
-   ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_2)
+   ,  SPK_FEATURE_UNIT_BMA_CONTROLS_0
+   ,  SPK_FEATURE_UNIT_BMA_CONTROLS_1
+   ,  SPK_FEATURE_UNIT_BMA_CONTROLS_2
    ,  SPK_FEATURE_UNIT_CH_NAME_ID
    }
 ,

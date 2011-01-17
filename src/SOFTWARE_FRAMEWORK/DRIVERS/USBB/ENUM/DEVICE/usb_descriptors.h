@@ -234,10 +234,10 @@
             //MIC Feature Unit descriptor
 #define MIC_FEATURE_UNIT_ID            0x02
 #define MIC_FEATURE_UNIT_SOURCE_ID     0x01
-#define MIC_FEATURE_UNIT_CONTROL_SIZE  0x02		// 2 bytes for each control
-#define MIC_BMA_CONTROLS_0             0x0001 	// Mute for master channel
-#define MIC_BMA_CONTROLS_1			   0x0002	// Volume control on left channel
-#define MIC_BMA_CONTROLS_2			   0x0002	// Volume control on right channel
+#define MIC_FEATURE_UNIT_CONTROL_SIZE  0x01		// 1 byte for each control
+#define MIC_BMA_CONTROLS_0             0x01 	// Mute for master channel
+#define MIC_BMA_CONTROLS_1			   0x02	// Volume control on left channel
+#define MIC_BMA_CONTROLS_2			   0x02	// Volume control on right channel
 #define MIC_FEATURE_UNIT_CH_NAME_ID		0x00
 
 				// Output Terminal descriptor
@@ -257,10 +257,10 @@
 			// SPK Feature Unit
 #define SPK_FEATURE_UNIT_ID				0x12
 #define SPK_FEATURE_UNIT_SOURCE_ID		0x11
-#define SPK_FEATURE_UNIT_CONTROL_SIZE	0x02	// 2 bytes for each control
-#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x0001	// Mute
-#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x0002	// Volume control on left front
-#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x0002	// Volume control on right front
+#define SPK_FEATURE_UNIT_CONTROL_SIZE	0x01	// 1 byte for each control
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x01	// Mute
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x02	// Volume control on left front
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x02	// Volume control on right front
 #define SPK_FEATURE_UNIT_CH_NAME_ID		0x00	// No name
 
 
@@ -815,15 +815,15 @@ struct
 __attribute__((__packed__))
 #endif
 {
-	U8		bLenght;
+	U8	bLenght;
 	U8 	bDescriptorType;
 	U8 	bDescriptorSubType;
-	U8		bUnitID;
-	U8    bSourceID;
-	U8		bControSize;
-	U16	bmaControls_0;
-	U16	bmaControls_1;
-	U16	bmsCnotrols_2;
+	U8	bUnitID;
+	U8  bSourceID;
+	U8	bControSize;
+	U8	bmaControls_0;
+	U8	bmaControls_1;
+	U8	bmsCnotrols_2;
 	U8	iTerminal;
 } S_usb_feature_unit_descriptor;
 

@@ -138,7 +138,7 @@ void device_audio_task(void *pvParameters)
   static U32  time=0;
   static Bool startup=TRUE;
   int i;
-  U16 num_samples, num_remaining, gap;
+  U16 num_samples, num_remaining, gap, old_gap = SPK_BUFFER_SIZE;
   U8 sample_MSB;
   U8 sample_SB;
   U8 sample_LSB;
@@ -192,7 +192,7 @@ void device_audio_task(void *pvParameters)
              spk_buffer_in = 0;
 
              if (Is_usb_full_speed_mode()) FB_rate = 48 << 14;   // 3 bytes 10.14 format
-             else FB_rate = (48) << 13;							 // 4 bytes 12.13 format
+             else FB_rate = 48 << 16;							 // 4 bytes 16.16 format
 
              // Wait for the next frame synchronization event
              // to avoid channel inversion.  Start with left channel - FS goes low
@@ -330,14 +330,21 @@ void device_audio_task(void *pvParameters)
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 
 				if (Is_usb_full_speed_mode()){			// FB rate is 3 bytes in 10.14 format
-					if (gap < (SPK_BUFFER_SIZE/2)){
+
+					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 						LED_Toggle(LED0);
-						FB_rate -= 1L << 2;
+						FB_rate -= 1L << 1;
+						old_gap = gap;
 					}
-					else if (gap > (SPK_BUFFER_SIZE + ((SPK_BUFFER_SIZE*3)/4))) {
+					else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)){
 						LED_Toggle(LED1);
-						FB_rate += 1L << 2;
+						FB_rate += 1L << 1;
+						old_gap = gap;
 					}
+
+					if (FB_rate > ((48 + 1) << 14)) FB_rate = (48 + 1) << 14;
+					if (FB_rate < ((48 - 1) << 14)) FB_rate = (48 - 1) << 14;
+
 
 					sample_LSB = FB_rate;
 					sample_SB = FB_rate >> 8;
@@ -347,19 +354,21 @@ void device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
 				}
 				 else	// HS mode
-				{									// FB rate is 4 bytes in 12.13 format
+				{									// FB rate is 4 bytes in 16.16 format
 
-						if (gap < (SPK_BUFFER_SIZE/2)){
+						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 							LED_Toggle(LED0);
 							FB_rate -= 1L << 1;
+							old_gap = gap;
 						}
-						else if (gap > (SPK_BUFFER_SIZE + ((SPK_BUFFER_SIZE*3)/4))){
+						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)){
 							LED_Toggle(LED1);
 							FB_rate += 1L << 1;
+							old_gap = gap;
 						}
 
-						if (FB_rate > ((48 + 1) << 13)) FB_rate = (48 + 1) << 13;
-						if (FB_rate < ((48 - 1) << 13)) FB_rate = (48 - 1) << 13;
+						if (FB_rate > ((48 + 1) << 16)) FB_rate = (48 + 1) << 16;
+						if (FB_rate < ((48 - 1) << 16)) FB_rate = (48 - 1) << 16;
 
 						sample_LSB = FB_rate;
 						sample_SB = FB_rate >> 8;

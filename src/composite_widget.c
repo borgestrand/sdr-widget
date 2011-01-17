@@ -235,6 +235,9 @@ int main(void)
      return 42;
 
   gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+  gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
+  gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
+  gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
   // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
   wdt_disable();
