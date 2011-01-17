@@ -66,7 +66,8 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 
-extern Bool mute;
+extern volatile Bool mute, spk_mute;
+extern volatile U32 FB_rate;
 
 //_____ M A C R O S ________________________________________________________
 

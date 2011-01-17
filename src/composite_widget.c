@@ -164,7 +164,6 @@
 #include "conf_usb.h"
 #include "usb_task.h"
 #if USB_DEVICE_FEATURE == ENABLED
-#include "device_mouse_hid_task.h"
 #include "device_cdc_task.h"
 #endif
 #if USB_HOST_FEATURE == ENABLED
@@ -223,6 +222,9 @@ int main(void)
      return 42;
 
   gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+  gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
+  gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
+  gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
   // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
   wdt_disable();
@@ -249,7 +251,6 @@ int main(void)
   vStartTaskMoboCtrl();
   vStartTaskEXERCISE( tskIDLE_PRIORITY );
   AK5394A_task_init();
-  device_mouse_hid_task_init();
   device_cdc_task_init();
   device_audio_task_init();
 

@@ -108,10 +108,9 @@
 #define EP_CDC_COMM			  1
 #define EP_CDC_TX			  2
 #define EP_CDC_RX			  3
-#define EP_HID_TX			  4
-#define EP_HID_RX			  5
-#define EP_AUDIO_IN			  6
-#define EP_AUDIO_OUT 		  7
+#define EP_AUDIO_IN			  4
+#define EP_AUDIO_OUT 		  5
+#define EP_AUDIO_OUT_FB		  6
 
     //! @defgroup device_cst_actions USB device custom actions
     //!

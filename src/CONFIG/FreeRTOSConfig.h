@@ -129,11 +129,6 @@ to exclude the API function. */
 #define configTSK_USB_DEV_PRIORITY            (tskIDLE_PRIORITY + 3)
 #define configTSK_USB_DEV_PERIOD              2
 
-/* USB host task definitions. */
-#define configTSK_USB_HST_NAME                ((const signed portCHAR *)"USB Host")
-#define configTSK_USB_HST_STACK_SIZE          256
-#define configTSK_USB_HST_PRIORITY            (tskIDLE_PRIORITY + 2)
-#define configTSK_USB_HST_PERIOD              80
 
 /* USB device CDC task definitions. */
 #define configTSK_USB_DCDC_NAME               ((const signed portCHAR *)"USB Device CDC")
@@ -141,11 +136,6 @@ to exclude the API function. */
 #define configTSK_USB_DCDC_PRIORITY           (tskIDLE_PRIORITY + 1)
 #define configTSK_USB_DCDC_PERIOD             80
 
-/* USB device HID task definitions. */
-#define configTSK_USB_DHID_MOUSE_NAME         ((const signed portCHAR *)"USB Device Mouse HID")
-#define configTSK_USB_DHID_MOUSE_STACK_SIZE   256
-#define configTSK_USB_DHID_MOUSE_PRIORITY     (tskIDLE_PRIORITY + 1)
-#define configTSK_USB_DHID_MOUSE_PERIOD       80
 
 /* USB device Audio task definitions. */
 #define configTSK_USB_DAUDIO_NAME             ((const signed portCHAR *)"USB Device Audio")
@@ -159,11 +149,6 @@ to exclude the API function. */
 #define configTSK_AK5394A_PRIORITY         	(tskIDLE_PRIORITY + 3)
 #define configTSK_AK5394A_PERIOD           	200
 
-/* USB host Audio HID task definitions. */
-#define configTSK_USB_HAUDIO_NAME             ((const signed portCHAR *)"USB Host Audio")
-#define configTSK_USB_HAUDIO_STACK_SIZE       256
-#define configTSK_USB_HAUDIO_PRIORITY         (tskIDLE_PRIORITY + 2)
-#define configTSK_USB_HAUDIO_PERIOD           80
 
 /* taskMoboCtrl definitions. */
 #define configTSK_MoboCtrl_NAME				  ((const signed portCHAR *)"taskMoboCtrl")
