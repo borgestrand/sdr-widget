@@ -294,7 +294,8 @@ void AK5394A_task(void *pvParameters)
     			spk_buffer_0[i] = 0;
     			spk_buffer_1[i] = 0;
     		}
-    	}
+    	};
+
     	usb_alternate_setting_out_changed = FALSE;
     }
 

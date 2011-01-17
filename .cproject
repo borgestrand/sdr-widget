@@ -8,7 +8,7 @@
 <externalSettings/>
 <extensions>
 <extension id="org.eclipse.cdt.managedbuilder.core.ManagedBuildManager" point="org.eclipse.cdt.core.ScannerInfoProvider"/>
-<extension id="com.atmel.avr.toolchain.avr32gcc.elf32-avr32" point="org.eclipse.cdt.core.BinaryParser"/>
+<extension id="com.atmel.avr32.toolchain.standalone.elf32-avr32" point="org.eclipse.cdt.core.BinaryParser"/>
 <extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 <extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 <extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
@@ -1032,7 +1032,7 @@
 <externalSettings/>
 <extensions>
 <extension id="org.eclipse.cdt.managedbuilder.core.ManagedBuildManager" point="org.eclipse.cdt.core.ScannerInfoProvider"/>
-<extension id="com.atmel.avr.toolchain.avr32gcc.elf32-avr32" point="org.eclipse.cdt.core.BinaryParser"/>
+<extension id="com.atmel.avr32.toolchain.standalone.elf32-avr32" point="org.eclipse.cdt.core.BinaryParser"/>
 <extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 <extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 <extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>

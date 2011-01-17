@@ -28,7 +28,7 @@
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
 #define AUDIO_BUFFER_SIZE	(48*2*8) // 48 khz, stereo, 8 ms worth
-#define SPK_BUFFER_SIZE 	(48*2*8)
+#define SPK_BUFFER_SIZE 	(48*2*16)
 
 extern volatile U32 audio_buffer_0[AUDIO_BUFFER_SIZE];
 extern volatile U32 audio_buffer_1[AUDIO_BUFFER_SIZE];

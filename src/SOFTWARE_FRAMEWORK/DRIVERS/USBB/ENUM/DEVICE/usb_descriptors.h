@@ -98,6 +98,7 @@
 
 
 //_____ U S B    D E F I N E S _____________________________________________
+#define UAC_EP_CS_ATTR_SAMPLE_RATE		0x01
 
             // USB Device descriptor
 #define USB_SPECIFICATION     0x0200
@@ -186,17 +187,15 @@
 
             // USB Endpoint 3 descriptor
 #define ENDPOINT_NB_3       ( EP_AUDIO_OUT )
-//#define EP_ATTRIBUTES_3     0b00000101      // ISOCHRONOUS ASYNCHRONOUS EXPLICIT FEEDBACK
-#define EP_ATTRIBUTES_3     0b00001101      // ISOCHRONOUS SYNCHRONOUS
+#define EP_ATTRIBUTES_3     0b00000101      // ISOCHROUNOUS ASYNCHRONOUS EXPLICIT FEEDBACK
 #define EP_IN_LENGTH_3_HS   294				// 3 bytes * 48 khz * stereo + 6 bytes for add sample
 #define EP_IN_LENGTH_3_FS	294
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_3_HS    0x04			 // One packet per 8 uframe
-//#define EP_BSYNC_ADDRESS_3	0x05			 // feedback EP is EP 5
-//#define EP_BSYNC_ADDRESS_3	0x04			 // feedback EP is EP 4 - using audio input pipe to sync
-#define EP_BSYNC_ADDRESS_3	0x00
+#define EP_BSYNC_ADDRESS_3	0x85			 // feedback EP is EP 0x85
+
              // USB Endpoint 4 descriptor
 #define ENDPOINT_NB_4       ( EP_AUDIO_IN | MSK_EP_DIR )
 #define EP_ATTRIBUTES_4     0b00100101      // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
@@ -207,19 +206,18 @@
 #define EP_INTERVAL_4_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_4_HS    0x04			 // One packet per 8 uframe
 
-/*
 			// USB Endpoint 5 descriptor
-#define ENDPOINT_NB_5       ( EP_AUDIO_OUT_FB | MSK_EP_DIR )
+#define ENDPOINT_NB_5       ( EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x85
 #define EP_ATTRIBUTES_5     0b00010001      // ISOCHROUNOUS FEEDBACK
-#define EP_IN_LENGTH_5_FS   64				// 3 bytes
-#define EP_IN_LENGTH_5_HS	64				// 4 bytes
+#define EP_IN_LENGTH_5_FS   64				//
+#define EP_IN_LENGTH_5_HS	64				//
 #define EP_SIZE_5_FS		EP_IN_LENGTH_5_FS
 #define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
 #define EP_INTERVAL_5_FS	0x01
 #define EP_INTERVAL_5_HS    0x04
-#define EP_REFRESH_5_FS		0x07			 //  64ms
-#define EP_REFRESH_5_HS		0x0a			 // 2^(10-1) = 512 uframe = 64ms
-*/
+#define EP_REFRESH_5_FS		0x05			 //  16ms
+#define EP_REFRESH_5_HS		0x08			 // 2^(8-1) = 128 uframe = 16ms
+
 
 				// AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION			0x0100
@@ -274,8 +272,7 @@
 
 #define STD_AS_INTERFACE_OUT			0x03
 
-//#define SPK_ALT1_AS_NB_ENDPOINT			0x02	// OUT EP and FB EP
-#define SPK_ALT1_AS_NB_ENDPOINT			0x01	// OUT EP
+#define SPK_ALT1_AS_NB_ENDPOINT			0x02	// OUT EP and FB EP
 
 #define SPK_AS_TERMINAL_LINK			0x11	// Unit Id of the speaker input terminal
 #define SPK_AS_DELAY					0x00	// Interface delay
@@ -314,7 +311,7 @@
 
 
 				//Audio endpoint specific descriptor field
-#define AUDIO_EP_ATRIBUTES				0x01	 	// sampling freq, no pitch, no pading
+#define AUDIO_EP_ATRIBUTES				UAC_EP_CS_ATTR_SAMPLE_RATE	 	// sampling freq, no pitch, no pading
 #define AUDIO_EP_DELAY_UNIT				0x00	 	// Unused
 #define AUDIO_EP_LOCK_DELAY				0x0000		// Unused
 
@@ -987,7 +984,7 @@ __attribute__((__packed__))
 	  S_usb_format_type					spk_format_type;
 	  S_usb_endpoint_audio_descriptor  	ep3;
 	  S_usb_endpoint_audio_specific	 	ep3_s;
-//	  S_usb_endpoint_audio_descriptor	ep5;
+	  S_usb_endpoint_audio_descriptor	ep5;
 	  S_usb_as_interface_descriptor	 	mic_as_alt0;
 	  S_usb_as_interface_descriptor	 	mic_as_alt1;
 	  S_usb_as_g_interface_descriptor	mic_g_as;
