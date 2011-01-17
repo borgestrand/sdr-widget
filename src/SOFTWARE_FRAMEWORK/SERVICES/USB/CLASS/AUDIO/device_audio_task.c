@@ -71,7 +71,6 @@
 #include "usb_descriptors.h"
 #include "usb_standard_request.h"
 #include "device_audio_task.h"
-#include "audio_example.h"
 
 #if LCD_DISPLAY            // Multi-line LCD display
 #include "taskLCD.h"
@@ -192,7 +191,7 @@ void device_audio_task(void *pvParameters)
              spk_buffer_in = 0;
 
              if (Is_usb_full_speed_mode()) FB_rate = 48 << 14;   // 3 bytes 10.14 format
-             else FB_rate = 48 << 16;							 // 4 bytes 16.16 format
+             else FB_rate = 48 << 13;							 // 4 bytes 12.13 format
 
              // Wait for the next frame synchronization event
              // to avoid channel inversion.  Start with left channel - FS goes low
@@ -367,8 +366,8 @@ void device_audio_task(void *pvParameters)
 							old_gap = gap;
 						}
 
-						if (FB_rate > ((48 + 1) << 16)) FB_rate = (48 + 1) << 16;
-						if (FB_rate < ((48 - 1) << 16)) FB_rate = (48 - 1) << 16;
+						if (FB_rate > ((48 + 1) << 13)) FB_rate = (48 + 1) << 13;
+						if (FB_rate < ((48 - 1) << 13)) FB_rate = (48 - 1) << 13;
 
 						sample_LSB = FB_rate;
 						sample_SB = FB_rate >> 8;
