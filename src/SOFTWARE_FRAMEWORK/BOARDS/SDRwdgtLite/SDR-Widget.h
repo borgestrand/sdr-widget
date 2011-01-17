@@ -3,7 +3,7 @@
 
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:UAC2_095"
+#define FIRMWARE_VERSION	"V:UAC2_096"
 // changes since V:UAC2_094:
 //   taskPowerDisplay.c... change calculated pwr value from mW to cW
 //   taskMoboControl.c...  change calculated pwr value from mW to cW

@@ -381,7 +381,61 @@ Bool usb_user_read_request(U8 type, U8 request)
 	   }
    } // end wIndex == CDC Interface
 
-//  request for AUDIO interface
+//  request for AUDIO interfaces
+
+   if (wIndex == DSC_INTERFACE_AS){				// Audio Streaming Interface
+ 	   if (type == IN_CL_INTERFACE){			// get controls
+
+ 				   if (wValue_msb == AUDIO_AS_VAL_ALT_SETTINGS && wValue_lsb == 0
+ 						   && request == AUDIO_CS_REQUEST_CUR){
+ 					  Usb_ack_setup_received_free();
+
+ 					  Usb_reset_endpoint_fifo_access(EP_CONTROL);
+ 					  Usb_write_endpoint_data(EP_CONTROL, 8, 0x01);
+ 					  Usb_write_endpoint_data(EP_CONTROL, 8, 0b00000011); // alt 0 and 1 valid
+ 					  Usb_ack_control_in_ready_send();
+
+ 					  while (!Is_usb_control_out_received());
+ 					  Usb_ack_control_out_received_free();
+ 					  return TRUE;
+ 				   } else if (wValue_msb == AUDIO_AS_ACT_ALT_SETTINGS && wValue_lsb == 0
+ 						   && request == AUDIO_CS_REQUEST_CUR){
+ 						  Usb_ack_setup_received_free();
+ 						  Usb_reset_endpoint_fifo_access(EP_CONTROL);
+ 						  Usb_write_endpoint_data(EP_CONTROL, 8, usb_alternate_setting);
+ 						  Usb_ack_control_in_ready_send();
+ 						  while (!Is_usb_control_out_received());
+ 						  Usb_ack_control_out_received_free();
+ 						  return TRUE;
+ 				   } else if (wValue_msb == AUDIO_AS_AUDIO_DATA_FORMAT && wValue_lsb == 0
+ 						   && request == AUDIO_CS_REQUEST_CUR){
+ 						  Usb_ack_setup_received_free();
+ 						  Usb_reset_endpoint_fifo_access(EP_CONTROL);
+ 						  Usb_write_endpoint_data(EP_CONTROL, 8, 0x01);
+ 						  Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+ 						  Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+ 						  Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);	// only PCM format
+ 						  Usb_ack_control_in_ready_send();
+ 						  while (!Is_usb_control_out_received());
+ 						  Usb_ack_control_out_received_free();
+ 						  return TRUE;
+ 				   } else return FALSE;
+
+ 	   } else if (type == OUT_CL_INTERFACE){		// set controls
+ 		   if (wValue_msb == AUDIO_AS_ACT_ALT_SETTINGS
+ 				   && request == AUDIO_CS_REQUEST_CUR){
+ 				Usb_ack_setup_received_free();
+ 				while (!Is_usb_control_out_received());
+ 				Usb_reset_endpoint_fifo_access(EP_CONTROL);
+ 				usb_alternate_setting = Usb_read_endpoint_data(EP_CONTROL, 8);
+ 				usb_alternate_setting_changed = TRUE;
+ 				Usb_ack_control_out_received_free();
+ 				Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
+ 				while (!Is_usb_control_in_ready()); //!< waits for status phase done
+ 		   return FALSE;
+ 		   }
+ 	   } // end OUT_CL_INTERFACE
+    } // end DSC_INTERFACE_AS
 
 //   if ( (wIndex % 256) == DSC_INTERFACE_AUDIO){	// low byte wIndex is Interface number
 												// high byte is for EntityID
@@ -602,59 +656,7 @@ Bool usb_user_read_request(U8 type, U8 request)
 
    } // end Audio Control Interface
 
-   if (wIndex == DSC_INTERFACE_AS){
-	   if (type == IN_CL_INTERFACE){			// get controls
 
-				   if (wValue_msb == AUDIO_AS_VAL_ALT_SETTINGS && wValue_lsb == 0
-						   && request == AUDIO_CS_REQUEST_CUR){
-					  Usb_ack_setup_received_free();
-
-					  Usb_reset_endpoint_fifo_access(EP_CONTROL);
-					  Usb_write_endpoint_data(EP_CONTROL, 8, 0x01);
-					  Usb_write_endpoint_data(EP_CONTROL, 8, 0b00000011); // alt 0 and 1 valid
-					  Usb_ack_control_in_ready_send();
-
-					  while (!Is_usb_control_out_received());
-					  Usb_ack_control_out_received_free();
-					  return TRUE;
-				   } else if (wValue_msb == AUDIO_AS_ACT_ALT_SETTINGS && wValue_lsb == 0
-						   && request == AUDIO_CS_REQUEST_CUR){
-						  Usb_ack_setup_received_free();
-						  Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						  Usb_write_endpoint_data(EP_CONTROL, 8, usb_alternate_setting);
-						  Usb_ack_control_in_ready_send();
-						  while (!Is_usb_control_out_received());
-						  Usb_ack_control_out_received_free();
-						  return TRUE;
-				   } else if (wValue_msb == AUDIO_AS_AUDIO_DATA_FORMAT && wValue_lsb == 0
-						   && request == AUDIO_CS_REQUEST_CUR){
-						  Usb_ack_setup_received_free();
-						  Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						  Usb_write_endpoint_data(EP_CONTROL, 8, 0x01);
-						  Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-						  Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-						  Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);	// only PCM format
-						  Usb_ack_control_in_ready_send();
-						  while (!Is_usb_control_out_received());
-						  Usb_ack_control_out_received_free();
-						  return TRUE;
-				   } else return FALSE;
-
-	   } else if (type == OUT_CL_INTERFACE){		// set controls
-		   if (wValue_msb == AUDIO_AS_ACT_ALT_SETTINGS
-				   && request == AUDIO_CS_REQUEST_CUR){
-				Usb_ack_setup_received_free();
-				while (!Is_usb_control_out_received());
-				Usb_reset_endpoint_fifo_access(EP_CONTROL);
-				usb_alternate_setting = Usb_read_endpoint_data(EP_CONTROL, 8);
-				usb_alternate_setting_changed = TRUE;
-				Usb_ack_control_out_received_free();
-				Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
-				while (!Is_usb_control_in_ready()); //!< waits for status phase done
-		   return FALSE;
-		   }
-	   } // end OUT_CL_INTERFACE
-   } // end DSC_INTERFACE_AS
    } // end CL_INTERFACE
 
    return FALSE;  // No supported request
