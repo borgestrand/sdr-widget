@@ -3,7 +3,7 @@
 
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:UAC2_073"
+#define FIRMWARE_VERSION	"V:UAC2_075"
 
 /*! \name Peripherals to include at compile time. */
 //! @{

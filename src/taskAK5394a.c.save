@@ -135,11 +135,58 @@ void AK5394A_task_init(void)
 	gpio_clr_gpio_pin(AK5394_DFS1);
 	gpio_set_gpio_pin(AK5394_HPFE);		// enable HP filter
 	gpio_clr_gpio_pin(AK5394_ZCAL);		// use VCOML and VCOMR to cal
-	gpio_set_gpio_pin(AK5394_SMODE1);	// SMODE1 = H for Master i2s
-	gpio_set_gpio_pin(AK5394_SMODE2);	// SMODE2 = H for Master/Slave i2s
+	gpio_clr_gpio_pin(AK5394_SMODE1);	// SMODE1 = L for Slave i2s
+	gpio_set_gpio_pin(AK5394_SMODE2);	// SMODE2 = H for Slave i2s
 
-    gpio_set_gpio_pin(AK5394_RSTN);		// start AK5394A
-    while (gpio_get_pin_value(AK5394_CAL)); // wait till CAL goes low
+	// set up GLCK
+	gpio_enable_module_pin(GCLK0, GCLK0_FUNCTION);	// for AD_SCLK
+	gpio_enable_module_pin(GCLK1, GCLK1_FUNCTION);
+	gpio_enable_module_pin(GCLK2, GCLK2_FUNCTION);	// for AD_LRCK
+
+	pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK0);
+	pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+    while (gpio_get_pin_value(SSC_RX_FRAME_SYNC));
+	pm_pll_disable(&AVR32_PM, 1);
+	pm_disable_clk1(&AVR32_PM);
+
+      pm_pll_setup(&AVR32_PM,  // fpll = 2 * fosc * (mul + 1)/(div + 1)
+				1,    // pll1
+				3,    // mul PLL MUL in the PLL formula
+				0,    // div PLL DIV in the PLL formula
+				1,    // osc OSC number (0 for osc0, 1 for osc1)
+				32);  // lockcount PLL lockcount
+
+      pm_pll_set_option(&AVR32_PM,  // fout = fpll/2 if pll_div2 = 1
+				 1,   //pll1
+				 1,   // pll_freq Set to 1 for VCO frequency range 80-180MHz, set to 0 for VCO frequency range 160-240Mhz.
+				 1,   // pll_div2 Divide the PLL output frequency by 2 (this settings does not change the FVCO value)
+				 1);  // pll_wbwdisable 1 Disable the Wide-Bandwith Mode (Wide-Bandwith mode allow a faster startup time and out-of-lock time). 0 to enable the Wide-Bandith Mode.
+
+      pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK0, // gc pll test
+	                  1,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+	                  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+	                  1,                  // diven
+	                  1);                 // div by 4 = [(1 + 1) * 2] to give 12.288Mhz
+
+	  pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK2, // gc
+	                  1,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+	                  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+	                  1,                  // diven
+	                  255);                 // div by 512 = [(div + 1) * 2] to give 96khz
+
+	  pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK0);
+	  pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+
+	  // Now that the GCLK0 and GLCK2 clocks are set up, enable OSC1
+	  // Note that if OSC1 is enabled before the clocks are set up
+	  // the phase relationship between GCLK0 and GCLK2 may not be correct
+
+	  pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
+												// from AK5394A Xtal Oscillator
+	  pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
+
+      pm_pll_enable(&AVR32_PM, 1);   // Enable pll1
+	  pm_wait_for_pll1_locked(&AVR32_PM);
 
 		// Assign GPIO to SSC.
 	  gpio_enable_module(SSC_GPIO_MAP, sizeof(SSC_GPIO_MAP) / sizeof(SSC_GPIO_MAP[0]));
@@ -204,18 +251,54 @@ void AK5394A_task(void *pvParameters)
     	if (current_freq.frequency == 96000){
 	   	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	    pdca_disable(PDCA_CHANNEL_SSC_RX);
+	    pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+        while (gpio_get_pin_value(SSC_RX_FRAME_SYNC));
+    	pm_disable_clk1(&AVR32_PM);
 
     		gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
     		gpio_clr_gpio_pin(AK5394_DFS1);
+
+//			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK0, // gc
+//							  1,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+//							  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+//							  1,                  // diven
+//							  1);                 // div by 4 = [(1 + 1) * 2] to give 12.288Mhz
+
+    		pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK2, // gc
+    		                  1,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+    		                  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+    		                  1,                  // diven
+    		                  255);                 // div by 512 to give 96khz
+
+    		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+    		pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 
     	}
     	else if (current_freq.frequency == 192000)
     	{
     	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
         pdca_disable(PDCA_CHANNEL_SSC_RX);
+	    pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+	    while (gpio_get_pin_value(SSC_RX_FRAME_SYNC));
+        pm_disable_clk1(&AVR32_PM);
 
 				gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
         		gpio_set_gpio_pin(AK5394_DFS1);
+
+//    			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK0, // gc
+//    							  1,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+//    							  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+//    							  1,                 // diven
+//    							  1);                 // div by 4 = [(1 + 1) * 2] to give 12.288Mhz
+
+        		pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK2, // gc
+        		                  1,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+        		                  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+        		                  1,                  // diven
+        		                  127);                 // div by 256 to give 192khz
+
+        		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+        		pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 
     	}
     	else if (current_freq.frequency == 48000) // 48khz
@@ -223,17 +306,36 @@ void AK5394A_task(void *pvParameters)
 
         	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
             pdca_disable(PDCA_CHANNEL_SSC_RX);
+    	    pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+    	    while (gpio_get_pin_value(SSC_RX_FRAME_SYNC));
+            pm_disable_clk1(&AVR32_PM);
 
 				gpio_clr_gpio_pin(AK5394_DFS0);		// L L  -> 48khz
         		gpio_clr_gpio_pin(AK5394_DFS1);
 
+//    			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK0, // gc
+//    							  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+//    							  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+//    							  1,                  // diven
+//    							  0);                 // div by 8 to give 6.144Mhz
+
+        		pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK2, // gc
+        		                  1,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+        		                  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+        		                  1,                  // diven
+        		                  255);                 // div by 256 to give 48khz
+
+
+
+        		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+        		pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
         }
 
     	// re-sync SSC to LRCK
         // Wait for the next frame synchronization event
         // to avoid channel inversion.  Start with left channel - FS goes low
-        while (!gpio_get_pin_value(AK5394_LRCK));
-        while (gpio_get_pin_value(AK5394_LRCK));
+        while (!gpio_get_pin_value(SSC_RX_FRAME_SYNC));
+        while (gpio_get_pin_value(SSC_RX_FRAME_SYNC));
 
         // Enable now the transfer.
         pdca_enable(PDCA_CHANNEL_SSC_RX);
@@ -244,6 +346,7 @@ void AK5394A_task(void *pvParameters)
 
         // reset freq_changed flag
         freq_changed = FALSE;
+//        Enable_global_interrupt();
     }
 
   }

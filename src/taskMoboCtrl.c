@@ -861,7 +861,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 					// Todo biasInit = 0;		// Ensure that correct bias is set by PA_bias()
 					// Switch to Transmit mode, set TX out
 					pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
-					LED_Off(LED0);
+//					LED_Off(LED0);
 					#if LCD_DISPLAY				// Multi-line LCD display
 					#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
 					if (!MENU_mode)
@@ -879,7 +879,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 			{
 				TX_state = FALSE;
 				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
-				LED_On(LED0);
+		//		LED_On(LED0);
        	    	if (!MENU_mode)
        	    	{
 					#if LCD_DISPLAY				// Multi-line LCD display
@@ -904,7 +904,7 @@ static void vtaskMoboCtrl( void * pcParameters )
     	else TX_state = FALSE;					// If no PCF, then this can only be receive
 		#endif
 
-        LED_Toggle(LED2);
+//        LED_Toggle(LED2);
         vTaskDelay(100 );
     }
 }

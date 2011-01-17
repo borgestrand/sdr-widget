@@ -158,7 +158,7 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
 	       *  CKO - No clock output,
 	       *  CKI - shift data on rising edge,
 	       *  CKG - No clock output,
-	       *  START - On level change the FRAME_SYNC input which is connected to LRCK
+	       *  START - On rising edge of the FRAME_SYNC input which is connected to FSYNC
 	       *  STTDLY - i2s data starts one SCLK after LRCK change
 	       *  PERIOD - No FS generation
 	       */
@@ -166,10 +166,10 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
 	  ssc->rcmr = (AVR32_SSC_RCMR_CKS_RK_PIN << AVR32_SSC_RCMR_CKS_OFFSET) |
 	                (1                             << AVR32_SSC_RCMR_CKI_OFFSET)|
 	                (AVR32_SSC_RCMR_CKO_INPUT_ONLY << AVR32_SSC_RCMR_CKO_OFFSET) |
-	                (1                         << AVR32_SSC_RCMR_STTDLY_OFFSET ) |
+	                (0                         << AVR32_SSC_RCMR_STTDLY_OFFSET ) |
 //	                (AVR32_SSC_RCMR_START_DETECT_FALLING_RF << AVR32_SSC_RCMR_START_OFFSET);
-					(AVR32_SSC_DETECT_LEVEL_CHANGE_RF << AVR32_SSC_RCMR_START_OFFSET);
-
+//					(AVR32_SSC_DETECT_LEVEL_CHANGE_RF << AVR32_SSC_RCMR_START_OFFSET);
+	                (AVR32_SSC_RCMR_START_DETECT_RISING_RF << AVR32_SSC_RCMR_START_OFFSET);
 
 
       ssc->rfmr = (data_bit_res - 1)                               << AVR32_SSC_RFMR_DATLEN_OFFSET                              |

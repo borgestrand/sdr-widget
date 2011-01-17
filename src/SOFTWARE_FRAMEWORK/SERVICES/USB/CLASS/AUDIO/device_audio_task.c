@@ -158,9 +158,9 @@ void device_audio_task(void *pvParameters)
         #define STARTUP_LED_DELAY  4000
         if     ( time<= 1*STARTUP_LED_DELAY )
 			{ 	LED_On( LED0 );
-				gpio_clr_gpio_pin(AK5394_RSTN);		// put AK5394A in reset
 	        	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	            pdca_disable(PDCA_CHANNEL_SSC_RX);
+//	            LED_On( LED1 );
 			}
         else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
         else if( time== 3*STARTUP_LED_DELAY ) LED_On( LED2 );
@@ -168,7 +168,7 @@ void device_audio_task(void *pvParameters)
         else if( time== 5*STARTUP_LED_DELAY )
 		{
         	LED_Off( LED0 );
-            gpio_set_gpio_pin(AK5394_RSTN);		// start AK5394A
+//            gpio_set_gpio_pin(AK5394_RSTN);		// start AK5394A
 		}
         else if( time== 6*STARTUP_LED_DELAY ) LED_Off( LED1 );
         else if( time== 7*STARTUP_LED_DELAY ) LED_Off( LED2 );
@@ -177,19 +177,18 @@ void device_audio_task(void *pvParameters)
         	{
         	startup=FALSE;
 
-            while (gpio_get_pin_value(AK5394_CAL)); // wait till CAL goes low
             audio_buffer_in = 0;
 
             // Wait for the next frame synchronization event
             // to avoid channel inversion.  Start with left channel - FS goes low
-            while (!gpio_get_pin_value(SSC_RX_FRAME_SYNC));
-            while (gpio_get_pin_value(SSC_RX_FRAME_SYNC));
+            while (!gpio_get_pin_value(AK5394_LRCK));
+            while (gpio_get_pin_value(AK5394_LRCK));
 
             // Enable now the transfer.
             pdca_enable(PDCA_CHANNEL_SSC_RX);
             pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
-//            freq_changed = 1;						// force a freq change reset
+            freq_changed = 1;						// force a freq change reset
         	};
      }
 

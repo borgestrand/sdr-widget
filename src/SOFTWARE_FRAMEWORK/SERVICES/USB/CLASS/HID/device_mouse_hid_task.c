@@ -152,7 +152,7 @@ void device_mouse_hid_task(void)
 
        case 'r':
 	   if ( Is_usb_out_received(EP_HID_RX)){
-		   LED_Toggle(LED1);
+//		   LED_Toggle(LED1);
 		   Usb_reset_endpoint_fifo_access(EP_HID_RX);
 		   data_length = Usb_byte_count(EP_HID_RX);
 		   if (data_length > 2) data_length = 2;
@@ -185,7 +185,7 @@ void device_mouse_hid_task(void)
 
        if( Is_usb_in_ready(EP_HID_TX) )
        {
-    	  LED_Toggle(LED0);
+//    	  LED_Toggle(LED0);
           Usb_reset_endpoint_fifo_access(EP_HID_TX);
           
           //! Write report

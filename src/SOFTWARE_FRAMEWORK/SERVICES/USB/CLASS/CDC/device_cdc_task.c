@@ -156,7 +156,7 @@ void device_cdc_task(void *pvParameters)
           if( USART_SUCCESS==usart_read_char(DBG_USART, &c) )
           {
              uart_usb_putchar(c);           // Loop back, USART to USB
-             LED_Toggle(LED0);
+//             LED_Toggle(LED0);
           }
           else {
              usart_reset_status( DBG_USART );
@@ -168,7 +168,7 @@ void device_cdc_task(void *pvParameters)
     {
     	c= uart_usb_getchar();
         uart_usb_putchar(c);           // Loop back, USB to USB
-        LED_Toggle(LED0);
+//        LED_Toggle(LED0);
 #if LCD_DISPLAY				// Multi-line LCD display
         if (c == 13) {
         	uart_usb_putchar(10);
