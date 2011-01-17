@@ -89,7 +89,6 @@
 #define EP_4                  4
 #define EP_5                  5
 #define EP_6                  6
-#define EP_7				  7
 //! @}
 
 //! @defgroup USBB_pipes USBB pipes
@@ -103,7 +102,6 @@
 #define P_4                   4
 #define P_5                   5
 #define P_6                   6
-#define P_7					  7
 //! @}
 
 //! @defgroup USBB_types USBB standard types
@@ -193,9 +191,6 @@
 #define Is_usb_dpram_byte_write_capable() (Tst_bits(AVR32_USBB_ufeatures, AVR32_USBB_UFEATURES_BYTE_WRITE_DPRAM_MASK))
   //! Get size of USBB PB address space
 #define Usb_get_ip_paddress_size()      (AVR32_USBB_uaddrsize)
-
-  //! Get number of hardware-implemented DMA channels
-#define Usb_get_enhanced_high_bandwidth_iso()       (Rd_bitfield(AVR32_USBB_ufeatures, 0x00FE0000))
 //! @}
 
 
@@ -631,21 +626,19 @@
 #define Is_usb_memory_allocated(ep)               (Tst_bits(AVR32_USBB_uecfgx(ep), AVR32_USBB_UECFGX_ALLOC_MASK))
 
   //! configures selected endpoint in one step
-  //! Modified by Alex Lee 26 aug 2010 for high bandwidth EP
-#define Usb_configure_endpoint(ep, type, dir, size, bank, nbtrans) \
+#define Usb_configure_endpoint(ep, type, dir, size, bank) \
 (\
   Usb_enable_endpoint(ep),\
   Wr_bits(AVR32_USBB_uecfgx(ep), AVR32_USBB_UECFGX_EPTYPE_MASK |\
                                  AVR32_USBB_UECFGX_EPDIR_MASK  |\
                                  AVR32_USBB_UECFGX_EPSIZE_MASK |\
-                                 AVR32_USBB_UECFGX_EPBK_MASK   |\
-								 AVR32_USBB_UECFGX_NBTRANS_MASK, \
+                                 AVR32_USBB_UECFGX_EPBK_MASK,   \
           (((U32)(type) << AVR32_USBB_UECFGX_EPTYPE_OFFSET) & AVR32_USBB_UECFGX_EPTYPE_MASK) |\
           (((U32)(dir ) << AVR32_USBB_UECFGX_EPDIR_OFFSET ) & AVR32_USBB_UECFGX_EPDIR_MASK ) |\
           ( (U32)Usb_format_endpoint_size(size) << AVR32_USBB_UECFGX_EPSIZE_OFFSET         ) |\
-          (((U32)(bank) << AVR32_USBB_UECFGX_EPBK_OFFSET  ) & AVR32_USBB_UECFGX_EPBK_MASK  ) |\
-          (((U32)(nbtrans) << AVR32_USBB_UECFGX_NBTRANS_OFFSET) & AVR32_USBB_UECFGX_NBTRANS_MASK)),\
+          (((U32)(bank) << AVR32_USBB_UECFGX_EPBK_OFFSET  ) & AVR32_USBB_UECFGX_EPBK_MASK  )),\
   Usb_allocate_memory(ep),\
+\
   Is_usb_endpoint_configured(ep)\
 )
 

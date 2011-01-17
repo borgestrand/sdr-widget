@@ -97,33 +97,6 @@ uint8_t pcf8574_value = 0;		// Current Read/Write value
 
 // Flag for Power and SWR
 #define PSWR_MENU		4
-// PSWR Menu Items
-const uint8_t pswr_menu_size = 9;
-const char *pswr_menu_items[] =
-				{  "1-PowerMeterCal",  // Develop for adj when TX
-				   "2-PowerBargraph",  // Normal dial and set menu
-				   "3-SWR  Bargraph",  // Normal dial and set menu
-				   "4-PEP SampleWin",  // Normal dial and set menu
-				   "5-SWR Alarm Val",  // Normal dial and set menu
-				   "6-Alarm Latency",  // Normal dial and set menu
-				   "7-SWRtrigMinP",    // Normal dial and set menu
-				   "8-Go Back",
-				   "9-Exit"};
-// Todo: Add SWR zero-set, compensating for leakage in directional couplers.
-// Separate adjustments per band.  Will include modification of:
-// taskMoboCtrl.c, Mobo_config.c, Mobo_config.h...
-// Todo: Frequency dependent PowerMeterCal???, similarly as SWR zero-set.
-// Separate adjustments per band.  Will include modification of:
-// taskMoboCtrl.c, Mobo_config.c, Mobo_config.h...
-
-// Flags for Power and SWR Submenu functions
-#define PSWR_CASE0_MENU		401
-#define PSWR_CASE1_MENU		402
-#define PSWR_CASE2_MENU		403
-#define PSWR_CASE3_MENU		404
-#define PSWR_CASE4_MENU		405
-#define PSWR_CASE5_MENU		406
-#define PSWR_CASE6_MENU		407
 
 // Flag for Bias Settings
 #define BIAS_MENU		5
@@ -3167,13 +3140,6 @@ static void vtaskPushButtonMenu( void * pcParameters )
     			else if (menu_level == PCF_CASE1_MENU) pcf8574_write_menu_level2();//done
 
     			else if (menu_level == PSWR_MENU) pswr_menu();
-    			else if (menu_level == PSWR_CASE0_MENU) pswr_menu();
-    			else if (menu_level == PSWR_CASE1_MENU) pswr_menu();
-    			else if (menu_level == PSWR_CASE2_MENU) pswr_menu();
-    			else if (menu_level == PSWR_CASE3_MENU) pswr_menu();
-    			else if (menu_level == PSWR_CASE4_MENU) pswr_menu();
-    			else if (menu_level == PSWR_CASE5_MENU) pswr_menu();
-    			else if (menu_level == PSWR_CASE6_MENU) pswr_menu();
 
         		else if (menu_level == BIAS_MENU) bias_menu();//done
         		else if (menu_level == BIAS_CASE0_MENU) bias_autoset_menu_level2();//done

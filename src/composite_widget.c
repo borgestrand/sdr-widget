@@ -126,32 +126,18 @@
  */
 
 /* Modified by Alex Lee 20 Feb 2010
- * To enumerate as a USB composite device:
+ * To enumerate as a USB composite device with 4 interfaces:
+ * CDC
  * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
  * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
- * Audio (Audio Class v1 and Audio Class V2.  Tweaked for
+ * Audio (Start with Audio Class v1.  Will progress to Audio Class V2.  Tweaked for
  * 		compatibility when running at HIGH speed USB.)
  * For SDR-Widget and SDR-Widget-lite, custom boards based on the AT32UC3A3256
  *
  * See http://code.google.com/p/sdr-widget/
  *
- * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
- *
- * Copyright (C) Alex Lee
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Modified by Alex Lee and sdr-widget team since Feb 2010.  Copyright General Purpose Licence v2.
+ * Please refer to http://code.google.com/p/sdr-widget/
  */
 
 
@@ -167,7 +153,6 @@
 #endif
 #include "compiler.h"
 #include "board.h"
-#include "print_funcs.h"
 #include "intc.h"
 #include "pm.h"
 #include "gpio.h"
@@ -178,7 +163,6 @@
 #include "conf_usb.h"
 #include "usb_task.h"
 #if USB_DEVICE_FEATURE == ENABLED
-#include "device_mouse_hid_task.h"
 #endif
 #if USB_HOST_FEATURE == ENABLED
 //#include "host_keyboard_hid_task.h"
@@ -193,6 +177,7 @@
  */
 
 #include "queue.h"
+#include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
 #include "taskPowerDisplay.h"
 #include "taskPushButtonMenu.h"
@@ -206,7 +191,7 @@
 /*
  *  A few global variables.
  */
-xSemaphoreHandle mutexEP_IN;
+
 
 //_____ M A C R O S ________________________________________________________
 
@@ -244,8 +229,6 @@ int main(void)
 
   INTC_init_interrupts();
 
-  // Initialize usart comm
-  init_dbg_rs232(pm_freq_param.pba_f);
 
   // Initialize USB clock (on PLL1)
   pm_configure_usb_clock();
@@ -255,7 +238,6 @@ int main(void)
 
 #if USB_DEVICE_FEATURE == ENABLED
 
-  mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
   #if LCD_DISPLAY						// Multi-line LCD display
   vStartTaskLCD();
@@ -263,8 +245,8 @@ int main(void)
   vStartTaskPushButtonMenu();
   #endif
   vStartTaskMoboCtrl();
+  vStartTaskEXERCISE( tskIDLE_PRIORITY );
   AK5394A_task_init();
-  device_mouse_hid_task_init();
   device_audio_task_init();
 
 

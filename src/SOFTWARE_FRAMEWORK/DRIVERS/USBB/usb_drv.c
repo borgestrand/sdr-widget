@@ -87,7 +87,7 @@ Status_bool_t usb_init_device(void)
                                 TYPE_CONTROL,
                                 DIRECTION_OUT,
                                 EP_CONTROL_LENGTH,
-                                SINGLE_BANK, 0);
+                                SINGLE_BANK);
 }
 
 //! usb_set_ep_txpacket

@@ -14,7 +14,7 @@
 /*
  * Atmel specific headers.
  */
-//#include "cycle_counter.h"
+#include "cycle_counter.h"
 
 /*
  * Widget TASK headers
@@ -35,10 +35,11 @@ uint8_t position_saved;
 void ___waitForLCD(void)
 {
     //  Wait: new instructions may be given to the LCD screen 50us
-    //cpu_delay_us(50, FOSC0);	// A bit crude, as this is time not claimable by RTOS
+	// A bit crude, as this is time not claimable by RTOS
+    //cpu_delay_us(50, FOSC0);
 	//cpu_delay_us(100, FOSC0);
-    vTaskDelay( 1 ); // This is a bit slow...
-					 // ...TF3LJ 2010-06-19
+    vTaskDelay( 1 ); // However, this is far too slow...
+					 //impacts several things badly...TF3LJ 2010-06-19
 }
 
 /**
@@ -293,6 +294,8 @@ void vStartTaskLCD( void )
 {
 	mutexQueLCD = xSemaphoreCreateMutex();
 	//mutexLCD = xSemaphoreCreateMutex();
+
+//	gpio_set_gpio_pin(LCD_BL_PIN);
 
 	xStatus = xTaskCreate( vtaskLCD, 
                          ( signed char * ) "LCDpanel", 

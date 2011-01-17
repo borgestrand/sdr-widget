@@ -65,17 +65,19 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #endif
-#include "gpio.h"
 #include "pdca.h"
+#include "gpio.h"
 #include "usb_drv.h"
 #include "usb_descriptors.h"
 #include "usb_standard_request.h"
+#include "usb_specific_request.h"
 #include "device_audio_task.h"
 
-#if LCD_DISPLAY            // Multi-line LCD display
+#if LCD_DISPLAY				// Multi-line LCD display
 #include "taskLCD.h"
 #endif
 
+//#include "taskEXERCISE.h"
 #include "composite_widget.h"
 #include "taskAK5394A.h"
 
@@ -88,9 +90,12 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
-static U32  index, spk_index;
-int audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out to the USB
+static volatile U16  sof_cnt;
 
+static U32  index, spk_index;
+static U16  old_gap = SPK_BUFFER_SIZE;
+U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out
+									// to the USB and reading from USB
 
 //!
 //! Public : (bit) mute
@@ -98,11 +103,7 @@ int audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sen
 //! mute is set to FALSE otherwise
 //!/
 volatile Bool   mute, spk_mute;
-S16 volume, spk_volume;
-
-
-
-
+volatile U32	FB_rate;
 
 //!
 //! @brief This function initializes the hardware/software resources
@@ -116,9 +117,6 @@ void device_audio_task_init(void)
   spk_buffer_in = 0;
   mute = FALSE;
   spk_mute = FALSE;
-  volume = 0x5000;
-  spk_volume = 0x5000;
-
 
   xTaskCreate(device_audio_task,
               configTSK_USB_DAUDIO_NAME,
@@ -126,7 +124,10 @@ void device_audio_task_init(void)
               NULL,
               configTSK_USB_DAUDIO_PRIORITY,
               NULL);
+
+
 }
+
 
 //!
 //! @brief Entry point of the device Audio task management
@@ -137,21 +138,20 @@ void device_audio_task(void *pvParameters)
   static U32  time=0;
   static Bool startup=TRUE;
   int i;
-  U16 num_samples, num_remaining, gap, old_gap = SPK_BUFFER_SIZE;
+  U16 num_samples, num_remaining, gap;
+
   U8 sample_MSB;
   U8 sample_SB;
   U8 sample_LSB;
   U8 sample_HSB;
   U32 sample;
-  U32 FB_rate = 48 << 16;
+
 
   volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
   volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 
   portTickType xLastWakeTime;
   xLastWakeTime = xTaskGetTickCount();
-
-
 
   while (TRUE)
   {
@@ -165,62 +165,65 @@ void device_audio_task(void *pvParameters)
 
 
         time+=configTSK_USB_DAUDIO_PERIOD;
-        #define STARTUP_LED_DELAY  400
+        #define STARTUP_LED_DELAY  4000
         if     ( time<= 1*STARTUP_LED_DELAY )
- 			{ 	LED_On( LED0 );
- 	        	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
- 	            pdca_disable(PDCA_CHANNEL_SSC_RX);
- //	            LED_On( LED1 );
- 			}
-         else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
-         else if( time== 3*STARTUP_LED_DELAY ) LED_On( LED2 );
-         else if( time== 4*STARTUP_LED_DELAY ) LED_On( LED3 );
-         else if( time== 5*STARTUP_LED_DELAY )
- 		{
-         	LED_Off( LED0 );
- //            gpio_set_gpio_pin(AK5394_RSTN);		// start AK5394A
- 		}
-         else if( time== 6*STARTUP_LED_DELAY ) LED_Off( LED1 );
-         else if( time== 7*STARTUP_LED_DELAY ) LED_Off( LED2 );
-         else if( time== 8*STARTUP_LED_DELAY ) LED_Off( LED3 );
-         else if( time >= 9*STARTUP_LED_DELAY )
-         	{
-         	startup=FALSE;
+			{ 	LED_On( LED0 );
+	        	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	            pdca_disable(PDCA_CHANNEL_SSC_RX);
+			}
+        else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
+        else if( time== 3*STARTUP_LED_DELAY ) LED_On( LED2 );
+        else if( time== 4*STARTUP_LED_DELAY ) LED_On( LED3 );
+        else if( time== 5*STARTUP_LED_DELAY )
+		{
+        	LED_Off( LED0 );
+//            gpio_set_gpio_pin(AK5394_RSTN);		// start AK5394A
+		}
+        else if( time== 6*STARTUP_LED_DELAY ) LED_Off( LED1 );
+        else if( time== 7*STARTUP_LED_DELAY ) LED_Off( LED2 );
+        else if( time== 8*STARTUP_LED_DELAY ) LED_Off( LED3 );
+        else if( time >= 9*STARTUP_LED_DELAY )
+        	{
+        	startup=FALSE;
 
-             audio_buffer_in = 0;
-             spk_buffer_in = 0;
+            audio_buffer_in = 0;
+            audio_buffer_out = 0;
+            spk_buffer_in = 0;
+            spk_buffer_out = 0;
+            index = 0;
 
-             if (Is_usb_full_speed_mode()) FB_rate = 48 << 14;   // 3 bytes 10.14 format
-             else FB_rate = 48 << 13;							 // 4 bytes 12.13 format
+            // Wait for the next frame synchronization event
+            // to avoid channel inversion.  Start with left channel - FS goes low
+            while (!gpio_get_pin_value(AK5394_LRCK));
+            while (gpio_get_pin_value(AK5394_LRCK));
 
-             // Wait for the next frame synchronization event
-             // to avoid channel inversion.  Start with left channel - FS goes low
-             while (!gpio_get_pin_value(AK5394_LRCK));
-             while (gpio_get_pin_value(AK5394_LRCK));
+            // Enable now the transfer.
+            pdca_enable(PDCA_CHANNEL_SSC_RX);
+            pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
-             // Enable now the transfer.
-             pdca_enable(PDCA_CHANNEL_SSC_RX);
-             pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+            freq_changed = 1;						// force a freq change reset
         	};
      }
-    else {
 
 
-		if (usb_alternate_setting == 1)
-		{
+    if (usb_alternate_setting == 1)
+    {
+    	if (current_freq.frequency == 96000) num_samples = 24;
+    	else if (current_freq.frequency == 48000) num_samples = 12;
+    	else num_samples = 48;	// freq 192khz
 
-			if (Is_usb_in_ready(EP_AUDIO_IN)){   // Endpoint buffer free ?
+		if (Is_usb_in_ready(EP_AUDIO_IN)){   // Endpoint ready for data transfer?
 
-				Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
+			Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
-						// Sync AK data stream with USB data stream
-						// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
-						// buffer 0 is set in the reload register of the pdca
-						// So the actual loading is occuring in buffer 1
-						// USB data is being taken from audio_buffer_out
+		        // Sync AK data stream with USB data stream
+				// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
+				// buffer 0 is set in the reload register of the pdca
+				// So the actual loading is occuring in buffer 1
+				// USB data is being taken from audio_buffer_out
 
-						// find out the current status of PDCA transfer
-						// gap is how far the audio_buffer_out is from overlapping audio_buffer_in
+				// find out the current status of PDCA transfer
+				// gap is how far the audio_buffer_out is from overlapping audio_buffer_in
 
 				num_remaining = pdca_channel->tcr;
 				if (audio_buffer_in != audio_buffer_out)	// AK and USB using same buffer
@@ -233,117 +236,111 @@ void device_audio_task(void *pvParameters)
 					gap = (AUDIO_BUFFER_SIZE - index) + (AUDIO_BUFFER_SIZE - num_remaining);
 				};
 
-				num_samples = 48;
 
-				// Sync the USB stream with the AK stream
-				// throttle back
-				if  (gap < AUDIO_BUFFER_SIZE/2){
+				if ( gap < AUDIO_BUFFER_SIZE/2 ){				// throttle back, transfer less
 					num_samples--;
-				} else
-
-				// speed up
-				if  (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)) {
+				}
+				else if (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)){	// transfer more
 					num_samples++;
 				};
 
 
-				  Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
-				  for( i=0 ; i < num_samples ; i++ )   // Fill endpoint with sample raw
-				  {
-					 if(mute==FALSE)
-					 {
+			  Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
+			  for( i=0 ; i < num_samples ; i++ )   // Fill endpoint with samples
+			  {
+				 if(!mute)
+				 {
 
-							if (audio_buffer_out == 0)
-							{
-								sample_LSB = audio_buffer_0[index];
-								sample_SB = audio_buffer_0[index] >> 8;
-								sample_MSB = audio_buffer_0[index] >> 16;
-							}
-							else
-							{
-								sample_LSB = audio_buffer_1[index];
-								sample_SB = audio_buffer_1[index] >> 8;
-								sample_MSB = audio_buffer_1[index] >> 16;
-							};
+					if (audio_buffer_out == 0)
+					{
+						sample_LSB = audio_buffer_0[index];
+						sample_SB = audio_buffer_0[index] >> 8;
+						sample_MSB = audio_buffer_0[index] >> 16;
+					}
+					else
+					{
+						sample_LSB = audio_buffer_1[index];
+						sample_SB = audio_buffer_1[index] >> 8;
+						sample_MSB = audio_buffer_1[index] >> 16;
+					};
 
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-
-						if (audio_buffer_out == 0)
-						{
-							sample_LSB = audio_buffer_0[index+1];
-							sample_SB = audio_buffer_0[index+1] >> 8;
-							sample_MSB = audio_buffer_0[index+1] >> 16;
-						}
-						else
-						{
-							sample_LSB = audio_buffer_1[index+1];
-							sample_SB = audio_buffer_1[index+1] >> 8;
-							sample_MSB = audio_buffer_1[index+1] >> 16;
-						};
-
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-
-						index += 2;
-						if (index >= AUDIO_BUFFER_SIZE)
-						{
-							index=0;
-							audio_buffer_out = 1 - audio_buffer_out;
-						};
-					 }
-					 else
-					 {
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-
-					 };
-				  };
-				  Usb_send_in(EP_AUDIO_IN);		// send the current bank
-			   };
-		} // end alt setting == 1
+					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
 
-		if (usb_alternate_setting_out == 1){
+					if (audio_buffer_out == 0)
+					{
+						sample_LSB = audio_buffer_0[index+1];
+						sample_SB = audio_buffer_0[index+1] >> 8;
+						sample_MSB = audio_buffer_0[index+1] >> 16;
+					}
+					else
+					{
+						sample_LSB = audio_buffer_1[index+1];
+						sample_SB = audio_buffer_1[index+1] >> 8;
+						sample_MSB = audio_buffer_1[index+1] >> 16;
+					};
 
-			// Sync CS4344 spk data stream by calculating gap and provide feedback
-			num_remaining = spk_pdca_channel->tcr;
-			if (spk_buffer_in != spk_buffer_out)	// CS4344 and USB using same buffer
-			{
-				if ( spk_index < (SPK_BUFFER_SIZE - num_remaining)) gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
-				else gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
-			}
-			else  // usb and pdca working on different buffers
-			{
-				gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
-			}
+					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+
+					index += 2;
+					if (index >= AUDIO_BUFFER_SIZE)
+					{
+						index=0;
+						audio_buffer_out = 1 - audio_buffer_out;
+					};
+				 }
+				 else
+				 {
+						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+
+				 };
+			  };
+			  Usb_send_in(EP_AUDIO_IN);		// send the current bank
+		   };
+    } // end alt setting 1
+
+	if (usb_alternate_setting_out == 1){
+
 
 			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)){   // Endpoint buffer free ?
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
+
+
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
+				// Sync CS4344 spk data stream by calculating gap and provide feedback
+				num_remaining = spk_pdca_channel->tcr;
+				if (spk_buffer_in != spk_buffer_out)	// CS4344 and USB using same buffer
+				{
+					if ( spk_index < (SPK_BUFFER_SIZE - num_remaining)) gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
+					else gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
+				}
+				else  // usb and pdca working on different buffers
+				{
+					gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
+				}
+
 
 				if (Is_usb_full_speed_mode()){			// FB rate is 3 bytes in 10.14 format
 
 					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 						LED_Toggle(LED0);
-						FB_rate -= 1L << 1;
+						FB_rate -= 2;
 						old_gap = gap;
 					}
 					else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)){
 						LED_Toggle(LED1);
-						FB_rate += 1L << 1;
+						FB_rate += 2;
 						old_gap = gap;
 					}
-
-					if (FB_rate > ((48 + 1) << 14)) FB_rate = (48 + 1) << 14;
-					if (FB_rate < ((48 - 1) << 14)) FB_rate = (48 - 1) << 14;
-
 
 					sample_LSB = FB_rate;
 					sample_SB = FB_rate >> 8;
@@ -353,21 +350,18 @@ void device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
 				}
 				 else	// HS mode
-				{									// FB rate is 4 bytes in 16.16 format
+				{									// FB rate is 4 bytes in 12.13 format
 
 						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 							LED_Toggle(LED0);
-							FB_rate -= 1L << 1;
+							FB_rate -= 5;
 							old_gap = gap;
 						}
 						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)){
 							LED_Toggle(LED1);
-							FB_rate += 1L << 1;
+							FB_rate += 5;
 							old_gap = gap;
 						}
-
-						if (FB_rate > ((48 + 1) << 13)) FB_rate = (48 + 1) << 13;
-						if (FB_rate < ((48 - 1) << 13)) FB_rate = (48 - 1) << 13;
 
 						sample_LSB = FB_rate;
 						sample_SB = FB_rate >> 8;
@@ -382,53 +376,68 @@ void device_audio_task(void *pvParameters)
 				Usb_send_in(EP_AUDIO_OUT_FB);
 			} // end sub_in_ready
 
-		   if (Is_usb_out_received(EP_AUDIO_OUT)){
-				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
 
-				for (i = 0; i < num_samples; i++){
-					if (spk_mute) {
-						sample_LSB = 0;
-						sample_SB = 0;
-						sample_MSB = 0;
-					} else {
-						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-					};
+		if (Is_usb_out_received(EP_AUDIO_OUT)){
 
-					sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-					if (spk_buffer_in == 0) spk_buffer_0[spk_index] = sample;
-					else spk_buffer_1[spk_index] = sample;
 
-					if (spk_mute) {
-						sample_LSB = 0;
-						sample_SB = 0;
-						sample_MSB = 0;
-					} else {
-						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-					};
+			Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
+			num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
 
-					sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-					if (spk_buffer_in == 0) spk_buffer_0[spk_index+1] = sample;
-					else spk_buffer_1[spk_index+1] = sample;
+			for (i = 0; i < num_samples; i++){
+				if (spk_mute) {
+					sample_LSB = 0;
+					sample_SB = 0;
+					sample_MSB = 0;
+				} else {
+					sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+				};
 
-					spk_index += 2;
-					if (spk_index >= SPK_BUFFER_SIZE){
-						spk_index = 0;
-						spk_buffer_in = 1 - spk_buffer_in;
-					}
+				sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+				if (spk_buffer_in == 0) spk_buffer_0[spk_index] = sample;
+				else spk_buffer_1[spk_index] = sample;
+
+				if (spk_mute) {
+					sample_LSB = 0;
+					sample_SB = 0;
+					sample_MSB = 0;
+				} else {
+					sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+				};
+
+				sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+				if (spk_buffer_in == 0) spk_buffer_0[spk_index+1] = sample;
+				else spk_buffer_1[spk_index+1] = sample;
+
+				spk_index += 2;
+				if (spk_index >= SPK_BUFFER_SIZE){
+					spk_index = 0;
+					spk_buffer_in = 1 - spk_buffer_in;
 				}
-				Usb_ack_out_received_free(EP_AUDIO_OUT);
-		   }	// end usb_out_received
-		} // end usb_alternate_setting_out == 1
-    }	// end startup else
+			}
+			Usb_ack_out_received_free(EP_AUDIO_OUT);
+	   }	// end usb_out_received
+	} // end usb_alternate_setting_out == 1
+
   } // end while vTask
 
 }
 
+
+//!
+//! @brief usb_sof_action
+//!
+//! This function increments the sof_cnt counter each time
+//! the USB Start-of-Frame interrupt subroutine is executed (1 ms).
+//! Useful to manage time delays
+//!
+void usb_sof_action(void)
+{
+  sof_cnt++;
+}
 
 
 #endif  // USB_DEVICE_FEATURE == ENABLED

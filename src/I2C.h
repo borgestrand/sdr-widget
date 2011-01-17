@@ -25,7 +25,10 @@
 
 #include "twim_patched.h"
 
-#define MOBO_TWI_SPEED 	400000 // Measures as 470kHz
+#define MOBO_TWI_SPEED 	400000
+//#define MOBO_TWI_SPEED 	660000	// Measures as 387kHz
+//#define MOBO_TWI_SPEED 	670000	// Measures as 427kHz
+
 
 #define MOBO_TWIM1	// Define as either TWIM0 or TWIM1
 

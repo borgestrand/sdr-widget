@@ -51,23 +51,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
- *
- * Copyright (C) Alex Lee
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Modified by Alex Lee and sdr-widget team since Feb 2010.  Copyright General Purpose Licence v2.
+ * Please refer to http://code.google.com/p/sdr-widget/
  */
 
 //_____ I N C L U D E S ____________________________________________________
@@ -110,7 +95,7 @@ static  void    usb_set_interface    (void);
 static            U8                                  bmRequestType;
         volatile  U8                                  usb_configuration_nb;
         volatile  U16	usb_interface_nb;
-        volatile  U16	usb_alternate_setting, usb_alternate_setting_out;
+        volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
         volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 extern  volatile  Bool                                usb_connected;
 
@@ -398,52 +383,7 @@ void usb_get_descriptor(void)
 	  }
   } // bmRequestType == IN_DEVICE
 
-  else if (bmRequestType == IN_INTERFACE){
-	  wInterface=usb_format_usb_to_mcu_data(16,Usb_read_endpoint_data(EP_CONTROL, 16));
-	  switch( descriptor_type ) // Descriptor ID
-		  {
-#if (USB_HIGH_SPEED_SUPPORT==DISABLED)
-		if (wInterface == DSC_INTERFACE_HID)
-			hid_get_descriptor(
-			sizeof(usb_conf_desc_fs.hid)
-		,  (const U8*)&usb_conf_desc_fs.hid);
-#else
-			 case HID_DESCRIPTOR:
-			 if( Is_usb_full_speed_mode() )
-			 {
-				if (wInterface == DSC_INTERFACE_HID)
-					hid_get_descriptor(
-					sizeof(usb_conf_desc_fs.hid)
-				,  (const U8*)&usb_conf_desc_fs.hid);
-			 }else{
-				 if (wInterface == DSC_INTERFACE_HID)
-					hid_get_descriptor(
-					sizeof(usb_conf_desc_hs.hid)
-				,  (const U8*)&usb_conf_desc_hs.hid);
-				 }
 
-			 return;
-#endif
-
-			 case HID_REPORT_DESCRIPTOR:
-				 hid_get_descriptor(
-				sizeof(usb_hid_report_descriptor)
-			 ,  usb_hid_report_descriptor);
-			 return;
-
-			 case HID_PHYSICAL_DESCRIPTOR:
-			 // TODO
-			 break;
-			 default:
-				if (!usb_user_get_descriptor(descriptor_type, string_type))
-				{
-				  Usb_enable_stall_handshake(EP_CONTROL);
-				  Usb_ack_setup_received_free();
-				  return;
-				}
-				break;
-		  }
-  }
 
   temp.u32 = Usb_read_endpoint_data(EP_CONTROL, 32);      //!< read wIndex and wLength with a 32-bit access
                                                           //!< since this access is aligned with a 32-bit
@@ -655,7 +595,7 @@ void usb_set_feature(void)
                                      TYPE_BULK,
                                      DIRECTION_IN,
                                      64,
-                                     SINGLE_BANK, 0);
+                                     SINGLE_BANK);
         Usb_reset_endpoint(EP_CONTROL);
         Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTPCKT_MASK);
         usb_write_ep_txpacket(EP_CONTROL, &test_packet, sizeof(test_packet), NULL);
@@ -834,6 +774,13 @@ void usb_set_interface(void)
    } else if (usb_interface_nb == STD_AS_INTERFACE_OUT){
 	   usb_alternate_setting_out = wValue;
 	   usb_alternate_setting_out_changed = TRUE;
+   }
+
+   //* Check whether it is the audio streaming interface and Alternate Setting that is being set
+   usb_interface_nb = wIndex;
+   if (usb_interface_nb == DSC_INTERFACE_AS) {
+	   usb_alternate_setting = wValue;
+	   usb_alternate_setting_changed = TRUE;
    }
 
    //* Find endpoints of interface and reset it

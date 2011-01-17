@@ -45,6 +45,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Modified by Alex Lee and SDR-Widget team for the sdr-widget project.
+ * See http://code.google.com/p/sdr-widget/
+ * Copyright under GNU General Public License v2
  */
 
 #ifndef _DEVICE_AUDIO_TASK_H_
@@ -62,7 +65,9 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-extern volatile Bool spk_mute, mute;
+
+extern volatile Bool mute, spk_mute;
+extern volatile U32 FB_rate;
 
 //_____ M A C R O S ________________________________________________________
 

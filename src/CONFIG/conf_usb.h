@@ -45,42 +45,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * Modified by Alex Lee 20 Feb 2010
- * To enumerate as a USB composite device:
- * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
- * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
- * Audio (Audio Class v1 and Audio Class V2.  Tweaked for
- * 		compatibility when running at HIGH speed USB.)
- * For SDR-Widget and SDR-Widget-lite, custom boards based on the AT32UC3A3256
- *
+ * Modified by Alex Lee and SDR-Widget team for the sdr-widget project - 14 Feb 2010
  * See http://code.google.com/p/sdr-widget/
+ * Copyright under GNU General Public License v2
  *
- * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
- *
- * Copyright (C) Alex Lee
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 
 #ifndef _CONF_USB_H_
 #define _CONF_USB_H_
 
 #include "compiler.h"
 #include "board.h"
-#include "print_funcs.h"
 #include "usb_ids.h"
 
 
@@ -128,12 +103,10 @@
 
 #define COMPOSITE_DEVICE
 
-#define NB_ENDPOINTS		  6			// EP0 is the control EP.
-#define EP_HID_TX			  1
-#define EP_HID_RX			  2
-#define EP_AUDIO_OUT		  3
-#define EP_AUDIO_IN			  4
-#define EP_AUDIO_OUT_FB		  5
+#define NB_ENDPOINTS		  4
+#define EP_AUDIO_IN			  1
+#define EP_AUDIO_OUT 		  2
+#define EP_AUDIO_OUT_FB		  3
 
     //! @defgroup device_cst_actions USB device custom actions
     //!
@@ -163,6 +136,30 @@ extern void usb_suspend_action(void);
 
   //! Debug trace macro
 #define LOG_STR(str)                    //print_dbg(str)
+
+//! @defgroup usb_stream_control USB stream control parameters
+//! Defines the way the USB stream control will operate. The USB Stream Control embeds a mechanism
+//! that ensures a good audio playback by keeping synchronized both Host and Device, even if their
+//! sampling frequency are not strictly equivalent.
+//! @{
+
+//! Size of a buffer (in bytes) used in the USB stream FIFO. It shall be equivalent to the pipe/endpoint
+//! from which the stream comes to.
+#define USB_STREAM_BUFFER_SIZE        100   // Size in bytes.
+
+//! Number of buffers used in the USB stream FIFO.
+#define USB_STREAM_BUFFER_NUMBER        8   // Unit is in number of buffers. Must be a 2-power number.
+
+//! Maximum gap (in number of buffers) between the stream reader and the stream writer, in which the FIFO
+//! operates without re-synchronization.
+#define USB_STREAM_IDLE_BUFFER_NUMBER   2   // Unit is in number of buffers.
+
+//! Max sampling frequencies excursion (given in per-thousandth) that the USB Stream Control FIFO
+//! is supposed to softly correct.
+#define USB_STREAM_MAX_EXCURSION       100  // Unit is in per-thousandth (�/oo)
+
+//! @}
+
 
 
 //! @}

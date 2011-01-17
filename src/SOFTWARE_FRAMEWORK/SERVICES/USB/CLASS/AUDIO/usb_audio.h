@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.X.X Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -13,6 +13,9 @@
  *
  * \author               Atmel Corporation: http://www.atmel.com \n
  *                       Support and FAQ: http://support.atmel.no/
+ *							Modified for USB Audio Class V2.0 by
+ *							Ken McGuire
+ *
  *
  ******************************************************************************/
 
@@ -45,6 +48,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ *
+ * Modified by Alex Lee 20 Feb 2010
+ * To enumerate as a USB composite device with 4 interfaces:
+ * CDC
+ * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
+ * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
+ * Audio (Start with Audio Class v1.  Will progress to Audio Class V2.  Tweaked for
+ * 		compatibility when running at HIGH speed USB.)
+ * For SDR-Widget and SDR-Widget-lite, custom boards based on the AT32UC3A3256
+ *
+ * See http://code.google.com/p/sdr-widget/
+ *
+ * Modified by Alex Lee and sdr-widget team since Feb 2010.  Copyright General Purpose Licence v2.
+ * Please refer to http://code.google.com/p/sdr-widget/
+ *
+ * Modified by Ken McGuire and Loftur Jonasson 2010
  */
 
 #ifndef _USB_AUDIO_H_
@@ -55,7 +74,6 @@
 
 
 //_____ M A C R O S ____________________________________________________________
-
 #define CS_INTERFACE                    0x24
 #define CS_ENDPOINT                     0x25
 #define GENERAL_SUB_TYPE                0x01
@@ -64,15 +82,18 @@
 #define MIXER_UNIT_SUB_TYPE             0x04
 #define FEATURE_UNIT_SUB_TYPE           0x06
 #define INPUT_TERMINAL_SUB_TYPE         0x02
-#define FEATURE_UNIT_SUB_TYPE           0x06
 #define OUTPUT_TERMINAL_SUB_TYPE        0x03
+
+
 
 //!Audio volume ctrl configuration
 #define CS_MUTE   0x0100
 #define CS_VOLUME 0x0200
 
-#define  AUDIO_CLASS_REVISION                   0x0100  //!< Revision of class specification - 1.0
+//#define  AUDIO_CLASS_REVISION                   0x0100  //!< Revision of class specification - 1.0
+#define  AUDIO_CLASS_REVISION_2                 0x0200  //!< Revision of class specification - 2.0
 
+/*  UAC 1
 #define BR_REQUEST_GET_CUR        0x81
 #define BR_REQUEST_GET_MIN        0x82
 #define BR_REQUEST_GET_MAX        0x83
@@ -81,6 +102,7 @@
 #define BR_REQUEST_SET_MIN        0x02
 #define BR_REQUEST_SET_MAX        0x03
 #define BR_REQUEST_SET_RES        0x04
+*/
 
 //! \name Constants used in Descriptor
 //! @{
@@ -93,7 +115,61 @@
 #define  ENDPOINT_TYPE_OFFSET                2
    //! @}
 
-   //! \name Audio Class-Specific Descriptor Types
+   //! \name Audio Function Class Code pp. A.1
+   //! @{
+#define  AUDIO_FUNCTION                         0x01
+   //! @}
+
+   //! \name Audio Function Subclass Code pp. A.2
+   //! @{
+#define  AUDIO_FUNCTION_SUBCLASS_UNDEFINED      0x00
+   //! @}
+
+   //! \name Audio Function Protocol Code pp. A.3
+   //! @{
+#define  AUDIO_FUNCTION_PROTOCOL_UNDEFINED      0x00
+#define  AUDIO_FUNCTION_VERSION_02_00			0x20
+   //! @}
+
+   //! \name Audio Interface Class Code pp. A.4
+   //! @{
+#define  AUDIO_INTERFACE                        0x01
+   //! @}
+
+   //! \name Audio Interface Subclass Code pp. A.5
+   //! @{
+#define  AUDIO_INTERFACE_SUBCLASS_UNDEFINED         0x00
+#define  AUDIO_INTERFACE_SUBCLASS_AUDIOCONTROL      0x01
+#define  AUDIO_INTERFACE_SUBCLASS_AUDIOSTREAMING    0x02
+#define  AUDIO_INTERFACE_SUBCLASS_MIDISTREAMING     0x03
+   //! @}
+
+   //! \name Audio Interface Protocol Code pp. A.6
+   //! @{
+#define  AUDIO_INTERFACE_PROTOCOL_UNDEFINED         0x00
+#define  AUDIO_INTERFACE_IP_VERSION_02_00           0x20
+#define  IP_VERSION_02_00	AUDIO_INTERFACE_IP_VERSION_02_00
+   //! @}
+
+   //! \name Audio Function Category Code pp. A.7
+   //! @{
+#define  AUDIO_FUNCTION_SUBCLASS_UNDEFINED                   0x00
+#define  AUDIO_FUNCTION_SUBCLASS_DESKTOP_SPEAKER             0x01
+#define  AUDIO_FUNCTION_SUBCLASS_HOME_THEATER                0x02
+#define  AUDIO_FUNCTION_SUBCLASS_MICROPHONE                  0x03
+#define  AUDIO_FUNCTION_SUBCLASS_HEADSET                     0x04
+#define  AUDIO_FUNCTION_SUBCLASS_TELEPHONE                   0x05
+#define  AUDIO_FUNCTION_SUBCLASS_CONVERTER                   0x06
+#define  AUDIO_FUNCTION_SUBCLASS_VOICESOUND_RECORDER         0x07
+#define  AUDIO_FUNCTION_SUBCLASS_IO_BOX                      0x08
+#define  AUDIO_FUNCTION_SUBCLASS_MUSICAL_INSTRUMENT          0x09
+#define  AUDIO_FUNCTION_SUBCLASS_PROAUDIO                    0x0A
+#define  AUDIO_FUNCTION_SUBCLASS_AUDIO_VIDEO                 0x0B
+#define  AUDIO_FUNCTION_SUBCLASS_CONTROL_PANEL               0x0C
+#define  AUDIO_FUNCTION_SUBCLASS_OTHER                       0xFF
+   //! @}
+
+   //! \name Audio Class-Specific Descriptor Types pp. A.8
    //! @{
 #define  DESCRIPTOR_AUDIO_UNDEFINED             0x20
 #define  DESCRIPTOR_AUDIO_DEVICE                0x21
@@ -103,7 +179,7 @@
 #define  DESCRIPTOR_AUDIO_ENDPOINT              0x25
    //! @}
 
-   //! \name Audio Class-Specific AC Interface Descriptor Subtypes
+   //! \name Audio Class-Specific AC Interface Descriptor Subtypes pp. A.9
    //! @{
 #define  DESCRIPTOR_SUBTYPE_AUDIO_AC_UNDEFINED              0x00
 #define  DESCRIPTOR_SUBTYPE_AUDIO_AC_HEADER                 0x01
@@ -112,24 +188,40 @@
 #define  DESCRIPTOR_SUBTYPE_AUDIO_AC_MIXER_UNIT             0x04
 #define  DESCRIPTOR_SUBTYPE_AUDIO_AC_SELECTOR_UNIT          0x05
 #define  DESCRIPTOR_SUBTYPE_AUDIO_AC_FEATURE_UNIT           0x06
-#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_PROCESSING_UNIT        0x07
-#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_EXTENSION_UNIT         0x08
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_EFFECT_UNIT            0x07
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_PROCESSING_UNIT        0x08
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_EXTENSION_UNIT         0x09
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SOURCE           0x0A
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR         0x0B
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_MULTIPLIER       0x0C
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AC_SAMPLE_RATE_CONVERTE   0x0D
    //! @}
 
-   //! \name Audio Class-Specific AS Interface Descriptor Subtypes
+   //! \name Audio Class-Specific AS Interface Descriptor Subtypes pp. A.10
    //! @{
 #define  DESCRIPTOR_SUBTYPE_AUDIO_AS_UNDEFINED              0x00
 #define  DESCRIPTOR_SUBTYPE_AUDIO_AS_GENERAL                0x01
 #define  DESCRIPTOR_SUBTYPE_AUDIO_AS_FORMAT_TYPE            0x02
-#define  DESCRIPTOR_SUBTYPE_AUDIO_AS_FORMAT_SPECIFIC        0x03
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AS_ENCODER                0x03
+#define  DESCRIPTOR_SUBTYPE_AUDIO_AS_DECODER                0x04
    //! @}
 
-   //! \name Audio Class-Specific Endpoint Descriptor Subtypes
+   //! \name Effect Unit Types pp. A.11
    //! @{
-#define  DESCRIPTOR_SUBTYPE_AUDIO_ENDP_UNDEFINED            0x00
-#define  DESCRIPTOR_SUBTYPE_AUDIO_ENDP_GENERAL              0x01
+#define  AUDIO_EFFECT_UNIT_UNDEFINED                        0x00
+#define  AUDIO_EFFECT_UNIT_PARAM_EQ                         0x01
+#define  AUDIO_EFFECT_UNIT_REVERB                           0x02
+#define  AUDIO_EFFECT_UNIT_MOD_DELAY                        0x03
+#define  AUDIO_EFFECT_UNIT_DYN_RANGE_COMP                   0x04
+
+#define  DESCRIPTOR_EFFECT_UNDEFINED                        0x00
+#define  DESCRIPTOR_EFFECT_PARAM_EQ                         0x01
+#define  DESCRIPTOR_EFFECT_REVERB                           0x02
+#define  DESCRIPTOR_EFFECT_MOD_DELAY                        0x03
+#define  DESCRIPTOR_EFFECT_DYN_RANGE_COMP                   0x04
    //! @}
 
+   //! \name AProcessing Unit Types pp. A.12
    //! \name Processing Unit Process Types (in request DESCRIPTOR_AUDIO_INTERFACE + DESCRIPTOR_SUBTYPE_AUDIO_AC_PROCESSING_UNIT)
    //! @{
 #define  AUDIO_PROCESSING_UNIT_UNDEFINED                    0x00
@@ -139,7 +231,48 @@
 #define  AUDIO_PROCESSING_UNIT_REVERBERATION                0x04
 #define  AUDIO_PROCESSING_UNIT_CHORUS                       0x05
 #define  AUDIO_PROCESSING_UNIT_DYN_RANGE_COMP               0x06
+
+#define  DESCRIPTOR_PROCESS_UNDEFINED                       0x00
+#define  DESCRIPTOR_PROCESS_UP_DOWNMIX                      0x01
+#define  DESCRIPTOR_PROCESS_DOLBY_PROLOCIC                  0x02
+#define  DESCRIPTOR_PROCESS_STEREO_EXTENDER                 0x03
    //! @}
+
+   //! \name Audio Class-Specific Endpoint Descriptor Subtypes pp. A.13
+   //! @{
+#define  DESCRIPTOR_SUBTYPE_AUDIO_ENDP_UNDEFINED            0x00
+#define  DESCRIPTOR_SUBTYPE_AUDIO_ENDP_GENERAL              0x01
+   //! @}
+
+   //! \name Audio Class-Specific Request Code pp. A.14
+   //! @{
+#define  AUDIO_CS_REQUEST_UNDEFINED                        0x00
+#define  AUDIO_CS_REQUEST_CUR                              0x01
+#define  AUDIO_CS_REQUEST_RANGE                            0x02
+#define  AUDIO_CS_REQUEST_MEM                              0x03
+   //! @}
+
+   //! \name Audio Encoder Type Code pp. A.15
+   //! @{
+#define  AUDIO_ENCODER_UNDEFINED 0x00
+#define  AUDIO_ENCODER_OTHER     0x01
+#define  AUDIO_ENCODER_MPEG      0x02
+#define  AUDIO_ENCODER_AC3       0x03
+#define  AUDIO_ENCODER_WMA       0x04
+#define  AUDIO_ENCODER_DTS       0x05
+	//! @}
+
+	//! \name Audio Decoder Typecode pp. A.16
+	//! @{
+#define  AUDIO_DECODER_UNDEFINED 0x00
+#define  AUDIO_DECODER_OTHER     0x01
+#define  AUDIO_DECODER_MPEG      0x02
+#define  AUDIO_DECODER_AC3       0x03
+#define  AUDIO_DECODER_WMA       0x04
+#define  AUDIO_DECODER_DTS       0x05
+	//! @}
+
+
 //! @}
 
 
@@ -163,15 +296,15 @@
 
 
 
-//! \name Terminal Types (from Device Class Definition for Terminal Types Release 1.0)
+//! \name Terminal Types (from Device Class Definition for Terminal Types Release 2.0)
 //! @{
-   //! \name USB Terminal Types
+   //! \name USB Terminal Types pp. 2.1
    //! @{
 #define  AUDIO_TE_TYPE_USB_UNDEFINE                         0x0100  // I/O USB Terminal, undefined Type.
 #define  AUDIO_TE_TYPE_USB_STREAMING                        0x0101  // I/O A Terminal dealing with a signal carried over an endpoint in an AudioStreaming interface. The AudioStreaming interface descriptor points to the associated Terminal through the bTerminalLink field.
 #define  AUDIO_TE_TYPE_USB_VENDOR_SPECIFIC                  0x01FF  // I/O A Terminal dealing with a signal carried over a vendor-specific interface. The vendor-specific interface descriptor must contain a field that references the Terminal
    //! @}
-   //! \name Input Terminal Types
+   //! \name Input Terminal Types pp. 2.2
    //! @{
 #define  AUDIO_TE_TYPE_INPUT_UNDEFINED                      0x0200  // I Input Terminal, undefined Type.
 #define  AUDIO_TE_TYPE_INPUT_MICROPHONE                     0x0201  // I A generic microphone that does not fit under any of the other classifications.
@@ -181,7 +314,7 @@
 #define  AUDIO_TE_TYPE_INPUT_MICROPHONE_ARRAY               0x0205  // I An array of microphones designed for directional processing using host-based signal processing algorithms.
 #define  AUDIO_TE_TYPE_INPUT_PROCESSING_MICROPHONE_ARRAY    0x0206  // I An array of microphones with an embedded signal processor.
    //! @}
-   //! \name Output Terminal Types
+   //! \name Output Terminal Types pp 2.3
    //! @{
 #define  AUDIO_TE_TYPE_OUTPUT_UNDEFINED                     0x0300  // O Output Terminal, undefined Type.
 #define  AUDIO_TE_TYPE_OUTPUT_SPEAKER                       0x0301  // O A generic speaker or set of speakers that does not fit under any of the other classifications.
@@ -192,7 +325,7 @@
 #define  AUDIO_TE_TYPE_OUTPUT_COMMUNICATION_SPEAKER         0x0306  // O Speaker or set of speakers designed for voice communication.
 #define  AUDIO_TE_TYPE_OUTPUT_LOW_FREQUENCY_EFFECTS_SPEAKER 0x0307  // O Speaker designed for low frequencies (subwoofer). Not capable of reproducing speech or music.
    //! @}
-   //! \name Bi-directional Terminal Types
+   //! \name Bi-directional Terminal Types pp 2.4
    //! @{
 #define  AUDIO_TE_TYPE_BI_UNDEFINED                         0x0400  // I/O Bi-directional Terminal, undefined Type.
 #define  AUDIO_TE_TYPE_BI_HANDSET                           0x0401  // I/O Hand-held bi-directional audio device.
@@ -201,14 +334,14 @@
 #define  AUDIO_TE_TYPE_BI_ECHO_SUPPRESSING_SPEAKERPHONE     0x0404  // I/O A hands-free audio device with echo suppression capable of half-duplex operation.
 #define  AUDIO_TE_TYPE_BI_ECHO_CANCELING_SPEAKERPHONE       0x0405  // I/O A hands-free audio device with echo cancellation capable of full-duplex operation.
    //! @}
-   //! \name Telephony Terminal Types
+   //! \name Telephony Terminal Types pp 2.5
    //! @{
 #define  AUDIO_TE_TYPE_TELEPHONY_UNDEFINED                  0x0500  // I/O Telephony Terminal, undefined Type.
 #define  AUDIO_TE_TYPE_TELEPHONY_PHONE_LINE                 0x0501  // I/O May be an analog telephone line jack, an ISDN line, a proprietary PBX interface, or a wireless link.
 #define  AUDIO_TE_TYPE_TELEPHONY_TELEPHONE                  0x0502  // I/O Device can be used as a telephone. When not in use as a telephone, handset is used as a bi-directional audio device.
 #define  AUDIO_TE_TYPE_TELEPHONY_DOWN_LINE_PHONE            0x0503  // I/O A standard telephone set connected to the device. When not in use as a telephone, it can be used as a bidirectional audio device.
    //! @}
-   //! \name External Terminal Types
+   //! \name External Terminal Types pp 2.6
    //! @{
 #define  AUDIO_TE_TYPE_EXTERNAL_UNDEFINED                   0x0600  // I/O External Terminal, undefined Type.
 #define  AUDIO_TE_TYPE_EXTERNAL_ANALOG_CONNECTOR            0x0601  // I/O A generic analog connector.
@@ -218,11 +351,14 @@
 #define  AUDIO_TE_TYPE_EXTERNAL_S_PDIF_INTERFACE            0x0605  // I/O An S/PDIF digital audio interface. The Associated Interface descriptor can be used to reference an interface used for controlling special functions of this interface.
 #define  AUDIO_TE_TYPE_EXTERNAL_1394_DA_STREAM              0x0606  // I/O An interface to audio streams on a 1394 bus.
 #define  AUDIO_TE_TYPE_EXTERNAL_1394_DV_STREAM_SOUNDTRACK   0x0607  // I/O An interface to soundtrack of A/V stream on a 1394 bus.
-   //! @}
-   //! \name Embedded Function Terminal Types
+#define  AUDIO_TE_TYPE_EXTERNAL_ADAT_LITEPIPE               0x0608  // I/O An Optical interface to Alesis DAT.
+#define  AUDIO_TE_TYPE_EXTERNAL_TDIF                        0x0609  // I/O An interface to Tascam.
+#define  AUDIO_TE_TYPE_EXTERNAL_MADI                        0x060A  // I/O An interface to Multi-channel Audio Digital Interface as defined by AES.
+//! @}
+   //! \name Embedded Function Terminal Types pp. 2.7
    //! @{
 #define  AUDIO_TE_TYPE_EMBEDDED_UNDEFINED                   0x0700  // I/O Embedded Terminal, undefined Type.
-#define  AUDIO_TE_TYPE_EMBEDDED_LEVEL_CALIBRATION_NOISE_SRC 0x0701  // O Internal Noise source for level calibration (MPEG decoding, Dolby PrologicÔ, AC-3 etc.)
+#define  AUDIO_TE_TYPE_EMBEDDED_LEVEL_CALIBRATION_NOISE_SRC 0x0701  // O Internal Noise source for level calibration (MPEG decoding, Dolby Prologicï¿½, AC-3 etc.)
 #define  AUDIO_TE_TYPE_EMBEDDED_EQUALIZATION NOISE          0x0702  // O Internal Noise source for measurements.
 #define  AUDIO_TE_TYPE_EMBEDDED_CD_PLAYER                   0x0703  // I Audio compact disc player or CD-ROM capable of audio playback.
 #define  AUDIO_TE_TYPE_EMBEDDED_DAT                         0x0704  // I/O Digital Audio Tape.
@@ -241,51 +377,99 @@
 #define  AUDIO_TE_TYPE_EMBEDDED_RADIO_TRANSMITTER           0x0711  // O AM/FM radio transmitter.
 #define  AUDIO_TE_TYPE_EMBEDDED_MULTI_TRACK_RECORDER        0x0712  // I/O A multi-track recording system.
 #define  AUDIO_TE_TYPE_EMBEDDED_SYNTHESIZER                 0x0713  // I Synthesizer.
-   //! @}
+#define  AUDIO_TE_TYPE_EMBEDDED_PIANO                       0x0714  // I/O Piano
+#define  AUDIO_TE_TYPE_EMBEDDED_GUITAR                      0x0715  // I/O Guitar
+#define  AUDIO_TE_TYPE_EMBEDDED_DRUMS_RHYTHM                0x0716  // I/O Percussion Instrument
+#define  AUDIO_TE_TYPE_EMBEDDED_OTHER                       0x0717
+//! @}
 //! @}
 
 
-//! \name Additional Audio Device Class Codes (from USB Device Class Definition for Audio Data Formats Release 1.0)
+//! \name Additional Audio Device Class Codes (from USB Device Class Definition for Audio Data Formats Release 2.0)
 //! @{
 
-   //! \name Format Type Codes
+   //! \name Format Type Codes pp. A1
    //! @{
 #define  AUDIO_FORMAT_TYPE_UNDEFINED                        0x00
 #define  AUDIO_FORMAT_TYPE_I                                0x01
 #define  AUDIO_FORMAT_TYPE_II                               0x02
 #define  AUDIO_FORMAT_TYPE_III                              0x03
+#define  AUDIO_FORMAT_TYPE_IV                               0x04
+#define  AUDIO_FORMAT_EXT_TYPE_I                            0x81
+#define  AUDIO_FORMAT_EXT_TYPE_II                           0x82
+#define  AUDIO_FORMAT_EXT_TYPE_III                          0x83
    //! @}
 
-   //! \name Audio Data Format Codes
+   //! \name Audio Data Format Codes pp. A2.1
    //! @{
       //! \name Audio Data Format Type I Codes
       //! @{
-#define  AUDIO_FORMAT_TI_UNDEFINE                           0x0000
-#define  AUDIO_FORMAT_TI_PCM                                0x0001
-#define  AUDIO_FORMAT_TI_PCM8                               0x0002
-#define  AUDIO_FORMAT_TI_IEEE_FLOAT                         0x0003
-#define  AUDIO_FORMAT_TI_ALAW                               0x0004
-#define  AUDIO_FORMAT_TI_MULAW                              0x0005
+#define  AUDIO_FORMAT_TI_UNDEFINE                           0x00000000
+#define  AUDIO_FORMAT_TI_PCM                                0x00000001
+#define  AUDIO_FORMAT_TI_PCM8                               0x00000002
+#define  AUDIO_FORMAT_TI_IEEE_FLOAT                         0x00000004
+#define  AUDIO_FORMAT_TI_ALAW                               0x00000008
+#define  AUDIO_FORMAT_TI_MULAW                              0x00000010
+#define  AUDIO_FORMAT_TI_RAW_DATA                           0x80000000
       //! @}
-      //! \name Audio Data Format Type II Codes
+      //! \name Audio Data Format Type II Codes pp. A2.2
       //! @{
-#define  AUDIO_FORMAT_TII_UNDEFINED                         0x1000
-#define  AUDIO_FORMAT_TII_MPEG                              0x1001
-#define  AUDIO_FORMAT_TII_AC_3                              0x1002
+#define  AUDIO_FORMAT_TII_UNDEFINED                         0x00000000
+#define  AUDIO_FORMAT_TII_MPEG                              0x00000001
+#define  AUDIO_FORMAT_TII_AC_3                              0x00000002
+#define  AUDIO_FORMAT_TII_WMA                               0x00000004
+#define  AUDIO_FORMAT_TII_DTS                               0x00000008
+#define  AUDIO_FORMAT_TII_RAW_DATA                          0x80000000
       //! @}
-      //! \name Audio Data Format Type III Codes
+      //! \name Audio Data Format Type III Codes pp. A2.3
       //! @{
-#define  AUDIO_FORMAT_TIII_UNDEFINED                        0x2000
-#define  AUDIO_FORMAT_TIII_IEC1937_AC_3                     0x2001
-#define  AUDIO_FORMAT_TIII_IEC1937_MPEG1_L1                 0x2002
-#define  AUDIO_FORMAT_TIII_IEC1937_MPEG1_L2_3_OR_MP_2_NOEXT 0x2003
-#define  AUDIO_FORMAT_TIII_IEC1937_MPEG2_EXT                0x2004
-#define  AUDIO_FORMAT_TIII_IEC1937_MPEG2_L1_LS              0x2005
-#define  AUDIO_FORMAT_TIII_IEC1937_MPEG2_L2_L3_LS           0x2006
+#define  AUDIO_FORMAT_TIII_UNDEFINED                        0x00000000
+#define  AUDIO_FORMAT_TIII_IEC1937_AC_3                     0x00000001
+#define  AUDIO_FORMAT_TIII_IEC1937_MPEG1_L1                 0x00000002
+#define  AUDIO_FORMAT_TIII_IEC1937_MPEG1_L2_3_OR_MP_2_NOEXT 0x00000004
+#define  AUDIO_FORMAT_TIII_IEC1937_MPEG2_EXT                0x00000008
+#define  AUDIO_FORMAT_TIII_IEC1937_MPEG2_AAC_ADTS           0x00000010
+#define  AUDIO_FORMAT_TIII_IEC1937_MPEG2_L1_LS              0x00000020
+#define  AUDIO_FORMAT_TIII_IEC1937_MPEG2_L2_L3_LS           0x00000040
+#define  AUDIO_FORMAT_TIII_IEC61937_DTS_I                   0x00000080
+#define  AUDIO_FORMAT_TIII_IEC61937_DTS_II                  0x00000100
+#define  AUDIO_FORMAT_TIII_IEC61937_DTS_III                 0x00000200
+#define  AUDIO_FORMAT_TIII_IEC61937_ATRAC                   0x00000300
+#define  AUDIO_FORMAT_TIII_IEC61937_ATRAC2_ATRAC3           0x00000400
+#define  AUDIO_FORMAT_TIII_TYPE_III_WMA                     0x00000800
+
+      //! @}
+      //! \name Audio Data Format Type IV Codes pp. A2.4
+      //! @{
+#define  AUDIO_FORMAT_TIV_UNDEFINE                           0x00000000
+#define  AUDIO_FORMAT_TIV_PCM                                0x00000001
+#define  AUDIO_FORMAT_TIV_PCM8                               0x00000002
+#define  AUDIO_FORMAT_TIV_IEEE_FLOAT                         0x00000004
+#define  AUDIO_FORMAT_TIV_ALAW                               0x00000008
+#define  AUDIO_FORMAT_TIV_MULAW                              0x00000010
+#define  AUDIO_FORMAT_TIV_MPEG                               0x00000020
+#define  AUDIO_FORMAT_TIV_AC_3                               0x00000040
+#define  AUDIO_FORMAT_TIV_WMA                               0x00000080
+#define  AUDIO_FORMAT_TIV_IEC1937_AC_3                     0x00000100
+#define  AUDIO_FORMAT_TIV_IEC1937_MPEG1_L1                 0x00000200
+#define  AUDIO_FORMAT_TIV_IEC1937_MPEG1_L2_3_OR_MP_2_NOEXT 0x00000400
+#define  AUDIO_FORMAT_TIV_IEC1937_MPEG2_EXT                0x00000800
+#define  AUDIO_FORMAT_TIV_IEC1937_MPEG2_AAC_ADTS           0x00001000
+#define  AUDIO_FORMAT_TIV_IEC1937_MPEG2_L1_LS              0x00002000
+#define  AUDIO_FORMAT_TIV_IEC1937_MPEG2_L2_L3_LS           0x00004000
+#define  AUDIO_FORMAT_TIV_IEC61937_DTS_I                   0x00008000
+#define  AUDIO_FORMAT_TIV_IEC61937_DTS_II                  0x00010000
+#define  AUDIO_FORMAT_TIV_IEC61937_DTS_III                 0x00020000
+#define  AUDIO_FORMAT_TIV_IEC61937_ATRAC                   0x00030000
+#define  AUDIO_FORMAT_TIV_IEC61937_ATRAC2_ATRAC3           0x00040000
+#define  AUDIO_FORMAT_TIV_TYPE_III_WMA                     0x00080000
+#define  AUDIO_FORMAT_TIV_IEC60958_PCM                     0x00100000
       //! @}
    //! @}
 
-   //! \name Format-Specific Control Selectors
+
+
+   //! \name Format-Specific Control Selectors pp. A17.13.1
    //! @{
       //! \name MPEG Control Selectors
       //! @{
@@ -296,14 +480,34 @@
 #define  AUDIO_FORMAT_CS_MP_DYN_RANGE                       0x04
 #define  AUDIO_FORMAT_CS_MP_SCALING                         0x05
 #define  AUDIO_FORMAT_CS_MP_HILO_SCALING                    0x06
+#define  AUDIO_FORMAT_CS_MP_UNDERFLOW                       0x07
+#define  AUDIO_FORMAT_CS_MP_OVERFLOW                        0x08
+#define  AUDIO_FORMAT_CS_MP_DECODER_ERROR                   0x09
       //! @}
-      //! \name AC-3 Control Selectors
+      //! \name AC-3 Control Selectors pp. A17.13.2
       //! @{
-#define  AUDIO_FORMAT_CS_AC_CONTROL_UNDEFINED               0x00
-#define  AUDIO_FORMAT_CS_AC_MODE                            0x01
-#define  AUDIO_FORMAT_CS_AC_DYN_RANGE                       0x02
-#define  AUDIO_FORMAT_CS_AC_SCALING                         0x03
-#define  AUDIO_FORMAT_CS_AC_HILO_SCALING                    0x04
+#define  AUDIO_FORMAT_CS_AD_CONTROL_UNDEFINED               0x00
+#define  AUDIO_FORMAT_CS_AD_MODE                            0x01
+#define  AUDIO_FORMAT_CS_AD_DYN_RANGE                       0x02
+#define  AUDIO_FORMAT_CS_AD_SCALING                         0x03
+#define  AUDIO_FORMAT_CS_AD_HILO_SCALING                    0x04
+#define  AUDIO_FORMAT_CS_AD_UNDERFLOW                       0x05
+#define  AUDIO_FORMAT_CS_AD_OVERFLOW                        0x06
+#define  AUDIO_FORMAT_CS_AD_DECODER_ERROR                   0x07
+      //! @}
+      //! \name WMA Control Selectors pp. A17.13.3
+      //! @{
+#define  AUDIO_FORMAT_CS_WD_CONTROL_UNDEFINED               0x00
+#define  AUDIO_FORMAT_CS_WD_UNDERFLOW                       0x01
+#define  AUDIO_FORMAT_CS_WD_OVERFLOW                        0x02
+#define  AUDIO_FORMAT_CS_WD_DECODER_ERROR                   0x03
+      //! @}
+      //! \name DTS Control Selectors pp. A17.13.4
+      //! @{
+#define  AUDIO_FORMAT_CS_DD_CONTROL_UNDEFINED               0x00
+#define  AUDIO_FORMAT_CS_DD_UNDERFLOW                       0x01
+#define  AUDIO_FORMAT_CS_DD_OVERFLOW                        0x02
+#define  AUDIO_FORMAT_CS_DD_DECODER_ERROR                   0x03
       //! @}
    //! @}
 //! @}
@@ -345,8 +549,30 @@
 #define  SETUP_AUDIO_GET_STAT                   0xFF
    //! @}
 
+      //! \name Clock Source Control Selectors pp. A17.1
+      //! @{
+#define  AUDIO_CS_UNDEFINED                      0x00
+#define  AUDIO_CS_CONTROL_SAM_FREQ               0x01
+#define  AUDIO_CS_CONTROL_CLOCK_VALID            0x02
+//! @}
 
-   //! \name Terminal Control requests
+
+      //! \name Clock Selector Control Selectors pp. A17.2
+      //! @{
+#define  AUDIO_CX_UNDEFINED                      0x00
+#define  AUDIO_CX_CLOCK_SELECTOR                 0x01
+
+//! @}
+
+
+      //! \name Clock Multiplier Control Selectors pp. A17.3
+      //! @{
+#define  AUDIO_CM_UNDEFINED                      0x00
+#define  AUDIO_CM_NUMERATOR                      0x01
+#define  AUDIO_CM_DENOMINATOR                    0x02
+//! @}
+
+   //! \name Terminal Control requests pp. A17.4
    //! LSB(wIndex) = Interface, MSB(wIndex) =  Mixer Terminal ID
    //! LSB(wValue) = 0, MSB(wValue) = Control Selectors
    //! @{
@@ -354,7 +580,14 @@
       //! @{
 #define  AUDIO_TE_CONTROL_CS_UNDEFINED                      0x00
 #define  AUDIO_TE_CONTROL_CS_COPY_PROTECT                   0x01
+#define  AUDIO_TE_CONTROL_CS_CONNECTOR                      0x02
+#define  AUDIO_TE_CONTROL_CS_OVERLOAD                       0x03
+#define  AUDIO_TE_CONTROL_CS_CLUSTER                        0x04
+#define  AUDIO_TE_CONTROL_CS_UNDERFLOW                      0x05
+#define  AUDIO_TE_CONTROL_CS_OVERFLOW                       0x06
+#define  AUDIO_TE_CONTROL_CS_LATENCY                        0x07
       //! @}
+
       //! \name The Copy Protect Control (AUDIO_TE_CONTROL_COPY_PROTECT) only supports the CUR attribute
       //! @{
 #define  AUDIO_TE_CONTROL_CS_COPY_PROTECT_ATT_CPL0          0x00  // Copying is permitted without restriction. The material is either not copyrighted, or the copyright is not asserted
@@ -386,7 +619,7 @@
    //! @}
 
 
-   //! \name Feature Unit Control requests
+   //! \name Feature Unit Control requests pp A.17.7
    //! LSB(wIndex) = Interface, MSB(wIndex) =  Feature Unit ID
    //! LSB(wValue) = Channel Number (CN), MSB(wValue) = Control Selector (CS)
    //! @{
@@ -403,6 +636,12 @@
 #define  AUDIO_FU_CONTROL_CS_DELAY                          0x08
 #define  AUDIO_FU_CONTROL_CS_BASS_BOOST                     0x09
 #define  AUDIO_FU_CONTROL_CS_LOUDNESS                       0x0A
+#define  AUDIO_FU_CONTROL_CS_INPUT_GAIN                     0x0B
+#define  AUDIO_FU_CONTROL_CS_INPUT_GAIN_PAD                 0x0C
+#define  AUDIO_FU_CONTROL_CS_PHASE_INVERTER                 0x0D
+#define  AUDIO_FU_CONTROL_CS_UNDERFLOW                      0x0E
+#define  AUDIO_FU_CONTROL_CS_OVERFLOW                       0x0F
+#define  AUDIO_FU_CONTROL_CS_LATENCY                        0x10
       //! @}
       //! \name Broadcast Channels (wValue)
       //! @{
@@ -462,7 +701,7 @@
 #define  AUDIO_PU_CONTROL_CS_UD_ENABLE                      0x01
 #define  AUDIO_PU_CONTROL_CS_UD_MODE_SELECT                 0x02
       //! @}
-      //! \name Dolby PrologicÔ Processing Unit Control Selectors
+      //! \name Dolby Prologicï¿½ Processing Unit Control Selectors
       //! @{
 #define  AUDIO_PU_CONTROL_CS_DP_UNDEFINED                   0x00
 #define  AUDIO_PU_CONTROL_CS_DP_ENABLE                      0x01
@@ -520,7 +759,7 @@
 //! @}
 
 
-   //! \name Extension Unit Control requests
+   //! \name Extension Unit Control requests pp. A.17.10
    //! LSB(wIndex) = Interface, MSB(wIndex) =  Extension Unit ID
    //! LSB(wValue) = 0, MSB(wValue) = Control Selector (CS)
    //! @{
@@ -528,18 +767,35 @@
       //! @{
 #define  AUDIO_XU_CONTROL_CS_UNDEFINED                     0x00
 #define  AUDIO_XU_CONTROL_CS_ENABLE                        0x01
+#define  AUDIO_XU_CONTROL_CS_CLUSTER                       0x02
+#define  AUDIO_XU_CONTROL_CS_UNDERFLW                      0x03
+#define  AUDIO_XU_CONTROL_CS_OVERFLOW                      0x04
+#define  AUDIO_XU_CONTROL_CS_LATENCY                       0x05
       //! @}
    //! @}
 
-   //! \name Interface (endpoint) Control Requests
+
+      //! \name AudioStreaming Interface Control Selectors pp. A.17.11
+      //! @{
+#define  AUDIO_AS_UNDEFINED                                0x00
+#define  AUDIO_AS_ACT_ALT_SETTINGS                         0x01
+#define  AUDIO_AS_VAL_ALT_SETTINGS                         0x02
+#define  AUDIO_AS_AUDIO_DATA_FORMAT                        0x03
+      //! @}
+
+
+
+
+   //! \name Interface (endpoint) Control Requests pp. A.17.14
    //! wIndex = endpoint
    //! LSB(wValue) = 0, MSB(wValue) = Control Selector (CS)
    //! @{
       //! \name Control Selectors
       //! @{
 #define  AUDIO_EP_CONTROL_CS_UNDEFINED                      0x00
-#define  AUDIO_EP_CONTROL_CS_SAMPLING_FREQ                  0x01
-#define  AUDIO_EP_CONTROL_CS_PITCH                          0x02
+#define  AUDIO_EP_CONTROL_CS_PITCH                          0x01
+#define  AUDIO_EP_CONTROL_CS_OVERRUN                        0x02
+#define  AUDIO_EP_CONTROL_CS_UNDERRUN                       0x03
       //! @}
    //! @}
 
@@ -569,7 +825,7 @@
       //! - Feature Unit Control requests with AUDIO_FU_CONTROL_CS_VOLUME
       //!
       //! The settings for the CUR, MIN, and MAX attributes can range from +127.9961 dB (0x7FFF) down to -127.9961 dB (0x8001) in steps of 1/256 dB
-      //! The range for the CUR attribute is extended by code 0x8000, representing silence, i.e., -¥ dB.
+      //! The range for the CUR attribute is extended by code 0x8000, representing silence, i.e., -ï¿½ dB.
       //! The settings for the RES attribute can only take positive values and range from 1/256 dB (0x0001) to +127.9961 dB (0x7FFF).
       //! @{
 #define  AUDIO_CONTROL_LEVEL16_DB_STEP                      (1L/256) //  1/256 dB
@@ -584,7 +840,7 @@
       //! Used in:
       //! - Feature Unit Control requests withAUDIO_FU_CONTROL_CS_BASS, _MID, _TREBLE
       //!
-      //! The settings for the CUR, MIN, and MAX attributes can range from +31.75 dB (0x7F) down to –32.00 dB (0x80) in steps of 0.25 dB (0x01)
+      //! The settings for the CUR, MIN, and MAX attributes can range from +31.75 dB (0x7F) down to ï¿½32.00 dB (0x80) in steps of 0.25 dB (0x01)
       //! The settings for the RES attribute can only take positive values and range from 0.25 dB (0x01) to +31.75 dB (0x7F)
       //! @{
 #define  AUDIO_CONTROL_LEVEL8_MAX                           0x7F     // +31.75 dB

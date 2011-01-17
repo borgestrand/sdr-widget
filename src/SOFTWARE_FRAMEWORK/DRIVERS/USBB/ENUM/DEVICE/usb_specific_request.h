@@ -45,23 +45,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
- *
- * Copyright (C) Alex Lee
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef _USB_SPECIFIC_REQUEST_H_
@@ -77,7 +60,6 @@
 #endif
 
 
-#include "hid.h"
 
 
 //_____ M A C R O S ________________________________________________________
@@ -93,6 +75,15 @@ extern const S_usb_manufacturer_string_descriptor usb_user_manufacturer_string_d
 extern const S_usb_product_string_descriptor usb_user_product_string_descriptor;
 extern const S_usb_serial_number usb_user_serial_number;
 extern const S_usb_language_id usb_user_language_id;
+extern const S_usb_clock_source_1 usb_user_clock_source_1;
+extern const S_usb_clock_source_2 usb_user_clock_source_2;
+extern const S_usb_clock_selector usb_user_clock_selector;
+
+extern const S_usb_wl usb_user_wl;
+extern const S_usb_ait usb_user_ait;
+extern const S_usb_aot usb_user_aot;
+extern const S_usb_ain usb_user_ain;
+extern const S_usb_aia usb_user_aia;
 
 #define USB_HID_REPORT_DESC 47
 extern const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC];
@@ -100,6 +91,16 @@ extern const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC];
 extern U8 usb_feature_report[3];
 extern U8 usb_report[3];
 
+extern U8 clock_selected;
+extern Bool clock_changed;
+extern Bool freq_changed;
+
+typedef union {
+	U32 frequency;
+	U8 freq_bytes[4];
+} S_freq;
+
+extern S_freq current_freq;
 
 //! @defgroup specific_request USB device specific requests
 //! @{
@@ -167,12 +168,6 @@ typedef struct
 }S_line_coding;
 
 //! @}
-
-void audio_get_min(void);
-void audio_get_max(void);
-void audio_get_res(void);
-void audio_get_cur(void);
-void audio_set_cur(void);
 
 
 #endif  // _USB_SPECIFIC_REQUEST_H_

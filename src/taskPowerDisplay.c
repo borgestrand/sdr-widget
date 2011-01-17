@@ -33,6 +33,9 @@
 #include "taskAK5394A.h"
 #include "LCD_bargraphs.h"
 
+
+//#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
+
 char lcd_prt1[10];
 char lcd_prt2[10];
 char lcd_prt3[10];
@@ -229,12 +232,10 @@ static void vtaskPowerDisplay( void * pcParameters )
     		{
    	        	static uint8_t l=0,m;
    	        	uint32_t spk_sample0, spk_sample1;
-   	        	int32_t spk_sample_buffer[2][20];
+   	        	int32_t spk_sample_buffer[2][200];
    	        	int32_t spk_max_0_pos, spk_max_0_neg;
    	        	int32_t spk_max_1_pos, spk_max_1_neg;
    	           	float spk_max_0, spk_max_1;
-
-   	           	bufsize = 20;
 
    	        	// Normalize values
    	        	spk_sample0 = spk_buffer_0[0];
@@ -269,11 +270,18 @@ static void vtaskPowerDisplay( void * pcParameters )
    	    				spk_max_1_neg = spk_sample_buffer[1][m];
    	    		}
 
-   	    		// Calculate RX audio in dB and Tx audio in % power
+   	    		// Calculate RX and TX audio in dB
        			audio_max_0_dB = 20 * log10f(1+audio_max_0_pos-audio_max_0_neg);
        			audio_max_1_dB = 20 * log10f(1+audio_max_1_pos-audio_max_1_neg);
     	     	sprintf(lcd_prtdb,"%4.0fdB  RXpwr %4.0fdB",
     	     			audio_max_0_dB-144.0, audio_max_1_dB-144.0);
+
+    	     	/*
+       			spk_max_0_dB = 20 * log10f(1+spk_max_0_pos-spk_max_0_neg);
+       			spk_max_1_dB = 20 * log10f(1+spk_max_1_pos-spk_max_1_neg);
+    	     	sprintf(lcd_prtdb2,"%4.0fdB  TXpwr %4.0fdB",
+    	     			spk_max_0_dB-144.0, spk_max_1_dB-144.0);
+    	     	*/
 
      			spk_max_0 = pow((float)(spk_max_0_pos-spk_max_0_neg)/(float)0xc0000, 2);
        			spk_max_1 = pow((float)(spk_max_1_pos-spk_max_1_neg)/(float)0xc0000, 2);
