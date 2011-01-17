@@ -116,7 +116,7 @@ void device_audio_task_init(void)
   spk_index = 0;
   spk_buffer_in = 0;
   mute = FALSE;
-  spk_mute = TRUE;
+  spk_mute = FALSE;
   volume = 0x5000;
   spk_volume = 0x5000;
 

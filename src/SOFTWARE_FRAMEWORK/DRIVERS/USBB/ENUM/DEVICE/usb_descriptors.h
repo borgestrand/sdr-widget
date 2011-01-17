@@ -314,7 +314,7 @@
 
 
 				//Audio endpoint specific descriptor field
-#define AUDIO_EP_ATRIBUTES				0x00	 	// No sampling freq, no pitch, no pading
+#define AUDIO_EP_ATRIBUTES				0x01	 	// sampling freq, no pitch, no pading
 #define AUDIO_EP_DELAY_UNIT				0x00	 	// Unused
 #define AUDIO_EP_LOCK_DELAY				0x0000		// Unused
 

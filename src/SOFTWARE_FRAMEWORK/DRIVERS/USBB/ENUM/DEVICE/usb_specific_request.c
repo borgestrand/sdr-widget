@@ -181,14 +181,6 @@ void usb_user_endpoint_init(U8 conf_nb)
                             DIRECTION_IN,
                             EP_SIZE_4_FS,
                             DOUBLE_BANK, 0);
-
-    /*
-    (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB,
-                           EP_ATTRIBUTES_5,
-                           DIRECTION_OUT,
-                           EP_SIZE_5_FS,
-                           SINGLE_BANK, 0);
-         */
 	}
 	else {
 		   (void)Usb_configure_endpoint(EP_HID_TX,
@@ -211,14 +203,6 @@ void usb_user_endpoint_init(U8 conf_nb)
 		                           DIRECTION_IN,
 		                           EP_SIZE_4_HS,
 		                           DOUBLE_BANK, 0);
-
-		    /*
-		    (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB,
-		                            EP_ATTRIBUTES_5,
-		                            DIRECTION_OUT,
-		                            EP_SIZE_5_HS,
-		                            SINGLE_BANK, 0);
-		      */
 	}
 
 }
@@ -499,7 +483,7 @@ void audio_get_min(void)
 
    LSB(cs)=wValue_lsb;
    MSB(cs)=wValue_msb;
-   i_unit = wIndex;
+   i_unit = wIndex % 256;			// wIndex high byte is interface number
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -539,6 +523,11 @@ void audio_get_min(void)
             break;
          }
       }
+    else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
+    	Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
+    	Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
+    	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+    }
 
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
@@ -553,7 +542,7 @@ void audio_get_max(void)
 
    LSB(cs)=wValue_lsb;
    MSB(cs)=wValue_msb;
-   i_unit = wIndex;
+   i_unit = wIndex % 256;
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -594,6 +583,13 @@ void audio_get_max(void)
 	         break;
 	      }
    }
+
+   else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
+		Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
+		Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
+		Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+    }
+
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
@@ -607,7 +603,7 @@ void audio_get_res(void)
 
    LSB(cs)=wValue_lsb;
    MSB(cs)=wValue_msb;
-   i_unit = wIndex;
+   i_unit = wIndex % 256;
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -648,6 +644,13 @@ void audio_get_res(void)
 	         break;
 	      }
    }
+
+   else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
+   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+    }
+
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
@@ -661,7 +664,7 @@ void audio_get_cur(void)
 
    LSB(cs)=wValue_lsb;
    MSB(cs)=wValue_msb;
-   i_unit = wIndex;
+   i_unit = wIndex % 256;
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -702,6 +705,11 @@ void audio_get_cur(void)
 	      }
    }
 
+   else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
+   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
+   	Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
+   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+    }
 
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
@@ -716,7 +724,7 @@ void audio_set_cur(void)
 
    LSB(cs)=wValue_lsb;
    MSB(cs)=wValue_msb;
-   i_unit = wIndex;
+   i_unit = wIndex % 256;
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -761,8 +769,13 @@ void audio_set_cur(void)
 	       }
 	    }
    }
-   Usb_ack_control_out_received_free();
 
+   else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
+
+    }
+
+
+   Usb_ack_control_out_received_free();
    Usb_ack_control_in_ready_send();
    while (!Is_usb_control_in_ready());
 }
