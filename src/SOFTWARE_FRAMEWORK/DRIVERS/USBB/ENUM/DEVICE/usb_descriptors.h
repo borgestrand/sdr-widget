@@ -46,6 +46,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) Alex Lee
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef _USB_DESCRIPTORS_H_
@@ -97,7 +114,7 @@
 #define NB_CONFIGURATION      1
 
             // CONFIGURATION
-#define NB_INTERFACE	   4	//!  DG8SAQ, HID, Audio (2)
+#define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
@@ -106,7 +123,7 @@
 
 // IAD for Audio
 #define FIRST_INTERFACE1	2
-#define INTERFACE_COUNT1	2
+#define INTERFACE_COUNT1	3
 
 
             // USB DG8SAQ Interface descriptor
@@ -167,20 +184,45 @@
 
 #define DSC_INTERFACE_AUDIO			INTERFACE_NB2
 
-             // USB Endpoint 3 descriptor - mono
-#define ENDPOINT_NB_3       ( EP_AUDIO_IN | MSK_EP_DIR )
-#define EP_ATTRIBUTES_3     0b00100101      // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
+            // USB Endpoint 3 descriptor
+#define ENDPOINT_NB_3       ( EP_AUDIO_OUT )
+#define EP_ATTRIBUTES_3     0b00000101      // ISOCHROUNOUS ASYNCHRONOUS EXPLICIT FEEDBACK
 #define EP_IN_LENGTH_3_HS   294				// 3 bytes * 48 khz * stereo + 6 bytes for add sample
 #define EP_IN_LENGTH_3_FS	294
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_3_HS    0x04			 // One packet per 8 uframe
+#define EP_BSYNC_ADDRESS_3	0x05			 // feedback EP is EP 5
+
+             // USB Endpoint 4 descriptor
+#define ENDPOINT_NB_4       ( EP_AUDIO_IN | MSK_EP_DIR )
+#define EP_ATTRIBUTES_4     0b00100101      // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
+#define EP_IN_LENGTH_4_HS   294				// 3 bytes * 48 khz * stereo + 6 bytes for add sample
+#define EP_IN_LENGTH_4_FS	294
+#define EP_SIZE_4_FS		EP_IN_LENGTH_4_FS
+#define EP_SIZE_4_HS        EP_IN_LENGTH_4_HS
+#define EP_INTERVAL_4_FS	0x01			 // one packet per uframe
+#define EP_INTERVAL_4_HS    0x04			 // One packet per 8 uframe
+
+			// USB Endpoint 5 descriptor
+#define ENDPOINT_NB_5       ( EP_AUDIO_OUT_FB | MSK_EP_DIR )
+#define EP_ATTRIBUTES_5     0b00010001      // ISOCHROUNOUS FEEDBACK
+#define EP_IN_LENGTH_5_HS   3				// 3 bytes
+#define EP_IN_LENGTH_5_FS	3
+#define EP_SIZE_5_FS		EP_IN_LENGTH_5_FS
+#define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
+#define EP_INTERVAL_5_FS	0x01			 // 1 ms
+#define EP_INTERVAL_5_HS    0x04			 // One packet per 8 uframe
+#define EP_REFRESH_5_FS		0x07			 // 128ms
+#define EP_REFRESH_5_HS		0x0b			 // 2^11  --> 128ms
+
 
 				// AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION			0x0100
-#define NB_OF_STREAMING_INTERFACE		0x01
-#define BELONGS_AUDIO_INTERFACE			0x03
+#define NB_OF_STREAMING_INTERFACE		0x02	// one for speaker out, one for mic in
+#define BELONGS_AUDIO_INTERFACE_OUT		STD_AS_INTERFACE_OUT
+#define BELONGS_AUDIO_INTERFACE_IN		STD_AS_INTERFACE_IN
 				// Input Terminal descriptor
 #define INPUT_TERMINAL_ID				0x01
 #define INPUT_TERMINAL_TYPE				0x0201 	// Terminal is microphone
@@ -191,15 +233,52 @@
             //MIC Feature Unit descriptor
 #define MIC_FEATURE_UNIT_ID            0x02
 #define MIC_FEATURE_UNIT_SOURCE_ID     0x01
-#define MIC_BMA_CONTROLS               0x0003 	// Mute + Volume
-//#define MIC_BMA_CONTROLS               0x0001 // Mute Only
+#define MIC_FEATURE_UNIT_CONTROL_SIZE  0x02		// 2 bytes for each control
+#define MIC_BMA_CONTROLS_0             0x0001 	// Mute for master channel
+#define MIC_BMA_CONTROLS_1			   0x0002	// Volume control on left channel
+#define MIC_BMA_CONTROLS_2			   0x0002	// Volume control on right channel
+#define MIC_FEATURE_UNIT_CH_NAME_ID		0x00
+
 				// Output Terminal descriptor
 #define OUTPUT_TERMINAL_ID				0x03
 #define OUTPUT_TERMINAL_TYPE			0x0101 	// USB Streaming
 #define OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
 #define OUTPUT_TERMINAL_SOURCE_ID		0x02	// From Feature Unit Terminal
+
+				// Speaker Input Terminal
+#define SPK_INPUT_TERMINAL_ID			0x11
+#define SPK_INPUT_TERMINAL_TYPE			0x0101	// USB Streaming
+#define SPK_INPUT_TERMINAL_ASSOCIATION	0x00	// No association
+#define SPK_INPUT_TERMINAL_NB_CHANNELS	0x02	// Two channels - stereo
+#define SPK_INPUT_TERMINAL_CHANNEL_CONF	0x0003	// left front and right front
+#define SPK_INPUT_TERMINAL_CH_NAME_ID	0x00	// No channel name
+
+			// SPK Feature Unit
+#define SPK_FEATURE_UNIT_ID				0x12
+#define SPK_FEATURE_UNIT_SOURCE_ID		0x11
+#define SPK_FEATURE_UNIT_CONTROL_SIZE	0x02	// 2 bytes for each control
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x0001	// Mute
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x0002	// Volume control on left front
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x0002	// Volume control on right front
+#define SPK_FEATURE_UNIT_CH_NAME_ID		0x00	// No name
+
+
+			// SPK Output Terminal
+#define SPK_OUTPUT_TERMINAL_ID			0x13
+#define SPK_OUTPUT_TERMINAL_TYPE		0x0302	// Headphones
+#define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00	// No association
+#define SPK_OUTPUT_TERMINAL_SOURCE_ID	0x12	// From Feature Unit
+
+#define STD_AS_INTERFACE_OUT			0x03
+
+#define SPK_ALT1_AS_NB_ENDPOINT			0x02	// OUT EP and FB EP
+
+#define SPK_AS_TERMINAL_LINK			0x11	// Unit Id of the speaker input terminal
+#define SPK_AS_DELAY					0x00	// Interface delay
+#define SPK_AS_FORMAT_TAG			    0x0001	// PCM
+
 				//Audio Streaming (AS) interface descriptor
-#define STD_AS_INTERFACE_NB				0x03   // Index of Std AS Interface
+#define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
 				//Alternate O Audio Streaming (AS) interface descriptor
 #define ALT0_AS_INTERFACE_INDEX			0x00   // Index of Std AS interface Alt0
 #define ALT0_AS_NB_ENDPOINT				0x00   // Nb of endpoints for alt0 interface
@@ -693,15 +772,16 @@ __attribute__((__packed__))
 {
   U8  bLength;               /* Size of this descriptor in bytes */
   U8  bDescriptorType;       /* CS interface*/
-  U8 	bDescritorSubtype;     /* HEADER Subtype */
+  U8  bDescritorSubtype;     /* HEADER Subtype */
   U16 bcdADC;          		  /* Revision of class spec */
   U16 wTotalLength;       	  /* Total size of class specific descriptor */
   U8  bInCollection;         /* Number of streaming interface */
-  U8  baInterfaceNr;		     /* Streaming interface number */
+  U8  baInterfaceNr0;		     /* Streaming interface number 0*/
+  U8  baInterfaceNr1;		// Streaming interface number 1
 } S_usb_ac_interface_descriptor;
 
 
-//! USB mic INPUT Terminal Descriptor
+//! USB INPUT Terminal Descriptor
 typedef
 #if (defined  __ICCAVR32__)
 #pragma pack(1)
@@ -721,7 +801,7 @@ __attribute__((__packed__))
 	U16	wChannelConfig;
 	U8		iChannelNames;
 	U8		iTerminal;
-} S_usb_mic_in_ter_descriptor;
+} S_usb_in_ter_descriptor;
 
 
 //! USB Audio Feature Unit descriptor
@@ -740,11 +820,14 @@ __attribute__((__packed__))
 	U8		bUnitID;
 	U8    bSourceID;
 	U8		bControSize;
-	U16	bmaControls;
+	U16	bmaControls_0;
+	U16	bmaControls_1;
+	U16	bmsCnotrols_2;
+	U8	iTerminal;
 } S_usb_feature_unit_descriptor;
 
 
-//! USB mic OUTPUT Terminal Descriptor
+//! USB OUTPUT Terminal Descriptor
 typedef
 #if (defined __ICCAVR32__)
 #pragma pack(1)
@@ -762,7 +845,7 @@ __attribute__((__packed__))
 	U8		bAssocTerminal;
 	U8		bSourceID;
 	U8		iTerminal;
-} S_usb_mic_out_ter_descriptor;
+} S_usb_out_ter_descriptor;
 
 
 //! USB Standard AS interface Descriptor
@@ -879,24 +962,34 @@ struct
 __attribute__((__packed__))
 #endif
 {
-  S_usb_configuration_descriptor cfg;
-  S_usb_interface_descriptor	 ifc0;
-  S_usb_interface_descriptor	ifc1;
-  S_usb_hid_descriptor           hid;
-  S_usb_endpoint_descriptor      ep1;
-  S_usb_endpoint_descriptor		 ep2;
-  S_usb_interface_association_descriptor iad1;
-  S_usb_interface_descriptor     	ifc2;
-  S_usb_ac_interface_descriptor  	audioac;
-  S_usb_mic_in_ter_descriptor	 	mic_in_ter;
-  S_usb_feature_unit_descriptor    	mic_fea_unit; // extra
-	S_usb_mic_out_ter_descriptor	 	mic_out_ter;
-	S_usb_as_interface_descriptor	 	mic_as_alt0;
-	S_usb_as_interface_descriptor	 	mic_as_alt1;
-	S_usb_as_g_interface_descriptor	mic_g_as;
-	S_usb_format_type				mic_format_type;
-	S_usb_endpoint_audio_descriptor  ep3;
-	S_usb_endpoint_audio_specific	 ep3_s;
+	  S_usb_configuration_descriptor cfg;
+	  S_usb_interface_descriptor	 ifc0;
+	  S_usb_interface_descriptor	ifc1;
+	  S_usb_hid_descriptor           hid;
+	  S_usb_endpoint_descriptor      ep1;
+	  S_usb_endpoint_descriptor		 ep2;
+	  S_usb_interface_association_descriptor iad1;
+	  S_usb_interface_descriptor     	ifc2;
+	  S_usb_ac_interface_descriptor  	audioac;
+	  S_usb_in_ter_descriptor 		 	mic_in_ter;
+	  S_usb_feature_unit_descriptor    	mic_fea_unit;
+	  S_usb_out_ter_descriptor		 	mic_out_ter;
+	  S_usb_in_ter_descriptor			spk_in_ter;
+	  S_usb_feature_unit_descriptor		spk_fea_unit;
+	  S_usb_out_ter_descriptor			spk_out_ter;
+	  S_usb_as_interface_descriptor	 	spk_as_alt0;
+	  S_usb_as_interface_descriptor	 	spk_as_alt1;
+	  S_usb_as_g_interface_descriptor	spk_g_as;
+	  S_usb_format_type					spk_format_type;
+	  S_usb_endpoint_audio_descriptor  	ep3;
+	  S_usb_endpoint_audio_specific	 	ep3_s;
+	  S_usb_endpoint_audio_descriptor	ep5;
+	  S_usb_as_interface_descriptor	 	mic_as_alt0;
+	  S_usb_as_interface_descriptor	 	mic_as_alt1;
+	  S_usb_as_g_interface_descriptor	mic_g_as;
+	  S_usb_format_type					mic_format_type;
+	  S_usb_endpoint_audio_descriptor  	ep4;
+	  S_usb_endpoint_audio_specific	 	ep4_s;
 }
 #if (defined __ICCAVR32__)
 #pragma pack()

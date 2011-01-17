@@ -97,8 +97,8 @@ int audio_buffer_out;	// the ID number of the buffer used for sending out to the
 //! mute is set to TRUE when ACTIVE
 //! mute is set to FALSE otherwise
 //!/
-Bool   mute;
-S16 volume;
+Bool   mute, spk_mute;
+S16 volume, spk_volume;
 
 
 

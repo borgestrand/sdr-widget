@@ -55,8 +55,23 @@
  *
  * See http://code.google.com/p/sdr-widget/
  *
- * Modified by Alex Lee and sdr-widget team since Feb 2010.  Copyright General Purpose Licence v2.
- * Please refer to http://code.google.com/p/sdr-widget/
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) Alex Lee
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 
@@ -113,10 +128,12 @@
 
 #define COMPOSITE_DEVICE
 
-#define NB_ENDPOINTS		  4
+#define NB_ENDPOINTS		  6
 #define EP_HID_TX			  1
 #define EP_HID_RX			  2
-#define EP_AUDIO_IN			  3
+#define EP_AUDIO_OUT		  3
+#define EP_AUDIO_IN			  4
+#define EP_AUDIO_OUT_FB		  5
 
     //! @defgroup device_cst_actions USB device custom actions
     //!

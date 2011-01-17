@@ -45,8 +45,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * Modified by Alex Lee and sdr-widget team since Feb 2010.  Copyright General Purpose Licence v2.
- * Please refer to http://code.google.com/p/sdr-widget/
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) Alex Lee
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 //_____ I N C L U D E S ____________________________________________________
@@ -72,8 +87,8 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 extern pm_freq_param_t   pm_freq_param;
-extern Bool mute;
-extern S16 volume;
+extern Bool mute, spk_mute;
+extern S16 volume, spk_volume;
 
 #define VOL_MIN      (S16)0x8000
 #define VOL_MAX      (S16)0x7FFF
@@ -86,7 +101,6 @@ U8 usb_report[3];
 
 U8 g_u8_report_rate=0;
 
-S_line_coding   line_coding;
 
 static U8    wValue_msb;
 static U8    wValue_lsb;
@@ -157,11 +171,21 @@ void usb_user_endpoint_init(U8 conf_nb)
                                  DIRECTION_OUT,
                                  EP_SIZE_2_FS,
                                  SINGLE_BANK, 0);
-    (void)Usb_configure_endpoint(EP_AUDIO_IN,
+    (void)Usb_configure_endpoint(EP_AUDIO_OUT,
                            EP_ATTRIBUTES_3,
-                           DIRECTION_IN,
+                           DIRECTION_OUT,
                            EP_SIZE_3_FS,
                            DOUBLE_BANK, 0);
+    (void)Usb_configure_endpoint(EP_AUDIO_IN,
+                            EP_ATTRIBUTES_4,
+                            DIRECTION_IN,
+                            EP_SIZE_4_FS,
+                            DOUBLE_BANK, 0);
+    (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB,
+                           EP_ATTRIBUTES_5,
+                           DIRECTION_OUT,
+                           EP_SIZE_5_FS,
+                           SINGLE_BANK, 0);
 	}
 	else {
 		   (void)Usb_configure_endpoint(EP_HID_TX,
@@ -174,11 +198,21 @@ void usb_user_endpoint_init(U8 conf_nb)
 		                                 DIRECTION_OUT,
 		                                 EP_SIZE_2_HS,
 		                                 SINGLE_BANK, 0);
-		    (void)Usb_configure_endpoint(EP_AUDIO_IN,
+		    (void)Usb_configure_endpoint(EP_AUDIO_OUT,
 		                           EP_ATTRIBUTES_3,
-		                           DIRECTION_IN,
+		                           DIRECTION_OUT,
 		                           EP_SIZE_3_HS,
 		                           DOUBLE_BANK, 0);
+		    (void)Usb_configure_endpoint(EP_AUDIO_IN,
+		                           EP_ATTRIBUTES_4,
+		                           DIRECTION_IN,
+		                           EP_SIZE_4_HS,
+		                           DOUBLE_BANK, 0);
+		    (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB,
+		                            EP_ATTRIBUTES_5,
+		                            DIRECTION_OUT,
+		                            EP_SIZE_5_HS,
+		                            SINGLE_BANK, 0);
 	}
 
 }
@@ -481,7 +515,25 @@ void audio_get_min(void)
          }
          break;
       }
-   }
+    } else if ( i_unit == SPK_FEATURE_UNIT_ID)
+      {
+         switch (cs)
+         {
+         case CS_MUTE:
+            if( length==1 )
+            {
+               Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+            }
+            break;
+         case CS_VOLUME:
+            if( length==2 )
+            {
+               Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
+            }
+            break;
+         }
+      }
+
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
@@ -519,6 +571,23 @@ void audio_get_max(void)
          break;
       }
    }
+   else if ( i_unit == SPK_FEATURE_UNIT_ID){
+	     switch (cs)
+	      {
+	      case CS_MUTE:
+	         if( length==1 )
+	         {
+	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+	         }
+	         break;
+	      case CS_VOLUME:
+	         if( length==2 )
+	         {
+	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
+	         }
+	         break;
+	      }
+   }
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
@@ -555,6 +624,23 @@ void audio_get_res(void)
          }
          break;
       }
+   } else if ( i_unit==SPK_FEATURE_UNIT_ID)
+   {
+	     switch (cs)
+	      {
+	      case CS_MUTE:
+	         if( length==1 )
+	         {
+	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+	         }
+	         break;
+	      case CS_VOLUME:
+	         if( length==2 )
+	         {
+	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
+	         }
+	         break;
+	      }
    }
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
@@ -592,9 +678,26 @@ void audio_get_cur(void)
          }
          break;
       }
+   } else if (i_unit==SPK_FEATURE_UNIT_ID){
+	     switch (cs)
+	      {
+	      case CS_MUTE:
+	         if( length==1 )
+	         {
+	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+	         }
+	         break;
+	      case CS_VOLUME:
+	         if( length==2 )
+	         {
+	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume));
+	         }
+	         break;
+	      }
    }
-   Usb_ack_control_in_ready_send();
 
+
+   Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
 }
@@ -631,6 +734,26 @@ void audio_set_cur(void)
          }
          break;
       }
+   }
+   else if (i_unit==SPK_FEATURE_UNIT_ID ){
+	   {
+	       switch (cs)
+	       {
+	       case CS_MUTE:
+	          if( length==1 )
+	          {
+	             spk_mute=Usb_read_endpoint_data(EP_CONTROL, 8);
+	          }
+	          break;
+	       case CS_VOLUME:
+	          if( length==2 )
+	          {
+	             LSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
+	             MSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
+	          }
+	          break;
+	       }
+	    }
    }
    Usb_ack_control_out_received_free();
 

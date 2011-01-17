@@ -3,6 +3,23 @@
  *
  *  Created on: Feb 14, 2010
  *      Author: Alex
+ *
+ * Copyright (C) Alex Lee
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
  */
 
 
@@ -116,9 +133,19 @@ void pdca_set_irq(void)
 //!
 void AK5394A_task_init(void)
 {
-//	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
-											// from AK5394A Xtal Oscillator
-//	pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
+	// Set up CS4344
+	// Set up GLCK1 to provide master clock for CS4344
+	gpio_enable_module_pin(GCLK1, GCLK1_FUNCTION);	// for DA_MCLK
+
+	pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+					  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+					  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+					  0,                  // diven - disabled
+					  0);                 // not divided.  Therefore GCLK1 = 12.288Mhz
+
+	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
+												// from AK5394A Xtal Oscillator
+	pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 
 	// Set up AK5394A
 	gpio_clr_gpio_pin(AK5394_RSTN);		// put AK5394A in reset

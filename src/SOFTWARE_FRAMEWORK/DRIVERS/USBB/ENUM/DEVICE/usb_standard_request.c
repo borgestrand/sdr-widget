@@ -51,8 +51,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * Modified by Alex Lee and sdr-widget team since Feb 2010.  Copyright General Purpose Licence v2.
- * Please refer to http://code.google.com/p/sdr-widget/
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) Alex Lee
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 //_____ I N C L U D E S ____________________________________________________
@@ -95,8 +110,8 @@ static  void    usb_set_interface    (void);
 static            U8                                  bmRequestType;
         volatile  U8                                  usb_configuration_nb;
         volatile  U16	usb_interface_nb;
-        volatile  U16	usb_alternate_setting;
-        volatile  Bool  usb_alternate_setting_changed;
+        volatile  U16	usb_alternate_setting, usb_alternate_setting_out;
+        volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 extern  volatile  Bool                                usb_connected;
 
 //extern  const     S_usb_device_descriptor             usb_user_device_descriptor;
@@ -813,9 +828,12 @@ void usb_set_interface(void)
 
    //* Check whether it is the audio streaming interface and Alternate Setting that is being set
    usb_interface_nb = wIndex;
-   if (usb_interface_nb == STD_AS_INTERFACE_NB) {
+   if (usb_interface_nb == STD_AS_INTERFACE_IN) {
 	   usb_alternate_setting = wValue;
 	   usb_alternate_setting_changed = TRUE;
+   } else if (usb_interface_nb == STD_AS_INTERFACE_OUT){
+	   usb_alternate_setting_out = wValue;
+	   usb_alternate_setting_out_changed = TRUE;
    }
 
    //* Find endpoints of interface and reset it
