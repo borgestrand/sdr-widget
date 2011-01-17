@@ -23,12 +23,7 @@
 
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:UAC1_087"
-// Mobo changes since V:UAC1_069:
-//   taskPowerDisplay.c... change calculated pwr value from mW to cW
-//   taskMoboControl.c...  change calculated pwr value from mW to cW
-//   taskMoboControl.h...  change calculated pwr value from mW to cW
-//   taskPushButtonMenu.c...
+#define FIRMWARE_VERSION	"V:UAC1c087"
 
 /*! \name Peripherals to include at compile time. */
 //! @{
@@ -97,7 +92,7 @@
 #define TMP_V_I_SECOND_LINE	1	// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
 #define DISP_RX_DB			1	// Display RX level in dB for both input channels, third line (taskPowerDisplay)
 #define DISP_RX_DB_HPF		0	// Display RX level in dB for both input channels, simple HPF, fourth line (taskPowerDisplay)
-#define ENOB_TEST			1	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
+#define ENOB_TEST			0	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
 #define	I2C_LCD_PRINT		0	// Show which values are being sent to the PCF and Si570
 #define LCD_CDC				0	// CDC traffic displayed on LCD
 

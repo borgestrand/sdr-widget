@@ -593,7 +593,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 	// Enable Pin Pullups for Input Pins
 	gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
-	gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
+	gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
 
 	// Initialize Real Time Counter
 	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz
