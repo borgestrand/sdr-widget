@@ -23,7 +23,7 @@
 #if LCD_DISPLAY			// Multi-line LCD display
 
 #include <stdio.h>
-#include <string.h>
+//#include <string.h>
 //#include <math.h>
 
 #include "gpio.h"
@@ -45,9 +45,9 @@ const uint8_t level0_menu_size = 15;
 const char *level0_menu_items[] =
 				{  " 1-Save Frequency",		//done
 				   " 2-VFO Resolution",		//done
-				   " 3-PCF8574 Control",	//done
+				   " 3-PCF8574 Control",
 				   " 4-Power and SWR",
-				   " 5-Bias Settings",		//done
+				   " 5-Bias Settings",
 				   " 6-PA Temperature",		//done
 				   " 7-Manage Filters",		//part, scrambled filters order missing
 				   " 8-PSDR-IQ RX offs",	//done
@@ -81,48 +81,12 @@ const char *freq_menu_items[] =
 
 // Flag for PCF8584 Control
 #define PCF8574_MENU	3
-// PCF8584 Control Menu Items
-const uint8_t pcf8574_menu_size = 4;
-const char *pcf8574_menu_items[] =
-				{  "1-Set Addr",
-				   "2-Write",
-				   "3-Go Back",
-				   "4-Exit"};
-uint8_t pcf8574_selected = 0;	// Which PCF8574 device
-uint8_t pcf8574_value = 0;		// Current Read/Write value
-
-// Flags for PCF8574 Control Submenu functions
-#define PCF_CASE0_MENU	301
-#define PCF_CASE1_MENU	302
 
 // Flag for Power and SWR
 #define PSWR_MENU		4
 
 // Flag for Bias Settings
 #define BIAS_MENU		5
-// Bias Control Menu Items
-const uint8_t bias_menu_size = 7;
-const char *bias_menu_items[] =
-				{  "1-Set Low",
-				   "2-Set High",
-				   "3-Default",
-				   "4-Raw Low",
-				   "5-Raw High",
-				   "6-Go Back",
-				   "7-Exit"};
-
-// Flags for Bias Control Submenu functions
-#define BIAS_CASE0_MENU	501
-#define BIAS_CASE1_MENU	502
-#define BIAS_CASE2_MENU	503
-#define BIAS_CASE3_MENU	504
-#define BIAS_CASE4_MENU	505
-// Bias High/Low Select Menu
-const uint8_t bias_hilo_menu_size = 2;
-const char *bias_hilo_menu_items[] =
-				{  "LOW",
-				   "HIGH" };
-
 
 // Flag for Temperature Control Menu Selection
 #define TMP_MENU		6
@@ -253,26 +217,6 @@ bool		BUTTON_long		=	FALSE;				// Bool for Long push and not released yet
 
 uint16_t		menu_level = 0;						// Keep track of which menu we are in
 uint8_t			menu_data = 0;						// Pass data to lower menu
-
-
-/*! \brief A simple Byte to Binary conversion for print formatting
- * (ansi C does not include %b print formatting)
- *
- * Returns a string containing binary value
- */
-const char *byte_to_binary(int x)
-{
-    static char b[9];
-    b[0] = '\0';
-
-    int z;
-    for (z = 128; z > 0; z >>= 1)
-    {
-        strcat(b, ((x & z) == z) ? "1" : "0");
-    }
-
-    return b;
-}
 
 
 /*! \brief Determine if a Frequency/Menu button push was LONG or SHORT
@@ -661,355 +605,33 @@ void vfores_menu(void)
 			xSemaphoreGive( mutexQueLCD );
 		}
 
-		LCD_upd = FALSE;		// force LCD reprint at next entry to function
 		vTaskDelay(5000 );		// Show on screen for 0.5 seconds
 		MENU_fromenc = FALSE;	// Clear Encoder output
-		menu_level = 0;			// Back to top level menu
+		LCD_upd = FALSE;		// force LCD reprint
+		menu_level = 0;
 		MENU_mode = TRUE;		// We're NOT done, just backing off
 	}
 }
 
 
-/*! \brief Manage the PCF8574 Control Menu
- * Write to and read from the PCF8574
- *
- * \retval none
- */
-void pcf8574_write_menu_level2()
-{
-	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
-	uint8_t current_selection;
-
-	current_selection = pcf8574_value;	// Read/Write value to PCF8574
-
-	// Selection modified by encoder
-	if (VAL_fromenc == TRUE)
-	{
-		current_selection += val_steps_from_enc;
-	    // Reset data from Encoder
-		VAL_fromenc = FALSE;
-		val_steps_from_enc = 0;
-
-		// Indicate that an LCD update is needed
-		LCD_upd = FALSE;
-	}
-
-	// If LCD update is needed
-	if (LCD_upd == FALSE)
-	{
-		LCD_upd = TRUE;					// We have serviced LCD
-
-		// Keep Encoder Selection Within Bounds of the Menu Size
-		#define MAX_PCF_OUT 255			// Highest value
-		#define MIN_PCF_OUT 0			// Lowest value
-		if(current_selection > MAX_PCF_OUT) current_selection = MAX_PCF_OUT;
-		if(current_selection < MIN_PCF_OUT) current_selection = MIN_PCF_OUT;
-
-		pcf8574_value = current_selection;	// Update Read/Write value to PCF8574 (sloppy, cut/paste)
-
-		// Format current value for LCD print
-		sprintf(menu_lcd0,"Outp:%2x",current_selection);				// Print in hex
-		sprintf(menu_lcd1,"Hex:%s", byte_to_binary(current_selection)); // Print in binary
-
-		// LCD Print Currently selected Value and show how to modify
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-
-		lcd_q_clear();
-		lcd_q_goto(0,0);
-		lcd_q_print("PCF8574 Output:");
-		lcd_q_goto(1,0);
-		lcd_q_print("Rotate to Adjust");
-		lcd_q_goto(2,0);
-		lcd_q_print("Push to Write->");
-		lcd_q_goto(3,0);
-		lcd_q_print(menu_lcd0);
-		lcd_q_print(" ");
-		lcd_q_print(menu_lcd1);
-		xSemaphoreGive( mutexQueLCD );
-	}
-
-	// Enact selection, write out the new value if pushbutton has been pushed
-	if (scan_menu_button() == SHORT_PUSH)
-	{
-		#if I2C	// Make sure we don't write, unless we have I2C access
-		pcf8574_out_byte(pcf8574_selected, current_selection);
-		#endif
-
-		LCD_upd = FALSE;		// force LCD reprint at next entrance to the function
-		MENU_fromenc = FALSE;	// Clear Encoder output
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(1,1);
-		lcd_q_print("Output Written");
-		xSemaphoreGive( mutexQueLCD );
-		vTaskDelay(5000 );		// Show on screen for 0.5 seconds
-		MENU_mode = TRUE;		// We're NOT done, just backing off
-		menu_level = PCF8574_MENU;// Goto top level PCF menu
-
-	}
-}
-
-
-/*! \brief Manage the PCF8574 Control Menu
- * Select PCF8574 Address
- *
- * \retval none
- */
-void pcf8574_addr_menu_level2()
-{
-	int8_t	current_selection = pcf8574_selected;		// Keep track of current LCD menu selection
-	static bool LCD_upd = FALSE;						// Keep track of LCD update requirements
-
-	// Selection modified by encoder
-	if (MENU_fromenc == TRUE)
-	{
-		current_selection += menu_steps_from_enc;
-	    // Reset data from Encoder
-		MENU_fromenc = FALSE;
-		menu_steps_from_enc = 0;
-
-		// Indicate that an LCD update is needed
-		LCD_upd = FALSE;
-	}
-
-	// If LCD update is needed
-	if (LCD_upd == FALSE)
-	{
-		LCD_upd = TRUE;					// We have serviced LCD
-
-		// Map selection to which PCF8574 devices are available:
-		if (current_selection > pcf8574_selected)
-		{
-			pcf8574_selected = current_selection;
-
-			PCFSELUP:
-			// Select an available PCF8574
-			if ((pcf8574_selected <= 0x20) && (i2c.pcf0x20)) pcf8574_selected = 0x20;
-			else if ((pcf8574_selected <= 0x21) && (i2c.pcf0x21)) pcf8574_selected = 0x21;
-			else if ((pcf8574_selected <= 0x22) && (i2c.pcf0x22)) pcf8574_selected = 0x22;
-			else if ((pcf8574_selected <= 0x23) && (i2c.pcf0x23)) pcf8574_selected = 0x23;
-			else if ((pcf8574_selected <= 0x24) && (i2c.pcf0x24)) pcf8574_selected = 0x24;
-			else if ((pcf8574_selected <= 0x25) && (i2c.pcf0x25)) pcf8574_selected = 0x25;
-			else if ((pcf8574_selected <= 0x26) && (i2c.pcf0x26)) pcf8574_selected = 0x26;
-			else if ((pcf8574_selected <= 0x27) && (i2c.pcf0x27)) pcf8574_selected = 0x27;
-			else if ((pcf8574_selected <= 0x38) && (i2c.pcf0x38)) pcf8574_selected = 0x38;
-			else if ((pcf8574_selected <= 0x39) && (i2c.pcf0x39)) pcf8574_selected = 0x39;
-			else if ((pcf8574_selected <= 0x3a) && (i2c.pcf0x3a)) pcf8574_selected = 0x3a;
-			else if ((pcf8574_selected <= 0x3b) && (i2c.pcf0x3b)) pcf8574_selected = 0x3b;
-			else if ((pcf8574_selected <= 0x3c) && (i2c.pcf0x3c)) pcf8574_selected = 0x3c;
-			else if ((pcf8574_selected <= 0x3d) && (i2c.pcf0x3d)) pcf8574_selected = 0x3d;
-			else if ((pcf8574_selected <= 0x3e) && (i2c.pcf0x3e)) pcf8574_selected = 0x3e;
-			else if ((pcf8574_selected <= 0x3f) && (i2c.pcf0x3f)) pcf8574_selected = 0x3f;
-			else	// We are too high, Force another cycle to determine the lowest available PCF8574
-			{
-				pcf8574_selected = 0;
-				goto PCFSELUP;	// Messy messy
-			}
-		}
-		else
-		{
-			pcf8574_selected = current_selection;
-
-			PCFSELDN:
-			// Select an available PCF8574
-			if ((pcf8574_selected >= 0x3f) && (i2c.pcf0x3f)) pcf8574_selected = 0x3f;
-			else if ((pcf8574_selected >= 0x3e) && (i2c.pcf0x3e)) pcf8574_selected = 0x3e;
-			else if ((pcf8574_selected >= 0x3d) && (i2c.pcf0x3d)) pcf8574_selected = 0x3d;
-			else if ((pcf8574_selected >= 0x3c) && (i2c.pcf0x3c)) pcf8574_selected = 0x3c;
-			else if ((pcf8574_selected >= 0x3b) && (i2c.pcf0x3b)) pcf8574_selected = 0x3b;
-			else if ((pcf8574_selected >= 0x3a) && (i2c.pcf0x3a)) pcf8574_selected = 0x3a;
-			else if ((pcf8574_selected >= 0x39) && (i2c.pcf0x39)) pcf8574_selected = 0x39;
-			else if ((pcf8574_selected >= 0x38) && (i2c.pcf0x38)) pcf8574_selected = 0x38;
-			else if ((pcf8574_selected >= 0x27) && (i2c.pcf0x27)) pcf8574_selected = 0x27;
-			else if ((pcf8574_selected >= 0x26) && (i2c.pcf0x26)) pcf8574_selected = 0x26;
-			else if ((pcf8574_selected >= 0x25) && (i2c.pcf0x25)) pcf8574_selected = 0x25;
-			else if ((pcf8574_selected >= 0x24) && (i2c.pcf0x24)) pcf8574_selected = 0x24;
-			else if ((pcf8574_selected >= 0x23) && (i2c.pcf0x23)) pcf8574_selected = 0x23;
-			else if ((pcf8574_selected >= 0x22) && (i2c.pcf0x22)) pcf8574_selected = 0x22;
-			else if ((pcf8574_selected >= 0x21) && (i2c.pcf0x21)) pcf8574_selected = 0x21;
-			else if ((pcf8574_selected >= 0x20) && (i2c.pcf0x20)) pcf8574_selected = 0x20;
-			else	// We are too low, Force another cycle to determine the highest available PCF8574
-			{
-				pcf8574_selected = 255;
-				goto PCFSELDN;	// Messy messy
-			}
-		}
-
-		current_selection = pcf8574_selected;
-
-		// Print current PCF address and a menu showing how to change.
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(0,0);
-		lcd_q_print("PCF8574 Address:");
-		lcd_q_goto(2,0);
-		lcd_q_print("Rotate and Push");
-		lcd_q_goto(3,0);
-		lcd_q_print("to Select->");
-		// Format current value for LCD print
-		sprintf(menu_lcd0,"%02x", pcf8574_selected);
-		lcd_q_goto(3,18);
-		lcd_q_print(menu_lcd0);
-		xSemaphoreGive( mutexQueLCD );
-	}
-
-	// We have pushed the button to select an address, back off
-	if (scan_menu_button() == SHORT_PUSH)
-	{
-		LCD_upd = FALSE;		// force LCD reprint at next entrance to the function
-
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(1,1);
-		lcd_q_print("Address Selected");
-		xSemaphoreGive( mutexQueLCD );
-
-		vTaskDelay(5000 );		// Show on screen for 0.5 seconds
-		MENU_fromenc = FALSE;	// Clear Encoder output
-		menu_level = PCF8574_MENU;// Goto top level PCF menu
-		MENU_mode = TRUE;		// We're NOT done, just backing off
-	}
-}
-
-
-/*! \brief Manage the PCF8574 Control Menu
- * Select PCF Address, Read and Write to PCF
- *
- * \retval none
- */
+/***************************************************************************************************************************/
+// Todo
 void pcf8574_menu(void)
 {
-	static int8_t	current_selection;	// Keep track of current LCD menu selection
-	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
+	//PCF8574_MENU
+	static bool LCD_upd = FALSE;	// Keep track of LCD update requirements
 
-	// Selection modified by encoder
-	if (MENU_fromenc == TRUE)
-	{
-		current_selection += menu_steps_from_enc;
-	    // Reset data from Encoder
-		MENU_fromenc = FALSE;
-		menu_steps_from_enc = 0;
-
-		// Indicate that an LCD update is needed
-		LCD_upd = FALSE;
-	}
-
-	// If LCD update is needed
-	if (LCD_upd == FALSE)
-	{
-		LCD_upd = TRUE;					// We have serviced LCD
-
-		// Select an available PCF8574 by walking through the list of possible addresses
-		PCFSEL:
-		if ((pcf8574_selected <= 0x20) && (i2c.pcf0x20)) pcf8574_selected = 0x20;
-		else if ((pcf8574_selected <= 0x21) && (i2c.pcf0x21)) pcf8574_selected = 0x21;
-		else if ((pcf8574_selected <= 0x22) && (i2c.pcf0x22)) pcf8574_selected = 0x22;
-		else if ((pcf8574_selected <= 0x23) && (i2c.pcf0x23)) pcf8574_selected = 0x23;
-		else if ((pcf8574_selected <= 0x24) && (i2c.pcf0x24)) pcf8574_selected = 0x24;
-		else if ((pcf8574_selected <= 0x25) && (i2c.pcf0x25)) pcf8574_selected = 0x25;
-		else if ((pcf8574_selected <= 0x26) && (i2c.pcf0x26)) pcf8574_selected = 0x26;
-		else if ((pcf8574_selected <= 0x27) && (i2c.pcf0x27)) pcf8574_selected = 0x27;
-		else if ((pcf8574_selected <= 0x38) && (i2c.pcf0x38)) pcf8574_selected = 0x38;
-		else if ((pcf8574_selected <= 0x39) && (i2c.pcf0x39)) pcf8574_selected = 0x39;
-		else if ((pcf8574_selected <= 0x3a) && (i2c.pcf0x3a)) pcf8574_selected = 0x3a;
-		else if ((pcf8574_selected <= 0x3b) && (i2c.pcf0x3b)) pcf8574_selected = 0x3b;
-		else if ((pcf8574_selected <= 0x3c) && (i2c.pcf0x3c)) pcf8574_selected = 0x3c;
-		else if ((pcf8574_selected <= 0x3d) && (i2c.pcf0x3d)) pcf8574_selected = 0x3d;
-		else if ((pcf8574_selected <= 0x3e) && (i2c.pcf0x3e)) pcf8574_selected = 0x3e;
-		else if ((pcf8574_selected <= 0x3f) && (i2c.pcf0x3f)) pcf8574_selected = 0x3f;
-		else	// We are too high, Force another cycle to determine the lowest available PCF8574
-		{
-			pcf8574_selected = 0;
-			goto PCFSEL;	// yechhh
-		}
-
-		// Keep Encoder Selection Within Bounds of the Menu Size
-		uint8_t menu_size = pcf8574_menu_size;
-		while(current_selection >= menu_size)
-			current_selection -= menu_size;
-		while(current_selection < 0)
-			current_selection += menu_size;
-
-		// Indicate Currently selected PCF8574 device
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(0,0);
-		lcd_q_print("PCF8574 Input/Output");
-		lcd_q_goto(1,0);
-		lcd_q_print("Addr:");
-		sprintf(menu_lcd0,"%02x", pcf8574_selected);
-		lcd_q_print(menu_lcd0);
-		xSemaphoreGive( mutexQueLCD );
-
-		// Print the Rotary Encoder scroll Menu
-		lcd_scroll_Menu((char**)pcf8574_menu_items, menu_size, current_selection,
-				1, 8, 3, menu2_lcd0, menu2_lcd1, menu2_lcd2, menu2_lcd3);
-	}
-
-	// Indicate Input state of device, update once every fifth time, or every 500ms
-	#if I2C	// Make sure we don't read, unless we have I2C access
-	static uint8_t x;
-	x++;
-	if (x == 5)
-	{
-		x = 0;
-		pcf8574_in_byte(pcf8574_selected, &pcf8574_value);
-
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_goto(2,0);
-		lcd_q_print("Read:");
-		sprintf(menu_lcd1,"%02x", pcf8574_value);
-		sprintf(menu_lcd2,"%s", byte_to_binary(pcf8574_value));
-		lcd_q_print(menu_lcd1);
-		lcd_q_goto(3,0);
-		lcd_q_print(menu_lcd2);
-		xSemaphoreGive( mutexQueLCD );
-	}
-	#endif
-
-	// Button has been pushed, Enact selection
-	if (scan_menu_button() == SHORT_PUSH)
-	{
-
-		switch (current_selection)
-		{
-			case 0:
-				menu_level = PCF_CASE0_MENU;
-				LCD_upd = FALSE;	// force LCD reprint
-				break;
-			case 1:
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
-				menu_level = PCF_CASE1_MENU;
-				LCD_upd = FALSE;	// force LCD reprint
-				break;
-			case 2:
-				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-				lcd_q_clear();
-				lcd_q_goto(1,1);
-		   		lcd_q_print("Done w. PCF8574");
-		   		xSemaphoreGive( mutexQueLCD );
-				vTaskDelay(5000 );
-				MENU_mode = TRUE;	// We're NOT done, just backing off
-				menu_level = 0;		// We are done with this menu level
-				LCD_upd = FALSE;
-				break;
-			default:
-				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-				lcd_q_clear();
-				lcd_q_goto(1,1);
-		   		lcd_q_print("Done w. PCF8574");
-		   		xSemaphoreGive( mutexQueLCD );
-				vTaskDelay(20000 );
-				MENU_mode = FALSE;	// We're done
-				menu_level = 0;		// We are done with this menu level
-				LCD_upd = FALSE;
-				TX_state = TRUE;	// Force housekeeping
-				break;
-		}
-	}
+	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+	lcd_q_clear();
+	lcd_q_goto(1,1);
+	lcd_q_print("Not Implemented yet");
+	xSemaphoreGive( mutexQueLCD );
+	vTaskDelay(20000 );
+	MENU_mode = TRUE;				// We're NOT done, just backing off
+	menu_level = 0;					// We are done with this menu level
+	LCD_upd = FALSE;
 }
-
+/*****************************************************************************************************************************/
 
 /***************************************************************************************************************************/
 // Todo
@@ -1032,484 +654,21 @@ void pswr_menu(void)
 /*****************************************************************************************************************************/
 
 /***************************************************************************************************************************/
-/***************************************************************************************************************************/
-/***************************************************************************************************************************/
-/***************************************************************************************************************************/
-/***************************************************************************************************************************/
-/***************************************************************************************************************************/
-/*! \brief Manage the Second Level Bias Raw Calibrate Menu
- *
- * \retval none
- */
-void bias_raw_menu_level2(void)
-{
-	static int16_t	current_selection;	// Keep track of current LCD menu selection
-	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
-
-	// Get Current value
-	if      (menu_level == BIAS_CASE3_MENU)current_selection = cdata.cal_LO;
-	else if (menu_level == BIAS_CASE4_MENU)current_selection = cdata.cal_HI;
-
-	// Selection modified by encoder
-	if (VAL_fromenc == TRUE)
-	{
-		current_selection += val_steps_from_enc;
-	    // Reset data from Encoder
-		VAL_fromenc = FALSE;
-		val_steps_from_enc = 0;
-
-		// Indicate that an LCD update is needed
-		LCD_upd = FALSE;
-	}
-
-	// If LCD update is needed
-	if (LCD_upd == FALSE)
-	{
-		LCD_upd = TRUE;					// We have serviced LCD
-
-		// Keep Encoder Selection Within Bounds of the Menu Size
-		uint8_t max_value = 255;		// Highest calibration value
-		uint8_t min_value = 0;			// Lowest calibration value
-		if(current_selection > max_value) current_selection = max_value;
-		if(current_selection < min_value) current_selection = min_value;
-
-		// Store Current value in running storage
-		if      (menu_level == BIAS_CASE3_MENU)cdata.cal_LO = current_selection;
-		else if (menu_level == BIAS_CASE4_MENU)cdata.cal_HI = current_selection;
-
-		// Format current value for LCD print
-		sprintf(menu_lcd0,"%2x hex",current_selection);
-
-		// Print Menu for Temperature Alarm Function
-		if (menu_level == BIAS_CASE3_MENU)	// Bias Low RAW function
-		{
-			// LCD Print Currently selected Value
-			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-
-			lcd_q_clear();
-			lcd_q_goto(0,0);
-			lcd_q_print("Bias Raw Low Cal:");
-			lcd_q_goto(1,0);
-			lcd_q_print("(be careful)");
-			lcd_q_goto(2,0);
-			lcd_q_print("Rotate to Adjust");
-			lcd_q_goto(3,0);
-			lcd_q_print("Push to Save->");
-			lcd_q_print(menu_lcd0);
-			xSemaphoreGive( mutexQueLCD );
-		}
-		// Print Menu for Fan ON Temperature
-		else if (menu_level == BIAS_CASE4_MENU)	// Bias Low RAW function
-		{
-			// LCD Print Currently selected Value
-			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-
-			lcd_q_clear();
-			lcd_q_goto(0,0);
-			lcd_q_print("Bias Raw High Cal:");
-			lcd_q_goto(1,0);
-			lcd_q_print("(be careful)");
-			lcd_q_goto(2,0);
-			lcd_q_print("Rotate to Adjust");
-			lcd_q_goto(3,0);
-			lcd_q_print("Push to Save->");
-			lcd_q_print(menu_lcd0);
-			xSemaphoreGive( mutexQueLCD );
-		}
-	}
-
-	// Enact selection by saving in permanent (nvram / EEPROM) storage
-	if (scan_menu_button() == SHORT_PUSH)
-	{
-		// Save modified value
-		if (menu_level == BIAS_CASE3_MENU)
-		{
-			if (nvram_cdata.cal_LO != current_selection)
-			{
-				flashc_memset8((void *)&nvram_cdata.cal_LO, current_selection, sizeof(uint8_t), TRUE);
-				cdata.cal_LO = current_selection;
-			}
-		}
-		else if (menu_level == BIAS_CASE4_MENU)
-		{
-			if (nvram_cdata.cal_HI != current_selection)
-			{
-				flashc_memset8((void *)&nvram_cdata.cal_HI, current_selection, sizeof(uint8_t), TRUE);
-				cdata.cal_HI = current_selection;
-			}
-		}
-
-		MENU_fromenc = FALSE;	// Clear Encoder output
-		LCD_upd = FALSE;		// force LCD reprint
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(1,1);
-		lcd_q_print("Value Stored");
-		xSemaphoreGive( mutexQueLCD );
-		vTaskDelay(5000 );		// Show on screen for 0.5 seconds
-		MENU_mode = TRUE;		// We're NOT done, just backing off
-		menu_level = BIAS_MENU;
-		LCD_upd = FALSE;
-	}
-}
-
-/*! \brief Select High or Low Bias Menu
- *
- * \retval none
- */
-void bias_select_menu_level2(void)
-{
-	int8_t	current_selection;	// Keep track of current LCD menu selection
-	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
-
-	current_selection = cdata.Bias_Select-1;
-
-	// Selection modified by encoder
-	if (MENU_fromenc == TRUE)
-	{
-		current_selection += menu_steps_from_enc;
-	    // Reset data from Encoder
-		MENU_fromenc = FALSE;
-		menu_steps_from_enc = 0;
-
-		// Indicate that an LCD update is needed
-		LCD_upd = FALSE;
-	}
-
-	// If LCD update is needed
-	if (LCD_upd == FALSE)
-	{
-		LCD_upd = TRUE;					// We have serviced LCD
-
-		// Keep Encoder Selection Within Bounds of the Menu Size
-		uint8_t menu_size = bias_hilo_menu_size;
-		while(current_selection >= menu_size)
-			current_selection -= menu_size;
-		while(current_selection < 0)
-			current_selection += menu_size;
-
-		cdata.Bias_Select = current_selection+1;
-
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(0,0);
-		lcd_q_print("Bias High/Low Select");
-   		xSemaphoreGive( mutexQueLCD );
-
-		// Print the Menu
-		lcd_scroll_Menu((char**)bias_hilo_menu_items, menu_size, current_selection,
-				1, 14, 3, menu_lcd0, menu_lcd1, menu_lcd2, menu_lcd3);
-
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_goto(2,0);
-		lcd_q_print("Rotate and");
-		lcd_q_goto(3,0);
-		lcd_q_print("Push to Select");
-		xSemaphoreGive( mutexQueLCD );
-	}
-
-	// Enact selection
-	if (scan_menu_button() == SHORT_PUSH)
-	{
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(1,1);
-		if (cdata.Bias_Select != nvram_cdata.Bias_Select)
-		{
-			lcd_q_print("Bias Mode changed");
-			flashc_memset8((void *)&nvram_cdata.Bias_Select, current_selection, sizeof(uint8_t), TRUE);
-		}
-		else
-		{
-			lcd_q_print("Bias Mode unchanged");
-		}
-   		xSemaphoreGive( mutexQueLCD );
-		vTaskDelay(20000 );
-		MENU_mode = TRUE;		// We're NOT done, just backing off
-		LCD_upd = FALSE;		// force LCD print when reentering this level
-		TX_state = TRUE;		// Force housekeeping
-		menu_level = BIAS_MENU;	// We are done with this menu level
-	}
-}
-
-
-/*! \brief Manage the PA Bias Control Menu
- * Adjust and Auto Set Low/High bias
- *
- * \retval none
- */
-void bias_autoset_menu_level2(void)
-{
-	static int16_t	current_selection;	// Keep track of current LCD menu selection
-	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
-
-	// Get Current value
-	if      (menu_level == BIAS_CASE0_MENU)current_selection = cdata.Bias_LO;
-	else /*if (menu_level == BIAS_CASE1_MENU)*/ current_selection = cdata.Bias_HI;
-
-	// Selection modified by encoder
-	if (VAL_fromenc == TRUE)
-	{
-		current_selection += val_steps_from_enc;
-	    // Reset data from Encoder
-		VAL_fromenc = FALSE;
-		val_steps_from_enc = 0;
-
-		// Indicate that an LCD update is needed
-		LCD_upd = FALSE;
-	}
-
-	// If LCD update is needed
-	if (LCD_upd == FALSE)
-	{
-		LCD_upd = TRUE;					// We have serviced LCD
-
-		// Keep Encoder Selection Within Bounds of the Menu Size
-		uint8_t max_value;
-		uint8_t min_value;
-		if (menu_level == BIAS_CASE0_MENU) // Low Bias
-		{
-			max_value = cdata.Bias_HI;	// Highest bias value is the current Bias High
-			min_value = 0;				// Lowest temperature value in deg C
-		}
-		else // High Bias (menu_level == BIAS_CASE1_MENU)
-		{
-			max_value = BIAS_MAX;		// Highest permissible bias current (defined in Mobo_config.h)
-			min_value = cdata.Bias_LO;	// Lowest permissible bias is the current setting for Bias Low
-		}
-
-		if(current_selection > max_value) current_selection = max_value;
-		if(current_selection < min_value) current_selection = min_value;
-
-		// Store Current value in running storage
-		if      (menu_level == BIAS_CASE0_MENU)cdata.Bias_LO = current_selection;
-		else /*if (menu_level == BIAS_CASE1_MENU)*/ cdata.Bias_HI = current_selection;
-
-		// Format current value for LCD print
-		sprintf(menu_lcd0,"%4d%mA",current_selection*10);
-
-		// Print Menu for Low Bias Adjust
-		if (menu_level == BIAS_CASE0_MENU)	// Temperature Alarm function
-		{
-			// LCD Print Currently selected Value
-			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-
-			lcd_q_clear();
-			lcd_q_goto(0,0);
-			lcd_q_print("PA Bias Low Setting");
-			lcd_q_goto(1,0);
-			lcd_q_print("of Power Amplifier:");
-			lcd_q_goto(2,0);
-			lcd_q_print("Rotate to Adjust");
-			lcd_q_goto(3,0);
-			lcd_q_print("Push to Save->");
-			lcd_q_print(menu_lcd0);
-			xSemaphoreGive( mutexQueLCD );
-		}
-		// Print Menu for Low Bias Adjust
-		else // if (menu_level == BIAS_CASE1_MENU)	// Temperature Alarm function
-		{
-			// LCD Print Currently selected Value
-			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-
-			lcd_q_clear();
-			lcd_q_goto(0,0);
-			lcd_q_print("PA Bias High Setting");
-			lcd_q_goto(1,0);
-			lcd_q_print("of Power Amplifier:");
-			lcd_q_goto(2,0);
-			lcd_q_print("Rotate to Adjust");
-			lcd_q_goto(3,0);
-			lcd_q_print("Push to Save->");
-			lcd_q_print(menu_lcd0);
-			xSemaphoreGive( mutexQueLCD );
-		}
-	}
-
-	// Enact selection by saving in permanent (nvram / EEPROM) storage
-	if (scan_menu_button() == SHORT_PUSH)
-	{
-		// Save modified value
-		if (menu_level == BIAS_CASE0_MENU)
-		{
-			if (nvram_cdata.Bias_LO != current_selection)
-			{
-				flashc_memset8((void *)&nvram_cdata.Bias_LO, current_selection, sizeof(uint8_t), TRUE);
-				cdata.Bias_LO = current_selection;
-			}
-		}
-		else //if (menu_level == BIAS_CASE1_MENU)
-		{
-			if (nvram_cdata.Bias_HI != current_selection)
-			{
-				flashc_memset8((void *)&nvram_cdata.Bias_HI, current_selection, sizeof(uint8_t), TRUE);
-				cdata.Bias_HI = current_selection;
-			}
-		}
-
-		MENU_fromenc = FALSE;	// Clear Encoder output
-		LCD_upd = FALSE;		// force LCD reprint
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(1,0);
-		lcd_q_print("Calibrating new Bias");
-		xSemaphoreGive( mutexQueLCD );
-		cdata.Bias_Select = 0;	// Force Auto Calibrate
-		vTaskDelay(20000 );		// Show on screen for 2 seconds
-		//cdata.Bias_Select = 0;	// Force Auto Calibrate
-		//vTaskDelay(20000 );		// Show on screen for 2 seconds
-		MENU_mode = TRUE;		// We're NOT done, just backing off
-		menu_level = BIAS_MENU;
-		LCD_upd = FALSE;
-	}
-}
-
 // Todo
-/*! \brief Manage the PA Bias Control Menu
- * Auto Set Low/High bias, select default bias, Adjust Raw settings for Low and High bias
- *
- * \retval none
- */
 void bias_menu(void)
 {
-	static int8_t	current_selection;	// Keep track of current LCD menu selection
-	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
+	//BIAS_MENU
+	static bool LCD_upd = FALSE;	// Keep track of LCD update requirements
 
-	// Selection modified by encoder
-	if (MENU_fromenc == TRUE)
-	{
-		current_selection += menu_steps_from_enc;
-	    // Reset data from Encoder
-		MENU_fromenc = FALSE;
-		menu_steps_from_enc = 0;
-
-		// Indicate that an LCD update is needed
-		LCD_upd = FALSE;
-	}
-
-	// If LCD update is needed
-	if (LCD_upd == FALSE)
-	{
-		LCD_upd = TRUE;					// We have serviced LCD
-
-		// Keep Encoder Selection Within Bounds of the Menu Size
-		uint8_t menu_size = bias_menu_size;
-		while(current_selection >= menu_size)
-			current_selection -= menu_size;
-		while(current_selection < 0)
-			current_selection += menu_size;
-
-		// Indicate Current Bias settings based on scroll menu position
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_clear();
-		lcd_q_goto(0,0);
-		lcd_q_print("PA Bias Management:");
-		lcd_q_goto(2,0);
-		lcd_q_print("CurVal");
-		lcd_q_goto(3,0);
-		if (current_selection < 5)
-		{
-			uint8_t value=0;
-
-			switch (current_selection)
-			{
-				case 0:
-					value = cdata.Bias_LO;
-					sprintf(menu_lcd0,"%4umA", value*10);
-					break;
-				case 1:
-					value = cdata.Bias_HI;
-					sprintf(menu_lcd0,"%4umA", value*10);
-					break;
-				case 2:
-					value = cdata.Bias_Select;
-					strcpy(menu_lcd0, ((value-1) ? "High" : "Low"));
-					break;
-				case 3:
-					value = cdata.cal_LO;
-					sprintf(menu_lcd0,"%2x hex", value);
-					break;
-				case 4:
-					value = cdata.cal_HI;
-					sprintf(menu_lcd0,"%2x hex", value);
-					break;
-			}
-		}
-		else
-		{
-			sprintf(menu_lcd0," --");
-		}
-		lcd_q_print(menu_lcd0);
-		xSemaphoreGive( mutexQueLCD );
-
-		// Print the Rotary Encoder scroll Menu
-		lcd_scroll_Menu((char**)bias_menu_items, menu_size, current_selection,
-				1, 8, 3, menu2_lcd0, menu2_lcd1, menu2_lcd2, menu2_lcd3);
-	}
-
-	// Enact selection
-	if (scan_menu_button() == SHORT_PUSH)
-	{
-
-		switch (current_selection)
-		{
-			case 0:
-				menu_level = BIAS_CASE0_MENU;
-			    // Reset data from Encoder
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
-				LCD_upd = FALSE;	// force LCD reprint
-				break;
-			case 1:
-				menu_level = BIAS_CASE1_MENU;
-			    // Reset data from Encoder
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
-				LCD_upd = FALSE;	// force LCD reprint
-				break;
-			case 2:
-				menu_level = BIAS_CASE2_MENU;
-				LCD_upd = FALSE;	// force LCD reprint
-				break;
-			case 3:
-				menu_level = BIAS_CASE3_MENU;
-			    // Reset data from Encoder
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
-				LCD_upd = FALSE;	// force LCD reprint
-				break;
-			case 4:
-				menu_level = BIAS_CASE4_MENU;
-			    // Reset data from Encoder
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
-				LCD_upd = FALSE;	// force LCD reprint
-				break;
-			case 5:
-				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-				lcd_q_clear();
-				lcd_q_goto(1,0);
-		   		lcd_q_print("Done w. BiasSettings");
-		   		xSemaphoreGive( mutexQueLCD );
-				vTaskDelay(5000 );
-				MENU_mode = TRUE;	// We're NOT done, just backing off
-				menu_level = 0;		// We are done with this menu level
-				LCD_upd = FALSE;
-				break;
-			default:
-				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-				lcd_q_clear();
-				lcd_q_goto(1,0);
-		   		lcd_q_print("Done w. BiasSettings");
-		   		xSemaphoreGive( mutexQueLCD );
-				vTaskDelay(20000 );
-				MENU_mode = FALSE;	// We're done
-				menu_level = 0;		// We are done with this menu level
-				LCD_upd = FALSE;
-				TX_state = TRUE;	// Force housekeeping
-				break;
-		}
-	}
+	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+	lcd_q_clear();
+	lcd_q_goto(1,1);
+	lcd_q_print("Not Implemented yet");
+	xSemaphoreGive( mutexQueLCD );
+	vTaskDelay(20000 );
+	MENU_mode = TRUE;				// We're NOT done, just backing off
+	menu_level = 0;					// We are done with this menu level
+	LCD_upd = FALSE;
 }
 /*****************************************************************************************************************************/
 
@@ -1690,7 +849,8 @@ void temperature_menu(void)
 		while(current_selection < 0)
 			current_selection += menu_size;
 
-		// Indicate Current Temperature settings based on scroll menu position
+		// Indicate Current Frequency and the Frequency stored under the currently selected Channel number
+		// The "stored" Frequency always changes according to which channel is currently selected.
 		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 		lcd_q_clear();
 		lcd_q_goto(0,0);
@@ -1735,20 +895,14 @@ void temperature_menu(void)
 		switch (current_selection)
 		{
 			case 0:
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
 				menu_level = TMP_CASE0_MENU;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
 			case 1:
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
 				menu_level = TMP_CASE1_MENU;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
 			case 2:
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
 				menu_level = TMP_CASE2_MENU;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
@@ -1985,7 +1139,6 @@ void filters_setpoint_menu_level2(void)
 			else
 				menu_level = FILTER_LPF_ADJUST_MENU;
 			menu_data = current_selection;
-			val_steps_from_enc = 0;
 			VAL_fromenc = FALSE;
 		}
 		LCD_upd = FALSE;	// force LCD reprint
@@ -2245,7 +1398,7 @@ void i2c_menu_level2(void)
 		if(current_selection < min_value) current_selection = min_value;
 
 		// Format current value for LCD print
-		sprintf(menu_lcd0,"%02x hex",current_selection);
+		sprintf(menu_lcd0,"%3d",current_selection);
 
 		// LCD Print Currently selected Value
 		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
@@ -2285,7 +1438,7 @@ void i2c_menu_level2(void)
 		lcd_q_print("Rotate to Adjust");
 		lcd_q_goto(3,0);
 		lcd_q_print("Push to Save->");
-		lcd_q_goto(3,14);
+		lcd_q_goto(3,17);
 		lcd_q_print(menu_lcd0);
 		xSemaphoreGive( mutexQueLCD );
 	}
@@ -2467,7 +1620,7 @@ void i2c_menu(void)
 					value = cdata.AD7991_I2C_addr;
 					break;
 			}
-			sprintf(menu_lcd0,"%02x hex ", value);
+			sprintf(menu_lcd0," %3d ", value);
 		}
 		else
 		{
@@ -3043,8 +2196,6 @@ void menu_level0(void)
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
 			case 11:// Encoder Resolution
-				VAL_fromenc = FALSE;
-				val_steps_from_enc = 0;
 				menu_level = ENCODER_MENU;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
@@ -3135,18 +2286,11 @@ static void vtaskPushButtonMenu( void * pcParameters )
 
     			else if (menu_level == VFORES_MENU) vfores_menu();		//done
 
-    			else if (menu_level == PCF8574_MENU) pcf8574_menu();	//done
-    			else if (menu_level == PCF_CASE0_MENU) pcf8574_addr_menu_level2();//done
-    			else if (menu_level == PCF_CASE1_MENU) pcf8574_write_menu_level2();//done
+    			else if (menu_level == PCF8574_MENU) pcf8574_menu();
 
     			else if (menu_level == PSWR_MENU) pswr_menu();
 
-        		else if (menu_level == BIAS_MENU) bias_menu();//done
-        		else if (menu_level == BIAS_CASE0_MENU) bias_autoset_menu_level2();//done
-        		else if (menu_level == BIAS_CASE1_MENU) bias_autoset_menu_level2();//done
-        		else if (menu_level == BIAS_CASE2_MENU) bias_select_menu_level2();//done
-        		else if (menu_level == BIAS_CASE3_MENU) bias_raw_menu_level2();//done
-        		else if (menu_level == BIAS_CASE4_MENU) bias_raw_menu_level2();//done
+        		else if (menu_level == BIAS_MENU) bias_menu();
 
         		else if (menu_level == TMP_MENU) temperature_menu();	//done
     			else if (menu_level == TMP_CASE0_MENU) temperature_menu_level2();//done

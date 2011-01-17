@@ -27,7 +27,7 @@ uint8_t pcf8574_out_byte(uint8_t i2c_address, uint8_t data)
 {
 	uint8_t status;
 
-	status = twi_write_out(i2c_address, &data, sizeof(data));
+	status = twi_write_out(i2c_address, &data,sizeof(data));
 
 	return status;
 }
@@ -41,7 +41,7 @@ uint8_t pcf8574_in_byte(uint8_t i2c_address, uint8_t *read_byte)
 {
 	uint8_t status;
 
-	status = twi_read_in(i2c_address, read_byte, sizeof(*read_byte));
+	status = twi_read_in(i2c_address, read_byte, sizeof(read_byte));
 
 	return status;
 }
@@ -54,7 +54,7 @@ uint8_t pcf8574_in_byte(uint8_t i2c_address, uint8_t *read_byte)
 uint8_t pcf8574_mobo_set(uint8_t i2c_address, uint8_t byte)
 {
 	uint8_t	status;
-	// pcf_mobo_data_out contains the current output data on the builtin PCF8574 on the Mobo
+	// pcf_data_out contains the current output data on the builtin PCF8574 on the Mobo
 	pcf8574_mobo_data_out = pcf8574_mobo_data_out | byte;			// Set bits
 	status = pcf8574_out_byte(i2c_address, pcf8574_mobo_data_out);		// Write out to Mobo PCF8574
 	return status;
@@ -67,7 +67,7 @@ uint8_t pcf8574_mobo_set(uint8_t i2c_address, uint8_t byte)
 uint8_t pcf8574_mobo_clear(uint8_t i2c_address, uint8_t byte)
 {
 	uint8_t	status;
-	// pcf_mobo_data_out contains the current output data on the builtin PCF8574 on the Mobo
+	// pcf_data_out contains the current output data on the builtin PCF8574 on the Mobo
 	pcf8574_mobo_data_out = pcf8574_mobo_data_out & ~byte;			// Clear bits
 	status = pcf8574_out_byte(i2c_address, pcf8574_mobo_data_out);		// Write out to Mobo PCF8574
 	return status;

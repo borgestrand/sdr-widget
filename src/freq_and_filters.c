@@ -178,7 +178,6 @@ void SetFilter(uint32_t freq)
 uint8_t new_freq_and_filters(uint32_t freq)		// frequency [MHz] * 2^21
 {
 	uint8_t	status=0;			// Is the Si570 On Line?
-	static uint8_t band;		// which BPF frequency band? (used with CALC_BAND_MUL_ADD)
 	double set_frequency;		// Frequency in double precision floating point
 
 	#if LCD_DISPLAY				// Multi-line LCD display
@@ -214,6 +213,10 @@ uint8_t new_freq_and_filters(uint32_t freq)		// frequency [MHz] * 2^21
 	#endif
 
 	#if BPF_LPF_Module			// Band Pass and Low Pass filter switcing
+	#if CALC_BAND_MUL_ADD		// Band dependent Frequency Subtract and Multiply
+	static uint8_t band;		// which BPF frequency band?
+	#endif
+
 	#if !FRQ_CGH_DURING_TX		// Do not allow Si570 frequency change and corresponding filter change during TX
 	if (TX_state)		 		// Oops, we are transmitting... return without changing frequency
 		return TWI_INVALID_ARGUMENT;

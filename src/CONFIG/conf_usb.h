@@ -45,10 +45,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * Modified by Alex Lee and SDR-Widget team for the sdr-widget project - 14 Feb 2010
- * See http://code.google.com/p/sdr-widget/
- * Copyright under GNU General Public License v2
- *
  */
 
 #ifndef _CONF_USB_H_
@@ -56,6 +52,7 @@
 
 #include "compiler.h"
 #include "board.h"
+#include "print_funcs.h"
 #include "usb_ids.h"
 
 
@@ -103,10 +100,14 @@
 
 #define COMPOSITE_DEVICE
 
-#define NB_ENDPOINTS		  4
-#define EP_AUDIO_IN			  1
-#define EP_AUDIO_OUT 		  2
-#define EP_AUDIO_OUT_FB		  3
+#define NB_ENDPOINTS		  7
+#define EP_CDC_COMM			  1
+#define EP_CDC_TX			  2
+#define EP_CDC_RX			  3
+#define EP_HID_TX			  4
+#define EP_HID_RX			  5
+#define EP_AUDIO_IN			  6
+//#define EP_AUDIO_IN_STEREO	  7
 
     //! @defgroup device_cst_actions USB device custom actions
     //!

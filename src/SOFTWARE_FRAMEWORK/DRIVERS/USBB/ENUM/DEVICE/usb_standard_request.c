@@ -95,8 +95,8 @@ static  void    usb_set_interface    (void);
 static            U8                                  bmRequestType;
         volatile  U8                                  usb_configuration_nb;
         volatile  U16	usb_interface_nb;
-        volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
-        volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
+        volatile  U8	usb_alternate_setting;
+        volatile  Bool  usb_alternate_setting_changed;
 extern  volatile  Bool                                usb_connected;
 
 //extern  const     S_usb_device_descriptor             usb_user_device_descriptor;
@@ -383,7 +383,52 @@ void usb_get_descriptor(void)
 	  }
   } // bmRequestType == IN_DEVICE
 
+  else if (bmRequestType == IN_INTERFACE){
+	  wInterface=usb_format_usb_to_mcu_data(16,Usb_read_endpoint_data(EP_CONTROL, 16));
+	  switch( descriptor_type ) // Descriptor ID
+		  {
+#if (USB_HIGH_SPEED_SUPPORT==DISABLED)
+		if (wInterface == DSC_INTERFACE_HID)
+			hid_get_descriptor(
+			sizeof(usb_conf_desc_fs.hid)
+		,  (const U8*)&usb_conf_desc_fs.hid);
+#else
+			 case HID_DESCRIPTOR:
+			 if( Is_usb_full_speed_mode() )
+			 {
+				if (wInterface == DSC_INTERFACE_HID)
+					hid_get_descriptor(
+					sizeof(usb_conf_desc_fs.hid)
+				,  (const U8*)&usb_conf_desc_fs.hid);
+			 }else{
+				 if (wInterface == DSC_INTERFACE_HID)
+					hid_get_descriptor(
+					sizeof(usb_conf_desc_hs.hid)
+				,  (const U8*)&usb_conf_desc_hs.hid);
+				 }
 
+			 return;
+#endif
+
+			 case HID_REPORT_DESCRIPTOR:
+				 hid_get_descriptor(
+				sizeof(usb_hid_report_descriptor)
+			 ,  usb_hid_report_descriptor);
+			 return;
+
+			 case HID_PHYSICAL_DESCRIPTOR:
+			 // TODO
+			 break;
+			 default:
+				if (!usb_user_get_descriptor(descriptor_type, string_type))
+				{
+				  Usb_enable_stall_handshake(EP_CONTROL);
+				  Usb_ack_setup_received_free();
+				  return;
+				}
+				break;
+		  }
+  }
 
   temp.u32 = Usb_read_endpoint_data(EP_CONTROL, 32);      //!< read wIndex and wLength with a 32-bit access
                                                           //!< since this access is aligned with a 32-bit
@@ -764,16 +809,6 @@ void usb_set_interface(void)
       if( wValue != ((S_usb_interface_descriptor*)pbuffer)->bAlternateSetting )
          continue;
       break;
-   }
-
-   //* Check whether it is the audio streaming interface and Alternate Setting that is being set
-   usb_interface_nb = wIndex;
-   if (usb_interface_nb == STD_AS_INTERFACE_IN) {
-	   usb_alternate_setting = wValue;
-	   usb_alternate_setting_changed = TRUE;
-   } else if (usb_interface_nb == STD_AS_INTERFACE_OUT){
-	   usb_alternate_setting_out = wValue;
-	   usb_alternate_setting_out_changed = TRUE;
    }
 
    //* Check whether it is the audio streaming interface and Alternate Setting that is being set

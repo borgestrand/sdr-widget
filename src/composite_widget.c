@@ -153,6 +153,7 @@
 #endif
 #include "compiler.h"
 #include "board.h"
+#include "print_funcs.h"
 #include "intc.h"
 #include "pm.h"
 #include "gpio.h"
@@ -163,6 +164,8 @@
 #include "conf_usb.h"
 #include "usb_task.h"
 #if USB_DEVICE_FEATURE == ENABLED
+#include "device_mouse_hid_task.h"
+#include "device_cdc_task.h"
 #endif
 #if USB_HOST_FEATURE == ENABLED
 //#include "host_keyboard_hid_task.h"
@@ -220,15 +223,14 @@ int main(void)
      return 42;
 
   gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
-  gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
-  gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
-  gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
   // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
   wdt_disable();
 
   INTC_init_interrupts();
 
+  // Initialize usart comm
+  init_dbg_rs232(pm_freq_param.pba_f);
 
   // Initialize USB clock (on PLL1)
   pm_configure_usb_clock();
@@ -247,6 +249,8 @@ int main(void)
   vStartTaskMoboCtrl();
   vStartTaskEXERCISE( tskIDLE_PRIORITY );
   AK5394A_task_init();
+  device_mouse_hid_task_init();
+  device_cdc_task_init();
   device_audio_task_init();
 
 

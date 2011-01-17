@@ -2,26 +2,6 @@
 #ifndef _SDRwdgt_H_
 #define _SDRwdgt_H_
 
- /*
- * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
- *
- * Copyright (C) Alex Lee
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
 #include "compiler.h"
 
 #ifdef __AVR32_ABI_COMPILER__ // Automatically defined when compiling for AVR32, not when assembling.
@@ -57,7 +37,6 @@
 #define FCPU_HZ                       66000000
 #define FHSB_HZ                       33000000
 #define FPBB_HZ                       33000000
-//#define FPBA_HZ                       33000000
 #define FPBA_HZ                       66000000
 //! @}
 
@@ -219,12 +198,6 @@
 #define SSC_RX_FRAME_SYNC_FUNCTION	AVR32_SSC_RX_FRAME_SYNC_0_2_FUNCTION
 #define SSC_RX_CLOCK			AVR32_SSC_RX_CLOCK_0_1_PIN
 #define	SSC_RX_CLOCK_FUNCTION	AVR32_SSC_RX_CLOCK_0_1_FUNCTION
-#define SSC_TX_DATA				AVR32_SSC_TX_DATA_0_1_PIN
-#define SSC_TX_DATA_FUNCTION	AVR32_SSC_TX_DATA_0_1_FUNCTION
-#define SSC_TX_FRAME_SYNC		AVR32_SSC_TX_FRAME_SYNC_0_1_PIN
-#define SSC_TX_FRAME_SYNC_FUNCTION	AVR32_SSC_TX_FRAME_SYNC_0_1_FUNCTION
-#define SSC_TX_CLOCK			AVR32_SSC_TX_CLOCK_0_1_PIN
-#define	SSC_TX_CLOCK_FUNCTION	AVR32_SSC_TX_CLOCK_0_1_FUNCTION
 
 /*! \name GCLK Settings for the SDR-Widget boards
  */
@@ -242,13 +215,8 @@
 //! @{
 
 //#define GPIO_CW_KEY_1        AVR32_PIN_PB9
-#define GPIO_CW_KEY_1        AVR32_PIN_PX00
-#define GPIO_CW_KEY_2        AVR32_PIN_PX01
-#define GPIO_PTT_INPUT       AVR32_PIN_PX03
-
-#define PTT_1				 AVR32_PIN_PX45
-#define PTT_2				 AVR32_PIN_PX42
-#define PTT_3				 AVR32_PIN_PX22
+#define GPIO_CW_KEY_1        AVR32_PIN_PB10	// Temporarily defined as same as Program Pushbutton
+#define GPIO_CW_KEY_2        AVR32_PIN_PB11
 //! @}
 
 // Inhale list of required modules

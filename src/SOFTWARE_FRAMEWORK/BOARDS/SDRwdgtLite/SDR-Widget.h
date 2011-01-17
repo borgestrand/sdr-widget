@@ -1,59 +1,34 @@
 #ifndef _SDR_Widget_H_
 #define _SDR_Widget_H_
 
- /*
- * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
- *
- * Copyright (C) Alex Lee
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
-
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:UAC2-aud"
-// Mobo changes since V:UAC1_069:
-//   taskPowerDisplay.c... change calculated pwr value from mW to cW
-//   taskMoboControl.c...  change calculated pwr value from mW to cW
-//   taskMoboControl.h...  change calculated pwr value from mW to cW
-//   taskPushButtonMenu.c...
+#define FIRMWARE_VERSION	"V:UAC2_073"
 
 /*! \name Peripherals to include at compile time. */
 //! @{
-#define I2C                 0	// I2C driver
 #define LCD_DISPLAY         1   // 20x4 Liquid Crystal Display (LCD)
 #define SHAFT_ENCODER       1   // Shaft Encoder VFO function
-#define Si570               1   // Si570 VXO control funcs (needs I2C driver)
+#define Si570               1   // Si570 VXO control funcs
 #define AK5394              1   // 24-bit ADC
 #define AK4382A             0   // 24-bit DAC
-#define TMP100              1   // Temperature measurement device  (needs I2C driver)
-#define AD7991              1   //  (needs I2C driver)
-#define AD5301              1   //  (needs I2C driver)
-#define PCF8574             1   // port expander control of TX/RX and Band Pass filters  (needs I2C driver)
+#define TMP100              1   // Temperature measurement device
+#define AD7991              1   //
+#define AD5301              1   //
+#define PCF8574             1   // port expander control of TX/RX and Band Pass filters
 
 #define DEBUG232            1   // Use the UART debug port
 #define USB                 1   // Although it may look odd there may be a free standing mode.
 #define LED                 1   // Flashy-Blinky lights
 #define SPI                 0   // SPI driver
+#define I2C                 1   // I2C driver
 #define EXTERN_MEM          0   // Use MMC memory slot
 #define MENU                0   // A menu system driven by the rotary encoder
 //! @}
 
 /*! \name Features to include at compile time. */
 //! @{
-#define MOBO_FUNCTIONS		1	// AD7991/AD5301/TMP100, P/SWR etc...  (needs I2C driver)
+#define MOBO_FUNCTIONS		1	// AD7991/AD5301/TMP100, P/SWR etc...
 								// Without this, we have a simple Si570 control
 // None, or only one of the two, CALC_FREQ_MUL_ADD or CALC_BAND_MUL_ADD should be selected
 #define CALC_FREQ_MUL_ADD	0	// Frequency Subtract and Multiply Routines (for smart VFO)
@@ -97,7 +72,7 @@
 #define TMP_V_I_SECOND_LINE	1	// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
 #define DISP_RX_DB			1	// Display RX level in dB for both input channels, third line (taskPowerDisplay)
 #define DISP_RX_DB_HPF		0	// Display RX level in dB for both input channels, simple HPF, fourth line (taskPowerDisplay)
-#define ENOB_TEST			0	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
+#define ENOB_TEST			1	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
 #define	I2C_LCD_PRINT		0	// Show which values are being sent to the PCF and Si570
 #define LCD_CDC				0	// CDC traffic displayed on LCD
 
