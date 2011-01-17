@@ -30,7 +30,7 @@
 // EEPROM settings Serial Number. Increment this number when firmware mods necessitate
 // fresh "Factory Default Settings" to be forced into the EEPROM (NVRAM)at first boot after
 // an upgrade
-#define COLDSTART_REF		0x08
+#define COLDSTART_REF		0x0a
 
 // DEFS for PA BIAS selection and autocalibration
 #define	BIAS_SELECT			1		// Which bias, 0 = Cal, 1 = AB, 2 = A
@@ -38,6 +38,7 @@
 									// after any Reset will be to autocalibrate
 #define	BIAS_LO				2		// PA Bias in 10 * mA, Class B ( 2 =  20mA)
 #define	BIAS_HI				35		// PA Bias in 10 * mA, Class A  (35 = 350mA)
+#define	BIAS_MAX			100		// Max allowable PA Bias in 10 * mA, Class A  (100 = 1A)
 #define	CAL_LO				0		// PA Bias setting, Class B
 #define	CAL_HI				0		// PA Bias setting, Class A
 

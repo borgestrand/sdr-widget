@@ -222,8 +222,13 @@
 //! @{
 
 //#define GPIO_CW_KEY_1        AVR32_PIN_PB9
-#define GPIO_CW_KEY_1        AVR32_PIN_PB10	// Temporarily defined as same as Program Pushbutton
-#define GPIO_CW_KEY_2        AVR32_PIN_PB11
+#define GPIO_CW_KEY_1        AVR32_PIN_PX00
+#define GPIO_CW_KEY_2        AVR32_PIN_PX01
+#define GPIO_PTT_INPUT       AVR32_PIN_PX03
+
+#define PTT_1				 AVR32_PIN_PX45
+#define PTT_2				 AVR32_PIN_PX42
+#define PTT_3				 AVR32_PIN_PX22
 //! @}
 
 // Inhale list of required modules

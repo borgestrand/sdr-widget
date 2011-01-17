@@ -23,6 +23,7 @@
 #include "flashc.h"
 #include "rtc.h"
 #include "queue.h"
+#include "usb_drv.h"
 
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
@@ -336,7 +337,7 @@ void lcd_display_V_C_T_in_2nd_line(void)
  *
  * \retval Measured Power in milliWatts
  */
-// A simplified integer aritmetic version, still with decent accuracy
+// A simplified integer arithmetic version, still with decent accuracy
 // (the return value overflows above 65W max)
 // (comparison Ref 11604 bytes)
 uint32_t measured_Power(uint16_t voltage)
@@ -509,11 +510,12 @@ void PA_bias(void)
 			{
 				TX_flag = TRUE; 								// Ask for transmitter to be keyed on
 				PA_cal = TRUE;									// Indicate PA Calibrate in progress
+				ad5301(cdata.AD5301_I2C_addr, 0);				// Set bias to 0 in preparation for step up
 			}
-			else if ((!TMP_alarm) && (TX_flag) && (TX_state))	// We have been granted switchover to TX
+			else if ((!TMP_alarm) && (TX_flag) && (TX_state))	// We have been granted switch over to TX
 			{													// Start calibrating
 				// Is current larger or equal to setpoint for class AB?
-				if((ad7991_adc[AD7991_PA_CURRENT]/256 >= cdata.Bias_LO) && !(PA_cal_lo))
+				if((ad7991_adc[AD7991_PA_CURRENT]/256 >= cdata.Bias_LO) && (!PA_cal_lo))
 				{
 					PA_cal_lo = TRUE;							// Set flag, were done with class AB
 					cdata.cal_LO = calibrate;					// We have bias, store
@@ -521,7 +523,7 @@ void PA_bias(void)
 				}
 
 				// Is current larger or equal to setpoint for class A?
-				if((ad7991_adc[AD7991_PA_CURRENT]/256 >= cdata.Bias_HI) && !(PA_cal_hi))
+				if((ad7991_adc[AD7991_PA_CURRENT]/256 >= cdata.Bias_HI) && (!PA_cal_hi))
 				{
 					PA_cal_hi = TRUE;							// Set flag, we're done with class A
 					cdata.cal_HI = calibrate;					// We have bias, store
@@ -609,6 +611,12 @@ static void vtaskMoboCtrl( void * pcParameters )
 	// Clear LCD and Print Firmware version
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_clear();
+
+/*
+	lcd_q_goto(2,0);
+	lcd_q_print("HP Cap:");
+	lcd_q_puth(Usb_get_enhanced_high_bandwidth_iso());
+*/
 	lcd_q_goto(3,10);
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
@@ -618,10 +626,12 @@ static void vtaskMoboCtrl( void * pcParameters )
 	mutexI2C = xSemaphoreCreateMutex();
 
  	// Initialize I2C communications
-    twi_init();
+	#if I2C
+	twi_init();
 
     // Probe for I2C devices present and report on LCD
     i2c_probe();
+	#endif
 
 	#if LCD_DISPLAY			// Multi-line LCD display
     // Clear LCD and Print Firmware version again
@@ -681,7 +691,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 	encoder_init();
 
 	// Force an initial reading of AD7991 etc
+	#if I2C
 	TX_state = TRUE;
+	#endif
 
 	//----------------------------------------------------
 	// Mobo Functions Loop *******************************
@@ -695,12 +707,17 @@ static void vtaskMoboCtrl( void * pcParameters )
    		// Routines accessed every 10ms
    		//-----------------------------
 
+		// The below is only applicable if I2C bus is available
+		#if I2C
 		// Si570 Control
 		#if Si570
 		freq_and_filter_control();
 		#endif
 
 		#if MOBO_FUNCTIONS	// AD7991/AD5301/TMP100, P/SWR etc...
+		//--------------------------
+   		// TX stuff, once every 10ms
+   		//--------------------------
 		//---------------------------------
 		// Bias management poll, every 10ms
 		//---------------------------------
@@ -708,13 +725,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 		PA_bias();										// Autobias and other bias management functions
 														// This generates no I2C traffic unless bias change or
 														// autobias measurement
-		//--------------------------
-   		// TX stuff, once every 10ms
-   		//--------------------------
 		if (TX_state)
        	{
 			if (i2c.ad7991)
-   				ad7991_poll(cdata.AD7991_I2C_addr);	// Poll the AD7991 for all four values
+   				ad7991_poll(cdata.AD7991_I2C_addr);		// Poll the AD7991 for all four values
 
     		#if	POWER_SWR								// Power/SWR measurements and related actions
    			// SWR Protect
@@ -724,8 +738,9 @@ static void vtaskMoboCtrl( void * pcParameters )
    														// => constant traffic on I2C (can be improved to slightly
    			#endif										// reduce I2C traffic, at the cost of a few extra bytes)
 
+
        	}
-      	//--------------------------
+		//--------------------------
       	// RX stuff, once every 10ms
       	//--------------------------
 		else
@@ -861,7 +876,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 					// Todo biasInit = 0;		// Ensure that correct bias is set by PA_bias()
 					// Switch to Transmit mode, set TX out
 					pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
-//					LED_Off(LED0);
+					LED_Off(LED0);
 					#if LCD_DISPLAY				// Multi-line LCD display
 					#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
 					if (!MENU_mode)
@@ -879,7 +894,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 			{
 				TX_state = FALSE;
 				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
-		//		LED_On(LED0);
+				LED_On(LED0);
        	    	if (!MENU_mode)
        	    	{
 					#if LCD_DISPLAY				// Multi-line LCD display
@@ -903,8 +918,9 @@ static void vtaskMoboCtrl( void * pcParameters )
     	}
     	else TX_state = FALSE;					// If no PCF, then this can only be receive
 		#endif
+		#endif
 
-//        LED_Toggle(LED2);
+        LED_Toggle(LED2);
         vTaskDelay(100 );
     }
 }

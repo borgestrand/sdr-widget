@@ -3,10 +3,11 @@
 
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:UAC2_093"
+#define FIRMWARE_VERSION	"V:UAC2_094"
 
 /*! \name Peripherals to include at compile time. */
 //! @{
+#define I2C                 1   // I2C driver
 #define LCD_DISPLAY         1   // 20x4 Liquid Crystal Display (LCD)
 #define SHAFT_ENCODER       1   // Shaft Encoder VFO function
 #define Si570               1   // Si570 VXO control funcs
@@ -21,7 +22,6 @@
 #define USB                 1   // Although it may look odd there may be a free standing mode.
 #define LED                 1   // Flashy-Blinky lights
 #define SPI                 0   // SPI driver
-#define I2C                 1   // I2C driver
 #define EXTERN_MEM          0   // Use MMC memory slot
 #define MENU                0   // A menu system driven by the rotary encoder
 //! @}
