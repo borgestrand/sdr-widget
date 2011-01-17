@@ -181,11 +181,14 @@ void usb_user_endpoint_init(U8 conf_nb)
                             DIRECTION_IN,
                             EP_SIZE_4_FS,
                             DOUBLE_BANK, 0);
+
+    /*
     (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB,
                            EP_ATTRIBUTES_5,
                            DIRECTION_OUT,
                            EP_SIZE_5_FS,
                            SINGLE_BANK, 0);
+         */
 	}
 	else {
 		   (void)Usb_configure_endpoint(EP_HID_TX,
@@ -208,11 +211,14 @@ void usb_user_endpoint_init(U8 conf_nb)
 		                           DIRECTION_IN,
 		                           EP_SIZE_4_HS,
 		                           DOUBLE_BANK, 0);
+
+		    /*
 		    (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB,
 		                            EP_ATTRIBUTES_5,
 		                            DIRECTION_OUT,
 		                            EP_SIZE_5_HS,
 		                            SINGLE_BANK, 0);
+		      */
 	}
 
 }

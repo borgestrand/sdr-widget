@@ -190,9 +190,9 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
   {
 	  ssc->cmr = AVR32_SSC_CMR_DIV_NOT_ACTIVE << AVR32_SSC_CMR_DIV_OFFSET;
       /* Set transmit clock mode:
-       *   CKS - use RX clock,
-       *   CKO - transmit continuous clock on TK
-       *   CKI - shift data on falling clock, (so that data will be valid on rising clock)
+       *   CKS - use TK pin.  Signal from GCLK1
+       *   CKO - no output on TK.  Input only.
+       *   CKI - shift data on falling clock
        *   CKG - transmit continuous clock on TK
        *   START - on any TF(WS) edge
        *   STTDLY - TF toggles before last bit of last word, not before
@@ -200,8 +200,8 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
        *   PERIOD - generate framesync for each sample (FS is generated
        *            every (PERIOD + 1) * 2 clock)
        */
-      ssc->tcmr = AVR32_SSC_TCMR_CKS_RK_CLOCK               << AVR32_SSC_TCMR_CKS_OFFSET    |
-                  AVR32_SSC_TCMR_CKO_CONTINOUS_CLOCK_OUTPUT << AVR32_SSC_TCMR_CKO_OFFSET    |
+      ssc->tcmr = AVR32_SSC_TCMR_CKS_TK_PIN	                << AVR32_SSC_TCMR_CKS_OFFSET    |
+                  AVR32_SSC_TCMR_CKO_INPUT_ONLY				<< AVR32_SSC_TCMR_CKO_OFFSET    |
                   0                                         << AVR32_SSC_TCMR_CKI_OFFSET    |
                   AVR32_SSC_TCMR_CKG_NONE                   << AVR32_SSC_TCMR_CKG_OFFSET    |
                   AVR32_SSC_TCMR_START_DETECT_ANY_EDGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |

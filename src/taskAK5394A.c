@@ -175,8 +175,8 @@ void AK5394A_task_init(void)
 	pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
 					  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
 					  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-					  0,                  // diven - disabled
-					  0);                 // not divided.  Therefore GCLK1 = 12.288Mhz
+					  1,                  // diven - enabled
+					  1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
 	pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
@@ -205,7 +205,7 @@ void AK5394A_task_init(void)
 	  gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 
 	  // set up SSC
-	  ssc_i2s_init(ssc, 48000, 24, 64, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
+	  ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 
 	  // set up PDCA
 	  // In order to avoid long slave handling during undefined length bursts (INCR), the Bus Matrix
