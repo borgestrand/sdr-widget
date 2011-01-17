@@ -45,6 +45,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Modified by Alex Lee and SDR-Widget team for the sdr-widget project.
+ * See http://code.google.com/p/sdr-widget/
+ * Copyright under GNU General Public License v2
  */
 
 #ifndef _DEVICE_AUDIO_TASK_H_
@@ -62,8 +65,6 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-#define SAMPLE_DELAY_96000_I	0
-#define SAMPLE_DELAY_96000_Q 	0
 
 extern Bool mute;
 

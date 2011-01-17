@@ -254,9 +254,9 @@
 
 // USB Endpoint 6 descriptor
 #define ENDPOINT_NB_6       ( EP_AUDIO_IN | MSK_EP_DIR )
-#define EP_ATTRIBUTES_6		0x0d            // ISOCHROUNOUS SYNCHRONOUS
-#define EP_IN_LENGTH_6_FS	288				// 3 bytes * 48 samples * stereo
-#define EP_IN_LENGTH_6_HS	288
+#define EP_ATTRIBUTES_6		0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
+#define EP_IN_LENGTH_6_FS	294				// 3 bytes * 49 samples * stereo
+#define EP_IN_LENGTH_6_HS	294
 #define EP_SIZE_6_FS		EP_IN_LENGTH_6_FS
 #define EP_SIZE_6_HS        EP_IN_LENGTH_6_HS
 #define EP_INTERVAL_6_FS	0x01			 // one packet per uframe, each uF 1ms, so only 48khz
@@ -265,9 +265,9 @@
 
 // USB Endpoint 7 descriptor
 #define ENDPOINT_NB_7       ( EP_AUDIO_OUT )
-#define EP_ATTRIBUTES_7     0x0d 			// ISOCHROUNOUS SYNCHRONOUS
-#define EP_IN_LENGTH_7_HS   288				// 3 bytes * 48 khz * stereo
-#define EP_IN_LENGTH_7_FS	288
+#define EP_ATTRIBUTES_7     0x00001001			// ISOCHROUNOUS ADAPTIVE
+#define EP_IN_LENGTH_7_HS   294				// 3 bytes * 49 samples * stereo
+#define EP_IN_LENGTH_7_FS	294
 #define EP_SIZE_7_FS		EP_IN_LENGTH_7_FS
 #define EP_SIZE_7_HS        EP_IN_LENGTH_7_HS
 #define EP_INTERVAL_7_FS	0x01			 // one packet per uframe
@@ -528,17 +528,20 @@
   Usb_unicode('r'),\
   Usb_unicode('m')\
 }
-#define USB_AIN_LENGTH         8
+#define USB_AIN_LENGTH         11
 #define USB_AIN \
 {\
-  Usb_unicode('A'),\
-  Usb_unicode('u'),\
-  Usb_unicode('d'),\
+  Usb_unicode('W'),\
   Usb_unicode('i'),\
-  Usb_unicode('o'),\
-  Usb_unicode(' '),\
-  Usb_unicode('I'),\
-  Usb_unicode('n')\
+  Usb_unicode('d'),\
+  Usb_unicode('g'),\
+  Usb_unicode('e'),\
+  Usb_unicode('t'),\
+  Usb_unicode('-'),\
+  Usb_unicode('L'),\
+  Usb_unicode('i'),\
+  Usb_unicode('t'),\
+  Usb_unicode('e')\
 }
 #define USB_AIA_LENGTH         12
 #define USB_AIA \

@@ -16,7 +16,7 @@
 #include "taskLCD.h"
 #endif
 
-#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
+//#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
 
 int i;
 uint16_t y;

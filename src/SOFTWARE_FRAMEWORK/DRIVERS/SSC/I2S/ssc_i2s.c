@@ -56,6 +56,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
  */
+/* Modified by Alex Lee 20 Feb 2010
+ * To enumerate as a USB composite device with 4 interfaces:
+ * CDC
+ * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
+ * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
+ * Audio (Start with Audio Class v1.  Will progress to Audio Class V2.  Tweaked for
+ * 		compatibility when running at HIGH speed USB.)
+ * For SDR-Widget and SDR-Widget-lite, custom boards based on the AT32UC3A3256
+ *
+ * See http://code.google.com/p/sdr-widget/
+ *
+ * Modified by Alex Lee and sdr-widget team since Feb 2010.  Copyright General Purpose Licence v2.
+ * Please refer to http://code.google.com/p/sdr-widget/
+ */
 
 #include "compiler.h"
 #include "ssc_i2s.h"
@@ -158,18 +172,23 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
 	       *  CKO - No clock output,
 	       *  CKI - shift data on rising edge,
 	       *  CKG - No clock output,
-	       *  START - On rising edge of the FRAME_SYNC input which is connected to FSYNC
-	       *  STTDLY - i2s data starts one SCLK after LRCK change
+	       *  START -  v76 On rising edge of the FRAME_SYNC input which is connected to FSYNC
+	       *  START -  v77 On level change of LRCK if SSC_RX_FS is connected to AD_LRCK
+	       *  STTDLY - v77 i2s data starts one SCLK after LRCK change
+	       *  STTDLY - v92 i2s data samples immediately on LRCK change
+	       *  STTDLY - v76 i2s data starts zero SCLK, ie immediately on FSYNC
 	       *  PERIOD - No FS generation
 	       */
 
 	  ssc->rcmr = (AVR32_SSC_RCMR_CKS_RK_PIN << AVR32_SSC_RCMR_CKS_OFFSET) |
 	                (1                             << AVR32_SSC_RCMR_CKI_OFFSET)|
 	                (AVR32_SSC_RCMR_CKO_INPUT_ONLY << AVR32_SSC_RCMR_CKO_OFFSET) |
-	                (0                         << AVR32_SSC_RCMR_STTDLY_OFFSET ) |
-//	                (AVR32_SSC_RCMR_START_DETECT_FALLING_RF << AVR32_SSC_RCMR_START_OFFSET);
-//					(AVR32_SSC_DETECT_LEVEL_CHANGE_RF << AVR32_SSC_RCMR_START_OFFSET);
-	                (AVR32_SSC_RCMR_START_DETECT_RISING_RF << AVR32_SSC_RCMR_START_OFFSET);
+//	                (1                         << AVR32_SSC_RCMR_STTDLY_OFFSET ) |
+	    	        (0                         << AVR32_SSC_RCMR_STTDLY_OFFSET ) |
+//	                (AVR32_SSC_RCMR_START_DETECT_FALLING_RF << AVR32_SSC_RCMR_START_OFFSET) |
+					(AVR32_SSC_DETECT_LEVEL_CHANGE_RF << AVR32_SSC_RCMR_START_OFFSET) |
+//	                (AVR32_SSC_RCMR_START_DETECT_RISING_RF << AVR32_SSC_RCMR_START_OFFSET)  |
+					(0                             << AVR32_SSC_RCMR_PERIOD_OFFSET);
 
 
       ssc->rfmr = (data_bit_res - 1)                               << AVR32_SSC_RFMR_DATLEN_OFFSET                              |

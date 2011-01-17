@@ -91,8 +91,8 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
-static U32  index, delayed_index;
-U8 audio_buffer_out, delayed_audio_buffer_out;	// the ID number of the buffer used for sending out to the USB
+static U32  index;
+U8 audio_buffer_out;	// the ID number of the buffer used for sending out to the USB
 
 //!
 //! Public : (bit) mute
@@ -123,6 +123,18 @@ void device_audio_task_init(void)
 
 }
 
+inline int convert_sample_to_int(U32 s){
+
+	if (s > 0x007fffff) return (s - 0x01000000);
+	else return (s);
+}
+
+inline U32 convert_int_to_sample(int r){
+
+	if (r < 0) return(r + 0x01000000);
+	else return (r);
+
+}
 
 //!
 //! @brief Entry point of the device Audio task management
@@ -138,6 +150,11 @@ void device_audio_task(void *pvParameters)
   U8 sample_MSB;
   U8 sample_SB;
   U8 sample_LSB;
+  int y0, y1, y2, y3, y4;
+  int a0, a1, a2, a3;
+  int interpolated_result;
+
+
   volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 
   portTickType xLastWakeTime;
@@ -178,6 +195,8 @@ void device_audio_task(void *pvParameters)
         	startup=FALSE;
 
             audio_buffer_in = 0;
+            audio_buffer_out = 0;
+            index = 0;
 
             // Wait for the next frame synchronization event
             // to avoid channel inversion.  Start with left channel - FS goes low
@@ -212,67 +231,64 @@ void device_audio_task(void *pvParameters)
 				num_remaining = pdca_channel->tcr;
 				if (audio_buffer_in != audio_buffer_out)	// AK and USB using same buffer
 				{
+					LED_On(LED0);
+					LED_Off(LED1);
 					if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
 					else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
 				}
 				else  // usb and pdca working on different buffers
 				{
+					LED_Off(LED0);
+					LED_On(LED1);
 					gap = (AUDIO_BUFFER_SIZE - index) + (AUDIO_BUFFER_SIZE - num_remaining);
 				};
 
-				if ( (gap < AUDIO_BUFFER_SIZE/2) && index >=2 ) index -=2;	// throttle back, add 2 samples
-				if ( (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)) && (index < (AUDIO_BUFFER_SIZE - 2))) index +=2;
-						// drop 2 samples
+
+				if ( gap < AUDIO_BUFFER_SIZE/2 ){				// throttle back, transfer less
+					num_samples--;
+					LED_Toggle(LED2);
+				}
+				else if (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)){	// transfer more
+					num_samples++;
+					LED_Toggle(LED3);
+				};
+
 
 			  Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 			  for( i=0 ; i < num_samples ; i++ )   // Fill endpoint with samples
 			  {
 				 if(!mute)
 				 {
-					if (current_freq.frequency == 96000) delayed_index = index + 2 * SAMPLE_DELAY_96000_I;
-					else delayed_index = index;
 
-					if (delayed_index >= AUDIO_BUFFER_SIZE){
-						delayed_index -= AUDIO_BUFFER_SIZE;
-						delayed_audio_buffer_out = 1 - audio_buffer_out;	// skipped to the other buffer
-					} else delayed_audio_buffer_out = audio_buffer_out;
-
-					if (delayed_audio_buffer_out == 0)
+					if (audio_buffer_out == 0)
 					{
-						sample_LSB = audio_buffer_0[delayed_index];
-						sample_SB = audio_buffer_0[delayed_index] >> 8;
-						sample_MSB = audio_buffer_0[delayed_index] >> 16;
+						sample_LSB = audio_buffer_0[index];
+						sample_SB = audio_buffer_0[index] >> 8;
+						sample_MSB = audio_buffer_0[index] >> 16;
 					}
 					else
 					{
-						sample_LSB = audio_buffer_1[delayed_index];
-						sample_SB = audio_buffer_1[delayed_index] >> 8;
-						sample_MSB = audio_buffer_1[delayed_index] >> 16;
+						sample_LSB = audio_buffer_1[index];
+						sample_SB = audio_buffer_1[index] >> 8;
+						sample_MSB = audio_buffer_1[index] >> 16;
 					};
 
 					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
 					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
-					if (current_freq.frequency == 96000) delayed_index = index + 2 * SAMPLE_DELAY_96000_Q + 1;
-					else delayed_index = index + 1;
 
-					if (delayed_index >= AUDIO_BUFFER_SIZE){
-						delayed_index -= AUDIO_BUFFER_SIZE;
-						delayed_audio_buffer_out = 1 - audio_buffer_out;	// skipped to the other buffer
-					} else delayed_audio_buffer_out = audio_buffer_out;
-
-					if (delayed_audio_buffer_out == 0)
+					if (audio_buffer_out == 0)
 					{
-						sample_LSB = audio_buffer_0[delayed_index];
-						sample_SB = audio_buffer_0[delayed_index] >> 8;
-						sample_MSB = audio_buffer_0[delayed_index] >> 16;
+						sample_LSB = audio_buffer_0[index+1];
+						sample_SB = audio_buffer_0[index+1] >> 8;
+						sample_MSB = audio_buffer_0[index+1] >> 16;
 					}
 					else
 					{
-						sample_LSB = audio_buffer_1[delayed_index];
-						sample_SB = audio_buffer_1[delayed_index] >> 8;
-						sample_MSB = audio_buffer_1[delayed_index] >> 16;
+						sample_LSB = audio_buffer_1[index+1];
+						sample_SB = audio_buffer_1[index+1] >> 8;
+						sample_MSB = audio_buffer_1[index+1] >> 16;
 					};
 
 					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
