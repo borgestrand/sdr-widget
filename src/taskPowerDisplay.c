@@ -343,12 +343,14 @@ static void vtaskPowerDisplay( void * pcParameters )
    	     			// Display ENOB
   	     			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
    	     				lcd_q_goto(3,0);
-   	     				lcd_q_print("ENOB ");
+ //  	     				lcd_q_print("ENOB ");
+   	     				lcd_q_print("TXDAT ");
    	     	    	xSemaphoreGive( mutexQueLCD );
 
    	     	     	// Print a snapshot of the first channel
    	     	    	// Contains a 24bit signed integer
-   	     	     	x = audio_buffer_0[0];
+  // 	     	     	x = audio_buffer_0[0];
+   	     	    	x = spk_buffer_0[0];
    	     	     	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
    	     				lcd_q_goto(3,5);
    	     				if(x>0x7FFFFF)
@@ -363,7 +365,8 @@ static void vtaskPowerDisplay( void * pcParameters )
 
    	     	     	// Print a snapshot of the second channel
    	     	    	// Contains a 24bit signed integer
-   	     			x = audio_buffer_0[1];
+   //	     			x = audio_buffer_0[1];
+   	     	    	x = spk_buffer_0[1];
    	     	     	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
    	     				lcd_q_goto(3,13);
    	     				if(x>0x7FFFFF)

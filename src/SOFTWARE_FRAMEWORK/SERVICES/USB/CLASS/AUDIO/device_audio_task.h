@@ -62,7 +62,7 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-//#define NB_MS_BEFORE_FLUSH_AUDIO			50
+extern volatile Bool spk_mute, mute;
 
 //_____ M A C R O S ________________________________________________________
 

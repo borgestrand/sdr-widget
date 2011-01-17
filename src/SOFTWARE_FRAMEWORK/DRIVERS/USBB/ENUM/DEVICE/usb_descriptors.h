@@ -208,14 +208,14 @@
 			// USB Endpoint 5 descriptor
 #define ENDPOINT_NB_5       ( EP_AUDIO_OUT_FB | MSK_EP_DIR )
 #define EP_ATTRIBUTES_5     0b00010001      // ISOCHROUNOUS FEEDBACK
-#define EP_IN_LENGTH_5_HS   3				// 3 bytes
-#define EP_IN_LENGTH_5_FS	3
+#define EP_IN_LENGTH_5_FS   64				// 3 bytes
+#define EP_IN_LENGTH_5_HS	64				// 4 bytes
 #define EP_SIZE_5_FS		EP_IN_LENGTH_5_FS
 #define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
-#define EP_INTERVAL_5_FS	0x01			 // 1 ms
-#define EP_INTERVAL_5_HS    0x04			 // One packet per 8 uframe
-#define EP_REFRESH_5_FS		0x07			 // 128ms
-#define EP_REFRESH_5_HS		0x0b			 // 2^11  --> 128ms
+#define EP_INTERVAL_5_FS	0x01
+#define EP_INTERVAL_5_HS    0x04
+#define EP_REFRESH_5_FS		0x07			 //  64ms
+#define EP_REFRESH_5_HS		0x0a			 // 2^(10-1) = 512 uframe = 64ms
 
 
 				// AC interface descriptor Audio specific

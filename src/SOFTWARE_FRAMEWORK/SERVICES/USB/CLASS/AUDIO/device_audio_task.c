@@ -89,15 +89,16 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
-static U32  index;
-int audio_buffer_out;	// the ID number of the buffer used for sending out to the USB
+static U32  index, spk_index;
+int audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out to the USB
+
 
 //!
 //! Public : (bit) mute
 //! mute is set to TRUE when ACTIVE
 //! mute is set to FALSE otherwise
 //!/
-Bool   mute, spk_mute;
+volatile Bool   mute, spk_mute;
 S16 volume, spk_volume;
 
 
@@ -112,8 +113,12 @@ void device_audio_task_init(void)
 {
   index     =0;
   audio_buffer_out = 0;
+  spk_index = 0;
+  spk_buffer_in = 0;
   mute = FALSE;
+  spk_mute = TRUE;
   volume = 0x5000;
+  spk_volume = 0x5000;
 
 
   xTaskCreate(device_audio_task,
@@ -137,6 +142,7 @@ void device_audio_task(void *pvParameters)
   U8 sample_MSB;
   U8 sample_SB;
   U8 sample_LSB;
+  U32 sample;
 
   volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 
@@ -189,112 +195,177 @@ void device_audio_task(void *pvParameters)
              pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
         	};
      }
-
-    else if (usb_alternate_setting == 1)
-    {
-
-		if (Is_usb_in_ready(EP_AUDIO_IN)){   // Endpoint buffer free ?
-
-			Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
-
-			        // Sync AK data stream with USB data stream
-					// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
-					// buffer 0 is set in the reload register of the pdca
-					// So the actual loading is occuring in buffer 1
-					// USB data is being taken from audio_buffer_out
-
-					// find out the current status of PDCA transfer
-					// gap is how far the audio_buffer_out is from overlapping audio_buffer_in
-
-			num_remaining = pdca_channel->tcr;
-			if (audio_buffer_in != audio_buffer_out)	// AK and USB using same buffer
-			{
-				if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
-				else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
-			}
-			else  // usb and pdca working on different buffers
-			{
-				gap = (AUDIO_BUFFER_SIZE - index) + (AUDIO_BUFFER_SIZE - num_remaining);
-			};
-
-	    	num_samples = 48;
-
-			// Sync the USB stream with the AK stream
-			// throttle back
-			if  (gap < AUDIO_BUFFER_SIZE/2){
-				LED_Toggle(LED0);
-				num_samples--;
-			} else
-
-			// speed up
-			if  (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)) {
-				LED_Toggle(LED1);
-				num_samples++;
-			};
+    else {
 
 
-			  Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
-			  for( i=0 ; i < num_samples ; i++ )   // Fill endpoint with sample raw
-			  {
-				 if(mute==FALSE)
-				 {
+		if (usb_alternate_setting == 1)
+		{
+
+			if (Is_usb_in_ready(EP_AUDIO_IN)){   // Endpoint buffer free ?
+
+				Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
+
+						// Sync AK data stream with USB data stream
+						// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
+						// buffer 0 is set in the reload register of the pdca
+						// So the actual loading is occuring in buffer 1
+						// USB data is being taken from audio_buffer_out
+
+						// find out the current status of PDCA transfer
+						// gap is how far the audio_buffer_out is from overlapping audio_buffer_in
+
+				num_remaining = pdca_channel->tcr;
+				if (audio_buffer_in != audio_buffer_out)	// AK and USB using same buffer
+				{
+					if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
+					else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
+				}
+				else  // usb and pdca working on different buffers
+				{
+					gap = (AUDIO_BUFFER_SIZE - index) + (AUDIO_BUFFER_SIZE - num_remaining);
+				};
+
+				num_samples = 48;
+
+				// Sync the USB stream with the AK stream
+				// throttle back
+				if  (gap < AUDIO_BUFFER_SIZE/2){
+					LED_Toggle(LED0);
+					num_samples--;
+				} else
+
+				// speed up
+				if  (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)) {
+					LED_Toggle(LED1);
+					num_samples++;
+				};
+
+
+				  Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
+				  for( i=0 ; i < num_samples ; i++ )   // Fill endpoint with sample raw
+				  {
+					 if(mute==FALSE)
+					 {
+
+							if (audio_buffer_out == 0)
+							{
+								sample_LSB = audio_buffer_0[index];
+								sample_SB = audio_buffer_0[index] >> 8;
+								sample_MSB = audio_buffer_0[index] >> 16;
+							}
+							else
+							{
+								sample_LSB = audio_buffer_1[index];
+								sample_SB = audio_buffer_1[index] >> 8;
+								sample_MSB = audio_buffer_1[index] >> 16;
+							};
+
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
 						if (audio_buffer_out == 0)
 						{
-							sample_LSB = audio_buffer_0[index];
-							sample_SB = audio_buffer_0[index] >> 8;
-							sample_MSB = audio_buffer_0[index] >> 16;
+							sample_LSB = audio_buffer_0[index+1];
+							sample_SB = audio_buffer_0[index+1] >> 8;
+							sample_MSB = audio_buffer_0[index+1] >> 16;
 						}
 						else
 						{
-							sample_LSB = audio_buffer_1[index];
-							sample_SB = audio_buffer_1[index] >> 8;
-							sample_MSB = audio_buffer_1[index] >> 16;
+							sample_LSB = audio_buffer_1[index+1];
+							sample_SB = audio_buffer_1[index+1] >> 8;
+							sample_MSB = audio_buffer_1[index+1] >> 16;
 						};
 
 						Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
 						Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 						Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
-					if (audio_buffer_out == 0)
-					{
-						sample_LSB = audio_buffer_0[index+1];
-						sample_SB = audio_buffer_0[index+1] >> 8;
-						sample_MSB = audio_buffer_0[index+1] >> 16;
+						index += 2;
+						if (index >= AUDIO_BUFFER_SIZE)
+						{
+							index=0;
+							audio_buffer_out = 1 - audio_buffer_out;
+						};
+					 }
+					 else
+					 {
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+
+					 };
+				  };
+				  Usb_send_in(EP_AUDIO_IN);		// send the current bank
+			   };
+		} // end alt setting == 1
+
+		if (usb_alternate_setting_out == 1){
+			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)){   // Endpoint buffer free ?
+				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
+				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
+				if (Is_usb_full_speed_mode()){		// 3 bytes in 10.14 format for samples/ms
+													// 48 = 0x0c0000
+					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, 0x00);
+					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, 0x00);
+					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, 0x0c);
+				} else
+				{									// 4 bytes in 16.16 format
+					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, 0x00);
+					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, 0x00);
+					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, 0x30);
+					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, 0x00);
+				}
+
+				Usb_send_in(EP_AUDIO_OUT_FB);
+			} // end sub_in_ready
+
+		   if (Is_usb_out_received(EP_AUDIO_OUT)){
+				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
+				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
+
+				for (i = 0; i < num_samples; i++){
+					if (spk_mute) {
+						sample_LSB = 0;
+						sample_SB = 0;
+						sample_MSB = 0;
+					} else {
+						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					};
+
+					sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+					if (spk_buffer_in == 0) spk_buffer_0[spk_index] = sample;
+					else spk_buffer_1[spk_index] = sample;
+
+					if (spk_mute) {
+						sample_LSB = 0;
+						sample_SB = 0;
+						sample_MSB = 0;
+					} else {
+						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					};
+
+					sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+					if (spk_buffer_in == 0) spk_buffer_0[spk_index+1] = sample;
+					else spk_buffer_1[spk_index+1] = sample;
+
+					spk_index += 2;
+					if (spk_index >= SPK_BUFFER_SIZE){
+						spk_index = 0;
+						spk_buffer_in = 1 - spk_buffer_in;
 					}
-					else
-					{
-						sample_LSB = audio_buffer_1[index+1];
-						sample_SB = audio_buffer_1[index+1] >> 8;
-						sample_MSB = audio_buffer_1[index+1] >> 16;
-					};
-
-					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-					Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-
-					index += 2;
-					if (index >= AUDIO_BUFFER_SIZE)
-					{
-						index=0;
-						audio_buffer_out = 1 - audio_buffer_out;
-					};
-				 }
-				 else
-				 {
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-
-				 };
-			  };
-			  Usb_send_in(EP_AUDIO_IN);		// send the current bank
-		   };
-    } // end alt setting == 1
-
+				}
+				Usb_ack_out_received_free(EP_AUDIO_OUT);
+		   }	// end usb_out_received
+		} // end usb_alternate_setting_out == 1
+    }	// end startup else
   } // end while vTask
 
 }

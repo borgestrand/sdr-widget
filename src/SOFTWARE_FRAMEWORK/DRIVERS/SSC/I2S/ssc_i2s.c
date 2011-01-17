@@ -78,6 +78,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ * Copyright (C) Alex Lee
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
  */
 
 #include "compiler.h"
@@ -169,6 +186,101 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
     ssc->cr = AVR32_SSC_CR_TXEN_MASK;
   }
 
+  else if (mode == SSC_I2S_MODE_STEREO_OUT_STEREO_IN)
+  {
+	  ssc->cmr = AVR32_SSC_CMR_DIV_NOT_ACTIVE << AVR32_SSC_CMR_DIV_OFFSET;
+      /* Set transmit clock mode:
+       *   CKS - use RX clock,
+       *   CKO - transmit continuous clock on TK
+       *   CKI - shift data on falling clock, (so that data will be valid on rising clock)
+       *   CKG - transmit continuous clock on TK
+       *   START - on any TF(WS) edge
+       *   STTDLY - TF toggles before last bit of last word, not before
+       *            first bit on next word. Therefore: delay one cycle.
+       *   PERIOD - generate framesync for each sample (FS is generated
+       *            every (PERIOD + 1) * 2 clock)
+       */
+      ssc->tcmr = AVR32_SSC_TCMR_CKS_RK_CLOCK               << AVR32_SSC_TCMR_CKS_OFFSET    |
+                  AVR32_SSC_TCMR_CKO_CONTINOUS_CLOCK_OUTPUT << AVR32_SSC_TCMR_CKO_OFFSET    |
+                  0                                         << AVR32_SSC_TCMR_CKI_OFFSET    |
+                  AVR32_SSC_TCMR_CKG_NONE                   << AVR32_SSC_TCMR_CKG_OFFSET    |
+                  AVR32_SSC_TCMR_START_DETECT_ANY_EDGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |
+   //               AVR32_SSC_TCMR_START_DETECT_LEVEL_CHANGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |
+                  1                                         << AVR32_SSC_TCMR_STTDLY_OFFSET |
+                  (frame_bit_res - 1)                       << AVR32_SSC_TCMR_PERIOD_OFFSET;
+
+
+    /* Set transmit frame mode:
+     *  DATLEN - one sample for one channel
+     *  DATDEF - Default to zero,
+     *  MSBF - transmit msb first,
+     *  DATNB - Transfer two words (left+right),
+     *  FSLEN - Frame sync is entire left channel
+     *  FSOS - transmit negative pulse on WS (start sync on left channel)
+     *  FSDEN - Do not use transmit frame sync data
+     *  FSEDGE - detect frame sync positive edge
+     */
+#ifdef AVR32_SSC_220_H_INCLUDED
+    ssc->tfmr = (data_bit_res - 1)                                 << AVR32_SSC_TFMR_DATLEN_OFFSET                              |
+                0                                                  << AVR32_SSC_TFMR_DATDEF_OFFSET                              |
+                1                                                  << AVR32_SSC_TFMR_MSBF_OFFSET                                |
+                (1 - 1)                                            << AVR32_SSC_TFMR_DATNB_OFFSET                               |
+                (((frame_bit_res - 1)                              << AVR32_SSC_TFMR_FSLEN_OFFSET) & AVR32_SSC_TFMR_FSLEN_MASK) |
+                AVR32_SSC_TFMR_FSOS_NEG_PULSE                      << AVR32_SSC_TFMR_FSOS_OFFSET                                |
+                0                                                  << AVR32_SSC_TFMR_FSDEN_OFFSET                               |
+                1                                                  << AVR32_SSC_TFMR_FSEDGE_OFFSET;
+#else
+    ssc->tfmr = (data_bit_res - 1)                                 << AVR32_SSC_TFMR_DATLEN_OFFSET                              |
+                0                                                  << AVR32_SSC_TFMR_DATDEF_OFFSET                              |
+                1                                                  << AVR32_SSC_TFMR_MSBF_OFFSET                                |
+                (1 - 1)                                            << AVR32_SSC_TFMR_DATNB_OFFSET                               |
+                (((frame_bit_res - 1)                              << AVR32_SSC_TFMR_FSLEN_OFFSET) & AVR32_SSC_TFMR_FSLEN_MASK) |
+                AVR32_SSC_TFMR_FSOS_NEG_PULSE                      << AVR32_SSC_TFMR_FSOS_OFFSET                                |
+                0                                                  << AVR32_SSC_TFMR_FSDEN_OFFSET                               |
+                1                                                  << AVR32_SSC_TFMR_FSEDGE_OFFSET                              |
+                ((frame_bit_res - 1) >> AVR32_SSC_TFMR_FSLEN_SIZE) << AVR32_SSC_TFMR_FSLENHI_OFFSET;
+#endif
+    txen_mask = AVR32_SSC_CR_TXEN_MASK;
+
+
+	     /* Set receive clock mode:
+	       *  CKS - use RK pin
+	       *  CKO - No clock output,
+	       *  CKI - shift data on rising edge,
+	       *  CKG - No clock output,
+	       *  START -  v76 On rising edge of the FRAME_SYNC input which is connected to FSYNC
+	       *  START -  v77 On level change of LRCK if SSC_RX_FS is connected to AD_LRCK
+	       *  STTDLY - v77 i2s data starts one SCLK after LRCK change
+	       *  STTDLY - v76 i2s data starts zero SCLK, ie immediately on FSYNC
+	       *  PERIOD - No FS generation
+	       */
+
+	  ssc->rcmr = (AVR32_SSC_RCMR_CKS_RK_PIN << AVR32_SSC_RCMR_CKS_OFFSET) |
+	                (1                             << AVR32_SSC_RCMR_CKI_OFFSET)|
+	                (AVR32_SSC_RCMR_CKO_INPUT_ONLY << AVR32_SSC_RCMR_CKO_OFFSET) |
+//  I2S specs says data starts one SCLK after LRCK edge.  However testing shows that
+//  AK data starts showing up immediately
+//	                (1                         << AVR32_SSC_RCMR_STTDLY_OFFSET ) |
+	    	        (0                        << AVR32_SSC_RCMR_STTDLY_OFFSET ) |
+//	                (AVR32_SSC_RCMR_START_DETECT_FALLING_RF << AVR32_SSC_RCMR_START_OFFSET);
+					(AVR32_SSC_DETECT_LEVEL_CHANGE_RF << AVR32_SSC_RCMR_START_OFFSET);
+//	                (AVR32_SSC_RCMR_START_DETECT_RISING_RF << AVR32_SSC_RCMR_START_OFFSET);
+
+
+      ssc->rfmr = (data_bit_res - 1)                               << AVR32_SSC_RFMR_DATLEN_OFFSET                              |
+                   1                                               << AVR32_SSC_RFMR_MSBF_OFFSET                                |
+                   (1 - 1)                                         << AVR32_SSC_RFMR_DATNB_OFFSET                               |
+                   (((frame_bit_res - 1)                           << AVR32_SSC_RFMR_FSLEN_OFFSET) & AVR32_SSC_RFMR_FSLEN_MASK) |
+                   AVR32_SSC_RFMR_FSOS_INPUT_ONLY                  << AVR32_SSC_RFMR_FSOS_OFFSET                                |
+                   1                                               << AVR32_SSC_RFMR_FSEDGE_OFFSET                              |
+                   ((frame_bit_res - 1) >> AVR32_SSC_RFMR_FSLEN_SIZE) << AVR32_SSC_RFMR_FSLENHI_OFFSET;
+
+
+        rxen_mask = AVR32_SSC_CR_RXEN_MASK;
+
+        /* Enable transceiver and/or receiver */
+        ssc->cr = txen_mask | rxen_mask;
+  }
 
   else if (mode == SSC_I2S_MODE_SLAVE_STEREO_IN)
   {
@@ -214,6 +326,64 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
         /* Enable transceiver and/or receiver */
         ssc->cr = txen_mask | rxen_mask;
   }
+  else if (mode == SSC_I2S_MODE_STEREO_OUT_EXT_CLK)
+  {
+	  ssc->cmr = AVR32_SSC_CMR_DIV_NOT_ACTIVE << AVR32_SSC_CMR_DIV_OFFSET;
+      /* Set transmit clock mode:
+       *   CKS - external clock in TX pin,
+       *   CKO - input only
+       *   CKI - shift data on falling clock, (so that data will be valid on rising clock)
+       *   CKG - transmit continuous clock on TK
+       *   START - on any TF(WS) edge
+       *   STTDLY - TF toggles before last bit of last word, not before
+       *            first bit on next word. Therefore: delay one cycle.
+       *   PERIOD - generate framesync for each sample (FS is generated
+       *            every (PERIOD + 1) * 2 clock)
+       */
+      ssc->tcmr = AVR32_SSC_TCMR_CKS_TK_PIN               << AVR32_SSC_TCMR_CKS_OFFSET    |
+                  AVR32_SSC_TCMR_CKO_INPUT_ONLY 			<< AVR32_SSC_TCMR_CKO_OFFSET    |
+                  0                                         << AVR32_SSC_TCMR_CKI_OFFSET    |
+                  AVR32_SSC_TCMR_CKG_NONE                   << AVR32_SSC_TCMR_CKG_OFFSET    |
+                  AVR32_SSC_TCMR_START_DETECT_ANY_EDGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |
+   //               AVR32_SSC_TCMR_START_DETECT_LEVEL_CHANGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |
+                  1                                         << AVR32_SSC_TCMR_STTDLY_OFFSET |
+                  (frame_bit_res - 1)                       << AVR32_SSC_TCMR_PERIOD_OFFSET;
+
+
+    /* Set transmit frame mode:
+     *  DATLEN - one sample for one channel
+     *  DATDEF - Default to zero,
+     *  MSBF - transmit msb first,
+     *  DATNB - Transfer two words (left+right),
+     *  FSLEN - Frame sync is entire left channel
+     *  FSOS - transmit negative pulse on WS (start sync on left channel)
+     *  FSDEN - Do not use transmit frame sync data
+     *  FSEDGE - detect frame sync positive edge
+     */
+#ifdef AVR32_SSC_220_H_INCLUDED
+    ssc->tfmr = (data_bit_res - 1)                                 << AVR32_SSC_TFMR_DATLEN_OFFSET                              |
+                0                                                  << AVR32_SSC_TFMR_DATDEF_OFFSET                              |
+                1                                                  << AVR32_SSC_TFMR_MSBF_OFFSET                                |
+                (1 - 1)                                            << AVR32_SSC_TFMR_DATNB_OFFSET                               |
+                (((frame_bit_res - 1)                              << AVR32_SSC_TFMR_FSLEN_OFFSET) & AVR32_SSC_TFMR_FSLEN_MASK) |
+                AVR32_SSC_TFMR_FSOS_NEG_PULSE                      << AVR32_SSC_TFMR_FSOS_OFFSET                                |
+                0                                                  << AVR32_SSC_TFMR_FSDEN_OFFSET                               |
+                1                                                  << AVR32_SSC_TFMR_FSEDGE_OFFSET;
+#else
+    ssc->tfmr = (data_bit_res - 1)                                 << AVR32_SSC_TFMR_DATLEN_OFFSET                              |
+                0                                                  << AVR32_SSC_TFMR_DATDEF_OFFSET                              |
+                1                                                  << AVR32_SSC_TFMR_MSBF_OFFSET                                |
+                (1 - 1)                                            << AVR32_SSC_TFMR_DATNB_OFFSET                               |
+                (((frame_bit_res - 1)                              << AVR32_SSC_TFMR_FSLEN_OFFSET) & AVR32_SSC_TFMR_FSLEN_MASK) |
+                AVR32_SSC_TFMR_FSOS_NEG_PULSE                      << AVR32_SSC_TFMR_FSOS_OFFSET                                |
+                0                                                  << AVR32_SSC_TFMR_FSDEN_OFFSET                               |
+                1                                                  << AVR32_SSC_TFMR_FSEDGE_OFFSET                              |
+                ((frame_bit_res - 1) >> AVR32_SSC_TFMR_FSLEN_SIZE) << AVR32_SSC_TFMR_FSLENHI_OFFSET;
+#endif
+    txen_mask = AVR32_SSC_CR_TXEN_MASK;
+    ssc->cr = txen_mask;
+
+  }
 
   else
   {
@@ -245,7 +415,7 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
          *   CKS - use divided clock,
          *   CKO - transmit continous clock on TK
          *   CKI - shift data on falling clock
-         *   CKG - transmit continous clock on TK
+         *   CKG - continuous clock
          *   START - on falling TF(WS) edge
          *   STTDLY - TF toggles before last bit of last word, not before
          *            first bit on next word. Therefore: delay one cycle.
