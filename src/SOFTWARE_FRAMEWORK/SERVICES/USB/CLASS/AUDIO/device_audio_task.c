@@ -123,18 +123,6 @@ void device_audio_task_init(void)
 
 }
 
-inline int convert_sample_to_int(U32 s){
-
-	if (s > 0x007fffff) return (s - 0x01000000);
-	else return (s);
-}
-
-inline U32 convert_int_to_sample(int r){
-
-	if (r < 0) return(r + 0x01000000);
-	else return (r);
-
-}
 
 //!
 //! @brief Entry point of the device Audio task management
@@ -150,9 +138,6 @@ void device_audio_task(void *pvParameters)
   U8 sample_MSB;
   U8 sample_SB;
   U8 sample_LSB;
-  int y0, y1, y2, y3, y4;
-  int a0, a1, a2, a3;
-  int interpolated_result;
 
 
   volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
@@ -218,8 +203,11 @@ void device_audio_task(void *pvParameters)
     	else if (current_freq.frequency == 48000) num_samples = 12;
     	else num_samples = 48;	// freq 192khz
 
-		if (Is_usb_write_enabled(EP_AUDIO_IN))   // Endpoint buffer free ?
-		   {    // Sync AK data stream with USB data stream
+		if (Is_usb_in_ready(EP_AUDIO_IN)){   // Endpoint ready for data transfer?
+
+			Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
+
+		        // Sync AK data stream with USB data stream
 				// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
 				// buffer 0 is set in the reload register of the pdca
 				// So the actual loading is occuring in buffer 1
@@ -313,7 +301,7 @@ void device_audio_task(void *pvParameters)
 
 				 };
 			  };
-			  Usb_ack_in_ready_send(EP_AUDIO_IN);
+			  Usb_send_in(EP_AUDIO_IN);		// send the current bank
 		   };
     } // end alt setting 1
 
