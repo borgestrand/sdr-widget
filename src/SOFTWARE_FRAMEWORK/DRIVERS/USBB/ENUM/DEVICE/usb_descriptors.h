@@ -124,7 +124,7 @@
 #define NB_CONFIGURATION      1
 
             // CONFIGURATION
-#define NB_INTERFACE	   7	//!  DG8SAQ, CDC (2), HID, Audio (3)
+#define NB_INTERFACE	   6	//!  DG8SAQ, CDC (2), HID, Audio (2)
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
@@ -136,7 +136,7 @@
 
 // IAD for Audio
 #define FIRST_INTERFACE1	4
-#define INTERFACE_COUNT1	3						//!  Audio Control, Audio In, Audio Out
+#define INTERFACE_COUNT1	2						//!  Audio Control, Audio In, Audio Out(later)
 #define FUNCTION_CLASS		AUDIO_CLASS
 #define FUNCTION_SUB_CLASS  0
 #define FUNCTION_PROTOCOL	IP_VERSION_02_00
@@ -1527,12 +1527,12 @@ S_usb_configuration_descriptor 						cfg;
 			S_usb_format_type						mic_format_type;
 			S_usb_endpoint_audio_descriptor 		ep6;
 			S_usb_endpoint_audio_specific 			ep6_s;
-			S_usb_as_interface_descriptor	 		spk_as_alt0;
-			S_usb_as_interface_descriptor	 		spk_as_alt1;
-			S_usb_as_g_interface_descriptor			spk_g_as;
-			S_usb_format_type						spk_format_type;
-			S_usb_endpoint_audio_descriptor 		ep7;
-			S_usb_endpoint_audio_specific 			ep7_s;
+//			S_usb_as_interface_descriptor	 		spk_as_alt0;
+//			S_usb_as_interface_descriptor	 		spk_as_alt1;
+//			S_usb_as_g_interface_descriptor			spk_g_as;
+//			S_usb_format_type						spk_format_type;
+//			S_usb_endpoint_audio_descriptor 		ep7;
+//			S_usb_endpoint_audio_specific 			ep7_s;
 
 }
 #if (defined __ICCAVR32__)

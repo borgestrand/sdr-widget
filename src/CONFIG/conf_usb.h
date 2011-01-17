@@ -104,7 +104,7 @@
 
 #define COMPOSITE_DEVICE
 
-#define NB_ENDPOINTS		  8
+#define NB_ENDPOINTS		  7
 #define EP_CDC_COMM			  1
 #define EP_CDC_TX			  2
 #define EP_CDC_RX			  3
