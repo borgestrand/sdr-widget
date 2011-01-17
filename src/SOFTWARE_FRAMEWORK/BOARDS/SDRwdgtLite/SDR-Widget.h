@@ -3,7 +3,11 @@
 
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:UAC2_094"
+#define FIRMWARE_VERSION	"V:UAC2_095"
+// changes since V:UAC2_094:
+//   taskPowerDisplay.c... change calculated pwr value from mW to cW
+//   taskMoboControl.c...  change calculated pwr value from mW to cW
+//   taskMoboControl.h...  change calculated pwr value from mW to cW
 
 /*! \name Peripherals to include at compile time. */
 //! @{

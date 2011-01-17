@@ -41,7 +41,7 @@
 #endif
 
 
-#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
+//#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
 
 // Set up NVRAM (EEPROM) storage
 #if defined (__GNUC__)
@@ -333,19 +333,18 @@ void lcd_display_V_C_T_in_2nd_line(void)
 }
 
 
-/*! \brief Convert AD reading into "Measured Power in milliWatts"
+/*! \brief Convert AD reading into "Measured Power in centiWatts"
  *
- * \retval Measured Power in milliWatts
+ * \retval Measured Power in centiWatts
  */
 // A simplified integer arithmetic version, still with decent accuracy
-// (the return value overflows above 65W max)
-// (comparison Ref 11604 bytes)
-uint32_t measured_Power(uint16_t voltage)
+// (the maximum return value overflows above 655.35W max)
+uint16_t measured_Power(uint16_t voltage)
 {
 	// All standard stuff
 	// normalise the measured value from the VSWR bridge
 	// Reference voltage is 5V,
-	// diode offset ~ .15V
+	// diode offset ~ .10V
 	// R.PWR_Calibrate = Power meter calibration value
 	uint32_t measured_P;
 
@@ -358,8 +357,8 @@ uint32_t measured_Power(uint16_t voltage)
 																// 82 = 100mV, compensating for schottky diode loss
 	// Formula roughly adjusted for the ratio in the SWR bridge
 	measured_P = (uint32_t)voltage * cdata.PWR_Calibrate/84;
-	measured_P = (measured_P*measured_P)/50000;
-	return (uint32_t) measured_P;								// Return power in mW
+	measured_P = (measured_P*measured_P)/500000;
+	return measured_P;											// Return power in cW
 }
 
 

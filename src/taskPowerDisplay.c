@@ -34,7 +34,7 @@
 #include "LCD_bargraphs.h"
 
 
-#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
+//#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
 
 char lcd_prt1[10];
 char lcd_prt2[10];
@@ -65,7 +65,7 @@ static void vtaskPowerDisplay( void * pcParameters )
     		// Do transmit stuff
     		//------------------
 
-   	 		uint32_t pow_tot, pow, pow_mw;
+   	 		uint32_t pow_tot, pow, pow_cw;
 
     		//---------------------------------------
     		// Print to LCD once every 105ms (21*5ms)
@@ -76,7 +76,7 @@ static void vtaskPowerDisplay( void * pcParameters )
     		if (tx_print == 0)
     		{
        	 		// Prepare Power readout
-       	 		pow_tot = measured_Power(ad7991_adc[AD7991_POWER_OUT]);// Power in mW
+       	 		pow_tot = measured_Power(ad7991_adc[AD7991_POWER_OUT]);// Power in cW
 
        	 		static uint8_t i = 0;
 
@@ -101,12 +101,12 @@ static void vtaskPowerDisplay( void * pcParameters )
            	 		//--------------------------------------------
 
            	 		// progress, maxprogress, len
-           	 		lcdProgressBar(pow_tot/100, cdata.PWR_fullscale*10, 12, lcd_bar1);
+           	 		lcdProgressBar(pow_tot/10, cdata.PWR_fullscale*10, 12, lcd_bar1);
 
-           	 		pow = pow_tot / 1000; 						// Watts
-           	 		pow_mw = pow_tot % 1000;					// milliWatts
+           	 		pow = pow_tot / 100; 				// Watts
+           	 		pow_cw = pow_tot % 100;				// centiWatts
 
-           	 		sprintf(lcd_prt1, "P%2lu.%03luW", pow, pow_mw);
+           	 		sprintf(lcd_prt1, "P%3lu.%02luW", pow, pow_cw);
           	     	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
             		lcd_q_goto(2,0);
             		lcd_q_print(lcd_bar1);
