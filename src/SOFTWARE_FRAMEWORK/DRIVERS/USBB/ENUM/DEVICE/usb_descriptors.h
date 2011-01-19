@@ -106,7 +106,8 @@
 #define DEVICE_PROTOCOL       0x01          //! IAD Device
 #define EP_CONTROL_LENGTH     64
 #define VENDOR_ID             0x16c0           //!  DG8SAQ device
-#define PRODUCT_ID            0x05dc
+#define PRODUCT_ID            0x03e8		   //!  For Internal Use
+//#define PRODUCT_ID            0x05dc
 #define RELEASE_NUMBER        0x1000
 #define MAN_INDEX             0x01
 #define PROD_INDEX            0x02
