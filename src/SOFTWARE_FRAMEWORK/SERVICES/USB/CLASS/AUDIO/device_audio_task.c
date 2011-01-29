@@ -143,7 +143,7 @@ void device_audio_task(void *pvParameters)
   U8 sample_LSB;
   U8 sample_HSB;
   U32 sample;
-  U32 FB_rate = 48 << 16;
+  U32 FB_rate = 48 << 13;		// 12.13 format for Linux HS
 
   volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
   volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
@@ -332,12 +332,12 @@ void device_audio_task(void *pvParameters)
 
 					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 						LED_Toggle(LED0);
-						FB_rate -= 1L << 1;
+						FB_rate -= 1L << 20;
 						old_gap = gap;
 					}
 					else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)){
 						LED_Toggle(LED1);
-						FB_rate += 1L << 1;
+						FB_rate += 1L << 20;
 						old_gap = gap;
 					}
 
@@ -353,16 +353,16 @@ void device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
 				}
 				 else	// HS mode
-				{									// FB rate is 4 bytes in 16.16 format
+				{									// FB rate is 4 bytes in 12.13 format
 
 						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 							LED_Toggle(LED0);
-							FB_rate -= 1L << 1;
+							FB_rate -= 1L << 10;
 							old_gap = gap;
 						}
 						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)){
 							LED_Toggle(LED1);
-							FB_rate += 1L << 1;
+							FB_rate += 1L << 10;
 							old_gap = gap;
 						}
 
