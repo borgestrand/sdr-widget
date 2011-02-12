@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?fileVersion 1.0.0?>
+<framework-data>
+  <options>
+    <option id="com.atmel.avr32.sf.uc3a3.driver.option.intc" value="true"/>
+    <option id="com.atmel.avr32.sf.uc3a3.service.option.newlibaddon" value="speed"/>
+    <option id="com.atmel.avr32.sf.uc3a3.driver.option.gpio" value="true"/>
+  </options>
+  <files>
+    <file path="src/SOFTWARE_FRAMEWORK/DRIVERS/GPIO/gpio.c" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="DRIVERS/GPIO/gpio.c" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_usart.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_usart.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_interrupts.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_interrupts.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/DRIVERS/INTC/exception.x" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="DRIVERS/INTC/exception.S" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/parts.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/parts.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/conf_isp.h" framework="com.atmel.avr32.sf.uc3" version="1.7.0" source="SERVICES/USB/CLASS/DFU/EXAMPLES/ISP/CONF/conf_isp.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/ASM/trampoline.x" framework="com.atmel.avr32.sf.uc3" version="1.7.0" source="UTILS/STARTUP_FILES/GCC/trampoline.S" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/PREPROCESSOR/tpaste.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/PREPROCESSOR/tpaste.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/DRIVERS/INTC/intc.c" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="DRIVERS/INTC/intc.c" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/DRIVERS/INTC/intc.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="DRIVERS/INTC/intc.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_cpu.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_cpu.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/LINKER_SCRIPTS/AT32UC3A3/256/GCC/link_uc3a3256.lds" framework="com.atmel.avr32.sf.uc3" version="1.7.0" source="UTILS/LINKER_SCRIPTS/AT32UC3A3/256/GCC/link_uc3a3256.lds" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/STARTUP_FILES/GCC/crt0.x" framework="com.atmel.avr32.sf.uc3" version="1.7.0" source="UTILS/STARTUP_FILES/GCC/crt0.S" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/PREPROCESSOR/stringz.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/PREPROCESSOR/stringz.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/BOARDS/board.h" framework="com.atmel.avr32.sf.uc3" version="1.7.0" source="BOARDS/board.h" changed="true"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/PREPROCESSOR/mrepeat.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/PREPROCESSOR/mrepeat.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/PREPROCESSOR/preprocessor.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/PREPROCESSOR/preprocessor.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/DRIVERS/GPIO/gpio.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="DRIVERS/GPIO/gpio.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_io.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_io.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/compiler.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/compiler.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_exceptions.h" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/LIBS/NEWLIB_ADDONS/INCLUDE/nlao_exceptions.h" changed="false"/>
+    <file path="src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/libnewlib_addons-at32ucr2-speed_opt.a" framework="com.atmel.avr32.sf.uc3a3" version="1.7.0" source="UTILS/LIBS/NEWLIB_ADDONS/AT32UCR2/libnewlib_addons-at32ucr2-speed_opt.a" changed="false"/>
+  </files>
+</framework-data>
