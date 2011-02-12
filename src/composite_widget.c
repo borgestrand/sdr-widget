@@ -244,7 +244,7 @@ int main(void)
   vStartTaskPowerDisplay();
   vStartTaskPushButtonMenu();
   #endif
-  //vStartTaskMoboCtrl();
+  vStartTaskMoboCtrl();
   //vStartTaskEXERCISE( tskIDLE_PRIORITY );
   AK5394A_task_init();
   device_audio_task_init();

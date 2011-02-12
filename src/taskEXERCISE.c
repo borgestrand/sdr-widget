@@ -42,10 +42,11 @@ static void vtaskEXERCISE( void * pcParameters ) {
     xSemaphoreGive( mutexQueLCD );
     *****************************/
 
-	// Wait for 9 seconds
-	vTaskDelay(90000);
+
     for( ;; )
     {
+    	// Wait for 9 seconds
+    	vTaskDelay(90000);
     }
 }
 
