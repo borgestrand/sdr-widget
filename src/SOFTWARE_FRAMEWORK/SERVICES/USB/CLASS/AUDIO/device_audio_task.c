@@ -333,12 +333,12 @@ void device_audio_task(void *pvParameters)
 
 					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 						LED_Toggle(LED0);
-						FB_rate -= 20;
+						FB_rate -= 32;
 						old_gap = gap;
 					}
 					else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)){
 						LED_Toggle(LED1);
-						FB_rate += 20;
+						FB_rate += 32;
 						old_gap = gap;
 					}
 
@@ -354,12 +354,12 @@ void device_audio_task(void *pvParameters)
 
 						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 							LED_Toggle(LED0);
-							FB_rate -= 10;
+							FB_rate -= 16;
 							old_gap = gap;
 						}
 						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)){
 							LED_Toggle(LED1);
-							FB_rate += 10;
+							FB_rate += 16;
 							old_gap = gap;
 						}
 

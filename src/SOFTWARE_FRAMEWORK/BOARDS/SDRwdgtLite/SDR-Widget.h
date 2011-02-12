@@ -23,7 +23,7 @@
 
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:UAC2-aud"
+#define FIRMWARE_VERSION	"V:UAC2-a04"
 // Mobo changes since V:UAC1_069:
 //   taskPowerDisplay.c... change calculated pwr value from mW to cW
 //   taskMoboControl.c...  change calculated pwr value from mW to cW
