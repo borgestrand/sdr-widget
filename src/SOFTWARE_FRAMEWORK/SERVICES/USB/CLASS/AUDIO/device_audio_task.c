@@ -138,7 +138,6 @@ void device_audio_task(void *pvParameters)
   static Bool startup=TRUE;
   int i;
   U16 num_samples, num_remaining, gap;
-  U16 sample;
   U8 sample_MSB;
   U8 sample_SB;
   U8 sample_LSB;
@@ -195,11 +194,11 @@ void device_audio_task(void *pvParameters)
         	};
      };
 
-	num_samples = 48;			// 48 khz
+
 
     if (usb_alternate_setting == 1) // mono
     {
-
+    	num_samples = 96;			// 96 khz
 		if (Is_usb_write_enabled(EP_AUDIO_IN))   // Endpoint buffer free ?
 		   {    // Sync AK data stream with USB data stream
 				// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
@@ -269,7 +268,7 @@ void device_audio_task(void *pvParameters)
     else
     if (usb_alternate_setting == 2)
     {		// stereo
-
+    	num_samples = 48;			// 48 khz
 		if (Is_usb_write_enabled(EP_AUDIO_IN_STEREO))   // Endpoint buffer free ?
 		   {
 				// find out the current status of PDCA transfer

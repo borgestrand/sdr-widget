@@ -99,7 +99,7 @@
 #define NB_CONFIGURATION      1
 
             // CONFIGURATION
-#define NB_INTERFACE	   7	//!  DG8SAQ, CDC (2), HID, Audio (3)
+#define NB_INTERFACE	   6	//!  DG8SAQ, CDC (2), HID, Audio (2)
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
@@ -143,7 +143,7 @@
 #define EP_SIZE_1_FS            EP_IN_LENGTH_1_FS
 #define EP_IN_LENGTH_1_HS       0x20
 #define EP_SIZE_1_HS            EP_IN_LENGTH_1_HS
-#define EP_INTERVAL_1           0xff               //! Interrupt polling interval from host
+#define EP_INTERVAL_1           10               //! Interrupt polling interval from host
 
             // USB CDC data Interface descriptor
 #define INTERFACE_NB2			    2
@@ -161,7 +161,7 @@
 #define EP_ATTRIBUTES_2         TYPE_BULK
 #define EP_IN_LENGTH_2_FS      0x40
 #define EP_SIZE_2_FS            EP_IN_LENGTH_2_FS
-#define EP_IN_LENGTH_2_HS      256
+#define EP_IN_LENGTH_2_HS      512
 #define EP_SIZE_2_HS            EP_IN_LENGTH_2_HS
 #define EP_INTERVAL_2           0                //! Interrupt polling interval from host
 
@@ -170,7 +170,7 @@
 #define EP_ATTRIBUTES_3         TYPE_BULK
 #define EP_OUT_LENGTH_3_FS      0x40
 #define EP_SIZE_3_FS            EP_OUT_LENGTH_3_FS
-#define EP_OUT_LENGTH_3_HS      256
+#define EP_OUT_LENGTH_3_HS      512
 #define EP_SIZE_3_HS            EP_OUT_LENGTH_3_HS
 #define EP_INTERVAL_3           0               //! Interrupt polling interval from host
 
@@ -224,8 +224,8 @@
              // USB Endpoint 6 descriptor - mono
 #define ENDPOINT_NB_6       ( EP_AUDIO_IN | MSK_EP_DIR )
 #define EP_ATTRIBUTES_6     TYPE_ISOCHRONOUS
-#define EP_IN_LENGTH_6_HS   144				// 3 bytes * 48 khz
-#define EP_IN_LENGTH_6_FS	144
+#define EP_IN_LENGTH_6_HS   288				// 3 bytes * 96 khz
+#define EP_IN_LENGTH_6_FS	288
 #define EP_SIZE_6_FS		EP_IN_LENGTH_6_FS
 #define EP_SIZE_6_HS        EP_IN_LENGTH_6_HS
 #define EP_INTERVAL_6_FS	0x01			 // one packet per uframe
@@ -293,8 +293,9 @@
 #define FORMAT_BIT_RESOLUTION				0x18	// 24 bits per sample
 #define FORMAT_SAMPLE_FREQ_NB				0x01	// One frequency supported
 //#define FORMAT_LSBYTE_SAMPLE_FREQ			0x1F40 	// 0x001F40=8kHz Sample frequency
-#define FORMAT_LSBYTE_SAMPLE_FREQ			0xbb80	// 48khz
-#define FORMAT_MSBYTE_SAMPLE_FREQ			0x00	// MsByte of 0x001F40 or 0x00bb80
+//#define FORMAT_LSBYTE_SAMPLE_FREQ			0xbb80	// 48khz
+#define FORMAT_LSBYTE_SAMPLE_FREQ			0x7700	// 96khz
+#define FORMAT_MSBYTE_SAMPLE_FREQ			0x01	// MsByte
 				// Format type for ALT2 - stereo
 #define FORMAT_TYPE_2						0x01	// Format TypeI
 #define FORMAT_NB_CHANNELS_2				0x02	// Two Channels

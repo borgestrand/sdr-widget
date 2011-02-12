@@ -30,6 +30,7 @@
 #include "ssc_i2s.h"
 #include "pm.h"
 #include "pdca.h"
+#include "usb_standard_request.h"
 #include "taskAK5394A.h"
 
 //_____ M A C R O S ________________________________________________________
@@ -117,9 +118,9 @@ void pdca_set_irq(void)
 //!
 void AK5394A_task_init(void)
 {
-	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
+//	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
 											// from AK5394A Xtal Oscillator
-	pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
+//	pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 
 	// Set up AK5394A
 	gpio_clr_gpio_pin(AK5394_RSTN);		// put AK5394A in reset
@@ -149,7 +150,9 @@ void AK5394A_task_init(void)
 	                  127);                 // div by 256 to give 48khz
 	  pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
 
-
+		pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
+												// from AK5394A Xtal Oscillator
+		pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 	  // Assign GPIO to SSC.
 	  gpio_enable_module(SSC_GPIO_MAP, sizeof(SSC_GPIO_MAP) / sizeof(SSC_GPIO_MAP[0]));
 	  gpio_enable_pin_glitch_filter(SSC_RX_CLOCK);
@@ -200,8 +203,47 @@ void AK5394A_task(void *pvParameters)
   while (TRUE)
   {
 	  // All the hardwork is done by the pdca and the interrupt handler.
-	  // So just play idle here.
+	  // Just check whether alternate setting is changed, to do rate change etc.
+
     vTaskDelayUntil(&xLastWakeTime, configTSK_AK5394A_PERIOD);
+
+    if (usb_alternate_setting_changed){
+    	if (usb_alternate_setting == 1){ // mono 96khz
+    		gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
+    		gpio_clr_gpio_pin(AK5394_DFS1);
+    		pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK2, // gc
+    		                  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+    		                  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+    		                  1,                  // diven
+    		                  63);                 // div by 128 to give 96khz
+    		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+    	}
+    	else // stereo 48khz
+    	{
+				gpio_clr_gpio_pin(AK5394_DFS0);		// L L  -> 48khz
+        		gpio_clr_gpio_pin(AK5394_DFS1);
+        		pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK2, // gc
+        		                  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+        		                  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+        		                  1,                  // diven
+        		                  127);                 // div by 256 to give 48khz
+        		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK2);
+    	}
+    	// re-sync SSC to LRCK
+    	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+        pdca_disable(PDCA_CHANNEL_SSC_RX);
+        // Wait for the next frame synchronization event
+        // to avoid channel inversion.  Start with left channel - FS goes low
+        while (!gpio_get_pin_value(SSC_RX_FRAME_SYNC));
+        while (gpio_get_pin_value(SSC_RX_FRAME_SYNC));
+
+        // Enable now the transfer.
+        pdca_enable(PDCA_CHANNEL_SSC_RX);
+        pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
+        // reset usb_alternate_setting_changed flag
+        usb_alternate_setting_changed = FALSE;
+    }
 
   }
 }

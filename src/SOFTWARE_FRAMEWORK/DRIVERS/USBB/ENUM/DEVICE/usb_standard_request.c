@@ -94,6 +94,7 @@ static            U8                                  bmRequestType;
         volatile  U8                                  usb_configuration_nb;
         volatile  U16	usb_interface_nb;
         volatile  U16	usb_alternate_setting;
+        volatile  Bool  usb_alternate_setting_changed;
 extern  volatile  Bool                                usb_connected;
 
 //extern  const     S_usb_device_descriptor             usb_user_device_descriptor;
@@ -810,7 +811,10 @@ void usb_set_interface(void)
 
    //* Check whether it is the audio streaming interface and Alternate Setting that is being set
    usb_interface_nb = wIndex;
-   if (usb_interface_nb == STD_AS_INTERFACE_NB) usb_alternate_setting = wValue;
+   if (usb_interface_nb == STD_AS_INTERFACE_NB) {
+	   usb_alternate_setting = wValue;
+	   usb_alternate_setting_changed = TRUE;
+   }
 
    //* Find endpoints of interface and reset it
    while( 1 )
