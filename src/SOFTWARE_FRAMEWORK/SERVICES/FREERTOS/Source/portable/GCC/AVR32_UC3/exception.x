@@ -95,9 +95,11 @@ _handle_Bus_Error_Instruction_Fetch:
         .org  0x010
         // NMI.
 _handle_NMI:
-        //rjmp $
+        
+        //*********TF3LJ* rjmp $
+        // replaced with the below
         lda.w   pc, eic_nmi_handler
-
+        
         .org  0x014
         // Instruction Address.
 _handle_Instruction_Address:

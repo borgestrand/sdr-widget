@@ -60,12 +60,12 @@ mobo_data_t	cdata							// Variables in ram/flash rom (default)
 				,	(28.020000 * _2(23) ) }	// Freq at startup, Memory 9
 				, 	3						// Which memory was last in use
 				, {	(  2.0 * 4.0 * _2(5) )	// Default filter cross over
-				,	(  6.0 * 4.0 * _2(5) )	// frequencies for Mobo V4.3
+				,	(  4.0 * 4.0 * _2(5) )	// frequencies for Mobo V4.3
 				,	(  8.0 * 4.0 * _2(5) )	// BPF. eight value array.
-				,	( 12.0 * 4.0 * _2(5) )
-				,	( 16.0 * 4.0 * _2(5) )
-				,	( 20.0 * 4.0 * _2(5) )
-				,	( 24.0 * 4.0 * _2(5) )
+				,	( 11.0 * 4.0 * _2(5) )
+				,	( 14.5 * 4.0 * _2(5) )
+				,	( 22.0 * 4.0 * _2(5) )
+				,	( 25.0 * 4.0 * _2(5) )
 				,	( TRUE ) }
 				//, ( {  2.0 * 4.0 * _2(5) )	// Default filter crossover
 				//,	(  4.0 * 4.0 * _2(5) )	// frequencies for the K5OOR

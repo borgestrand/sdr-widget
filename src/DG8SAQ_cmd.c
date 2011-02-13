@@ -41,7 +41,7 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 	Buf16 = (uint16_t*)Buffer;
 	int x;
 
-//	LED_Toggle(LED1);
+	LED_Toggle(LED1);
 
 	switch (type)
 	{
@@ -140,7 +140,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 	Buf32 = (uint32_t*)Buffer;
 	Buf16 = (uint16_t*)Buffer;
 
-//	LED_Toggle(LED1);
+	LED_Toggle(LED1);
 
 	switch (type)
 	{
@@ -158,6 +158,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 		// Low Pass filter select signals.  A later project, if needed.
 		//
 
+		// Todo
 		#if ENCODER_INT_STYLE || ENCODER_SCAN_STYLE	// Shaft Encoder VFO function
 											// Protect Shaft encoder bits
 		IO_DDR_MP = rq ->wValue.b0 & ~(ENC_A_PIN | ENC_B_PIN | ENC_PUSHB_PIN);
@@ -314,7 +315,8 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 
 
 		case 0x3c:								// Return the startup frequency
-			*Buf32 = nvram_cdata.Freq[wIndex];
+			// Todo: eeprom_read_block(replyBuf, &E.Freq[rq->wIndex.b0], sizeof(E.Freq[rq->wIndex.b0]));
+			*Buf32 = cdata.Freq[0];	// Temporary
 			return sizeof(uint32_t);
 
 
@@ -450,8 +452,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			    FRQ_fromusb = TRUE;				// Force LCD update, Indicate new frequency for Si570
 			}
 			// Passthrough to Cmd 0x51
-
-
 		case 0x51:
 		case 0x52:								// read CW & PTT key levels
 			Buffer[0] = 0x00;
@@ -465,6 +465,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			if (TX_state) Buffer[0] |= REG_TX_state;
 
         	return sizeof(uint8_t);
+
 
 		case 0x61:		// Read ADC inputs,
 						// Index byte points to which ADC input to read.
@@ -639,6 +640,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 						break;
 					case 4:						// Fullscale Power Bargraph value
 						flashc_memset8((void *)&nvram_cdata.PWR_fullscale, wValue, sizeof(uint8_t), TRUE);
+						// Todo eeprom_write_block(&rq->wValue.b0, &E.PWR_fullscale, sizeof (E.PWR_fullscale));
 						*Buf16 = cdata.PWR_fullscale = wValue;
 						break;
 					case 5:						// Fullscale SWR Bargraph value

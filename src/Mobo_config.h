@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 
+#include "features.h"
 #include "Si570.h"
 #include "PCF8574.h"
 #include "AD5301.h"
@@ -189,6 +190,7 @@ typedef struct
 		uint32_t	BandMul[8];				// Freq Multiply values [MHz] (11.21bits) for each of
 											// the 8 (BPF) Bands
 		#endif
+		features_t features;				// feature set for next boot
 } mobo_data_t;
 
 extern mobo_data_t	cdata;					// Variables in ram/flash rom (default)

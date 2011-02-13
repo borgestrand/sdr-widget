@@ -45,10 +45,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * Modified by Alex Lee and SDR-Widget team for the sdr-widget project - 14 Feb 2010
- * See http://code.google.com/p/sdr-widget/
- * Copyright under GNU General Public License v2
+ * Modified by Alex Lee 20 Feb 2010
+ * To enumerate as a USB composite device:
+ * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
+ * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
+ * Audio (Audio Class v1 and Audio Class V2.  Tweaked for
+ * 		compatibility when running at HIGH speed USB.)
+ * For SDR-Widget and SDR-Widget-lite, custom boards based on the AT32UC3A3256
  *
+ * See http://code.google.com/p/sdr-widget/
+ *
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) Alex Lee
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef _CONF_USB_H_

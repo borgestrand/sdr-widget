@@ -283,8 +283,8 @@ static void vtaskPowerDisplay( void * pcParameters )
     	     			spk_max_0_dB-144.0, spk_max_1_dB-144.0);
     	     	*/
 
-     			spk_max_0 = pow((float)(spk_max_0_pos-spk_max_0_neg)/(float)0xc0000, 2);
-       			spk_max_1 = pow((float)(spk_max_1_pos-spk_max_1_neg)/(float)0xc0000, 2);
+     			spk_max_0 = pow((float)(spk_max_0_pos-spk_max_0_neg)/(float)0x80000, 2);
+       			spk_max_1 = pow((float)(spk_max_1_pos-spk_max_1_neg)/(float)0x80000, 2);
        			if (spk_max_0 > 100) spk_max_0 = 100;
        			if (spk_max_1 > 100) spk_max_1 = 100;
     	     	sprintf(lcd_prtdb2,"%4.0f%%   TXpwr %4.0f%% ", spk_max_0, spk_max_1);

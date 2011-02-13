@@ -43,6 +43,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) Alex Lee
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
 #ifndef FREERTOS_CONFIG_H
@@ -70,6 +87,7 @@
 #define configMAX_PRIORITIES      ( ( unsigned portBASE_TYPE ) 5 )
 ////////////////#define configMINIMAL_STACK_SIZE  ( ( unsigned portSHORT ) 128 )
 #define configMINIMAL_STACK_SIZE  ( ( unsigned portSHORT ) 2048 )
+//#define configMINIMAL_STACK_SIZE  ( ( unsigned portSHORT ) 1024 )
 /* configTOTAL_HEAP_SIZE is not used when heap_3.c is used. */
 #define configTOTAL_HEAP_SIZE     ( ( size_t ) ( 1024*50 ) )
 #define configMAX_TASK_NAME_LEN   ( 20 )
@@ -129,6 +147,11 @@ to exclude the API function. */
 #define configTSK_USB_DEV_PRIORITY            (tskIDLE_PRIORITY + 3)
 #define configTSK_USB_DEV_PERIOD              2
 
+/* USB host task definitions. */
+#define configTSK_USB_HST_NAME                ((const signed portCHAR *)"USB Host")
+#define configTSK_USB_HST_STACK_SIZE          256
+#define configTSK_USB_HST_PRIORITY            (tskIDLE_PRIORITY + 2)
+#define configTSK_USB_HST_PERIOD              200
 
 /* USB device CDC task definitions. */
 #define configTSK_USB_DCDC_NAME               ((const signed portCHAR *)"USB Device CDC")
@@ -136,6 +159,11 @@ to exclude the API function. */
 #define configTSK_USB_DCDC_PRIORITY           (tskIDLE_PRIORITY + 1)
 #define configTSK_USB_DCDC_PERIOD             80
 
+/* USB device HID task definitions. */
+#define configTSK_USB_DHID_MOUSE_NAME         ((const signed portCHAR *)"USB Device Mouse HID")
+#define configTSK_USB_DHID_MOUSE_STACK_SIZE   256
+#define configTSK_USB_DHID_MOUSE_PRIORITY     (tskIDLE_PRIORITY + 1)
+#define configTSK_USB_DHID_MOUSE_PERIOD       200
 
 /* USB device Audio task definitions. */
 #define configTSK_USB_DAUDIO_NAME             ((const signed portCHAR *)"USB Device Audio")
@@ -146,14 +174,19 @@ to exclude the API function. */
 /* AK5394A task definitions. */
 #define configTSK_AK5394A_NAME             	((const signed portCHAR *)"AK5394A")
 #define configTSK_AK5394A_STACK_SIZE       	256
-#define configTSK_AK5394A_PRIORITY         	(tskIDLE_PRIORITY + 3)
+#define configTSK_AK5394A_PRIORITY         	(tskIDLE_PRIORITY + 3)// Was 1, then 2
 #define configTSK_AK5394A_PERIOD           	200
 
+/* USB host Audio HID task definitions. */
+#define configTSK_USB_HAUDIO_NAME             ((const signed portCHAR *)"USB Host Audio")
+#define configTSK_USB_HAUDIO_STACK_SIZE       256
+#define configTSK_USB_HAUDIO_PRIORITY         (tskIDLE_PRIORITY + 2)// Was 1
+#define configTSK_USB_HAUDIO_PERIOD           10
 
 /* taskMoboCtrl definitions. */
 #define configTSK_MoboCtrl_NAME				  ((const signed portCHAR *)"taskMoboCtrl")
 #define configTSK_MoboCtrl_STACK_SIZE		  1024
-#define configTSK_MoboCtrl_PRIORITY			  (tskIDLE_PRIORITY + 1)
+#define configTSK_MoboCtrl_PRIORITY			  (tskIDLE_PRIORITY + 1) // Was 0
 // Not used... is in a loop with a fixed wait of 10ms at the end
 //#define configTSK_MoboCtrl_PERIOD			  100
 
@@ -172,7 +205,7 @@ to exclude the API function. */
 
 /* taskLCD definitions */
 // Priority has to be same or greater than that of client tasks such as MoboControl and PowerDisplay
-#define configTSK_LCD_PRIORITY        		( tskIDLE_PRIORITY + 1)
+#define configTSK_LCD_PRIORITY        		( tskIDLE_PRIORITY + 1) // Was 0.
 #define	configTSK_LCD_STACK_SIZE			1024
 
 /* taskExercise definitions */
