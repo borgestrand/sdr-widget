@@ -66,7 +66,6 @@
 #include "usb_audio.h"
 #include "host_audio_task.h"
 #include <stdio.h>
-#include "audio_example.h"
 #include "pwm_dac.h"
 #include "pm.h"
 #include "usb_stream_control.h"

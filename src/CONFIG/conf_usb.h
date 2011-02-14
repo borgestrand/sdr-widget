@@ -74,11 +74,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
 #ifndef _CONF_USB_H_
 #define _CONF_USB_H_
 
 #include "compiler.h"
 #include "board.h"
+#include "print_funcs.h"
 #include "usb_ids.h"
 
 
@@ -126,10 +128,12 @@
 
 #define COMPOSITE_DEVICE
 
-#define NB_ENDPOINTS		  4
-#define EP_AUDIO_IN			  1
-#define EP_AUDIO_OUT 		  2
-#define EP_AUDIO_OUT_FB		  3
+#define NB_ENDPOINTS		  5
+#define EP_HID_TX		  1
+#define EP_HID_RX		  2
+#define EP_AUDIO_OUT		  3
+#define EP_AUDIO_IN		  4
+#define EP_AUDIO_OUT_FB		  5
 
     //! @defgroup device_cst_actions USB device custom actions
     //!
@@ -180,10 +184,10 @@ extern void usb_suspend_action(void);
 //! Max sampling frequencies excursion (given in per-thousandth) that the USB Stream Control FIFO
 //! is supposed to softly correct.
 #define USB_STREAM_MAX_EXCURSION       100  // Unit is in per-thousandth (�/oo)
-
-//! @}
-
-
+ 
+ //! @}
+ 
+ 
 
 //! @}
 

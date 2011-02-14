@@ -174,7 +174,7 @@ to exclude the API function. */
 /* AK5394A task definitions. */
 #define configTSK_AK5394A_NAME             	((const signed portCHAR *)"AK5394A")
 #define configTSK_AK5394A_STACK_SIZE       	256
-#define configTSK_AK5394A_PRIORITY         	(tskIDLE_PRIORITY + 3)// Was 1, then 2
+#define configTSK_AK5394A_PRIORITY         	(tskIDLE_PRIORITY + 3)// Was +1, then +2
 #define configTSK_AK5394A_PERIOD           	200
 
 /* USB host Audio HID task definitions. */
