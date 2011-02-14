@@ -82,7 +82,6 @@ extern pm_freq_param_t pm_freq_param;
 //_____ D E C L A R A T I O N S ____________________________________________
 
 volatile U8  audio_cpt_sof;
-static   U16 sof_cnt;
 
 //! Define for each 'feature unit' the max numbers of bmaControls
 //! One of them is used by the microphone!
@@ -107,7 +106,6 @@ volatile Bool audio_connected;
 //!
 void host_audio_task_init(void)
 {
-  sof_cnt = 0;
   audio_new_device_connected = FALSE;
   audio_connected = FALSE;
 
@@ -274,20 +272,6 @@ void host_audio_task(void)
    }
 #endif
 }
-
-
-//!
-//! @brief host_sof_action
-//!
-//! This function increments the sof_cnt counter each time
-//! the USB Start-of-Frame interrupt subroutine is executed (1 ms).
-//! Useful to manage time delays
-//!
-void host_sof_action(void)
-{
-  sof_cnt++;
-}
-
 
 //!
 //! @brief This function controls the Mute feature of a particular unit

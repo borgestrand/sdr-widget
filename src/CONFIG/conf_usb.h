@@ -140,7 +140,7 @@
     //! @{
       // Write here the action to associate with each USB event.
       // Be careful not to waste time in order not to disturb the functions.
-#define Usb_sof_action()                usb_sof_action()
+#define Usb_sof_action()
 #define Usb_wake_up_action()
 #define Usb_resume_action()
 #define Usb_suspend_action()
@@ -150,7 +150,6 @@
 #define Usb_set_configuration_action()
     //! @}
 
-extern void usb_sof_action(void);
 extern void usb_suspend_action(void);
 
 #endif  // USB_DEVICE_FEATURE == ENABLED

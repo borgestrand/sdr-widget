@@ -90,8 +90,6 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
-static volatile U16  sof_cnt;
-
 static U32  index, spk_index;
 static U16  old_gap = SPK_BUFFER_SIZE;
 U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out
@@ -425,19 +423,5 @@ void device_audio_task(void *pvParameters)
   } // end while vTask
 
 }
-
-
-//!
-//! @brief usb_sof_action
-//!
-//! This function increments the sof_cnt counter each time
-//! the USB Start-of-Frame interrupt subroutine is executed (1 ms).
-//! Useful to manage time delays
-//!
-void usb_sof_action(void)
-{
-  sof_cnt++;
-}
-
 
 #endif  // USB_DEVICE_FEATURE == ENABLED

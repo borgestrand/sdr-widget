@@ -71,7 +71,6 @@ extern void device_mouse_hid_task(void *pvParameters);
 #else
 extern void device_mouse_hid_task(void);
 #endif
-extern void usb_sof_action(void);
 
 
 #endif  // _DEVICE_MOUSE_HID_TASK_H_

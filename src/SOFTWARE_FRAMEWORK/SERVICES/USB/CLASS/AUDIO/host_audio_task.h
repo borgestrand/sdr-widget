@@ -97,7 +97,6 @@ extern void host_audio_task(void *pvParameters);
 #else
 extern void host_audio_task(void);
 #endif
-extern void host_sof_action(void);
 
 
 #endif  // _HOST_AUDIO_TASK_H_

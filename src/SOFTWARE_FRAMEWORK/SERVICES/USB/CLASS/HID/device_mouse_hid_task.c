@@ -203,9 +203,4 @@ void device_mouse_hid_task(void)
   }
 #endif
 }
-
-void usb_sof_action(void){
-}
-
-
 #endif  // USB_DEVICE_FEATURE == ENABLED
