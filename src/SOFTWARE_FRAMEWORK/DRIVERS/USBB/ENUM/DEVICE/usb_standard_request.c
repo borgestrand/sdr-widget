@@ -318,7 +318,7 @@ void usb_get_descriptor(void)
   U8      descriptor_type;
   U8      string_type;
   Union32 temp;
-  U16	  wInterface;
+  //U16	  wInterface;
 
 #if (USB_HIGH_SPEED_SUPPORT==ENABLED)
   Bool    b_first_data = TRUE;

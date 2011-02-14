@@ -139,8 +139,11 @@ void print(volatile avr32_usart_t *usart, const char *str)
 
 void print_char(volatile avr32_usart_t *usart, int c)
 {
+  char tmp[2];
   // Invoke the USART driver to transmit the input character with the given USART.
-  print(usart, c);
+  tmp[0] = c;
+  tmp[1] = 0;
+  print(usart, tmp);
 }
 
 
