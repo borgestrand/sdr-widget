@@ -1,0 +1,3 @@
+#!/bin/sh
+PATH=${AVR32BIN:=/usr/local/eclipse/plugins/com.atmel.avr.toolchains.linux.x86_64_3.1.0.201012011657/os/linux/x86_64/bin}:$PATH
+cd Release && make all
