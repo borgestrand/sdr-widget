@@ -129,11 +129,11 @@
 #define COMPOSITE_DEVICE
 
 #define NB_ENDPOINTS		  5
-#define EP_HID_TX		  1
-#define EP_HID_RX		  2
-#define EP_AUDIO_OUT		  3
-#define EP_AUDIO_IN		  4
-#define EP_AUDIO_OUT_FB		  5
+#define EP_AUDIO_OUT		  1
+#define EP_AUDIO_IN		  2
+#define EP_AUDIO_OUT_FB		  3
+#define EP_HID_TX		  4
+#define EP_HID_RX		  5
 
     //! @defgroup device_cst_actions USB device custom actions
     //!

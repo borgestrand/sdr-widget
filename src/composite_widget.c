@@ -262,7 +262,7 @@ int main(void)
   #endif
   vStartTaskMoboCtrl();
   AK5394A_task_init();
-  device_mouse_hid_task_init();
+  // device_mouse_hid_task_init();
   device_audio_task_init();
 
 
@@ -279,7 +279,7 @@ int main(void)
   {
     usb_task();
   #if USB_DEVICE_FEATURE == ENABLED
-    device_mouse_hid_task();
+    // device_mouse_hid_task();
   #endif
   #if USB_HOST_FEATURE == ENABLED
     //host_keyboard_hid_task();
