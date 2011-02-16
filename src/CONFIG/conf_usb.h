@@ -128,9 +128,9 @@
 
 #define COMPOSITE_DEVICE
 
-#define NB_ENDPOINTS		  5
-#define EP_AUDIO_OUT		  1
-#define EP_AUDIO_IN		  2
+#define NB_ENDPOINTS		  4
+#define EP_AUDIO_IN		  1
+#define EP_AUDIO_OUT		  2
 #define EP_AUDIO_OUT_FB		  3
 #define EP_HID_TX		  4
 #define EP_HID_RX		  5
