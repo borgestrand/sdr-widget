@@ -198,12 +198,12 @@ void eic_nmi_handler( void )
 	if (rotq)
 	{
 		eic_nmi_options.eic_edge  = EIC_EDGE_FALLING_EDGE;
-		//gpio_clr_gpio_pin(LED3_GPIO);
+		gpio_clr_gpio_pin(LED0_GPIO);
 	}
 	else
 	{
 		eic_nmi_options.eic_edge  = EIC_EDGE_RISING_EDGE;
-		//gpio_set_gpio_pin(LED3_GPIO);
+		gpio_set_gpio_pin(LED0_GPIO);
 	}
 	eic_clear_interrupt_line(&AVR32_EIC, EXT_NMI);
 	// Flip the Interrupt Edge
@@ -298,12 +298,12 @@ static void eic_int_handler1(void)
 	if (roti)
 	{
 		eic_inth1_options.eic_edge  = EIC_EDGE_FALLING_EDGE;
-		//gpio_clr_gpio_pin(LED0_GPIO);
+		gpio_clr_gpio_pin(LED1_GPIO);
 	}
 	else
 	{
 		eic_inth1_options.eic_edge  = EIC_EDGE_RISING_EDGE;
-		//gpio_set_gpio_pin(LED0_GPIO);
+		gpio_set_gpio_pin(LED1_GPIO);
 	}
 	eic_clear_interrupt_line(&AVR32_EIC, EXT_INT7);
 	// Flip the Interrupt Edge

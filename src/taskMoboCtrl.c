@@ -1,3 +1,4 @@
+/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /*
  * taskMoboCtrl.c
  *
@@ -457,12 +458,12 @@ void Test_SWR(void)
 	//-------------------------------------------------------------
 	else
 	{
-				SWR_alarm = FALSE;								// Clear SWR alarm flag
-				#if  REVERSE_PTT2_LOGIC							// Switch the PTT2 logic
-				pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Clear PTT2 line
-				#else//not REVERSE_PTT2_LOGIC					// Normal PTT2 logic
-				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Set PTT2 line
-				#endif//REVERSE_PTT2_LOGIC						// end of Switch the PTT2 logic
+		SWR_alarm = FALSE;								// Clear SWR alarm flag
+		#if  REVERSE_PTT2_LOGIC							// Switch the PTT2 logic
+		pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Clear PTT2 line
+		#else//not REVERSE_PTT2_LOGIC					// Normal PTT2 logic
+		pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Set PTT2 line
+		#endif//REVERSE_PTT2_LOGIC						// end of Switch the PTT2 logic
 	}
 }
 #endif//POWER_SWR												// Power and SWR measurement
