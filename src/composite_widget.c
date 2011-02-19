@@ -167,6 +167,7 @@
 #else
 #include <stdio.h>
 #endif
+
 #include "compiler.h"
 #include "board.h"
 #include "print_funcs.h"
@@ -194,6 +195,7 @@
  * Task specific headers.
  */
 
+#include "features.h"
 #include "queue.h"
 #include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
@@ -269,9 +271,10 @@ int main(void)
   vStartTaskMoboCtrl();
   vStartTaskEXERCISE( tskIDLE_PRIORITY );
   AK5394A_task_init();
-  // device_mouse_hid_task_init();
-  device_audio_task_init();
-
+  if ( FEATURE_AUDIO_UAC1 || FEATURE_AUDIO_UAC2 )
+	  device_mouse_hid_task_init();
+  if ( ! FEATURE_AUDIO_NONE )
+	  device_audio_task_init();
 
 #endif
 
@@ -286,7 +289,8 @@ int main(void)
   {
     usb_task();
   #if USB_DEVICE_FEATURE == ENABLED
-    // device_mouse_hid_task();
+	if ( FEATURE_AUDIO_UAC1 || FEATURE_AUDIO_UAC2 )
+		device_mouse_hid_task();
   #endif
   #if USB_HOST_FEATURE == ENABLED
     //host_keyboard_hid_task();
