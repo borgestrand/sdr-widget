@@ -129,11 +129,24 @@
 
 #define COMPOSITE_DEVICE
 
-#define EP_AUDIO_IN		1
-#define EP_AUDIO_OUT	2
-#define EP_AUDIO_OUT_FB	3
-#define EP_HID_TX		4
-#define EP_HID_RX		5
+// UAC1 endpoints
+#define UAC1_EP_HID_TX			1
+#define UAC1_EP_HID_RX			2
+#define UAC1_EP_AUDIO_OUT		3
+#define UAC1_EP_AUDIO_IN		4
+//#define UAC1_EP_AUDIO_OUT_FB	5
+
+// UAC2 endpoints
+#define UAC2_EP_AUDIO_IN		1
+#define UAC2_EP_AUDIO_OUT		2
+#define UAC2_EP_AUDIO_OUT_FB	3
+#define UAC2_EP_HID_TX			4
+#define UAC2_EP_HID_RX			5
+
+// HPSDR endpoints
+#define HPSDR_EP_RF_IN			4
+#define HPSDR_EP_IQ_IN			6
+#define HPSDR_EP_IQ_OUT			2
 
     //! @defgroup device_cst_actions USB device custom actions
     //!
