@@ -5,10 +5,17 @@
  *  Created on: 2010-06-13
  *
  *      Author: Loftur Jonasson, TF3LJ
+ *
+ *  Modified on: 2010-12-21
+ *
+ *      By Alex Lee
+ *
+ *      Added command 0x52 and 0x71
  */
 
 
 #include <stdint.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "wdt.h"
@@ -21,6 +28,10 @@
 #include "Si570.h"
 #include "AD7991.h"
 #include "TMP100.h"
+#include "usb_drv.h"
+#include "usb_descriptors.h"
+#include "usb_standard_request.h"
+#include "usb_specific_request.h"
 
 // This var is used to pass frequency from USB input command
 volatile uint32_t freq_from_usb;		// New Frequency from USB
@@ -42,7 +53,7 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 	Buf16 = (uint16_t*)Buffer;
 	int x;
 
-	LED_Toggle(LED1);
+//		LED_Toggle(LED1);
 
 	switch (type)
 	{
@@ -141,7 +152,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 	Buf32 = (uint32_t*)Buffer;
 	Buf16 = (uint16_t*)Buffer;
 
-	LED_Toggle(LED1);
+//		LED_Toggle(LED1);
 
 	switch (type)
 	{
@@ -317,7 +328,8 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 
 		case 0x3c:								// Return the startup frequency
 			// Todo: eeprom_read_block(replyBuf, &E.Freq[rq->wIndex.b0], sizeof(E.Freq[rq->wIndex.b0]));
-			*Buf32 = cdata.Freq[0];	// Temporary
+			// *Buf32 = cdata.Freq[0];	// Temporary
+			*Buf32 = nvram_cdata.Freq[wIndex];
 			return sizeof(uint32_t);
 
 
@@ -766,6 +778,31 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			pcf8574_in_byte(wIndex, Buffer);
 			return sizeof(uint8_t);
 
+		case 0x71:
+				switch (wValue){
+					case 0:
+						if (current_freq.frequency != 48000) {
+							current_freq.frequency = 48000;
+							freq_changed = TRUE;
+						}
+						break;
+					case 1:
+						if (current_freq.frequency != 96000){
+							current_freq.frequency = 96000;
+							freq_changed = TRUE;
+						}
+						break;
+					case 2:
+						if (current_freq.frequency != 192000){
+							current_freq.frequency = 192000;
+							freq_changed = TRUE;
+						}
+						break;
+					default:
+						break;
+					}
+				*Buffer = 0;
+				return sizeof(uint8_t);
 		default:
 			return 1; //break;
 	}

@@ -148,6 +148,13 @@
 #define HPSDR_EP_IQ_IN			6
 #define HPSDR_EP_IQ_OUT			2
 
+// temporary resolution
+#define EP_AUDIO_IN		UAC2_EP_AUDIO_IN
+#define EP_AUDIO_OUT	UAC2_EP_AUDIO_OUT
+#define EP_AUDIO_OUT_FB	UAC2_EP_AUDIO_OUT_FB
+#define EP_HID_TX		UAC2_EP_HID_TX
+#define EP_HID_RX		UAC2_EP_HID_RX
+
     //! @defgroup device_cst_actions USB device custom actions
     //!
     //! @{
