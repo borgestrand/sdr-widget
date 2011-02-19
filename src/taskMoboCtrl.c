@@ -41,14 +41,6 @@
 #endif
 
 
-//#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
-
-// Set up NVRAM (EEPROM) storage
-#if defined (__GNUC__)
-__attribute__((__section__(".userpage")))
-#endif
-mobo_data_t nvram_cdata;
-
 char lcd_pass1[20];									// Pass data to LCD
 char lcd_pass2[20];									// Pass data to LCD
 char lcd_pass3[20];									// Pass data to LCD
@@ -72,6 +64,14 @@ uint8_t		biasInit = 0;							// Power Amplifier Bias initiate flag
 													// (0 = uninitiated => forces init, 1 = class AB, 2 = class A)
 
 uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
+
+
+// Set up NVRAM (EEPROM) storage
+#if defined (__GNUC__)
+__attribute__((__section__(".userpage")))
+#endif
+mobo_data_t nvram_cdata;
+
 
 /*! \brief Probe and report which I2C devices are present
  *
