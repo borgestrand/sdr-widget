@@ -15,9 +15,11 @@ C_SRCS += \
 ../src/TMP100.c \
 ../src/composite_widget.c \
 ../src/features.c \
+../src/flashyBlinky.c \
 ../src/freq_and_filters.c \
 ../src/rotary_encoder.c \
 ../src/taskAK5394A.c \
+../src/taskEXERCISE.c \
 ../src/taskLCD.c \
 ../src/taskMoboCtrl.c \
 ../src/taskPowerDisplay.c \
@@ -35,9 +37,11 @@ OBJS += \
 ./src/TMP100.o \
 ./src/composite_widget.o \
 ./src/features.o \
+./src/flashyBlinky.o \
 ./src/freq_and_filters.o \
 ./src/rotary_encoder.o \
 ./src/taskAK5394A.o \
+./src/taskEXERCISE.o \
 ./src/taskLCD.o \
 ./src/taskMoboCtrl.o \
 ./src/taskPowerDisplay.o \
@@ -55,9 +59,11 @@ C_DEPS += \
 ./src/TMP100.d \
 ./src/composite_widget.d \
 ./src/features.d \
+./src/flashyBlinky.d \
 ./src/freq_and_filters.d \
 ./src/rotary_encoder.d \
 ./src/taskAK5394A.d \
+./src/taskEXERCISE.d \
 ./src/taskLCD.d \
 ./src/taskMoboCtrl.d \
 ./src/taskPowerDisplay.d \

@@ -210,5 +210,7 @@ to exclude the API function. */
 
 /* taskExercise definitions */
 #define configTSK_EXERCISE_STACK_SIZE		256
+#define configTSK_EXERCISE_PRIORITY			(tskIDLE_PRIORITY + 1 )
+#define configTSK_EXERCISE_PERIOD			100	// 10ms
 
 #endif /* FREERTOS_CONFIG_H */

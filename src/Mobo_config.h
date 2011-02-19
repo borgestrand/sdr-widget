@@ -1,3 +1,4 @@
+/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /*
  * Mobo_config.h
  *
@@ -136,6 +137,7 @@ extern i2c_avail i2c;
 typedef struct
 {
 		uint8_t		EEPROM_init_check;		// If value mismatch,
+		features_t	features;				// feature set for next boot
 		uint8_t		UAC2_Audio;				// UAC1 if FALSE, UAC2 if TRUE
 		uint8_t		Si570_I2C_addr;			// Si570 I2C addres, default 0x55 (85 dec)
 		uint8_t		TMP100_I2C_addr;		// I2C address for the onboard TMP100 temperature sensor
@@ -190,7 +192,6 @@ typedef struct
 		uint32_t	BandMul[8];				// Freq Multiply values [MHz] (11.21bits) for each of
 											// the 8 (BPF) Bands
 		#endif
-		features_t features;				// feature set for next boot
 } mobo_data_t;
 
 extern mobo_data_t	cdata;					// Variables in ram/flash rom (default)

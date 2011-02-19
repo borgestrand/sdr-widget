@@ -1,3 +1,4 @@
+/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.X.X Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
@@ -840,7 +841,7 @@
       //! Used in:
       //! - Feature Unit Control requests withAUDIO_FU_CONTROL_CS_BASS, _MID, _TREBLE
       //!
-      //! The settings for the CUR, MIN, and MAX attributes can range from +31.75 dB (0x7F) down to �32.00 dB (0x80) in steps of 0.25 dB (0x01)
+      //! The settings for the CUR, MIN, and MAX attributes can range from +31.75 dB (0x7F) down to -32.00 dB (0x80) in steps of 0.25 dB (0x01)
       //! The settings for the RES attribute can only take positive values and range from 0.25 dB (0x01) to +31.75 dB (0x7F)
       //! @{
 #define  AUDIO_CONTROL_LEVEL8_MAX                           0x7F     // +31.75 dB

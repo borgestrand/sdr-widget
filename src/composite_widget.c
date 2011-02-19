@@ -1,3 +1,4 @@
+/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
@@ -126,7 +127,7 @@
  */
 
 /* Modified by Alex Lee 20 Feb 2010
- * To enumerate as a USB composite device with 3-4 interfaces:
+ * To enumerate as a USB composite device with multiple interfaces:
  * CDC
  * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
  * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
@@ -194,6 +195,7 @@
  */
 
 #include "queue.h"
+#include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
 #include "taskPowerDisplay.h"
 #include "taskPushButtonMenu.h"
@@ -236,10 +238,14 @@ int main(void)
      return 42;
 
   gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+  gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
+  gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
+  gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
   // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
   wdt_disable();
 
+  // Initialize interrupt controller
   INTC_init_interrupts();
 
   // Initialize usart comm
@@ -261,6 +267,7 @@ int main(void)
   vStartTaskPushButtonMenu();
   #endif
   vStartTaskMoboCtrl();
+  vStartTaskEXERCISE( tskIDLE_PRIORITY );
   AK5394A_task_init();
   // device_mouse_hid_task_init();
   device_audio_task_init();

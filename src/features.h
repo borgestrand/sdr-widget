@@ -57,4 +57,6 @@ typedef enum {
 #define FEATURE_ADC_AK5394A		(features_live()[FEATURE_ADC_INDEX] == feature_adc_AK5394A)
 #define FEATURE_ADC_TEST		(features_live()[FEATURE_ADC_INDEX] == feature_adc_test)
 
+#define FEATURES_DEFAULT { feature_audio_uac1, feature_control_none, feature_adc_AK5394A }
+
 #endif /* FEATURES_H_ */

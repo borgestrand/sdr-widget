@@ -47,19 +47,19 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: sdr_widget.elf
+all: widget.elf
 
 # Tool invocations
-sdr_widget.elf: $(OBJS) $(USER_OBJS)
+widget.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: AVR32/GNU C Linker'
-	avr32-gcc -nostartfiles -L../src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/AT32UCR2 -L../src/SOFTWARE_FRAMEWORK/BOARDS -Wl,--gc-sections -Wl,-e,_trampoline -mpart=uc3a3256 -Wl,--gc-sections --rodata-writable -Wl,--direct-data -o"sdr_widget.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	avr32-gcc -nostartfiles -L../src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/AT32UCR2 -L../src/SOFTWARE_FRAMEWORK/BOARDS -Wl,--gc-sections -Wl,-e,_trampoline -mpart=uc3a3256 -Wl,--gc-sections --rodata-writable -Wl,--direct-data -o"widget.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) sdr_widget.elf
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) widget.elf
 	-@echo ' '
 
 .PHONY: all clean dependents

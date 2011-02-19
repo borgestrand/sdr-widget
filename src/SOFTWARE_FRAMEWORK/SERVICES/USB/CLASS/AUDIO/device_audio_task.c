@@ -1,3 +1,4 @@
+/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
@@ -77,7 +78,6 @@
 #include "taskLCD.h"
 #endif
 
-//#include "taskEXERCISE.h"
 #include "composite_widget.h"
 #include "taskAK5394A.h"
 
@@ -89,6 +89,8 @@
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
+
+static volatile U16  sof_cnt;
 
 static U32  index, spk_index;
 static U16  old_gap = SPK_BUFFER_SIZE;
@@ -422,6 +424,18 @@ void device_audio_task(void *pvParameters)
 
   } // end while vTask
 
+}
+
+//!
+//! @brief usb_sof_action
+//!
+//! This function increments the sof_cnt counter each time
+//! the USB Start-of-Frame interrupt subroutine is executed (1 ms).
+//! Useful to manage time delays
+//!
+void usb_sof_action(void)
+{
+  sof_cnt++;
 }
 
 #endif  // USB_DEVICE_FEATURE == ENABLED
