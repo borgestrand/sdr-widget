@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-UC3-SoftwareFramework-1.6.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************

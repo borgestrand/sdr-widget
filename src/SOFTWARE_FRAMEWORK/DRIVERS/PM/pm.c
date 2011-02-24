@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -522,12 +522,12 @@ void pm_write_gplp(volatile avr32_pm_t *pm, unsigned long gplp, unsigned long va
 long pm_enable_module(volatile avr32_pm_t *pm, unsigned long module)
 {
   unsigned long domain = module>>5;
-  unsigned long *regptr = (unsigned long*)(&(pm->cpumask) + domain*sizeof(unsigned long));
+  unsigned long *regptr = (unsigned long*)(&(pm->cpumask) + domain);
 
   // Implementation-specific shortcut: the ckMASK registers are contiguous and
   // memory-mapped in that order: CPUMASK, HSBMASK, PBAMASK, PBBMASK.
 
-  *regptr |= (module%32);
+  *regptr |= (1<<(module%32));
 
   return PASS;
 }
@@ -535,12 +535,12 @@ long pm_enable_module(volatile avr32_pm_t *pm, unsigned long module)
 long pm_disable_module(volatile avr32_pm_t *pm, unsigned long module)
 {
   unsigned long domain = module>>5;
-  unsigned long *regptr = (unsigned long*)(&(pm->cpumask) + domain*sizeof(unsigned long));
+  unsigned long *regptr = (unsigned long*)(&(pm->cpumask) + domain);
 
   // Implementation-specific shortcut: the ckMASK registers are contiguous and
   // memory-mapped in that order: CPUMASK, HSBMASK, PBAMASK, PBBMASK.
 
-  *regptr &= ~(module%32);
+  *regptr &= ~(1<<(module%32));
 
   return PASS;
 }

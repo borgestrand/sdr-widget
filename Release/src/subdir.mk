@@ -14,16 +14,21 @@ C_SRCS += \
 ../src/Si570.c \
 ../src/TMP100.c \
 ../src/composite_widget.c \
+../src/device_audio_task.c \
+../src/device_mouse_hid_task.c \
 ../src/features.c \
 ../src/flashyBlinky.c \
 ../src/freq_and_filters.c \
+../src/host_audio_task.c \
 ../src/rotary_encoder.c \
 ../src/taskAK5394A.c \
 ../src/taskEXERCISE.c \
 ../src/taskLCD.c \
 ../src/taskMoboCtrl.c \
 ../src/taskPowerDisplay.c \
-../src/taskPushButtonMenu.c 
+../src/taskPushButtonMenu.c \
+../src/usb_descriptors.c \
+../src/usb_specific_request.c 
 
 OBJS += \
 ./src/AD5301.o \
@@ -36,16 +41,21 @@ OBJS += \
 ./src/Si570.o \
 ./src/TMP100.o \
 ./src/composite_widget.o \
+./src/device_audio_task.o \
+./src/device_mouse_hid_task.o \
 ./src/features.o \
 ./src/flashyBlinky.o \
 ./src/freq_and_filters.o \
+./src/host_audio_task.o \
 ./src/rotary_encoder.o \
 ./src/taskAK5394A.o \
 ./src/taskEXERCISE.o \
 ./src/taskLCD.o \
 ./src/taskMoboCtrl.o \
 ./src/taskPowerDisplay.o \
-./src/taskPushButtonMenu.o 
+./src/taskPushButtonMenu.o \
+./src/usb_descriptors.o \
+./src/usb_specific_request.o 
 
 C_DEPS += \
 ./src/AD5301.d \
@@ -58,16 +68,21 @@ C_DEPS += \
 ./src/Si570.d \
 ./src/TMP100.d \
 ./src/composite_widget.d \
+./src/device_audio_task.d \
+./src/device_mouse_hid_task.d \
 ./src/features.d \
 ./src/flashyBlinky.d \
 ./src/freq_and_filters.d \
+./src/host_audio_task.d \
 ./src/rotary_encoder.d \
 ./src/taskAK5394A.d \
 ./src/taskEXERCISE.d \
 ./src/taskLCD.d \
 ./src/taskMoboCtrl.d \
 ./src/taskPowerDisplay.d \
-./src/taskPushButtonMenu.d 
+./src/taskPushButtonMenu.d \
+./src/usb_descriptors.d \
+./src/usb_specific_request.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

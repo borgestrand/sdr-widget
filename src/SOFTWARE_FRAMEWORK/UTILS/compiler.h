@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -57,6 +57,8 @@
 #  include <intrinsics.h>
 #endif
 #include "preprocessor.h"
+
+#include "parts.h"
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -864,7 +866,7 @@ typedef struct
 #define AVR32_ENTER_CRITICAL_REGION( ) \
   { \
   Bool global_interrupt_enabled = Is_global_interrupt_enabled(); \
-  if (global_interrupt_enabled) Disable_global_interrupt(); // Disable the appropriate interrupts.
+  Disable_global_interrupt(); // Disable the appropriate interrupts.
 
 /*! \brief This macro must always be used in conjunction with AVR32_ENTER_CRITICAL_REGION
  *         so that interrupts are enabled again.

@@ -4,21 +4,15 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_descriptors.c \
 ../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_device_task.c \
-../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_specific_request.c \
 ../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_standard_request.c 
 
 OBJS += \
-./src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_descriptors.o \
 ./src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_device_task.o \
-./src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_specific_request.o \
 ./src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_standard_request.o 
 
 C_DEPS += \
-./src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_descriptors.d \
 ./src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_device_task.d \
-./src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_specific_request.d \
 ./src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE/usb_standard_request.d 
 
 
