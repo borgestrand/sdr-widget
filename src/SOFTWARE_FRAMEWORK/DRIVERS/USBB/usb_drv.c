@@ -84,11 +84,7 @@ UnionVPtr pep_fifo[MAX_PEP_NB];
 Status_bool_t usb_init_device(void)
 {
   return Is_usb_id_device() && !Is_usb_endpoint_enabled(EP_CONTROL) &&
-         Usb_configure_endpoint(EP_CONTROL,
-                                TYPE_CONTROL,
-                                DIRECTION_OUT,
-                                EP_CONTROL_LENGTH,
-                                SINGLE_BANK);
+         Usb_configure_endpoint(EP_CONTROL, TYPE_CONTROL, DIRECTION_OUT, EP_CONTROL_LENGTH, SINGLE_BANK);
 }
 
 //! usb_set_ep_txpacket
