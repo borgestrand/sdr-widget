@@ -1,52 +1,56 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*
-	FreeRTOS.org V5.1.1 - Copyright (C) 2003-2008 Richard Barry.
+    FreeRTOS V6.0.0 - Copyright (C) 2009 Real Time Engineers Ltd.
 
-	This file is part of the FreeRTOS.org distribution.
-
-	FreeRTOS.org is free software; you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation; either version 2 of the License, or
-	(at your option) any later version.
-
-	FreeRTOS.org is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeRTOS.org; if not, write to the Free Software
-	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-	A special exception to the GPL can be applied should you wish to distribute
-	a combined work that includes FreeRTOS.org, without being obliged to provide
-	the source code for any proprietary components.  See the licensing section
-	of http://www.FreeRTOS.org for full details of how and when the exception
-	can be applied.
-
-    ***************************************************************************
     ***************************************************************************
     *                                                                         *
-    * SAVE TIME AND MONEY!  We can port FreeRTOS.org to your own hardware,    *
-    * and even write all or part of your application on your behalf.          *
-    * See http://www.OpenRTOS.com for details of the services we provide to   *
-    * expedite your project.                                                  *
+    * If you are:                                                             *
+    *                                                                         *
+    *    + New to FreeRTOS,                                                   *
+    *    + Wanting to learn FreeRTOS or multitasking in general quickly       *
+    *    + Looking for basic training,                                        *
+    *    + Wanting to improve your FreeRTOS skills and productivity           *
+    *                                                                         *
+    * then take a look at the FreeRTOS eBook                                  *
+    *                                                                         *
+    *        "Using the FreeRTOS Real Time Kernel - a Practical Guide"        *
+    *                  http://www.FreeRTOS.org/Documentation                  *
+    *                                                                         *
+    * A pdf reference manual is also available.  Both are usually delivered   *
+    * to your inbox within 20 minutes to two hours when purchased between 8am *
+    * and 8pm GMT (although please allow up to 24 hours in case of            *
+    * exceptional circumstances).  Thank you for your support!                *
     *                                                                         *
     ***************************************************************************
-    ***************************************************************************
 
-	Please ensure to read the configuration and relevant port sections of the
-	online documentation.
+    This file is part of the FreeRTOS distribution.
 
-	http://www.FreeRTOS.org - Documentation, latest information, license and 
-	contact details.
+    FreeRTOS is free software; you can redistribute it and/or modify it under
+    the terms of the GNU General Public License (version 2) as published by the
+    Free Software Foundation AND MODIFIED BY the FreeRTOS exception.
+    ***NOTE*** The exception to the GPL is included to allow you to distribute
+    a combined work that includes FreeRTOS without being obliged to provide the
+    source code for proprietary components outside of the FreeRTOS kernel.
+    FreeRTOS is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+    more details. You should have received a copy of the GNU General Public 
+    License and the FreeRTOS license exception along with FreeRTOS; if not it 
+    can be viewed here: http://www.freertos.org/a00114.html and also obtained 
+    by writing to Richard Barry, contact details for whom are available on the
+    FreeRTOS WEB site.
 
-	http://www.SafeRTOS.com - A version that is certified for use in safety 
-	critical systems.
+    1 tab == 4 spaces!
 
-	http://www.OpenRTOS.com - Commercial support, development, porting, 
-	licensing and training services.
+    http://www.FreeRTOS.org - Documentation, latest information, license and
+    contact details.
+
+    http://www.SafeRTOS.com - A version that is certified for use in safety
+    critical systems.
+
+    http://www.OpenRTOS.com - Commercial support, development, porting,
+    licensing and training services.
 */
 
 #ifndef INC_FREERTOS_H
@@ -80,7 +84,7 @@ typedef struct corCoRoutineControlBlock
 	xListItem				xEventListItem;		/*< List item used to place the CRCB in event lists. */
 	unsigned portBASE_TYPE 	uxPriority;			/*< The priority of the co-routine in relation to other co-routines. */
 	unsigned portBASE_TYPE 	uxIndex;			/*< Used to distinguish between co-routines when multiple co-routines use the same co-routine function. */
-	unsigned portSHORT 		uxState;			/*< Used internally by the co-routine implementation. */
+	unsigned short 		uxState;			/*< Used internally by the co-routine implementation. */
 } corCRCB; /* Co-routine control block.  Note must be identical in size down to uxPriority with tskTCB. */
 
 /**
@@ -212,7 +216,7 @@ void vCoRoutineSchedule( void );
  void vACoRoutine( xCoRoutineHandle xHandle, unsigned portBASE_TYPE uxIndex )
  {
  // Variables in co-routines must be declared static if they must maintain value across a blocking call.
- static portLONG ulAVariable;
+ static long ulAVariable;
 
      // Must start every co-routine with a call to crSTART();
      crSTART( xHandle );
@@ -243,7 +247,7 @@ void vCoRoutineSchedule( void );
  void vACoRoutine( xCoRoutineHandle xHandle, unsigned portBASE_TYPE uxIndex )
  {
  // Variables in co-routines must be declared static if they must maintain value across a blocking call.
- static portLONG ulAVariable;
+ static long ulAVariable;
 
      // Must start every co-routine with a call to crSTART();
      crSTART( xHandle );
@@ -557,7 +561,7 @@ void vCoRoutineSchedule( void );
  // A co-routine that blocks on a queue waiting for characters to be received.
  static void vReceivingCoRoutine( xCoRoutineHandle xHandle, unsigned portBASE_TYPE uxIndex )
  {
- portCHAR cRxedChar;
+ char cRxedChar;
  portBASE_TYPE xResult;
 
      // All co-routines must start with a call to crSTART().
@@ -584,7 +588,7 @@ void vCoRoutineSchedule( void );
  // a co-routine.
  void vUART_ISR( void )
  {
- portCHAR cRxedChar;
+ char cRxedChar;
  portBASE_TYPE xCRWokenByPost = pdFALSE;
 
      // We loop around reading characters until there are none left in the UART.
@@ -657,7 +661,7 @@ void vCoRoutineSchedule( void );
  {
  // cChar holds its value while this co-routine is blocked and must therefore
  // be declared static.
- static portCHAR cCharToTx = 'a';
+ static char cCharToTx = 'a';
  portBASE_TYPE xResult;
 
      // All co-routines must start with a call to crSTART().
@@ -700,7 +704,7 @@ void vCoRoutineSchedule( void );
  // An ISR that uses a queue to receive characters to send on a UART.
  void vUART_ISR( void )
  {
- portCHAR cCharToTx;
+ char cCharToTx;
  portBASE_TYPE xCRWokenByPost = pdFALSE;
 
      while( UART_TX_REG_EMPTY() )
