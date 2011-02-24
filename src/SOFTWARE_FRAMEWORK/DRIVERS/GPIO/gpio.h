@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -52,7 +52,6 @@
 
 #include <avr32/io.h>
 #include "compiler.h"
-
 
 /*! \name Return Values of the GPIO API
  */
@@ -170,6 +169,35 @@ extern void gpio_enable_pin_pull_up(unsigned int pin);
  * \param pin The pin number.
  */
 extern void gpio_disable_pin_pull_up(unsigned int pin);
+
+#if defined(AVR32_GPIO_200_H_INCLUDED) || defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
+// Added support of Pull-up Resistor, Pull-down Resistor and Buskeeper Control.
+
+/*! \brief Enables the pull-down resistor of a pin.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_enable_pin_pull_down(unsigned int pin);
+
+/*! \brief Disables the pull-down resistor of a pin.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_disable_pin_pull_down(unsigned int pin);
+
+/*! \brief Enables the buskeeper functionality on a pin.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_enable_pin_buskeeper(unsigned int pin);
+
+/*! \brief Disables the buskeeper functionality on a pin.
+ *
+ * \param pin The pin number.
+ */
+extern void gpio_disable_pin_buskeeper(unsigned int pin);
+
+#endif
 
 /*! \brief Returns the value of a pin.
  *
@@ -292,6 +320,7 @@ extern void gpio_clear_pin_interrupt_flag(unsigned int pin);
 //! @}
 
 
+#if (defined AVR32_GPIO_LOCAL_ADDRESS)
 /*! \name Local Bus Interface
  *
  * High-speed interface with only one clock cycle per access.
@@ -497,13 +526,9 @@ extern __inline__ void gpio_local_tgl_gpio_open_drain_pin(unsigned int pin)
 }
 
 //! @}
+#endif // AVR32_GPIO_LOCAL_ADDRESS
 
-#if (((defined __GNUC__) && ((defined __AVR32_UC3L016__) || \
-                             (defined __AVR32_UC3L032__) || \
-                             (defined __AVR32_UC3L064__)) \
-    ||(defined __ICCAVR32__) && ((defined __AT32UC3L016__) || \
-                                 (defined __AT32UC3L032__) || \
-                                 (defined __AT32UC3L064__) )))
+#if UC3L
 //! @{
 /*! \name Peripheral Event System support
  *

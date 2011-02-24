@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -194,7 +194,8 @@ static int usart_set_iso7816_clock(volatile avr32_usart_t *usart, unsigned int c
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 
 /*! \brief Calculates a clock divider (\e CD) for the USART SPI master mode to
@@ -612,7 +613,8 @@ int usart_init_iso7816(volatile avr32_usart_t *usart, const usart_iso7816_option
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 
 int usart_init_lin_master(volatile avr32_usart_t *usart, unsigned long baudrate, long pba_hz)
@@ -742,7 +744,8 @@ int usart_init_spi_slave(volatile avr32_usart_t *usart, const usart_spi_options_
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 
 /*! \name SPI Control Functions

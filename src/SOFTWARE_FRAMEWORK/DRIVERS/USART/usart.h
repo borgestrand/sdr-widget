@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -102,7 +102,8 @@
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 /*! \name LIN Node Actions
  */
@@ -186,7 +187,8 @@ typedef struct
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 //! Input parameters when initializing SPI mode.
 typedef struct
@@ -335,7 +337,8 @@ extern int usart_init_iso7816(volatile avr32_usart_t *usart, const usart_iso7816
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 /*! \brief Sets up the USART to use the LIN master mode.
  *
@@ -451,7 +454,8 @@ extern __inline__ int usart_overrun_error(volatile avr32_usart_t *usart)
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 /*! \brief Get LIN Error Status
  *
@@ -516,7 +520,8 @@ extern __inline__ void usart_iso7816_enable_transmitter(volatile avr32_usart_t *
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 /*! \name LIN Control Functions
  */
@@ -682,7 +687,8 @@ extern __inline__ void usart_lin_set_id_char(volatile avr32_usart_t *usart, unsi
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 /*! \name SPI Control Functions
  */
@@ -846,7 +852,8 @@ extern int usart_get_echo_line(volatile avr32_usart_t *usart);
 #if defined(AVR32_USART_400_H_INCLUDED) || \
     defined(AVR32_USART_410_H_INCLUDED) || \
     defined(AVR32_USART_420_H_INCLUDED) || \
-    defined(AVR32_USART_440_H_INCLUDED)
+    defined(AVR32_USART_440_H_INCLUDED) || \
+    defined(AVR32_USART_602_H_INCLUDED)
 
 /*! \brief Abort LIN transmission.
  *

@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -52,6 +52,8 @@
 #include "preprocessor.h"
 #include "intc.h"
 
+// define _evba from exception.S
+extern void _evba;
 
 //! Values to store in the interrupt priority registers for the various interrupt priority levels.
 extern const unsigned int ipr_val[AVR32_INTC_NUM_INT_LEVELS];
@@ -164,10 +166,17 @@ __int_handler _get_interrupt_handler(unsigned int int_level)
   return (int_req) ? _int_handler_table[int_grp]._int_line_handler_table[32 - clz(int_req) - 1] : NULL;
 }
 
+//! Init EVBA address. This sequence might also be done in the UTILS/STARTUP/GCC/crt0.S
+static __inline__ void INTC_init_evba(void)
+{
+  Set_system_register(AVR32_EVBA, (int)&_evba );
+}
 
 void INTC_init_interrupts(void)
 {
   unsigned int int_grp, int_req;
+
+  INTC_init_evba();
 
   // For all interrupt groups,
   for (int_grp = 0; int_grp < AVR32_INTC_NUM_INT_GRPS; int_grp++)

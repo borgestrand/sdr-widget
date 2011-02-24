@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -49,7 +49,6 @@
 
 #include "gpio.h"
 
-
 //! GPIO module instance.
 #define GPIO  AVR32_GPIO
 
@@ -84,7 +83,7 @@ int gpio_enable_module_pin(unsigned int pin, unsigned int function)
   case 0: // A function.
     gpio_port->pmr0c = 1 << (pin & 0x1F);
     gpio_port->pmr1c = 1 << (pin & 0x1F);
-#ifdef AVR32_GPIO_210_H_INCLUDED
+#if defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
     gpio_port->pmr2c = 1 << (pin & 0x1F);
 #endif
     break;
@@ -92,7 +91,7 @@ int gpio_enable_module_pin(unsigned int pin, unsigned int function)
   case 1: // B function.
     gpio_port->pmr0s = 1 << (pin & 0x1F);
     gpio_port->pmr1c = 1 << (pin & 0x1F);
-#ifdef AVR32_GPIO_210_H_INCLUDED
+#if defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
     gpio_port->pmr2c = 1 << (pin & 0x1F);
 #endif
     break;
@@ -100,7 +99,7 @@ int gpio_enable_module_pin(unsigned int pin, unsigned int function)
   case 2: // C function.
     gpio_port->pmr0c = 1 << (pin & 0x1F);
     gpio_port->pmr1s = 1 << (pin & 0x1F);
-#ifdef AVR32_GPIO_210_H_INCLUDED
+#if defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
     gpio_port->pmr2c = 1 << (pin & 0x1F);
 #endif
     break;
@@ -108,12 +107,12 @@ int gpio_enable_module_pin(unsigned int pin, unsigned int function)
   case 3: // D function.
     gpio_port->pmr0s = 1 << (pin & 0x1F);
     gpio_port->pmr1s = 1 << (pin & 0x1F);
-#ifdef AVR32_GPIO_210_H_INCLUDED
+#if defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
     gpio_port->pmr2c = 1 << (pin & 0x1F);
 #endif
     break;
 
-#ifdef AVR32_GPIO_210_H_INCLUDED
+#if defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
   case 4: // E function.
     gpio_port->pmr0c = 1 << (pin & 0x1F);
     gpio_port->pmr1c = 1 << (pin & 0x1F);
@@ -201,6 +200,9 @@ void gpio_enable_pin_pull_up(unsigned int pin)
 {
   volatile avr32_gpio_port_t *gpio_port = &GPIO.port[pin >> 5];
   gpio_port->puers = 1 << (pin & 0x1F);
+#if defined(AVR32_GPIO_200_H_INCLUDED) || defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
+  gpio_port->pderc = 1 << (pin & 0x1F);
+#endif
 }
 
 
@@ -210,6 +212,53 @@ void gpio_disable_pin_pull_up(unsigned int pin)
   gpio_port->puerc = 1 << (pin & 0x1F);
 }
 
+#if defined(AVR32_GPIO_200_H_INCLUDED) || defined(AVR32_GPIO_210_H_INCLUDED) || defined(AVR32_GPIO_211_H_INCLUDED)
+// Added support of Pull-up Resistor, Pull-down Resistor and Buskeeper Control.
+
+/*! \brief Enables the pull-down resistor of a pin.
+ *
+ * \param pin The pin number.
+ */
+void gpio_enable_pin_pull_down(unsigned int pin)
+{
+  volatile avr32_gpio_port_t *gpio_port = &GPIO.port[pin >> 5];
+  gpio_port->puerc = 1 << (pin & 0x1F);
+  gpio_port->pders = 1 << (pin & 0x1F);
+}
+
+/*! \brief Disables the pull-down resistor of a pin.
+ *
+ * \param pin The pin number.
+ */
+void gpio_disable_pin_pull_down(unsigned int pin)
+{
+  volatile avr32_gpio_port_t *gpio_port = &GPIO.port[pin >> 5];
+  gpio_port->pderc = 1 << (pin & 0x1F);
+}
+
+/*! \brief Enables the buskeeper functionality on a pin.
+ *
+ * \param pin The pin number.
+ */
+void gpio_enable_pin_buskeeper(unsigned int pin)
+{
+  volatile avr32_gpio_port_t *gpio_port = &GPIO.port[pin >> 5];
+  gpio_port->puers = 1 << (pin & 0x1F);
+  gpio_port->pders = 1 << (pin & 0x1F);
+}
+
+/*! \brief Disables the buskeeper functionality on a pin.
+ *
+ * \param pin The pin number.
+ */
+void gpio_disable_pin_buskeeper(unsigned int pin)
+{
+  volatile avr32_gpio_port_t *gpio_port = &GPIO.port[pin >> 5];
+  gpio_port->puerc = 1 << (pin & 0x1F);
+  gpio_port->pderc = 1 << (pin & 0x1F);
+}
+
+#endif
 
 int gpio_get_pin_value(unsigned int pin)
 {
@@ -384,9 +433,7 @@ void gpio_clear_pin_interrupt_flag(unsigned int pin)
 //#
 //# Peripheral Event System Support.
 //#
-#if (((defined __GNUC__) && ((defined __AVR32_UC3L016__) || (defined __AVR32_UC3L032__) || (defined __AVR32_UC3L064__))) \
-    ||((defined __ICCAVR32__) && ((defined __AT32UC3L016__) || (defined __AT32UC3L032__) || (defined __AT32UC3L064__) )))
-
+#if UC3L
 int gpio_configure_pin_periph_event_mode(unsigned int pin, unsigned int mode, unsigned int use_igf)
 {
   volatile avr32_gpio_port_t *gpio_port = &GPIO.port[pin >> 5];

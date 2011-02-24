@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -53,7 +53,6 @@
 #include <avr32/io.h>
 #include <stddef.h>
 #include "compiler.h"
-
 
 //! Number of flash regions defined by the FLASHC.
 #define AVR32_FLASHC_REGIONS  (AVR32_FLASHC_FLASH_SIZE /\
@@ -986,6 +985,16 @@ extern volatile void *flashc_memset64(volatile void *dst, U64 src, size_t nbytes
  *       \ref flashc_is_programming_error is updated.
  */
 extern volatile void *flashc_memcpy(volatile void *dst, const void *src, size_t nbytes, Bool erase);
+
+#if UC3C
+
+/*! \brief Depednding to the CPU frequency, set the wait states of flash read
+ *         accesses and enable or disable the High speed read mode.
+ *
+ * \param cpu_f_hz The CPU frequency
+ */
+void flashc_set_flash_waitstate_and_readmode(unsigned long cpu_f_hz);
+#endif // UC3C device-specific implementation
 
 //! @}
 

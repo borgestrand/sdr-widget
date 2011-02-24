@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -49,7 +49,6 @@
 #include <string.h>
 #include "compiler.h"
 #include "pm.h"
-
 
 extern void flashc_set_wait_state(unsigned int wait_state);
 #if (defined AVR32_FLASHC_210_H_INCLUDED)
@@ -229,10 +228,7 @@ int pm_configure_clocks(pm_freq_param_t *param)
 
 void pm_configure_usb_clock(void)
 {
-#if (defined __AVR32_UC3A3256__)  || (defined __AVR32_UC3A3128__)  || (defined __AVR32_UC3A364__)  || \
-    (defined __AVR32_UC3A3256S__) || (defined __AVR32_UC3A3128S__) || (defined __AVR32_UC3A364S__) || \
-    (defined __AT32UC3A3256__)  || (defined __AT32UC3A3128__)  || (defined __AT32UC3A364__) ||        \
-    (defined __AT32UC3A3256S__) || (defined __AT32UC3A3128S__) || (defined __AT32UC3A364S__)
+#if UC3A3
 
   // Setup USB GCLK.
   pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_USBB, // gc

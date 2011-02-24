@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file has been prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -63,19 +63,20 @@ extern "C" {
   #include "pm.h"
 #else
 //! Device-specific data
-#if (( defined (__GNUC__) && ( defined (__AVR32_UC3L016__) || defined (__AVR32_UC3L032__) || defined (__AVR32_UC3L064__))) \
-    ||(defined (__ICCAVR32__) && (defined (__AT32UC3L016__) || defined (__AT32UC3L032__) || defined (__AT32UC3L064__)  )))
+#if UC3L 
   #include "pm_uc3l.h"
   #include "scif_uc3l.h"
   #include "flashcdw.h"
-#elif ((defined (__GNUC__) && (defined (__AVR32_UC3C0512__))) \
-     ||(defined (__ICCAVR32__) && (defined (__AT32UC3C0512__) )))
+#elif UC3C
   #include "pm_uc3c.h"
   #include "scif_uc3c.h"
-  #include "flashc.h"  
+  #include "flashc.h"
 #endif
 #endif
 
+/*! \name Clocks Management
+ */
+//! @{
 
 //! The different oscillators
 typedef enum
@@ -119,16 +120,16 @@ typedef struct
 {
   //! Main clock source selection (input argument).
   pcl_mainclk_t main_clk_src;
-  
+
   //! Target CPU frequency (input/output argument).
   unsigned long cpu_f;
 
   //! Target PBA frequency (input/output argument).
   unsigned long pba_f;
-  
+
   //! Target PBB frequency (input/output argument).
   unsigned long pbb_f;
-  
+
   //! Target PBC frequency (input/output argument).
   unsigned long pbc_f;
 
@@ -137,15 +138,19 @@ typedef struct
 
   //! Oscillator 0's external crystal(or external clock) startup time: AVR32_PM_OSCCTRL0_STARTUP_x_RCOSC (input argument).
   unsigned long osc0_startup;
-  
+
   //! DFLL target frequency (input/output argument) (NOTE: the bigger, the most stable the frequency)
   unsigned long dfll_f;
+  
+  //! Other parameters that might be necessary depending on the device (implementation-dependent).
+  // For the UC3L DFLL setup, this parameter should be pointing to a structure of
+  // type (scif_gclk_opt_t *).
+  void *pextra_params;
 } pcl_freq_param_t;
 #endif
 
 //! Define "not supported" for the lib.
 #define PCL_NOT_SUPPORTED (-10000)
-
 
 /*! \brief Automatically configure the CPU, PBA, PBB, and HSB clocks
  *
@@ -337,13 +342,35 @@ extern long int pcl_switch_to_osc(pcl_osc_t osc, unsigned int fcrystal, unsigned
 
 /*! \brief Configure the USB Clock
  *
- * \param none
  *
  * \return Status.
  *   \retval 0  Success.
  *   \retval <0 An error occured.
  */
 extern long int pcl_configure_usb_clock(void);
+
+//! @}
+
+/*! \name Power Management
+ */
+//! @{
+/*!
+ * \brief Read the content of the GPLP registers
+ * \param gplp GPLP register index (0,1,... depending on the number of GPLP registers for a given part)
+ *
+ * \return The content of the chosen GPLP register.
+ */
+extern unsigned long pcl_read_gplp(unsigned long gplp);
+
+
+/*!
+ * \brief Write into the GPLP registers
+ * \param gplp GPLP register index (0,1,... depending on the number of GPLP registers for a given part)
+ * \param value Value to write
+ */
+extern void pcl_write_gplp(unsigned long gplp, unsigned long value);
+
+//! @}
 
 #ifdef __cplusplus
 }

@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-UC3-SoftwareFramework-1.6.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -55,12 +55,7 @@
 /*! \name External Interrupt lines
  */
 //! @{
-#if ( defined (__GNUC__) && ( defined (__AVR32_UC3A0128__) || defined (__AVR32_UC3A0256__) || defined (__AVR32_UC3A0512__) || defined (__AVR32_UC3A0512ES__) || defined (__AVR32_UC3A1128__) || defined (__AVR32_UC3A1256__) || defined (__AVR32_UC3A1512__) || defined (__AVR32_UC3A1512ES__))) \
-  ||( defined (__ICCAVR32__) && ( defined (__AT32UC3A0128__) || defined (__AT32UC3A0256__) || defined (__AT32UC3A0512__) || defined (__AT32UC3A0512ES__) || defined (__AT32UC3A1128__) || defined (__AT32UC3A1256__) || defined (__AT32UC3A1512__) || defined (__AT32UC3A1512ES__))) \
-  ||( defined (__GNUC__) && ( defined (__AVR32_UC3B064__) || defined (__AVR32_UC3B0128__) || defined (__AVR32_UC3B0256__) || defined (__AVR32_UC3B0256ES__) || defined (__AVR32_UC3B164__) || defined (__AVR32_UC3B1128__) || defined (__AVR32_UC3B1256__) || defined (__AVR32_UC3B1256ES__))) \
-  ||( defined (__ICCAVR32__) && ( defined (__AT32UC3B064__) || defined (__AT32UC3B0128__) || defined (__AT32UC3B0256__) || defined (__AT32UC3B0256ES__) || defined (__AT32UC3B164__) || defined (__AT32UC3B1128__) || defined (__AT32UC3B1256__) || defined (__AT32UC3B1256ES__))) \
-  ||( defined (__GNUC__) && ( defined (__AVR32_UC3A364__) || defined (__AVR32_UC3A364S__) || defined (__AVR32_UC3A3128__) || defined (__AVR32_UC3A3128S__) || defined (__AVR32_UC3B164__) || defined (__AVR32_UC3A3256__) || defined (__AVR32_UC3A3256S__))) \
-  ||( defined (__ICCAVR32__) && ( defined (__AT32UC3A364__) || defined (__AT32UC3A364S__) || defined (__AT32UC3A3128__) || defined (__AT32UC3A3128S__) || defined (__AT32UC3B164__) || defined (__AT32UC3A3256__) || defined (__AT32UC3A3256S__)))
+#if (UC3A || UC3B)  
 #define EXT_INT0    AVR32_EIC_INT0 //!< Line 0
 #define EXT_INT1    AVR32_EIC_INT1 //!< Line 1
 #define EXT_INT2    AVR32_EIC_INT2 //!< Line 2

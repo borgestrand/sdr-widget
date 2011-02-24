@@ -1,5 +1,4 @@
-/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file ******************************************************************
@@ -75,7 +74,6 @@
 #include "conf_usb.h"
 #include "usb_drv.h"
 #include "usb_task.h"
-#include "pm.h"
 
 #if USB_DEVICE_FEATURE == ENABLED
 #include "usb_descriptors.h"
@@ -84,6 +82,12 @@
 
 #if USB_HOST_FEATURE == ENABLED
 #include "usb_host_task.h"
+#endif
+
+#if UC3C
+#include "pm_uc3c.h"
+#else
+#include "pm.h"
 #endif
 
 

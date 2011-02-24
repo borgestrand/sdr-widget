@@ -1,4 +1,4 @@
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -1071,5 +1071,47 @@ volatile void *flashc_memcpy(volatile void *dst, const void *src, size_t nbytes,
   return dst;
 }
 
+
+#if UC3C
+void flashc_set_flash_waitstate_and_readmode(unsigned long cpu_f_hz)
+{
+  //! Device-specific data
+  #undef AVR32_FLASHC_FWS_0_MAX_FREQ
+  #undef AVR32_FLASHC_FWS_1_MAX_FREQ
+  #undef AVR32_FLASHC_HSEN_FWS_0_MAX_FREQ
+  #undef AVR32_FLASHC_HSEN_FWS_1_MAX_FREQ
+  #define AVR32_FLASHC_FWS_0_MAX_FREQ           33000000
+  #define AVR32_FLASHC_FWS_1_MAX_FREQ           66000000
+  #define AVR32_FLASHC_HSEN_FWS_0_MAX_FREQ      33000000
+  #define AVR32_FLASHC_HSEN_FWS_1_MAX_FREQ      72000000
+  // These defines are missing from or wrong in the toolchain header files uc3cxxx.h
+  // Put a Bugzilla 
+
+  if(cpu_f_hz > AVR32_FLASHC_HSEN_FWS_0_MAX_FREQ)    // > 33MHz
+  {
+    // Set a wait-state
+    flashc_set_wait_state(1);
+    if(cpu_f_hz <= AVR32_FLASHC_FWS_1_MAX_FREQ) // <= 66MHz and >33Mhz
+    {
+      // Disable the high-speed read mode.      
+      flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSDIS, -1);
+    }
+    else // > 66Mhz
+    {
+      // Enable the high-speed read mode.
+      flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSEN, -1);                     
+    }
+  }
+  else  // <= 33 MHz    
+  {
+    // Disable wait-state
+    flashc_set_wait_state(0);
+
+    // Disable the high-speed read mode.
+    flashc_issue_command(AVR32_FLASHC_FCMD_CMD_HSDIS, -1);
+    
+  }
+}
+#endif // UC3C device-specific implementation
 
 //! @}
