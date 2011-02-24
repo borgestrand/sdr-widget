@@ -1,4 +1,4 @@
-/* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This header file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file *********************************************************************
@@ -70,7 +70,23 @@
 #define Insert_label(name)         \
     __asm__ __volatile__ (STRINGZ(name)":");
 
+#if (defined __GNUC__)
+/*! \brief Returns the number of total of used bytes allocated from the HEAP.
+ *
+ * \retval total number of used bytes.
+ */
+U32 get_heap_total_used_size( void );
+
+/*! \brief Returns the number of bytes currently used from the HEAP.
+ *
+ * \retval total number of used bytes.
+ */
+U32 get_heap_curr_used_size( void );
+#endif
+
 /*! \brief Returns the number of free bytes in the HEAP.
+ *
+ * This funtion tries to allocate the maximum number of bytes by dichotomical method.
  *
  * \retval number of free bytes.
  */
