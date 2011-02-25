@@ -153,39 +153,15 @@ void usb_user_endpoint_init(U8 conf_nb)
    if( Is_usb_full_speed_mode() )
    {
 
-     (void)Usb_configure_endpoint(EP_AUDIO_IN,
-                            EP_ATTRIBUTES_1,
-                            DIRECTION_IN,
-                            EP_SIZE_1_FS,
-                            DOUBLE_BANK);
-     (void)Usb_configure_endpoint(EP_AUDIO_OUT,
-                            EP_ATTRIBUTES_2,
-                            DIRECTION_OUT,
-                            EP_SIZE_2_FS,
-                            DOUBLE_BANK);
-     (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB,
-                            EP_ATTRIBUTES_3,
-                            DIRECTION_IN,
-                            EP_SIZE_3_FS,
-                            DOUBLE_BANK);
+     (void)Usb_configure_endpoint(EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, DOUBLE_BANK);
+     (void)Usb_configure_endpoint(EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, DOUBLE_BANK);
+     (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_FS, DOUBLE_BANK);
 
    }else{
 
-     (void)Usb_configure_endpoint(EP_AUDIO_IN,
-                             EP_ATTRIBUTES_1,
-                             DIRECTION_IN,
-                             EP_SIZE_1_HS,
-                             DOUBLE_BANK);
-     (void)Usb_configure_endpoint(EP_AUDIO_OUT,
-                              EP_ATTRIBUTES_2,
-                              DIRECTION_OUT,
-                              EP_SIZE_2_HS,
-                              DOUBLE_BANK);
-     (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB,
-                              EP_ATTRIBUTES_3,
-                              DIRECTION_IN,
-                              EP_SIZE_3_HS,
-                              DOUBLE_BANK);
+     (void)Usb_configure_endpoint(EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, DOUBLE_BANK);
+     (void)Usb_configure_endpoint(EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, DOUBLE_BANK);
+     (void)Usb_configure_endpoint(EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_HS, DOUBLE_BANK);
 
    }
 }
@@ -200,6 +176,10 @@ void usb_user_endpoint_init(U8 conf_nb)
 Bool usb_user_read_request(U8 type, U8 request)
 {   int i;
 
+  // Test for Vendor specific request - DG8SAQ type of request
+  if ( (type & DRT_MASK) == DRT_VENDOR ) {
+	  return usb_user_DG8SAQ (type, request);
+  }
    // Read wValue
    wValue_lsb = Usb_read_endpoint_data(EP_CONTROL, 8);
    wValue_msb = Usb_read_endpoint_data(EP_CONTROL, 8);
@@ -750,5 +730,62 @@ Bool usb_user_DG8SAQ(U8 type, U8 command){
 		return TRUE;
 }
 
+//! This function manages the HID Get_Descriptor request.
+//!
+static void hid_get_descriptor(U8 size_of_report, const U8* p_usb_hid_report)
+{
+  Bool  zlp;
+  U16   wIndex;
+  U16   wLength;
+
+  zlp = FALSE;                                              /* no zero length packet */
+
+  data_to_transfer = size_of_report;
+  pbuffer          = p_usb_hid_report;
+
+  wIndex = Usb_read_endpoint_data(EP_CONTROL, 16);
+  wIndex = usb_format_usb_to_mcu_data(16, wIndex);
+  wLength = Usb_read_endpoint_data(EP_CONTROL, 16);
+  wLength = usb_format_usb_to_mcu_data(16, wLength);
+  Usb_ack_setup_received_free();                          //!< clear the setup received flag
+
+  if (wLength > data_to_transfer)
+  {
+    zlp = !(data_to_transfer % EP_CONTROL_LENGTH);  //!< zero length packet condition
+  }
+  else
+  {
+    data_to_transfer = wLength; //!< send only requested number of data bytes
+  }
+
+  Usb_ack_nak_out(EP_CONTROL);
+
+  while (data_to_transfer && (!Is_usb_nak_out(EP_CONTROL)))
+  {
+    while( !Is_usb_control_in_ready() && !Is_usb_nak_out(EP_CONTROL) );
+
+    if( Is_usb_nak_out(EP_CONTROL) )
+       break;    // don't clear the flag now, it will be cleared after
+
+    Usb_reset_endpoint_fifo_access(EP_CONTROL);
+    data_to_transfer = usb_write_ep_txpacket(EP_CONTROL, pbuffer,
+                                             data_to_transfer, &pbuffer);
+    if( Is_usb_nak_out(EP_CONTROL) )
+       break;
+    else
+       Usb_ack_control_in_ready_send();  //!< Send data until necessary
+  }
+
+  if ( zlp && (!Is_usb_nak_out(EP_CONTROL)) )
+  {
+    while (!Is_usb_control_in_ready());
+    Usb_ack_control_in_ready_send();
+  }
+
+  while (!(Is_usb_nak_out(EP_CONTROL)));
+  Usb_ack_nak_out(EP_CONTROL);
+  while (!Is_usb_control_out_received());
+  Usb_ack_control_out_received_free();
+}
 
 #endif  // USB_DEVICE_FEATURE == ENABLED

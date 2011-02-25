@@ -94,12 +94,16 @@
 #include "usb_standard_request.h"
 #include "usb_task.h"
 
+//_____ functions  ________________________________________________________
+
+extern U8 *__Usb_get_dev_desc_pointer();
+extern U16 __Usb_get_dev_desc_length();
 
 //_____ M A C R O S ________________________________________________________
 
 #define Usb_unicode(c)                    (Usb_format_mcu_to_usb_data(16, (U16)(c)))
-#define Usb_get_dev_desc_pointer()        (&(usb_dev_desc.bLength))
-#define Usb_get_dev_desc_length()         (sizeof(usb_dev_desc))
+#define Usb_get_dev_desc_pointer()        __Usb_get_dev_desc_pointer()
+#define Usb_get_dev_desc_length()         __Usb_get_dev_desc_length()
 #define Usb_get_conf_desc_pointer()       Usb_get_conf_desc_fs_pointer()
 #define Usb_get_conf_desc_length()        Usb_get_conf_desc_fs_length()
 #define Usb_get_conf_desc_hs_pointer()    (&(usb_conf_desc_hs.cfg.bLength))
@@ -112,15 +116,18 @@
 
 //_____ U S B    D E F I N E S _____________________________________________
 
-            // USB Device descriptor
+// USB Device descriptor
 #define USB_SPECIFICATION     0x0200
 #define DEVICE_CLASS          0xef          //!
 #define DEVICE_SUB_CLASS      0x02          //!
 #define DEVICE_PROTOCOL       0x01          //! IAD Device
 #define EP_CONTROL_LENGTH     64
-#define VENDOR_ID             0x16c0
-//#define PRODUCT_ID            0x03e8		//!  Internal Lab use
-#define PRODUCT_ID            0x05dc		//!  DG8SAQ device
+#define DG8SAQ_VENDOR_ID	  0x16c0
+#define DG8SAQ_PRODUCT_ID     0x05dc		//!  DG8SAQ device
+#define AUDIO_VENDOR_ID		  0x16c0
+#define AUDIO_PRODUCT_ID      0x03e8		//!  Internal Lab use
+#define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
+#define HPSDR_PRODUCT_ID      0x0007
 #define RELEASE_NUMBER        0x1000
 #define MAN_INDEX             0x01
 #define PROD_INDEX            0x02
@@ -139,7 +146,7 @@
 
 #define NB_CONFIGURATION      1
 
-            // CONFIGURATION
+// CONFIGURATION
 #define NB_INTERFACE	   4	//!  DG8SAQ, Audio (3)
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
@@ -155,7 +162,7 @@
 #define FUNCTION_INDEX		0
 
 
-            // USB DG8SAQ Interface descriptor
+// USB DG8SAQ Interface descriptor
 #define INTERFACE_NB0			    0
 #define ALTERNATE_NB0	            0                  //! The alt setting nb of this interface
 #define NB_ENDPOINT0			    0                  //! The number of endpoints this interface has
@@ -1436,8 +1443,6 @@ S_usb_configuration_descriptor 						cfg;
 #pragma pack()
 #endif
 S_usb_user_configuration_descriptor;
-
-
 
 
 #endif  // _USB_DESCRIPTORS_H_

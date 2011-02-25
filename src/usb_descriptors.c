@@ -70,7 +70,7 @@
 //_____ I N C L U D E S ____________________________________________________
 
 #include "conf_usb.h"
-
+#include "features.h"
 
 #if USB_DEVICE_FEATURE == ENABLED
 
@@ -90,7 +90,7 @@
 
 
 // usb_user_device_descriptor
-const S_usb_device_descriptor usb_dev_desc =
+const S_usb_device_descriptor dg8saq_usb_dev_desc =
 {
   sizeof(S_usb_device_descriptor),
   DEVICE_DESCRIPTOR,
@@ -99,8 +99,8 @@ const S_usb_device_descriptor usb_dev_desc =
   DEVICE_SUB_CLASS,
   DEVICE_PROTOCOL,
   EP_CONTROL_LENGTH,
-  Usb_format_mcu_to_usb_data(16, VENDOR_ID),
-  Usb_format_mcu_to_usb_data(16, PRODUCT_ID),
+  Usb_format_mcu_to_usb_data(16, DG8SAQ_VENDOR_ID),
+  Usb_format_mcu_to_usb_data(16, DG8SAQ_PRODUCT_ID),
   Usb_format_mcu_to_usb_data(16, RELEASE_NUMBER),
   MAN_INDEX,
   PROD_INDEX,
@@ -108,7 +108,63 @@ const S_usb_device_descriptor usb_dev_desc =
   NB_CONFIGURATION
 };
 
+const S_usb_device_descriptor audio_usb_dev_desc =
+{
+  sizeof(S_usb_device_descriptor),
+  DEVICE_DESCRIPTOR,
+  Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
+  DEVICE_CLASS,
+  DEVICE_SUB_CLASS,
+  DEVICE_PROTOCOL,
+  EP_CONTROL_LENGTH,
+  Usb_format_mcu_to_usb_data(16, AUDIO_VENDOR_ID),
+  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID),
+  Usb_format_mcu_to_usb_data(16, RELEASE_NUMBER),
+  MAN_INDEX,
+  PROD_INDEX,
+  SN_INDEX,
+  NB_CONFIGURATION
+};
 
+const S_usb_device_descriptor hpsdr_usb_dev_desc =
+{
+  sizeof(S_usb_device_descriptor),
+  DEVICE_DESCRIPTOR,
+  Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
+  DEVICE_CLASS,
+  DEVICE_SUB_CLASS,
+  DEVICE_PROTOCOL,
+  EP_CONTROL_LENGTH,
+  Usb_format_mcu_to_usb_data(16, HPSDR_VENDOR_ID),
+  Usb_format_mcu_to_usb_data(16, HPSDR_PRODUCT_ID),
+  Usb_format_mcu_to_usb_data(16, RELEASE_NUMBER),
+  MAN_INDEX,
+  PROD_INDEX,
+  SN_INDEX,
+  NB_CONFIGURATION
+};
+
+U8 *__Usb_get_dev_desc_pointer() {
+	if ( FEATURE_IMAGE_UAC1_DG8SAQ || FEATURE_IMAGE_UAC2_DG8SAQ )
+		return (U8 *)&dg8saq_usb_dev_desc.bLength;
+	else if ( FEATURE_IMAGE_UAC1_AUDIO || FEATURE_IMAGE_UAC2_AUDIO )
+		return (U8 *)&audio_usb_dev_desc.bLength;
+	else if ( FEATURE_IMAGE_HPSDR )
+		return (U8 *)&hpsdr_usb_dev_desc.bLength;
+	else
+		return (U8 *)&dg8saq_usb_dev_desc.bLength;
+}
+
+U16 __Usb_get_dev_desc_length() {
+	if ( FEATURE_IMAGE_UAC1_DG8SAQ || FEATURE_IMAGE_UAC2_DG8SAQ )
+		return sizeof(dg8saq_usb_dev_desc);
+	else if ( FEATURE_IMAGE_UAC1_AUDIO || FEATURE_IMAGE_UAC2_AUDIO )
+		return sizeof(audio_usb_dev_desc);
+	else if ( FEATURE_IMAGE_HPSDR )
+		return sizeof(hpsdr_usb_dev_desc);
+	else
+		return sizeof(dg8saq_usb_dev_desc);
+}
 
 // usb_user_configuration_descriptor FS
 const S_usb_user_configuration_descriptor usb_conf_desc_fs =

@@ -12,7 +12,6 @@
 #include <stdint.h>
 
 
-#include "features.h"
 #include "Si570.h"
 #include "PCF8574.h"
 #include "AD5301.h"
@@ -137,7 +136,6 @@ extern i2c_avail i2c;
 typedef struct
 {
 		uint8_t		EEPROM_init_check;		// If value mismatch,
-		features_t	features;				// feature set for next boot
 		uint8_t		UAC2_Audio;				// UAC1 if FALSE, UAC2 if TRUE
 		uint8_t		Si570_I2C_addr;			// Si570 I2C addres, default 0x55 (85 dec)
 		uint8_t		TMP100_I2C_addr;		// I2C address for the onboard TMP100 temperature sensor

@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "board.h"
+#include "features.h"
 #include "gpio.h"
 #include "FreeRTOS.h"
 #include "wdt.h"
@@ -620,6 +621,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 	lcd_q_goto(3,10);
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
+
+	features_display();
 	#endif
 
 	// Create I2C comms semaphore

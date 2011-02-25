@@ -27,7 +27,6 @@ mobo_data_t	cdata							// Variables in ram/flash rom (default)
 		=
 		{
 					COLDSTART_REF			// Update into eeprom if value mismatch
-				,	FEATURES_DEFAULT		// Default feature set
 				,	FALSE					// FALSE if UAC1 Audio, TRUE if UAC2 Audio.
 				,	SI570_I2C_ADDRESS		// Si570 I2C address or Si570_I2C_addr
 				,	TMP100_I2C_ADDRESS		// I2C address for the TMP100 chip

@@ -146,18 +146,6 @@ void usb_process_request(void)
   bmRequestType = Usb_read_endpoint_data(EP_CONTROL, 8);
   bRequest      = Usb_read_endpoint_data(EP_CONTROL, 8);
 
-  // Test for Vendor specific request - DG8SAQ type of request
-
-  if ( (bmRequestType & DRT_MASK) == DRT_VENDOR ){
-	  if (! (usb_user_DG8SAQ (bmRequestType, bRequest)))
-		{
-		  Usb_enable_stall_handshake(EP_CONTROL);
-		  Usb_ack_setup_received_free();
-		}
-		}
-  else
-
-  {
   switch (bRequest)
   {
   case GET_DESCRIPTOR:
@@ -216,7 +204,6 @@ unsupported_request:
     }
     break;
 	} // end switch
-	} // end if (bmRequestType & DRT_MSK) == DRT_VENDOR)
 }
 
 
@@ -265,64 +252,6 @@ void usb_set_configuration(void)
   }
 }
 
-
-//! This function manages the HID Get_Descriptor request.
-//!
-static void hid_get_descriptor(U8 size_of_report, const U8* p_usb_hid_report)
-{
-  Bool  zlp;
-  U16   wIndex;
-  U16   wLength;
-
-  zlp = FALSE;                                              /* no zero length packet */
-
-  data_to_transfer = size_of_report;
-  pbuffer          = p_usb_hid_report;
-
-  wIndex = Usb_read_endpoint_data(EP_CONTROL, 16);
-  wIndex = usb_format_usb_to_mcu_data(16, wIndex);
-  wLength = Usb_read_endpoint_data(EP_CONTROL, 16);
-  wLength = usb_format_usb_to_mcu_data(16, wLength);
-  Usb_ack_setup_received_free();                          //!< clear the setup received flag
-
-  if (wLength > data_to_transfer)
-  {
-    zlp = !(data_to_transfer % EP_CONTROL_LENGTH);  //!< zero length packet condition
-  }
-  else
-  {
-    data_to_transfer = wLength; //!< send only requested number of data bytes
-  }
-
-  Usb_ack_nak_out(EP_CONTROL);
-
-  while (data_to_transfer && (!Is_usb_nak_out(EP_CONTROL)))
-  {
-    while( !Is_usb_control_in_ready() && !Is_usb_nak_out(EP_CONTROL) );
-
-    if( Is_usb_nak_out(EP_CONTROL) )
-       break;    // don't clear the flag now, it will be cleared after
-
-    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-    data_to_transfer = usb_write_ep_txpacket(EP_CONTROL, pbuffer,
-                                             data_to_transfer, &pbuffer);
-    if( Is_usb_nak_out(EP_CONTROL) )
-       break;
-    else
-       Usb_ack_control_in_ready_send();  //!< Send data until necessary
-  }
-
-  if ( zlp && (!Is_usb_nak_out(EP_CONTROL)) )
-  {
-    while (!Is_usb_control_in_ready());
-    Usb_ack_control_in_ready_send();
-  }
-
-  while (!(Is_usb_nak_out(EP_CONTROL)));
-  Usb_ack_nak_out(EP_CONTROL);
-  while (!Is_usb_control_out_received());
-  Usb_ack_control_out_received_free();
-}
 
 //! This function manages the GET DESCRIPTOR request. The device descriptor,
 //! the configuration descriptor and the device qualifier are supported. All
@@ -610,11 +539,7 @@ void usb_set_feature(void)
         Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
         Usb_disable_endpoint(EP_CONTROL);
         Usb_unallocate_memory(EP_CONTROL);
-        (void)Usb_configure_endpoint(EP_CONTROL,
-                                     TYPE_BULK,
-                                     DIRECTION_IN,
-                                     64,
-                                     SINGLE_BANK);
+        (void)Usb_configure_endpoint(EP_CONTROL, TYPE_BULK, DIRECTION_IN, 64, SINGLE_BANK);
         Usb_reset_endpoint(EP_CONTROL);
         Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTPCKT_MASK);
         usb_write_ep_txpacket(EP_CONTROL, &test_packet, sizeof(test_packet), NULL);

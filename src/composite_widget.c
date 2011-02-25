@@ -239,9 +239,10 @@ int main(void)
   if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
      return 42;
 
+  // Initialize features management
+  features_init();
+
   gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
-  gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
-  gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
   gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
   // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
@@ -271,10 +272,9 @@ int main(void)
   vStartTaskMoboCtrl();
   vStartTaskEXERCISE( tskIDLE_PRIORITY );
   AK5394A_task_init();
-  if ( FEATURE_AUDIO_UAC1 || FEATURE_AUDIO_UAC2 )
+  if ( FEATURE_HID_ON )
 	  device_mouse_hid_task_init();
-  if ( ! FEATURE_AUDIO_NONE )
-	  device_audio_task_init();
+  device_audio_task_init();
 
 #endif
 
