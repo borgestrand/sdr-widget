@@ -27,6 +27,7 @@
 #include "queue.h"
 #include "usb_drv.h"
 
+#include "composite_widget.h"
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
 #include "rotary_encoder.h"
@@ -66,6 +67,7 @@ uint8_t		biasInit = 0;							// Power Amplifier Bias initiate flag
 													// (0 = uninitiated => forces init, 1 = class AB, 2 = class A)
 
 uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
+
 
 
 // Set up NVRAM (EEPROM) storage
@@ -577,6 +579,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 	uint32_t time, ten_s_counter=0;					// Time management
 	uint32_t lastIteration=0, Timerval;				// Counters to keep track of time
 
+	xSemaphoreTake( mutexInit, portMAX_DELAY );
+
 	//----------------------------------------------------
 	// Initialize all Mobo Functions *********************
 	//----------------------------------------------------
@@ -697,6 +701,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 	#if I2C
 	TX_state = TRUE;
 	#endif
+
+	xSemaphoreGive( mutexInit );		// initialization complete
 
 	//----------------------------------------------------
 	// Mobo Functions Loop *******************************

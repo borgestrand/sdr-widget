@@ -23,6 +23,10 @@ features_t features_nvram;
 
 features_t features = { FEATURES_DEFAULT };
 
+//
+// these arrays of names need to be kept in sync
+// with the enumerations defined in features.h
+//
 const char *feature_names[] = {
   // image selection
   "flashyblinky",
@@ -32,27 +36,23 @@ const char *feature_names[] = {
   "uac2 dg8saq",
   "hpsdr",
   "test",
-  // control variant
-  "control none",
-  "mobokit",
-  "rx ensemble ii",
-  "rxtx ensemble",
-  "test",
+  "end",
   // input channel
   "normal",
   "swapped",
+  "end",
   // output channel
   "normal",
   "swapped",
-  // hid
-  "off",
-  "on"
+  "end",
   // adc
   "none",
   "ak5394a",
+  "end",
   // dac
   "none",
   "cs4344",
+  "end",
   // end
   "end"
 };
@@ -60,10 +60,8 @@ const char *feature_names[] = {
 const char *feature_index_names[] = {
 	"vsn",
 	"img",
-	"ctl",
 	"iq in",
 	"iq out",
-	"hid",
 	"adc",
 	"dac",
 	"end"
@@ -85,18 +83,21 @@ static void display_clear() {
 
 static void display_string_and_scroll(char *string) {
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+#if 0
 	if (display_row == 4) {
 		// scroll up
-		memcpy(&display_contents[0][0], &display_contents[1][0], 3*21);
 		int i;
+		memcpy(&display_contents[0][0], &display_contents[1][0], 3*21);
 		for (i = 0; i < 3; i += 1) {
 			lcd_q_goto(i,0);
 			lcd_q_print(&display_contents[i][0]);
 		}
 		display_row = 3;
 	}
-	memset(&display_contents[display_row][0], ' ', 20);
-	strncpy(&display_contents[display_row][0], string, 20);
+#else
+	display_row &= 3;
+#endif
+	sprintf(&display_contents[display_row][0], "%-20.20s", string);
 	lcd_q_goto(display_row, 0);
 	lcd_q_print(&display_contents[display_row][0]);
 	xSemaphoreGive( mutexQueLCD );
@@ -123,29 +124,30 @@ void features_init() {
 void features_display() {
 	int i;
 	char buff[32];
+	int delay = 10000;
 	display_clear();
-	display_string_scroll_and_delay("features:", 25000);
+	display_string_scroll_and_delay("features ram:", delay);
 	sprintf(buff, "%s = %02x", feature_index_names[feature_version_index], features[feature_version_index]);
-	display_string_scroll_and_delay(buff, 25000);
-	for (i = feature_image_index; i < feature_last_index; i += 1) {
+	display_string_scroll_and_delay(buff, delay);
+	for (i = feature_image_index; i < feature_end_index; i += 1) {
 		strcpy(buff, feature_index_names[i]);
 		strcat(buff, " = ");
-		if (features[i] < feature_end)
+		if (features[i] < feature_end_values)
 			strcat(buff, (char *)feature_names[features[i]]);
 		else
 			strcat(buff, "invalid!");
-		display_string_scroll_and_delay(buff, 25000);
+		display_string_scroll_and_delay(buff, delay);
 	}
-	display_string_scroll_and_delay("features_nvram:", 25000);
+	display_string_scroll_and_delay("features nvram:", delay);
 	sprintf(buff, "%s = %02x", feature_index_names[feature_version_index], features_nvram[feature_version_index]);
-	display_string_scroll_and_delay(buff, 25000);
-	for (i = feature_image_index; i < feature_last_index; i += 1) {
+	display_string_scroll_and_delay(buff, delay);
+	for (i = feature_image_index; i < feature_end_index; i += 1) {
 		strcpy(buff, feature_index_names[i]);
 		strcat(buff, " = ");
-		if (features_nvram[i] < feature_end)
+		if (features_nvram[i] < feature_end_values)
 			strcat(buff, (char *)feature_names[features_nvram[i]]);
 		else
 			strcat(buff, "invalid!");
-		display_string_scroll_and_delay(buff, 25000);
+		display_string_scroll_and_delay(buff, delay);
 	}
 }

@@ -18,8 +18,11 @@ C_SRCS += \
 ../src/device_mouse_hid_task.c \
 ../src/features.c \
 ../src/flashyBlinky.c \
+../src/flashyblinky_image.c \
 ../src/freq_and_filters.c \
 ../src/host_audio_task.c \
+../src/hpsdr_image.c \
+../src/image.c \
 ../src/rotary_encoder.c \
 ../src/taskAK5394A.c \
 ../src/taskEXERCISE.c \
@@ -27,6 +30,8 @@ C_SRCS += \
 ../src/taskMoboCtrl.c \
 ../src/taskPowerDisplay.c \
 ../src/taskPushButtonMenu.c \
+../src/uac1_star_image.c \
+../src/uac2_star_image.c \
 ../src/usb_descriptors.c \
 ../src/usb_specific_request.c 
 
@@ -45,8 +50,11 @@ OBJS += \
 ./src/device_mouse_hid_task.o \
 ./src/features.o \
 ./src/flashyBlinky.o \
+./src/flashyblinky_image.o \
 ./src/freq_and_filters.o \
 ./src/host_audio_task.o \
+./src/hpsdr_image.o \
+./src/image.o \
 ./src/rotary_encoder.o \
 ./src/taskAK5394A.o \
 ./src/taskEXERCISE.o \
@@ -54,6 +62,8 @@ OBJS += \
 ./src/taskMoboCtrl.o \
 ./src/taskPowerDisplay.o \
 ./src/taskPushButtonMenu.o \
+./src/uac1_star_image.o \
+./src/uac2_star_image.o \
 ./src/usb_descriptors.o \
 ./src/usb_specific_request.o 
 
@@ -72,8 +82,11 @@ C_DEPS += \
 ./src/device_mouse_hid_task.d \
 ./src/features.d \
 ./src/flashyBlinky.d \
+./src/flashyblinky_image.d \
 ./src/freq_and_filters.d \
 ./src/host_audio_task.d \
+./src/hpsdr_image.d \
+./src/image.d \
 ./src/rotary_encoder.d \
 ./src/taskAK5394A.d \
 ./src/taskEXERCISE.d \
@@ -81,6 +94,8 @@ C_DEPS += \
 ./src/taskMoboCtrl.d \
 ./src/taskPowerDisplay.d \
 ./src/taskPushButtonMenu.d \
+./src/uac1_star_image.d \
+./src/uac2_star_image.d \
 ./src/usb_descriptors.d \
 ./src/usb_specific_request.d 
 

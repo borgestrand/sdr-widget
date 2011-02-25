@@ -89,5 +89,6 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 extern xSemaphoreHandle mutexEP_IN;
+extern xSemaphoreHandle mutexInit;
 
 #endif  // _COMPOSITE_WIDGET_H_

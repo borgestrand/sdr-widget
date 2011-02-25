@@ -212,6 +212,7 @@
  *  A few global variables.
  */
 xSemaphoreHandle mutexEP_IN;
+xSemaphoreHandle mutexInit;
 
 //_____ M A C R O S ________________________________________________________
 
@@ -242,7 +243,9 @@ int main(void)
   // Initialize features management
   features_init();
 
-  gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+  if ( FEATURE_ADC_AK5394A )
+	  gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+
   gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
   // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
@@ -257,26 +260,19 @@ int main(void)
   // Initialize USB clock (on PLL1)
   pm_configure_usb_clock();
 
-  // Initialize USB task
-  usb_task_init();
+  // boot the image
+  image_boot();
 
-#if USB_DEVICE_FEATURE == ENABLED
+  // initialize the image
+  image_init();
 
-  mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
-
-  #if LCD_DISPLAY						// Multi-line LCD display
-  vStartTaskLCD();
-  vStartTaskPowerDisplay();
-  vStartTaskPushButtonMenu();
-  #endif
-  vStartTaskMoboCtrl();
-  vStartTaskEXERCISE( tskIDLE_PRIORITY );
-  AK5394A_task_init();
-  if ( FEATURE_HID_ON )
-	  device_mouse_hid_task_init();
-  device_audio_task_init();
-
-#endif
+  // Initialize the initialization mutex
+  // largely to keep the power display from starting
+  // over the top of the initialization sequence
+  mutexInit = xSemaphoreCreateMutex(); // for sequencing initialization
+  
+  // Start the image tasks
+  image_task_init();
 
 #ifdef FREERTOS_USED
   // Start OS scheduler

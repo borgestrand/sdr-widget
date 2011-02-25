@@ -27,6 +27,7 @@
 #include "queue.h"
 //#include "rtc.h"
 
+#include "composite_widget.h"
 #include "taskPowerDisplay.h"
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
@@ -54,8 +55,10 @@ char lcd_bar2[21];
  */
 static void vtaskPowerDisplay( void * pcParameters )
 {
-	// Wait for 9 seconds while the Mobo Stuff catches up
-	vTaskDelay(90000 );
+	// Wait while the Mobo Stuff catches up
+	vTaskDelay(10000 );								// defer to other tasks
+	xSemaphoreTake( mutexInit, portMAX_DELAY );		// wait for initialization complete
+	xSemaphoreGive( mutexInit );					// release and continue
 
 	uint16_t pow_avg[PEP_MAX_PERIOD];		// Power measurement ringbuffer
 
