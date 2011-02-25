@@ -88,6 +88,7 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 static U8 usb_state = 'r';
+static U8 usb_report[3];
 
 //!
 //! @brief This function initializes the hardware/software resources

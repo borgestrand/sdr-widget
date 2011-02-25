@@ -12,7 +12,7 @@
 #include "image.h"
 
 // this pointer gets set to the correct image_t
-static image_t *image;
+static const image_t *image;
 
 // boot gets called before anything
 // initializes to setup whatever
@@ -25,7 +25,7 @@ void image_boot(void) {
   else if ( FEATURE_IMAGE_UAC2_DG8SAQ ) image = &uac2_dg8saq_image;
   else if ( FEATURE_IMAGE_HPSDR) image = &hpsdr_image;
   else image = &uac1_audio_image;
-  image->image_boot();
+  image->boot();
 }
 
 // init gets called when the board has
@@ -33,7 +33,7 @@ void image_boot(void) {
 // calls the init functions of the 
 // image components
 void image_init(void) {
-  image->image_init();
+  image->init();
 }
 
 // task_init gets called when we're ready
@@ -41,5 +41,47 @@ void image_init(void) {
 // it typically calls the task init functions
 // of the image components.
 void image_task_init(void) {
-  image->image_task_init();
+  image->task_init();
+}
+
+// descriptor access
+uint8_t *image_get_dev_desc_pointer(void) {
+	return image->get_dev_desc_pointer();
+}
+uint16_t image_get_dev_desc_length(void) {
+	return image->get_dev_desc_length();
+}
+uint8_t *image_get_conf_desc_pointer(void) {
+	return image->get_conf_desc_pointer();
+}
+uint16_t image_get_conf_desc_length(void) {
+	return image->get_conf_desc_length();
+}
+uint8_t *image_get_conf_desc_fs_pointer(void) {
+	return image->get_conf_desc_fs_pointer();
+}
+uint16_t image_get_conf_desc_fs_length(void) {
+	return image->get_conf_desc_fs_length();
+}
+uint8_t *image_get_conf_desc_hs_pointer(void) {
+	return image->get_conf_desc_hs_pointer();
+}
+uint16_t image_get_conf_desc_hs_length(void) {
+	return image->get_conf_desc_hs_length();
+}
+uint8_t *image_get_qualifier_desc_pointer(void) {
+	return image->get_qualifier_desc_pointer();
+}
+uint16_t image_get_qualifier_desc_length(void) {
+	return image->get_qualifier_desc_length();
+}
+// usb specific request handling
+void image_user_endpoint_init(uint8_t conf_nb) {
+	image->user_endpoint_init(conf_nb);
+}
+Bool image_user_read_request(uint8_t type, uint8_t request) {
+	return image->user_read_request(type, request);
+}
+void image_user_set_interface(U8 wIndex, U8 wValue) {
+	image->user_set_interface(wIndex, wValue);
 }

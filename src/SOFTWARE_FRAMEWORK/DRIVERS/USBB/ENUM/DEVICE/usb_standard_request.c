@@ -113,9 +113,6 @@ static  void    usb_set_interface    (void);
                   U16                                 data_to_transfer;
 static            U8                                  bmRequestType;
         volatile  U8                                  usb_configuration_nb;
-        volatile  U16	usb_interface_nb;
-        volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
-        volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 extern  volatile  Bool                                usb_connected;
 
 //extern  const     S_usb_device_descriptor             usb_user_device_descriptor;
@@ -710,22 +707,7 @@ void usb_set_interface(void)
       break;
    }
 
-   //* Check whether it is the audio streaming interface and Alternate Setting that is being set
-   usb_interface_nb = wIndex;
-   if (usb_interface_nb == STD_AS_INTERFACE_IN) {
-	   usb_alternate_setting = wValue;
-	   usb_alternate_setting_changed = TRUE;
-   } else if (usb_interface_nb == STD_AS_INTERFACE_OUT){
-	   usb_alternate_setting_out = wValue;
-	   usb_alternate_setting_out_changed = TRUE;
-   }
-
-   //* Check whether it is the audio streaming interface and Alternate Setting that is being set
-   usb_interface_nb = wIndex;
-   if (usb_interface_nb == DSC_INTERFACE_AS) {
-	   usb_alternate_setting = wValue;
-	   usb_alternate_setting_changed = TRUE;
-   }
+   usb_user_set_interface(wIndex, wValue);
 
    //* Find endpoints of interface and reset it
    while( 1 )

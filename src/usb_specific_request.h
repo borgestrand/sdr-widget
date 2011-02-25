@@ -85,33 +85,8 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-extern const S_usb_device_descriptor usb_dev_desc;
-extern const S_usb_device_qualifier_descriptor usb_qualifier_desc;
-extern const S_usb_user_configuration_descriptor usb_conf_desc_fs;
-extern const S_usb_user_configuration_descriptor usb_conf_desc_hs;
-extern const S_usb_manufacturer_string_descriptor usb_user_manufacturer_string_descriptor;
-extern const S_usb_product_string_descriptor usb_user_product_string_descriptor;
-extern const S_usb_serial_number usb_user_serial_number;
-extern const S_usb_language_id usb_user_language_id;
-extern const S_usb_clock_source_1 usb_user_clock_source_1;
-extern const S_usb_clock_source_2 usb_user_clock_source_2;
-extern const S_usb_clock_selector usb_user_clock_selector;
-
-extern const S_usb_wl usb_user_wl;
-extern const S_usb_ait usb_user_ait;
-extern const S_usb_aot usb_user_aot;
-extern const S_usb_ain usb_user_ain;
-extern const S_usb_aia usb_user_aia;
-
-#define USB_HID_REPORT_DESC 47
-extern const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC];
-
-extern U8 usb_feature_report[3];
-extern U8 usb_report[3];
-
-extern U8 clock_selected;
-extern Bool clock_changed;
-extern Bool freq_changed;
+// extern U8 usb_feature_report[3];
+// extern U8 usb_report[3];
 
 typedef union {
 	U32 frequency;
@@ -119,6 +94,7 @@ typedef union {
 } S_freq;
 
 extern S_freq current_freq;
+extern Bool freq_changed;
 
 //! @defgroup specific_request USB device specific requests
 //! @{
@@ -131,6 +107,8 @@ extern S_freq current_freq;
 //! configuration).
 //!
 extern void usb_user_endpoint_init(U8);
+
+extern void usb_user_set_interface(U8 wIndex, U8 wValue);
 
 //! This function is called by the standard USB read request function when
 //! the USB request is not supported. This function returns TRUE when the

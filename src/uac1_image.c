@@ -1,6 +1,6 @@
 /* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /*
-** flashyblinky_image.c
+** uac1_star_image.c
 **
 **  Created on: 2011-02-25
 **      Author: Roger E Critchlow Jr, AD5DZ
@@ -60,7 +60,26 @@ static void x_image_user_set_interface(U8 wIndex, U8 wValue) {
 }
 
 // image vector table
-const image_t flashyblinky_image = {
+const image_t uac1_audio_image = {
+	x_image_boot,
+	x_image_init,
+	x_image_task_init,
+	x_image_get_dev_desc_pointer,
+	x_image_get_dev_desc_length,
+	x_image_get_conf_desc_pointer,
+	x_image_get_conf_desc_length,
+	x_image_get_conf_desc_fs_pointer,
+	x_image_get_conf_desc_fs_length,
+	x_image_get_conf_desc_hs_pointer,
+	x_image_get_conf_desc_hs_length,
+	x_image_get_qualifier_desc_pointer,
+	x_image_get_qualifier_desc_length,
+	x_image_user_endpoint_init,
+	x_image_user_read_request,
+	x_image_user_set_interface
+};
+
+const image_t uac1_dg8saq_image = {
 	x_image_boot,
 	x_image_init,
 	x_image_task_init,

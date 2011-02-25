@@ -196,6 +196,7 @@
  */
 
 #include "features.h"
+#include "image.h"
 #include "queue.h"
 #include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
