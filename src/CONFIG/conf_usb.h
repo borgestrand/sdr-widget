@@ -149,18 +149,18 @@
 #define HPSDR_EP_IQ_OUT			2
 
 // temporary resolution
-#define EP_AUDIO_IN		UAC2_EP_AUDIO_IN
-#define EP_AUDIO_OUT	UAC2_EP_AUDIO_OUT
-#define EP_AUDIO_OUT_FB	UAC2_EP_AUDIO_OUT_FB
-#define EP_HID_TX		UAC2_EP_HID_TX
-#define EP_HID_RX		UAC2_EP_HID_RX
+// #define EP_AUDIO_IN		UAC2_EP_AUDIO_IN
+// #define EP_AUDIO_OUT	UAC2_EP_AUDIO_OUT
+// #define EP_AUDIO_OUT_FB	UAC2_EP_AUDIO_OUT_FB
+// #define EP_HID_TX		UAC2_EP_HID_TX
+// #define EP_HID_RX		UAC2_EP_HID_RX
 
-    //! @defgroup device_cst_actions USB device custom actions
-    //!
-    //! @{
-      // Write here the action to associate with each USB event.
-      // Be careful not to waste time in order not to disturb the functions.
-#define Usb_sof_action()                usb_sof_action()
+//! @defgroup device_cst_actions USB device custom actions
+//!
+//! @{
+// Write here the action to associate with each USB event.
+// Be careful not to waste time in order not to disturb the functions.
+#define Usb_sof_action()
 #define Usb_wake_up_action()
 #define Usb_resume_action()
 #define Usb_suspend_action()
@@ -168,20 +168,17 @@
 #define Usb_vbus_on_action()
 #define Usb_vbus_off_action()
 #define Usb_set_configuration_action()
-    //! @}
-
-extern void usb_sof_action(void);
-extern void usb_suspend_action(void);
+//! @}
 
 #endif  // USB_DEVICE_FEATURE == ENABLED
 
-  //! @}
+//! @}
 
 
-  //! USB interrupt priority level
+//! USB interrupt priority level
 #define USB_INT_LEVEL                   AVR32_INTC_INT0
 
-  //! Debug trace macro
+//! Debug trace macro
 #define LOG_STR(str)                    //print_dbg(str)
 
 //! @defgroup usb_stream_control USB stream control parameters

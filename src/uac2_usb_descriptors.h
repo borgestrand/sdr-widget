@@ -92,7 +92,7 @@
 
 
 // USB Endpoint 1 descriptor
-#define ENDPOINT_NB_1       ( EP_AUDIO_IN | MSK_EP_DIR )
+#define ENDPOINT_NB_1       ( UAC2_EP_AUDIO_IN | MSK_EP_DIR )
 #define EP_ATTRIBUTES_1		0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
 #define EP_IN_LENGTH_1_FS	294				// 3 bytes * 49 samples * stereo
 #define EP_IN_LENGTH_1_HS	294
@@ -103,7 +103,7 @@
 
 
 // USB Endpoint 2 descriptor
-#define ENDPOINT_NB_2       ( EP_AUDIO_OUT )
+#define ENDPOINT_NB_2       ( UAC2_EP_AUDIO_OUT )
 #define EP_ATTRIBUTES_2     0b00000101			// ISOCHRONOUS ASYNC
 #define EP_OUT_LENGTH_2_HS   294				// 3 bytes * 49 samples * stereo
 #define EP_OUT_LENGTH_2_FS	294
@@ -114,7 +114,7 @@
 
 
 // USB Endpoint 3 descriptor
-#define ENDPOINT_NB_3       ( EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x83
+#define ENDPOINT_NB_3       ( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x83
 #define EP_ATTRIBUTES_3     0b00010001      // ISOCHRONOUS FEEDBACK
 #define EP_IN_LENGTH_3_FS   64				//
 #define EP_IN_LENGTH_3_HS	64				//

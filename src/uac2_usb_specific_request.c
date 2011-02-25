@@ -85,6 +85,7 @@
 #include "Mobo_config.h"
 #include "usb_audio.h"
 #include "device_audio_task.h"
+#include "uac2_device_audio_task.h"
 
 
 //_____ M A C R O S ________________________________________________________
@@ -139,23 +140,15 @@ int Speedx[38] = {\
 void uac2_user_endpoint_init(U8 conf_nb)
 {
 	if( Is_usb_full_speed_mode() ) {
-		(void)Usb_configure_endpoint(EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, DOUBLE_BANK);
-		(void)Usb_configure_endpoint(EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, DOUBLE_BANK);
-		(void)Usb_configure_endpoint(EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_FS, DOUBLE_BANK);
+		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, DOUBLE_BANK);
+		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, DOUBLE_BANK);
+		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_FS, DOUBLE_BANK);
 	} else {
-		(void)Usb_configure_endpoint(EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, DOUBLE_BANK);
-		(void)Usb_configure_endpoint(EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, DOUBLE_BANK);
-		(void)Usb_configure_endpoint(EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_HS, DOUBLE_BANK);
+		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, DOUBLE_BANK);
+		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, DOUBLE_BANK);
+		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_HS, DOUBLE_BANK);
 	}
 }
-
-//
-// not sure who cares about this, if anyone, it appears to be orphaned.
-// maybe the responsible party will turn up in time.
-//
-volatile  U16	usb_interface_nb;
-volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
-volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 
 //! @brief This function handles usb_set_interface side effects.
 //! This function is called from usb_set_interface in usb_standard_request

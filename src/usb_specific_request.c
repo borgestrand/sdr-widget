@@ -83,8 +83,8 @@
 #include "usart.h"
 #include "pm.h"
 #include "Mobo_config.h"
-#include "usb_audio.h"
-#include "device_audio_task.h"
+// #include "usb_audio.h"
+// #include "device_audio_task.h"
 
 
 //_____ M A C R O S ________________________________________________________
@@ -103,6 +103,10 @@
 // S_line_coding   line_coding;
 // U8 clock_selected = 1;
 // Bool clock_changed = FALSE;
+
+volatile  U16	usb_interface_nb;
+volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
+volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 
 S_freq current_freq;
 Bool freq_changed = FALSE;

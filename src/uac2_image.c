@@ -49,7 +49,6 @@
 #include "taskMoboCtrl.h"
 #include "taskPowerDisplay.h"
 #include "taskPushButtonMenu.h"
-#include "device_audio_task.h"
 #include "wdt.h"
 
 #if LCD_DISPLAY				// Multi-line LCD display
@@ -63,6 +62,7 @@
 #include "uac2_usb_descriptors.h"
 #include "usb_specific_request.h"
 #include "uac2_usb_specific_request.h"
+#include "uac2_device_audio_task.h"
 
 // image launch
 static void x_image_boot(void) {
@@ -86,7 +86,7 @@ static void x_image_task_init(void) {
 	vStartTaskMoboCtrl();
 	vStartTaskEXERCISE( tskIDLE_PRIORITY );
 	AK5394A_task_init();
-	device_audio_task_init();
+	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
 #endif
 }
 

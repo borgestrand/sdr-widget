@@ -89,19 +89,21 @@
 
 static U8 usb_state = 'r';
 static U8 usb_report[3];
-
+static U8 EP_HID_RX;
+static U8 EP_HID_TX;
 //!
 //! @brief This function initializes the hardware/software resources
 //! required for device HID task.
 //!
-void device_mouse_hid_task_init(void)
+void device_mouse_hid_task_init(U8 ep_hid_rx, U8 ep_hid_tx)
 {
 
 #if BOARD == EVK1101
   // Initialize accelerometer driver
   acc_init();
 #endif
-
+  EP_HID_RX = ep_hid_rx;
+  EP_HID_TX = ep_hid_tx;
 #ifndef FREERTOS_USED
   #if USB_HOST_FEATURE == ENABLED
   // If both device and host features are enabled, check if device mode is engaged

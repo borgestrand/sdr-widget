@@ -222,11 +222,6 @@
 extern void usb_process_request(void);
 
 extern volatile U8 usb_configuration_nb;
-extern volatile U16 usb_interface_nb;
-extern volatile U8 usb_alternate_setting;
-extern volatile Bool usb_alternate_setting_changed;
-extern volatile U8 usb_alternate_setting_out;
-extern volatile Bool usb_alternate_setting_out_changed;
 
 //! @}
 

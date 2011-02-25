@@ -86,7 +86,10 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 // extern U8 usb_feature_report[3];
-// extern U8 usb_report[3];
+
+extern volatile  U16	usb_interface_nb;
+extern volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
+extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 
 typedef union {
 	U32 frequency;
