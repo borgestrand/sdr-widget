@@ -102,8 +102,6 @@
 // U8 g_u8_report_rate=0;
 
 // S_line_coding   line_coding;
-U8 clock_selected = 1;
-Bool clock_changed = FALSE;
 
 // S_freq current_freq;
 // Bool freq_changed = FALSE;

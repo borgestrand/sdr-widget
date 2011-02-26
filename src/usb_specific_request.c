@@ -101,8 +101,8 @@ U8 usb_report[3];
 U8 g_u8_report_rate=0;
 
 // S_line_coding   line_coding;
-// U8 clock_selected = 1;
-// Bool clock_changed = FALSE;
+U8 clock_selected = 1;
+Bool clock_changed = FALSE;
 
 volatile  U16	usb_interface_nb;
 volatile  U8	usb_alternate_setting, usb_alternate_setting_out;

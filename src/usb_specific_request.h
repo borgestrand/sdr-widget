@@ -85,6 +85,9 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
+extern U8 clock_selected;
+extern Bool clock_changed;
+
 extern U8 usb_feature_report[3];
 extern U8 usb_report[3];
 

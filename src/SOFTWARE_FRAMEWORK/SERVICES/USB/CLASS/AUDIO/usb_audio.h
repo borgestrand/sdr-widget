@@ -94,7 +94,9 @@
 //#define  AUDIO_CLASS_REVISION                   0x0100  //!< Revision of class specification - 1.0
 #define  AUDIO_CLASS_REVISION_2                 0x0200  //!< Revision of class specification - 2.0
 
-/*  UAC 1
+/*  UAC 1 */
+// un-uncommented to make it work in merged source
+// but why was it commented out in the first place?
 #define BR_REQUEST_GET_CUR        0x81
 #define BR_REQUEST_GET_MIN        0x82
 #define BR_REQUEST_GET_MAX        0x83
@@ -103,7 +105,7 @@
 #define BR_REQUEST_SET_MIN        0x02
 #define BR_REQUEST_SET_MAX        0x03
 #define BR_REQUEST_SET_RES        0x04
-*/
+
 
 //! \name Constants used in Descriptor
 //! @{

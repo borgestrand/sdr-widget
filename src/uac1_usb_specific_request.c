@@ -106,8 +106,6 @@
 // U8 g_u8_report_rate=0;
 
 // S_line_coding   line_coding;
-U8 clock_selected = 1;
-Bool clock_changed = FALSE;
 
 // S_freq current_freq;
 // Bool freq_changed = FALSE;
@@ -601,7 +599,6 @@ void audio_set_cur(void)
 //!
 Bool uac1_user_read_request(U8 type, U8 request)
 {
-	int i;
 
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR) return uac1_user_get_interface_descriptor();

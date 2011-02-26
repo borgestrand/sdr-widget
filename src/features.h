@@ -90,25 +90,32 @@ extern features_t features_nvram, features;
 #define FEATURE_DAC_NONE				(features[feature_dac_index] == (uint8_t)feature_dac_none)
 #define FEATURE_DAC_CS4344				(features[feature_dac_index] == (uint8_t)feature_dac_cs4344)
 
-// set the defaults for this build
-//#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_audio
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_dg8saq
-#define FEATURE_IQ_IN_DEFAULT			feature_iq_in_normal
-#define FEATURE_IQ_OUT_DEFAULT			feature_iq_out_normal
-#define FEATURE_ADC_DEFAULT				feature_adc_ak5394a
-#define FEATURE_DAC_DEFAULT				feature_dac_cs4344
-
 //
-// this checksum may fail if you change two default features at once
-// so define it to be 0 on the command line
+// conditionally set the defaults for this build
 //
 #ifndef FEATURE_VERSION_DEFAULT
-#define FEATURE_VERSION_DEFAULT	( FEATURE_IMAGE_DEFAULT +  \
-								  FEATURE_IQ_IN_DEFAULT +   \
-								  FEATURE_IQ_OUT_DEFAULT +  \
-								  FEATURE_ADC_DEFAULT +		\
-								  FEATURE_DAC_DEFAULT )
+//#define FEATURE_VERSION_DEFAULT 1
+#define FEATURE_VERSION_DEFAULT 2
 #endif
+#ifndef FEATURE_IMAGE_DEFAULT
+//#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_audio
+//#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_dg8saq
+//#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
+#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_dg8saq
+#endif
+#ifndef FEATURE_IQ_IN_DEFAULT
+#define FEATURE_IQ_IN_DEFAULT			feature_iq_in_normal
+#endif
+#ifndef FEATURE_IQ_OUT_DEFAULT
+#define FEATURE_IQ_OUT_DEFAULT			feature_iq_out_normal
+#endif
+#ifndef FEATURE_ADC_DEFAULT
+#define FEATURE_ADC_DEFAULT				feature_adc_ak5394a
+#endif
+#ifndef FEATURE_DAC_DEFAULT
+#define FEATURE_DAC_DEFAULT				feature_dac_cs4344
+#endif
+
 
 #define FEATURES_DEFAULT FEATURE_VERSION_DEFAULT,	\
 		FEATURE_IMAGE_DEFAULT,						\

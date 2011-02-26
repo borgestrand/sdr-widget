@@ -36,6 +36,7 @@
 #endif
 #include "composite_widget.h"
 #include "taskAK5394A.h"
+#include "uac2_taskAK5394A.h"
 //#include "I2C.h"
 
 /*
@@ -85,7 +86,7 @@ static void x_image_task_init(void) {
 #endif
 	vStartTaskMoboCtrl();
 	vStartTaskEXERCISE( tskIDLE_PRIORITY );
-	AK5394A_task_init();
+	uac2_AK5394A_task_init();
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
 #endif
 }

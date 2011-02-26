@@ -37,9 +37,6 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-extern U8 clock_selected;
-extern Bool clock_changed;
-
 //! @defgroup specific_request USB device specific requests
 //! @{
 
