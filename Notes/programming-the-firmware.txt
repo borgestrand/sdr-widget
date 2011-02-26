@@ -1,0 +1,150 @@
+Programming the firmware  	  
+	
+=====================================================
+Instructions for programming in Windows
+=====================================================
+
+First, you need to download FLIP (Flexible In-system Programmer), the software tool from Atmel for flashing firmware:
+
+http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3886
+
+To use FLIP in 64bit versions of Windows, you may need a "signed" driver, which can be downloaded from:
+
+http://www.avrfreaks.net/index.php?module=Freaks%20Files&func=viewFile&id=3842&showinfo=1
+
+
+Next, download the version of widget firmware you would like to flash.  For new Windows users, I would suggest you start with:
+
+/demo_UAC1_v087_c_WinXP.tar.gz
+
+Various versions of the firmware can be downloaded from:
+
+http://code.google.com/p/sdr-widget/downloads/list
+
+To extract files from this compressed file, you use a utility called 7zip (download from http://www.7-zip.org/).
+
+Extract the file "demo_composite.elf" from the Release subdirectory.  Copy this file to the following directory:
+
+c:\Program Files\Atmel\Flip 3.3.4\bin
+
+In a terminal window, cd to this directory:
+
+> cd c:\Program Files\Atmel\Flip 3.4.2\bin
+
+Connect the widget, press the PRG button down, and keeping it down, press RESET button once.  This puts the widget in bootloader mode, readying for programming.
+
+> batchisp -device at32uc3a3256 -hardware usb -operation erase f memory flash blankcheck loadbuffer demo_compostie.elf program verify start reset 0
+
+(Note the above command is all in one line.)
+
+After flashing the firmware, press RESET button on widget once.  The new firmware should start running and Windows may now find a new hardware device, and will start asking for drivers.  Depending on the version of firmware, you will need to install one or two Windows drivers:  Download the relevant drivers from:
+
+http://code.google.com/p/sdr-widget/downloads/list
+
+For demo_UAC1_v087_c_WinX, you will need to tinstall:
+
+widget-CDC-Composite Windows Driver.zip
+
+and then:
+
+SDRWDGT-USB-Driver-1.2.1.0.zip
+
+Unzip the two drivers into a convenient location, eg the Desktop.  Lead Windows to the 1st driver.  When it is installed, Windows will starting asking for another driver.  Install the 2nd driver.
+
+=====================================================
+Instructions for programming in Linux Ubuntu 10.04 and later
+=====================================================
+
+(1)  First you have to install dfu-programmer:
+
+> sudo apt-get install dfu-programmer
+
+(2)  Next, install the ELF to HEX conversion utility:
+
+> sudo apt-get install binutils-avr
+
+(3)  You convert the .elf file from the AVR32 Studio Project called demo_UAC..... (downloaded from the Files area, the .elf file is found in the Release subdirectory)  to the .hex format:
+
+> objcopy -O ihex demo_composite.elf demo_composite.hex
+
+
+(4)  You create a script (from George) called, say, program-widget:
+
+#!/bin/bash
+echo $1 
+[[ ! -z $1 ]] && dfu-programmer at32uc3a3256 erase --debug 6 
+[[ ! -z $1 ]] && dfu-programmer at32uc3a3256 flash --suppress-bootloader-mem $1 --debug 6 
+[[ ! -z $1 ]] && dfu-programmer at32uc3a3256  reset --debug 4 
+exit 
+
+(5)  To program:
+
+> sudo ./program-widget demo_composite.hex
+
+
+
+=====================================================
+Instructions for programming in Windows, by Mike Collins
+=====================================================
+Hi all, 
+
+Thought I would start a new post now that the CPU is up and running. 
+Have the board running this morning with the DFU bootloader installed 
+and George's Blinky application code loaded (via USB) and running. 
+Can reset to either the DFU or Blinky depending on the state of the 
+PROGRAM switch installed on the board.   Looks rock solid and main 
+computer detects the DFU on USB each time it is reset in that mode. 
+Think we probably need a builders notes section to start documenting 
+known issues.  Here is a start: 
+
+Programming via DFU (i.e. USB): 
+
+1) the AVR32 Studio implementation doesn't seem to work.  Flip doesn't 
+work for the device either.  Must use the batchisp program (in the 
+Program Files\Atmel\Flip 3.3.4\bin directory).  The command line at 
+works great is: 
+
+batchisp -device at32uc3a3256 -hardware usb -operation erase f memory 
+flash blankcheck loadbuffer programname.elf program verify start reset 
+0 
+
+put the desired file (i.e. programname.elf) in the batchisp directory. 
+
+2)  You can just leave the trampoline in place for code development. 
+That allows the user to download using JTAG or using the DFU with the 
+same *.elf file.  With the batchisp DFU the trampoline code is ignored 
+since it overlaps the DFU protected space. 
+
+Reloading DFU using JTAGICE MKII: 
+
+1)  the AVR32 Studio implementation for programming bootloader doesn't 
+work.  It loads a incorrect FUSE setup that doesn't allow the DFU to 
+run.  To reload DFU: set the Fuse Bits(fff7ffff), set the User 
+Configuration  at 808001fc (4 bytes of 929e2a9e), then just program 
+the 8K of DFU code 
+
+Running JTAGICE MKII in AVR32 Studio: 
+
+1)  the command names are a bit strange to me:  Run is really: 
+Program and reset device.  Must use resume (or other) to actually 
+"run".  Run and Debug are more states than verbs. 
+
+2) Make sure you connect the JTAG green connector correctly to the 
+board.  The board has pin one on the bottom right side of the JTAG 
+connector.  The JTAGICE MKII cable drapes over the top of the 
+processor for proper orientation. 
+
+73,  Mike Collins   KF4BQ 
+
+
+=======================================================
+Signed Windows Driver for widget - by Fred
+=======================================================
+For Windows, you will need this signed driver (especially for Win 7 64 bit)
+for the flashed widget to enumerate:
+
+http://home.ict.nl/~fredkrom/pe0fko/ca/X/ 
+
+download the SDRWDGT-USB driver.
+
+=======================================================

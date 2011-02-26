@@ -30,7 +30,10 @@ C_SRCS += \
 ../src/taskMoboCtrl.c \
 ../src/taskPowerDisplay.c \
 ../src/taskPushButtonMenu.c \
+../src/uac1_device_audio_task.c \
 ../src/uac1_image.c \
+../src/uac1_usb_descriptors.c \
+../src/uac1_usb_specific_request.c \
 ../src/uac2_device_audio_task.c \
 ../src/uac2_image.c \
 ../src/uac2_usb_descriptors.c \
@@ -65,7 +68,10 @@ OBJS += \
 ./src/taskMoboCtrl.o \
 ./src/taskPowerDisplay.o \
 ./src/taskPushButtonMenu.o \
+./src/uac1_device_audio_task.o \
 ./src/uac1_image.o \
+./src/uac1_usb_descriptors.o \
+./src/uac1_usb_specific_request.o \
 ./src/uac2_device_audio_task.o \
 ./src/uac2_image.o \
 ./src/uac2_usb_descriptors.o \
@@ -100,8 +106,11 @@ C_DEPS += \
 ./src/taskMoboCtrl.d \
 ./src/taskPowerDisplay.d \
 ./src/taskPushButtonMenu.d \
-./src/uac2_device_audio_task.d \
+./src/uac1_device_audio_task.d \
 ./src/uac1_image.d \
+./src/uac1_usb_descriptors.d \
+./src/uac1_usb_specific_request.d \
+./src/uac2_device_audio_task.d \
 ./src/uac2_image.d \
 ./src/uac2_usb_descriptors.d \
 ./src/uac2_usb_specific_request.d \

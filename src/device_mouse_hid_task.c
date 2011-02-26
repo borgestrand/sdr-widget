@@ -1,3 +1,4 @@
+/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
@@ -88,39 +89,38 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 static U8 usb_state = 'r';
-static U8 usb_report[3];
-static U8 EP_HID_RX;
-static U8 EP_HID_TX;
+static U8 ep_hid_rx;
+static U8 ep_hid_tx;
 //!
 //! @brief This function initializes the hardware/software resources
 //! required for device HID task.
 //!
-void device_mouse_hid_task_init(U8 ep_hid_rx, U8 ep_hid_tx)
+void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
 {
 
 #if BOARD == EVK1101
-  // Initialize accelerometer driver
-  acc_init();
+	// Initialize accelerometer driver
+	acc_init();
 #endif
-  EP_HID_RX = ep_hid_rx;
-  EP_HID_TX = ep_hid_tx;
+	ep_hid_rx = ep_rx;
+	ep_hid_tx = ep_tx;
 #ifndef FREERTOS_USED
-  #if USB_HOST_FEATURE == ENABLED
-  // If both device and host features are enabled, check if device mode is engaged
-  // (accessing the USB registers of a non-engaged mode, even with load operations,
-  // may corrupt USB FIFO data).
-  if (Is_usb_device())
-  #endif  // USB_HOST_FEATURE == ENABLED
-    Usb_enable_sof_interrupt();
+#if USB_HOST_FEATURE == ENABLED
+	// If both device and host features are enabled, check if device mode is engaged
+	// (accessing the USB registers of a non-engaged mode, even with load operations,
+	// may corrupt USB FIFO data).
+	if (Is_usb_device())
+#endif  // USB_HOST_FEATURE == ENABLED
+		Usb_enable_sof_interrupt();
 #endif  // FREERTOS_USED
 
 #ifdef FREERTOS_USED
-  xTaskCreate(device_mouse_hid_task,
-              configTSK_USB_DHID_MOUSE_NAME,
-              configTSK_USB_DHID_MOUSE_STACK_SIZE,
-              NULL,
-              configTSK_USB_DHID_MOUSE_PRIORITY,
-              NULL);
+	xTaskCreate(device_mouse_hid_task,
+				configTSK_USB_DHID_MOUSE_NAME,
+				configTSK_USB_DHID_MOUSE_STACK_SIZE,
+				NULL,
+				configTSK_USB_DHID_MOUSE_PRIORITY,
+				NULL);
 #endif  // FREERTOS_USED
 }
 
@@ -135,8 +135,9 @@ void device_mouse_hid_task(void *pvParameters)
 void device_mouse_hid_task(void)
 #endif
 {
-	U8 data_length;
-
+  U8 data_length;
+  const U8 EP_HID_RX = ep_hid_rx;
+  const U8 EP_HID_TX = ep_hid_tx;
 #ifdef FREERTOS_USED
   portTickType xLastWakeTime;
 

@@ -880,6 +880,197 @@ S_usb_hid_descriptor;
 
 
 
+//! A U D I O Specific 
+//! Audio AC interface descriptor
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+  U8  bLength;               /* Size of this descriptor in bytes */
+  U8  bDescriptorType;       /* CS interface*/
+  U8  bDescritorSubtype;     /* HEADER Subtype */
+  U16 bcdADC;          		  /* Revision of class spec */
+  U16 wTotalLength;       	  /* Total size of class specific descriptor */
+  U8  bInCollection;         /* Number of streaming interface */
+  U8  baInterfaceNr0;		     /* Streaming interface number 0*/
+  U8  baInterfaceNr1;		// Streaming interface number 1
+} S_usb_ac_interface_descriptor_1;
+
+//! USB INPUT Terminal Descriptor
+typedef
+#if (defined  __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+	U8		bLenght;
+	U8 	bDescriptorType;
+	U8 	bDescriptorSubType;
+	U8		bTerminalID;
+	U16	wTerminalType;
+	U8		bAssocTerminal;
+	U8		bNrChannels;
+	U16	wChannelConfig;
+	U8		iChannelNames;
+	U8		iTerminal;
+} S_usb_in_ter_descriptor_1;
+
+
+//! USB Audio Feature Unit descriptor
+typedef
+#if (defined  __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+	U8		bLenght;
+	U8 	bDescriptorType;
+	U8 	bDescriptorSubType;
+	U8		bUnitID;
+	U8    bSourceID;
+	U8		bControSize;
+	U16	bmaControls_0;
+	U16	bmaControls_1;
+	U16	bmsCnotrols_2;
+	U8	iTerminal;
+} S_usb_feature_unit_descriptor_1;
+
+//! USB OUTPUT Terminal Descriptor
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+	U8		bLenght;
+	U8 	bDescriptorType;
+	U8 	bDescriptorSubType;
+	U8		bTerminalID;
+	U16	wTerminalType;
+	U8		bAssocTerminal;
+	U8		bSourceID;
+	U8		iTerminal;
+} S_usb_out_ter_descriptor_1;
+
+
+//! USB Standard AS interface Descriptor
+// common across 1 and 2
+// typedef
+// #if (defined __ICCAVR32__)
+// #pragma pack(1)
+// #endif
+// struct
+// #if (defined __GNUC__)
+// __attribute__((__packed__))
+// #endif
+// {
+// 	U8		bLenght;
+// 	U8 	bDescriptorType;
+// 	U8		bInterfaceNumber;
+// 	U8		bAlternateSetting;
+// 	U8		bNumEndpoints;
+// 	U8		bInterfaceClass;
+// 	U8		bInterfaceSubclass;
+// 	U8		bInterfaceProtocol;
+// 	U8		iInterface;
+// } S_usb_as_interface_descriptor_1;
+
+
+//! USB AS general interface descriptor
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+	U8		bLenght;
+	U8 	bDescriptorType;
+	U8 	bDescriptorSubType;
+	U8		bTerminalLink;
+	U8    bDelay;
+	U16	wFormatTag;
+} S_usb_as_g_interface_descriptor_1;
+
+
+//! Audio Format Type descriptor
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+	U8		bLenght;
+	U8 	bDescriptorType;
+	U8 	bDescriptorSubType;
+	U8		bFormatType;
+	U8		bNrChannels;
+	U8		bSubFrameSize;
+	U8		bBitResolution;
+	U8		bSampleFreqType;
+	U16	wLsbyteiSamFreq;
+	U8		bMsbyteiSamFreq;
+} S_usb_format_type_1;
+
+
+//! Endpoint AUDIO Specific descriptor
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+	U8		bLenght;
+	U8 	bDescriptorType;
+	U8 	bDescriptorSubType;
+	U8		bmAttributes;
+	U8    bLockDelayUnits;
+	U16	wLockDelay;
+}S_usb_endpoint_audio_specific_1;
+
+//! Usb Audio Endpoint Descriptor
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+   U8      bLength;               //!< Size of this descriptor in bytes
+   U8      bDescriptorType;       //!< ENDPOINT descriptor type
+   U8      bEndpointAddress;      //!< Address of the endpoint
+   U8      bmAttributes;          //!< Endpoint's attributes
+   U16     wMaxPacketSize;        //!< Maximum packet size for this EP
+   U8      bInterval;             //!< Interval for polling EP in ms
+	U8		  bRefresh;
+	U8		  bSynAddress;
+} S_usb_endpoint_audio_descriptor_1;
+
+
 //! A U D I O Class V2.0 Specific paragraph 4.7
 //! Audio AC interface descriptor pp 4.7.2
 typedef
@@ -893,12 +1084,12 @@ __attribute__((__packed__))
 {
   U8  bLength;               /* Size of this descriptor in bytes */
   U8  bDescriptorType;       /* CS_INTERFACE descriptor type */
-  U8 	bDescritorSubtype;     /* HEADER subtype */
+  U8  bDescritorSubtype;     /* HEADER subtype */
   U16 bcdADC;          		  /* Revision of class spec */
   U8  bCategory;				/* Primary use of this function */
   U16 wTotalLength;       	  /* Total size of class specific descriptor */
   U8  bmControls;		     /* Latency Control Bitmap */
-} S_usb_ac_interface_descriptor;
+} S_usb_ac_interface_descriptor_2;
 
 
 //! Clock Source descriptor  pp 4.7.2.1
@@ -986,7 +1177,7 @@ __attribute__((__packed__))
 	U8		iChannelNames;	/* String descriptor of first logical channel */
 	U16  bmControls;		/* Paired Bitmap of controls */
 	U8		iTerminal;		/* String descriptor of this Input Terminal */
-} S_usb_in_ter_descriptor;
+} S_usb_in_ter_descriptor_2;
 
 
 //! USB OUTPUT Terminal Descriptor pp 4.7.2.5
@@ -1009,7 +1200,7 @@ __attribute__((__packed__))
 	U8      bCSourceID;		/* ID od the Clock Entity to which this terminal is connected */
 	U16  bmControls;		/* Paired Bitmap of controls */
 	U8		iTerminal;		/* String descriptor of this Output Terminal */
-} S_usb_out_ter_descriptor;
+} S_usb_out_ter_descriptor_2;
 
 //! USB Mixer Unit descriptor pp 4.7.2.6
 //! USB Selector Unit descriptor pp 4.7.2.7
@@ -1034,7 +1225,7 @@ __attribute__((__packed__))
 	U32	    bmaControls_1;  // Channel 1
 	U32     bmaControls_2;  // Channel 2
 	U8	iFeature;  /* String Descriptor of this Feature Unit */
-} S_usb_feature_unit_descriptor;
+} S_usb_feature_unit_descriptor_2;
 
 
 //! USB Sampling rate Converter Unit descriptor pp 4.7.2.9
@@ -1102,7 +1293,7 @@ __attribute__((__packed__))
 	U8  bNrChannels;			/* Number of Physical channels in this interface cluster */
 	U32 bmChannelConfig;		/* Bitmap of spatial locations of the physical channels */
 	U8  iChannelNames;			/* String descriptor of the first physical channel */
-} S_usb_as_g_interface_descriptor;
+} S_usb_as_g_interface_descriptor_2;
 
 
 //! Class-Specific Audio Format Type descriptor pp 4.9.3 -> 2.3.1.6 Type I Format
@@ -1121,7 +1312,7 @@ __attribute__((__packed__))
 	U8		bFormatType;		/* Format Type this streaming interface is using */
 	U8		bSubslotSize;		/* Number of bytes in one audio subslot */
 	U8		bBitResolution;		/* Number of bits used from the available bits in the subslot */
-} S_usb_format_type;
+} S_usb_format_type_2;
 
 
 //! USB Class-Specific AS Encoder Descriptor pp 4.9.4
@@ -1149,7 +1340,7 @@ __attribute__((__packed__))
    U8      bmAttributes;          /* Endpoint's attributes */
    U16     wMaxPacketSize;        /* Maximum packet size for this EP */
    U8      bInterval;             /* Interval for polling EP in ms */
-} S_usb_endpoint_audio_descriptor;
+} S_usb_endpoint_audio_descriptor_2;
 
 
 //! Usb Class_Specific AS Isochronous Audio Data Endpoint Descriptors pp 4.10.1.2
@@ -1169,7 +1360,7 @@ __attribute__((__packed__))
 	U8      bmControls;			/* Paired bitmap of controls */
 	U8    	bLockDelayUnits;		/* units for wLockDelay */
 	U16		wLockDelay;				/* time to lock endpoint */
-} S_usb_endpoint_audio_specific;
+} S_usb_endpoint_audio_specific_2;
 
 //! Usb Standard AS Isochronous Feedback Endpoint Descriptors pp 4.10.2.1
 typedef

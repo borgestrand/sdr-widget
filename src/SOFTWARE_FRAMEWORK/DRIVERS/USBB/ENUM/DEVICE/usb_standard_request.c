@@ -1,5 +1,5 @@
 /* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
-/* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
+/* This source file is part of the ATMEL AVR-UC3-SoftwareFramework-1.7.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
 /*! \file ******************************************************************
@@ -103,7 +103,7 @@ static  void    usb_clear_feature    (void);
 static  void    usb_set_feature      (void);
 static  void    usb_get_status       (void);
 static  void    usb_get_configuration(void);
-static  void    usb_get_interface    (void);
+static  Bool    usb_get_interface    (void);
 static  void    usb_set_interface    (void);
 
 
@@ -117,7 +117,8 @@ extern  volatile  Bool                                usb_connected;
 
 //extern  const     S_usb_device_descriptor             usb_user_device_descriptor;
 //extern  const     S_usb_user_configuration_descriptor usb_user_configuration_descriptor;
-
+#define NB_INTERFACE 8
+static            U8                                  usb_interface_status[NB_INTERFACE];  // All interface with default setting
 
 //! This function reads the SETUP request sent to the default control endpoint
 //! and calls the appropriate function. When exiting of the usb_read_request
@@ -146,7 +147,7 @@ void usb_process_request(void)
   switch (bRequest)
   {
   case GET_DESCRIPTOR:
-    if (bmRequestType == IN_DEVICE || bmRequestType == IN_INTERFACE) usb_get_descriptor();
+    if (bmRequestType == IN_DEVICE) usb_get_descriptor();
     else goto unsupported_request;
     break;
 
@@ -181,7 +182,14 @@ void usb_process_request(void)
     break;
 
   case GET_INTERFACE:
-    if (bmRequestType == IN_INTERFACE) usb_get_interface();
+    if (bmRequestType == IN_INTERFACE)
+    {
+		if(!usb_get_interface())
+		{
+			Usb_enable_stall_handshake(EP_CONTROL);
+			Usb_ack_setup_received_free();
+		}
+    }
     else goto unsupported_request;
     break;
 
@@ -249,7 +257,6 @@ void usb_set_configuration(void)
   }
 }
 
-
 //! This function manages the GET DESCRIPTOR request. The device descriptor,
 //! the configuration descriptor and the device qualifier are supported. All
 //! other descriptors must be supported by the usb_user_get_descriptor
@@ -273,61 +280,58 @@ void usb_get_descriptor(void)
   string_type     = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read LSB of wValue    */
   descriptor_type = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read MSB of wValue    */
 
-  if (bmRequestType == IN_DEVICE){
-	  switch (descriptor_type)
-	  {
-	  case DEVICE_DESCRIPTOR:
-		data_to_transfer = Usb_get_dev_desc_length();   //!< sizeof(usb_dev_desc);
-		pbuffer          = Usb_get_dev_desc_pointer();
-		break;
+  switch (descriptor_type)
+  {
+  case DEVICE_DESCRIPTOR:
+	  data_to_transfer = Usb_get_dev_desc_length();   //!< sizeof(usb_dev_desc);
+	  pbuffer          = Usb_get_dev_desc_pointer();
+	  break;
 
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
   case CONFIGURATION_DESCRIPTOR:
-    data_to_transfer = Usb_get_conf_desc_length();  //!< sizeof(usb_conf_desc);
-    pbuffer          = Usb_get_conf_desc_pointer();
-    break;
+	  data_to_transfer = Usb_get_conf_desc_length();  //!< sizeof(usb_conf_desc);
+	  pbuffer          = Usb_get_conf_desc_pointer();
+	  break;
 
 #else
-	  case CONFIGURATION_DESCRIPTOR:
-		if( Is_usb_full_speed_mode() )
-		{
-		   data_to_transfer = Usb_get_conf_desc_fs_length();  //!< sizeof(usb_conf_desc_fs);
-		   pbuffer          = Usb_get_conf_desc_fs_pointer();
-		}else{
-		   data_to_transfer = Usb_get_conf_desc_hs_length();  //!< sizeof(usb_conf_desc_hs);
-		   pbuffer          = Usb_get_conf_desc_hs_pointer();
-		}
-		break;
+  case CONFIGURATION_DESCRIPTOR:
+	  if( Is_usb_full_speed_mode() )
+		  {
+			  data_to_transfer = Usb_get_conf_desc_fs_length();  //!< sizeof(usb_conf_desc_fs);
+			  pbuffer          = Usb_get_conf_desc_fs_pointer();
+		  }else{
+		  data_to_transfer = Usb_get_conf_desc_hs_length();  //!< sizeof(usb_conf_desc_hs);
+		  pbuffer          = Usb_get_conf_desc_hs_pointer();
+	  }
+	  break;
 
-	  case OTHER_SPEED_CONFIGURATION_DESCRIPTOR:
-		if( !Is_usb_full_speed_mode() )
-		{
-		   data_to_transfer = Usb_get_conf_desc_fs_length();  //!< sizeof(usb_conf_desc_fs);
-		   pbuffer          = Usb_get_conf_desc_fs_pointer();
-		}else{
-		   data_to_transfer = Usb_get_conf_desc_hs_length();  //!< sizeof(usb_conf_desc_hs);
-		   pbuffer          = Usb_get_conf_desc_hs_pointer();
-		}
-		break;
+  case OTHER_SPEED_CONFIGURATION_DESCRIPTOR:
+	  if( !Is_usb_full_speed_mode() )
+		  {
+			  data_to_transfer = Usb_get_conf_desc_fs_length();  //!< sizeof(usb_conf_desc_fs);
+			  pbuffer          = Usb_get_conf_desc_fs_pointer();
+		  }else{
+		  data_to_transfer = Usb_get_conf_desc_hs_length();  //!< sizeof(usb_conf_desc_hs);
+		  pbuffer          = Usb_get_conf_desc_hs_pointer();
+	  }
+	  break;
 
-	  case DEVICE_QUALIFIER_DESCRIPTOR:
-		data_to_transfer = Usb_get_qualifier_desc_length();  //!< sizeof(usb_qualifier_desc);
-		pbuffer          = Usb_get_qualifier_desc_pointer();
-		break;
+  case DEVICE_QUALIFIER_DESCRIPTOR:
+	  data_to_transfer = Usb_get_qualifier_desc_length();  //!< sizeof(usb_qualifier_desc);
+	  pbuffer          = Usb_get_qualifier_desc_pointer();
+	  break;
     
 #endif
 
-	  default:
-		if (!usb_user_get_descriptor(descriptor_type, string_type))
-		{
-		  Usb_enable_stall_handshake(EP_CONTROL);
-		  Usb_ack_setup_received_free();
-		  return;
-		}
-		break;
-	  }
-  } // bmRequestType == IN_DEVICE
-
+  default:
+	  if (!usb_user_get_descriptor(descriptor_type, string_type))
+		  {
+			  Usb_enable_stall_handshake(EP_CONTROL);
+			  Usb_ack_setup_received_free();
+			  return;
+		  }
+	  break;
+  }
 
 
   temp.u32 = Usb_read_endpoint_data(EP_CONTROL, 32);      //!< read wIndex and wLength with a 32-bit access
@@ -393,7 +397,6 @@ void usb_get_descriptor(void)
   while (!Is_usb_control_out_received());
   Usb_ack_control_out_received_free();
 }
-
 
 //! This function manages the GET CONFIGURATION request. The current
 //! configuration number is returned.
@@ -536,7 +539,7 @@ void usb_set_feature(void)
         Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
         Usb_disable_endpoint(EP_CONTROL);
         Usb_unallocate_memory(EP_CONTROL);
-        (void)Usb_configure_endpoint(EP_CONTROL, TYPE_BULK, DIRECTION_IN, 64, SINGLE_BANK);
+        (void)Usb_configure_endpoint(EP_CONTROL, TYPE_BULK, DIRECTION_IN, 64, SINGLE_BANK, 0);
         Usb_reset_endpoint(EP_CONTROL);
         Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTPCKT_MASK);
         usb_write_ep_txpacket(EP_CONTROL, &test_packet, sizeof(test_packet), NULL);
@@ -615,14 +618,29 @@ void usb_clear_feature(void)
 
 //! This function manages the GET INTERFACE request.
 //!
-void usb_get_interface(void)
+Bool usb_get_interface(void)
 {
-  Usb_ack_setup_received_free();
-  Usb_ack_control_in_ready_send();  //!< send a ZLP for STATUS phase
+   U16   wInterface;
+   U16   wValue;
+ 
+   // Read wValue
+   wValue = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
+   // wValue = Alternate Setting
+   // wIndex = Interface
+   wInterface=usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
+   if(0!=wValue)
+      return FALSE;
+   Usb_ack_setup_received_free();
 
-  while (!Is_usb_control_out_received());
-  Usb_ack_control_out_received_free();
+   Usb_reset_endpoint_fifo_access(EP_CONTROL);
+   Usb_write_endpoint_data(EP_CONTROL, 8, usb_interface_status[wInterface] );
+   Usb_ack_control_in_ready_send();
+
+   while( !Is_usb_control_out_received() );
+   Usb_ack_control_out_received_free();
+   return TRUE;
 }
+
 
 
 //! This function manages the SET INTERFACE request.

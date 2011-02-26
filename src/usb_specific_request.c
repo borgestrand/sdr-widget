@@ -95,10 +95,10 @@
 
 //_____ P R I V A T E   D E C L A R A T I O N S ____________________________
 
-// U8 usb_feature_report[3];
-// U8 usb_report[3];
+U8 usb_feature_report[3];
+U8 usb_report[3];
 
-// U8 g_u8_report_rate=0;
+U8 g_u8_report_rate=0;
 
 // S_line_coding   line_coding;
 // U8 clock_selected = 1;
@@ -320,64 +320,6 @@ Bool usb_user_DG8SAQ(U8 type, U8 command){
 		}
 
 		return TRUE;
-}
-
-//! This function manages the HID Get_Descriptor request.
-//!
-static void hid_get_descriptor(U8 size_of_report, const U8* p_usb_hid_report)
-{
-  Bool  zlp;
-  U16   wIndex;
-  U16   wLength;
-
-  zlp = FALSE;                                              /* no zero length packet */
-
-  data_to_transfer = size_of_report;
-  pbuffer          = p_usb_hid_report;
-
-  wIndex = Usb_read_endpoint_data(EP_CONTROL, 16);
-  wIndex = usb_format_usb_to_mcu_data(16, wIndex);
-  wLength = Usb_read_endpoint_data(EP_CONTROL, 16);
-  wLength = usb_format_usb_to_mcu_data(16, wLength);
-  Usb_ack_setup_received_free();                          //!< clear the setup received flag
-
-  if (wLength > data_to_transfer)
-  {
-    zlp = !(data_to_transfer % EP_CONTROL_LENGTH);  //!< zero length packet condition
-  }
-  else
-  {
-    data_to_transfer = wLength; //!< send only requested number of data bytes
-  }
-
-  Usb_ack_nak_out(EP_CONTROL);
-
-  while (data_to_transfer && (!Is_usb_nak_out(EP_CONTROL)))
-  {
-    while( !Is_usb_control_in_ready() && !Is_usb_nak_out(EP_CONTROL) );
-
-    if( Is_usb_nak_out(EP_CONTROL) )
-       break;    // don't clear the flag now, it will be cleared after
-
-    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-    data_to_transfer = usb_write_ep_txpacket(EP_CONTROL, pbuffer,
-                                             data_to_transfer, &pbuffer);
-    if( Is_usb_nak_out(EP_CONTROL) )
-       break;
-    else
-       Usb_ack_control_in_ready_send();  //!< Send data until necessary
-  }
-
-  if ( zlp && (!Is_usb_nak_out(EP_CONTROL)) )
-  {
-    while (!Is_usb_control_in_ready());
-    Usb_ack_control_in_ready_send();
-  }
-
-  while (!(Is_usb_nak_out(EP_CONTROL)));
-  Usb_ack_nak_out(EP_CONTROL);
-  while (!Is_usb_control_out_received());
-  Usb_ack_control_out_received_free();
 }
 
 #endif  // USB_DEVICE_FEATURE == ENABLED
