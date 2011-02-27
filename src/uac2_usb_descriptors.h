@@ -262,37 +262,37 @@ struct
 __attribute__((__packed__))
 #endif
 {
-S_usb_configuration_descriptor 						cfg;
-	S_usb_interface_descriptor	 					ifc0;
+	S_usb_configuration_descriptor			cfg;
+	S_usb_interface_descriptor	 			ifc0;
 
-//! Audio descriptors Class 2
+	//! Audio descriptors Class 2
 
-			S_usb_interface_association_descriptor 		iad1;
-			S_usb_interface_descriptor					ifc1;
-			S_usb_ac_interface_descriptor_2			audioac;
-			S_usb_clock_source_descriptor			audio_cs1;
-			S_usb_clock_source_descriptor			audio_cs2;
-			S_usb_clock_selector_descriptor			audio_csel;
-//			S_usb_clock_multiplier_descriptor		audio_cmul;
-			S_usb_in_ter_descriptor_2 				mic_in_ter;
-			S_usb_feature_unit_descriptor_2			mic_fea_unit;
-			S_usb_out_ter_descriptor_2				mic_out_ter;
-			S_usb_in_ter_descriptor_2				spk_in_ter;
-			S_usb_feature_unit_descriptor_2			spk_fea_unit;
-			S_usb_out_ter_descriptor_2				spk_out_ter;
-			S_usb_as_interface_descriptor	 		mic_as_alt0;
-			S_usb_as_interface_descriptor	 		mic_as_alt1;
-			S_usb_as_g_interface_descriptor_2		mic_g_as;
-			S_usb_format_type_2						mic_format_type;
-			S_usb_endpoint_audio_descriptor_2 		ep1;
-			S_usb_endpoint_audio_specific_2			ep1_s;
-			S_usb_as_interface_descriptor	 		spk_as_alt0;
-			S_usb_as_interface_descriptor	 		spk_as_alt1;
-			S_usb_as_g_interface_descriptor_2		spk_g_as;
-			S_usb_format_type_2						spk_format_type;
-			S_usb_endpoint_audio_descriptor_2 		ep2;
-			S_usb_endpoint_audio_specific_2			ep2_s;
-			S_usb_endpoint_audio_descriptor_2 		ep3;
+	S_usb_interface_association_descriptor	iad1;
+	S_usb_interface_descriptor				ifc1;
+	S_usb_ac_interface_descriptor_2			audioac;
+	S_usb_clock_source_descriptor			audio_cs1;
+	S_usb_clock_source_descriptor			audio_cs2;
+	S_usb_clock_selector_descriptor			audio_csel;
+	//			S_usb_clock_multiplier_descriptor		audio_cmul;
+	S_usb_in_ter_descriptor_2 				mic_in_ter;
+	S_usb_feature_unit_descriptor_2			mic_fea_unit;
+	S_usb_out_ter_descriptor_2				mic_out_ter;
+	S_usb_in_ter_descriptor_2				spk_in_ter;
+	S_usb_feature_unit_descriptor_2			spk_fea_unit;
+	S_usb_out_ter_descriptor_2				spk_out_ter;
+	S_usb_as_interface_descriptor	 		mic_as_alt0;
+	S_usb_as_interface_descriptor	 		mic_as_alt1;
+	S_usb_as_g_interface_descriptor_2		mic_g_as;
+	S_usb_format_type_2						mic_format_type;
+	S_usb_endpoint_audio_descriptor_2 		ep1;
+	S_usb_endpoint_audio_specific_2			ep1_s;
+	S_usb_as_interface_descriptor	 		spk_as_alt0;
+	S_usb_as_interface_descriptor	 		spk_as_alt1;
+	S_usb_as_g_interface_descriptor_2		spk_g_as;
+	S_usb_format_type_2						spk_format_type;
+	S_usb_endpoint_audio_descriptor_2 		ep2;
+	S_usb_endpoint_audio_specific_2			ep2_s;
+	S_usb_endpoint_audio_descriptor_2 		ep3;
 }
 #if (defined __ICCAVR32__)
 #pragma pack()

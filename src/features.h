@@ -125,6 +125,7 @@ extern features_t features_nvram, features;
 		FEATURE_DAC_DEFAULT
 
 extern void features_init();
-extern void features_display();
+extern void features_display(char *title, features_t fp, int delay);
+extern void features_display_all();
 
 #endif /* FEATURES_H_ */

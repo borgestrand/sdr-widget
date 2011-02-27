@@ -626,7 +626,7 @@ static void vtaskMoboCtrl( void * pcParameters )
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
 
-	features_display();
+	features_display_all();
 	#endif
 
 	// Create I2C comms semaphore

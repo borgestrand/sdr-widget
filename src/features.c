@@ -75,22 +75,22 @@ static void display_clear() {
 	int i;
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_clear();
-	xSemaphoreGive( mutexQueLCD );
 	display_row = 0;
 	for (i = 0; i < 4; i += 1)
 		memset(&display_contents[i][0], ' ', 20);
+	xSemaphoreGive( mutexQueLCD );
 }
 
 static void display_string_and_scroll(char *string) {
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-#if 0
+#if 1
 	if (display_row == 4) {
 		// scroll up
-		int i;
-		memcpy(&display_contents[0][0], &display_contents[1][0], 3*21);
-		for (i = 0; i < 3; i += 1) {
-			lcd_q_goto(i,0);
-			lcd_q_print(&display_contents[i][0]);
+		int row;
+		memmove(&display_contents[0][0], &display_contents[1][0], 3*21);
+		for (row = 0; row < 3; row += 1) {
+			lcd_q_goto(row,0);
+			lcd_q_print(&display_contents[row][0]);
 		}
 		display_row = 3;
 	}
@@ -100,8 +100,8 @@ static void display_string_and_scroll(char *string) {
 	sprintf(&display_contents[display_row][0], "%-20.20s", string);
 	lcd_q_goto(display_row, 0);
 	lcd_q_print(&display_contents[display_row][0]);
-	xSemaphoreGive( mutexQueLCD );
 	display_row += 1;
+	xSemaphoreGive( mutexQueLCD );
 }
 
 static void display_string_scroll_and_delay(char *string, uint16_t delay) {
@@ -121,33 +121,26 @@ void features_init() {
   }
 }
 
-void features_display() {
+void features_display(char *title, features_t fp, int delay) {
 	int i;
 	char buff[32];
-	int delay = 10000;
-	display_clear();
-	display_string_scroll_and_delay("features ram:", delay);
-	sprintf(buff, "%s = %02x", feature_index_names[feature_version_index], features[feature_version_index]);
+	display_string_scroll_and_delay(title, delay);
+	sprintf(buff, "%s = %02x", feature_index_names[feature_version_index], fp[feature_version_index]);
 	display_string_scroll_and_delay(buff, delay);
 	for (i = feature_image_index; i < feature_end_index; i += 1) {
 		strcpy(buff, feature_index_names[i]);
 		strcat(buff, " = ");
 		if (features[i] < feature_end_values)
-			strcat(buff, (char *)feature_names[features[i]]);
-		else
-			strcat(buff, "invalid!");
-		display_string_scroll_and_delay(buff, delay);
-	}
-	display_string_scroll_and_delay("features nvram:", delay);
-	sprintf(buff, "%s = %02x", feature_index_names[feature_version_index], features_nvram[feature_version_index]);
-	display_string_scroll_and_delay(buff, delay);
-	for (i = feature_image_index; i < feature_end_index; i += 1) {
-		strcpy(buff, feature_index_names[i]);
-		strcat(buff, " = ");
-		if (features_nvram[i] < feature_end_values)
-			strcat(buff, (char *)feature_names[features_nvram[i]]);
+			strcat(buff, (char *)feature_names[fp[i]]);
 		else
 			strcat(buff, "invalid!");
 		display_string_scroll_and_delay(buff, delay);
 	}
 }
+
+void features_display_all() {
+	display_clear();
+	features_display("features ram:", features, 10000);
+	features_display("features nvram:", features_nvram, 10000);
+}
+

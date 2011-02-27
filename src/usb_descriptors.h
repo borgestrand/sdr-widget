@@ -183,6 +183,21 @@
   Usb_unicode('C') \
 }
 
+
+#define HPSDR_USB_PN_LENGTH         9
+#define HPSDR_USB_PRODUCT_NAME \
+{\
+  Usb_unicode('O'),\
+  Usb_unicode('Z'),\
+  Usb_unicode('Y'),\
+  Usb_unicode(' '),\
+  Usb_unicode('C'),\
+  Usb_unicode('L'),\
+  Usb_unicode('O'),\
+  Usb_unicode('N'),\
+  Usb_unicode('E')\
+}
+
 #define USB_SN_LENGTH         13
 #define USB_SERIAL_NUMBER \
 {\
