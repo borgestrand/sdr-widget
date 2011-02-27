@@ -94,14 +94,14 @@ extern features_t features_nvram, features;
 // conditionally set the defaults for this build
 //
 #ifndef FEATURE_VERSION_DEFAULT
-//#define FEATURE_VERSION_DEFAULT 1
-#define FEATURE_VERSION_DEFAULT 2
+#define FEATURE_VERSION_DEFAULT feature_end_index
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
 //#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_audio
 //#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_dg8saq
 //#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
 #define FEATURE_IMAGE_DEFAULT			feature_image_uac1_dg8saq
+//#define FEATURE_IMAGE_DEFAULT			feature_image_hpsdr
 #endif
 #ifndef FEATURE_IQ_IN_DEFAULT
 #define FEATURE_IQ_IN_DEFAULT			feature_iq_in_normal

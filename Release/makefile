@@ -53,7 +53,7 @@ all: widget.elf
 widget.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: AVR32/GNU C Linker'
-	avr32-gcc -nostartfiles -L../src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/AT32UCR2 -L../src/SOFTWARE_FRAMEWORK/BOARDS -Wl,--gc-sections -Wl,-e,_trampoline -mpart=uc3a3256 -Wl,--gc-sections --rodata-writable -Wl,--direct-data -o"widget.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	avr32-gcc -nostartfiles -Wl,--gc-sections -Wl,-e,_trampoline -mpart=uc3a3256 -Wl,--gc-sections --rodata-writable -Wl,--direct-data -o"widget.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

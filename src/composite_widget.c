@@ -159,14 +159,7 @@
 
 //_____  I N C L U D E S ___________________________________________________
 
-#ifndef FREERTOS_USED
-#if (defined __GNUC__)
-#include "nlao_cpu.h"
-#include "nlao_usart.h"
-#endif
-#else
 #include <stdio.h>
-#endif
 
 #include "compiler.h"
 #include "board.h"
@@ -174,40 +167,13 @@
 #include "intc.h"
 #include "pm.h"
 #include "gpio.h"
-#ifdef FREERTOS_USED
-#include "FreeRTOS.h"
-#include "task.h"
-#endif
-#include "conf_usb.h"
-#include "usb_task.h"
-#if USB_DEVICE_FEATURE == ENABLED
-#include "device_mouse_hid_task.h"
-#endif
-#if USB_HOST_FEATURE == ENABLED
-//#include "host_keyboard_hid_task.h"
-//#include "host_mouse_hid_task.h"
-#endif
-#include "composite_widget.h"
-#include "taskAK5394A.h"
-//#include "I2C.h"
+#include "wdt.h"
 
-/*
- * Task specific headers.
- */
+#include "FreeRTOS.h"
 
 #include "features.h"
 #include "image.h"
-#include "queue.h"
-#include "taskEXERCISE.h"
-#include "taskMoboCtrl.h"
-#include "taskPowerDisplay.h"
-#include "taskPushButtonMenu.h"
-// #include "device_audio_task.h"
-#include "wdt.h"
-
-#if LCD_DISPLAY				// Multi-line LCD display
-#include "taskLCD.h"
-#endif
+#include "composite_widget.h"
 
 /*
  *  A few global variables.
@@ -275,24 +241,8 @@ int main(void)
   // Start the image tasks
   image_task_init();
 
-#ifdef FREERTOS_USED
   // Start OS scheduler
   vTaskStartScheduler();
   portDBG_TRACE("FreeRTOS returned.");
   return 42;
-#else
-  // No OS here. Need to call each task in round-robin mode.
-  while (TRUE)
-  {
-    usb_task();
-  #if USB_DEVICE_FEATURE == ENABLED
-	if ( FEATURE_AUDIO_UAC1 || FEATURE_AUDIO_UAC2 )
-		device_mouse_hid_task();
-  #endif
-  #if USB_HOST_FEATURE == ENABLED
-    //host_keyboard_hid_task();
-    host_mouse_hid_task();
-  #endif
-  }
-#endif  // FREERTOS_USED
 }

@@ -4,4 +4,4 @@
 
 USER_OBJS :=
 
-LIBS := -lnewlib_addons-at32ucr2-speed_opt -lm
+LIBS := -lm

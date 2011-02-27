@@ -34,6 +34,7 @@
 #include "wdt.h"
 
 #include "taskPushButtonMenu.h"
+#include "composite_widget.h"
 #include "Mobo_config.h"
 #include "taskLCD.h"
 #include "rotary_encoder.h"
@@ -3108,8 +3109,10 @@ static void vtaskPushButtonMenu( void * pcParameters )
 {
 	gpio_enable_pin_pull_up(MENU_BUTTON);		// Enable pullup for the Frequency/Menu button
 
-	// Wait for 9 seconds while the Mobo Stuff catches up
-	vTaskDelay( 90000 );
+	// Wait while the Mobo Stuff catches up
+	vTaskDelay(10000 );								// defer to other tasks
+	xSemaphoreTake( mutexInit, portMAX_DELAY );		// wait for initialization complete
+	xSemaphoreGive( mutexInit );					// release and continue
 
     while( 1 )
     {
