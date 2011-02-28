@@ -1,4 +1,4 @@
-
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 #ifndef _SDRwdgt_H_
 #define _SDRwdgt_H_
 

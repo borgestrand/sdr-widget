@@ -1,4 +1,4 @@
-/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 /*
  * DG8SAQ_cmd.c
  *
@@ -24,7 +24,7 @@
 
 #include "DG8SAQ_cmd.h"
 #include "features.h"
-//#include "taskLCD.h"
+#include "taskLCD.h"
 #include "Mobo_config.h"
 #include "Si570.h"
 #include "AD7991.h"
@@ -204,7 +204,16 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			***********************************/
 
 		case 0x0f:								// Reboot by Watchdog
-			wdt_enable(100000);					// Enable Watchdog with 100ms patience
+#if LCD_DISPLAY			// Multi-line LCD display
+	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+    lcd_q_clear();
+	lcd_q_goto(0,0);
+    lcd_q_print("calling wdt_reset_mcu()");
+	xSemaphoreGive( mutexQueLCD );
+	vTaskDelay( 40000 );
+#endif
+			wdt_reset_mcu();					// Watchdog reset immediately
+			// wdt_enable(100000);					// Enable Watchdog with 100ms patience
 			while (1);							// Bye bye
 
 

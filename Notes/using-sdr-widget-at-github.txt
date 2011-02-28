@@ -1,0 +1,109 @@
+I decided to make merging Loftur's demo_UAC1_v087_f_WinXP into a short
+tutorial on using git and github from the command line.
+
+So starting from nothing:
+
+    1) clone a copy of the sdr-widget sources from github
+    2) add the v087_f sources to my local copy,
+    3) tag the new sources,
+    4) push the new sources back to github,
+    5) checkout the working sdr-widget-2 branch,
+    6) merge the changes from v087_f,
+    7) push the new version of sdr-widget-2 back.
+
+All of this requires an installation of git, a ssh account on github,
+permission from amontefusco to push back to github, and a text editor
+for making the necessary changes.  You'll need to work these out on
+your own.
+------------------------------------------------------------------------
+# Step 1) is to connect a directory on my local machine to the
+# sdr-widget repository.  We do this with the command:
+
+$ git clone git@github.com:amontefusco/sdr-widget.git
+
+# This creates a directory named 'sdr-widget' in the current directory,
+# makes an empty git repository in it, sets it up to track the
+# sdr-widget repository owned by amontefusco at github.
+
+# Step 2) is to add Loftur's code.  First we make a place to put it.
+
+$ cd sdr-widget
+$ git checkout -b uac1-loftur demo_UAC1_v087_d_WinXP
+
+# We change directory into sdr-widget so that git will know what
+# repository we are working on.  Then we checkout the closest ancestor
+# of v087_f by its tag, and create a new branch, uac1-loftur.
+
+# I extracted demo_UAC1_v087_f_WinXP.tar.gz into the same directory as
+# sdr-widget, so I can copy over v087_d with:
+
+$ (cd ../demo_UAC1_v087_f_WinXP/; tar cf - .) | tar xvf -
+
+# Then
+
+$ git status
+
+# will tell me what changed:
+
+    # On branch uac1-loftur
+    # Changed but not updated:
+    #   (use "git add <file>..." to update what will be committed)
+    #   (use "git checkout -- <file>..." to discard changes in working directory)
+    #
+    #	modified:   .cproject
+    #	modified:   .project
+    #	modified:   src/DG8SAQ_cmd.c
+    #	modified:   src/SOFTWARE_FRAMEWORK/BOARDS/SDRwdgtLite/SDR-Widget.h
+    #	modified:   src/freq_and_filters.c
+    #	modified:   src/taskMoboCtrl.c
+    #	modified:   src/taskPowerDisplay.c
+    #
+    # Untracked files:
+    #   (use "git add <file>..." to include in what will be committed)
+    #
+    #	Release/
+    #	src/SOFTWARE_FRAMEWORK/DRIVERS/PDCA/pdca.o
+    no changes added to commit (use "git add" and/or "git commit -a")
+
+# Let's clean up that misplaced .o file:
+
+$ rm src/SOFTWARE_FRAMEWORK/DRIVERS/PDCA/pdca.o
+
+# Commit the rest:
+
+$ git commit -a -m 'Contents of demo_UAC1_v087_f_WinXP'
+
+# Step 3) tag it:
+
+$ git tag demo_UAC1_v087_f_WinXP
+
+# Step 4) push the source back to github:
+
+$ git push origin uac1-loftur
+
+# Step 5) checkout the working sdr-widget-2 branch:
+
+$ git checkout sdr-widget-2
+
+# Step 6) merge in Loftur's changes.
+# It's comforting that the changed files listed in the git status
+# report are exactly the ones that Loftur listed as changed in his
+# email.  But sdr-widget-2 has changes to those files to, so we make a
+# temporary copy of sdr-widget-2:
+
+$ git checkout -b sdr-widget-2-loftur
+
+# And drop Loftur's changes into that branch:
+
+$ git checkout uac1-loftur src/DG8SAQ_cmd.c
+$ git checkout uac1-loftur src/SOFTWARE_FRAMEWORK/BOARDS/SDRwdgtLite/SDR-Widget.h
+$ git checkout uac1-loftur src/freq_and_filters.c
+$ git checkout uac1-loftur src/taskMoboCtrl.c
+$ git checkout uac1-loftur src/taskPowerDisplay.c
+
+# commit those changes on the temporary branch:
+
+$ git commit -a -m 'temporary branch'
+
+# at this point things stopped working the way I expected, so we'll
+# postpone the merge step to the next chapter.

@@ -1,6 +1,12 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 /*
-** simple command line program to control SDRWidget features.
+** simple command line program to control SDRWidget features,
+** as defined in src/features.h
+**
+** todo - make sure we don't try to print or set features
+** if the feature_major or feature_minor is different from
+** the one we were compiled with, since that would have
+** very unpredictable effects.
 */
 const char usage[] = {
 	"usage: sudo ./widget-control [options] [values]\n"
@@ -17,15 +23,20 @@ const char usage[] = {
 	"which must all match each other, or your widget-control is out of\n"
 	"sync with your widget.\n"
 }; 
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <libusb-1.0/libusb.h>
 #include "src/features.h"
 
+int verbose = 0;
+
 /*
 ** features
 */
-features_t features = { FEATURES_DEFAULT };
+features_t features_default = { FEATURES_DEFAULT };
+features_t features_nvram;
+features_t features_mem;
 char *feature_index_names[] = { FEATURE_INDEX_NAMES };
 char *feature_value_names[] = { FEATURE_VALUE_NAMES };
 int feature_first_value[feature_end_index];
@@ -46,6 +57,7 @@ void feature_first_and_last_init(void) {
 		}
 	}
 }
+
 int first_value(int index) {
 	if (index > feature_minor_index && index < feature_end_index)
 		return feature_first_value[index];
@@ -79,6 +91,9 @@ int find_feature_value(int index, char *value) {
 #define REQREC_ENDPOINT			(2 << 0)
 #define REQREC_OTHER			(3 << 0)
 
+#define WIDGET_RESET			0x0f
+#define WIDGET_FACTORY_RESET	0x41
+#define WIDGET_FACTORY_RESET_VALUE		0xff
 #define WIDGET_CONTROL			0x71
 
 #define SET_NVRAM				3
@@ -153,7 +168,8 @@ void setup() {
 		libusb_exit(NULL);
 		exit(1);
 	}
-	fprintf(stderr, "widget-control: opened %s device\n", usb_device);
+	if ( verbose )
+		fprintf(stdout, "widget-control: opened %s device\n", usb_device);
 	if (libusb_claim_interface(usb_handle, 0) != 0) {
 		fprintf(stderr, "widget-control: failed to claim interface 0\n");
 		exit(finish(1));
@@ -172,13 +188,30 @@ int finish(int return_value) {
 /*
 ** functions
 */
-void print_all_features() {
+void print_all_features(features_t fp) {
 	int j;
-	fprintf(stdout, "%d %d", features[feature_major_index], features[feature_minor_index]);
+	fprintf(stdout, "%d %d", fp[feature_major_index], fp[feature_minor_index]);
 	for (j = feature_minor_index+1; j < feature_end_index; j += 1) {
-		fprintf(stdout, " %s", feature_value_names[features[j]]);
+		fprintf(stdout, " %s", feature_value_names[fp[j]]);
 	}
 	fprintf(stdout, "\n");
+}
+
+void list_all_features() {
+	int j, k;
+	for (j = 0; j < feature_end_index; j += 1) {
+		switch (j) {
+		case feature_major_index:
+		case feature_minor_index:
+			fprintf(stdout, "%s %d\n", feature_index_names[j], features_default[j]);
+			continue;
+		default:
+			fprintf(stdout, "%s = ", feature_index_names[j]);
+			for (k = first_value(j); k <= last_value(j); k += 1)
+				fprintf(stdout, " %s", feature_value_names[k]);
+			fprintf(stdout, " \n");
+		}
+	}
 }
 
 int get_nvram() {
@@ -187,13 +220,13 @@ int get_nvram() {
 	for (i = feature_major_index; i < feature_end_index; i += 1) {
 		int res = device_to_host(WIDGET_CONTROL, GET_NVRAM, i, 8);
 		if (res == 1)
-			features[i] = usb_data[0];
+			features_nvram[i] = usb_data[0];
 		else {
 			fprintf(stderr, "widget-control: device_to_host(WIDGET_CONTROL, GET_NVRAM, %d, 0) returned %s?\n", i, error_string(res));
 			exit(finish(1));
 		}
 	}
-	print_all_features();
+	print_all_features(features_nvram);
 	return finish(0);
 }
 
@@ -203,18 +236,19 @@ int get_mem() {
 	for (i = feature_major_index; i < feature_end_index; i += 1) {
 		int res = device_to_host(WIDGET_CONTROL, GET_RAM, i, 8);
 		if (res == 1)
-			features[i] = usb_data[0];
+			features_mem[i] = usb_data[0];
 		else {
 			fprintf(stderr, "widget-control: device_to_host(WIDGET_CONTROL, GET_RAM, %d, 0) returned %s?\n", i, error_string(res));
 			exit(finish(1));
 		}
 	}
-	print_all_features();
+	print_all_features(features_mem);
 	return finish(0);
 }
 
 int set_nvram(int argc, char *argv[]) {
 	int i, j;
+	features_t features;
 	if (argc == feature_end_index - 2) {
 		// major and minor are implicit
 		argv -= 2;
@@ -252,8 +286,14 @@ int set_nvram(int argc, char *argv[]) {
 	return finish(0);
 }
 
-int reboot_widget() {
+int reset_widget() {
 	setup();
+	int res = device_to_host(WIDGET_RESET, 0, 0, 8);
+	// int res = device_to_host(WIDGET_FACTORY_RESET, WIDGET_FACTORY_RESET_VALUE, 0, 8);
+	if (res != 1) {
+		fprintf(stderr, "widget-control: device_to_host(WIDGET_RESET, 0, 0, 8) returned %s?\n", error_string(res));
+		exit(finish(1));
+	}
     return finish(0);
 }
 
@@ -261,44 +301,29 @@ int main(int argc, char *argv[]) {
 	int i;
 	feature_first_and_last_init();
 	for (i = 1; i < argc; i += 1) {
-		if (strcmp(argv[i], "-d") == 0) {
-			// list default values
-			print_all_features();
+		if (strcmp(argv[i], "-v") == 0) { // be verbose
+			verbose = 1;
 			continue;
 		}
-		if (strcmp(argv[i], "-l") == 0) {
-			// list available features
-			int j, k;
-			for (j = 0; j < feature_end_index; j += 1) {
-				switch (j) {
-				case feature_major_index:
-				case feature_minor_index:
-					fprintf(stdout, "%s %d\n", feature_index_names[j], features[j]);
-					continue;
-				default:
-					fprintf(stdout, "%s = ", feature_index_names[j]);
-					for (k = first_value(j); k <= last_value(j); k += 1)
-						fprintf(stdout, " %s", feature_value_names[k]);
-					fprintf(stdout, " \n");
-				}
-			}
-			continue;
+		if (strcmp(argv[i], "-d") == 0) { // list default values
+			print_all_features(features_default);
+			exit(0);
 		}
-		if (strcmp(argv[i], "-g") == 0) {
-			// get feature(s)
+		if (strcmp(argv[i], "-l") == 0) { // list available features
+			list_all_features();
+			exit(0);
+		}
+		if (strcmp(argv[i], "-g") == 0) { // get feature(s)
 			exit(get_nvram());
 		}
-		if (strcmp(argv[i], "-s") == 0) {
-			// set feature(s)
+		if (strcmp(argv[i], "-s") == 0) { // set feature(s)
 			exit(set_nvram(argc-i-1, argv+i+1));
 		}
-		if (strcmp(argv[i], "-m") == 0) {
-			// get feature(s) from memory
+		if (strcmp(argv[i], "-m") == 0) { // get feature(s) from memory
 			exit(get_mem());
 		}
-		if (strcmp(argv[i], "-r") == 0) {
-			// reboot widget
-			exit(reboot_widget());
+		if (strcmp(argv[i], "-r") == 0) { // reboot widget
+			exit(reset_widget());
 		}
 	}
 	fprintf(stderr, usage);
