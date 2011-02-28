@@ -120,13 +120,13 @@ static U16   wLength;
 void hpsdr_user_endpoint_init(U8 conf_nb)
 {
 	if( Is_usb_full_speed_mode() ) {
-		(void)Usb_configure_endpoint(EP_RF_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, DOUBLE_BANK);
-		(void)Usb_configure_endpoint(EP_IQ_IN, EP_ATTRIBUTES_2, DIRECTION_IN, EP_SIZE_2_FS, DOUBLE_BANK);
-		(void)Usb_configure_endpoint(EP_IQ_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_FS, DOUBLE_BANK);
+		(void)Usb_configure_endpoint(HPSDR_EP_RF_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(HPSDR_EP_IQ_IN, EP_ATTRIBUTES_2, DIRECTION_IN, EP_SIZE_2_FS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(HPSDR_EP_IQ_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_FS, DOUBLE_BANK, 0);
 	} else {
-		(void)Usb_configure_endpoint(EP_RF_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, DOUBLE_BANK);
-		(void)Usb_configure_endpoint(EP_IQ_IN, EP_ATTRIBUTES_2, DIRECTION_IN, EP_SIZE_2_HS, DOUBLE_BANK);
-		(void)Usb_configure_endpoint(EP_IQ_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_HS, DOUBLE_BANK);
+		(void)Usb_configure_endpoint(HPSDR_EP_RF_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(HPSDR_EP_IQ_IN, EP_ATTRIBUTES_2, DIRECTION_IN, EP_SIZE_2_HS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(HPSDR_EP_IQ_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_HS, DOUBLE_BANK, 0);
 	}
 }
 

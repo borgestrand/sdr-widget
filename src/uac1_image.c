@@ -6,14 +6,7 @@
 **      Author: Roger E Critchlow Jr, AD5DZ
 */
 
-#ifndef FREERTOS_USED
-#if (defined __GNUC__)
-#include "nlao_cpu.h"
-#include "nlao_usart.h"
-#endif
-#else
 #include <stdio.h>
-#endif
 
 #include "compiler.h"
 #include "board.h"
@@ -21,10 +14,8 @@
 #include "intc.h"
 #include "pm.h"
 #include "gpio.h"
-#ifdef FREERTOS_USED
 #include "FreeRTOS.h"
 #include "task.h"
-#endif
 #include "conf_usb.h"
 #include "usb_task.h"
 #if USB_DEVICE_FEATURE == ENABLED

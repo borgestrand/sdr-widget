@@ -1,5 +1,22 @@
 /* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
-
+/*
+** simple command line program to control SDRWidget features.
+*/
+const char usage[] = {
+	"usage: sudo ./widget-control [options] [values]\n"
+	"options: -d = print the default feature values\n"
+	"         -g = get the feature values from the widget nvram\n"
+	"         -l = list the possible feature values\n"
+	"         -m = get the feature values from the widget ram\n"
+	"         -r = reboot the widget\n"
+	"         -s = set the feature values in the widget nvram\n"
+	"Only -s takes values, in the form printed by -d or -g or -m.\n"
+	"The acceptable values for each feature are listed by -l.\n"
+	"The major and minor version numbers are optional to -s, but\n"
+	"if provided they must match the ones printed by -d, -g, -l, and -m,\n"
+	"which must all match each other, or your widget-control is out of\n"
+	"sync with your widget.\n"
+}; 
 #include <stdlib.h>
 #include <stdio.h>
 #include <libusb-1.0/libusb.h>
@@ -283,7 +300,7 @@ int main(int argc, char *argv[]) {
 			// reboot widget
 			exit(reboot_widget());
 		}
-		fprintf(stderr, "usage: widget-control (-d|-l|-g|-s|-m) [options]\n");
-		exit(1);
 	}
+	fprintf(stderr, usage);
+	exit(1);
 }

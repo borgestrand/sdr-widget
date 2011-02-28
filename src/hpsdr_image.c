@@ -8,24 +8,16 @@
 
 #include "image.h"
 
-#ifndef FREERTOS_USED
-#if (defined __GNUC__)
-#include "nlao_cpu.h"
-#include "nlao_usart.h"
-#endif
-#else
 #include <stdio.h>
-#endif
+
 #include "compiler.h"
 #include "board.h"
 #include "print_funcs.h"
 #include "intc.h"
 #include "pm.h"
 #include "gpio.h"
-#ifdef FREERTOS_USED
 #include "FreeRTOS.h"
 #include "task.h"
-#endif
 #include "conf_usb.h"
 #include "usb_task.h"
 #if USB_DEVICE_FEATURE == ENABLED
@@ -57,6 +49,15 @@
 #include "taskLCD.h"
 #endif
 
+/*
+** Image specific headers
+*/
+#include "usb_descriptors.h"
+#include "hpsdr_usb_descriptors.h"
+#include "usb_specific_request.h"
+#include "hpsdr_usb_specific_request.h"
+#include "hpsdr_device_audio_task.h"
+
 // image launch
 static void x_image_boot(void) {
 }
@@ -86,43 +87,45 @@ static void x_image_task_init(void) {
 
 // descriptor accessors
 static uint8_t *x_image_get_dev_desc_pointer(void) {
-	return 0;
+	return (uint8_t *)&hpsdr_usb_dev_desc;
 }
 static uint16_t x_image_get_dev_desc_length(void) {
-	return 0;
+	return (uint16_t)sizeof(hpsdr_usb_dev_desc);
 }
 static uint8_t *x_image_get_conf_desc_pointer(void) {
-	return 0;
+	return (uint8_t *)&hpsdr_usb_conf_desc_fs;
 }
 static uint16_t x_image_get_conf_desc_length(void) {
-	return 0;
+	return sizeof(hpsdr_usb_conf_desc_fs);
 }
 static uint8_t *x_image_get_conf_desc_fs_pointer(void) {
-	return 0;
+	return (uint8_t *)&hpsdr_usb_conf_desc_fs;
 }
 static uint16_t x_image_get_conf_desc_fs_length(void) {
-	return 0;
+	return sizeof(hpsdr_usb_conf_desc_fs);
 }
 static uint8_t *x_image_get_conf_desc_hs_pointer(void) {
-	return 0;
+	return (uint8_t *)&hpsdr_usb_conf_desc_hs;
 }
 static uint16_t x_image_get_conf_desc_hs_length(void) {
-	return 0;
+	return sizeof(hpsdr_usb_conf_desc_hs);
 }
 static uint8_t *x_image_get_qualifier_desc_pointer(void) {
-	return 0;
+	return (uint8_t *)&hpsdr_usb_qualifier_desc;
 }
 static uint16_t x_image_get_qualifier_desc_length(void) {
-	return 0;
+	return sizeof(hpsdr_usb_qualifier_desc);
 }
 
 // specific request handlers
 static void x_image_user_endpoint_init(uint8_t conf_nb) {
+	hpsdr_user_endpoint_init(conf_nb);
 }
 static Bool x_image_user_read_request(uint8_t type, uint8_t request) {
-	return FALSE;
+	return hpsdr_user_read_request(type, request);
 }
 static void x_image_user_set_interface(U8 wIndex, U8 wValue) {
+	hpsdr_user_set_interface(wIndex, wValue);
 }
 
 const image_t hpsdr_image = {
