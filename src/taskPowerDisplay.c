@@ -237,8 +237,6 @@ static void vtaskPowerDisplay( void * pcParameters )
    	        	int32_t spk_max_1_pos, spk_max_1_neg;
    	           	float spk_max_0, spk_max_1;
 
-   	           	bufsize = 20;
-
    	        	// Normalize values
    	        	spk_sample0 = spk_buffer_0[0];
    	        	if(spk_sample0>0x7FFFFF)
@@ -278,12 +276,19 @@ static void vtaskPowerDisplay( void * pcParameters )
     	     	sprintf(lcd_prtdb,"%4.0fdB  RXpwr %4.0fdB",
     	     			audio_max_0_dB-144.0, audio_max_1_dB-144.0);
 
-
-     			spk_max_0 = pow((float)(spk_max_0_pos-spk_max_0_neg)/(float)0xc0000, 2);
+    			// TX audio bargraph in dB or VU-meter style
+				#if	TX_BARGRAPH_dB
+       			spk_max_0_dB = 20 * log10f(1+spk_max_0_pos-spk_max_0_neg);
+       			spk_max_1_dB = 20 * log10f(1+spk_max_1_pos-spk_max_1_neg);
+    	     	sprintf(lcd_prtdb2,"%4.0fdB  TXpwr %4.0fdB",
+    	     			spk_max_0_dB-144.0, spk_max_1_dB-144.0);
+				#else
+    	     	spk_max_0 = pow((float)(spk_max_0_pos-spk_max_0_neg)/(float)0xc0000, 2);
        			spk_max_1 = pow((float)(spk_max_1_pos-spk_max_1_neg)/(float)0xc0000, 2);
        			if (spk_max_0 > 100) spk_max_0 = 100;
        			if (spk_max_1 > 100) spk_max_1 = 100;
     	     	sprintf(lcd_prtdb2,"%4.0f%%   TXpwr %4.0f%% ", spk_max_0, spk_max_1);
+				#endif
 
 				// Prepare bargraphs
        	 		// progress, maxprogress, len

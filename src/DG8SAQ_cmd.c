@@ -48,7 +48,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 
 //	LED_Toggle(LED1);
 
-
 	switch (type)
 	{
 		case 0x30:
@@ -130,7 +129,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 					flashc_memset16((void *)&nvram_cdata.SmoothTunePPM, *Buf16, sizeof(uint16_t), TRUE);
 				}
 	}
-
 }
 
 
@@ -138,7 +136,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
  @brief Process USB query commands and return a result (flexible size data payload)
 		This function processes control of all USB commands except for 0x30 - 0x35
 */
-
 uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* Buffer)
 {
 	int x;
@@ -458,7 +455,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			    FRQ_fromusb = TRUE;				// Force LCD update, Indicate new frequency for Si570
 			}
 			// Passthrough to Cmd 0x51
-
+/*
 		case 0x51:								// read CW key levels
 			Buffer[0] = 0x00;
 			// read pin and set regbit accordingly
@@ -466,8 +463,8 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			// read pin and set regbit accordingly
 			if (gpio_get_pin_value(GPIO_CW_KEY_2)) Buffer[0] |= REG_CWLONG;
         	return sizeof(uint8_t);
-
-		case 0x52:								// read CW & PTT key levels
+*/
+		case 0x51:								// read CW & PTT key levels
 			Buffer[0] = 0x00;
 			// read pin and set regbit accordingly
 			if (gpio_get_pin_value(GPIO_CW_KEY_1)) Buffer[0] |= REG_CWSHORT;
@@ -809,7 +806,5 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 		default:
 			return 1; //break;
 	}
-
-		return 1;
-
+	return 1;
 }
