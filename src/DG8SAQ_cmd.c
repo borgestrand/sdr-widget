@@ -23,6 +23,7 @@
 #include "gpio.h"
 
 #include "DG8SAQ_cmd.h"
+#include "features.h"
 //#include "taskLCD.h"
 #include "Mobo_config.h"
 #include "Si570.h"
@@ -780,29 +781,50 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 
 		case 0x71:
 			switch (wValue){
-			case 0:
-				if (current_freq.frequency != 48000) {
-					current_freq.frequency = 48000;
-					freq_changed = TRUE;
+			case 0:				// set frequency
+				// I think this should just pass the sample rate in Hertz, 32 bits
+				switch (wIndex) {
+				case 0:
+					if (current_freq.frequency != 48000) {
+						current_freq.frequency = 48000;
+						freq_changed = TRUE;
+					}
+					break;
+				case 1:
+					if (current_freq.frequency != 96000){
+						current_freq.frequency = 96000;
+						freq_changed = TRUE;
+					}
+					break;
+				case 2:
+					if (current_freq.frequency != 192000){
+						current_freq.frequency = 192000;
+						freq_changed = TRUE;
+					}
+					break;
+				default:
+					break;
 				}
-				break;
-			case 1:
-				if (current_freq.frequency != 96000){
-					current_freq.frequency = 96000;
-					freq_changed = TRUE;
-				}
-				break;
-			case 2:
-				if (current_freq.frequency != 192000){
-					current_freq.frequency = 192000;
-					freq_changed = TRUE;
-				}
-				break;
-			default:
-				break;
+				*Buffer = 0;
+				return sizeof(uint8_t);
+			case 1: 			// get frequency
+				*Buffer = 0;
+				return sizeof(uint8_t);
+
+			// access to sdr-widget feature api
+			case 3:				// set feature in nvram
+				Buffer[0] = feature_set_nvram(wIndex&0xFF, (wIndex>>8)&0xFF);
+				return sizeof(uint8_t);
+			case 4:				// get feature from nvram
+				Buffer[0] = feature_get_nvram(wIndex);
+				return sizeof(uint8_t);
+			case 5:				// set feature in memory (may or may not work depending on feature)
+				Buffer[0] = feature_set(wIndex&0xFF, (wIndex>>8)&0xFF);
+				return sizeof(uint8_t);
+			case 6:				// get feature from memory
+				Buffer[0] = feature_get(wIndex);
+				return sizeof(uint8_t);
 			}
-			*Buffer = 0;
-			return sizeof(uint8_t);
 		default:
 			return 1; //break;
 		}

@@ -130,8 +130,8 @@ extern Bool usb_user_get_descriptor(U8, U8);
 extern Bool usb_user_DG8SAQ(U8, U8); // for processing DG8SAQ type of commands
 
 // dg8saq EP0 hooks for the Mobo firmware
-extern void dg8saqFunctionWrite(U8, U16, U16, U8 *, U8 );
-extern U8 dg8saqFunctionSetup(U8, U16, U16, U8 *);
+// extern void dg8saqFunctionWrite(U8, U16, U16, U8 *, U8 );
+// extern U8 dg8saqFunctionSetup(U8, U16, U16, U16, U8 *);
 
 //! @}
 

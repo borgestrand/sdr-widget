@@ -149,10 +149,10 @@ void hpsdr_device_audio_task(void *pvParameters)
 	const U8 EP_IQ_IN = ep_audio_in;
 	const U8 EP_IQ_OUT = ep_audio_out;
 	// const U8 EP_IQ_OUT_FB = ep_audio_out_fb;
-	const U8 IN_LEFT = FEATURE_IQ_IN_NORMAL ? 0 : 1;
-	const U8 IN_RIGHT = FEATURE_IQ_IN_NORMAL ? 1 : 0;
-	// const U8 OUT_LEFT = FEATURE_IQ_OUT_NORMAL ? 0 : 1;
-	// const U8 OUT_RIGHT = FEATURE_IQ_OUT_NORMAL ? 1 : 0;
+	const U8 IN_LEFT = FEATURE_IN_NORMAL ? 0 : 1;
+	const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
+	// const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
+	// const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 	//  U32 sample;
 
 	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);

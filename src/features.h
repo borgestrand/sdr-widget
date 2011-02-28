@@ -12,9 +12,51 @@
 #include <stdint.h>
 
 //
-// the features are enumerated as a single set
+// each feature index defines a feature set
+//
+// to add a new feature set:
+// 1) insert the feature index name into the feature_index_t enumeration;
+// 2) insert the feature index name string into the FEATURE_INDEX_NAMES define;
+// 3) insert the feature end marker value into the feature_values_t enumeration;
+// 4) insert the feature end marker name into the FEATURE_VALUE_NAMES define.
+//
+
+typedef enum {
+  feature_major_index = 0,		// major version number = feature_end_index
+  feature_minor_index,			// minor version number = feature_end_values
+  feature_image_index,			// image to boot
+  feature_in_index,				// keep or swap left/right channels on input
+  feature_out_index,			// keep or swap left/right channels on output
+  feature_adc_index,			// adc identifier, not implemented
+  feature_dac_index,			// dac identifier, not implemented
+  feature_end_index				// end marker, used to size arrays
+} feature_index_t;
+
+#define FEATURE_INDEX_NAMES "major",				\
+		"minor",									\
+		"img",										\
+		"in",										\
+		"out",										\
+		"adc",										\
+		"dac",										\
+		"end"
+
+//
+// the features are enumerated as single group
+// which allows a single table of name strings
+//
 // some of these are probably wrong and will
 // need to be adjusted.
+//
+// to add another value to an existing feature set:
+// 1) add its name to the feature_values_t enumeration;
+// 2) add its string name to the FEATURE_VALUE_NAMES define;
+// 3) add a macro to test for the feature's value below
+//
+// so, for instance, if Alex wants to add a test image:
+// 1) insert feature_image_alex_test before feature_end_image;
+// 2) insert "alex_test" into the FEATURE_VALUE_NAMES;
+// 2) #define FEATURE_IMAGE_ALEX_TEST 
 //
 typedef enum {
   // image selection
@@ -27,13 +69,13 @@ typedef enum {
   feature_image_test,
   feature_end_image,
   // input channel
-  feature_iq_in_normal,
-  feature_iq_in_swapped,
-  feature_end_iq_in,
+  feature_in_normal,
+  feature_in_swapped,
+  feature_end_in,
   // output channel
-  feature_iq_out_normal,
-  feature_iq_out_swapped,
-  feature_end_iq_out,
+  feature_out_normal,
+  feature_out_swapped,
+  feature_end_out,
   // adc
   feature_adc_none,
   feature_adc_ak5394a,
@@ -46,16 +88,28 @@ typedef enum {
   feature_end_values
 } feature_values_t;
 
-typedef enum {
-  feature_version_index = 0,
-  feature_image_index,
-  feature_iq_in_index,
-  feature_iq_out_index,
-  feature_adc_index,
-  feature_dac_index,
-  feature_end_index
-} feature_index_t;
-
+#define FEATURE_VALUE_NAMES "flashyblinky",								\
+		"uac1_audio",													\
+		"uac1_dg8saq",													\
+		"uac2_audio",													\
+		"uac2_dg8saq",													\
+		"hpsdr",														\
+		"test",															\
+		"end",															\
+		"normal",														\
+		"swapped",														\
+		"end",															\
+		"normal",														\
+		"swapped",														\
+		"end",															\
+		"none",															\
+		"ak5394a",														\
+		"end",															\
+		"none",															\
+		"cs4344",														\
+		"end",															\
+		"end"
+	
 typedef uint8_t features_t[feature_end_index];
 
 extern features_t features_nvram, features;
@@ -67,8 +121,11 @@ extern features_t features_nvram, features;
 // be eliminated.
 //
 
-#define FEATURE_VERSION					(features[feature_version_index])
-#define FEATURE_NVRAM_VERSION			(features_nvram[feature_version_index])
+#define FEATURE_MAJOR					(features[feature_major_index])
+#define FEATURE_MAJOR_NVRAM				(features_nvram[feature_major_index])
+
+#define FEATURE_MINOR					(features[feature_minor_index])
+#define FEATURE_MINOR_NVRAM				(features_nvram[feature_minor_index])
 
 #define FEATURE_IMAGE_FLASHYBLINKY		(features[feature_image_index] == (uint8_t)feature_image_flashyblinky)
 #define FEATURE_IMAGE_UAC1_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac1_audio)
@@ -78,11 +135,11 @@ extern features_t features_nvram, features;
 #define FEATURE_IMAGE_HPSDR				(features[feature_image_index] == (uint8_t)feature_image_hpsdr)
 #define FEATURE_IMAGE_TEST				(features[feature_image_index] == (uint8_t)feature_image_test)
 
-#define FEATURE_IQ_IN_NORMAL			(features[feature_iq_in_index] == (uint8_t)feature_iq_in_normal)
-#define FEATURE_IQ_IN_SWAPPED			(features[feature_iq_in_index] == (uint8_t)feature_iq_in_swapped)
+#define FEATURE_IN_NORMAL				(features[feature_in_index] == (uint8_t)feature_in_normal)
+#define FEATURE_IN_SWAPPED				(features[feature_in_index] == (uint8_t)feature_in_swapped)
 
-#define FEATURE_IQ_OUT_NORMAL			(features[feature_iq_out_index] == (uint8_t)feature_iq_out_normal)
-#define FEATURE_IQ_OUT_SWAPPED			(features[feature_iq_out_index] == (uint8_t)feature_iq_out_swapped)
+#define FEATURE_OUT_NORMAL				(features[feature_out_index] == (uint8_t)feature_out_normal)
+#define FEATURE_OUT_SWAPPED				(features[feature_out_index] == (uint8_t)feature_out_swapped)
 
 #define FEATURE_ADC_NONE				(features[feature_adc_index] == (uint8_t)feature_adc_none)
 #define FEATURE_ADC_AK5394A				(features[feature_adc_index] == (uint8_t)feature_adc_ak5394a)
@@ -91,23 +148,26 @@ extern features_t features_nvram, features;
 #define FEATURE_DAC_CS4344				(features[feature_dac_index] == (uint8_t)feature_dac_cs4344)
 
 //
+// the version in the features specifies
+// the number of feature indexes and the number of feature values
+// which should change anytime someone alters the list
+// if there is a feature_major or feature_minor mismatch, then
+// the initial values in the build are copied into nvram
+//
+#define FEATURE_MAJOR_DEFAULT			feature_end_index
+#define FEATURE_MINOR_DEFAULT			feature_end_values
+
+//
 // conditionally set the defaults for this build
 //
-#ifndef FEATURE_VERSION_DEFAULT
-#define FEATURE_VERSION_DEFAULT feature_end_index
-#endif
 #ifndef FEATURE_IMAGE_DEFAULT
-//#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_audio
-//#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_dg8saq
-//#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_dg8saq
-//#define FEATURE_IMAGE_DEFAULT			feature_image_hpsdr
+#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
 #endif
-#ifndef FEATURE_IQ_IN_DEFAULT
-#define FEATURE_IQ_IN_DEFAULT			feature_iq_in_normal
+#ifndef FEATURE_IN_DEFAULT
+#define FEATURE_IN_DEFAULT				feature_in_normal
 #endif
-#ifndef FEATURE_IQ_OUT_DEFAULT
-#define FEATURE_IQ_OUT_DEFAULT			feature_iq_out_normal
+#ifndef FEATURE_OUT_DEFAULT
+#define FEATURE_OUT_DEFAULT				feature_out_normal
 #endif
 #ifndef FEATURE_ADC_DEFAULT
 #define FEATURE_ADC_DEFAULT				feature_adc_ak5394a
@@ -117,15 +177,20 @@ extern features_t features_nvram, features;
 #endif
 
 
-#define FEATURES_DEFAULT FEATURE_VERSION_DEFAULT,	\
+#define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
+		FEATURE_MINOR_DEFAULT,						\
 		FEATURE_IMAGE_DEFAULT,						\
-		FEATURE_IQ_IN_DEFAULT,						\
-		FEATURE_IQ_OUT_DEFAULT,						\
+		FEATURE_IN_DEFAULT,							\
+		FEATURE_OUT_DEFAULT,						\
 		FEATURE_ADC_DEFAULT,						\
 		FEATURE_DAC_DEFAULT
 
 extern void features_init();
 extern void features_display(char *title, features_t fp, int delay);
 extern void features_display_all();
+extern uint8_t feature_set(uint8_t index, uint8_t value);
+extern uint8_t feature_get(uint8_t index);
+extern uint8_t feature_set_nvram(uint8_t index, uint8_t value);
+extern uint8_t feature_get_nvram(uint8_t index);
 
 #endif /* FEATURES_H_ */

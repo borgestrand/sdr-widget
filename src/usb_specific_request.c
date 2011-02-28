@@ -120,24 +120,11 @@ Bool freq_changed = FALSE;
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
-U8 dg8saqBuffer[32];	// 32 bytes long return buffer for DG8SAQ commands
-
-
-// int Speedx[38] = {
-// 0x03,0x00,				//Size
-// 0x80,0xbb,0x00,0x00,	//48k Min
-// 0x80,0xbb,0x00,0x00,	//48k Max
-// 0x00,0x00,0x00,0x00,	// 0 Res
 //
-// 0x00,0x77,0x01,0x00,	//96k Min
-// 0x00,0x77,0x01,0x00,	//96k Max
-// 0x00,0x00,0x00,0x00,	// 0 Res
-// 
-// 0x00,0xee,0x02,0x00,	//192k Min
-// 0x00,0xee,0x02,0x00,	//192k Max
-// 0x00,0x00,0x00,0x00	// 0 Res
-// };
-
+// this is the dg8saq command data incoming and outgoing
+// commands are restricted, I think, to 256 bytes
+//
+U8 dg8saqBuffer[256];	// 256 bytes long input/output buffer for DG8SAQ commands
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -258,7 +245,7 @@ Bool usb_user_get_descriptor(U8 type, U8 string)
   return pbuffer != NULL;
 }
 
-Bool usb_user_DG8SAQ(U8 type, U8 command){
+Bool usb_user_DG8SAQ(U8 type, U8 command) {
 
 	U16 wValue, wIndex, wLength;
 	U8 replyLen;
@@ -269,57 +256,53 @@ Bool usb_user_DG8SAQ(U8 type, U8 command){
 	wIndex  = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 	wLength  = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
-		//-------------------------------------------------------------------------------
-		// Process USB Host to Device transmissions.  No result is returned.
-		//-------------------------------------------------------------------------------
-		if (type == (DRD_OUT | DRT_STD | DRT_VENDOR))
-		{
-		        Usb_ack_setup_received_free();
-		        while (!Is_usb_control_out_received());
-		        Usb_reset_endpoint_fifo_access(EP_CONTROL);
+	//-------------------------------------------------------------------------------
+	// Process USB Host to Device transmissions.  No result is returned.
+	//-------------------------------------------------------------------------------
+	if (type == (DRD_OUT | DRT_STD | DRT_VENDOR)) {
+		Usb_ack_setup_received_free();
+		while (!Is_usb_control_out_received());
+		Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-		        //for (x = 0; x<wLength;x++)
-			    if (wLength>0) for (x = wLength-1; x>=0;x--)
-		        {
-			        dg8saqBuffer[x] = Usb_read_endpoint_data(EP_CONTROL, 8);
-		        }
-		        Usb_ack_control_out_received_free();
-		        Usb_ack_control_in_ready_send();
-		        while (!Is_usb_control_in_ready());
+		//for (x = 0; x<wLength;x++)
+		if (wLength>0)
+			for (x = wLength-1; x>=0;x--) {
+				dg8saqBuffer[x] = Usb_read_endpoint_data(EP_CONTROL, 8);
+			}
+		Usb_ack_control_out_received_free();
+		Usb_ack_control_in_ready_send();
+		while (!Is_usb_control_in_ready());
 
-				// This is our all important hook - Do the magic... control Si570 etc...
-				dg8saqFunctionWrite(command, wValue, wIndex, dg8saqBuffer, wLength);
-		}
-		//-------------------------------------------------------------------------------
-		// Process USB query commands and return a result (flexible size data payload)
-		//-------------------------------------------------------------------------------
-		else if (type == (DRD_IN | DRT_STD | DRT_VENDOR))
-		{
-			// This is our all important hook - Process and execute command, read CW paddle state etc...
-			replyLen = dg8saqFunctionSetup(command, wValue, wIndex, dg8saqBuffer);
+		// This is our all important hook - Do the magic... control Si570 etc...
+		dg8saqFunctionWrite(command, wValue, wIndex, dg8saqBuffer, wLength);
+	}
+	//-------------------------------------------------------------------------------
+	// Process USB query commands and return a result (flexible size data payload)
+	//-------------------------------------------------------------------------------
+	else if (type == (DRD_IN | DRT_STD | DRT_VENDOR)) {
+		// This is our all important hook - Process and execute command, read CW paddle state etc...
+		replyLen = dg8saqFunctionSetup(command, wValue, wIndex, dg8saqBuffer);
 
-			Usb_ack_setup_received_free();
+		Usb_ack_setup_received_free();
 
-	        Usb_reset_endpoint_fifo_access(EP_CONTROL);
+		Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-	        // Write out if packet is larger than zero
-	  		if (replyLen)
-	  		{
-				for (x = replyLen-1; x>=0;x--)
-		        {
-			        Usb_write_endpoint_data(EP_CONTROL, 8, dg8saqBuffer[x]);	// send the reply
-		        }
-	  		}
-
-            Usb_ack_control_in_ready_send();
-            while (!Is_usb_control_in_ready());			// handshake modified by Alex 16 May 2010
-
-	        while ( !Is_usb_control_out_received());
-	        Usb_ack_control_out_received_free();
-
+		// Write out if packet is larger than zero
+		if (replyLen) {
+			for (x = replyLen-1; x>=0;x--) {
+				Usb_write_endpoint_data(EP_CONTROL, 8, dg8saqBuffer[x]);	// send the reply
+			}
 		}
 
-		return TRUE;
+		Usb_ack_control_in_ready_send();
+		while (!Is_usb_control_in_ready());			// handshake modified by Alex 16 May 2010
+
+		while ( !Is_usb_control_out_received());
+		Usb_ack_control_out_received_free();
+
+	}
+
+	return TRUE;
 }
 
 #endif  // USB_DEVICE_FEATURE == ENABLED

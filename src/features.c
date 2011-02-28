@@ -1,4 +1,4 @@
-/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 /*
  * features.h
  *
@@ -27,45 +27,9 @@ features_t features = { FEATURES_DEFAULT };
 // these arrays of names need to be kept in sync
 // with the enumerations defined in features.h
 //
-const char *feature_names[] = {
-  // image selection
-  "flashyblinky",
-  "uac1 audio",
-  "uac1 dg8saq",
-  "uac2 audio",
-  "uac2 dg8saq",
-  "hpsdr",
-  "test",
-  "end",
-  // input channel
-  "normal",
-  "swapped",
-  "end",
-  // output channel
-  "normal",
-  "swapped",
-  "end",
-  // adc
-  "none",
-  "ak5394a",
-  "end",
-  // dac
-  "none",
-  "cs4344",
-  "end",
-  // end
-  "end"
-};
+const char *feature_value_names[] = { FEATURE_VALUE_NAMES };
 
-const char *feature_index_names[] = {
-	"vsn",
-	"img",
-	"iq in",
-	"iq out",
-	"adc",
-	"dac",
-	"end"
-};
+const char *feature_index_names[] = { FEATURE_INDEX_NAMES };
 
 //
 static uint8_t display_row = 0;
@@ -114,10 +78,10 @@ void features_init() {
   // Enforce "Factory default settings" when a mismatch is detected between the
   // checksum in the memory copy and the matching number in the NVRAM storage.
   // This can be the result of either a fresh firmware upload, or cmd 0x41 with data 0xff
-  if( FEATURE_VERSION != FEATURE_NVRAM_VERSION ) {
-    flashc_memcpy((void *)&features_nvram, &features, sizeof(features), TRUE);
+  if( FEATURE_MAJOR != FEATURE_MAJOR_NVRAM || FEATURE_MINOR != FEATURE_MINOR_NVRAM ) {
+	  flashc_memcpy((void *)&features_nvram, &features, sizeof(features), TRUE);
   } else {
-    memcpy(&features, &features_nvram, sizeof(features));
+	  memcpy(&features, &features_nvram, sizeof(features));
   }
 }
 
@@ -125,13 +89,13 @@ void features_display(char *title, features_t fp, int delay) {
 	int i;
 	char buff[32];
 	display_string_scroll_and_delay(title, delay);
-	sprintf(buff, "%s = %02x", feature_index_names[feature_version_index], fp[feature_version_index]);
+	sprintf(buff, "%s = %u.%u", "version", fp[feature_major_index], fp[feature_minor_index]);
 	display_string_scroll_and_delay(buff, delay);
 	for (i = feature_image_index; i < feature_end_index; i += 1) {
 		strcpy(buff, feature_index_names[i]);
 		strcat(buff, " = ");
 		if (features[i] < feature_end_values)
-			strcat(buff, (char *)feature_names[fp[i]]);
+			strcat(buff, (char *)feature_value_names[fp[i]]);
 		else
 			strcat(buff, "invalid!");
 		display_string_scroll_and_delay(buff, delay);
@@ -142,5 +106,27 @@ void features_display_all() {
 	display_clear();
 	features_display("features ram:", features, 10000);
 	features_display("features nvram:", features_nvram, 10000);
+}
+
+uint8_t feature_set(uint8_t index, uint8_t value) {
+	return index > feature_minor_index && index < feature_end_index && value < feature_end_values ?
+		features[index] = value :
+		0xFF;
+}
+
+uint8_t feature_get(uint8_t index) {
+	return index < feature_end_index ? features[index] : 0xFF;
+}
+
+uint8_t feature_set_nvram(uint8_t index, uint8_t value)  {
+	if ( index > feature_minor_index && index < feature_end_index && value < feature_end_values ) {
+		flashc_memset8((void *)&features_nvram[index], value, sizeof(uint8_t), TRUE);
+		return features_nvram[index];
+	} else
+		return 0xFF;
+}
+
+uint8_t feature_get_nvram(uint8_t index)  {
+	return index < feature_end_index ? features_nvram[index] : 0xFF;
 }
 
