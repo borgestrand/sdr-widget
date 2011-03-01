@@ -89,6 +89,7 @@
 
 // image specific definitions moved to *_usb_descriptors.c
 
+U16 configTSK_USB_DEV_PERIOD;
 
 // usb_user_language_id
 const S_usb_language_id usb_user_language_id =

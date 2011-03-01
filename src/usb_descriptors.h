@@ -1415,4 +1415,6 @@ extern const S_usb_aia usb_user_aia;
 #define USB_HID_REPORT_DESC 47
 extern const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC];
 
+extern U16 configTSK_USB_DEV_PERIOD;
+
 #endif  // _USB_DESCRIPTORS_H_

@@ -167,14 +167,14 @@ void hpsdr_device_audio_task(void *pvParameters)
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (TRUE) {
-		vTaskDelayUntil(&xLastWakeTime, configTSK_USB_DAUDIO_PERIOD);
+		vTaskDelayUntil(&xLastWakeTime, HPSDR_configTSK_USB_DAUDIO_PERIOD);
 
 		// First, check the device enumeration state
 		if (!Is_device_enumerated()) { time=0; startup=TRUE; continue; };
 
 		if( startup ) {
 
-			time+=configTSK_USB_DAUDIO_PERIOD;
+			time+=HPSDR_configTSK_USB_DAUDIO_PERIOD;
 #define STARTUP_LED_DELAY  4000
 			if ( time<= 1*STARTUP_LED_DELAY ) {
 				LED_On( LED0 );
