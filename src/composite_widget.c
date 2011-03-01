@@ -207,18 +207,10 @@ int main(void)
   if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
      return 42;
 
-  // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
-  wdt_disable();
-
   gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
 
-  // Initialize features management
-  features_init();
-
-  // if ( FEATURE_ADC_AK5394A )
-  // gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
-
-  gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
+  // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
+  wdt_disable();
 
   // Initialize interrupt controller
   INTC_init_interrupts();
@@ -228,6 +220,9 @@ int main(void)
 
   // Initialize USB clock (on PLL1)
   pm_configure_usb_clock();
+
+  // Initialize features management
+  features_init();
 
   // boot the image
   image_boot();

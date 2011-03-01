@@ -1,3 +1,4 @@
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 #ifndef _SDR_Widget_H_
 #define _SDR_Widget_H_
 
@@ -34,7 +35,7 @@
 //! @{
 #define I2C                 1	// I2C driver
 #define LCD_DISPLAY         1   // 20x4 Liquid Crystal Display (LCD)
-#define SHAFT_ENCODER       1   // Shaft Encoder VFO function
+//#define SHAFT_ENCODER       1   // Shaft Encoder VFO function
 #define Si570               1   // Si570 VXO control funcs (needs I2C driver)
 #define AK5394              1   // 24-bit ADC
 #define AK4382A             0   // 24-bit DAC
@@ -87,10 +88,13 @@
 
 #define	FAN_CONTROL			1	// Turn PA Cooling FAN On/Off, based on temperature
 // Only one of the two below is selected with the FAN Control
-#define	BUILTIN_PCF_FAN		0	// This alternative uses a pin on the builtin PCF8574
+#define	BUILTIN_PCF_FAN		1	// This alternative uses a pin on the builtin PCF8574
 								// pin is definable by Cmd 64 index 3, normally header P1, pin 5
-#define	EXTERN_PCF_FAN		1	// This alternative uses a pin on an external PCF8574
+#define	EXTERN_PCF_FAN		0	// This alternative uses a pin on an external PCF8574
 								// pin is definable by Cmd 64 index 3
+
+// Audio specific features ----------------------------------------------------------------
+#define	TX_BARGRAPH_dB		0	// TX audio bargraph in dB or VU-meter style
 
 // Tests and Debug ------------------------------------------------------------------------
 #define FRQ_IN_FIRST_LINE	1	// Normal Frequency display in first line of LCD. Can be disabled for Debug

@@ -44,6 +44,14 @@
 #endif
 
 
+//#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
+
+// Set up NVRAM (EEPROM) storage
+#if defined (__GNUC__)
+__attribute__((__section__(".userpage")))
+#endif
+mobo_data_t nvram_cdata;
+
 char lcd_pass1[20];									// Pass data to LCD
 char lcd_pass2[20];									// Pass data to LCD
 char lcd_pass3[20];									// Pass data to LCD
@@ -68,153 +76,73 @@ uint8_t		biasInit = 0;							// Power Amplifier Bias initiate flag
 
 uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
 
+/*! \brief Probe and report presence of individual I2C devices
+ *
+ * \retval none
+ */
+static uint8_t i2c_device_probe(uint8_t addr, char *addr_report)
+{
+	uint8_t retval;
 
+	#if LCD_DISPLAY				// Multi-line LCD display
+	static uint8_t row=0, col=0;
+	#endif
 
-// Set up NVRAM (EEPROM) storage
-#if defined (__GNUC__)
-__attribute__((__section__(".userpage")))
-#endif
-mobo_data_t nvram_cdata;
+	retval = (twi_probe(MOBO_TWI,addr)== TWI_SUCCESS);
+	#if LCD_DISPLAY				// Multi-line LCD display
+	if (retval)
+    {
+    	if (row==4) { row=0;col=10; };
+    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+    	lcd_q_goto(row,col);
+    	lcd_q_print(addr_report);
+    	xSemaphoreGive( mutexQueLCD );
+    	vTaskDelay( 2500 );
+    	row++;
+    }
+	#endif
 
-
+	return retval;
+}
 /*! \brief Probe and report which I2C devices are present
  *
- * \retval bool values indicating if I2C devices present
+ * \retval none
  */
-static void i2c_probe(void)
+static void i2c_device_scan(void)
 {
-	#if LCD_DISPLAY				// Multi-line LCD display
-	uint8_t row=0, col=0;
-	#endif
-
 	#if Si570
-	i2c.si570 = (twi_probe(MOBO_TWI, cdata.Si570_I2C_addr)== TWI_SUCCESS);
-	#if LCD_DISPLAY				// Multi-line LCD display
-	if (i2c.si570)
-    {
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    	lcd_q_goto(0,0);
-    	lcd_q_print("SI570  OK");
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
-    }
-	#endif
-	#endif
+	i2c.si570 = i2c_device_probe(cdata.Si570_I2C_addr, "SI570  OK");
+    #endif
 
 	#if TMP100
-    i2c.tmp100 = (twi_probe(MOBO_TWI, cdata.TMP100_I2C_addr)== TWI_SUCCESS);
-    if (i2c.tmp100)
-    {
-		#if LCD_DISPLAY			// Multi-line LCD display
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    	lcd_q_goto(row,0);
-    	lcd_q_print("TMP100 OK");
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
-		#endif
-    }
-    else	// Check default address for TMP101
-    {
-    	i2c.tmp100 = (twi_probe(MOBO_TWI,TMP101_I2C_ADDRESS)== TWI_SUCCESS);
+	i2c.tmp100 = i2c_device_probe(cdata.TMP100_I2C_addr, "TMP100 OK");
+	// If not found at first address, then test second address
+	if (!i2c.tmp100)
+	{
+    	// Test for the presence of a TMP101
+		i2c.tmp100 = i2c_device_probe(TMP101_I2C_ADDRESS, "TMP101 OK");
+			// If found, then write into Flash
     	if (i2c.tmp100)
     	{
-			// If found, then write into Flash
         	cdata.TMP100_I2C_addr = TMP101_I2C_ADDRESS;
     		flashc_memset8((void *)&nvram_cdata.TMP100_I2C_addr, TMP101_I2C_ADDRESS, sizeof(uint8_t), TRUE);
-			#if LCD_DISPLAY			// Multi-line LCD display
-    		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    		lcd_q_goto(row,0);
-    		lcd_q_print("TMP101 OK");
-    		xSemaphoreGive( mutexQueLCD );
-    		vTaskDelay( 2500 );
-        	row++;
-			#endif
     	}
     }
     #endif
+
 	#if AD5301
-    i2c.ad5301 = (twi_probe(MOBO_TWI,cdata.AD5301_I2C_addr)== TWI_SUCCESS);
-	#if LCD_DISPLAY			// Multi-line LCD display
-    if (i2c.ad5301)
-    {
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_goto(row,0);
-    	lcd_q_print("AD5301 OK");
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
-    }
+	i2c.ad5301 = i2c_device_probe(cdata.AD5301_I2C_addr, "AD5301 OK");
 	#endif
-	#endif
+
 	#if AD7991
-	i2c.ad7991 = (twi_probe(MOBO_TWI,cdata.AD7991_I2C_addr)== TWI_SUCCESS);
-	#if LCD_DISPLAY			// Multi-line LCD display
-	if (i2c.ad7991)
-    {
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    	lcd_q_goto(row,0);
-    	lcd_q_print("AD7991 OK");
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
-    }
+	i2c.ad7991 = i2c_device_probe(cdata.AD7991_I2C_addr, "AD7991 OK");
 	#endif
-	#endif
+
 	#if PCF8574
-	i2c.pcfmobo = (twi_probe(MOBO_TWI,cdata.PCF_I2C_Mobo_addr)== TWI_SUCCESS);
-	#if LCD_DISPLAY			// Multi-line LCD display
-	if (i2c.pcfmobo)
-    {
-    	if (row==4) { row=0;col=10; };
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    	lcd_q_goto(row,col);
-    	lcd_q_print("PCF8574 OK");
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
-    }
-	#endif
-	i2c.pcflpf1 = (twi_probe(MOBO_TWI,cdata.PCF_I2C_lpf1_addr)== TWI_SUCCESS);
-	#if LCD_DISPLAY			// Multi-line LCD display
-	if (i2c.pcflpf1)
-    {
-    	if (row==4) { row=0;col=10; };
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    	lcd_q_goto(row,col);
-    	lcd_q_print("PCFLPF1 OK");
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
-    }
-	#endif
-	i2c.pcflpf2 = (twi_probe(MOBO_TWI,cdata.PCF_I2C_lpf2_addr)== TWI_SUCCESS);
-	#if LCD_DISPLAY			// Multi-line LCD display
-	if (i2c.pcflpf2)
-    {
-    	if (row==4) { row=0;col=10; };
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    	lcd_q_goto(row,col);
-    	lcd_q_print("PCFLPF2 OK");
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
-    }
-	#endif
-	i2c.pcfext = (twi_probe(MOBO_TWI,cdata.PCF_I2C_Ext_addr)== TWI_SUCCESS);
-	#if LCD_DISPLAY			// Multi-line LCD display
-	if (i2c.pcfext)
-    {
-    	if (row==4) { row=0;col=10; };
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    	lcd_q_goto(row,col);
-    	lcd_q_print("PCF_EXT OK");
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
-    }
-	#endif
+	i2c.pcfmobo = i2c_device_probe(cdata.PCF_I2C_Mobo_addr, "PCF8574 OK");
+	i2c.pcflpf1 = i2c_device_probe(cdata.PCF_I2C_lpf1_addr, "PCFLPF1 OK");
+	i2c.pcflpf2 = i2c_device_probe(cdata.PCF_I2C_lpf2_addr, "PCFLPF2 OK");
+	i2c.pcfext = i2c_device_probe(cdata.PCF_I2C_Ext_addr, "PCF_EXT OK");
 	// Probe for all possible PCF8574 addresses to prevent a later attempt to
 	// write to a nonexistent I2C device.  Otherwise the I2C driver would end
 	// up in a funk.
@@ -408,11 +336,13 @@ void Test_SWR(void)
 			measured_SWR = swr;
 		else measured_SWR = 9990;
 
-		#if SWR_ALARM_FUNC										// SWR alarm function, activates a secondary PTT
 		//-------------------------------------------------------------
 		// SWR Alarm function
 		// If PTT is keyed, key the PTT2 line according to SWR status
 		//-------------------------------------------------------------
+		#if SWR_ALARM_FUNC										// SWR alarm function, activates a secondary PTT
+			    if (i2c.pcfmobo)
+					{
 		// On measured Power output and high SWR, force clear RXTX2 and seed timer
 
 		// Compare power measured (in mW) with min Trigger value
@@ -455,6 +385,7 @@ void Test_SWR(void)
 		}
 		#endif//SWR_ALARM_FUNC									// SWR alarm function, activates a secondary PTT
 	}
+	}
 
 	//-------------------------------------------------------------
 	// Not Keyed - Clear PTT2 line
@@ -462,7 +393,8 @@ void Test_SWR(void)
 	else
 	{
 		SWR_alarm = FALSE;								// Clear SWR alarm flag
-		#if  REVERSE_PTT2_LOGIC							// Switch the PTT2 logic
+	    if (i2c.pcfmobo)
+#if  REVERSE_PTT2_LOGIC							// Switch the PTT2 logic
 		pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Clear PTT2 line
 		#else//not REVERSE_PTT2_LOGIC					// Normal PTT2 logic
 		pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Set PTT2 line
@@ -637,7 +569,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 	twi_init();
 
     // Probe for I2C devices present and report on LCD
-    i2c_probe();
+		i2c_device_scan();
+		//i2c_device_probe();
 	#endif
 
 	#if LCD_DISPLAY			// Multi-line LCD display
@@ -731,12 +664,14 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Bias management poll, every 10ms
 		//---------------------------------
 		// RD16HHF1 PA Bias management
-		PA_bias();										// Autobias and other bias management functions
+		if (i2c.ad7991 && i2c.ad5301)					// Test for presence of required hardware
+			PA_bias();										// Autobias and other bias management functions
 														// This generates no I2C traffic unless bias change or
 														// autobias measurement
 		if (TX_state)
        	{
 			if (i2c.ad7991)
+				{
    				ad7991_poll(cdata.AD7991_I2C_addr);		// Poll the AD7991 for all four values
 
     		#if	POWER_SWR								// Power/SWR measurements and related actions
@@ -746,15 +681,14 @@ static void vtaskMoboCtrl( void * pcParameters )
    														// Writes to the PCF8574 every time (2 bytes)
    														// => constant traffic on I2C (can be improved to slightly
    			#endif										// reduce I2C traffic, at the cost of a few extra bytes)
-
-
+				}
        	}
 		//--------------------------
       	// RX stuff, once every 10ms
       	//--------------------------
 		else
    		{
-
+			// Hmm
    		}
 
       	//------------------------------
@@ -873,9 +807,6 @@ static void vtaskMoboCtrl( void * pcParameters )
        	//-------------------------
    		// PTT Control, every 10ms
    		//-------------------------
-       	#if PCF8574
-    	if(i2c.pcfmobo)							// Make sure the Mobo PCF is present
-    	{
 			if ((TX_flag) && !TX_state)			// Asked for TX on, TX not yet on
 			{
 		   		// Set PTT if there are no inhibits
@@ -884,7 +815,13 @@ static void vtaskMoboCtrl( void * pcParameters )
 					TX_state = TRUE;
 					// Todo biasInit = 0;		// Ensure that correct bias is set by PA_bias()
 					// Switch to Transmit mode, set TX out
+				#if PCF8574
+				if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
 					pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
+				else
+				#endif
+					gpio_set_gpio_pin(PTT_1);
+
 					LED_Off(LED0);
 					#if LCD_DISPLAY				// Multi-line LCD display
 					#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
@@ -902,7 +839,13 @@ static void vtaskMoboCtrl( void * pcParameters )
 			else if (!TX_flag && TX_state)		// Asked for TX off, TX still on
 			{
 				TX_state = FALSE;
+			#if PCF8574
+			if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
 				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
+			else
+			#endif
+				gpio_clr_gpio_pin(PTT_1);
+
 				LED_On(LED0);
        	    	if (!MENU_mode)
        	    	{
@@ -918,15 +861,11 @@ static void vtaskMoboCtrl( void * pcParameters )
 					#if TMP_V_I_SECOND_LINE			// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
     	    		lcd_display_V_C_T_in_2nd_line();// Print LCD 2nd line stuff
 					#endif
-
     	    		// Force rewrite of 1st line of LCD by faking USB input
     	    		freq_from_usb = cdata.Freq[0];
     	    		FRQ_fromusb = TRUE;
        	    	}
 			}
-    	}
-    	else TX_state = FALSE;					// If no PCF, then this can only be receive
-		#endif
 		#endif
 
         LED_Toggle(LED2);
