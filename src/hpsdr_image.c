@@ -60,6 +60,7 @@
 
 // image launch
 static void x_image_boot(void) {
+	configTSK_USB_DEV_PERIOD = HPSDR_configTSK_USB_DEV_PERIOD;
 }
 
 static void x_image_init(void) {

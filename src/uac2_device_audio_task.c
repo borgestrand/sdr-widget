@@ -156,7 +156,7 @@ void uac2_device_audio_task(void *pvParameters)
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (TRUE) {
-		vTaskDelayUntil(&xLastWakeTime, configTSK_USB_DAUDIO_PERIOD);
+		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
 		// First, check the device enumeration state
 		if (!Is_device_enumerated()) { time=0; startup=TRUE; continue; };
@@ -164,7 +164,7 @@ void uac2_device_audio_task(void *pvParameters)
 		if( startup ) {
 
 
-			time+=configTSK_USB_DAUDIO_PERIOD;
+			time+=UAC2_configTSK_USB_DAUDIO_PERIOD;
 #define STARTUP_LED_DELAY  4000
 			if ( time<= 1*STARTUP_LED_DELAY ) {
 				LED_On( LED0 );

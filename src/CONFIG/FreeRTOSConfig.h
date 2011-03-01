@@ -1,4 +1,4 @@
-/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 /* This header file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
@@ -146,7 +146,9 @@ to exclude the API function. */
 #define configTSK_USB_DEV_NAME                ((const signed portCHAR *)"USB Device")
 #define configTSK_USB_DEV_STACK_SIZE          256
 #define configTSK_USB_DEV_PRIORITY            (tskIDLE_PRIORITY + 3)
-#define configTSK_USB_DEV_PERIOD              2
+#define UAC1_configTSK_USB_DEV_PERIOD              10
+#define UAC2_configTSK_USB_DEV_PERIOD              2
+#define HPSDR_configTSK_USB_DEV_PERIOD              2
 
 /* USB host task definitions. */
 #define configTSK_USB_HST_NAME                ((const signed portCHAR *)"USB Host")
@@ -158,25 +160,33 @@ to exclude the API function. */
 #define configTSK_USB_DCDC_NAME               ((const signed portCHAR *)"USB Device CDC")
 #define configTSK_USB_DCDC_STACK_SIZE         256
 #define configTSK_USB_DCDC_PRIORITY           (tskIDLE_PRIORITY + 1)
-#define configTSK_USB_DCDC_PERIOD             80
+#define UAC1_configTSK_USB_DCDC_PERIOD             200
+#define UAC2_configTSK_USB_DCDC_PERIOD             80
+#define HPSDR_configTSK_USB_DCDC_PERIOD             80
 
 /* USB device HID task definitions. */
-#define configTSK_USB_DHID_MOUSE_NAME         ((const signed portCHAR *)"USB Device Mouse HID")
-#define configTSK_USB_DHID_MOUSE_STACK_SIZE   256
+#define configTSK_USB_DHID_MOUSE_NAME			((const signed portCHAR *)"USB Device Mouse HID")
+#define configTSK_USB_DHID_MOUSE_STACK_SIZE		256
 #define configTSK_USB_DHID_MOUSE_PRIORITY     (tskIDLE_PRIORITY + 1)
 #define configTSK_USB_DHID_MOUSE_PERIOD       200
 
 /* USB device Audio task definitions. */
-#define configTSK_USB_DAUDIO_NAME             ((const signed portCHAR *)"USB Device Audio")
-#define configTSK_USB_DAUDIO_STACK_SIZE       256
-#define configTSK_USB_DAUDIO_PRIORITY         (tskIDLE_PRIORITY + 2)
-#define configTSK_USB_DAUDIO_PERIOD           1
+#define configTSK_USB_DAUDIO_NAME				((const signed portCHAR *)"USB Device Audio")
+#define configTSK_USB_DAUDIO_STACK_SIZE			256
+#define configTSK_USB_DAUDIO_PRIORITY			(tskIDLE_PRIORITY + 2)
+#define UAC1_configTSK_USB_DAUDIO_PERIOD		2
+#define UAC2_configTSK_USB_DAUDIO_PERIOD		1
+#define HPSDR_configTSK_USB_DAUDIO_PERIOD		2
 
 /* AK5394A task definitions. */
-#define configTSK_AK5394A_NAME             	((const signed portCHAR *)"AK5394A")
-#define configTSK_AK5394A_STACK_SIZE       	256
-#define configTSK_AK5394A_PRIORITY         	(tskIDLE_PRIORITY + 3)// Was +1, then +2
-#define configTSK_AK5394A_PERIOD           	200
+#define configTSK_AK5394A_NAME					((const signed portCHAR *)"AK5394A")
+#define configTSK_AK5394A_STACK_SIZE			256
+#define UAC1_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 2)// Was 1
+#define UAC2_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 3)// Was +1, then +2
+#define HPSDR_configTSK_AK5394A_PRIORITY		(tskIDLE_PRIORITY + 2)
+#define UAC1_configTSK_AK5394A_PERIOD			200
+#define UAC2_configTSK_AK5394A_PERIOD			200
+#define HPSDR_configTSK_AK5394A_PERIOD			100
 
 /* USB host Audio HID task definitions. */
 #define configTSK_USB_HAUDIO_NAME             ((const signed portCHAR *)"USB Host Audio")

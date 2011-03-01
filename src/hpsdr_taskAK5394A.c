@@ -72,7 +72,7 @@ void hpsdr_AK5394A_task_init(void) {
 				configTSK_AK5394A_NAME,
 				configTSK_AK5394A_STACK_SIZE,
 				NULL,
-				configTSK_AK5394A_PRIORITY,
+				HPSDR_configTSK_AK5394A_PRIORITY,
 				NULL);
 }
 
@@ -87,7 +87,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 		// All the hardwork is done by the pdca and the interrupt handler.
 		// Just check whether sampling freq is changed, to do rate change etc.
 
-		vTaskDelayUntil(&xLastWakeTime, configTSK_AK5394A_PERIOD);
+		vTaskDelayUntil(&xLastWakeTime, HPSDR_configTSK_AK5394A_PERIOD);
 
 		if (freq_changed) {
 
