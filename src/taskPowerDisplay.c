@@ -229,121 +229,121 @@ static void vtaskPowerDisplay( void * pcParameters )
     				audio_max_1_neg = audio_sample_buffer[1][j];
     		}
 
-       		//
-            // If no I2C, then Calculate and display RX & TX Audio Power including bargraphs
-            //
-    		if(!i2c.si570)
-    		{
-   	        	static uint8_t l=0,m;
-   	        	uint32_t spk_sample0, spk_sample1;
-   	        	int32_t spk_sample_buffer[2][20];
-   	        	int32_t spk_max_0_pos, spk_max_0_neg;
-   	        	int32_t spk_max_1_pos, spk_max_1_neg;
-   	           	float spk_max_0, spk_max_1;
+			// Do only once every 100ms
+			if (k == 0) {
 
-   	        	// Normalize values
-   	        	spk_sample0 = spk_buffer_0[0];
-   	        	if(spk_sample0>0x7FFFFF)
-   	         		spk_sample0 = spk_sample0 - 0x1000000;
-   	        		//spk_sample0 = 0xFFFFFF - spk_sample0;
+				//
+				// If no I2C, then Calculate and display RX & TX Audio Power including bargraphs
+				//
+				if(!i2c.si570)
+					{
+						static uint8_t l=0,m;
+						uint32_t spk_sample0, spk_sample1;
+						int32_t spk_sample_buffer[2][20];
+						int32_t spk_max_0_pos, spk_max_0_neg;
+						int32_t spk_max_1_pos, spk_max_1_neg;
+						float spk_max_0, spk_max_1;
 
-   	        	spk_sample1 = spk_buffer_0[1];
-   	         	if(spk_sample1>0x7FFFFF)
-   	         		spk_sample1 = spk_sample1 - 0x1000000;
-   	         		//spk_sample1 = 0xFFFFFF - spk_sample1;
+						// Normalize values
+						spk_sample0 = spk_buffer_0[0];
+						if(spk_sample0>0x7FFFFF)
+							spk_sample0 = spk_sample0 - 0x1000000;
+						//spk_sample0 = 0xFFFFFF - spk_sample0;
 
-   	        	// Store samples in a Ring Buffer
-   	        	spk_sample_buffer[0][l] = spk_sample0;
-   	        	spk_sample_buffer[1][l] = spk_sample1;
-   	        	l++;
-   	    		if (l >= bufsize) l = 0;
-   	    		// Retrieve the largest pos/neg value out of the measured window
-   	    		spk_max_0_pos = 0;
-   	    		spk_max_0_neg = 0;
-   	    		spk_max_1_pos = 0;
-   	    		spk_max_1_neg = 0;
-   	    		for (m = 0; m < bufsize; m++)
-   	    		{
-   	    			if (spk_sample_buffer[0][m] > spk_max_0_pos)
-   	    				spk_max_0_pos = spk_sample_buffer[0][m];
-   	    			if (spk_sample_buffer[0][m] < spk_max_0_neg)
-   	    				spk_max_0_neg = spk_sample_buffer[0][m];
-   	    			if (spk_sample_buffer[1][m] > spk_max_1_pos)
-   	    				spk_max_1_pos = spk_sample_buffer[0][m];
-   	    			if (spk_sample_buffer[1][m] < spk_max_1_neg)
-   	    				spk_max_1_neg = spk_sample_buffer[1][m];
-   	    		}
+						spk_sample1 = spk_buffer_0[1];
+						if(spk_sample1>0x7FFFFF)
+							spk_sample1 = spk_sample1 - 0x1000000;
+						//spk_sample1 = 0xFFFFFF - spk_sample1;
 
-   	    		// Calculate RX audio in dB, TX audio in % power
-       			audio_max_0_dB = 20 * log10f(1+audio_max_0_pos-audio_max_0_neg);
-       			audio_max_1_dB = 20 * log10f(1+audio_max_1_pos-audio_max_1_neg);
-    	     	sprintf(lcd_prtdb,"%4.0fdB  RXpwr %4.0fdB",
-    	     			audio_max_0_dB-144.0, audio_max_1_dB-144.0);
+						// Store samples in a Ring Buffer
+						spk_sample_buffer[0][l] = spk_sample0;
+						spk_sample_buffer[1][l] = spk_sample1;
+						l++;
+						if (l >= bufsize) l = 0;
+						// Retrieve the largest pos/neg value out of the measured window
+						spk_max_0_pos = 0;
+						spk_max_0_neg = 0;
+						spk_max_1_pos = 0;
+						spk_max_1_neg = 0;
+						for (m = 0; m < bufsize; m++)
+							{
+								if (spk_sample_buffer[0][m] > spk_max_0_pos)
+									spk_max_0_pos = spk_sample_buffer[0][m];
+								if (spk_sample_buffer[0][m] < spk_max_0_neg)
+									spk_max_0_neg = spk_sample_buffer[0][m];
+								if (spk_sample_buffer[1][m] > spk_max_1_pos)
+									spk_max_1_pos = spk_sample_buffer[0][m];
+								if (spk_sample_buffer[1][m] < spk_max_1_neg)
+									spk_max_1_neg = spk_sample_buffer[1][m];
+							}
 
-    			// TX audio bargraph in dB or VU-meter style
-				#if	TX_BARGRAPH_dB
-       			spk_max_0_dB = 20 * log10f(1+spk_max_0_pos-spk_max_0_neg);
-       			spk_max_1_dB = 20 * log10f(1+spk_max_1_pos-spk_max_1_neg);
-    	     	sprintf(lcd_prtdb2,"%4.0fdB  TXpwr %4.0fdB",
-    	     			spk_max_0_dB-144.0, spk_max_1_dB-144.0);
-				#else
-    	     	spk_max_0 = pow((float)(spk_max_0_pos-spk_max_0_neg)/(float)0xc0000, 2);
-       			spk_max_1 = pow((float)(spk_max_1_pos-spk_max_1_neg)/(float)0xc0000, 2);
-       			if (spk_max_0 > 100) spk_max_0 = 100;
-       			if (spk_max_1 > 100) spk_max_1 = 100;
-    	     	sprintf(lcd_prtdb2,"%4.0f%%   TXpwr %4.0f%% ", spk_max_0, spk_max_1);
-				#endif
+						// Calculate RX audio in dB, TX audio in % power
+						audio_max_0_dB = 20 * log10f(1+audio_max_0_pos-audio_max_0_neg);
+						audio_max_1_dB = 20 * log10f(1+audio_max_1_pos-audio_max_1_neg);
+						sprintf(lcd_prtdb,"%4.0fdB  RXpwr %4.0fdB",
+								audio_max_0_dB-144.0, audio_max_1_dB-144.0);
 
-				// Prepare bargraphs
-       	 		// progress, maxprogress, len
-       	 		lcdProgressBar(audio_max_0_dB, 144, 9, lcd_bar1);
-       	 		*(lcd_bar1+9)=' ';
-       	 		*(lcd_bar1+10)=' ';
-       	 		lcdProgressBar(audio_max_1_dB, 144, 9, lcd_bar1+11);
-    	     	lcdProgressBar(spk_max_0, 100, 9, lcd_bar2);
-       	 		*(lcd_bar2+9)=' ';
-    	     	*(lcd_bar2+10)=' ';
-    	     	lcdProgressBar(spk_max_1, 100, 9, lcd_bar2+11);
+						// TX audio bargraph in dB or VU-meter style
+						#if	TX_BARGRAPH_dB
+						spk_max_0_dB = 20 * log10f(1+spk_max_0_pos-spk_max_0_neg);
+						spk_max_1_dB = 20 * log10f(1+spk_max_1_pos-spk_max_1_neg);
+						sprintf(lcd_prtdb2,"%4.0fdB  TXpwr %4.0fdB",
+								spk_max_0_dB-144.0, spk_max_1_dB-144.0);
+						#else
+						spk_max_0 = pow((float)(spk_max_0_pos-spk_max_0_neg)/(float)0xc0000, 2);
+						spk_max_1 = pow((float)(spk_max_1_pos-spk_max_1_neg)/(float)0xc0000, 2);
+						if (spk_max_0 > 100) spk_max_0 = 100;
+						if (spk_max_1 > 100) spk_max_1 = 100;
+						sprintf(lcd_prtdb2,"%4.0f%%   TXpwr %4.0f%% ", spk_max_0, spk_max_1);
+						#endif
 
-    	     	if (!MENU_mode)
-       	    	{
-        	     	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-            		lcd_q_goto(0,0);
-          	     	lcd_q_print(lcd_bar1);
-        	     	lcd_q_goto(1,0);
-       				lcd_q_print(lcd_prtdb);
-            		lcd_q_goto(2,0);
-          	     	lcd_q_print(lcd_bar2);
-       				lcd_q_goto(3,0);
-       				lcd_q_print(lcd_prtdb2);
-       				xSemaphoreGive( mutexQueLCD );
-       	    	}
-    		}
-    		// Display RX audio power stuff in third line, if Si570
-    		else
-	    	{
-        		// Do only once every 100ms
-        		if (k == 0)
-        		{
-        			// Calculate and display dB
-        			audio_max_0_dB = 20 * log10f(1+audio_max_0_pos-audio_max_0_neg);
-        			audio_max_1_dB = 20 * log10f(1+audio_max_1_pos-audio_max_1_neg);
+						// Prepare bargraphs
+						// progress, maxprogress, len
+						lcdProgressBar(audio_max_0_dB, 144, 9, lcd_bar1);
+						*(lcd_bar1+9)=' ';
+						*(lcd_bar1+10)=' ';
+						lcdProgressBar(audio_max_1_dB, 144, 9, lcd_bar1+11);
+						lcdProgressBar(spk_max_0, 100, 9, lcd_bar2);
+						*(lcd_bar2+9)=' ';
+						*(lcd_bar2+10)=' ';
+						lcdProgressBar(spk_max_1, 100, 9, lcd_bar2+11);
 
-        	     	sprintf(lcd_prtdb,"RXpwr %4.0fdB  %4.0fdB",
-        	     			audio_max_0_dB-144.0, audio_max_1_dB-144.0);
+						if (!MENU_mode)
+							{
+								xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+								lcd_q_goto(0,0);
+								lcd_q_print(lcd_bar1);
+								lcd_q_goto(1,0);
+								lcd_q_print(lcd_prtdb);
+								lcd_q_goto(2,0);
+								lcd_q_print(lcd_bar2);
+								lcd_q_goto(3,0);
+								lcd_q_print(lcd_prtdb2);
+								xSemaphoreGive( mutexQueLCD );
+							}
+					}
+				// Display RX audio power stuff in third line, if Si570
+				else
+					{
+						// Calculate and display dB
+						audio_max_0_dB = 20 * log10f(1+audio_max_0_pos-audio_max_0_neg);
+						audio_max_1_dB = 20 * log10f(1+audio_max_1_pos-audio_max_1_neg);
 
-           	    	if (!MENU_mode)
-           	    	{
-            	     	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-            				lcd_q_goto(2,0);
-            				lcd_q_print(lcd_prtdb);
-            	    	xSemaphoreGive( mutexQueLCD );
-           	    	}
-        		}
-        		k++;
-        		if (k == 41) k = 0;	// Print dB to LCD once every 205ms
+						sprintf(lcd_prtdb,"RXpwr %4.0fdB  %4.0fdB",
+								audio_max_0_dB-144.0, audio_max_1_dB-144.0);
 
-    		}
+						if (!MENU_mode)
+							{
+								xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+								lcd_q_goto(2,0);
+								lcd_q_print(lcd_prtdb);
+								xSemaphoreGive( mutexQueLCD );
+							}
+
+					}
+			}
+			k++;
+			if (k == 41) k = 0;	// Print dB to LCD once every 205ms
     		#endif
 
     		#if DISP_RX_DB_HPF

@@ -347,6 +347,7 @@ void freq_and_filter_control(void)
     }
 	#if LCD_DISPLAY      						    // Multi-line LCD display
 	#if FRQ_IN_FIRST_LINE							// Normal Frequency display in first line of LCD. Can be disabled for Debug
+	#if 0
 	else
     {
        	if (!MENU_mode)
@@ -357,6 +358,7 @@ void freq_and_filter_control(void)
         	xSemaphoreGive( mutexQueLCD );
        	}
     }
+	#endif
 	#endif
 	#endif
 }
