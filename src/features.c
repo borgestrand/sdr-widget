@@ -105,7 +105,7 @@ void features_display(char *title, features_t fp, int delay) {
 void features_display_all() {
 	display_clear();
 	features_display("features ram:", features, 10000);
-	features_display("features nvram:", features_nvram, 10000);
+	// features_display("features nvram:", features_nvram, 10000);
 }
 
 uint8_t feature_set(uint8_t index, uint8_t value) {
