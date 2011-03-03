@@ -41,6 +41,9 @@
 char lcd_prt1[10];
 char lcd_prt2[10];
 char lcd_prt3[10];
+// some of these were too short and were getting
+// concatenated onto the following array when
+// 20 characters were printed into them.
 char lcd_prtdb[21];
 char lcd_prtdb2[21];
 char lcd_prtdbhpf[21];
@@ -317,19 +320,19 @@ static void vtaskPowerDisplay( void * pcParameters )
 						}
 
 						// Calculate RX audio in dB, TX audio in % power
-						int audio_max_0_dB = twenty_log10(audio_max_0);
-						int audio_max_1_dB = twenty_log10(audio_max_1);
+						int audio_max_0_dB = twenty_log10(2*audio_max_0);
+						int audio_max_1_dB = twenty_log10(2*audio_max_1);
 						sprintf(lcd_prtdb,"%4ddB   in   %4ddB", audio_max_0_dB-144, audio_max_1_dB-144); 
 						// TX audio bargraph in dB or VU-meter style
 #undef TX_BARGRAPH_dB
 #define TX_BARGRAPH_dB 0
 						#if	TX_BARGRAPH_dB
-						int spk_max_0_dB = twenty_log10(spk_max_0);
-						int spk_max_1_dB = twenty_log10(spk_max_1);
+						int spk_max_0_dB = twenty_log10(2*spk_max_0);
+						int spk_max_1_dB = twenty_log10(2*spk_max_1);
 						sprintf(lcd_prtdb2,"%4ddB   out  %4ddB", spk_max_0_dB-144, spk_max_1_dB-144);
 						#else
-						int spk_max_0_pct = min(100, pow_2_ratio(spk_max_0, 0xc0000));
-						int spk_max_1_pct = min(100, pow_2_ratio(spk_max_1, 0xc0000));
+						int spk_max_0_pct = min(100, pow_2_ratio(2*spk_max_0, 0xc0000));
+						int spk_max_1_pct = min(100, pow_2_ratio(2*spk_max_1, 0xc0000));
 						sprintf(lcd_prtdb2,"%4d%%    out  %4d%% ", spk_max_0_pct, spk_max_1_pct);
 						#endif
 
