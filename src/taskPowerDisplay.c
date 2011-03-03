@@ -120,9 +120,9 @@ static int twenty_log10(unsigned bits) {
 
 // compute the squared ratio of sample to sample max * 100
 static int pow_2_ratio(uint32_t denom, uint32_t numer) {
-	return (int)pow((float)denom / numer, 2);
+	// return (int)pow((float)denom / numer, 2);
 	// should be able to do it this way
-	// return (int)((unsigned long long)denom * denom) / ((unsigned long long)numer * numer);
+	return (int)(((((unsigned long long)denom) * denom) / numer) / numer);
 }
 
 /*! \brief Display stuff that goes into the 3rd and 4th line of the LCD display
