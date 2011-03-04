@@ -44,7 +44,7 @@ char lcd_prt3[10];
 // some of these were too short and were getting
 // concatenated onto the following array when
 // 20 characters were printed into them.
-char lcd_prtdb[21];
+char lcd_prtdb1[21];
 char lcd_prtdb2[21];
 char lcd_prtdbhpf[21];
 char lcd_bar1[21];
@@ -87,6 +87,10 @@ static int twenty_log10(unsigned bits) {
   }
 
   int result = 0;
+
+  // deal with the invalid input
+  if (bits == 0)
+	  return 0;
 
   // shift the implicit 1 into position
   if ((bits & 0xFF000000) != 0) {
@@ -322,18 +326,16 @@ static void vtaskPowerDisplay( void * pcParameters )
 						// Calculate RX audio in dB, TX audio in % power
 						int audio_max_0_dB = twenty_log10(2*audio_max_0);
 						int audio_max_1_dB = twenty_log10(2*audio_max_1);
-						sprintf(lcd_prtdb,"%4ddB   in   %4ddB", audio_max_0_dB-144, audio_max_1_dB-144); 
+						sprintf(lcd_prtdb1,"%4ddB  adc  %4ddB", audio_max_0_dB-144, audio_max_1_dB-144); 
 						// TX audio bargraph in dB or VU-meter style
-#undef TX_BARGRAPH_dB
-#define TX_BARGRAPH_dB 0
 						#if	TX_BARGRAPH_dB
 						int spk_max_0_dB = twenty_log10(2*spk_max_0);
 						int spk_max_1_dB = twenty_log10(2*spk_max_1);
-						sprintf(lcd_prtdb2,"%4ddB   out  %4ddB", spk_max_0_dB-144, spk_max_1_dB-144);
+						sprintf(lcd_prtdb2,"%4ddB  dac  %4ddB", spk_max_0_dB-144, spk_max_1_dB-144);
 						#else
 						int spk_max_0_pct = min(100, pow_2_ratio(2*spk_max_0, 0xc0000));
 						int spk_max_1_pct = min(100, pow_2_ratio(2*spk_max_1, 0xc0000));
-						sprintf(lcd_prtdb2,"%4d%%    out  %4d%% ", spk_max_0_pct, spk_max_1_pct);
+						sprintf(lcd_prtdb2,"%4d%%   dac   %4d%%", spk_max_0_pct, spk_max_1_pct);
 						#endif
 
 						// Prepare bargraphs
@@ -358,7 +360,7 @@ static void vtaskPowerDisplay( void * pcParameters )
    	            		lcd_q_goto(0,0);
    	          	     	lcd_q_print(lcd_bar1);
    	        	     	lcd_q_goto(1,0);
-   	       				lcd_q_print(lcd_prtdb);
+   	       				lcd_q_print(lcd_prtdb1);
    	            		lcd_q_goto(2,0);
    	          	     	lcd_q_print(lcd_bar2);
    	       				lcd_q_goto(3,0);
@@ -394,12 +396,12 @@ static void vtaskPowerDisplay( void * pcParameters )
 						}
 
 						// Calculate RX audio in dB
-						sprintf(lcd_prtdb,"%4ddB  RXpwr %4ddB",
+						sprintf(lcd_prtdb1,"%4ddB  RXpwr %4ddB",
 								twenty_log10(audio_max_0)-144, twenty_log10(audio_max_1)-144);
 
             	     	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 						lcd_q_goto(2,0);
-						lcd_q_print(lcd_prtdb);
+						lcd_q_print(lcd_prtdb1);
             	    	xSemaphoreGive( mutexQueLCD );
            	    	}
         		}
