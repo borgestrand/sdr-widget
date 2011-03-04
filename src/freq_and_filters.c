@@ -350,7 +350,8 @@ void freq_and_filter_control(void)
 	#if 0
 	else
     {
-       	if (!MENU_mode)
+       	//if (!MENU_mode)
+		if (FRQ_fromusb == TRUE)
        	{
         	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
         	lcd_q_goto(0,3);

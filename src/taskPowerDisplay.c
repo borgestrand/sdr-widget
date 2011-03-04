@@ -41,12 +41,93 @@
 char lcd_prt1[10];
 char lcd_prt2[10];
 char lcd_prt3[10];
-char lcd_prtdb[20];
-char lcd_prtdb2[20];
-char lcd_prtdbhpf[20];
+// some of these were too short and were getting
+// concatenated onto the following array when
+// 20 characters were printed into them.
+char lcd_prtdb1[21];
+char lcd_prtdb2[21];
+char lcd_prtdbhpf[21];
 char lcd_bar1[21];
 char lcd_bar2[21];
 
+//
+// use small static functions,
+// they'll be expanded inline by the compiler
+//
+
+// normalize an audio sample
+static int normalize_sample(unsigned sample) {
+	return abs((((int)sample) << 8) >> 8);
+}
+
+//
+// compute the integer decibels
+// of an unsigned integer value
+// using integer operations and
+// 256 precomputed values.
+// call this once to initialize
+// the table before using it
+// in time critical code.
+//
+static int twenty_log10(unsigned bits) {
+  // fixed point 8.8 log10 of 9 bit patterns
+  // from 0x100 to 0x1FF where the 0x100 is implicit
+  static short log10_9bits[256];
+  // fixed point 8.8 log10 of 2
+  static short log10_2;
+
+  if (log10_2 == 0) {
+    // initialize the tables
+    unsigned i;
+    for (i = 0; i < 256; i += 1) {
+      log10_9bits[i] = log10(256+i) * 256;
+      // fprintf(stdout, "log10(0x%x): float = %f, fixed = %f\n", 256+i, log10(256+i), log10_9bits[i] / 256.0);
+    }
+    log10_2 = log10(2) * 256;
+  }
+
+  int result = 0;
+
+  // deal with the invalid input
+  if (bits == 0)
+	  return 0;
+
+  // shift the implicit 1 into position
+  if ((bits & 0xFF000000) != 0) {
+    bits >>= 16;
+    result += 16 * log10_2;
+  }
+  if ((bits & 0x00FF0000) != 0) {
+    bits >>= 8;
+    result += 8 * log10_2;
+  }
+  if ((bits & 0x0000F000) != 0) {
+    bits >>= 4;
+    result += 4 * log10_2;
+  }
+  while ((bits & 0x1FF) != bits) {
+    bits >>= 1;
+    result += log10_2;
+  }
+  // in case we were less than 0x1FF
+  while ((bits & 0x100) == 0) {
+    bits <<= 1;
+    result -= log10_2;
+  }
+  // compute the log10 result in 8.8
+  result += log10_9bits[bits&0xFF];
+  // convert to dB and round the fraction
+  // fprintf(stdout, "twenty_log10(0x%x = %f\n", bits, (20 * result) / 256.0);
+  // it isn't rounding, and I don't really understand why it isn't
+  return (20 * result + 0x80) >> 8;
+}
+
+// compute the squared ratio of sample to sample max * 100
+static int pow_2_ratio(uint32_t denom, uint32_t numer) {
+	// return (int)pow((float)denom / numer, 2);
+	// should be able to do it this way
+	return (int)(((((unsigned long long)denom) * denom) / numer) / numer);
+}
 
 /*! \brief Display stuff that goes into the 3rd and 4th line of the LCD display
  * Power & SWR during Transmit and display audio amplitude in dB_full_scale during Receive
@@ -55,14 +136,44 @@ char lcd_bar2[21];
  */
 static void vtaskPowerDisplay( void * pcParameters )
 {
-	// Wait while the Mobo Stuff catches up
+#if 0
+	// Wait for 9 seconds while the Mobo Stuff catches up
+	vTaskDelay(90000 );
+#else
+	// Wait until the Mobo Stuff, and other initialization, catches up
 	vTaskDelay(10000 );								// defer to other tasks
 	xSemaphoreTake( mutexInit, portMAX_DELAY );		// wait for initialization complete
 	xSemaphoreGive( mutexInit );					// release and continue
+#endif
+
+	// set these up here so the compiler knows they don't change
+	const Bool have_si570 = i2c.si570;
+	const uint8_t bufsize = have_si570 ? 200 : 20; // IF RXdb only, then a large ringbuffer, else smaller
 
 	uint16_t pow_avg[PEP_MAX_PERIOD];		// Power measurement ringbuffer
+	uint8_t pow_avg_index = 0;
+	int audio_sample_buffer[2][bufsize];	// audio input ringbuffer
+	uint8_t audio_sample_buffer_index = 0;
+	int spk_sample_buffer[2][bufsize];		// audio output ringbuffer
+	uint8_t spk_sample_buffer_index = 0;
 
-    while( 1 )
+	Bool clear_pow_avg = FALSE;				// Whether the ! TX_state needs to clear pow_avg
+
+	uint8_t tx_print = 0;					// tx information print loop count down
+	uint8_t print_count = 0;				// audio information print loop count down
+/*
+#if 1
+	// Wait for 9 seconds while the Mobo Stuff catches up
+	vTaskDelay(90000 );
+#else
+	// Wait until the Mobo Stuff, and other initialization, catches up
+	vTaskDelay(10000 );								// defer to other tasks
+	xSemaphoreTake( mutexInit, portMAX_DELAY );		// wait for initialization complete
+	xSemaphoreGive( mutexInit );					// release and continue
+#endif
+*/
+
+	while( 1 )
     {
     	if (TX_state)
     	{
@@ -75,7 +186,6 @@ static void vtaskPowerDisplay( void * pcParameters )
     		//---------------------------------------
     		// Print to LCD once every 105ms (21*5ms)
     		//---------------------------------------
-    		static uint8_t tx_print = 0;
    	 		tx_print++;
     		if (tx_print == 21) tx_print = 0;
     		if (tx_print == 0)
@@ -83,12 +193,10 @@ static void vtaskPowerDisplay( void * pcParameters )
        	 		// Prepare Power readout
        	 		pow_tot = measured_Power(ad7991_adc[AD7991_POWER_OUT]);// Power in cW
 
-       	 		static uint8_t i = 0;
-
     			// Store value in ringbuffer
-       	 		pow_avg[i] = pow_tot;
-       	 		i++;
-       	 		if (i >= cdata.PEP_samples) i = 0;
+       	 		pow_avg[pow_avg_index] = pow_tot;
+       	 		pow_avg_index++;
+       	 		if (pow_avg_index >= cdata.PEP_samples) pow_avg_index = 0;
 
        	 		// Retrieve the largest value out of the measured window
        	 		pow_tot = 0;
@@ -110,11 +218,12 @@ static void vtaskPowerDisplay( void * pcParameters )
 
            	 		pow = pow_tot / 100; 				// Watts
            	 		pow_cw = pow_tot % 100;				// centiWatts
-
            	 		sprintf(lcd_prt1, "P%3lu.%02luW", pow, pow_cw);
-          	     	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+
+           	 		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
             		lcd_q_goto(2,0);
             		lcd_q_print(lcd_bar1);
+            		lcd_q_goto(2,12);
             		lcd_q_print(lcd_prt1);
             		xSemaphoreGive( mutexQueLCD );
 
@@ -156,13 +265,13 @@ static void vtaskPowerDisplay( void * pcParameters )
            	 			sprintf(lcd_prt3,"%02u", swr_hundredths);// Print the sub-decimal value of the SWR, double digit precision
 
           	     	lcd_q_print(lcd_prt3);
-
             		xSemaphoreGive( mutexQueLCD );
 
             		// Todo... a bit off, when many tasks are messing with the LCD
-            		lcd_q_goto(1,39);							// In case blinking cursor, put it on "A" in "SWR Alarm"
+            		//lcd_q_goto(1,39);							// In case blinking cursor, put it on "A" in "SWR Alarm"
        	    	}
        	 	}
+			clear_pow_avg = TRUE;
     	}
     	else
     	{
@@ -170,131 +279,74 @@ static void vtaskPowerDisplay( void * pcParameters )
     		// Do Receive stuff
     		//-----------------
 
-    		// Clear TX PEP storage during receive
-    		uint8_t jj;
-    		for (jj = 0; jj < PEP_MAX_PERIOD; jj++)
-    		{
-    			pow_avg[jj]=0;
-    		}
+			if (clear_pow_avg) {
+				// Clear TX PEP storage during receive
+				// but only do it once per PTT transition
+				uint8_t j;
+				clear_pow_avg = FALSE;
+				for (j = 0; j < PEP_MAX_PERIOD; j++)
+				{
+					pow_avg[j]=0;
+				}
+			}
 
     		#if DISP_RX_DB
     		//
         	// Calculate and display RX Power received in both audio channels
         	//
-        	static uint8_t i=0,j, k=0, bufsize;
 
-        	uint32_t audio_sample0, audio_sample1;
-        	int32_t audio_sample_buffer[2][200];
-        	int32_t audio_max_0_pos, audio_max_0_neg;
-        	int32_t audio_max_1_pos, audio_max_1_neg;
-           	float audio_max_0_dB, audio_max_1_dB;
-
-        	if(i2c.si570)	// IF RXdb only, then a large ringbuffer, else smaller
-        		bufsize = 200;
-        	else
-        		bufsize = 20;
-
-           	// Normalize values
-        	audio_sample0 = audio_buffer_0[0];
-        	if(audio_sample0>0x7FFFFF)
-         		audio_sample0 = audio_sample0 - 0x1000000;
-        		//audio_sample0 = 0xFFFFFF - audio_sample0;
-
-        	audio_sample1 = audio_buffer_0[1];
-         	if(audio_sample1>0x7FFFFF)
-         		audio_sample1 = audio_sample1 - 0x1000000;
-         		//audio_sample1 = 0xFFFFFF - audio_sample1;
-
-        	// Store samples in a Ring Buffer
-        	audio_sample_buffer[0][i] = audio_sample0;
-        	audio_sample_buffer[1][i] = audio_sample1;
-        	i++;
-        	if (i >= bufsize) i = 0;
-
-
-    		// Retrieve the largest pos/neg value out of the measured window
-    		audio_max_0_pos = 0;
-    		audio_max_0_neg = 0;
-    		audio_max_1_pos = 0;
-    		audio_max_1_neg = 0;
-    		for (j = 0; j < bufsize; j++)
+       		//
+            // If no I2C, then Calculate and display RX & TX Audio Power including bargraphs
+            //
+    		if( ! have_si570)
     		{
-    			if (audio_sample_buffer[0][j] > audio_max_0_pos)
-    				audio_max_0_pos = audio_sample_buffer[0][j];
-    			if (audio_sample_buffer[0][j] < audio_max_0_neg)
-    				audio_max_0_neg = audio_sample_buffer[0][j];
-    			if (audio_sample_buffer[1][j] > audio_max_1_pos)
-    				audio_max_1_pos = audio_sample_buffer[0][j];
-    			if (audio_sample_buffer[1][j] < audio_max_1_neg)
-    				audio_max_1_neg = audio_sample_buffer[1][j];
-    		}
+				//---------------------------------------
+				// Normalize and store samples in a Ring Buffer once every 5ms
+				//---------------------------------------
+				audio_sample_buffer[0][audio_sample_buffer_index] = normalize_sample(audio_buffer_0[0]);
+				audio_sample_buffer[1][audio_sample_buffer_index] = normalize_sample(audio_buffer_0[1]);
+				audio_sample_buffer_index++;
+				if (audio_sample_buffer_index >= bufsize) audio_sample_buffer_index = 0;
 
-			// Do only once every 100ms
-			if (k == 0) {
+				spk_sample_buffer[0][spk_sample_buffer_index] = normalize_sample(spk_buffer_0[0]);
+				spk_sample_buffer[1][spk_sample_buffer_index] = normalize_sample(spk_buffer_0[1]);
+   	        	spk_sample_buffer_index++;
+   	    		if (spk_sample_buffer_index >= bufsize) spk_sample_buffer_index = 0;
 
-				//
-				// If no I2C, then Calculate and display RX & TX Audio Power including bargraphs
-				//
-				if(!i2c.si570)
-					{
-						static uint8_t l=0,m;
-						uint32_t spk_sample0, spk_sample1;
-						int32_t spk_sample_buffer[2][20];
-						int32_t spk_max_0_pos, spk_max_0_neg;
-						int32_t spk_max_1_pos, spk_max_1_neg;
-						float spk_max_0, spk_max_1;
-
-						// Normalize values
-						spk_sample0 = spk_buffer_0[0];
-						if(spk_sample0>0x7FFFFF)
-							spk_sample0 = spk_sample0 - 0x1000000;
-						//spk_sample0 = 0xFFFFFF - spk_sample0;
-
-						spk_sample1 = spk_buffer_0[1];
-						if(spk_sample1>0x7FFFFF)
-							spk_sample1 = spk_sample1 - 0x1000000;
-						//spk_sample1 = 0xFFFFFF - spk_sample1;
-
-						// Store samples in a Ring Buffer
-						spk_sample_buffer[0][l] = spk_sample0;
-						spk_sample_buffer[1][l] = spk_sample1;
-						l++;
-						if (l >= bufsize) l = 0;
-						// Retrieve the largest pos/neg value out of the measured window
-						spk_max_0_pos = 0;
-						spk_max_0_neg = 0;
-						spk_max_1_pos = 0;
-						spk_max_1_neg = 0;
-						for (m = 0; m < bufsize; m++)
-							{
-								if (spk_sample_buffer[0][m] > spk_max_0_pos)
-									spk_max_0_pos = spk_sample_buffer[0][m];
-								if (spk_sample_buffer[0][m] < spk_max_0_neg)
-									spk_max_0_neg = spk_sample_buffer[0][m];
-								if (spk_sample_buffer[1][m] > spk_max_1_pos)
-									spk_max_1_pos = spk_sample_buffer[0][m];
-								if (spk_sample_buffer[1][m] < spk_max_1_neg)
-									spk_max_1_neg = spk_sample_buffer[1][m];
-							}
+   	    		//---------------------------------------
+   	     		// Retrieve values and Print to LCD once every 105ms (21*5ms)
+   	     		//---------------------------------------
+   	     		print_count++;
+   	     		if (print_count == 21) print_count = 0;
+   	     		if (print_count == 0)
+   	     		{
+   	    	     	if (!MENU_mode)
+   	       	    	{
+						// Retrieve the largest values out of the measured window
+						int audio_max_0 = 0, audio_max_1 = 0;
+						int spk_max_0 = 0, spk_max_1 = 0;
+						uint8_t j;
+						for (j = 0; j < bufsize; j++)
+						{
+							audio_max_0 = max(audio_max_0, audio_sample_buffer[0][j]);
+							audio_max_1 = max(audio_max_1, audio_sample_buffer[1][j]);
+							spk_max_0 = max(spk_max_0, spk_sample_buffer[0][j]);
+							spk_max_1 = max(spk_max_1, spk_sample_buffer[1][j]);
+						}
 
 						// Calculate RX audio in dB, TX audio in % power
-						audio_max_0_dB = 20 * log10f(1+audio_max_0_pos-audio_max_0_neg);
-						audio_max_1_dB = 20 * log10f(1+audio_max_1_pos-audio_max_1_neg);
-						sprintf(lcd_prtdb,"%4.0fdB  RXpwr %4.0fdB",
-								audio_max_0_dB-144.0, audio_max_1_dB-144.0);
-
+						int audio_max_0_dB = twenty_log10(2*audio_max_0);
+						int audio_max_1_dB = twenty_log10(2*audio_max_1);
+						sprintf(lcd_prtdb1,"%4ddB  adc  %4ddB", audio_max_0_dB-144, audio_max_1_dB-144);
 						// TX audio bargraph in dB or VU-meter style
 						#if	TX_BARGRAPH_dB
-						spk_max_0_dB = 20 * log10f(1+spk_max_0_pos-spk_max_0_neg);
-						spk_max_1_dB = 20 * log10f(1+spk_max_1_pos-spk_max_1_neg);
-						sprintf(lcd_prtdb2,"%4.0fdB  TXpwr %4.0fdB",
-								spk_max_0_dB-144.0, spk_max_1_dB-144.0);
+						int spk_max_0_dB = twenty_log10(2*spk_max_0);
+						int spk_max_1_dB = twenty_log10(2*spk_max_1);
+						sprintf(lcd_prtdb2,"%4ddB  dac  %4ddB", spk_max_0_dB-144, spk_max_1_dB-144);
 						#else
-						spk_max_0 = pow((float)(spk_max_0_pos-spk_max_0_neg)/(float)0xc0000, 2);
-						spk_max_1 = pow((float)(spk_max_1_pos-spk_max_1_neg)/(float)0xc0000, 2);
-						if (spk_max_0 > 100) spk_max_0 = 100;
-						if (spk_max_1 > 100) spk_max_1 = 100;
-						sprintf(lcd_prtdb2,"%4.0f%%   TXpwr %4.0f%% ", spk_max_0, spk_max_1);
+						int spk_max_0_pct = min(100, pow_2_ratio(2*spk_max_0, 0xc0000));
+						int spk_max_1_pct = min(100, pow_2_ratio(2*spk_max_1, 0xc0000));
+						sprintf(lcd_prtdb2,"%4d%%   dac   %4d%%", spk_max_0_pct, spk_max_1_pct);
 						#endif
 
 						// Prepare bargraphs
@@ -303,54 +355,87 @@ static void vtaskPowerDisplay( void * pcParameters )
 						*(lcd_bar1+9)=' ';
 						*(lcd_bar1+10)=' ';
 						lcdProgressBar(audio_max_1_dB, 144, 9, lcd_bar1+11);
-						lcdProgressBar(spk_max_0, 100, 9, lcd_bar2);
+						#if	TX_BARGRAPH_dB
+						lcdProgressBar(spk_max_0_dB, 144, 9, lcd_bar2);
 						*(lcd_bar2+9)=' ';
 						*(lcd_bar2+10)=' ';
-						lcdProgressBar(spk_max_1, 100, 9, lcd_bar2+11);
+						lcdProgressBar(spk_max_1_dB, 144, 9, lcd_bar2+11);
+						#else
+						lcdProgressBar(spk_max_0_pct, 100, 9, lcd_bar2);
+						*(lcd_bar2+9)=' ';
+						*(lcd_bar2+10)=' ';
+						lcdProgressBar(spk_max_1_pct, 100, 9, lcd_bar2+11);
+						#endif
 
-						if (!MENU_mode)
-							{
-								xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-								lcd_q_goto(0,0);
-								lcd_q_print(lcd_bar1);
-								lcd_q_goto(1,0);
-								lcd_q_print(lcd_prtdb);
-								lcd_q_goto(2,0);
-								lcd_q_print(lcd_bar2);
-								lcd_q_goto(3,0);
-								lcd_q_print(lcd_prtdb2);
-								xSemaphoreGive( mutexQueLCD );
-							}
-					}
-				// Display RX audio power stuff in third line, if Si570
-				else
-					{
-						// Calculate and display dB
-						audio_max_0_dB = 20 * log10f(1+audio_max_0_pos-audio_max_0_neg);
-						audio_max_1_dB = 20 * log10f(1+audio_max_1_pos-audio_max_1_neg);
+   	        	     	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+   	            		lcd_q_goto(0,0);
+   	          	     	lcd_q_print(lcd_bar1);
+   	        	     	lcd_q_goto(1,0);
+   	       				lcd_q_print(lcd_prtdb1);
+   	            		lcd_q_goto(2,0);
+   	          	     	lcd_q_print(lcd_bar2);
+   	       				lcd_q_goto(3,0);
+   	       				lcd_q_print(lcd_prtdb2);
+   	       				xSemaphoreGive( mutexQueLCD );
+   	       	    	}
+   	    		}
+    		}
 
-						sprintf(lcd_prtdb,"RXpwr %4.0fdB  %4.0fdB",
-								audio_max_0_dB-144.0, audio_max_1_dB-144.0);
+    		// Display RX audio power stuff in third line, if Si570
+    		else
+	    	{
+				// Normalize and store samples in a Ring Buffer once every 5ms
+				audio_sample_buffer[0][audio_sample_buffer_index] = normalize_sample(audio_buffer_0[0]);
+				audio_sample_buffer[1][audio_sample_buffer_index] = normalize_sample(audio_buffer_0[1]);
+				audio_sample_buffer_index++;
+				if (audio_sample_buffer_index >= bufsize) audio_sample_buffer_index = 0;
 
-						if (!MENU_mode)
-							{
-								xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-								lcd_q_goto(2,0);
-								lcd_q_print(lcd_prtdb);
-								xSemaphoreGive( mutexQueLCD );
-							}
+        		// Do only once every 205ms
+   	     		print_count++;
+   	     		if (print_count == 41) print_count = 0;
+   	     		if (print_count == 0)
+        		{
+           	    	if (!MENU_mode)
+           	    	{
+						// Retrieve the largest value out of the measured window
+						int32_t audio_max_0 = 0, audio_max_1 = 0;
+						uint8_t j;
+						for (j = 0; j < bufsize; j++)
+						{
+							audio_max_0 = max(audio_max_0, audio_sample_buffer[0][j]);
+							audio_max_1 = max(audio_max_1, audio_sample_buffer[0][j]);
+						}
 
-					}
-			}
-			k++;
-			if (k == 41) k = 0;	// Print dB to LCD once every 205ms
+						// Calculate RX audio in dB, TX audio in % power
+						int audio_max_0_dB = twenty_log10(2*audio_max_0);
+						int audio_max_1_dB = twenty_log10(2*audio_max_1);
+
+						// Format for print
+						sprintf(lcd_prtdb1,"%4ddB  RXpwr %4ddB",audio_max_0_dB-144, audio_max_1_dB-144);
+
+						// Prepare bargraphs
+						// progress, maxprogress, len
+						lcdProgressBar(audio_max_0_dB, 144, 9, lcd_bar1);
+						*(lcd_bar1+9)=' ';
+						*(lcd_bar1+10)=' ';
+						lcdProgressBar(audio_max_1_dB, 144, 9, lcd_bar1+11);
+
+						xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+						lcd_q_goto(2,0);
+						lcd_q_print(lcd_prtdb1);
+						lcd_q_goto(3,0);
+						lcd_q_print(lcd_bar1);
+						xSemaphoreGive( mutexQueLCD );
+           	    	}
+        		}
+    		}
     		#endif
 
     		#if DISP_RX_DB_HPF
         	// Calculate and display RX Power received in both audio channels
     		// Simple High pass filter, by doing two consecutive measurements,
     		// spaced 200us apart, and using the differential for measurement.
-    		static uint8_t a=0,b, c=0;
+			static uint8_t a=0, b, c=0;
     		int32_t first_sample0, first_sample1;
     		int32_t second_sample0, second_sample1;
     		int32_t sample_buffer[2][200];
@@ -439,7 +524,7 @@ static void vtaskPowerDisplay( void * pcParameters )
 
         	#if ENOB_TEST
     		// Simple LCD display of momentary samples, once every second
-     		static uint8_t m=0;
+			static uint8_t m=0;
           	int32_t x;
 
      		// Do only once every 1s
@@ -502,6 +587,7 @@ static void vtaskPowerDisplay( void * pcParameters )
  */
 void vStartTaskPowerDisplay(void)
 {
+	(void)twenty_log10(2);					// initialize the precomputed tables
 	xStatus = xTaskCreate( vtaskPowerDisplay,
 						   configTSK_PDISPLAY_NAME,
                            configTSK_PDISPLAY_STACK_SIZE,
