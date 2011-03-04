@@ -1,3 +1,4 @@
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 /*
  * freq_and_filters.c
  *
@@ -55,6 +56,8 @@ void SetFilter(uint32_t freq)
 	//-------------------------------------------
 	// Set RX Band Pass filters
 	//-------------------------------------------
+	//
+	// Set RX BPF using the Mobo PCF8574 (max 8 filters)
 	if(i2c.pcfmobo)
 	{
 		for (i = 0; i < 7; i++)
@@ -76,9 +79,37 @@ void SetFilter(uint32_t freq)
 		#if CALC_BAND_MUL_ADD						// Band dependent Frequency Subtract and Multiply
 		freqBand = i;								// Band info used for Freq Subtract/Multiply feature
 		#endif
-
 	}
-	else selectedFilters[0] = 0x0f;					// Error Indication, no PCF to write to
+	//
+	// Set RX BPF, using the Widget PTT_2 and PTT_3 outputs (max 4 filters)
+	else
+	{
+		for (i = 0; i < 3; i++)
+		{
+			if (Freq.w0 < cdata.FilterCrossOver[i]) break;
+		}
+		#if SCRAMBLED_FILTERS						// Enable a non contiguous order of filters
+		data = cdata.FilterNumber[i] & 0x03;		// We only want 2 bits
+
+		selectedFilters[0] = cdata.FilterNumber[i];	// Used for LCD Print indication
+		#else
+		data = i;
+		selectedFilters[0] = i;						// Used for LCD Print indication
+		#endif
+		// Manipulate 2 bit binary output to set the 4 BPF
+		if (data & 0b00000001)
+			gpio_set_gpio_pin(PTT_2);
+		else
+			gpio_clr_gpio_pin(PTT_2);
+		if (data & 0b00000010)
+			gpio_set_gpio_pin(PTT_3);
+		else
+			gpio_clr_gpio_pin(PTT_3);
+
+		#if CALC_BAND_MUL_ADD						// Band dependent Frequency Subtract and Multiply
+		freqBand = i;								// Band info used for Freq Subtract/Multiply feature
+		#endif
+	}
 
 	#if TX_FILTERS
 	//-------------------------------------------
@@ -113,7 +144,42 @@ void SetFilter(uint32_t freq)
 		selectedFilters[1] = i;						// Used for LCD Print indication
 		#endif// SCRAMBLED_FILTERS
 	}
+	//else selectedFilters[1] = 0x0f;					// Error indication
+	else
+	{
+		// If no external PCF8574 for LPF switching while PCF Mobo is present
+		// then BPF and Mobo Cooling FAN control is provided by the PCF Mobo and
+		// we can use Widget PTT_1/PTT_2/PTT_2 for LPF control output
+		if(i2c.pcfmobo)
+		{
+			uint8_t	j;
+			#if SCRAMBLED_FILTERS						// Enable a non contiguous order of filters
+			band_sel.b1 = cdata.TXFilterNumber[i] & 0x07;// Set and Enforce bounds for a 3 bit value
+			j = band_sel.b1<<3;							// leftshift x 3 for bits 3 - 5
+			selectedFilters[1] = cdata.TXFilterNumber[i];// Used for LCD Print indication
+			#else
+			band_sel.b1 = i & 0x07;						// Set and Enforce bounds for a 3 bit value
+			j = band_sel.b1<<3;							// leftshift x 3 for bits 3 - 5
+			selectedFilters[1] = i;						// Used for LCD Print indication
+			#endif
+			// Manipulate 3 bit binary output to set the 8 LPF
+			if (j & 0b00000001)
+				gpio_set_gpio_pin(PTT_1);
+			else
+				gpio_clr_gpio_pin(PTT_1);
+			if (j & 0b00000010)
+				gpio_set_gpio_pin(PTT_2);
+			else
+				gpio_clr_gpio_pin(PTT_2);
+			if (j & 0b00000100)
+				gpio_set_gpio_pin(PTT_3);
+			else
+				gpio_clr_gpio_pin(PTT_3);
+		}
+		// PTT_1/PTT_2/PTT_3 outputs not available, used for RX/TX and BPF control
 	else selectedFilters[1] = 0x0f;					// Error indication
+	}
+
 	#endif//PCF_LPF
 
 	#if PCF_FILTER_IO							// 8x BCD control for LPF switching, switches P1 pins 4-6
@@ -150,7 +216,6 @@ void SetFilter(uint32_t freq)
 	}
 	#endif
 	#endif
-
 
 	#if LCD_DISPLAY            	// Multi-line LCD display
 	#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
@@ -282,9 +347,11 @@ void freq_and_filter_control(void)
     }
 	#if LCD_DISPLAY      						    // Multi-line LCD display
 	#if FRQ_IN_FIRST_LINE							// Normal Frequency display in first line of LCD. Can be disabled for Debug
+	#if 0
 	else
     {
-       	if (!MENU_mode)
+       	//if (!MENU_mode)
+		if (FRQ_fromusb == TRUE)
        	{
         	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
         	lcd_q_goto(0,3);
@@ -292,6 +359,7 @@ void freq_and_filter_control(void)
         	xSemaphoreGive( mutexQueLCD );
        	}
     }
+	#endif
 	#endif
 	#endif
 }

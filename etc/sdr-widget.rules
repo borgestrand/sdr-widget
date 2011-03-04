@@ -1,0 +1,17 @@
+#
+# copy this file into /etc/udev/rules.d/sdr-widget.rules
+# to enable user access to the DG8SAQ command device on
+# the sdr-widget.
+#
+
+# DG8SAQ
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="16c0",
+ATTRS{idProduct}=="05dc", MODE:="0666"
+
+# VOTI Internal Lab Use
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="16c0",
+ATTRS{idProduct}=="03e8", MODE:="0666"
+
+# HPSDR Ozy
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="fffe",
+ATTRS{idProduct}=="0007", MODE:="0666"

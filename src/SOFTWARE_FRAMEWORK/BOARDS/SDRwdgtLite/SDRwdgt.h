@@ -244,7 +244,7 @@
 //#define GPIO_CW_KEY_1        AVR32_PIN_PB9
 #define GPIO_CW_KEY_1        AVR32_PIN_PX00
 #define GPIO_CW_KEY_2        AVR32_PIN_PX01
-#define GPIO_PTT_INPUT       AVR32_PIN_PX03
+#define GPIO_PTT_INPUT       AVR32_PIN_PX02
 
 #define PTT_1				 AVR32_PIN_PX45
 #define PTT_2				 AVR32_PIN_PX42
