@@ -77,7 +77,7 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
  *
  * \retval none
  */
-static uint8_t i2c_device_probe(uint8_t addr, char *addr_report)
+/*static*/ uint8_t i2c_device_probe(uint8_t addr, char *addr_report)
 {
 	uint8_t retval;
 
@@ -105,7 +105,7 @@ static uint8_t i2c_device_probe(uint8_t addr, char *addr_report)
  *
  * \retval none
  */
-static void i2c_device_scan(void)
+/*static*/ void i2c_device_scan(void)
 {
 	#if Si570
 	i2c.si570 = i2c_device_probe(cdata.Si570_I2C_addr, "SI570  OK");

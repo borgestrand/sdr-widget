@@ -348,9 +348,11 @@ void freq_and_filter_control(void)
 	#if FRQ_IN_FIRST_LINE							// Normal Frequency display in first line of LCD. Can be disabled for Debug
 	else
     {
-       	if (!MENU_mode)
+		//if (!MENU_mode)
+		if(FRQ_fromusb == TRUE)						// True the very first time, one time print
        	{
-        	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+   			FRQ_fromusb = FALSE;					// And clear the input flag...
+			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
         	lcd_q_goto(0,3);
         	lcd_q_print("No Si570 OSC");
         	xSemaphoreGive( mutexQueLCD );

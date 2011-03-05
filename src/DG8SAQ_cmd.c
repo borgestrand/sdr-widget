@@ -198,7 +198,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 		wdt_enable(100000);					// Enable Watchdog with 100ms patience
 		while (1);							// Bye bye
 
-
 	// Todo -- may go, unless we have GPIOs to work with
 	/***************************************************
 	case 0x15:								// Set IO port with mask and data bytes
