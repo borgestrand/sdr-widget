@@ -435,7 +435,7 @@ static void vtaskPowerDisplay( void * pcParameters )
         	// Calculate and display RX Power received in both audio channels
     		// Simple High pass filter, by doing two consecutive measurements,
     		// spaced 200us apart, and using the differential for measurement.
-			uint8_t a=0, b, c=0;
+			static uint8_t a=0, b, c=0;
     		int32_t first_sample0, first_sample1;
     		int32_t second_sample0, second_sample1;
     		int32_t sample_buffer[2][200];
@@ -524,7 +524,7 @@ static void vtaskPowerDisplay( void * pcParameters )
 
         	#if ENOB_TEST
     		// Simple LCD display of momentary samples, once every second
-			uint8_t m=0;
+			static uint8_t m=0;
           	int32_t x;
 
      		// Do only once every 1s
