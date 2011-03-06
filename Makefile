@@ -8,7 +8,7 @@
 all: Release/widget.elf widget-control
 
 Release/widget.elf::
-	./make-widget | sed -e 's;-DBOARD=.* -o;... -c ... -o;'
+	./make-widget | sed -e 's;-DBOARD=.* -o;... -c ... -o;' -e 's;-mpart=uc3a3256.* -o;... -o;'
 
 widget-control: widget-control.c src/features.h
 	gcc -o widget-control widget-control.c -lusb-1.0
