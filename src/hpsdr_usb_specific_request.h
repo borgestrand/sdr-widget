@@ -57,7 +57,7 @@ extern void hpsdr_user_set_interface(U8 wIndex, U8 wValue);
 //! supported. In this case, a STALL handshake will be automatically
 //! sent by the standard USB read request function.
 //!
-extern Bool hpdsr_user_read_request(U8, U8);
+extern Bool hpsdr_user_read_request(U8, U8);
 
 //! @}
 

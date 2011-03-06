@@ -295,6 +295,9 @@ void uac1_device_audio_task(void *pvParameters)
 
 			if (usb_alternate_setting_out == 1) {
 
+				if ( EP_AUDIO_OUT_FB ) {
+				}
+
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
 					// Sync CS4344 spk data stream by calculating gap and provide feedback

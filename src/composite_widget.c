@@ -1,4 +1,4 @@
-/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 /* This source file is part of the ATMEL AVR32-SoftwareFramework-AT32UC3-1.5.0 Release */
 
 /*This file is prepared for Doxygen automatic documentation generation.*/
@@ -210,13 +210,20 @@ int main(void)
   // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
   wdt_disable();
 
-  gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+  // gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
 
   // Initialize features management
   features_init();
 
-  // if ( FEATURE_ADC_AK5394A )
-  // gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+  // should be in adc_init()
+  if ( FEATURE_BOARD_WIDGET ) {
+	  gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+  }
+
+  if ( FEATURE_BOARD_DIB ) {
+	  gpio_set_gpio_pin(AVR32_PIN_PX51);	// for Dib Board
+	  gpio_clr_gpio_pin(AVR32_PIN_PX52);	// for Dib Board
+  }
 
   gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 

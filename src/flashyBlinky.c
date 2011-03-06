@@ -1,3 +1,4 @@
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 #include "compiler.h"
 #include "gpio.h"
 #include "board.h"
@@ -18,7 +19,7 @@
 //#define GPIO_CW_KEY_1        AVR32_PIN_PB9
 #define GPIO_CW_KEY_1        AVR32_PIN_PX00
 #define GPIO_CW_KEY_2        AVR32_PIN_PX01
-#define GPIO_PTT_INPUT       AVR32_PIN_PX03
+//#define GPIO_PTT_INPUT       AVR32_PIN_PX03
 
 #define PTT_1				 AVR32_PIN_PX45
 #define PTT_2				 AVR32_PIN_PX42
@@ -32,7 +33,8 @@
 
 #if !defined(GPIO_PIN_EXAMPLE_1) || \
     !defined(GPIO_PIN_EXAMPLE_2) || \
-    !defined(GPIO_PIN_EXAMPLE_3)
+    !defined(GPIO_PIN_EXAMPLE_3) || \
+	!defined(ENCODER_SWITCH)
   #error The pin configuration to use in this example is missing.
 #endif
 //! @}
@@ -50,6 +52,7 @@ int flashyBlinky(void)
   gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
   gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
   gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
+  gpio_enable_pin_pull_up(ENCODER_SWITCH);
 
   while (1)
   {
@@ -61,10 +64,11 @@ int flashyBlinky(void)
     // Poll push button value.
     for (i = 0; i < 200; i++)
     {
-      if (gpio_get_pin_value(GPIO_PIN_EXAMPLE_3) == 0 || \
-    		  gpio_get_pin_value(GPIO_CW_KEY_1) == 0 || \
-    		  gpio_get_pin_value(GPIO_CW_KEY_2) == 0 || \
-    		  gpio_get_pin_value(GPIO_PTT_INPUT) == 0
+      if (gpio_get_pin_value(GPIO_PIN_EXAMPLE_3) == 0 ||
+		  gpio_get_pin_value(GPIO_CW_KEY_1) == 0 ||
+		  gpio_get_pin_value(GPIO_CW_KEY_2) == 0 ||
+		  gpio_get_pin_value(GPIO_PTT_INPUT) == 0 ||
+		  gpio_get_pin_value(ENCODER_SWITCH)
       ){
         gpio_clr_gpio_pin(GPIO_PIN_EXAMPLE_2);
 		gpio_clr_gpio_pin(TWI_SCL);
