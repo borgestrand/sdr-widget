@@ -113,13 +113,25 @@ static U16   wLength;
 
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
-
-int Speedx[50] = {\
-0x04,0x00,				//Size
+int Speedx_1[38] = {
+0x03,0x00,				//number of sample rate triplets
 
 0x44,0xac,0x00,0x00,	//44.1k Min
 0x44,0xac,0x00,0x00,	//44.1k Max
 0x00,0x00,0x00,0x00,	// 0 Res
+
+0x88,0x58,0x01,0x00,	//88.2k Min
+0x88,0x58,0x01,0x00,	//88.2k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x10,0xb1,0x02,0x00,	//176.4k Min
+0x10,0xb1,0x02,0x00,	//176.4k Max
+0x00,0x00,0x00,0x00		// 0 Res
+
+};
+
+int Speedx_2[38] = {
+0x03,0x00,				//number of sample rate triplets
 
 0x80,0xbb,0x00,0x00,	//48k Min
 0x80,0xbb,0x00,0x00,	//48k Max
@@ -131,7 +143,7 @@ int Speedx[50] = {\
 
 0x00,0xee,0x02,0x00,	//192k Min
 0x00,0xee,0x02,0x00,	//192k Max
-0x00,0x00,0x00,0x00	// 0 Res
+0x00,0x00,0x00,0x00		// 0 Res
 };
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -348,7 +360,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 						// give total # of bytes requested
 						for (i = 0; i < (wLength); i++)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]);
+							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
 						//							  LED_Toggle(LED0);
 						Usb_ack_control_in_ready_send();
 
@@ -394,7 +406,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 						// give total # of bytes requested
 						for (i = 0; i < (wLength); i++)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]);
+							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 						//							  LED_Toggle(LED0);
 						Usb_ack_control_in_ready_send();
 
