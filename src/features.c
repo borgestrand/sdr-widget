@@ -13,7 +13,7 @@
 #include "flashc.h"
 
 #include "features.h"
-#include "taskLCD.h"
+#include "widget.h"
 
 // Set up NVRAM (EEPROM) storage
 #if defined (__GNUC__)
@@ -32,48 +32,6 @@ const char *feature_value_names[] = { FEATURE_VALUE_NAMES };
 const char *feature_index_names[] = { FEATURE_INDEX_NAMES };
 
 //
-static uint8_t display_row = 0;
-static char display_contents[4][21];
-
-static void display_clear() {
-	int i;
-	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-	lcd_q_clear();
-	display_row = 0;
-	for (i = 0; i < 4; i += 1)
-		memset(&display_contents[i][0], ' ', 20);
-	xSemaphoreGive( mutexQueLCD );
-}
-
-static void display_string_and_scroll(char *string) {
-	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-#if 1
-	if (display_row == 4) {
-		// scroll up
-		int row;
-		memmove(&display_contents[0][0], &display_contents[1][0], 3*21);
-		for (row = 0; row < 3; row += 1) {
-			lcd_q_goto(row,0);
-			lcd_q_print(&display_contents[row][0]);
-		}
-		display_row = 3;
-	}
-#else
-	display_row &= 3;
-#endif
-	sprintf(&display_contents[display_row][0], "%-20.20s", string);
-	lcd_q_goto(display_row, 0);
-	lcd_q_print(&display_contents[display_row][0]);
-	display_row += 1;
-	xSemaphoreGive( mutexQueLCD );
-}
-
-static void display_string_scroll_and_delay(char *string, uint16_t delay) {
-	display_string_and_scroll(string);
-	vTaskDelay( delay );
-}
-
-//
 void features_init() {
   // Enforce "Factory default settings" when a mismatch is detected between the
   // checksum in the memory copy and the matching number in the NVRAM storage.
@@ -88,9 +46,9 @@ void features_init() {
 void features_display(char *title, features_t fp, int delay) {
 	int i;
 	char buff[32];
-	display_string_scroll_and_delay(title, delay);
+	widget_display_string_scroll_and_delay(title, delay);
 	sprintf(buff, "%s = %u.%u", "version", fp[feature_major_index], fp[feature_minor_index]);
-	display_string_scroll_and_delay(buff, delay);
+	widget_display_string_scroll_and_delay(buff, delay);
 	for (i = feature_board_index; i < feature_end_index; i += 1) {
 		strcpy(buff, feature_index_names[i]);
 		strcat(buff, " = ");
@@ -98,12 +56,13 @@ void features_display(char *title, features_t fp, int delay) {
 			strcat(buff, (char *)feature_value_names[fp[i]]);
 		else
 			strcat(buff, "invalid!");
-		display_string_scroll_and_delay(buff, delay);
+		widget_display_string_scroll_and_delay(buff, delay);
 	}
 }
 
 void features_display_all() {
-	display_clear();
+	widget_display_clear();
+	widget_report();
 	features_display("features ram:", features, 10000);
 	// features_display("features nvram:", features_nvram, 10000);
 }
