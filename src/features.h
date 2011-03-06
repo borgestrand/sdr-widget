@@ -1,4 +1,4 @@
-/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
+/* -*- mode: c; tab-width: 4; c-basic-offset: 4 -*- */
 /*
  * features.h
  *
@@ -24,6 +24,7 @@
 typedef enum {
   feature_major_index = 0,		// major version number = feature_end_index
   feature_minor_index,			// minor version number = feature_end_values
+  feature_board_index,			// board identifier
   feature_image_index,			// image to boot
   feature_in_index,				// keep or swap left/right channels on input
   feature_out_index,			// keep or swap left/right channels on output
@@ -34,7 +35,8 @@ typedef enum {
 
 #define FEATURE_INDEX_NAMES "major",				\
 		"minor",									\
-		"img",										\
+		"board",									\
+		"image",									\
 		"in",										\
 		"out",										\
 		"adc",										\
@@ -59,36 +61,51 @@ typedef enum {
 // 2) #define FEATURE_IMAGE_ALEX_TEST 
 //
 typedef enum {
-  // image selection
-  feature_image_flashyblinky = 0,
-  feature_image_uac1_audio,
-  feature_image_uac1_dg8saq,
-  feature_image_uac2_audio,
-  feature_image_uac2_dg8saq,
-  feature_image_hpsdr,
-  feature_image_test,
-  feature_end_image,
-  // input channel
-  feature_in_normal,
-  feature_in_swapped,
-  feature_end_in,
-  // output channel
-  feature_out_normal,
-  feature_out_swapped,
-  feature_end_out,
-  // adc
-  feature_adc_none,
-  feature_adc_ak5394a,
-  feature_end_adc,
-  // dac
-  feature_dac_none,
-  feature_dac_cs4344,
-  feature_end_dac,
-  // end
-  feature_end_values
+	// board selection
+	feature_board_none = 0,
+	feature_board_widget,
+	feature_board_dib,
+	feature_board_ab1,
+	feature_board_test,
+	feature_end_board,
+	// image selection
+	feature_image_flashyblinky,
+	feature_image_uac1_audio,
+	feature_image_uac1_dg8saq,
+	feature_image_uac2_audio,
+	feature_image_uac2_dg8saq,
+	feature_image_hpsdr,
+	feature_image_test,
+	feature_end_image,
+	// input channel
+	feature_in_normal,
+	feature_in_swapped,
+	feature_end_in,
+	// output channel
+	feature_out_normal,
+	feature_out_swapped,
+	feature_end_out,
+	// adc
+	feature_adc_none,
+	feature_adc_ak5394a,
+	feature_end_adc,
+	// dac
+	feature_dac_none,
+	feature_dac_cs4344,
+	feature_dac_es9022,
+	feature_end_dac,
+	// end
+	feature_end_values
 } feature_values_t;
 
-#define FEATURE_VALUE_NAMES "flashyblinky",								\
+#define FEATURE_VALUE_NAMES \
+	"none",																\
+		"widget",														\
+		"dib",															\
+		"ab1",															\
+		"test",															\
+		"end",															\
+		"flashyblinky",													\
 		"uac1_audio",													\
 		"uac1_dg8saq",													\
 		"uac2_audio",													\
@@ -107,6 +124,7 @@ typedef enum {
 		"end",															\
 		"none",															\
 		"cs4344",														\
+		"es9022",														\
 		"end",															\
 		"end"
 	
@@ -127,6 +145,12 @@ extern features_t features_nvram, features;
 #define FEATURE_MINOR					(features[feature_minor_index])
 #define FEATURE_MINOR_NVRAM				(features_nvram[feature_minor_index])
 
+#define FEATURE_BOARD_NONE				(features[feature_image_index] == (uint8_t)feature_board_none)
+#define FEATURE_BOARD_WIDGET			(features[feature_image_index] == (uint8_t)feature_board_widget)
+#define FEATURE_BOARD_DIB				(features[feature_image_index] == (uint8_t)feature_board_dib)
+#define FEATURE_BOARD_AB1				(features[feature_image_index] == (uint8_t)feature_board_ab1)
+#define FEATURE_BOARD_TEST				(features[feature_image_index] == (uint8_t)feature_board_test)
+
 #define FEATURE_IMAGE_FLASHYBLINKY		(features[feature_image_index] == (uint8_t)feature_image_flashyblinky)
 #define FEATURE_IMAGE_UAC1_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac1_audio)
 #define FEATURE_IMAGE_UAC1_DG8SAQ		(features[feature_image_index] == (uint8_t)feature_image_uac1_dg8saq)
@@ -146,6 +170,7 @@ extern features_t features_nvram, features;
 
 #define FEATURE_DAC_NONE				(features[feature_dac_index] == (uint8_t)feature_dac_none)
 #define FEATURE_DAC_CS4344				(features[feature_dac_index] == (uint8_t)feature_dac_cs4344)
+#define FEATURE_DAC_ES9022				(features[feature_dac_index] == (uint8_t)feature_dac_es9022)
 
 //
 // the version in the features specifies
@@ -160,6 +185,9 @@ extern features_t features_nvram, features;
 //
 // conditionally set the defaults for this build
 //
+#ifndef FEATURE_BOARD_DEFAULT
+#define FEATURE_BOARD_DEFAULT			feature_board_widget
+#endif
 #ifndef FEATURE_IMAGE_DEFAULT
 #define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
 #endif
@@ -179,6 +207,7 @@ extern features_t features_nvram, features;
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
 		FEATURE_MINOR_DEFAULT,						\
+		FEATURE_BOARD_DEFAULT,						\
 		FEATURE_IMAGE_DEFAULT,						\
 		FEATURE_IN_DEFAULT,							\
 		FEATURE_OUT_DEFAULT,						\

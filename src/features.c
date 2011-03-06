@@ -91,7 +91,7 @@ void features_display(char *title, features_t fp, int delay) {
 	display_string_scroll_and_delay(title, delay);
 	sprintf(buff, "%s = %u.%u", "version", fp[feature_major_index], fp[feature_minor_index]);
 	display_string_scroll_and_delay(buff, delay);
-	for (i = feature_image_index; i < feature_end_index; i += 1) {
+	for (i = feature_board_index; i < feature_end_index; i += 1) {
 		strcpy(buff, feature_index_names[i]);
 		strcat(buff, " = ");
 		if (features[i] < feature_end_values)
