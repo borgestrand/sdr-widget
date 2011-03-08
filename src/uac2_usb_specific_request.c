@@ -82,6 +82,7 @@
 #include "usb_specific_request.h"
 #include "usart.h"
 #include "pm.h"
+#include "features.h"
 #include "Mobo_config.h"
 #include "usb_audio.h"
 #include "device_audio_task.h"
@@ -316,10 +317,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 			} // end OUT_CL_INTERFACE
 		} // end DSC_INTERFACE_AS_OUT
 
-		//   if ( (wIndex % 256) == DSC_INTERFACE_AUDIO){	// low byte wIndex is Interface number
-		// high byte is for EntityID
-		if (TRUE){								// Temporary hack, as alsa 1.0.23 driver assumes Interface
-											    // number 0 !!!
+		if ( (wIndex % 256) == DSC_INTERFACE_AUDIO){// low byte wIndex is Interface number
+													// high byte is for EntityID
+
 			if (type == IN_CL_INTERFACE){			// get controls
 				switch (wIndex /256){
 				case CSD_ID_1:
@@ -359,9 +359,11 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < (wLength); i++)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
-						//							  LED_Toggle(LED0);
+						for (i = 0; i < (wLength); i++){
+							if (FEATURE_DAC_ES9022)
+								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
+							else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+							}
 						Usb_ack_control_in_ready_send();
 
 						while (!Is_usb_control_out_received());
