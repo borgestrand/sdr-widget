@@ -189,7 +189,7 @@ extern features_t features_nvram, features;
 #define FEATURE_BOARD_DEFAULT			feature_board_widget
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
+#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_audio
 #endif
 #ifndef FEATURE_IN_DEFAULT
 #define FEATURE_IN_DEFAULT				feature_in_normal

@@ -82,6 +82,7 @@
 #include "usb_specific_request.h"
 #include "usart.h"
 #include "pm.h"
+#include "features.h"
 #include "Mobo_config.h"
 #include "usb_audio.h"
 #include "device_audio_task.h"
@@ -114,12 +115,25 @@ static U16   wLength;
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
-int Speedx[50] = {\
-0x04,0x00,				//Size
+int Speedx_1[38] = {
+0x03,0x00,				//number of sample rate triplets
 
 0x44,0xac,0x00,0x00,	//44.1k Min
 0x44,0xac,0x00,0x00,	//44.1k Max
 0x00,0x00,0x00,0x00,	// 0 Res
+
+0x88,0x58,0x01,0x00,	//88.2k Min
+0x88,0x58,0x01,0x00,	//88.2k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x10,0xb1,0x02,0x00,	//176.4k Min
+0x10,0xb1,0x02,0x00,	//176.4k Max
+0x00,0x00,0x00,0x00		// 0 Res
+
+};
+
+int Speedx_2[38] = {
+0x03,0x00,				//Size
 
 0x80,0xbb,0x00,0x00,	//48k Min
 0x80,0xbb,0x00,0x00,	//48k Max
@@ -304,10 +318,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 			} // end OUT_CL_INTERFACE
 		} // end DSC_INTERFACE_AS_OUT
 
-		//   if ( (wIndex % 256) == DSC_INTERFACE_AUDIO){	// low byte wIndex is Interface number
-		// high byte is for EntityID
-		if (TRUE){								// Temporary hack, as alsa 1.0.23 driver assumes Interface
-											    // number 0 !!!
+		if ( (wIndex % 256) == DSC_INTERFACE_AUDIO){// low byte wIndex is Interface number
+													// high byte is for EntityID
+
 			if (type == IN_CL_INTERFACE){			// get controls
 				switch (wIndex /256){
 				case CSD_ID_1:
@@ -331,7 +344,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						Usb_write_endpoint_data(EP_CONTROL, 8, TRUE);	// always valid
+						Usb_write_endpoint_data(EP_CONTROL, 8, TRUE);
 						// temp hack to give total # of bytes requested
 						for (i = 0; i < (wLength - 1); i++)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
@@ -347,9 +360,12 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < (wLength); i++)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]);
-						//							  LED_Toggle(LED0);
+						for (i = 0; i < (wLength); i++){
+							if (FEATURE_DAC_ES9022)
+								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
+							else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+							}
+
 						Usb_ack_control_in_ready_send();
 
 						while (!Is_usb_control_out_received());
@@ -394,7 +410,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 						// give total # of bytes requested
 						for (i = 0; i < (wLength); i++)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]);
+							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 						//							  LED_Toggle(LED0);
 						Usb_ack_control_in_ready_send();
 
