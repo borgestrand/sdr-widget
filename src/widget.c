@@ -89,9 +89,13 @@ char *widget_reset_cause(void) {
 		return "power on";
 	} else if (AVR32_PM.RCAUSE.ext) {		/* external reset */
 		return "external";
-	} else if (AVR32_PM.RCAUSE.bod || AVR32_PM.RCAUSE.bod33) { /* brown out */
+#if 0									    /* not defined for Børge?? */
+	} else if (AVR32_PM.RCAUSE.bod33) {		/* brown out 3v3 */
+		return "3v3 brown out";
+#endif
+	} else if (AVR32_PM.RCAUSE.bod) {		/* brown out */
 		return "brown out";
-	} else if (AVR32_PM.RCAUSE.cpuerr) {		/* cpu error */
+	} else if (AVR32_PM.RCAUSE.cpuerr) {	/* cpu error */
 		return "cpu error";
 	} else {					/* unknown */
 		return "unknown";
