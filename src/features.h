@@ -189,7 +189,7 @@ extern features_t features_nvram, features;
 #define FEATURE_BOARD_DEFAULT			feature_board_widget
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_audio
+#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
 #endif
 #ifndef FEATURE_IN_DEFAULT
 #define FEATURE_IN_DEFAULT				feature_in_normal
@@ -198,10 +198,14 @@ extern features_t features_nvram, features;
 #define FEATURE_OUT_DEFAULT				feature_out_normal
 #endif
 #ifndef FEATURE_ADC_DEFAULT
+#if FEATURE_BOARD_DEFAULT == feature_board_widget
 #define FEATURE_ADC_DEFAULT				feature_adc_ak5394a
+#else
+#define FEATURE_ADC_DEFAULT				feature_adc_none
+#endif
 #endif
 #ifndef FEATURE_DAC_DEFAULT
-#define FEATURE_DAC_DEFAULT				feature_dac_cs4344
+#define FEATURE_DAC_DEFAULT				feature_dac_es9022
 #endif
 
 
