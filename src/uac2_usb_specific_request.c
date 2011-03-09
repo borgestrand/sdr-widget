@@ -114,7 +114,6 @@ static U16   wLength;
 
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
-
 int Speedx_1[38] = {
 0x03,0x00,				//number of sample rate triplets
 
@@ -133,7 +132,7 @@ int Speedx_1[38] = {
 };
 
 int Speedx_2[38] = {
-0x03,0x00,				//Size
+0x03,0x00,				//number of sample rate triplets
 
 0x80,0xbb,0x00,0x00,	//48k Min
 0x80,0xbb,0x00,0x00,	//48k Max
@@ -145,7 +144,7 @@ int Speedx_2[38] = {
 
 0x00,0xee,0x02,0x00,	//192k Min
 0x00,0xee,0x02,0x00,	//192k Max
-0x00,0x00,0x00,0x00	// 0 Res
+0x00,0x00,0x00,0x00		// 0 Res
 };
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -344,7 +343,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						Usb_write_endpoint_data(EP_CONTROL, 8, TRUE);
+						Usb_write_endpoint_data(EP_CONTROL, 8, TRUE);	// always valid
 						// temp hack to give total # of bytes requested
 						for (i = 0; i < (wLength - 1); i++)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
@@ -365,7 +364,6 @@ Bool uac2_user_read_request(U8 type, U8 request)
 								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
 							else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 							}
-
 						Usb_ack_control_in_ready_send();
 
 						while (!Is_usb_control_out_received());

@@ -97,8 +97,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
-
-				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+				if (FEATURE_BOARD_DIB)
+					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
@@ -122,7 +122,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
-				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+				if (FEATURE_BOARD_DIB)
+					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
@@ -142,11 +143,36 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 				}
 
+	       	else if (current_freq.frequency == 176400)
+	        	{
+	    			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	    			pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+					if (FEATURE_BOARD_DIB)
+						gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+
+	    			gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
+	    			gpio_set_gpio_pin(AK5394_DFS1);
+
+	    			pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+	    			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+	    								  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+	    								  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+	    								  0,                  // diven - disabled
+	    								  0);                 // GCLK1 = 12.288Mhz
+	    			pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+	    			if (Is_usb_full_speed_mode()) FB_rate = (176 << 14) + ((1<<13) * 4)/ 10;
+	    				else FB_rate = (176 << 14) + ((1<<13)*4) / 10;
+
+	        	}
+
 			else if (current_freq.frequency == 192000) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
-				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+				if (FEATURE_BOARD_DIB)
+					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
@@ -170,7 +196,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
-	            gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+				if (FEATURE_BOARD_DIB)
+					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
@@ -196,7 +223,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
-				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+				if (FEATURE_BOARD_DIB)
+					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
