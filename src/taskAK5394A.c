@@ -177,19 +177,7 @@ void AK5394A_task_init(const Bool uac1) {
 	// from AK5394A Xtal Oscillator
 	pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 
-	if (FEATURE_ADC_AK5394A){
-		// Set up AK5394A
-		gpio_clr_gpio_pin(AK5394_RSTN);		// put AK5394A in reset
-		gpio_clr_gpio_pin(AK5394_DFS0);		// L H -> 96khz   L L  -> 48khz
-		gpio_clr_gpio_pin(AK5394_DFS1);
-		gpio_set_gpio_pin(AK5394_HPFE);		// enable HP filter
-		gpio_clr_gpio_pin(AK5394_ZCAL);		// use VCOML and VCOMR to cal
-		gpio_set_gpio_pin(AK5394_SMODE1);	// SMODE1 = H for Master i2s
-		gpio_set_gpio_pin(AK5394_SMODE2);	// SMODE2 = H for Master/Slave i2s
 
-		gpio_set_gpio_pin(AK5394_RSTN);		// start AK5394A
-		while (gpio_get_pin_value(AK5394_CAL)); // wait till CAL goes low
-	}
 	// Assign GPIO to SSC.
 	gpio_enable_module(SSC_GPIO_MAP, sizeof(SSC_GPIO_MAP) / sizeof(SSC_GPIO_MAP[0]));
 	gpio_enable_pin_glitch_filter(SSC_RX_CLOCK);

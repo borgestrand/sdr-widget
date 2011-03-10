@@ -202,6 +202,7 @@ pm_freq_param_t   pm_freq_param=
  */
 int main(void)
 {
+	int counter;
 
   // Set CPU and PBA clock
   if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
@@ -210,15 +211,34 @@ int main(void)
   // Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
   wdt_disable();
 
-  // gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
 
   // Initialize features management
   features_init();
 
-  // should be in adc_init()
+  // The reason this is put as early as possible in the code
+  // is that AK5394A has to be put in reset when the clocks are not
+  // fully set up.  Otherwise the chip will overheat
   if ( FEATURE_BOARD_WIDGET ) {
 	  gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
   }
+
+  if (FEATURE_ADC_AK5394A){
+		// Set up AK5394A
+		gpio_clr_gpio_pin(AK5394_RSTN);		// put AK5394A in reset
+		gpio_clr_gpio_pin(AK5394_DFS0);		// L H -> 96khz   L L  -> 48khz
+		gpio_clr_gpio_pin(AK5394_DFS1);
+		gpio_set_gpio_pin(AK5394_HPFE);		// enable HP filter
+		gpio_clr_gpio_pin(AK5394_ZCAL);		// use VCOML and VCOMR to cal
+		gpio_set_gpio_pin(AK5394_SMODE1);	// SMODE1 = H for Master i2s
+		gpio_set_gpio_pin(AK5394_SMODE2);	// SMODE2 = H for Master/Slave i2s
+
+		gpio_set_gpio_pin(AK5394_RSTN);		// start AK5394A
+		counter = 0;
+		while (gpio_get_pin_value(AK5394_CAL) && (counter < COUNTER_TIME_OUT)) counter++;
+		// wait till CAL goes low or time out
+		// if time out then change feature adc to none
+		if (counter >= COUNTER_TIME_OUT) features[feature_adc_index] = feature_adc_none;
+	}
 
   if ( FEATURE_BOARD_DIB ) {
 	  gpio_set_gpio_pin(AVR32_PIN_PX51);	// for Dib Board

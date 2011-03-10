@@ -80,7 +80,7 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-
+#define COUNTER_TIME_OUT	100000L		// how long to do AK5394A CAL before time out
 
 
 //_____ M A C R O S ________________________________________________________
