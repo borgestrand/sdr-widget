@@ -10,12 +10,15 @@
 */
 const char usage[] = {
 	"usage: sudo ./widget-control [options] [values]\n"
-	"options: -d = print the default feature values\n"
-	"         -g = get the feature values from the widget nvram\n"
-	"         -l = list the possible feature values\n"
-	"         -m = get the feature values from the widget ram\n"
-	"         -r = reboot the widget\n"
-	"         -s = set the feature values in the widget nvram\n"
+	"options: -d = print the default feature values.\n"
+	//	"         -f = factory reset to image default values;\n"
+	//	"           doesn't perform a reset, just marks the features\n"
+	//	"           to be restored to original values on next reset.\n"
+	"         -g = get the feature values from the widget nvram.\n"
+	"         -l = list the possible feature values.\n"
+	"         -m = get the feature values from the widget ram.\n"
+	"         -r = reboot the widget.\n"
+	"         -s = set the feature values in the widget nvram.\n"
 	"Only -s takes values, in the form printed by -d or -g or -m.\n"
 	"The acceptable values for each feature are listed by -l.\n"
 	"The major and minor version numbers are optional to -s, but\n"
@@ -92,14 +95,6 @@ int find_feature_value(int index, char *value) {
 #define REQREC_OTHER			(3 << 0)
 
 #define WIDGET_RESET			0x0f
-#define WIDGET_FACTORY_RESET	0x41
-#define WIDGET_FACTORY_RESET_VALUE		0xff
-#define WIDGET_CONTROL			0x71
-
-#define SET_NVRAM				3
-#define GET_NVRAM				4
-#define SET_RAM					5
-#define GET_RAM					6
 
 #define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
@@ -218,11 +213,11 @@ int get_nvram() {
 	int i;
 	setup();
 	for (i = feature_major_index; i < feature_end_index; i += 1) {
-		int res = device_to_host(WIDGET_CONTROL, GET_NVRAM, i, 8);
+		int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_NVRAM, i, 8);
 		if (res == 1)
 			features_nvram[i] = usb_data[0];
 		else {
-			fprintf(stderr, "widget-control: device_to_host(WIDGET_CONTROL, GET_NVRAM, %d, 0) returned %s?\n", i, error_string(res));
+			fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_NVRAM, %d, 0) returned %s?\n", i, error_string(res));
 			exit(finish(1));
 		}
 	}
@@ -234,11 +229,11 @@ int get_mem() {
 	int i;
 	setup();
 	for (i = feature_major_index; i < feature_end_index; i += 1) {
-		int res = device_to_host(WIDGET_CONTROL, GET_RAM, i, 8);
+		int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_RAM, i, 8);
 		if (res == 1)
 			features_mem[i] = usb_data[0];
 		else {
-			fprintf(stderr, "widget-control: device_to_host(WIDGET_CONTROL, GET_RAM, %d, 0) returned %s?\n", i, error_string(res));
+			fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_RAM, %d, 0) returned %s?\n", i, error_string(res));
 			exit(finish(1));
 		}
 	}
@@ -277,9 +272,10 @@ int set_nvram(int argc, char *argv[]) {
 	}
 	setup();
 	for (i = feature_minor_index+1; i < feature_end_index; i += 1) {
-		int res = device_to_host(WIDGET_CONTROL, SET_NVRAM, i | (features[i] << 8), 8);
+		int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_SET_NVRAM, i | (features[i] << 8), 8);
 		if (res != 1) {
-			fprintf(stderr, "widget-control: device_to_host(WIDGET_CONTROL, SET_NVRAM, %d | (%d << 8), 8) returned %s?\n", i, features[i], error_string(res));
+			fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_SET_NVRAM, %d | (%d << 8), 8) returned %s?\n",
+					i, features[i], error_string(res));
 			exit(finish(1));
 		}
 	}
@@ -289,9 +285,19 @@ int set_nvram(int argc, char *argv[]) {
 int reset_widget() {
 	setup();
 	int res = device_to_host(WIDGET_RESET, 0, 0, 8);
-	// int res = device_to_host(WIDGET_FACTORY_RESET, WIDGET_FACTORY_RESET_VALUE, 0, 8);
 	if (res != 1) {
 		fprintf(stderr, "widget-control: device_to_host(WIDGET_RESET, 0, 0, 8) returned %s?\n", error_string(res));
+		exit(finish(1));
+	}
+    return finish(0);
+}
+
+int factory_reset_widget() {
+	setup();
+	// int res = device_to_host(WIDGET_RESET, 0, 0, 8);
+	int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_FACTORY_RESET, 0, 8);
+	if (res != 1) {
+		fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_FACTORY_RESET, 0, 8) returned %s?\n", error_string(res));
 		exit(finish(1));
 	}
     return finish(0);
@@ -325,6 +331,9 @@ int main(int argc, char *argv[]) {
 		if (strcmp(argv[i], "-r") == 0) { // reboot widget
 			exit(reset_widget());
 		}
+		//		if (strcmp(argv[i], "-f") == 0) { // factory reset widget
+		//			exit(factory_reset_widget());
+		//		}
 	}
 	fprintf(stderr, usage);
 	exit(1);
