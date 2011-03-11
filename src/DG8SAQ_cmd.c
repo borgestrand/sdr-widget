@@ -204,7 +204,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			***********************************/
 
 		case 0x0f:								// Reboot by Watchdog
-			wdt_enable(100000);					// Enable Watchdog with 100ms patience
+			wdt_enable(500000);					// Enable Watchdog with 500ms patience
 			while (1);							// Bye bye
 
 
