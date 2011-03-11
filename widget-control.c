@@ -260,6 +260,8 @@ int set_nvram(int argc, char *argv[]) {
 		}
 	} else {
 		// invalid number of features
+		fprintf(stderr, "widget-control: wrong number (%d) of features specified, should be %d features to set\n", argc, FEATURE_MAJOR_DEFAULT);
+		exit(1);
 	}
 	for (i = feature_minor_index+1; i < feature_end_index; i += 1) {
 		j = find_feature_value(i, argv[i]);
