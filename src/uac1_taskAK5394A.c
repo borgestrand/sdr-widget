@@ -46,12 +46,14 @@
 #include "ssc_i2s.h"
 #include "pm.h"
 #include "pdca.h"
+#include "features.h"
 #include "usb_standard_request.h"
 #include "usb_specific_request.h"
 #include "device_audio_task.h"
 #include "uac1_device_audio_task.h"
 #include "taskAK5394A.h"
 #include "uac1_taskAK5394A.h"
+#include "Mobo_config.h"
 
 //_____ M A C R O S ________________________________________________________
 
@@ -98,18 +100,19 @@ void uac1_AK5394A_task(void *pvParameters) {
 			gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
 			gpio_clr_gpio_pin(AK5394_DFS1);
 
-			// re-sync SSC to LRCK
-			// Wait for the next frame synchronization event
-			// to avoid channel inversion.  Start with left channel - FS goes low
-			while (!gpio_get_pin_value(AK5394_LRCK));
-			while (gpio_get_pin_value(AK5394_LRCK));
+			if (FEATURE_ADC_AK5394A) {
+				// re-sync SSC to LRCK
+				// Wait for the next frame synchronization event
+				// to avoid channel inversion.  Start with left channel - FS goes low
+				while (!gpio_get_pin_value(AK5394_LRCK));
+				while (gpio_get_pin_value(AK5394_LRCK));
 
-			// Enable now the transfer.
-			pdca_enable(PDCA_CHANNEL_SSC_RX);
+				// Enable now the transfer.
+				pdca_enable(PDCA_CHANNEL_SSC_RX);
 
-			// Init PDCA channel with the pdca_options.
-			AK5394A_pdca_enable();
-
+				// Init PDCA channel with the pdca_options.
+				AK5394A_pdca_enable();
+			}
 			// reset usb_alternate_setting_changed flag
 			usb_alternate_setting_changed = FALSE;
 		}
@@ -122,6 +125,11 @@ void uac1_AK5394A_task(void *pvParameters) {
 				}
 			}
 			usb_alternate_setting_out_changed = FALSE;
+		}
+
+		if (FEATURE_IMAGE_UAC1_DG8SAQ) {
+			spk_mute = TX_state ? FALSE : TRUE;
+			mute = TX_state ? TRUE : FALSE;
 		}
 
 	} // end while (TRUE)
