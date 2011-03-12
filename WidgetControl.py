@@ -132,6 +132,7 @@ class Launcher(model.Background):
           self.handle = dev.open()
           # choose which of the device's configurations to use, mustn't be execute on Linux
           if platform.system() == 'Windows': self.handle.setConfiguration(confignum)
+
           # Get Firmware serial number
           firmw_serial = self.handle.getString( dev.iSerialNumber, 30)
 
@@ -436,6 +437,5 @@ class Launcher(model.Background):
 # Here be Main
 #############################################################
 if __name__ == '__main__':
-    print "---->%s" % platform.system()
     app = model.Application(Launcher)
     app.MainLoop()
