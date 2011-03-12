@@ -215,7 +215,7 @@ class Launcher(model.Background):
        self.on_Refresh_command(-1)		# Refresh
 
     def on_ComboBoxImage_textUpdate(self, event):
-       if event.target.stringSelection == 'UAC2 dg8ssaq':
+       if event.target.stringSelection == 'UAC2 dg8saq':
            self.imageSelection = 10
        elif event.target.stringSelection == 'UAC2 Audio':
            self.imageSelection = 9
