@@ -438,4 +438,10 @@ class Launcher(model.Background):
 #############################################################
 if __name__ == '__main__':
     app = model.Application(Launcher)
+
+    # Main window resize on Windows platform
+    if platform.system() == 'Windows': 
+        bg = app.getCurrentBackground()
+        bg.size = (922, 620)
+
     app.MainLoop()
