@@ -2,18 +2,18 @@
 <?fileVersion 1.0.0?>
 <framework-data>
   <options>
-    <option id="com.atmel.avr32.sf.uc3a3.driver.option.pm" value="true"/>
     <option id="com.atmel.avr32.sf.uc3a3.service.option.debug" value="true"/>
+    <option id="com.atmel.avr32.sf.uc3a3.driver.option.pm" value="true"/>
     <option id="com.atmel.avr32.sf.uc3a3.driver.option.intc" value="true"/>
     <option id="com.atmel.avr32.sf.uc3a3.driver.option.tc" value="true"/>
-    <option id="com.atmel.avr32.sf.uc3a3.service.option.newlibaddon" value="speed"/>
     <option id="com.atmel.avr32.sf.uc3a3.driver.option.flashc" value="true"/>
+    <option id="com.atmel.avr32.sf.uc3a3.service.option.newlibaddon" value="speed"/>
     <option id="com.atmel.avr32.sf.uc3a3.driver.option.gpio" value="true"/>
     <option id="com.atmel.avr32.sf.uc3a3.driver.option.usbb" value="true"/>
     <option id="com.atmel.avr32.sf.uc3a3.component.option.joystick" value="true"/>
-    <option id="com.atmel.avr32.sf.uc3a3.service.option.freertos" value="true"/>
-    <option id="com.atmel.avr32.sf.uc3a3.driver.option.usart" value="true"/>
     <option id="com.atmel.avr32.sf.uc3a3.service.option.usbb" value="USB HID Class (Human Interface Device)"/>
+    <option id="com.atmel.avr32.sf.uc3a3.driver.option.usart" value="true"/>
+    <option id="com.atmel.avr32.sf.uc3a3.service.option.freertos" value="true"/>
   </options>
   <files>
   </files>
