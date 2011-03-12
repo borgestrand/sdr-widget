@@ -149,8 +149,7 @@ char *widget_reset_cause(void) {
 		return "power on";
 	else if (AVR32_PM.RCAUSE.ext)		/* external reset */
 		return "external";
-	else if (AVR32_PM.RCAUSE.bod ||
-			 AVR32_PM.RCAUSE.bod33)		/* brown out reset */
+	else if (AVR32_PM.RCAUSE.bod)		/* brown out reset */
 		return "brown out";
 	else if (AVR32_PM.RCAUSE.cpuerr)	/* cpu error */
 		return "cpu error";
