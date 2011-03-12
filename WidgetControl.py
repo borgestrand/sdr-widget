@@ -16,7 +16,7 @@ import ConfigParser
 
 import pprint
 
-import os, sys
+import os, sys, platform
 import wx
 
 import usb
@@ -130,9 +130,8 @@ class Launcher(model.Background):
         else:
           # open the device for communication
           self.handle = dev.open()
-          # choose which of the device's configurations to use, commented out for Linux
-          #self.handle.setConfiguration(confignum)
- 
+          # choose which of the device's configurations to use, mustn't be execute on Linux
+          if platform.system() == 'Windows': self.handle.setConfiguration(confignum)
           # Get Firmware serial number
           firmw_serial = self.handle.getString( dev.iSerialNumber, 30)
 
@@ -437,5 +436,6 @@ class Launcher(model.Background):
 # Here be Main
 #############################################################
 if __name__ == '__main__':
+    print "---->%s" % platform.system()
     app = model.Application(Launcher)
     app.MainLoop()
