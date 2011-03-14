@@ -95,8 +95,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 		if (freq_changed) {
 
 			if (current_freq.frequency == 96000) {
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				if (FEATURE_BOARD_DIB)
 					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
@@ -120,8 +120,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 			}
 
 		   	else if (current_freq.frequency == 88200){
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				if (FEATURE_BOARD_DIB)
 					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
@@ -144,9 +144,10 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 				}
 
-	       	else if (current_freq.frequency == 176400) {
-	    			pdca_disable(PDCA_CHANNEL_SSC_RX);
+	       	else if (current_freq.frequency == 176400)
+	        	{
 	    			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	    			pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 					if (FEATURE_BOARD_DIB)
 						gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
@@ -168,8 +169,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 	        	}
 
 			else if (current_freq.frequency == 192000) {
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				if (FEATURE_BOARD_DIB)
 					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
@@ -193,8 +194,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 			} else if (current_freq.frequency == 48000) {
 				// if there are two XO, PX16 sets the 48x
 				// gpio_set_gpio_pin(AVR32_PIN_PX16);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				if (FEATURE_BOARD_DIB)
 					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
@@ -220,8 +221,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 			else if (current_freq.frequency == 44100) {
 				// if there are two XO, PX16 set --> 48x. clr -->44.1x
 				// gpio_clr_gpio_pin(AVR32_PIN_PX16);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				if (FEATURE_BOARD_DIB)
 					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
@@ -257,10 +258,11 @@ void uac2_AK5394A_task(void *pvParameters) {
 					while (!gpio_get_pin_value(AK5394_LRCK));
 					while (gpio_get_pin_value(AK5394_LRCK));	// exit when FS goes low
 				}
-				// Init PDCA channel with the pdca_options.
-				AK5394A_pdca_enable();
 				// Enable now the transfer.
 				pdca_enable(PDCA_CHANNEL_SSC_RX);
+
+				// Init PDCA channel with the pdca_options.
+				AK5394A_pdca_enable();
 			}
 
 			// reset freq_changed flag

@@ -381,7 +381,7 @@ class Launcher(model.Background):
             output = self.devicetohost(0x71, 4, 3)
             self.handle.releaseInterface()          # Release the USB device
             if output[0] == 11:
-                imageType = 'dg8saq'
+                imageType = 'hpsdr'
             elif output[0] == 10:
                 imageType = 'UAC2 dg8saq'
             elif output[0] == 9:
