@@ -36,13 +36,16 @@
 //extern const pdca_channel_options_t PDCA_OPTIONS;
 //extern const pdca_channel_options_t SPK_PDCA_OPTIONS;
 
-extern volatile U32 audio_buffer_0[AUDIO_BUFFER_SIZE];
-extern volatile U32 audio_buffer_1[AUDIO_BUFFER_SIZE];
-extern volatile U32 spk_buffer_0[SPK_BUFFER_SIZE];
-extern volatile U32 spk_buffer_1[SPK_BUFFER_SIZE];
+extern volatile U32 audio_buffer[2][AUDIO_BUFFER_SIZE];
+extern volatile U32 spk_buffer[2][SPK_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
 extern volatile int audio_buffer_in;
 extern volatile int spk_buffer_out;
+
+#define audio_buffer_0 audio_buffer[0]
+#define audio_buffer_1 audio_buffer[1]
+#define spk_buffer_0 spk_buffer[0]
+#define spk_buffer_1 spk_buffer[1]
 
 void AK5394A_pdca_disable(void);
 void AK5394A_pdca_enable(void);

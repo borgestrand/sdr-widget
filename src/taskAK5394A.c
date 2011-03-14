@@ -83,10 +83,8 @@ static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
 };
 
-volatile U32 audio_buffer_0[AUDIO_BUFFER_SIZE];
-volatile U32 audio_buffer_1[AUDIO_BUFFER_SIZE];
-volatile U32 spk_buffer_0[SPK_BUFFER_SIZE];
-volatile U32 spk_buffer_1[SPK_BUFFER_SIZE];
+volatile U32 audio_buffer[2][AUDIO_BUFFER_SIZE];
+volatile U32 spk_buffer[2][SPK_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
@@ -98,14 +96,9 @@ volatile int audio_buffer_in, spk_buffer_out;
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
-	if (audio_buffer_in == 0) {
-		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
-		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, AUDIO_BUFFER_SIZE);
-		audio_buffer_in = 1;
-	} else {
-		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, AUDIO_BUFFER_SIZE);
-		audio_buffer_in = 0;
-	}
+	// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
+	audio_buffer_in ^= 1;
+	pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer[audio_buffer_in], AUDIO_BUFFER_SIZE);
 
 }
 
@@ -115,14 +108,9 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
-	if (spk_buffer_out == 0) {
-		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
-		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, SPK_BUFFER_SIZE);
-		spk_buffer_out = 1;
-	} else {
-		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, SPK_BUFFER_SIZE);
-		spk_buffer_out = 0;
-	}
+	// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
+	spk_buffer_out ^= 1;
+	pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer[spk_buffer_out], SPK_BUFFER_SIZE);
 }
 
 /*! \brief Init interrupt controller and register pdca_int_handler interrupt.
