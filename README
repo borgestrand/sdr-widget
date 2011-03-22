@@ -14,7 +14,7 @@ SDR-Widget is an interface based on the Atmel AT32UC3A3 microcontroller that pro
 
 The interface also aims to be used as a general platform for future experimentation with SDR peripherals.
 
-A branch of the widget, called the audiophile-widget, will provide the USB-I2S module for mating with various Analog Board (AB) designs featuring different DAC, IV conversion, buffer/amplification, and power supplies. One the AB's will feature an FPGA for added functionalities.
+A branch of the widget, called the audiophile-widget, will provide the USB-I2S module for mating with various Analog Board (AB) designs featuring different DAC, IV conversion, buffer/amplification, and power supplies. AB-1 is based on the ES9022 DAC.  One the AB's will feature an FPGA for added functionalities.
 
 For descriptions and photos of the hardware, see:
 
