@@ -209,7 +209,7 @@ extern features_t features_nvram, features;
 #endif
 #endif
 #ifndef FEATURE_DAC_DEFAULT
-#define FEATURE_DAC_DEFAULT				feature_dac_es9022
+#define FEATURE_DAC_DEFAULT				feature_dac_cs4344
 #endif
 
 
