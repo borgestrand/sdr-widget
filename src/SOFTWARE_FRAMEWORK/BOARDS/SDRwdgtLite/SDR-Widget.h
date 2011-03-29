@@ -24,7 +24,7 @@
 
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:ALL-002"
+#define FIRMWARE_VERSION	"V:ALL-003"
 // Mobo changes since V:UAC1_069:
 //   taskPowerDisplay.c... change calculated pwr value from mW to cW
 //   taskMoboControl.c...  change calculated pwr value from mW to cW

@@ -553,20 +553,17 @@ static void vtaskMoboCtrl( void * pcParameters )
 	lcd_q_init();
 	lcd_bargraph_init();
 
+	features_display_all();
+
 	// Clear LCD and Print Firmware version
+	vTaskDelay( 10000 );	// Keep current text on display for
+							// 1s before probing for I2C devices
+
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_clear();
-
-/*
-	lcd_q_goto(2,0);
-	lcd_q_print("HP Cap:");
-	lcd_q_puth(Usb_get_enhanced_high_bandwidth_iso());
-*/
 	lcd_q_goto(3,10);
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
-
-	features_display_all();
 	#endif
 
 	// Create I2C comms semaphore
@@ -575,10 +572,8 @@ static void vtaskMoboCtrl( void * pcParameters )
  	// Initialize I2C communications
 	#if I2C
 	twi_init();
-
     // Probe for I2C devices present and report on LCD
-		i2c_device_scan();
-		//i2c_device_probe();
+	i2c_device_scan();
 	#endif
 
 	#if LCD_DISPLAY			// Multi-line LCD display
@@ -589,8 +584,8 @@ static void vtaskMoboCtrl( void * pcParameters )
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
 
-     #if Si570
-     // Print capabilities on LCD
+    #if Si570
+    // Print capabilities on LCD
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_goto(0,0);
 	// A Full house
