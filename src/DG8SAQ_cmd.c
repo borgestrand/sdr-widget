@@ -24,6 +24,7 @@
 
 #include "DG8SAQ_cmd.h"
 #include "features.h"
+#include "widget.h"
 #include "taskLCD.h"
 #include "Mobo_config.h"
 #include "Si570.h"
@@ -203,10 +204,8 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 	#endif//LEGACY_PORT_CMD
 			***********************************/
 
-		case 0x0f:								// Reboot by Watchdog
-			wdt_enable(100000);					// Enable Watchdog with 100ms patience
-			while (1);							// Bye bye
-
+		case 0x0f:								// Reboot widget
+			widget_reset();
 
 			// Todo -- may go, unless we have GPIOs to work with
 			/***************************************************
@@ -367,11 +366,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 
 			if (wValue == 0xff)
 				{
-					// Force an EEPROM update:
-					flashc_memset8((void *)&nvram_cdata.EEPROM_init_check, wValue, sizeof(uint8_t), TRUE);
-					// Reboot by Watchdog timer
-					wdt_enable(100000);				// Enable Watchdog with 100ms patience
-					while (1);						// Bye bye
+					widget_factory_reset();
 				}
 
 			if (wValue)							// If value field > 0, then update EEPROM settings
@@ -812,17 +807,21 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 				return sizeof(uint8_t);
 
 			// access to sdr-widget feature api
-			case 3:				// set feature in nvram
+			case FEATURE_DG8SAQ_SET_NVRAM: // set feature in nvram
 				Buffer[0] = feature_set_nvram(wIndex&0xFF, (wIndex>>8)&0xFF);
 				return sizeof(uint8_t);
-			case 4:				// get feature from nvram
+			case FEATURE_DG8SAQ_GET_NVRAM: // get feature from nvram
 				Buffer[0] = feature_get_nvram(wIndex);
 				return sizeof(uint8_t);
-			case 5:				// set feature in memory (may or may not work depending on feature)
+			case FEATURE_DG8SAQ_SET_RAM: // set feature in memory (may or may not take effect depending on feature)
 				Buffer[0] = feature_set(wIndex&0xFF, (wIndex>>8)&0xFF);
 				return sizeof(uint8_t);
-			case 6:				// get feature from memory
+			case FEATURE_DG8SAQ_GET_RAM: // get feature from memory
 				Buffer[0] = feature_get(wIndex);
+				return sizeof(uint8_t);
+			case FEATURE_DG8SAQ_FACTORY_RESET: // factory reset features
+				feature_factory_reset();
+				Buffer[0] = 0;
 				return sizeof(uint8_t);
 			}
 		default:

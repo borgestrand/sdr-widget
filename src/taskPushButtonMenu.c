@@ -31,8 +31,8 @@
 #include "FreeRTOS.h"
 #include "rtc.h"
 #include "flashc.h"
-#include "wdt.h"
 
+#include "widget.h"
 #include "taskPushButtonMenu.h"
 #include "composite_widget.h"
 #include "Mobo_config.h"
@@ -2401,8 +2401,7 @@ void i2c_menu_level2(void)
 	   		lcd_q_print("RESET into new mode");
 	   		xSemaphoreGive( mutexQueLCD );
 			vTaskDelay(20000 );
-			wdt_enable(100000);					// Enable Watchdog with 100ms patience
-			while (1);
+			widget_reset();
 		}
 		else
 		{
@@ -2843,8 +2842,8 @@ void uac_menu(void)
 		   		lcd_q_print("RESET into new mode");
 		   		xSemaphoreGive( mutexQueLCD );
 				vTaskDelay(20000 );
-				wdt_enable(100000);					// Enable Watchdog with 100ms patience
-				while (1);							// Bye bye, Reset to Enact change
+				widget_reset();
+				break;
 			case 1: // UAC2
 				//cdata.UAC2_Audio = FALSE;
 				flashc_memset8((void *)&nvram_cdata.UAC2_Audio, TRUE, sizeof(uint8_t), TRUE);
@@ -2859,8 +2858,8 @@ void uac_menu(void)
 		   		lcd_q_print("RESET into new mode");
 		   		xSemaphoreGive( mutexQueLCD );
 				vTaskDelay(20000 );
-				wdt_enable(100000);					// Enable Watchdog with 100ms patience
-				while (1);							// Bye bye, Reset to Enact change
+				widget_reset();
+				break;
 			default:
 				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 				lcd_q_clear();
@@ -2945,9 +2944,8 @@ void factory_menu(void)
 				lcd_q_print("to default values.");
 				xSemaphoreGive( mutexQueLCD );
 				vTaskDelay(20000 );
-				// Reboot by Watchdog timer
-				wdt_enable(100000);	// Enable Watchdog with 100ms patience
-				while (1);			// Bye bye, Reset to Enact change
+				widget_reset();
+				break;
 			case 1:
 				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 				lcd_q_clear();

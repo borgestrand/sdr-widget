@@ -97,6 +97,13 @@ extern volatile  U16	usb_interface_nb;
 extern volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
 extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 
+// convert an unsigned int sample rate, in Hz,
+// into the four bytes required for usb transfer
+#define Usb_sample_rate_as_bytes(rate)	(((rate)>>0)&0xff),(((rate)>>8)&0xff),(((rate)>>16)&0xff),(((rate)>>24)&0xff)
+
+// a union to pun between
+// frequency as a 32 bit Hz value
+// and the bytes that make it up
 typedef union {
 	U32 frequency;
 	U8 freq_bytes[4];

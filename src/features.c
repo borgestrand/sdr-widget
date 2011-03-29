@@ -31,6 +31,15 @@ const char *feature_value_names[] = { FEATURE_VALUE_NAMES };
 
 const char *feature_index_names[] = { FEATURE_INDEX_NAMES };
 
+// factory reset handler for features
+static void feature_factory_reset_handler(void) {
+	// Force an EEPROM update in the features
+	// set the major and minor version numbers to 0 in the nvram
+	// this value cannot happen naturally, so the image initialized
+	// version will be copied to nvram on the next reset
+	flashc_memset8((void *)&features_nvram, 0, 2, TRUE);
+}
+
 //
 void features_init() {
   // Enforce "Factory default settings" when a mismatch is detected between the
@@ -41,6 +50,8 @@ void features_init() {
   } else {
 	  memcpy(&features, &features_nvram, sizeof(features));
   }
+  // Register a factory reset handler
+  widget_factory_reset_handler_register(feature_factory_reset_handler);
 }
 
 void features_display(char *title, features_t fp, int delay) {
@@ -63,8 +74,8 @@ void features_display(char *title, features_t fp, int delay) {
 void features_display_all() {
 	widget_display_clear();
 	widget_report();
-	features_display("features ram:", features, 10000);
-	// features_display("features nvram:", features_nvram, 10000);
+	features_display("features ram:", features, 500000);
+	// features_display("features nvram:", features_nvram, 500000);
 }
 
 uint8_t feature_set(uint8_t index, uint8_t value) {
@@ -89,3 +100,6 @@ uint8_t feature_get_nvram(uint8_t index)  {
 	return index < feature_end_index ? features_nvram[index] : 0xFF;
 }
 
+void feature_factory_reset(void) {
+	feature_factory_reset_handler();
+}

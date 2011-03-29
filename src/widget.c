@@ -15,6 +15,9 @@
 #include "flashc.h"
 #include "rtc.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include "features.h"
 #include "widget.h"
 #include "taskLCD.h"
@@ -22,23 +25,40 @@
 
 //
 // lcd display
+// clear the display,
+// display lines of text and scroll up after all four lines are filled
+// ditto and delay after each line of text is displayed
 //
-static uint8_t display_row = 0;
+static unsigned char display_grabbed = 0;
+static unsigned char display_row = 0;
 static char display_contents[4][21];
 
+void widget_display_grab(void) {
+	if ( ! display_grabbed)
+		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+	display_grabbed += 1;
+}
+
+void widget_display_drop(void) {
+	if (display_grabbed) {
+		display_grabbed -= 1;
+		if ( ! display_grabbed )
+			xSemaphoreGive( mutexQueLCD );
+	}
+}
+	
 void widget_display_clear(void) {
 	int i;
-	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+	widget_display_grab();
 	lcd_q_clear();
 	display_row = 0;
 	for (i = 0; i < 4; i += 1)
 		memset(&display_contents[i][0], ' ', 20);
-	xSemaphoreGive( mutexQueLCD );
+	widget_display_drop();
 }
 
 void widget_display_string_and_scroll(char *string) {
-	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-#if 1
+	widget_display_grab();
 	if (display_row == 4) {
 		// scroll up
 		int row;
@@ -49,123 +69,171 @@ void widget_display_string_and_scroll(char *string) {
 		}
 		display_row = 3;
 	}
-#else
-	display_row &= 3;
-#endif
 	sprintf(&display_contents[display_row][0], "%-20.20s", string);
 	lcd_q_goto(display_row, 0);
 	lcd_q_print(&display_contents[display_row][0]);
 	display_row += 1;
-	xSemaphoreGive( mutexQueLCD );
+	widget_display_drop();
 }
 
-void widget_display_string_scroll_and_delay(char *string, uint16_t delay) {
+void widget_display_string_scroll_and_delay(char *string, unsigned delay) {
 	widget_display_string_and_scroll(string);
-	vTaskDelay( delay );
+	widget_delay_task(delay);
+}
+
+//
+// provide a place for disasters to be reported
+// only works when taskLCD is active
+// shows a message for 30 seconds
+//
+void widget_oops(char *message) {
+	if (widget_is_tasking()) {
+		widget_display_grab();
+		widget_display_clear();
+		widget_display_string_and_scroll("widget_oops:");
+		widget_display_string_scroll_and_delay(message, 30000000);
+		widget_display_drop();
+	}
 }
 
 //
 // test if we're in supervisor mode
+// more specifically if we're not in user mode
 //
 int widget_is_supervisor(void) {
 	return (Get_system_register(AVR32_SR) & (7 << 22)) != 0;
 }
 
 //
-// return true if we've begun running RTOS
+// return true if we've begun running FreeRTOS
+//
+// this depends on the fact that xTaskGetCurrentTaskHandle
+// returns NULL before the scheduler starts running.
+// it allows widget_delay() to switch between busy waiting
+// the real time clock and calling vTaskDelay.
+//
+// ah, but it returns non-NULL after task creation and before
+// the scheduler starts.
 //
 int widget_is_tasking(void) {
 	return xTaskGetCurrentTaskHandle() != NULL;
 }
 
 //
-// decode the reset cause
+// delay the current execution by us microseconds
+// using vTaskDelay and the configured FreeRTOS tick rate
+//
+void widget_delay_task(unsigned us) {
+	unsigned tick = (unsigned long long)us * configTICK_RATE_HZ / 1000000;
+	vTaskDelay(tick);
+}
+
+//
+// delay the current execution by us microseconds
+// using the real time clock running at 115000 Hz.
+//
+void widget_delay_rtc(unsigned us) {
+#define RTC_HZ	   115000						// 115kHz Real Time Counter
+	unsigned tick = (unsigned long long)us * RTC_HZ / 1000000;
+	unsigned start = rtc_get_value(&AVR32_RTC);
+	while ( (rtc_get_value(&AVR32_RTC) - start) < tick );
+}
+
+//
+// decode the reset cause to a string
 //
 char *widget_reset_cause(void) {
-	// how did we get here?
-	if (AVR32_PM.RCAUSE.wdt) {				/* watch dog reset*/
+	if (AVR32_PM.RCAUSE.wdt)			/* watch dog timer reset*/
 		return "watch dog";
-	} else if (AVR32_PM.RCAUSE.por) {		/* power on reset */
+	else if (AVR32_PM.RCAUSE.por)		/* power on reset */
 		return "power on";
-	} else if (AVR32_PM.RCAUSE.ext) {		/* external reset */
+	else if (AVR32_PM.RCAUSE.ext)		/* external reset */
 		return "external";
-	} else if (AVR32_PM.RCAUSE.bod || AVR32_PM.RCAUSE.bod33) { /* brown out */
+	else if (AVR32_PM.RCAUSE.bod)		/* brown out reset */
 		return "brown out";
-	} else if (AVR32_PM.RCAUSE.cpuerr) {		/* cpu error */
+	else if (AVR32_PM.RCAUSE.cpuerr)	/* cpu error */
 		return "cpu error";
-	} else {					/* unknown */
+	else								/* unknown */
 		return "unknown";
-	}
 }
 
 //
 // provide a call which generates a system reset
 //
 void widget_reset(void) {
-	if ( ! widget_is_supervisor() ) {
-		widget_blink_morse("  reset not super  ");
-	} else {
-		widget_blink_morse("  reset  ");
-	}
-#if 0
-	// Enable Watchdog with 100ms patience
-	// This is what works for Loftur in demo_UAC1_v087_f_WinXP
-	// Doesn't work in demo_UAC2_v005_DG8SAQ, or for any of my images
-	// If it generates a privilege violation, what happens?
-	wdt_enable(0);
-	// Wait for it to fire, blinking
-	while (1) {
-		widget_blink(". ..  ...   ");
-	}
-#elif 0
-	// This is provided in compiler.h with the advice that it doesn't
-	// work in user application mode.  Maybe that's our problem, we're
-	// getting a privilege violation?
-	Reset_CPU();
-#elif 1
-	Long_call(0x80000000);
-#endif
+	wdt_enable(5000000);	// Enable Watchdog with 500ms patience
+	while (1);				// Wait for it to fire
 }
 
+//
+// widget factory reset handler table
+//
+static widget_factory_reset_handler_t handlers[WIDGET_FACTORY_RESET_HANDLERS];
+
+//
+// register a widget factory reset handler
+//
+void widget_factory_reset_handler_register(widget_factory_reset_handler_t handler) {
+	int i;
+	for (i = 0; i < WIDGET_FACTORY_RESET_HANDLERS; i += 1)
+		if (handlers[i] == NULL) {
+			handlers[i] = handler;
+			break;
+		}
+	if (i >= WIDGET_FACTORY_RESET_HANDLERS)
+		widget_oops("reset table is full"); /* keep it under 20 chars */
+}
+
+//
+// force a factory reset, which reinitializes all nvram data to values from the
+// image on next reset.
+// each module which has data which can be factory reset should have registered
+// a factory reset handler for us to call.
+// this way we don't need to know where every module was storing its nvram and
+// how to force reset it.
+//
 void widget_factory_reset(void) {
-	// Force an EEPROM update in the mobo config
-	flashc_memset8((void *)&nvram_cdata.EEPROM_init_check, 0xFF, sizeof(uint8_t), TRUE);
-	// Force an EEPROM update in the features
-	flashc_memset8((void *)&features_nvram, 0, 2, TRUE);
-	// reset
-	widget_reset();
+	// call the registered handlers
+	int i;
+	for (i = 0; i < WIDGET_FACTORY_RESET_HANDLERS; i += 1)
+		if (handlers[i] != NULL)
+			handlers[i]();
+	widget_reset();				// reset
 }
 
 //
 // blink a dot-space code: dot is on, space is off
 //
-#define RTC_HZ	   115000						// 115kHz Real Time Counter
 #define BLINKY_WPM 15							// words per minute to blink
 #define PARIS_DPW  50							// dit clocks in PARIS
 #define CODEX_DPW  60							// dit clocks in CODEX
 
+// LED0_GPIO - mounted led0, contended for by uac
+// LED1_GPIO - mounted led1, contended for by uac
+// PTT_1 - one of these three gets set eventually
+// PTT_2
+// PTT_3
 void widget_blink(char *dotspace) {
 	// take the number of clocks per second, divide by the dits per second
-	const int32_t clocks_per_dot = RTC_HZ / (BLINKY_WPM * PARIS_DPW / 60);
+	const int32_t us_per_dot = 1000000 / (BLINKY_WPM * PARIS_DPW / 60);
 	// start off
 	LED_Off(LED0); LED_Off(LED1);
 	// until a nul terminator
 	while (*dotspace != 0) {
 		// on for dot, off for anything else
 		if (*dotspace == '.') {
-			LED_On(LED0); LED_On(LED1);
+			gpio_clr_gpio_pin(PTT_1); gpio_clr_gpio_pin(PTT_2); gpio_clr_gpio_pin(PTT_3);
 		} else if (*dotspace == ' ') {
-			LED_Off(LED0); LED_Off(LED1);
+			gpio_set_gpio_pin(PTT_1); gpio_set_gpio_pin(PTT_2); gpio_set_gpio_pin(PTT_3);
 		} else {
 			break;
 		}
 		// increment dotspace code
 		dotspace += 1;
 		// count down the dot clock
-		uint32_t start = rtc_get_value(&AVR32_RTC);
-		while ( (rtc_get_value(&AVR32_RTC) - start) < clocks_per_dot );
+		widget_delay_rtc(us_per_dot);
 	}
-	LED_Off(LED0); LED_Off(LED1);
+	gpio_set_gpio_pin(PTT_1); gpio_set_gpio_pin(PTT_2); gpio_set_gpio_pin(PTT_3);
 }
 
 void widget_blink_morse(char *ascii) {
@@ -208,12 +276,34 @@ void widget_blink_morse(char *ascii) {
 		case '8':		    widget_blink("... ... ... . .   "); continue;
 		case '9':		    widget_blink("... ... ... ... .   "); continue;
 		case '0':		    widget_blink("... ... ... ... ...   "); continue;
+		case '"':			widget_blink(". ... . ... .   "); continue;
+		case '\'':			widget_blink(". ... ... ... ... .   "); continue;
+		case '$':			widget_blink(". . . ... . . ...   "); continue;
+		case '(':		    widget_blink("... . ... ... .   "); continue;
+		case ')':		    widget_blink("... . ... ... . ...   "); continue;
+		case '+':		    widget_blink(". ... . ... .   "); continue;
+		case ',':		    widget_blink("... ... . . ... ...   "); continue;
+		case '-':		    widget_blink("... . . . . ...   "); continue;
+		case '.':		    widget_blink(". ... . ... . ...   "); continue;
+		case '/':			widget_blink("... . . ... .   "); continue;
+		case ':':			widget_blink("... ... ... . . .   "); continue;
+		case ';':			widget_blink("... . ... . ... .   "); continue;
+		case '=':			widget_blink("... . . . ...   "); continue;
+		case '?':			widget_blink(". . ... ... . .   "); continue;
+		case '_':			widget_blink(". . ... ... . ...   "); continue;
+		case '@':			widget_blink(". ... ... . ... .   "); continue;
 		}
 	}
 }
 
 void widget_init(void) {
-	widget_blink_morse(" v ");
+	// widget_blink_morse(" v ");
+	// char buffer[64];
+	// strncpy(buffer,widget_reset_cause(),64);
+	// buffer[3] = 0;
+	// widget_blink_morse(buffer);
+	// widget_blink_morse(" v ");
+	
 	// this returns not tasking during startup
 	// if (widget_is_tasking()) widget_blink_morse(" tasking "); else widget_blink_morse(" not tasking ");
 	//	widget_blink_morse("   ");
@@ -226,10 +316,16 @@ void widget_init(void) {
 	//		widget_blink_morse(" super");
 }
 
+void widget_ready(char *msg) {
+	// widget_blink_morse(msg);
+}
+
 void widget_report(void) {
 	char buff[32];
-	widget_display_string_scroll_and_delay("widget report:", 10000);
-	widget_display_string_scroll_and_delay("firmware = " FIRMWARE_VERSION, 10000);
+	widget_display_grab();
+	widget_display_string_scroll_and_delay("widget report:", 500000);
+	widget_display_string_scroll_and_delay("firmware = " FIRMWARE_VERSION, 500000);
 	sprintf(buff, "reset = %s", widget_reset_cause());
-	widget_display_string_scroll_and_delay(buff, 10000);
+	widget_display_string_scroll_and_delay(buff, 500000);
+	widget_display_drop();
 }

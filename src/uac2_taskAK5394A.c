@@ -53,6 +53,7 @@
 #include "uac2_device_audio_task.h"
 #include "taskAK5394A.h"
 #include "uac2_taskAK5394A.h"
+#include "Mobo_config.h"
 
 //_____ M A C R O S ________________________________________________________
 
@@ -277,6 +278,13 @@ void uac2_AK5394A_task(void *pvParameters) {
 			}
 			usb_alternate_setting_out_changed = FALSE;
 		}
+
+		if (FEATURE_IMAGE_UAC2_DG8SAQ) {
+			spk_mute = TX_state ? FALSE : TRUE;
+			mute = TX_state ? TRUE : FALSE;
+		}
+
+
 	} // end while (TRUE)
 }
 

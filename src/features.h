@@ -189,7 +189,11 @@ extern features_t features_nvram, features;
 #define FEATURE_BOARD_DEFAULT			feature_board_dib
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac2_audio
+#if FEATURE_BOARD_DEFAULT == feature_board_widget
+#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
+#else
+#define FEATURE_ADC_DEFAULT				feature_image_uac2_audio
+#endif
 #endif
 #ifndef FEATURE_IN_DEFAULT
 #define FEATURE_IN_DEFAULT				feature_in_normal
@@ -198,7 +202,11 @@ extern features_t features_nvram, features;
 #define FEATURE_OUT_DEFAULT				feature_out_normal
 #endif
 #ifndef FEATURE_ADC_DEFAULT
+#if FEATURE_BOARD_DEFAULT == feature_board_widget
+#define FEATURE_ADC_DEFAULT				feature_adc_ak5394a
+#else
 #define FEATURE_ADC_DEFAULT				feature_adc_none
+#endif
 #endif
 #ifndef FEATURE_DAC_DEFAULT
 #define FEATURE_DAC_DEFAULT				feature_dac_es9022
@@ -221,5 +229,13 @@ extern uint8_t feature_set(uint8_t index, uint8_t value);
 extern uint8_t feature_get(uint8_t index);
 extern uint8_t feature_set_nvram(uint8_t index, uint8_t value);
 extern uint8_t feature_get_nvram(uint8_t index);
+extern void feature_factory_reset(void);
+
+#define FEATURE_DG8SAQ_COMMAND			0x71
+#define FEATURE_DG8SAQ_SET_NVRAM		3
+#define FEATURE_DG8SAQ_GET_NVRAM		4
+#define FEATURE_DG8SAQ_SET_RAM			5
+#define FEATURE_DG8SAQ_GET_RAM			6
+#define FEATURE_DG8SAQ_FACTORY_RESET	7
 
 #endif /* FEATURES_H_ */

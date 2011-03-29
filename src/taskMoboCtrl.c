@@ -19,6 +19,7 @@
 
 #include "board.h"
 #include "features.h"
+#include "widget.h"
 #include "gpio.h"
 #include "FreeRTOS.h"
 #include "wdt.h"
@@ -502,6 +503,11 @@ void PA_bias(void)
 }
 
 
+
+static void mobo_ctrl_factory_reset_handler(void) {
+	// Force an EEPROM update in the mobo config
+	flashc_memset8((void *)&nvram_cdata.EEPROM_init_check, 0xFF, sizeof(uint8_t), TRUE);
+}
 /*! \brief Initialize and run Mobo functions, including Si570 frequency control, filters and so on
  *
  * \retval none
@@ -510,6 +516,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 {
 	uint32_t time, ten_s_counter=0;					// Time management
 	uint32_t lastIteration=0, Timerval;				// Counters to keep track of time
+
+	widget_factory_reset_handler_register(mobo_ctrl_factory_reset_handler);
 
 	xSemaphoreTake( mutexInit, portMAX_DELAY );
 
@@ -534,10 +542,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 	gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
 
 	// Initialize Real Time Counter
-	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz
-	rtc_disable_interrupt(&AVR32_RTC);
-	rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_MAX);	// Counter reset once per 10 seconds
-	rtc_enable(&AVR32_RTC);
+	//rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz
+	//rtc_disable_interrupt(&AVR32_RTC);
+	//rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_MAX);	// Counter reset once per 10 seconds
+	//rtc_enable(&AVR32_RTC);
 
 	#if LCD_DISPLAY			// Multi-line LCD display
 	// Initialize LCD
@@ -872,7 +880,6 @@ static void vtaskMoboCtrl( void * pcParameters )
         vTaskDelay(100 );
     }
 }
-
 
 /*! \brief RTOS initialisation of the Mobo task
  *
