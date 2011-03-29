@@ -64,8 +64,8 @@ typedef enum {
 	// board selection
 	feature_board_none = 0,
 	feature_board_widget,
-	feature_board_dib,
-	feature_board_ab1,
+	feature_board_usbi2s,
+	feature_board_usbdac,
 	feature_board_test,
 	feature_end_board,
 	// image selection
@@ -101,8 +101,8 @@ typedef enum {
 #define FEATURE_VALUE_NAMES \
 	"none",																\
 		"widget",														\
-		"dib",															\
-		"ab1",															\
+		"usbi2s",															\
+		"usbdac",															\
 		"test",															\
 		"end",															\
 		"flashyblinky",													\
@@ -147,8 +147,8 @@ extern features_t features_nvram, features;
 
 #define FEATURE_BOARD_NONE				(features[feature_image_index] == (uint8_t)feature_board_none)
 #define FEATURE_BOARD_WIDGET			(features[feature_image_index] == (uint8_t)feature_board_widget)
-#define FEATURE_BOARD_DIB				(features[feature_image_index] == (uint8_t)feature_board_dib)
-#define FEATURE_BOARD_AB1				(features[feature_image_index] == (uint8_t)feature_board_ab1)
+#define FEATURE_BOARD_USBI2S			(features[feature_image_index] == (uint8_t)feature_board_usbi2s)
+#define FEATURE_BOARD_USBDAC			(features[feature_image_index] == (uint8_t)feature_board_usbdac)
 #define FEATURE_BOARD_TEST				(features[feature_image_index] == (uint8_t)feature_board_test)
 
 #define FEATURE_IMAGE_FLASHYBLINKY		(features[feature_image_index] == (uint8_t)feature_image_flashyblinky)
@@ -186,7 +186,7 @@ extern features_t features_nvram, features;
 // conditionally set the defaults for this build
 //
 #ifndef FEATURE_BOARD_DEFAULT
-#define FEATURE_BOARD_DEFAULT			feature_board_dib
+#define FEATURE_BOARD_DEFAULT			feature_board_widget
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
 #if FEATURE_BOARD_DEFAULT == feature_board_widget
@@ -209,7 +209,7 @@ extern features_t features_nvram, features;
 #endif
 #endif
 #ifndef FEATURE_DAC_DEFAULT
-#define FEATURE_DAC_DEFAULT				feature_dac_es9022
+#define FEATURE_DAC_DEFAULT				feature_dac_cs4344
 #endif
 
 

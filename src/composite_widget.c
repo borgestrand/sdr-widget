@@ -249,7 +249,7 @@ int main(void)
 		if (counter >= COUNTER_TIME_OUT) features[feature_adc_index] = feature_adc_none;
 	}
 
-	if ( FEATURE_BOARD_DIB ) {
+	if ( FEATURE_BOARD_USBI2S ) {
 		gpio_set_gpio_pin(AVR32_PIN_PX51);	// for Dib Board
 		gpio_clr_gpio_pin(AVR32_PIN_PX52);	// for Dib Board
 	}

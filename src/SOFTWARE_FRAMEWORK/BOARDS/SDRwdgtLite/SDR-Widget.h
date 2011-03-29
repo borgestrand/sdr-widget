@@ -33,7 +33,7 @@
 
 /*! \name Peripherals to include at compile time. */
 //! @{
-#define I2C                 0	// I2C driver
+#define I2C                 1	// I2C driver
 #define LCD_DISPLAY         1   // 20x4 Liquid Crystal Display (LCD)
 //#define SHAFT_ENCODER       1   // Shaft Encoder VFO function
 #define Si570               1   // Si570 VXO control funcs (needs I2C driver)
@@ -54,7 +54,7 @@
 
 /*! \name Features to include at compile time. */
 //! @{
-#define MOBO_FUNCTIONS		0	// AD7991/AD5301/TMP100, P/SWR etc...  (needs I2C driver)
+#define MOBO_FUNCTIONS		1	// AD7991/AD5301/TMP100, P/SWR etc...  (needs I2C driver)
 								// Without this, we have a simple Si570 control
 // None, or only one of the two, CALC_FREQ_MUL_ADD or CALC_BAND_MUL_ADD should be selected
 #define CALC_FREQ_MUL_ADD	0	// Frequency Subtract and Multiply Routines (for smart VFO)
