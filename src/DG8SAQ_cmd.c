@@ -68,7 +68,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 			}
 			break;
 
-			// TODO needs to be verified if works correctly
 			#if CALC_FREQ_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
 			case 0x31:								// Write the frequency subtract multiply to the eeprom
 				if (len == 2*sizeof(uint32_t))
@@ -80,7 +79,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 				}
 				break;
 			#endif
-			// TODO needs to be verified if works correctly
 			#if CALC_BAND_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
 			case 0x31:								// Write the frequency subtract multiply to the eeprom
 				if (len == 2*sizeof(uint32_t))
@@ -92,7 +90,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 				}
 				break;
 			#endif
-
 
 			case 0x32:								// Set frequency by value and load Si570
 				if (len == 4)
@@ -308,26 +305,36 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 	//	return 0		;					// Hey we're not supposed to be here
 											// 	we use usbFunctionWrite() to transfer data
 
+	#if CALC_FREQ_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
+	case 0x39:								// Return the current Subtract and Multiply values
+		Buf32[1] = cdata.FreqSub;
+		Buf32[0] = cdata.FreqMul;
+		return 2*sizeof(uint32_t);
+	#endif
+	#if CALC_BAND_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
+	case 0x39:								// Return the current Subtract and Multiply values
+		Buf32[1] = cdata.BandSub[wIndex & 0x0f];
+		Buf32[0] = cdata.BandMul[wIndex & 0x0f];
+		return 2*sizeof(uint32_t);
+	#endif
+
 	case 0x3a:								// Return running frequnecy
-			//*(uint32_t*)Buffer = cdata.Freq[0];
 			*Buf32 = cdata.Freq[0];
 			return sizeof(uint32_t);
 
-		case 0x3b:								// Return smooth tune ppm value
+		case 0x3b:							// Return smooth tune ppm value
 			*Buf16  = cdata.SmoothTunePPM;
         	return sizeof(uint16_t);
 
-
-		case 0x3c:								// Return the startup frequency
+		case 0x3c:							// Return the startup frequency
 			*Buf32 = nvram_cdata.Freq[wIndex];
 			return sizeof(uint32_t);
 
-
-		case 0x3d:								// Return the XTal frequnecy
+		case 0x3d:							// Return the XTal frequnecy
 			*Buf32  = cdata.FreqXtal;
 			return sizeof(uint32_t);
 
-		case 0x3f:								// Return the Si570 chip frequency control registers
+		case 0x3f:							// Return the Si570 chip frequency control registers
 			GetRegFromSi570(cdata.Si570_I2C_addr);
 			for (x = 0; x<6;x++)
 			{
@@ -335,12 +342,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			}
 			return 6*sizeof(uint8_t);
 
-		// Todo This appears to be fairly meaningless. May want to revise or delete
-		/***********
-		case 0x40:								// return I2C transmission error status
-			Buffer[0] = (flags & I2CERRORS)? 0 : 1;
-			return sizeof(uint8_t);
-		************/
 
 		case 0x41:		// Set a new i2c address for a device, or reset the EEPROM to factory default
 						// if Value contains 0xff, then factory defaults will be loaded on reset.
@@ -424,7 +425,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			return sizeof(uint8_t);
 
 
-
 		// Todo
 		//#if USB_SERIAL_ID						// A feature to change the last char of the USB Serial  number
 		//case 0x43:							// Get/Set the USB SeialNumber ID
@@ -452,6 +452,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			}
 			// Passthrough to Cmd 0x51
 
+
 		case 0x51:								// read CW & PTT key levels
 		case 0x52:
 			Buffer[0] = 0x00;
@@ -465,6 +466,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			if (TX_state) Buffer[0] |= REG_TX_state;
 
         	return sizeof(uint8_t);
+
 
 		case 0x61:		// Read ADC inputs,
 						// Index byte points to which ADC input to read.
