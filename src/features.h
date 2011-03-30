@@ -190,7 +190,7 @@ extern features_t features_nvram, features;
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
 #if FEATURE_BOARD_DEFAULT == feature_board_widget
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
+#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_dg8saq
 #else
 #define FEATURE_ADC_DEFAULT				feature_image_uac2_audio
 #endif
