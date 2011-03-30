@@ -254,7 +254,7 @@ uint8_t new_freq_and_filters(uint32_t freq)		// frequency [MHz] * 2^21
 	set_frequency = (double)freq/_2(21);
 
 	// Enforce some sane frequency boundaries (1 - 100 MHz)
-	if ((set_frequency < 4.0) || (set_frequency >= 400.0)) return 0;
+	//if ((set_frequency < 4.0) || (set_frequency >= 400.0)) return 0;
 
 	cdata.Freq[0] = freq;		// Some Command calls to this func do not update si570.Freq[0]
 
