@@ -101,8 +101,8 @@ typedef enum {
 #define FEATURE_VALUE_NAMES \
 	"none",																\
 		"widget",														\
-		"usbi2s",															\
-		"usbdac",															\
+		"usbi2s",														\
+		"usbdac",														\
 		"test",															\
 		"end",															\
 		"flashyblinky",													\
