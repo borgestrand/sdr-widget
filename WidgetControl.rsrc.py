@@ -21,7 +21,7 @@
     'name':'ComboBoxBoard', 
     'position':(40, 250), 
     'size':(100, -1), 
-    'items':[u'none', u'widget', u'Dib', u'AB-1', u'test'], 
+    'items':[u'none', u'widget', u'USBI2S', u'USBDAC', u'test'], 
     'stringSelection':'widget', 
     'text':'board', 
     },
