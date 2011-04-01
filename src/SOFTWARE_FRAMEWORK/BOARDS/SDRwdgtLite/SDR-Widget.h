@@ -49,7 +49,7 @@
 #define LED                 1   // Flashy-Blinky lights
 #define SPI                 0   // SPI driver
 #define EXTERN_MEM          0   // Use MMC memory slot
-#define MENU                1   // A menu system driven by the rotary encoder
+#define MENU                0   // A menu system driven by the rotary encoder
 //! @}
 
 /*! \name Features to include at compile time. */
