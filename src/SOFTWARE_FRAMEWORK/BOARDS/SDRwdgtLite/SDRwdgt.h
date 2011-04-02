@@ -125,6 +125,7 @@
  */
 //! @{
 #define GPIO_PUSH_BUTTON_SW2            AVR32_PIN_PB10
+#define PRG_BUTTON						GPIO_PUSH_BUTTON_SW2
 #define GPIO_PUSH_BUTTON_SW2_PRESSED    0
 //! @}
 
