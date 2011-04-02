@@ -25,11 +25,6 @@
 #include "compiler.h"
 
 #define FIRMWARE_VERSION	"V:ALL-004"
-// Mobo changes since V:UAC1_069:
-//   taskPowerDisplay.c... change calculated pwr value from mW to cW
-//   taskMoboControl.c...  change calculated pwr value from mW to cW
-//   taskMoboControl.h...  change calculated pwr value from mW to cW
-//   taskPushButtonMenu.c...
 
 /*! \name Peripherals to include at compile time. */
 //! @{
@@ -50,6 +45,7 @@
 #define SPI                 0   // SPI driver
 #define EXTERN_MEM          0   // Use MMC memory slot
 //#define MENU                0   // A menu system driven by the rotary encoder
+
 //! @}
 
 /*! \name Features to include at compile time. */
@@ -96,7 +92,7 @@
 // Audio specific features ----------------------------------------------------------------
 #define	TX_BARGRAPH_dB		0	// TX audio bargraph in dB or VU-meter style
 
-// Menu Function specific features
+// Menu Function specific features --------------------------------------------------------
 #define PRG_AS_PUSH_BUTTON	1	// Activates the PRG button as a second optional Push Button
 								// used for the Menu Functions.
 
