@@ -23,6 +23,32 @@
 char frq_lcd[13];								// Pass frequency information to LCD
 char flt_lcd[5];								// LCD Print formatting for filters
 
+
+/*! \brief Display the running frequency on an LCD
+ *
+ * \retval None
+ */
+void display_frequency(void)
+{
+	#if LCD_DISPLAY            	// Multi-line LCD display
+	#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
+
+	// Translate frequency to a double precision float
+	double freq_display = (double)cdata.Freq[0]/_2(23);
+
+	// Add PSDR-IQ offset if in RX
+	if (!TX_flag) freq_display += cdata.LCD_RX_Offset/1000.0;
+	sprintf(frq_lcd,"%2.06fMHz ", freq_display);
+	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+	lcd_q_goto(0,3);
+	if(freq_display<=10) lcd_q_print(" ");	// workaround...%2 print format doesn't work
+	lcd_q_print(frq_lcd);
+	xSemaphoreGive( mutexQueLCD );
+	#endif
+	#endif
+}
+
+
 /*! \brief Set Band Pass and Low Pass filters
  *
  * \retval None or RX frequency band, depending on #define CALC_BAND_MUL_ADD
@@ -246,37 +272,15 @@ uint8_t new_freq_and_filters(uint32_t freq)		// frequency [MHz] * 2^21
 	static uint8_t band;		// which BPF frequency band? (used with CALC_BAND_MUL_ADD)
 	double set_frequency;		// Frequency in double precision floating point
 
-	#if LCD_DISPLAY				// Multi-line LCD display
-	double freq_display;		// Frequency to be displayed
-	#endif
-
 	// Translate frequency to a double precision float
 	set_frequency = (double)freq/_2(21);
 
-	// Enforce some sane frequency boundaries (1 - 100 MHz)
-	//if ((set_frequency < 4.0) || (set_frequency >= 400.0)) return 0;
+	// PSDR-IQ writes 0.000 MHz in certain instances
+	// Enforce a sane lower frequency boundary, at 3.45 MHz, verified as lowest frequency
+	// at which the Si570 will give output.
+	if (set_frequency < 3.45) return 0;
 
 	cdata.Freq[0] = freq;		// Some Command calls to this func do not update si570.Freq[0]
-
-	//-------------------------------------------
-	// Display Running Frequency
-	//-------------------------------------------
-	#if LCD_DISPLAY            	// Multi-line LCD display
-	#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
-	if (!MENU_mode)
-   	{
-   		freq_display = set_frequency/4;
-   		// Add PSDR-IQ offset if in RX
-   		if (!TX_flag) freq_display += cdata.LCD_RX_Offset/1000.0;
-   		sprintf(frq_lcd,"%2.06fMHz", freq_display);
-   		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-   		lcd_q_goto(0,3);
-   		if(freq_display<=10) lcd_q_print(" ");	// workaround...%2 print format doesn't work
-   		lcd_q_print(frq_lcd);
-   		xSemaphoreGive( mutexQueLCD );
-   	}
-	#endif
-	#endif
 
 	#if BPF_LPF_Module			// Band Pass and Low Pass filter switcing
 	#if !FRQ_CGH_DURING_TX		// Do not allow Si570 frequency change and corresponding filter change during TX
@@ -302,7 +306,7 @@ uint8_t new_freq_and_filters(uint32_t freq)		// frequency [MHz] * 2^21
 
 	#if BPF_LPF_Module			// Band Pass and Low Pass filter switcing
 	#if CALC_BAND_MUL_ADD		// Band dependent Frequency Subtract and Multiply
-	band = SetFilter(freq);	// Select Band Pass Filter, according to the frequency selected
+	band = SetFilter(freq);		// Select Band Pass Filter, according to the frequency selected
 	#else
 	SetFilter(freq);			// Select Band Pass Filter, according to the frequency selected
 	#endif
@@ -321,16 +325,27 @@ void freq_and_filter_control(void)
 
 	if (i2c.si570)
     {
-    	// Check for a frequency change request from USB or Encoder
+		// Check for a frequency change request from USB or Encoder
 		// USB always takes precedence
-   		if(FRQ_fromusb == TRUE)
+		if(FRQ_fromusbreg == TRUE)
+   		{
+			freq_from_usb = Freq_From_Register((double)cdata.FreqXtal/_2(24))*_2(21);
+			new_freq_and_filters(freq_from_usb);// Write usb frequency to Si570
+			FRQ_fromusbreg = FALSE;				// Clear input flags
+   			FRQ_fromusb = FALSE;				// Clear input flags
+   			FRQ_fromenc = FALSE;				// USB takes precedence
+			FRQ_lcdupdate = TRUE;				// Update LCD
+   		}
+		else if(FRQ_fromusb == TRUE)
    		{
    			new_freq_and_filters(freq_from_usb);// Write usb frequency to Si570
-   			FRQ_fromusb = FALSE;				// Clear both input flags
+			FRQ_fromusbreg = FALSE;				// Clear input flags
+   			FRQ_fromusb = FALSE;				// Clear input flags
    			FRQ_fromenc = FALSE;				// USB takes precedence
-   		}
+			FRQ_lcdupdate = TRUE;				// Update LCD
+		}
    		// This is ignored while in Menu Mode, then Menu uses the Encoder.
-   		if(FRQ_fromenc == TRUE)
+		else if(FRQ_fromenc == TRUE)
    		{
    			if (!MENU_mode)
 			{
@@ -338,20 +353,25 @@ void freq_and_filter_control(void)
 				// encoder to the current Si570 frequency
 				frq_from_encoder = cdata.Freq[0] + freq_delta_from_enc;
 				freq_delta_from_enc = 0;			// Zero the accumulator
-				FRQ_fromenc = FALSE;				// Clear input flag
-
 				new_freq_and_filters(frq_from_encoder);// Write new freq to Si570
+				FRQ_fromenc = FALSE;				// Clear input flag
+				FRQ_lcdupdate = TRUE;				// Update LCD
 			}
 			else freq_delta_from_enc = 0;			// Zero any changes while Menu Control
    		}
+
+   		// Check if a simple LCD update of Frequency display is required
+		if((FRQ_lcdupdate == TRUE) && (!MENU_mode))
+		{
+			display_frequency();
+			FRQ_lcdupdate = FALSE;
+		}
     }
 	#if LCD_DISPLAY      						    // Multi-line LCD display
 	#if FRQ_IN_FIRST_LINE							// Normal Frequency display in first line of LCD. Can be disabled for Debug
-	#if 0
 	else
     {
-       	//if (!MENU_mode)
-		if (FRQ_fromusb == TRUE)
+		if (FRQ_fromusb == TRUE)					// Print once to LCD
        	{
         	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
         	lcd_q_goto(0,3);
@@ -359,7 +379,6 @@ void freq_and_filter_control(void)
         	xSemaphoreGive( mutexQueLCD );
        	}
     }
-	#endif
 	#endif
 	#endif
 }
