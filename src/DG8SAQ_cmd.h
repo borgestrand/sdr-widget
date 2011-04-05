@@ -1,4 +1,3 @@
-/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /*
  * DG8SAQ_cmd.h
  *
@@ -14,7 +13,9 @@ extern uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wInde
 
 extern volatile uint32_t freq_from_usb;			// Pass frequency from USB input command
 												// if 0, then nothing to pass
-extern bool	FRQ_fromusb;						// Flag: New frequency from USB
+extern volatile bool FRQ_fromusbreg;			// Flag: New frequency by Register from USB
+extern volatile bool FRQ_fromusb;				// Flag: New frequency from USB
+extern volatile bool FRQ_lcdupdate;				// Flag: Update LCD frequency printout
 
 //
 // Host to Device transmissions
@@ -32,15 +33,15 @@ extern bool	FRQ_fromusb;						// Flag: New frequency from USB
 //
 #define DG8SAQ_GET_VERSION 0x00					//
 // LEGACY_PORT_CMD
-#define DG8SAQ_SET_PORTD_DIR 0x01				// 
+#define DG8SAQ_SET_PORTD_DIR 0x01				//
 #define DG8SAQ_READ_PORTD 0x02					//
 #define DG8SAQ_READ_PORTD_STATE 0x03			//
 #define DG8SAQ_SET_PORTD 0x04					//
 
 #define DG8SAQ_WDT_REBOOT 0x0f					// reboot by watchdog
 
-#define DG8SAQ_SET_PORT_MASKED 0x15				// 
-#define DG8SAQ_GET_PORT_BITS 0x16				// 
+#define DG8SAQ_SET_PORT_MASKED 0x15				//
+#define DG8SAQ_GET_PORT_BITS 0x16				//
 
 #define DG8SAQ_FILTER_TABLE 0x17				// read and write band pass filter cross over tables
 #define DG8SAQ_FILTER_TABLE_SET 0x18			// scrambled filters set
@@ -69,6 +70,6 @@ extern bool	FRQ_fromusb;						// Flag: New frequency from USB
 // 0x6f
 
 #define DG8SAQ_SDR_CTL 0x71					//
-#define DG8SAQ_SDR_CTL_SET_SR 0x00			// 
+#define DG8SAQ_SDR_CTL_SET_SR 0x00			//
 
 #endif /* DG8SAQ_CMD_H_ */

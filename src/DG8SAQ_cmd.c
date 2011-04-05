@@ -31,7 +31,9 @@
 // This var is used to pass frequency from USB input command
 volatile uint32_t freq_from_usb;		// New Frequency from USB
 
-bool	FRQ_fromusb = FALSE;			// Flag: New frequency from USB
+volatile bool	FRQ_fromusbreg = FALSE;	// Flag: New frequency by Register from USB
+volatile bool	FRQ_fromusb = FALSE;	// Flag: New frequency from USB
+volatile bool	FRQ_lcdupdate = FALSE;	// Flag: Update LCD frequency printout
 
 
 /**
@@ -52,22 +54,20 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 
 	switch (type)
 	{
-		case 0x30:
-			if (len == 6)
+	case 0x30:
+		if (len == 6)
+		{
+			for (x = 0; x<6;x++)
 			{
-				for (x = 0; x<6;x++)
-				{
-					si570reg[x] = Buffer[5-x];
-				}
-				// Calc the freq as a 32bit integer, based on the Si570 register value
-				// Writing a non_zero value into freq_from_usb will result in a write to
-				// Si570 by the taskMoboCtrl
-				// Freq_FRom_Register uses the si570reg[6] as input
-				freq_from_usb = Freq_From_Register((double)cdata.FreqXtal/_2(24))*_2(21);
-				FRQ_fromusb = TRUE;
+				si570reg[x] = Buffer[5-x];
 			}
-			break;
-
+			// Calc the freq as a 32bit integer, based on the Si570 register value
+			// Writing a non_zero value into freq_from_usb will result in a write to
+			// Si570 by the taskMoboCtrl
+			// Freq_FRom_Register uses the si570reg[6] as input
+			FRQ_fromusbreg = TRUE;
+		}
+		break;
 			#if CALC_FREQ_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
 			case 0x31:								// Write the frequency subtract multiply to the eeprom
 				if (len == 2*sizeof(uint32_t))
@@ -442,16 +442,15 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			{
 				// Clear PTT flag, ask for state change to RX
 				TX_flag = FALSE;
-			    FRQ_fromusb = TRUE;				// Force LCD update, Indicate new frequency for Si570
+			    FRQ_lcdupdate = TRUE;				// Force LCD update, Indicate new frequency for Si570
 			}
 			else
 			{
 				// Set PTT flag, ask for state change to TX
 				TX_flag = TRUE;
-			    FRQ_fromusb = TRUE;				// Force LCD update, Indicate new frequency for Si570
+			    FRQ_lcdupdate = TRUE;				// Force LCD update, Indicate new frequency for Si570
 			}
 			// Passthrough to Cmd 0x51
-
 
 		case 0x51:								// read CW & PTT key levels
 		case 0x52:

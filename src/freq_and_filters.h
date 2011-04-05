@@ -27,6 +27,7 @@ typedef union {								// Union of an unsigned 32bit and the
 	};
 } sint32_t;
 
+extern void display_frequency(void);
 extern uint8_t SetFreq_Handler(uint32_t freq);
 extern void freq_and_filter_control(void);
 
