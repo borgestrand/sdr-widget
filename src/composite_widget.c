@@ -207,6 +207,11 @@ int main(void)
 	// Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
 	wdt_disable();
 
+	gpio_set_gpio_pin(AVR32_PIN_PX51);	// Enables power to XO and DAC in USBI2C AB-1 board
+	gpio_clr_gpio_pin(AVR32_PIN_PX52);
+
+
+
 	// Initialize Real Time Counter
 	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz
 	rtc_disable_interrupt(&AVR32_RTC);
@@ -247,11 +252,6 @@ int main(void)
 		// wait till CAL goes low or time out
 		// if time out then change feature adc to none
 		if (counter >= COUNTER_TIME_OUT) features[feature_adc_index] = feature_adc_none;
-	}
-
-	if ( FEATURE_BOARD_USBI2S ) {
-		gpio_set_gpio_pin(AVR32_PIN_PX51);	// for Dib Board
-		gpio_clr_gpio_pin(AVR32_PIN_PX52);	// for Dib Board
 	}
 
 	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
