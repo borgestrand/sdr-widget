@@ -698,7 +698,26 @@ static void vtaskMoboCtrl( void * pcParameters )
    		{
     		lastIteration = Timerval;			// Make ready for next iteration
 
-			#if	FAN_CONTROL				// Turn PA Cooling FAN On/Off, based on temperature
+    		//
+    		// Temperature Alarm
+    		//
+    		// Test for prerequisite hardware
+    		if(i2c.tmp100 && i2c.pcfmobo)
+    		{
+    			if(TMP_alarm && !TX_flag)		// Can only clear alarm if not transmitting
+        		{
+    				if(tmp100_data/256 < cdata.hi_tmp_trigger)
+    					TMP_alarm = FALSE;
+        		}
+    			else
+        		{
+    				// Test and set alarm if appropriate
+    				if(tmp100_data/256 >= cdata.hi_tmp_trigger)
+        				TMP_alarm = TRUE;
+        		}
+    		}
+
+    		#if	FAN_CONTROL				// Turn PA Cooling FAN On/Off, based on temperature
     		//
     		// Activate Cooling Fan for the Transmit Power Amplifier, if needed
     		//
@@ -806,7 +825,8 @@ static void vtaskMoboCtrl( void * pcParameters )
        	//-------------------------
    		// PTT Control, every 10ms
    		//-------------------------
-		if ((TX_flag) && !TX_state)			// Asked for TX on, TX not yet on
+		// Asked for TX on, TX not yet on and no Temperature alarm
+   		if (TX_flag && !TX_state && !TMP_alarm)
 		{
 	   		// Set PTT if there are no inhibits
 			if (!TMP_alarm)
@@ -834,7 +854,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 				#endif
 			}
 		}
-		else if (!TX_flag && TX_state)		// Asked for TX off, TX still on
+		// Asked for TX off, TX still on, or if Temperature Alarm
+		else if ((!TX_flag && TX_state) || (TMP_alarm && TX_state))
 		{
 			TX_state = FALSE;
 			#if PCF8574

@@ -262,15 +262,15 @@ void SetFilter(uint32_t freq)
 	#endif
 }
 
-/*! \brief Si570 Set frequency (as a 32bit value) and filters,
+/*! \brief Si570 Set frequency (as a 32bit value) and filters, frequency [MHz] * 2^21
  *
  * \retval TWI status
  */
-uint8_t new_freq_and_filters(uint32_t freq)		// frequency [MHz] * 2^21
+uint8_t new_freq_and_filters(uint32_t freq)
 {
-	uint8_t	status=0;			// Is the Si570 On Line?
-	static uint8_t band;		// which BPF frequency band? (used with CALC_BAND_MUL_ADD)
-	double set_frequency;		// Frequency in double precision floating point
+	uint8_t			status=0;		// Is the Si570 On Line?
+	static uint8_t 	band;			// which BPF frequency band? (used with CALC_BAND_MUL_ADD)
+	double 			set_frequency;	// Frequency in double precision floating point
 
 	// Translate frequency to a double precision float
 	set_frequency = (double)freq/_2(21);
@@ -289,7 +289,7 @@ uint8_t new_freq_and_filters(uint32_t freq)		// frequency [MHz] * 2^21
 	#endif
 
 	#if !FLTR_CGH_DURING_TX		// Do not allow Filter changes when frequency is changed during TX
-	if (!TX_state)				// Only change filters when not transmitting
+	if (!TX_flag)				// Only change filters when not transmitting
 	#endif
 	#endif
 
@@ -373,7 +373,8 @@ void freq_and_filter_control(void)
     {
 		if (FRQ_fromusb == TRUE)					// Print once to LCD
        	{
-        	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+   			FRQ_fromusb = FALSE;					// Clear input flags
+			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
         	lcd_q_goto(0,3);
         	lcd_q_print("No Si570 OSC");
         	xSemaphoreGive( mutexQueLCD );
