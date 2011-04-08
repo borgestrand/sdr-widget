@@ -833,12 +833,11 @@ static void vtaskMoboCtrl( void * pcParameters )
 			{
 				TX_state = TRUE;
 				// Switch to Transmit mode, set TX out
-				#if PCF8574
+
 				if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
 					pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
-				else
-				#endif
-					gpio_set_gpio_pin(PTT_1);
+
+				gpio_set_gpio_pin(PTT_1);
 
 				LED_Off(LED0);
 				#if LCD_DISPLAY				// Multi-line LCD display
@@ -858,12 +857,11 @@ static void vtaskMoboCtrl( void * pcParameters )
 		else if ((!TX_flag && TX_state) || (TMP_alarm && TX_state))
 		{
 			TX_state = FALSE;
-			#if PCF8574
+
 			if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
 				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
-			else
-			#endif
-				gpio_clr_gpio_pin(PTT_1);
+
+			gpio_clr_gpio_pin(PTT_1);
 
 			LED_On(LED0);
    	    	if (!MENU_mode)
