@@ -62,7 +62,7 @@
 #define SCRAMBLED_FILTERS	1	// Enable a non contiguous order of filters
 
 // Low Pass Filters for Transmit ----------------------------------------------------------
-#define TX_FILTERS			0	// Enable TX filter selection, including one of the four options below
+#define TX_FILTERS			1	// Enable TX filter selection, including one of the four options below
 // Only one of the four below should be selected, if TX_FILTERS is selected
 #define	PCF_LPF				1	// External Port Expander Control of Low Pass filters
 #define	PCF_16LPF			0	// External Port Expander Control of 16 Low Pass filters
