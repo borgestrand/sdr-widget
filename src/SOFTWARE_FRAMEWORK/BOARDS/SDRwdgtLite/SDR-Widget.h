@@ -24,11 +24,7 @@
 
 #include "compiler.h"
 
-<<<<<<< HEAD
-#define FIRMWARE_VERSION	"V:ALL-004"
-=======
 #define FIRMWARE_VERSION	"V:ALL-005"
->>>>>>> sdr-widget-2
 
 /*! \name Peripherals to include at compile time. */
 //! @{
