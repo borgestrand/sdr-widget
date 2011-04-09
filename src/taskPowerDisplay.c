@@ -168,7 +168,7 @@ static void vtaskPowerDisplay( void * pcParameters )
     	if (TMP_alarm)
     	{
     		//---------------------------------------
-    		// Print to LCD once every 1s+ (201*5ms)
+    		// Print to LCD once every 1s only (201*5ms)
     		//---------------------------------------
    	 		tx_print++;
     		if (tx_print == 201) tx_print = 0;
