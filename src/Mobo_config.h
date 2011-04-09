@@ -77,6 +77,7 @@
 #define REG_PTT_2			(1 << 3)
 #define REG_PTT_3			(1 << 4)
 #define REG_TX_state		(1 << 6)
+#define REG_PTT_INPUT		(1 << 7)
 
 // Conditional def based on the above, do not touch:
 #if PCF_LPF
