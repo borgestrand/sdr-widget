@@ -16,12 +16,12 @@
 #include "Si570.h"
 #include "PCF8574.h"
 
-#if LCD_DISPLAY            						// Multi-line LCD display
+#if LCD_DISPLAY           		// Multi-line LCD display
 #include "taskLCD.h"
 #endif
 
-char frq_lcd[13];								// Pass frequency information to LCD
-char flt_lcd[5];								// LCD Print formatting for filters
+char frq_lcd[13];				// Pass frequency information to LCD
+char flt_lcd[5];				// LCD Print formatting for filters
 
 
 /*! \brief Display the running frequency on an LCD
@@ -150,27 +150,27 @@ void SetFilter(uint32_t freq)
 	// If we write to I2C without the device being present, then later I2C writes produce unexpected results
 	if(i2c.pcflpf1)
 	{
-		#if SCRAMBLED_FILTERS						// Enable a non contiguous order of filters
-		band_sel.w = 1<<cdata.TXFilterNumber[i];	// Set bit in a 16 bit register
+		#if SCRAMBLED_FILTERS					// Enable a non contiguous order of filters
+		band_sel.w = 1<<cdata.TXFilterNumber[i];// Set bit in a 16 bit register
 		pcf8574_out_byte(cdata.PCF_I2C_lpf1_addr, band_sel.b1);
-		#if	PCF_16LPF								// External Port Expander Control of 16 Low Pass filters
+		#if	PCF_16LPF							// External Port Expander Control of 16 Low Pass filters
 		// If we write without the device being present, later I2C writes produce unexpected results
 		if(i2c.pcflpf2)
 			pcf8574_out_byte(cdata.PCF_I2C_lpf2_addr, band_sel.b0);
 		#endif
 		selectedFilters[1] = cdata.TXFilterNumber[i];// Used for LCD Print indication
 		#else
-		band_sel.w = 1<<i;							// Set bit in a 16 bit register
+		band_sel.w = 1<<i;						// Set bit in a 16 bit register
 		pcf8574_out_byte(cdata.PCF_I2C_lpf1_addr, band_sel.b1);
-		#if	PCF_16LPF								// External Port Expander Control of 16 Low Pass filters
+		#if	PCF_16LPF							// External Port Expander Control of 16 Low Pass filters
 		// If we write without the device being present, later I2C writes produce unexpected results
 		if(i2c.pcflpf2)
 			pcf8574_out_byte(cdata.PCF_I2C_lpf2_addr, band_sel.b0);
 		#endif
-		selectedFilters[1] = i;						// Used for LCD Print indication
+		selectedFilters[1] = i;					// Used for LCD Print indication
 		#endif// SCRAMBLED_FILTERS
 	}
-	//else selectedFilters[1] = 0x0f;					// Error indication
+	//else selectedFilters[1] = 0x0f;			// Error indication
 	else
 	{
 		// If no external PCF8574 for LPF switching while PCF Mobo is present
@@ -203,7 +203,7 @@ void SetFilter(uint32_t freq)
 				gpio_clr_gpio_pin(PTT_3);
 		}
 		// PTT_1/PTT_2/PTT_3 outputs not available, used for RX/TX and BPF control
-	else selectedFilters[1] = 0x0f;					// Error indication
+	else selectedFilters[1] = 0x0f;				// Error indication
 	}
 
 	#endif//PCF_LPF
@@ -212,10 +212,10 @@ void SetFilter(uint32_t freq)
 	if(i2c.pcfmobo)
 	{
 		uint8_t	j;
-		#if SCRAMBLED_FILTERS						// Enable a non contiguous order of filters
+		#if SCRAMBLED_FILTERS					// Enable a non contiguous order of filters
 		band_sel.b1 = cdata.TXFilterNumber[i] & 0x07;// Set and Enforce bounds for a 3 bit value
-		j = band_sel.b1<<3;							// leftshift x 3 for bits 3 - 5
-		pcf8574_mobo_data_out &= 0b11000111;		// Clear out old data before adding new
+		j = band_sel.b1<<3;						// leftshift x 3 for bits 3 - 5
+		pcf8574_mobo_data_out &= 0b11000111;	// Clear out old data before adding new
 		pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr,j);// Combine the two and write out
 		selectedFilters[1] = cdata.TXFilterNumber[i];// Used for LCD Print indication
 		#else
