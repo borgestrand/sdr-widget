@@ -457,8 +457,8 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			Buffer[0] = 0x00;
 			// read pin and set regbit accordingly
 			if (gpio_get_pin_value(GPIO_CW_KEY_1)) Buffer[0] |= REG_CWSHORT;
-			// read pin and set regbit accordingly
 			if (gpio_get_pin_value(GPIO_CW_KEY_2)) Buffer[0] |= REG_CWLONG;
+			if (gpio_get_pin_value(GPIO_PTT_INPUT)) Buffer[0] |= REG_PTT_INPUT;
 			if (gpio_get_pin_value(PTT_1)) Buffer[0] |= REG_PTT_1;
 			if (gpio_get_pin_value(PTT_2)) Buffer[0] |= REG_PTT_2;
 			if (gpio_get_pin_value(PTT_3)) Buffer[0] |= REG_PTT_3;
