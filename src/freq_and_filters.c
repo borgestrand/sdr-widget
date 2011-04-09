@@ -282,15 +282,9 @@ uint8_t new_freq_and_filters(uint32_t freq)
 
 	cdata.Freq[0] = freq;		// Some Command calls to this func do not update si570.Freq[0]
 
-	#if BPF_LPF_Module			// Band Pass and Low Pass filter switcing
 	#if !FRQ_CGH_DURING_TX		// Do not allow Si570 frequency change and corresponding filter change during TX
-	if (TX_state)		 		// Oops, we are transmitting... return without changing frequency
+	if (TX_flag)		 		// Oops, we are transmitting... return without changing frequency
 		return TWI_INVALID_ARGUMENT;
-	#endif
-
-	#if !FLTR_CGH_DURING_TX		// Do not allow Filter changes when frequency is changed during TX
-	if (!TX_flag)				// Only change filters when not transmitting
-	#endif
 	#endif
 
 	#if CALC_FREQ_MUL_ADD		// Frequency Subtract and Multiply Routines (for smart VFO)
@@ -305,6 +299,9 @@ uint8_t new_freq_and_filters(uint32_t freq)
 	status = SetFrequency(set_frequency);
 
 	#if BPF_LPF_Module			// Band Pass and Low Pass filter switcing
+	#if !FLTR_CGH_DURING_TX		// Do not allow Filter changes when frequency is changed during TX
+	if (!TX_state)				// Only change filters when not transmitting
+	#endif
 	#if CALC_BAND_MUL_ADD		// Band dependent Frequency Subtract and Multiply
 	band = SetFilter(freq);		// Select Band Pass Filter, according to the frequency selected
 	#else

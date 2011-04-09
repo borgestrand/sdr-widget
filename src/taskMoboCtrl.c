@@ -747,7 +747,7 @@ static void vtaskMoboCtrl( void * pcParameters )
     		// Do we need to start the cooling fan?
     		else
     		{
-    			if(tmp100_data/256 > cdata.Fan_On)
+    			if(tmp100_data/256 >= cdata.Fan_On)
     			{
     				COOLING_fan = TRUE;					// Set FAN Status ON
 
@@ -828,52 +828,62 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Asked for TX on, TX not yet on and no Temperature alarm
    		if (TX_flag && !TX_state && !TMP_alarm)
 		{
-	   		// Set PTT if there are no inhibits
-			if (!TMP_alarm)
-			{
-				TX_state = TRUE;
-				// Switch to Transmit mode, set TX out
+			LED_Off(LED0);
 
-				#if PCF8574
-				if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
-					pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
-				else
-				#endif
+			TX_state = TRUE;
+			// Switch to Transmit mode, set TX out
+			#if PCF8574
+			if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
+   	    	{
+				pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
+				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
+				{						// also present, then we can use Widget PTT_1
+										// for additional PTT control
 					gpio_set_gpio_pin(PTT_1);
+				}
+   	    	}
+			else
+			#endif
+				gpio_set_gpio_pin(PTT_1);
 
-				LED_Off(LED0);
-				#if LCD_DISPLAY				// Multi-line LCD display
-				#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
-				if (!MENU_mode)
-	       	    {
-					xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-					lcd_q_goto(0,0);
-			    	lcd_q_print("TX");
-			    	xSemaphoreGive( mutexQueLCD );
-	       	    }
-				#endif
-				#endif
-			}
+			#if LCD_DISPLAY				// Multi-line LCD display
+			#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
+			if (!MENU_mode)
+       	    {
+				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+				lcd_q_goto(0,0);
+		    	lcd_q_print("TX");
+		    	xSemaphoreGive( mutexQueLCD );
+       	    }
+			#endif
+			#endif
 		}
 		// Asked for TX off, TX still on, or if Temperature Alarm
 		else if ((!TX_flag && TX_state) || (TMP_alarm && TX_state))
 		{
-			TX_state = FALSE;
+			LED_On(LED0);
 
+			TX_state = FALSE;
 			#if PCF8574
 			if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
+   	    	{
 				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
+				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
+				{						// also present, then we can use Widget PTT_1
+										// for additional PTT control
+					gpio_clr_gpio_pin(PTT_1);
+				}
+   	    	}
 			else
 			#endif
 				gpio_clr_gpio_pin(PTT_1);
 
-			LED_On(LED0);
    	    	if (!MENU_mode)
    	    	{
 				#if LCD_DISPLAY				// Multi-line LCD display
    	    		#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
    	    		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-   				lcd_q_clear();
+   				//lcd_q_clear();
    				lcd_q_goto(0,0);
    	    		lcd_q_print("RX");
    	    		xSemaphoreGive( mutexQueLCD );
