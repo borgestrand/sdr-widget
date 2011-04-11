@@ -143,7 +143,7 @@ stat void device_audio_task_old(void *pvParameters)
 
 
 			time+=UAC2_configTSK_USB_DAUDIO_PERIOD;
-#define STARTUP_LED_DELAY  4000
+#define STARTUP_LED_DELAY  10000
 			if ( time<= 1*STARTUP_LED_DELAY ) {
 				LED_On( LED0 );
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -151,10 +151,8 @@ stat void device_audio_task_old(void *pvParameters)
 			} else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
 			else if( time== 3*STARTUP_LED_DELAY ) LED_On( LED2 );
 			else if( time== 4*STARTUP_LED_DELAY ) LED_On( LED3 );
-			else if( time== 5*STARTUP_LED_DELAY ) {
-				LED_Off( LED0 );
-				//            gpio_set_gpio_pin(AK5394_RSTN);		// start AK5394A
-			} else if( time== 6*STARTUP_LED_DELAY ) LED_Off( LED1 );
+			else if( time== 5*STARTUP_LED_DELAY ) LED_Off( LED0 );
+			else if( time== 6*STARTUP_LED_DELAY ) LED_Off( LED1 );
 			else if( time== 7*STARTUP_LED_DELAY ) LED_Off( LED2 );
 			else if( time== 8*STARTUP_LED_DELAY ) LED_Off( LED3 );
 			else if( time >= 9*STARTUP_LED_DELAY ) {

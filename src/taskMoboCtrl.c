@@ -553,20 +553,17 @@ static void vtaskMoboCtrl( void * pcParameters )
 	lcd_q_init();
 	lcd_bargraph_init();
 
+	features_display_all();
+
 	// Clear LCD and Print Firmware version
+	vTaskDelay( 10000 );	// Keep current text on display for
+							// 1s before probing for I2C devices
+
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_clear();
-
-/*
-	lcd_q_goto(2,0);
-	lcd_q_print("HP Cap:");
-	lcd_q_puth(Usb_get_enhanced_high_bandwidth_iso());
-*/
 	lcd_q_goto(3,10);
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
-
-	features_display_all();
 	#endif
 
 	// Create I2C comms semaphore
@@ -575,10 +572,8 @@ static void vtaskMoboCtrl( void * pcParameters )
  	// Initialize I2C communications
 	#if I2C
 	twi_init();
-
     // Probe for I2C devices present and report on LCD
-		i2c_device_scan();
-		//i2c_device_probe();
+	i2c_device_scan();
 	#endif
 
 	#if LCD_DISPLAY			// Multi-line LCD display
@@ -589,8 +584,8 @@ static void vtaskMoboCtrl( void * pcParameters )
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
 
-     #if Si570
-     // Print capabilities on LCD
+    #if Si570
+    // Print capabilities on LCD
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_goto(0,0);
 	// A Full house
@@ -659,10 +654,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 		// The below is only applicable if I2C bus is available
 		#if I2C
-		// Si570 Control
-		#if Si570
-		freq_and_filter_control();
-		#endif
 
 		#if MOBO_FUNCTIONS	// AD7991/AD5301/TMP100, P/SWR etc...
 		//--------------------------
@@ -673,23 +664,23 @@ static void vtaskMoboCtrl( void * pcParameters )
 		//---------------------------------
 		// RD16HHF1 PA Bias management
 		if (i2c.ad7991 && i2c.ad5301)					// Test for presence of required hardware
-			PA_bias();										// Autobias and other bias management functions
+			PA_bias();									// Autobias and other bias management functions
 														// This generates no I2C traffic unless bias change or
 														// autobias measurement
 		if (TX_state)
        	{
 			if (i2c.ad7991)
-				{
+			{
    				ad7991_poll(cdata.AD7991_I2C_addr);		// Poll the AD7991 for all four values
 
-    		#if	POWER_SWR								// Power/SWR measurements and related actions
-   			// SWR Protect
-   			Test_SWR();									// Calculate SWR and control the PTT2 output
+				#if	POWER_SWR							// Power/SWR measurements and related actions
+   				// SWR Protect
+   				Test_SWR();								// Calculate SWR and control the PTT2 output
    														// (SWR protect).  Updates measured_SWR variable (SWR*100)
    														// Writes to the PCF8574 every time (2 bytes)
    														// => constant traffic on I2C (can be improved to slightly
-   			#endif										// reduce I2C traffic, at the cost of a few extra bytes)
-				}
+				#endif									// reduce I2C traffic, at the cost of a few extra bytes)
+			}
        	}
 		//--------------------------
       	// RX stuff, once every 10ms
@@ -707,7 +698,26 @@ static void vtaskMoboCtrl( void * pcParameters )
    		{
     		lastIteration = Timerval;			// Make ready for next iteration
 
-			#if	FAN_CONTROL				// Turn PA Cooling FAN On/Off, based on temperature
+    		//
+    		// Temperature Alarm
+    		//
+    		// Test for prerequisite hardware
+    		if(i2c.tmp100 && i2c.pcfmobo)
+    		{
+    			if(TMP_alarm && !TX_flag)		// Can only clear alarm if not transmitting
+        		{
+    				if(tmp100_data/256 < cdata.hi_tmp_trigger)
+    					TMP_alarm = FALSE;
+        		}
+    			else
+        		{
+    				// Test and set alarm if appropriate
+    				if(tmp100_data/256 >= cdata.hi_tmp_trigger)
+        				TMP_alarm = TRUE;
+        		}
+    		}
+
+    		#if	FAN_CONTROL				// Turn PA Cooling FAN On/Off, based on temperature
     		//
     		// Activate Cooling Fan for the Transmit Power Amplifier, if needed
     		//
@@ -737,7 +747,7 @@ static void vtaskMoboCtrl( void * pcParameters )
     		// Do we need to start the cooling fan?
     		else
     		{
-    			if(tmp100_data/256 > cdata.Fan_On)
+    			if(tmp100_data/256 >= cdata.Fan_On)
     			{
     				COOLING_fan = TRUE;					// Set FAN Status ON
 
@@ -815,71 +825,91 @@ static void vtaskMoboCtrl( void * pcParameters )
        	//-------------------------
    		// PTT Control, every 10ms
    		//-------------------------
-			if ((TX_flag) && !TX_state)			// Asked for TX on, TX not yet on
-			{
-		   		// Set PTT if there are no inhibits
-				if (!TMP_alarm)
-				{
-					TX_state = TRUE;
-					// Todo biasInit = 0;		// Ensure that correct bias is set by PA_bias()
-					// Switch to Transmit mode, set TX out
-				#if PCF8574
-				if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
-					pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
-				else
-				#endif
-					gpio_set_gpio_pin(PTT_1);
+		// Asked for TX on, TX not yet on and no Temperature alarm
+   		if (TX_flag && !TX_state && !TMP_alarm)
+		{
+			LED_Off(LED0);
 
-					LED_Off(LED0);
-					#if LCD_DISPLAY				// Multi-line LCD display
-					#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
-					if (!MENU_mode)
-	       	    	{
-						xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-						lcd_q_goto(0,0);
-			    		lcd_q_print("TX");
-			    		xSemaphoreGive( mutexQueLCD );
-	       	    	}
-					#endif
-					#endif
-				}
-			}
-			else if (!TX_flag && TX_state)		// Asked for TX off, TX still on
-			{
-				TX_state = FALSE;
+			TX_state = TRUE;
+			// Switch to Transmit mode, set TX out
 			#if PCF8574
 			if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
+   	    	{
+				pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
+				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
+				{						// also present, then we can use Widget PTT_1
+										// for additional PTT control
+					gpio_set_gpio_pin(PTT_1);
+				}
+   	    	}
+			else
+			#endif
+				gpio_set_gpio_pin(PTT_1);
+
+			#if LCD_DISPLAY				// Multi-line LCD display
+			#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
+			if (!MENU_mode)
+       	    {
+				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+				lcd_q_goto(0,0);
+		    	lcd_q_print("TX");
+		    	xSemaphoreGive( mutexQueLCD );
+       	    }
+			#endif
+			#endif
+		}
+		// Asked for TX off, TX still on, or if Temperature Alarm
+		else if ((!TX_flag && TX_state) || (TMP_alarm && TX_state))
+		{
+			LED_On(LED0);
+
+			TX_state = FALSE;
+			#if PCF8574
+			if(i2c.pcfmobo)				// Make sure the Mobo PCF is present
+   	    	{
 				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX);
+				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
+				{						// also present, then we can use Widget PTT_1
+										// for additional PTT control
+					gpio_clr_gpio_pin(PTT_1);
+				}
+   	    	}
 			else
 			#endif
 				gpio_clr_gpio_pin(PTT_1);
 
-				LED_On(LED0);
-       	    	if (!MENU_mode)
-       	    	{
-					#if LCD_DISPLAY				// Multi-line LCD display
-       	    		#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
-       	    		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    				lcd_q_clear();
-    				lcd_q_goto(0,0);
-    	    		lcd_q_print("RX");
-    	    		xSemaphoreGive( mutexQueLCD );
-					#endif
-					#endif
-					#if TMP_V_I_SECOND_LINE			// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
-    	    		lcd_display_V_C_T_in_2nd_line();// Print LCD 2nd line stuff
-					#endif
-    	    		// Force rewrite of 1st line of LCD by faking USB input
-    	    		freq_from_usb = cdata.Freq[0];
-    	    		FRQ_fromusb = TRUE;
-       	    	}
-			}
+   	    	if (!MENU_mode)
+   	    	{
+				#if LCD_DISPLAY				// Multi-line LCD display
+   	    		#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
+   	    		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+   				//lcd_q_clear();
+   				lcd_q_goto(0,0);
+   	    		lcd_q_print("RX");
+   	    		xSemaphoreGive( mutexQueLCD );
+				#endif
+				#endif
+				#if TMP_V_I_SECOND_LINE			// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
+   	    		lcd_display_V_C_T_in_2nd_line();// Print LCD 2nd line stuff
+				#endif
+
+				FRQ_lcdupdate = TRUE;			// Update Frequency on LCD upon return from Menu
+												// Side effect:  Also upon return from TX
+   	    	}
+		}
+
+		// Si570 Control
+		#if Si570
+		freq_and_filter_control();
+		#endif
+
 		#endif
 
         LED_Toggle(LED2);
         vTaskDelay(100 );
     }
 }
+
 
 /*! \brief RTOS initialisation of the Mobo task
  *

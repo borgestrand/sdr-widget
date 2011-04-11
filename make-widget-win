@@ -3,6 +3,6 @@
 ## this makes the widget if the AVR32BIN environment variable
 ## is pointing to the directory containing avr32-gcc
 ##
-PATH=${AVR32BIN:=/home/alex/as4e-ide/plugins/com.atmel.avr.toolchains.linux.x86_64_3.1.0.201012011657/os/linux/x86_64/bin}:$PATH
+PATH=${AVR32BIN:="c:\Program Files\Atmel\AVR Tools\AVR32 Studio\plugins\com.atmel.avr.toolchains.win32.x86_3.1.0.201012011657/os/win32/x86/bin"}:$PATH
 export PATH
 cd Release && make all

@@ -176,7 +176,7 @@
 #include "widget.h"
 #include "image.h"
 #include "composite_widget.h"
-
+#include "Mobo_config.h"
 /*
  *  A few global variables.
  */
@@ -210,8 +210,7 @@ int main(void)
 	// Initialize Real Time Counter
 	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz
 	rtc_disable_interrupt(&AVR32_RTC);
-	// let the counter use its default reset, 32 bit unsigned
-	//rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_MAX);	// Counter reset once per 10 seconds
+	rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_MAX);	// Counter reset once per 10 seconds
 	rtc_enable(&AVR32_RTC);
 
 	// Set CPU and PBA clock

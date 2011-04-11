@@ -317,7 +317,12 @@ uint8_t	scan_menu_button(void)
 	return_value = NOT_PUSHED;					// Give an initial value
 
 	// read pin and set regbit accordingly
-	if (gpio_get_pin_value(MENU_BUTTON) == 0) 	//Do stuff when pushed
+	//Do stuff when pushed
+	#if PRG_AS_PUSH_BUTTON
+	if ((gpio_get_pin_value(MENU_BUTTON) == 0)||(gpio_get_pin_value(PRG_BUTTON) == 0))
+	#else
+	if (gpio_get_pin_value(MENU_BUTTON) == 0)
+	#endif
 	{
 		// If long push and not released yet, then do nothing
 		if (BUTTON_long == TRUE)

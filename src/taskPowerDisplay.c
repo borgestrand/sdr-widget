@@ -161,21 +161,28 @@ static void vtaskPowerDisplay( void * pcParameters )
 
 	uint8_t tx_print = 0;					// tx information print loop count down
 	uint8_t print_count = 0;				// audio information print loop count down
-/*
-#if 1
-	// Wait for 9 seconds while the Mobo Stuff catches up
-	vTaskDelay(90000 );
-#else
-	// Wait until the Mobo Stuff, and other initialization, catches up
-	vTaskDelay(10000 );								// defer to other tasks
-	xSemaphoreTake( mutexInit, portMAX_DELAY );		// wait for initialization complete
-	xSemaphoreGive( mutexInit );					// release and continue
-#endif
-*/
+
 
 	while( 1 )
     {
-    	if (TX_state)
+    	if (TMP_alarm)
+    	{
+    		//---------------------------------------
+    		// Print to LCD once every 1s only (201*5ms)
+    		//---------------------------------------
+   	 		tx_print++;
+    		if (tx_print == 201) tx_print = 0;
+    		if (tx_print == 0)
+    		{
+    	   		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+    	   		lcd_q_goto(2,0);
+    	      	lcd_q_print("                    ");
+    	   		lcd_q_goto(3,0);
+    	      	lcd_q_print("Temperature Shutdown");
+    	   		xSemaphoreGive( mutexQueLCD );
+    		}
+     	}
+		else if (TX_state)
     	{
     		//------------------
     		// Do transmit stuff
@@ -273,6 +280,7 @@ static void vtaskPowerDisplay( void * pcParameters )
        	 	}
 			clear_pow_avg = TRUE;
     	}
+
     	else
     	{
     		//-----------------

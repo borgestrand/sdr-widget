@@ -201,9 +201,9 @@ class Launcher(model.Background):
            self.boardSelection = 0
        elif event.target.stringSelection == 'widget':
            self.boardSelection = 1
-       elif event.target.stringSelection == 'Dib':
+       elif event.target.stringSelection == 'USBI2S':
            self.boardSelection = 2
-       elif event.target.stringSelection == 'AB-1':
+       elif event.target.stringSelection == 'USBDAC':
            self.boardSelection = 3
        else:	# test
            self.boardSelection = 4
@@ -363,9 +363,9 @@ class Launcher(model.Background):
             elif output[0] == 1:
                 boardType = 'Widget'
             elif output[0] == 2:
-                boardType = 'Dib'
+                boardType = 'USBI2S'
             elif output[0] == 3:
-                boardType = 'AB-1'
+                boardType = 'USBDAC'
             elif output[0] == 4:
                 boardType = 'Test'
             else:

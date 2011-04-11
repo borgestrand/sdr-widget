@@ -145,11 +145,11 @@ extern features_t features_nvram, features;
 #define FEATURE_MINOR					(features[feature_minor_index])
 #define FEATURE_MINOR_NVRAM				(features_nvram[feature_minor_index])
 
-#define FEATURE_BOARD_NONE				(features[feature_image_index] == (uint8_t)feature_board_none)
-#define FEATURE_BOARD_WIDGET			(features[feature_image_index] == (uint8_t)feature_board_widget)
-#define FEATURE_BOARD_DIB				(features[feature_image_index] == (uint8_t)feature_board_dib)
-#define FEATURE_BOARD_AB1				(features[feature_image_index] == (uint8_t)feature_board_ab1)
-#define FEATURE_BOARD_TEST				(features[feature_image_index] == (uint8_t)feature_board_test)
+#define FEATURE_BOARD_NONE				(features[feature_board_index] == (uint8_t)feature_board_none)
+#define FEATURE_BOARD_WIDGET			(features[feature_board_index] == (uint8_t)feature_board_widget)
+#define FEATURE_BOARD_DIB				(features[feature_board_index] == (uint8_t)feature_board_dib)
+#define FEATURE_BOARD_AB1				(features[feature_board_index] == (uint8_t)feature_board_ab1)
+#define FEATURE_BOARD_TEST				(features[feature_board_index] == (uint8_t)feature_board_test)
 
 #define FEATURE_IMAGE_FLASHYBLINKY		(features[feature_image_index] == (uint8_t)feature_image_flashyblinky)
 #define FEATURE_IMAGE_UAC1_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac1_audio)
@@ -190,7 +190,7 @@ extern features_t features_nvram, features;
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
 #if FEATURE_BOARD_DEFAULT == feature_board_widget
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
+#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_dg8saq
 #else
 #define FEATURE_ADC_DEFAULT				feature_image_uac2_audio
 #endif
@@ -209,7 +209,7 @@ extern features_t features_nvram, features;
 #endif
 #endif
 #ifndef FEATURE_DAC_DEFAULT
-#define FEATURE_DAC_DEFAULT				feature_dac_es9022
+#define FEATURE_DAC_DEFAULT				feature_dac_cs4344
 #endif
 
 
