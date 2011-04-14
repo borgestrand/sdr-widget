@@ -34,6 +34,7 @@
 #include "taskLCD.h"
 #include "taskAK5394A.h"
 #include "LCD_bargraphs.h"
+#include "features.h"
 
 
 //#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
@@ -336,16 +337,31 @@ static void vtaskPowerDisplay( void * pcParameters )
 						uint8_t j;
 						for (j = 0; j < bufsize; j++)
 						{
-							audio_max_0 = max(audio_max_0, audio_sample_buffer[0][j]);
-							audio_max_1 = max(audio_max_1, audio_sample_buffer[1][j]);
+							if(!FEATURE_ADC_NONE) // No need to do this unless we have adc
+							{
+								audio_max_0 = max(audio_max_0, audio_sample_buffer[0][j]);
+								audio_max_1 = max(audio_max_1, audio_sample_buffer[1][j]);
+							}
 							spk_max_0 = max(spk_max_0, spk_sample_buffer[0][j]);
 							spk_max_1 = max(spk_max_1, spk_sample_buffer[1][j]);
 						}
 
+						int audio_max_0_dB;
+						int audio_max_1_dB;
 						// Calculate RX audio in dB, TX audio in % power
-						int audio_max_0_dB = twenty_log10(2*audio_max_0);
-						int audio_max_1_dB = twenty_log10(2*audio_max_1);
-						sprintf(lcd_prtdb1,"%4ddB  adc  %4ddB", audio_max_0_dB-144, audio_max_1_dB-144);
+						if(!FEATURE_ADC_NONE)
+						{
+							audio_max_0_dB = twenty_log10(2*audio_max_0);
+							audio_max_1_dB = twenty_log10(2*audio_max_1);
+							sprintf(lcd_prtdb1,"%4ddB  adc  %4ddB", audio_max_0_dB-144, audio_max_1_dB-144);
+
+						}
+						else	// No ADC, do db display of dac instead
+						{
+							audio_max_0_dB = twenty_log10(2*spk_max_0);
+							audio_max_1_dB = twenty_log10(2*spk_max_1);
+							sprintf(lcd_prtdb1,"%4ddB       %4ddB", audio_max_0_dB-144, audio_max_1_dB-144);
+						}
 						// TX audio bargraph in dB or VU-meter style
 						#if	TX_BARGRAPH_dB
 						int spk_max_0_dB = twenty_log10(2*spk_max_0);
