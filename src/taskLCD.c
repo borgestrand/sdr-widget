@@ -29,7 +29,6 @@ struct dataLCD lcdQUEDATA;
 volatile uint8_t position;
 uint8_t position_saved;
 
-
 // ************* support functions *************
 
 void ___waitForLCD(void)
