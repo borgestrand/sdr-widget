@@ -190,14 +190,16 @@ void uac1_device_audio_task(void *pvParameters)
 				spk_buffer_out = 0;
 				index = 0;
 
-				// Wait for the next frame synchronization event
-				// to avoid channel inversion.  Start with left channel - FS goes low
-				while (!gpio_get_pin_value(AK5394_LRCK));
-				while (gpio_get_pin_value(AK5394_LRCK));
+				if (!FEATURE_ADC_NONE){
+					// Wait for the next frame synchronization event
+					// to avoid channel inversion.  Start with left channel - FS goes low
+					while (!gpio_get_pin_value(AK5394_LRCK));
+					while (gpio_get_pin_value(AK5394_LRCK));
 
-				// Enable now the transfer.
-				pdca_enable(PDCA_CHANNEL_SSC_RX);
-				pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					// Enable now the transfer.
+					pdca_enable(PDCA_CHANNEL_SSC_RX);
+					pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				}
 			}
 		} else {
 
