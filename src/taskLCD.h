@@ -28,7 +28,6 @@
 #define lcd_rs_high()   gpio_set_gpio_pin(LCD_RS)
 #define lcd_rs_low()    gpio_clr_gpio_pin(LCD_RS)
 
-
 enum cmdLCD { lcdINIT=1, lcdHOME, lcdCLEAR, lcdWRITE, lcdGOTO, lcdPUTC,
 	lcdCRLF, lcdPUTH, lcdPUTS, lcdSET, lcdPOSW, lcdPOSR };
 
