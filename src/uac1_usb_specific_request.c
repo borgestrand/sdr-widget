@@ -110,10 +110,14 @@
 // S_freq current_freq;
 // Bool freq_changed = FALSE;
 
+static U8    usb_type;
 static U8    wValue_msb;
 static U8    wValue_lsb;
 static U16   wIndex;
 static U16   wLength;
+
+static U8			speed = 1;		// speed == 0, sample rate = 44.1khz
+									// speed == 1, sample rate = 48khz
 
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
@@ -288,12 +292,9 @@ void usb_hid_get_idle (U8 u8_report_id)
 
 void audio_get_min(void)
 {
-   U16 cs;      // in wValue
    U16 i_unit;  // in wIndex
    U16 length;  // in wLength
 
-   LSB(cs)=wValue_lsb;
-   MSB(cs)=wValue_msb;
    i_unit = wIndex % 256;			// wIndex high byte is interface number
    length = wLength;
 
@@ -301,7 +302,7 @@ void audio_get_min(void)
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
    if( i_unit==MIC_FEATURE_UNIT_ID )
    {
-      switch (cs)
+      switch (wValue_msb)
       {
       case CS_MUTE:
          if( length==1 )
@@ -318,7 +319,7 @@ void audio_get_min(void)
       }
     } else if ( i_unit == SPK_FEATURE_UNIT_ID)
       {
-         switch (cs)
+         switch (wValue_msb)
          {
          case CS_MUTE:
             if( length==1 )
@@ -334,11 +335,13 @@ void audio_get_min(void)
             break;
          }
       }
-    else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
-    	Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
-    	Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
+
+/*
+		// 44.1khz min sampling freq
+    	Usb_write_endpoint_data(EP_CONTROL, 8, 0x44);
+    	Usb_write_endpoint_data(EP_CONTROL, 8, 0xac);
     	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-    }
+*/
 
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
@@ -349,10 +352,6 @@ void audio_get_max(void)
 {
    U16 i_unit;
    U16 length;
-   U16 cs;
-
-   LSB(cs)=wValue_lsb;
-   MSB(cs)=wValue_msb;
    i_unit = wIndex % 256;
    length = wLength;
 
@@ -361,7 +360,7 @@ void audio_get_max(void)
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
    if( i_unit==MIC_FEATURE_UNIT_ID )
    {
-      switch (cs)
+      switch (wValue_msb)
       {
       case CS_MUTE:
          if( length==1 )
@@ -378,7 +377,7 @@ void audio_get_max(void)
       }
    }
    else if ( i_unit == SPK_FEATURE_UNIT_ID){
-	     switch (cs)
+	     switch (wValue_msb)
 	      {
 	      case CS_MUTE:
 	         if( length==1 )
@@ -395,11 +394,12 @@ void audio_get_max(void)
 	      }
    }
 
-   else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
+/*
+		// 48khz max sampling freq
 		Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
 		Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
 		Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-    }
+*/
 
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
@@ -410,10 +410,6 @@ void audio_get_res(void)
 {
    U16 i_unit;
    U16 length;
-   U16 cs;
-
-   LSB(cs)=wValue_lsb;
-   MSB(cs)=wValue_msb;
    i_unit = wIndex % 256;
    length = wLength;
 
@@ -422,7 +418,7 @@ void audio_get_res(void)
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
    if( i_unit==MIC_FEATURE_UNIT_ID )
    {
-      switch (cs)
+      switch (wValue_msb)
       {
       case CS_MUTE:
          if( length==1 )
@@ -439,7 +435,7 @@ void audio_get_res(void)
       }
    } else if ( i_unit==SPK_FEATURE_UNIT_ID)
    {
-	     switch (cs)
+	     switch (wValue_msb)
 	      {
 	      case CS_MUTE:
 	         if( length==1 )
@@ -456,11 +452,12 @@ void audio_get_res(void)
 	      }
    }
 
-   else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
+/*
+	// 48000 - 44100 = 3900
+   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x3c);
+   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x0f);
    	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-    }
+*/
 
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
@@ -471,19 +468,28 @@ void audio_get_cur(void)
 {
    U16 i_unit;
    U16 length;
-   U16 cs;
-
-   LSB(cs)=wValue_lsb;
-   MSB(cs)=wValue_msb;
    i_unit = wIndex % 256;
    length = wLength;
 
    Usb_ack_setup_received_free();
-
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-   if( i_unit==MIC_FEATURE_UNIT_ID )
+
+   if ((usb_type == USB_SETUP_GET_CLASS_ENDPOINT) && (wValue_msb == UAC_EP_CS_ATTR_SAMPLE_RATE)){
+		if (speed == 0){
+		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x44);
+		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0xac);
+		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+		}
+		else {
+		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
+		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
+		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+		}
+    }
+
+   else if( i_unit==MIC_FEATURE_UNIT_ID )
    {
-      switch (cs)
+      switch (wValue_msb)
       {
       case CS_MUTE:
          if( length==1 )
@@ -498,8 +504,9 @@ void audio_get_cur(void)
          }
          break;
       }
+
    } else if (i_unit==SPK_FEATURE_UNIT_ID){
-	     switch (cs)
+	     switch (wValue_msb)
 	      {
 	      case CS_MUTE:
 	         if( length==1 )
@@ -516,12 +523,6 @@ void audio_get_cur(void)
 	      }
    }
 
-   else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
-   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
-   	Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
-   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-    }
-
    Usb_ack_control_in_ready_send();
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
@@ -531,19 +532,34 @@ void audio_set_cur(void)
 {
    U16 i_unit;
    U16 length;
-   U16 cs;
-
-   LSB(cs)=wValue_lsb;
-   MSB(cs)=wValue_msb;
    i_unit = wIndex % 256;
    length = wLength;
 
    Usb_ack_setup_received_free();
    while(!Is_usb_control_out_received());
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-   if( i_unit==MIC_FEATURE_UNIT_ID )
+
+   if ((usb_type == USB_SETUP_SET_CLASS_ENDPOINT) && (wValue_msb == UAC_EP_CS_ATTR_SAMPLE_RATE)){
+		if (Usb_read_endpoint_data(EP_CONTROL, 8) == 0x44) speed = 0;
+		else speed = 1;
+
+		if (speed == 0){		// 44.1khz
+				if (FEATURE_BOARD_USBI2S)
+					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+				else if (FEATURE_BOARD_USBDAC)
+					gpio_clr_gpio_pin(AVR32_PIN_PX51);
+			}
+		else {					// 48khz
+				if (FEATURE_BOARD_USBI2S)
+					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+				else if (FEATURE_BOARD_USBDAC)
+					gpio_set_gpio_pin(AVR32_PIN_PX51);
+		}
+	}
+
+   else if( i_unit==MIC_FEATURE_UNIT_ID )
    {
-      switch (cs)
+      switch (wValue_msb)
       {
       case CS_MUTE:
          if( length==1 )
@@ -562,7 +578,7 @@ void audio_set_cur(void)
    }
    else if (i_unit==SPK_FEATURE_UNIT_ID ){
 	   {
-	       switch (cs)
+	       switch (wValue_msb)
 	       {
 	       case CS_MUTE:
 	          if( length==1 )
@@ -581,10 +597,6 @@ void audio_set_cur(void)
 	    }
    }
 
-   else if ( ((wIndex / 256) == STD_AS_INTERFACE_OUT) || ((wIndex /256) == STD_AS_INTERFACE_IN)){
-
-    }
-
 
    Usb_ack_control_out_received_free();
    Usb_ack_control_in_ready_send();
@@ -599,6 +611,8 @@ void audio_set_cur(void)
 //!
 Bool uac1_user_read_request(U8 type, U8 request)
 {
+
+	usb_type = type;
 
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR) return uac1_user_get_interface_descriptor();

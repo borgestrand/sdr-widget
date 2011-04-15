@@ -282,7 +282,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  FORMAT_FRAME_SIZE
 	   ,  FORMAT_BIT_RESOLUTION
 	   ,  FORMAT_SAMPLE_FREQ_NB
-	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ)
+	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_441)
+	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
+	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_48)
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
     }
 	,
@@ -354,7 +356,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  FORMAT_FRAME_SIZE
 	   ,  FORMAT_BIT_RESOLUTION
 	   ,  FORMAT_SAMPLE_FREQ_NB
-	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ)
+	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_441)
+	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
+	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_48)
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
 	}
     ,
@@ -584,7 +588,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  FORMAT_FRAME_SIZE
 	   ,  FORMAT_BIT_RESOLUTION
 	   ,  FORMAT_SAMPLE_FREQ_NB
-	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ)
+	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_441)
+	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
+	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_48)
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
 	}
 	,
@@ -656,7 +662,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  FORMAT_FRAME_SIZE
 	   ,  FORMAT_BIT_RESOLUTION
 	   ,  FORMAT_SAMPLE_FREQ_NB
-	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ)
+	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_441)
+	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
+	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_48)
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
     }
 	,

@@ -1042,8 +1042,10 @@ __attribute__((__packed__))
 	U8		bSubFrameSize;
 	U8		bBitResolution;
 	U8		bSampleFreqType;
-	U16	wLsbyteiSamFreq;
-	U8		bMsbyteiSamFreq;
+	U16	wLsbyteiSamFreq_1;
+	U8		bMsbyteiSamFreq_1;
+	U16	wLsbyteiSamFreq_2;
+	U8		bMsbyteiSamFreq_2;
 } S_usb_format_type_1;
 
 

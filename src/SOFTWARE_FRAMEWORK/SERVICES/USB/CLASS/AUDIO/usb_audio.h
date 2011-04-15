@@ -88,8 +88,10 @@
 
 
 //!Audio volume ctrl configuration
-#define CS_MUTE   0x0100
-#define CS_VOLUME 0x0200
+#define CS_MUTE   0x01
+#define CS_VOLUME 0x02
+
+#define UAC_EP_CS_ATTR_SAMPLE_RATE	0x01
 
 //#define  AUDIO_CLASS_REVISION                   0x0100  //!< Revision of class specification - 1.0
 #define  AUDIO_CLASS_REVISION_2                 0x0200  //!< Revision of class specification - 2.0

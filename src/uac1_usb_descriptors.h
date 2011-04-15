@@ -60,7 +60,7 @@
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
-#define MAX_POWER          50    // 100 mA
+#define MAX_POWER          250    // 500 mA
 
 //Audio Streaming (AS) interface descriptor
 #define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
@@ -152,7 +152,7 @@
 #define EP_INTERVAL_4_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_4_HS    0x04			 // One packet per 8 uframe
 
-/*
+/* Note:  The EPs have to be re-arranged.  Feedback EP has to be immediately following the OUT EP
 // USB Endpoint 5 descriptor
 #define ENDPOINT_NB_5       ( UAC1_EP_AUDIO_OUT_FB | MSK_EP_DIR )
 #define EP_ATTRIBUTES_5     0b00010001      // ISOCHROUNOUS FEEDBACK
@@ -248,9 +248,9 @@
 #define FORMAT_NB_CHANNELS					0x02	// Two Channels
 #define FORMAT_FRAME_SIZE					0x03	// 3 bytes per audio sample
 #define FORMAT_BIT_RESOLUTION				0x18	// 24 bits per sample
-#define FORMAT_SAMPLE_FREQ_NB				0x01	// One frequency supported
-//#define FORMAT_LSBYTE_SAMPLE_FREQ			0x1F40 	// 0x001F40=8kHz Sample frequency
-#define FORMAT_LSBYTE_SAMPLE_FREQ			0xbb80	// 48khz
+#define FORMAT_SAMPLE_FREQ_NB				0x02	// Two frequency supported
+#define FORMAT_LSBYTE_SAMPLE_FREQ_441		0xac44	// 44.1khz
+#define FORMAT_LSBYTE_SAMPLE_FREQ_48		0xbb80	// 48khz
 #define FORMAT_MSBYTE_SAMPLE_FREQ			0x00	// MsByte
 //#define FORMAT_LSBYTE_SAMPLE_FREQ			0x7700	// 96khz
 //#define FORMAT_MSBYTE_SAMPLE_FREQ			0x01	// MsByte
