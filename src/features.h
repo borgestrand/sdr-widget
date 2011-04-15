@@ -131,6 +131,7 @@ typedef enum {
 typedef uint8_t features_t[feature_end_index];
 
 extern features_t features_nvram, features;
+extern const features_t features_default;
 
 //
 // test for the values of features with these macros
@@ -222,20 +223,26 @@ extern features_t features_nvram, features;
 		FEATURE_ADC_DEFAULT,						\
 		FEATURE_DAC_DEFAULT
 
+extern const char *feature_value_names[];
+extern const char *feature_index_names[];
 extern void features_init();
-extern void features_display(char *title, features_t fp, int delay);
+extern void features_display(char *title, features_t fp);
 extern void features_display_all();
 extern uint8_t feature_set(uint8_t index, uint8_t value);
 extern uint8_t feature_get(uint8_t index);
 extern uint8_t feature_set_nvram(uint8_t index, uint8_t value);
 extern uint8_t feature_get_nvram(uint8_t index);
+extern uint8_t feature_get_default(uint8_t index);
 extern void feature_factory_reset(void);
+extern void feature_find_first_and_last_value(uint8_t index, uint8_t *first, uint8_t *last);
 
 #define FEATURE_DG8SAQ_COMMAND			0x71
 #define FEATURE_DG8SAQ_SET_NVRAM		3
 #define FEATURE_DG8SAQ_GET_NVRAM		4
 #define FEATURE_DG8SAQ_SET_RAM			5
 #define FEATURE_DG8SAQ_GET_RAM			6
-#define FEATURE_DG8SAQ_FACTORY_RESET	7
+#define FEATURE_DG8SAQ_GET_INDEX_NAME	7
+#define FEATURE_DG8SAQ_GET_VALUE_NAME	8
+#define FEATURE_DG8SAQ_GET_DEFAULT		9
 
 #endif /* FEATURES_H_ */

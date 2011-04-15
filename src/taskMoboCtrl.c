@@ -556,9 +556,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 	features_display_all();
 
 	// Clear LCD and Print Firmware version
-	vTaskDelay( 10000 );	// Keep current text on display for
-							// 1s before probing for I2C devices
-
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_clear();
 	lcd_q_goto(3,10);
