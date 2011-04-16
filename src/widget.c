@@ -24,6 +24,62 @@
 #include "Mobo_config.h"
 
 //
+// startup log
+//
+#define STARTUP_LOG_SIZE 1024
+#define STARTUP_LOG_LINES 64
+
+static char startup_log[STARTUP_LOG_SIZE];
+static char *startup_log_lines[STARTUP_LOG_LINES];
+static char *startup_log_ptr = (char *)startup_log;
+static char **startup_log_line_ptr = (char **)startup_log_lines;
+static int startup_log_line_start = 1;
+
+void widget_startup_log_char(char c) {
+	if (startup_log_ptr == startup_log) {
+		// we could initialize by erasing the entire buffer
+	}
+	if (startup_log_line_start) {
+		if (startup_log_line_ptr < (char **)startup_log_lines + STARTUP_LOG_LINES) {
+#if 0
+			flashc_memset32((void *)startup_log_line_ptr, (uint32_t)startup_log_ptr, sizeof(char *), TRUE);
+#else
+			*startup_log_line_ptr = startup_log_ptr;
+#endif
+			startup_log_line_ptr += 1;
+		}
+		startup_log_line_start = 0;
+	}
+	if (startup_log_ptr < (char *)startup_log + STARTUP_LOG_SIZE) {
+#if 0
+		flashc_memset8((void *)startup_log_ptr, c, sizeof(char), TRUE);
+#else
+		*startup_log_ptr = c;
+#endif
+		startup_log_ptr += 1;
+	}
+	startup_log_line_start = (c == '\0');
+}
+
+void widget_startup_log_string(char *string) {
+	while (*string)
+		widget_startup_log_char(*string++);
+}
+
+void widget_startup_log_line(char *string) {
+	widget_startup_log_string(string);
+	widget_startup_log_char('\0');
+}
+
+void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
+	*buffer_lines = (char **)startup_log_lines;
+	*lines = startup_log_line_ptr - (char **)startup_log_lines;
+}
+
+void widget_free_startup_buffer_lines(char **buffer_lines) {
+}
+
+//
 // lcd display
 // clear the display,
 // display lines of text and scroll up after all four lines are filled
@@ -81,6 +137,10 @@ void widget_display_string_scroll_and_delay(char *string, unsigned delay) {
 	widget_delay_task(delay);
 }
 
+void widget_display_string_scroll_and_log(char *string) {
+	widget_display_string_and_scroll(string);
+	widget_startup_log_line(string);
+}
 //
 // provide a place for disasters to be reported
 // only works when taskLCD is active
@@ -323,9 +383,9 @@ void widget_ready(char *msg) {
 void widget_report(void) {
 	char buff[32];
 	widget_display_grab();
-	widget_display_string_scroll_and_delay("widget report:", 500000);
-	widget_display_string_scroll_and_delay("firmware = " FIRMWARE_VERSION, 500000);
+	widget_display_string_scroll_and_log("widget report:");
+	widget_display_string_scroll_and_log("firmware = " FIRMWARE_VERSION);
 	sprintf(buff, "reset = %s", widget_reset_cause());
-	widget_display_string_scroll_and_delay(buff, 500000);
+	widget_display_string_scroll_and_log(buff);
 	widget_display_drop();
 }

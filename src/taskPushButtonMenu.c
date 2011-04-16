@@ -33,6 +33,7 @@
 #include "flashc.h"
 
 #include "widget.h"
+#include "features.h"
 #include "taskPushButtonMenu.h"
 #include "composite_widget.h"
 #include "Mobo_config.h"
@@ -43,7 +44,7 @@
 //#include "LCD_bargraphs.h"
 
 // First Level Menu Items
-const uint8_t level0_menu_size = 15;
+const uint8_t level0_menu_size = 17;
 const char *level0_menu_items[] =
 				{  " 1-Save Frequency",		//done
 				   " 2-VFO Resolution",		//done
@@ -59,7 +60,9 @@ const char *level0_menu_items[] =
 				   "12-Encoder Steps",		//done
 				   "13-UAC1/UAC2 Audio",	//done
 				   "14-Factory Reset",		//done
-				   "15-Exit" };				//done
+				   "15-Feature Select",		//done
+				   "16-Startup Log",		//done
+				   "17-Exit" };				//done
 
 // Flag for Frequency Menu Selection
 #define FREQ_MENU		1
@@ -265,6 +268,16 @@ const char *factory_menu_items[] =
 				   "2-No - Go back",
 				   "3-No - Exit"	};
 
+// Flag for Feature selection menu
+#define FEATURES_MENU	15
+// menu items taken from feature_index_names
+// Flags for Feature submenu functions - computed
+#define FEATURES_SUBMENU(x) (FEATURES_MENU*100+(x))
+#define FEATURE_FROM_MENU(x)	((x)%100)
+// menu items for submenus taken from feature_value_names
+
+// Flag for startup log review
+#define STARTUP_LOG_REVIEW 16
 
 // LCD Queue Buffer for Menu Print
 char menu_lcd0[21];
@@ -464,7 +477,7 @@ void lcd_scroll_Menu(char **menu, uint8_t menu_size,
 		if (current_choice == menu_size-1) x = 1;
 		else if (current_choice == menu_size - 2 ) x = 0;
 		else x = current_choice + 2;
-		sprintf(lcd3,"  %s", *(menu + x));
+		sprintf(lcd3,"%s", *(menu + x));
 		lcd_q_goto(begin_row + 3,begin_col);
 		for (a = begin_col; a < 20; a++)
 			lcd_q_putc(' ');
@@ -475,6 +488,37 @@ void lcd_scroll_Menu(char **menu, uint8_t menu_size,
 	xSemaphoreGive( mutexQueLCD );
 }
 
+/*
+ * \brief Display a 3 or 4 line selection of a buffer
+ *
+ * **line_ptrs refers to a pointer array containing the lines of the buffer to be printed
+ *
+ * line_size indicates how many pointers (buffer lines) there are in the array
+ *
+ * current_line indicates which item is currently the first line
+ *
+ * lines can take the value of 3 or 4, indicating how many lines are displayed
+ * the 4 line display uses the entire screen, the 3 line display uses the last 3 lines
+ *
+ * \retval choice
+ */
+void lcd_scroll_Buffer(char **line_ptrs, int line_size, int current_line, uint8_t lines)
+{
+	uint8_t begin_row = 4 - lines, line;
+
+	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+
+	for (line = 0; line < lines; line += 1) {
+		lcd_q_goto(begin_row+line,0);
+		lcd_q_print("                    "); // 20 spaces
+		if (current_line+line < line_size) {
+			lcd_q_goto(begin_row+line,0);
+			lcd_q_print(line_ptrs[current_line+line]);
+		}
+	}
+
+	xSemaphoreGive( mutexQueLCD );
+}
 
 //----------------------------------------------------------------------
 // Menu functions begin:
@@ -2978,6 +3022,210 @@ void factory_menu(void)
 	}
 }
 
+/*! \brief Manage the root feature menu
+ *
+ * \retval none
+ */
+void features_index_menu(void)
+{
+	static int8_t	current_selection;	// Keep track of current LCD menu selection
+	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
+
+	// Selection modified by encoder.  We remember last selection, even if exit and re-entry
+	if (MENU_fromenc == TRUE)
+	{
+		current_selection += menu_steps_from_enc;
+	    // Reset data from Encoder
+		MENU_fromenc = FALSE;
+		menu_steps_from_enc = 0;
+
+		// Indicate that an LCD update is needed
+		LCD_upd = FALSE;
+	}
+
+	if (LCD_upd == FALSE)				// Need to update LCD
+	{
+		LCD_upd = TRUE;					// We have serviced LCD
+
+		// menu size includes the feature_end_index
+		// but excludes the major and minor version numbers
+		// hence the -2 here and elsewhere
+		uint8_t menu_size = feature_end_index + 1 - 2;
+		// Keep Encoder Selection Within Bounds of the Menu Size
+		
+		while(current_selection >= menu_size)
+			current_selection -= menu_size;
+		while(current_selection < 0)
+			current_selection += menu_size;
+
+		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+		lcd_q_clear();
+		lcd_q_goto(0,0);
+   		lcd_q_print("features");
+   		xSemaphoreGive( mutexQueLCD );
+
+		// Print the Menu
+		lcd_scroll_Menu((char**)feature_index_names+2, menu_size, current_selection,
+				0, 8, 4, menu_lcd0, menu_lcd1, menu_lcd2, menu_lcd3);
+	}
+
+	if (scan_menu_button() == SHORT_PUSH)
+	{
+	    // Reset higher resolution data from Encoder, used by some lower level menus
+		VAL_fromenc = FALSE;
+		FRQ_fromenc = FALSE;
+
+		if (current_selection == feature_end_index-2) {
+			// go back
+			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+			lcd_q_clear();
+			xSemaphoreGive( mutexQueLCD );
+			MENU_mode = TRUE;	// We're NOT done, just backing off
+			menu_level = 0;		// We are done with this menu level
+			LCD_upd = FALSE;
+		} else {
+			menu_level = FEATURES_SUBMENU(current_selection + 2);
+			LCD_upd = FALSE;
+		}
+	}
+}
+
+/*! \brief Manage the feature value menus
+ *
+ * \retval none
+ */
+void features_value_menu(void)
+{
+	static int8_t	current_selection;	// Keep track of current LCD menu selection
+	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
+
+	uint8_t feature_index, first_feature_value, last_feature_value;
+	feature_index = FEATURE_FROM_MENU(menu_level);
+	feature_find_first_and_last_value(feature_index, &first_feature_value, &last_feature_value);
+
+	// Selection modified by encoder.  We remember last selection, even if exit and re-entry
+	if (MENU_fromenc == TRUE)
+	{
+		current_selection += menu_steps_from_enc;
+	    // Reset data from Encoder
+		MENU_fromenc = FALSE;
+		menu_steps_from_enc = 0;
+
+		// Indicate that an LCD update is needed
+		LCD_upd = FALSE;
+	}
+
+	if (LCD_upd == FALSE)				// Need to update LCD
+	{
+		LCD_upd = TRUE;					// We have serviced LCD
+
+		// Keep Encoder Selection Within Bounds of the Menu Size
+		uint8_t menu_size = last_feature_value-first_feature_value + 2;
+		while(current_selection >= menu_size)
+			current_selection -= menu_size;
+		while(current_selection < 0)
+			current_selection += menu_size;
+
+		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+		lcd_q_clear();
+		lcd_q_goto(0,0);
+		lcd_q_print((char *)feature_index_names[feature_index]);
+   		xSemaphoreGive( mutexQueLCD );
+
+		// Print the Menu
+		lcd_scroll_Menu((char**)&feature_value_names[first_feature_value], menu_size, current_selection,
+				0, 6, 4, menu_lcd0, menu_lcd1, menu_lcd2, menu_lcd3);
+	}
+
+	if (scan_menu_button() == SHORT_PUSH)
+	{
+	    // Reset higher resolution data from Encoder, used by some lower level menus
+		VAL_fromenc = FALSE;
+		FRQ_fromenc = FALSE;
+
+		if (current_selection == last_feature_value-first_feature_value+1) {
+			// go back
+			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+			lcd_q_clear();
+			lcd_q_goto(1,1);
+			lcd_q_print("Nothing Changed");
+			xSemaphoreGive( mutexQueLCD );
+			vTaskDelay(5000 );
+			MENU_mode = TRUE;	// We're NOT done, just backing off
+			menu_level = FEATURES_MENU;		// We are done with this menu level
+			LCD_upd = FALSE;
+		} else {
+			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+			lcd_q_clear();
+			lcd_q_goto(1,1);
+			lcd_q_print((char *)feature_index_names[feature_index]);
+			lcd_q_print(" = ");
+			lcd_q_print((char *)feature_value_names[current_selection+first_feature_value]);
+			lcd_q_goto(2,1);
+			lcd_q_print("takes effect on");
+			lcd_q_goto(3,1);
+			lcd_q_print("next reset");
+			xSemaphoreGive( mutexQueLCD );
+			vTaskDelay(5000 );
+			feature_set_nvram(feature_index, current_selection+first_feature_value);
+			MENU_mode = TRUE;	// We're NOT done, just backing off
+			menu_level = FEATURES_MENU;		// We are done with this menu level
+			LCD_upd = FALSE;
+		}
+	}
+}
+
+/*! \brief display the startup log
+ *
+ * \retval none
+ */
+void startup_log_review(void)
+{
+	static int current_line;		// Keep track of current LCD menu selection
+	static bool LCD_upd = FALSE;		// Keep track of LCD update requirements
+
+	char **buffer_lines;
+	int lines;
+
+	widget_get_startup_buffer_lines(&buffer_lines, &lines);
+
+	// Selection modified by encoder.  We remember last selection, even if exit and re-entry
+	if (MENU_fromenc == TRUE)
+	{
+		current_line += menu_steps_from_enc;
+		if (current_line < 0) current_line = 0;
+		if (current_line >= lines) current_line = lines-1;
+	    // Reset data from Encoder
+		MENU_fromenc = FALSE;
+		menu_steps_from_enc = 0;
+
+		// Indicate that an LCD update is needed
+		LCD_upd = FALSE;
+	}
+
+	if (LCD_upd == FALSE)				// Need to update LCD
+	{
+		LCD_upd = TRUE;					// We have serviced LCD
+
+		lcd_scroll_Buffer(buffer_lines, lines, current_line, 4);
+	}
+
+	if (scan_menu_button() == SHORT_PUSH)
+	{
+	    // Reset higher resolution data from Encoder, used by some lower level menus
+		VAL_fromenc = FALSE;
+		FRQ_fromenc = FALSE;
+
+		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+		lcd_q_clear();
+   		xSemaphoreGive( mutexQueLCD );
+
+		MENU_mode = TRUE;	// We're NOT done, just backing off
+		menu_level = 0;		// We are done with this menu level
+		LCD_upd = FALSE;
+	}
+}
+
 
 /*! \brief Manage the first level of Menus
  *
@@ -3086,6 +3334,14 @@ void menu_level0(void)
 				break;
 			case 13: // Factory Reset
 				menu_level = FACTORY_MENU;
+				LCD_upd = FALSE;	// force LCD reprint
+				break;
+		    case 14: // Feature selection
+				menu_level = FEATURES_MENU;
+				LCD_upd = FALSE;	// force LCD reprint
+				break;
+			case 15: // Startup log review
+				menu_level = STARTUP_LOG_REVIEW;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
 			default:
@@ -3223,6 +3479,10 @@ static void vtaskPushButtonMenu( void * pcParameters )
     			else if (menu_level == UAC_MENU) uac_menu();			//done
 
     			else if (menu_level == FACTORY_MENU) factory_menu();	//done
+				else if (menu_level == FEATURES_MENU) features_index_menu();
+				else if (menu_level >= FEATURES_SUBMENU(feature_major_index) &&
+						 menu_level < FEATURES_SUBMENU(feature_end_index)) features_value_menu();
+				else if (menu_level == STARTUP_LOG_REVIEW) startup_log_review();
     		}
     	}
 

@@ -17,6 +17,14 @@ typedef void (*widget_factory_reset_handler_t)(void);
 // there are 2 known at present: features and moboConfig
 #define WIDGET_FACTORY_RESET_HANDLERS	4
 
+// append a character to the startup log
+extern void widget_startup_log_char(char c);
+// append a string to the startup log
+extern void widget_startup_log_string(char *string);
+// append a string and a newline to the startup log
+extern void widget_startup_log_line(char *string);
+// parse the startup log into a lines array
+extern void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines);
 // seize control of the LCD
 extern void widget_display_grab(void);
 // release control of the LCD
@@ -27,6 +35,8 @@ extern void widget_display_clear(void);
 extern void widget_display_string_and_scroll(char *string);
 // display a string on the lcd with scrolling and delay for microseconds
 extern void widget_display_string_scroll_and_delay(char *string, unsigned delay);
+// display a string on the lcd with scrolling and log as a line
+extern void widget_display_string_scroll_and_log(char *string);
 // report a serious problem, somehow
 extern void widget_oops(char *message);
 // test if the widget is in supervisor mode
