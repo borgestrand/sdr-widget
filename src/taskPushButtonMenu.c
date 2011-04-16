@@ -576,9 +576,8 @@ void freq_menu(void)
 		lcd_q_print("Frequency to Save:");
 		// frequency in floating point = freq / 2^23
 		freq_display = (double)cdata.Freq[0]/(1<<23);
-   		sprintf(menu_lcd0,"%2.06fMHz", freq_display);
+   		sprintf(menu_lcd0,"%9.6fMHz", freq_display);
    		lcd_q_goto(1,0);
-   		if(freq_display<=10) lcd_q_print(" ");		// workaround...%2 print format doesn't work
 		lcd_q_print(menu_lcd0);
 		lcd_q_goto(2,0);
 		lcd_q_print("Current Memory");
@@ -586,8 +585,7 @@ void freq_menu(void)
 		if (current_selection < 9)
 		{
 			freq_display = (double)nvram_cdata.Freq[current_selection + 1]/(1<<23);
-			sprintf(menu_lcd1,"%2.06fMHz ", freq_display);
-	  		if(freq_display<=10) lcd_q_print(" ");	// workaround...%2 print format doesn't work
+			sprintf(menu_lcd1,"%9.6fMHz ", freq_display);
 		}
 		else
 		{
@@ -1912,9 +1910,8 @@ void filters_adjust_menu_level3(void)
 		lcd_q_print("Push to Save->");
 		// Format current value for LCD print
 		freq_display = (double)current_selection/(1<<7);
-		sprintf(menu_lcd0,"%2.03f", freq_display);
+		sprintf(menu_lcd0,"%6.3f", freq_display);
 		lcd_q_goto(3,14);
-		if(freq_display<=10) lcd_q_print(" ");		// workaround...%2 print format doesn't work
 		lcd_q_print(menu_lcd0);
 		xSemaphoreGive( mutexQueLCD );
 	}
@@ -2019,11 +2016,10 @@ void filters_setpoint_menu_level2(void)
 		lcd_q_print("Crossover:");
 
 		if (current_selection < menu_size)
-			sprintf(menu_lcd0,"%2.03fMHz", freq_display);
+			sprintf(menu_lcd0,"%6.3fMHz", freq_display);
 		else
-			sprintf(menu_lcd0,"-.---");
+			sprintf(menu_lcd0," -.---");
    		lcd_q_goto(3,0);
-   		if(freq_display<=10) lcd_q_print(" ");		// workaround...%2 print format doesn't work
    		lcd_q_print(menu_lcd0);
 		xSemaphoreGive( mutexQueLCD );
 
@@ -2670,8 +2666,7 @@ void si570_menu(void)
 		lcd_q_goto(1,0);
 		lcd_q_print("Set Frq:");
 		freq_display = (double)cdata.Freq[0]/(1<<23);
-   		sprintf(menu_lcd0,"%2.06fMHz", freq_display);
-   		if(freq_display<=10) lcd_q_print(" ");		// workaround...%2 print format doesn't work
+   		sprintf(menu_lcd0,"%9.6fMHz", freq_display);
 		lcd_q_print(menu_lcd0);
 
 		lcd_q_goto(2,0);
@@ -2680,7 +2675,7 @@ void si570_menu(void)
 		lcd_q_print("Push-> ");
 		// Format current value for LCD print
 		freq_display = (double)cdata.FreqXtal/(1<<24);
-   		sprintf(menu_lcd1,"%3.06fMHz", freq_display);
+   		sprintf(menu_lcd1,"%10.6fMHz", freq_display);
 		lcd_q_print(menu_lcd1);
 		xSemaphoreGive( mutexQueLCD );
 	}
