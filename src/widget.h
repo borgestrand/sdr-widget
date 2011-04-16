@@ -17,9 +17,6 @@ typedef void (*widget_factory_reset_handler_t)(void);
 // there are 2 known at present: features and moboConfig
 #define WIDGET_FACTORY_RESET_HANDLERS	4
 
-// the widget log writes to flash, disable if you're worried about
-// wearing it out with too many writes
-#define WIDGET_LOG_ENABLED 1
 // append a character to the startup log
 extern void widget_startup_log_char(char c);
 // append a string to the startup log
@@ -28,8 +25,6 @@ extern void widget_startup_log_string(char *string);
 extern void widget_startup_log_line(char *string);
 // parse the startup log into a lines array
 extern void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines);
-// free the startup long lines array
-extern void widget_free_startup_buffer_lines(char **buffer_lines);
 // seize control of the LCD
 extern void widget_display_grab(void);
 // release control of the LCD

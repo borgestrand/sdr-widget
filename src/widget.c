@@ -26,19 +26,16 @@
 //
 // startup log
 //
-#if WIDGET_LOG_ENABLED
-#define STARTUP_LOG_SIZE 512
-#define STARTUP_LOG_LINES 32
+#define STARTUP_LOG_SIZE 1024
+#define STARTUP_LOG_LINES 64
 
 static char startup_log[STARTUP_LOG_SIZE];
 static char *startup_log_lines[STARTUP_LOG_LINES];
 static char *startup_log_ptr = (char *)startup_log;
 static char **startup_log_line_ptr = (char **)startup_log_lines;
 static int startup_log_line_start = 1;
-#endif
 
 void widget_startup_log_char(char c) {
-#if WIDGET_LOG_ENABLED
 	if (startup_log_ptr == startup_log) {
 		// we could initialize by erasing the entire buffer
 	}
@@ -62,7 +59,6 @@ void widget_startup_log_char(char c) {
 		startup_log_ptr += 1;
 	}
 	startup_log_line_start = (c == '\0');
-#endif
 }
 
 void widget_startup_log_string(char *string) {
@@ -76,16 +72,8 @@ void widget_startup_log_line(char *string) {
 }
 
 void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
-#if WIDGET_LOG_ENABLED
 	*buffer_lines = (char **)startup_log_lines;
-	*lines = *buffer_lines - startup_log_line_ptr;
-#else
-	static char *message[] = {
-		"no log enabled"
-	};
-	*buffer_lines = message;
-	*lines = 1;
-#endif
+	*lines = startup_log_line_ptr - (char **)startup_log_lines;
 }
 
 void widget_free_startup_buffer_lines(char **buffer_lines) {
