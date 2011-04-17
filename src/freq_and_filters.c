@@ -38,10 +38,9 @@ void display_frequency(void)
 
 	// Add PSDR-IQ offset if in RX
 	if (!TX_flag) freq_display += cdata.LCD_RX_Offset/1000.0;
-	sprintf(frq_lcd,"%2.06fMHz ", freq_display);
+	sprintf(frq_lcd,"%9.6fMHz ", freq_display);
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_goto(0,3);
-	if(freq_display<=10) lcd_q_print(" ");	// workaround...%2 print format doesn't work
 	lcd_q_print(frq_lcd);
 	xSemaphoreGive( mutexQueLCD );
 	#endif
