@@ -273,7 +273,7 @@ int finish(int return_value) {
 /*
 ** functions
 */
-void print_all_features(features_t fp) {
+void print_all_features(uint8_t *fp) {
 	int j;
 	fprintf(stdout, "%d %d", fp[true_feature_major_index], fp[true_feature_minor_index]);
 	for (j = true_feature_minor_index+1; j < true_feature_end_index; j += 1) {
@@ -341,44 +341,48 @@ int get_default() {
 
 int set_nvram(int argc, char *argv[]) {
 	int i, j;
-	features_t features;
+	uint8_t *features;
+	setup();
 	if (argc == true_feature_end_index - 2) {
 		// major and minor are implicit
 		argv -= 2;
 		argc += 2;
 	} else if (argc == true_feature_end_index) {
 		// verify the major and minor
-		if (atoi(argv[true_feature_major_index]) != FEATURE_MAJOR_DEFAULT) {
-			fprintf(stderr, "widget-control: invalid major version number %s, should be %d\n", argv[true_feature_major_index], FEATURE_MAJOR_DEFAULT);
+		if (atoi(argv[true_feature_major_index]) != true_feature_end_index) {
+			fprintf(stderr, "widget-control: invalid major version number %s, should be %d\n", argv[true_feature_major_index], true_feature_end_index);
 			exit(1);
 		}
-		if (atoi(argv[true_feature_minor_index]) != FEATURE_MINOR_DEFAULT) {
-			fprintf(stderr, "widget-control: invalid minor version number %s, should be %d\n", argv[true_feature_minor_index], FEATURE_MINOR_DEFAULT);
+		if (atoi(argv[true_feature_minor_index]) != true_features_default[feature_minor_index]) {
+			fprintf(stderr, "widget-control: invalid minor version number %s, should be %d\n", argv[true_feature_minor_index], true_feature_end_values);
 			exit(1);
 		}
 	} else {
 		// invalid number of features
-		fprintf(stderr, "widget-control: wrong number (%d) of features specified, should be %d features to set\n", argc, FEATURE_MAJOR_DEFAULT);
+		fprintf(stderr, "widget-control: wrong number (%d) of features specified, should be %d features to set\n", argc, true_feature_end_index);
 		exit(1);
 	}
+	features = (uint8_t *)calloc(true_feature_major_index, sizeof(uint8_t));
 	for (i = true_feature_minor_index+1; i < true_feature_end_index; i += 1) {
 		j = find_feature_value(i, argv[i]);
 		if (j >= first_value(i) && j <= last_value(i)) {
 			features[i] = j;
 		} else {
+			free((void *)features);
 			fprintf(stderr, "widget-control: %s is invalid value for %s\n", argv[i], true_feature_index_names[i]);
 			exit(1);
 		}
 	}
-	setup();
 	for (i = true_feature_minor_index+1; i < true_feature_end_index; i += 1) {
 		int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_SET_NVRAM, i | (features[i] << 8), 8);
 		if (res != 1) {
 			fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_SET_NVRAM, %d | (%d << 8), 8) returned %s?\n",
 					i, features[i], error_string(res));
+			free((void *)features);
 			exit(finish(1));
 		}
 	}
+	free((void *)features);
 	return finish(0);
 }
 

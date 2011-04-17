@@ -28,8 +28,9 @@ typedef enum {
   feature_image_index,			// image to boot
   feature_in_index,				// keep or swap left/right channels on input
   feature_out_index,			// keep or swap left/right channels on output
-  feature_adc_index,			// adc identifier, not implemented
-  feature_dac_index,			// dac identifier, not implemented
+  feature_adc_index,			// adc identifier
+  feature_dac_index,			// dac identifier
+  feature_lcd_index,			// lcd display type
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -41,6 +42,7 @@ typedef enum {
 		"out",										\
 		"adc",										\
 		"dac",										\
+		"lcd",										\
 		"end"
 
 //
@@ -94,6 +96,11 @@ typedef enum {
 	feature_dac_cs4344,
 	feature_dac_es9022,
 	feature_end_dac,
+	// lcd
+	feature_lcd_none,
+	feature_lcd_hd44780,		/* normal hd44780 lcd controller */
+	feature_lcd_ks0073,			/* ks0073 almost hd44780 compatible */
+	feature_end_lcd,
 	// end
 	feature_end_values
 } feature_values_t;
@@ -126,6 +133,9 @@ typedef enum {
 		"cs4344",														\
 		"es9022",														\
 		"end",															\
+		"none",															\
+		"hd44780",														\
+		"ks0073",														\
 		"end"
 	
 typedef uint8_t features_t[feature_end_index];
@@ -173,6 +183,10 @@ extern const features_t features_default;
 #define FEATURE_DAC_CS4344				(features[feature_dac_index] == (uint8_t)feature_dac_cs4344)
 #define FEATURE_DAC_ES9022				(features[feature_dac_index] == (uint8_t)feature_dac_es9022)
 
+#define FEATURE_LCD_NONE				(features[feature_lcd_index] == (uint8_t)feature_lcd_none)
+#define FEATURE_LCD_HD44780				(features[feature_lcd_index] == (uint8_t)feature_lcd_hd44780)
+#define FEATURE_LCD_KS0073				(features[feature_lcd_index] == (uint8_t)feature_lcd_ks0073)
+
 //
 // the version in the features specifies
 // the number of feature indexes and the number of feature values
@@ -212,7 +226,9 @@ extern const features_t features_default;
 #ifndef FEATURE_DAC_DEFAULT
 #define FEATURE_DAC_DEFAULT				feature_dac_cs4344
 #endif
-
+#ifndef FEATURE_LCD_DEFAULT
+#define FEATURE_LCD_DEFAULT				feature_lcd_hd44780
+#endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
 		FEATURE_MINOR_DEFAULT,						\
@@ -221,7 +237,8 @@ extern const features_t features_default;
 		FEATURE_IN_DEFAULT,							\
 		FEATURE_OUT_DEFAULT,						\
 		FEATURE_ADC_DEFAULT,						\
-		FEATURE_DAC_DEFAULT
+		FEATURE_DAC_DEFAULT,						\
+		FEATURE_LCD_DEFAULT
 
 extern const char *feature_value_names[];
 extern const char *feature_index_names[];

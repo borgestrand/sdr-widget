@@ -115,11 +115,9 @@ extern void lcd_q_set(uint8_t cmd);
 #define LCD_MOVE_DISP_LEFT       0x18   /* shift display left                     */
 #define LCD_MOVE_DISP_RIGHT      0x1C   /* shift display right                    */
 
-#if LCD_KS0073_MODE
 /* Function Definition for KS0073 Controller */
 #define LCD_FUNCTION_4BIT_RE_ON  0x24   /* |0|010|0100 4-Bit Mode Extension-Bit RE = 1 */
 #define LCD_FUNCTION_4LINES      0x09   /* |0|000|1001 4 Line Mode */
 #define LCD_FUNCTION_4BIT_RE_OFF 0x20   /* |0|001|0000 4-Bit Mode, Extension-Bit RE = 0 */
-#endif
 
 #endif
