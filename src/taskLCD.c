@@ -2,6 +2,7 @@
 /*
  * Widget headers
  */
+#include "features.h"
 #include "board.h"
 #include "conf_usb.h"
 
@@ -30,7 +31,6 @@ struct dataLCD lcdQUEDATA;
 volatile uint8_t position;
 uint8_t position_saved;
 
-
 // ************* support functions *************
 
 void ___waitForLCD(void)
@@ -38,8 +38,8 @@ void ___waitForLCD(void)
     //  Wait: new instructions may be given to the LCD screen 50us
     //cpu_delay_us(50, FOSC0);	// A bit crude, as this is time not claimable by RTOS
 	//cpu_delay_us(100, FOSC0);
-    vTaskDelay( 1 ); // However, this is far too slow...
-					 //impacts several things badly...TF3LJ 2010-06-19
+    vTaskDelay( 1 ); // This is a bit slow...
+					 // ...TF3LJ 2010-06-19
 }
 
 /**
@@ -109,25 +109,45 @@ void ___writeByteToLCD(uint8_t selectedRegister, uint8_t byte)
 
     //  Assuming a 4 line by 20 character display, ensure that
     //  everything goes where it is supposed to go:
-    if(selectedRegister == DATA_REGISTER) 
-    switch (position) {
-        case  0: //___writeByteToLCD(COMMAND_REGISTER, (1 << LCD_CLR) ); vTaskDelay( 100 );
-                 ___writeByteToLCD(COMMAND_REGISTER, 0x80);  vTaskDelay( 20 );
-            break;
+    if(selectedRegister == DATA_REGISTER)  {
+		if (FEATURE_LCD_HD44780) {
+			// Normal HD44780 compatible line memory mapping:
+			switch (position) {
+			case  0: ___writeByteToLCD(COMMAND_REGISTER, 0x80);  vTaskDelay( 20 );
+				break;
 
-        case 20: ___writeByteToLCD(COMMAND_REGISTER, 0xC0);  vTaskDelay( 20 );
-            break;
+			case 20: ___writeByteToLCD(COMMAND_REGISTER, 0xC0);  vTaskDelay( 20 );
+				break;
 
-        case 40: ___writeByteToLCD(COMMAND_REGISTER, 0x94);  vTaskDelay( 20 );
-            break;
+			case 40: ___writeByteToLCD(COMMAND_REGISTER, 0x94);  vTaskDelay( 20 );
+				break;
 
-        case 60: ___writeByteToLCD(COMMAND_REGISTER, 0xd4);  vTaskDelay( 20 );
-            break;
+			case 60: ___writeByteToLCD(COMMAND_REGISTER, 0xd4);  vTaskDelay( 20 );
+				break;
 
-        case 80: ___writeByteToLCD(COMMAND_REGISTER, 0x80);  vTaskDelay( 20 );
-            break;
+			case 80: ___writeByteToLCD(COMMAND_REGISTER, 0x80);  vTaskDelay( 20 );
+				break;
+			}
+		} else if (FEATURE_LCD_KS0073) {
+			// Different line memory mapping if a KS0073 20x4 LCD display is used:
+			switch (position) {
+			case  0: ___writeByteToLCD(COMMAND_REGISTER, 0x80);  vTaskDelay( 20 );
+				break;
 
-    }
+			case 20: ___writeByteToLCD(COMMAND_REGISTER, 0xA0);  vTaskDelay( 20 );
+				break;
+
+			case 40: ___writeByteToLCD(COMMAND_REGISTER, 0xC0);  vTaskDelay( 20 );
+				break;
+
+			case 60: ___writeByteToLCD(COMMAND_REGISTER, 0xE0);  vTaskDelay( 20 );
+				break;
+
+			case 80: ___writeByteToLCD(COMMAND_REGISTER, 0x80);  vTaskDelay( 20 );
+				break;
+			}
+		}
+	}
 
     //  Wait for the LCD to become ready
     ___waitForLCD();
@@ -172,7 +192,8 @@ static void vtaskLCD( void * pcParameters ) {
         xStatus = xQueueReceive( lcdCMDQUE, &lcdQUEDATA, portMAX_DELAY );
         if( xStatus == pdPASS )
         {
-            switch ( lcdQUEDATA.CMD ) {
+			if ( ! FEATURE_LCD_NONE) {
+				switch ( lcdQUEDATA.CMD ) {
 
                 case lcdINIT:   position = 0;
                                 //  First, delay50us for at least 15ms after power on
@@ -188,6 +209,20 @@ static void vtaskLCD( void * pcParameters ) {
                                 ___writeByteToLCD(COMMAND_REGISTER, (1 << LCD_FUNCTION) | 
                                                                     (1 << LCD_FUNCTION_2LINES));
                                 vTaskDelay( 120 );
+
+								if (FEATURE_LCD_KS0073) {
+									// Support for a KS0073 20x4 LCD display, if used:
+									//  ext. Function set - set extension Bit RE=1 needed for KS0073 Controller
+									___writeByteToLCD(COMMAND_REGISTER, ( LCD_FUNCTION_4BIT_RE_ON));
+									vTaskDelay( 120 );
+									//  ext. Function set 4-Line Mode needed for KS0073 Controller
+									___writeByteToLCD(COMMAND_REGISTER, ( LCD_FUNCTION_4LINES));
+									vTaskDelay( 120 );
+									//  ext. Function set - set extension Bit RE=0 needed  for KS0073 Controller
+									___writeByteToLCD(COMMAND_REGISTER, ( LCD_FUNCTION_4BIT_RE_OFF));
+									vTaskDelay( 120 );
+								}
+
                                 //  Turn display off
                                 ___writeByteToLCD(COMMAND_REGISTER, (1 << LCD_ON));
                                 vTaskDelay( 120 );
@@ -282,8 +317,8 @@ static void vtaskLCD( void * pcParameters ) {
                 default:
                     break;
                 
-            }
-
+				}
+			}
         }
         else  vTaskDelay( 500 );
     }

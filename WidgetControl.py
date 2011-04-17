@@ -83,6 +83,41 @@ class Launcher(model.Background):
         self.OnUSB(-1)
         time.sleep(0.2)             # Give firmware some breathing space
 
+        # Get number of feature values
+        self.handle.claimInterface(interfacenum) # Open the USB device for traffic
+        output = self.devicetohost(0x71, 4, 1)
+        self.handle.releaseInterface()           # Release the USB device
+        max_feature_value_index = output[0]
+
+        try:
+            # Get feature values and put in dict
+            self.handle.claimInterface(interfacenum) # Open the USB device for traffic
+
+            self.feature_value_dict = {}
+            self.feature_value_lookup_dict = {}
+	    feature_index = 0
+            feature_value_index = 0
+            while feature_value_index < max_feature_value_index:
+                output = self.devicetohost(0x71, 8, feature_value_index)
+                if output[0] == 63:                 # '?'
+                    break
+                else:
+                    output_str = ''.join(map(chr, reversed(output)))
+                    if output_str == 'end':
+                        feature_index = feature_index + 1
+                    else:
+                        self.feature_value_dict[feature_value_index] = output_str
+                        self.feature_value_lookup_dict[str(feature_index)+output_str] = feature_value_index
+                    feature_value_index = feature_value_index + 1
+                    if feature_value_index > 100:                  # Just in case '?' not returned
+                        break
+
+            self.handle.releaseInterface()           # Release the USB device
+
+        except:
+            pass
+
+
         # Poll all values for the first time
         try:
             self.on_Refresh_command(-1)
@@ -197,17 +232,7 @@ class Launcher(model.Background):
     # Change Features
     #############################################################
     def on_ComboBoxBoard_textUpdate(self, event):
-       if event.target.stringSelection == 'none':
-           self.boardSelection = 0
-       elif event.target.stringSelection == 'widget':
-           self.boardSelection = 1
-       elif event.target.stringSelection == 'USBI2S':
-           self.boardSelection = 2
-       elif event.target.stringSelection == 'USBDAC':
-           self.boardSelection = 3
-       else:	# test
-           self.boardSelection = 4
-
+       self.boardSelection = self.feature_value_lookup_dict['0'+event.target.stringSelection]
        self.handle.claimInterface(interfacenum) # Open the USB device for traffic
        output = self.devicetohost(0x71, 3, (2 + (self.boardSelection * 256)))
        self.handle.releaseInterface()           # Release the USB device
@@ -215,21 +240,7 @@ class Launcher(model.Background):
        self.on_Refresh_command(-1)		# Refresh
 
     def on_ComboBoxImage_textUpdate(self, event):
-       if event.target.stringSelection == 'UAC2 dg8saq':
-           self.imageSelection = 10
-       elif event.target.stringSelection == 'UAC2 Audio':
-           self.imageSelection = 9
-       elif event.target.stringSelection == 'UAC1 dg8saq':
-           self.imageSelection = 8
-       elif event.target.stringSelection == 'UAC1 Audio':
-           self.imageSelection = 7
-       elif event.target.stringSelection == 'FlashBlinky':
-           self.imageSelection = 6
-       elif event.target.stringSelection == 'hpsdr':
-           self.imageSelection = 11
-       else:	# test
-           self.imageSelection = 12
-
+       self.imageSelection = self.feature_value_lookup_dict['1'+event.target.stringSelection]
        self.handle.claimInterface(interfacenum) # Open the USB device for traffic
        output = self.devicetohost(0x71, 3, (3 + (self.imageSelection * 256)))
        self.handle.releaseInterface()           # Release the USB device
@@ -237,11 +248,7 @@ class Launcher(model.Background):
        self.on_Refresh_command(-1)		# Refresh
 
     def on_ComboBoxIn_textUpdate(self, event):
-       if event.target.stringSelection == 'Normal':
-           self.inSelection = 14
-       else:
-           self.inSelection = 15
-
+       self.inSelection = self.feature_value_lookup_dict['2'+event.target.stringSelection]
        self.handle.claimInterface(interfacenum) # Open the USB device for traffic
        output = self.devicetohost(0x71, 3, (4 + (self.inSelection * 256)))
        self.handle.releaseInterface()           # Release the USB device
@@ -249,11 +256,7 @@ class Launcher(model.Background):
        self.on_Refresh_command(-1)		# Refresh
 
     def on_ComboBoxOut_textUpdate(self, event):
-       if event.target.stringSelection == 'Normal':
-           self.outSelection = 17
-       else:
-           self.outSelection = 18
-
+       self.outSelection = self.feature_value_lookup_dict['3'+event.target.stringSelection]
        self.handle.claimInterface(interfacenum) # Open the USB device for traffic
        output = self.devicetohost(0x71, 3, (5 + (self.outSelection * 256)))
        self.handle.releaseInterface()           # Release the USB device
@@ -261,11 +264,7 @@ class Launcher(model.Background):
        self.on_Refresh_command(-1)		# Refresh
 
     def on_ComboBoxAdc_textUpdate(self, event):
-       if event.target.stringSelection == 'AK5394A':
-           self.adcSelection = 21
-       else:
-           self.adcSelection = 20
-
+       self.adcSelection = self.feature_value_lookup_dict['4'+event.target.stringSelection]
        self.handle.claimInterface(interfacenum) # Open the USB device for traffic
        output = self.devicetohost(0x71, 3, (6 + (self.adcSelection * 256)))
        self.handle.releaseInterface()           # Release the USB device
@@ -273,19 +272,20 @@ class Launcher(model.Background):
        self.on_Refresh_command(-1)		# Refresh
 
     def on_ComboBoxDac_textUpdate(self, event):
-       if event.target.stringSelection == 'CS4344':
-           self.dacSelection = 24
-       elif event.target.stringSelection == 'ES9022':
-           self.dacSelection = 25
-       else:
-           self.dacSelection = 23
-
+       self.dacSelection = self.feature_value_lookup_dict['5'+event.target.stringSelection]
        self.handle.claimInterface(interfacenum) # Open the USB device for traffic
        output = self.devicetohost(0x71, 3, (7 + (self.dacSelection * 256)))
        self.handle.releaseInterface()           # Release the USB device
 
        self.on_Refresh_command(-1)		# Refresh
 
+    def on_ComboBoxLCD_textUpdate(self, event):
+       self.LCDSelection = self.feature_value_lookup_dict['6'+event.target.stringSelection]
+       self.handle.claimInterface(interfacenum) # Open the USB device for traffic
+       output = self.devicetohost(0x71, 3, (8 + (self.LCDSelection * 256)))
+       self.handle.releaseInterface()           # Release the USB device
+
+       self.on_Refresh_command(-1)		# Refresh
 
     #####################################
     #  Read firmware features
@@ -296,12 +296,7 @@ class Launcher(model.Background):
             self.handle.claimInterface(interfacenum)# Open the USB device for traffic
             output = self.devicetohost(0x71, 4, 4)
             self.handle.releaseInterface()          # Release the USB device
-            if output[0] == 14:
-                InType = 'IN normal'
-            elif output[0] == 15:
-                InType = 'IN swapped'
-            else:
-                InType = 'unknown'
+            InType = self.feature_value_dict[output[0]]
             self.components.InType.text = InType
         except:
             pass
@@ -310,13 +305,8 @@ class Launcher(model.Background):
             # Get OUT Type
             self.handle.claimInterface(interfacenum)# Open the USB device for traffic
             output = self.devicetohost(0x71, 4, 5)
-            self.handle.releaseInterface()          # Release the USB device
-            if output[0] == 17:
-                OutType = 'OUT normal'
-            elif output[0] == 18:
-                OutType = 'OUT swapped'
-            else:
-                OutType = 'unknown'
+            self.handle.releaseInterface()          # Release the USB devic
+            OutType = self.feature_value_dict[output[0]]
             self.components.OutType.text = OutType
         except:
             pass
@@ -326,12 +316,7 @@ class Launcher(model.Background):
             self.handle.claimInterface(interfacenum)# Open the USB device for traffic
             output = self.devicetohost(0x71, 4, 6)
             self.handle.releaseInterface()          # Release the USB device
-            if output[0] == 20:
-                AdcType = 'No ADC'
-            elif output[0] == 21:
-                AdcType = 'AK5394A'
-            else:
-                AdcType = 'unknown'
+            AdcType = self.feature_value_dict[output[0]]
             self.components.AdcType.text = AdcType
         except:
             pass
@@ -341,15 +326,18 @@ class Launcher(model.Background):
             self.handle.claimInterface(interfacenum)# Open the USB device for traffic
             output = self.devicetohost(0x71, 4, 7)
             self.handle.releaseInterface()          # Release the USB device
-            if output[0] == 23:
-                DacType = 'No DAC'
-            elif output[0] == 24:
-                DacType = 'CS4344'
-            elif output[0] == 25:
-                DacType = 'ES9022'
-            else:
-                DacType = 'unknown'
+            DacType = self.feature_value_dict[output[0]]
             self.components.DacType.text = DacType
+        except:
+            pass
+
+        try:
+            # Get LCD Type
+            self.handle.claimInterface(interfacenum)# Open the USB device for traffic
+            output = self.devicetohost(0x71, 4, 8)
+            self.handle.releaseInterface()          # Release the USB device
+            LCDType = self.feature_value_dict[output[0]]
+            self.components.LCDType.text = LCDType
         except:
             pass
 
@@ -358,18 +346,8 @@ class Launcher(model.Background):
             self.handle.claimInterface(interfacenum) # Open the USB device for traffic
             output = self.devicetohost(0x71, 4, 2)
             self.handle.releaseInterface()           # Release the USB device
-            if output[0] == 0:
-                boardType = 'None'
-            elif output[0] == 1:
-                boardType = 'Widget'
-            elif output[0] == 2:
-                boardType = 'USBI2S'
-            elif output[0] == 3:
-                boardType = 'USBDAC'
-            elif output[0] == 4:
-                boardType = 'Test'
-            else:
-                boardType = 'unknown'
+            
+            boardType = self.feature_value_dict[output[0]]
             self.components.BoardType.text = boardType
 
         except:
@@ -380,20 +358,9 @@ class Launcher(model.Background):
             self.handle.claimInterface(interfacenum)# Open the USB device for traffic
             output = self.devicetohost(0x71, 4, 3)
             self.handle.releaseInterface()          # Release the USB device
-            if output[0] == 11:
-                imageType = 'hpsdr'
-            elif output[0] == 10:
-                imageType = 'UAC2 dg8saq'
-            elif output[0] == 9:
-                imageType = 'UAC2 audio'
-            elif output[0] == 8:
-                imageType = 'UAC1 dg8saq'
-            elif output[0] == 7:
-                imageType = 'UAC1 audio'
-            elif output[0] == 6:
-                imageType = 'Flashy Blinky'
-            else:
-                imageType = 'unknown'
+
+            imageType = self.feature_value_dict[output[0]]
+ 
             self.components.ImageType.text = imageType
         except:
             pass

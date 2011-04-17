@@ -22,6 +22,7 @@ __attribute__((__section__(".userpage")))
 features_t features_nvram;
 
 features_t features = { FEATURES_DEFAULT };
+const features_t features_default = { FEATURES_DEFAULT };
 
 //
 // these arrays of names need to be kept in sync
@@ -54,12 +55,12 @@ void features_init() {
   widget_factory_reset_handler_register(feature_factory_reset_handler);
 }
 
-void features_display(char *title, features_t fp, int delay) {
+void features_display(char *title, features_t fp) {
 	int i;
 	char buff[32];
-	widget_display_string_scroll_and_delay(title, delay);
+	widget_display_string_scroll_and_log(title);
 	sprintf(buff, "%s = %u.%u", "version", fp[feature_major_index], fp[feature_minor_index]);
-	widget_display_string_scroll_and_delay(buff, delay);
+	widget_display_string_scroll_and_log(buff);
 	for (i = feature_board_index; i < feature_end_index; i += 1) {
 		strcpy(buff, feature_index_names[i]);
 		strcat(buff, " = ");
@@ -67,14 +68,14 @@ void features_display(char *title, features_t fp, int delay) {
 			strcat(buff, (char *)feature_value_names[fp[i]]);
 		else
 			strcat(buff, "invalid!");
-		widget_display_string_scroll_and_delay(buff, delay);
+		widget_display_string_scroll_and_log(buff);
 	}
 }
 
 void features_display_all() {
 	widget_display_clear();
 	widget_report();
-	features_display("features ram:", features, 500000);
+	features_display("features ram:", features);
 	// features_display("features nvram:", features_nvram, 500000);
 }
 
@@ -100,6 +101,38 @@ uint8_t feature_get_nvram(uint8_t index)  {
 	return index < feature_end_index ? features_nvram[index] : 0xFF;
 }
 
+uint8_t feature_get_default(uint8_t index) {
+	return index < feature_end_index ? features_default[index] : 0xFF;
+}
+
 void feature_factory_reset(void) {
 	feature_factory_reset_handler();
+}
+
+static int find_end(int start) {
+	while (TRUE) {
+		if (start+1 == feature_end_values)
+			return 0xFF;
+		if (strcmp(feature_value_names[start+1], "end") == 0)
+			return start;
+		start += 1;
+	}
+}
+
+void feature_find_first_and_last_value(uint8_t index, uint8_t *firstp, uint8_t *lastp) {
+	uint8_t this_index, first, last;
+	if (index <= feature_minor_index || index >= feature_end_index) {
+		first = 0xFF;
+		last = 0xFF;
+	} else {
+		this_index = feature_minor_index+1;
+		first = 0;
+		last = find_end(first);
+		while (this_index < index) {
+			this_index += 1;
+			last = find_end(first = last+2);
+		}
+	}
+	*firstp = first;
+	*lastp = last;
 }

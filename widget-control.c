@@ -29,6 +29,7 @@ const char usage[] = {
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <libusb-1.0/libusb.h>
 #include "src/features.h"
 
@@ -37,24 +38,36 @@ int verbose = 0;
 /*
 ** features
 */
-features_t features_default = { FEATURES_DEFAULT };
-features_t features_nvram;
-features_t features_mem;
-char *feature_index_names[] = { FEATURE_INDEX_NAMES };
-char *feature_value_names[] = { FEATURE_VALUE_NAMES };
-int feature_first_value[feature_end_index];
-int feature_last_value[feature_end_index];
+#define true_feature_major_index 0
+#define true_feature_minor_index 1
+int true_feature_end_index;
+int true_feature_end_values;
+
+// features_t features_default = { FEATURES_DEFAULT };
+uint8_t *true_features_default;
+//features_t features_nvram;
+uint8_t *true_features_nvram;
+//features_t features_mem;
+uint8_t *true_features_mem;
+//char *feature_index_names[] = { FEATURE_INDEX_NAMES };
+char **true_feature_index_names;
+//char *feature_value_names[] = { FEATURE_VALUE_NAMES };
+char **true_feature_value_names;
+//int feature_first_value[feature_end_index];
+int *feature_first_value;
+// int feature_last_value[feature_end_index];
+int *feature_last_value;
 
 void feature_first_and_last_init(void) {
 	int i, j;
-	feature_first_value[feature_major_index] = -1;
-	feature_first_value[feature_minor_index] = -1;
-	feature_last_value[feature_major_index] = -1;
-	feature_last_value[feature_minor_index] = -1;
-	if (feature_minor_index+1 < feature_end_index) { 
-		feature_first_value[feature_minor_index+1] = 0;
-		for (i = feature_minor_index+1; i < feature_end_index; i += 1) {
-			for (j = feature_first_value[i]; j < feature_end_values && strcmp(feature_value_names[j], "end") != 0; j += 1);
+	feature_first_value[true_feature_major_index] = -1;
+	feature_first_value[true_feature_minor_index] = -1;
+	feature_last_value[true_feature_major_index] = -1;
+	feature_last_value[true_feature_minor_index] = -1;
+	if (true_feature_minor_index+1 < true_feature_end_index) { 
+		feature_first_value[true_feature_minor_index+1] = 0;
+		for (i = true_feature_minor_index+1; i < true_feature_end_index; i += 1) {
+			for (j = feature_first_value[i]; j < true_feature_end_values && strcmp(true_feature_value_names[j], "end") != 0; j += 1);
 			feature_last_value[i] = j-1;
 			feature_first_value[i+1] = j+1;
 		}
@@ -62,13 +75,13 @@ void feature_first_and_last_init(void) {
 }
 
 int first_value(int index) {
-	if (index > feature_minor_index && index < feature_end_index)
+	if (index > true_feature_minor_index && index < true_feature_end_index)
 		return feature_first_value[index];
 	return -1;
 }
 
 int last_value(int index) {
-	if (index > feature_minor_index && index < feature_end_index)
+	if (index > true_feature_minor_index && index < true_feature_end_index)
 		return feature_last_value[index];
 	return -1;
 }
@@ -76,7 +89,7 @@ int last_value(int index) {
 int find_feature_value(int index, char *value) {
 	int i;
 	for (i = first_value(index); i <= last_value(index); i += 1)
-		if (strcmp(feature_value_names[i], value) == 0)
+		if (strcmp(true_feature_value_names[i], value) == 0)
 			return i;
 	return -1;
 }
@@ -103,15 +116,20 @@ int find_feature_value(int index, char *value) {
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
 #define HPSDR_PRODUCT_ID      0x0007
 
+char *usb_serial_id = NULL;
 libusb_device_handle *usb_handle;
 char *usb_device = "none";
 char usb_data[1024];
 unsigned int usb_timeout = 2000;
 
+
 int device_to_host(unsigned char request, unsigned short value, unsigned short index, unsigned short length) {
 	return libusb_control_transfer(usb_handle, (REQDIR_DEVICETOHOST | REQTYPE_VENDOR | REQTYPE_STANDARD), request, value, index, usb_data, length, usb_timeout);
 }
 	
+
+// this needs modification to handle the -u usb_serial_id option
+// must get the total list of devices and query matches for serial id
 libusb_device_handle *find_device() {
 	usb_handle = libusb_open_device_with_vid_pid(NULL, DG8SAQ_VENDOR_ID, DG8SAQ_PRODUCT_ID);
 	if (usb_handle != NULL) {
@@ -169,6 +187,78 @@ void setup() {
 		fprintf(stderr, "widget-control: failed to claim interface 0\n");
 		exit(finish(1));
 	}
+	{
+		// read out the widget's major and minor version numbers
+		int i, j, res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_NVRAM, true_feature_major_index, 8);
+		if (res == 1)
+			true_feature_end_index = usb_data[0];
+		else {
+			fprintf(stderr, "unable to read true feature_end_index\n");
+			exit(finish(1));
+		}
+		res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_NVRAM, true_feature_minor_index, 8);
+		if (res == 1)
+			true_feature_end_values = usb_data[0];
+		else {
+			fprintf(stderr, "unable to read true feature_end_values\n");
+			exit(finish(1));
+		}
+		// allocate arrays for feature values and names
+		true_features_default = (uint8_t *)calloc(true_feature_end_index, sizeof(uint8_t));
+		true_features_nvram = (uint8_t *)calloc(true_feature_end_index, sizeof(uint8_t));
+		true_features_mem = (uint8_t *)calloc(true_feature_end_index, sizeof(uint8_t));
+		true_feature_index_names = (char **)calloc(true_feature_end_index, sizeof(char *));
+		true_feature_value_names = (char **)calloc(true_feature_end_values, sizeof(char *));
+		feature_first_value = (int *)calloc(true_feature_end_index, sizeof(int));
+		feature_last_value = (int *)calloc(true_feature_end_index, sizeof(int));
+		if (true_features_default == NULL ||
+			true_features_nvram == NULL ||
+			true_features_mem == NULL ||
+			true_feature_index_names == NULL ||
+			true_feature_value_names == NULL ||
+			feature_first_value == NULL ||
+			feature_last_value == NULL) {
+			fprintf(stderr, "unable to allocate memory for feature data\n");
+			exit(finish(1));
+		}
+		// read out the widget's index and value names
+		for (i = true_feature_major_index; i < true_feature_end_index; i += 1) {
+			res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_INDEX_NAME, i, sizeof(usb_data));
+			true_feature_index_names[i] = calloc(res+1, sizeof(char));
+			if (true_feature_index_names[i] == NULL) {
+				fprintf(stderr, "unable to allocate memory for feature data\n");
+				exit(finish(1));
+			}
+			for (j = 0; j < res; j += 1) true_feature_index_names[i][res-j-1] = usb_data[j];
+			// strncpy(true_feature_index_names[i], usb_data, res);
+			true_feature_index_names[i][res] = 0;
+			// fprintf(stderr, "retrieved '%s' for index name of %d\n", true_feature_index_names[i], i);
+		}
+		for (i = 0; i < true_feature_end_values; i += 1) {
+			res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_VALUE_NAME, i, sizeof(usb_data));
+			true_feature_value_names[i] = calloc(res+1, sizeof(char));
+			if (true_feature_value_names[i] == NULL) {
+				fprintf(stderr, "unable to allocate memory for feature data\n");
+				exit(finish(1));
+			}
+			for (j = 0; j < res; j += 1) true_feature_value_names[i][res-j-1] = usb_data[j];
+			// strncpy(true_feature_value_names[i], usb_data, res);
+			true_feature_value_names[i][res] = 0;
+			// fprintf(stderr, "retrieved '%s' for value name of %d\n", true_feature_value_names[i], i);
+		}
+		// set up index to value mapping
+		feature_first_and_last_init();
+		// fetch default values from image
+		for (i = 0; i < true_feature_end_index; i += 1) {
+			res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_DEFAULT, i, 8);
+			if (res == 1)
+				true_features_default[i] = usb_data[0];
+			else {
+				fprintf(stderr, "unable to read true features_default %d\n", i);
+				exit(finish(1));
+			}
+		}
+	}
 }
 
 int finish(int return_value) {
@@ -183,27 +273,28 @@ int finish(int return_value) {
 /*
 ** functions
 */
-void print_all_features(features_t fp) {
+void print_all_features(uint8_t *fp) {
 	int j;
-	fprintf(stdout, "%d %d", fp[feature_major_index], fp[feature_minor_index]);
-	for (j = feature_minor_index+1; j < feature_end_index; j += 1) {
-		fprintf(stdout, " %s", feature_value_names[fp[j]]);
+	fprintf(stdout, "%d %d", fp[true_feature_major_index], fp[true_feature_minor_index]);
+	for (j = true_feature_minor_index+1; j < true_feature_end_index; j += 1) {
+		fprintf(stdout, " %s", true_feature_value_names[fp[j]]);
 	}
 	fprintf(stdout, "\n");
 }
 
 void list_all_features() {
 	int j, k;
-	for (j = 0; j < feature_end_index; j += 1) {
+	setup();
+	for (j = 0; j < true_feature_end_index; j += 1) {
 		switch (j) {
-		case feature_major_index:
-		case feature_minor_index:
-			fprintf(stdout, "%s %d\n", feature_index_names[j], features_default[j]);
+		case true_feature_major_index:
+		case true_feature_minor_index:
+			fprintf(stdout, "%s %d\n", true_feature_index_names[j], true_features_default[j]);
 			continue;
 		default:
-			fprintf(stdout, "%s = ", feature_index_names[j]);
+			fprintf(stdout, "%s = ", true_feature_index_names[j]);
 			for (k = first_value(j); k <= last_value(j); k += 1)
-				fprintf(stdout, " %s", feature_value_names[k]);
+				fprintf(stdout, " %s", true_feature_value_names[k]);
 			fprintf(stdout, " \n");
 		}
 	}
@@ -212,75 +303,86 @@ void list_all_features() {
 int get_nvram() {
 	int i;
 	setup();
-	for (i = feature_major_index; i < feature_end_index; i += 1) {
+	for (i = true_feature_major_index; i < true_feature_end_index; i += 1) {
 		int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_NVRAM, i, 8);
 		if (res == 1)
-			features_nvram[i] = usb_data[0];
+			true_features_nvram[i] = usb_data[0];
 		else {
 			fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_NVRAM, %d, 0) returned %s?\n", i, error_string(res));
 			exit(finish(1));
 		}
 	}
-	print_all_features(features_nvram);
+	print_all_features(true_features_nvram);
 	return finish(0);
 }
 
 int get_mem() {
 	int i;
 	setup();
-	for (i = feature_major_index; i < feature_end_index; i += 1) {
+	for (i = true_feature_major_index; i < true_feature_end_index; i += 1) {
 		int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_RAM, i, 8);
 		if (res == 1)
-			features_mem[i] = usb_data[0];
+			true_features_mem[i] = usb_data[0];
 		else {
 			fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_RAM, %d, 0) returned %s?\n", i, error_string(res));
 			exit(finish(1));
 		}
 	}
-	print_all_features(features_mem);
+	print_all_features(true_features_mem);
+	return finish(0);
+}
+
+int get_default() {
+	int i;
+	setup();
+	print_all_features(true_features_default);
 	return finish(0);
 }
 
 int set_nvram(int argc, char *argv[]) {
 	int i, j;
-	features_t features;
-	if (argc == feature_end_index - 2) {
+	uint8_t *features;
+	setup();
+	if (argc == true_feature_end_index - 2) {
 		// major and minor are implicit
 		argv -= 2;
 		argc += 2;
-	} else if (argc == feature_end_index) {
+	} else if (argc == true_feature_end_index) {
 		// verify the major and minor
-		if (atoi(argv[feature_major_index]) != FEATURE_MAJOR_DEFAULT) {
-			fprintf(stderr, "widget-control: invalid major version number %s, should be %d\n", argv[feature_major_index], FEATURE_MAJOR_DEFAULT);
+		if (atoi(argv[true_feature_major_index]) != true_feature_end_index) {
+			fprintf(stderr, "widget-control: invalid major version number %s, should be %d\n", argv[true_feature_major_index], true_feature_end_index);
 			exit(1);
 		}
-		if (atoi(argv[feature_minor_index]) != FEATURE_MINOR_DEFAULT) {
-			fprintf(stderr, "widget-control: invalid minor version number %s, should be %d\n", argv[feature_minor_index], FEATURE_MINOR_DEFAULT);
+		if (atoi(argv[true_feature_minor_index]) != true_features_default[feature_minor_index]) {
+			fprintf(stderr, "widget-control: invalid minor version number %s, should be %d\n", argv[true_feature_minor_index], true_feature_end_values);
 			exit(1);
 		}
 	} else {
 		// invalid number of features
-		fprintf(stderr, "widget-control: wrong number (%d) of features specified, should be %d features to set\n", argc, FEATURE_MAJOR_DEFAULT);
+		fprintf(stderr, "widget-control: wrong number (%d) of features specified, should be %d features to set\n", argc, true_feature_end_index);
 		exit(1);
 	}
-	for (i = feature_minor_index+1; i < feature_end_index; i += 1) {
+	features = (uint8_t *)calloc(true_feature_major_index, sizeof(uint8_t));
+	for (i = true_feature_minor_index+1; i < true_feature_end_index; i += 1) {
 		j = find_feature_value(i, argv[i]);
 		if (j >= first_value(i) && j <= last_value(i)) {
 			features[i] = j;
 		} else {
-			fprintf(stderr, "widget-control: %s is invalid value for %s\n", argv[i], feature_index_names[i]);
+			free((void *)features);
+			fprintf(stderr, "widget-control: %s is invalid value for %s\n", argv[i], true_feature_index_names[i]);
 			exit(1);
 		}
 	}
-	setup();
-	for (i = feature_minor_index+1; i < feature_end_index; i += 1) {
+	for (i = true_feature_minor_index+1; i < true_feature_end_index; i += 1) {
 		int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_SET_NVRAM, i | (features[i] << 8), 8);
 		if (res != 1) {
 			fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_SET_NVRAM, %d | (%d << 8), 8) returned %s?\n",
 					i, features[i], error_string(res));
+			free((void *)features);
 			exit(finish(1));
 		}
 	}
+	free((void *)features);
 	return finish(0);
 }
 
@@ -294,28 +396,24 @@ int reset_widget() {
     return finish(0);
 }
 
-int factory_reset_widget() {
-	setup();
-	// int res = device_to_host(WIDGET_RESET, 0, 0, 8);
-	int res = device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_FACTORY_RESET, 0, 8);
-	if (res != 1) {
-		fprintf(stderr, "widget-control: device_to_host(FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_FACTORY_RESET, 0, 8) returned %s?\n", error_string(res));
-		exit(finish(1));
-	}
-    return finish(0);
-}
-
 int main(int argc, char *argv[]) {
 	int i;
-	feature_first_and_last_init();
 	for (i = 1; i < argc; i += 1) {
+		if (strcmp(argv[i], "-u") == 0) { // specify usb serial id
+			if (i + 1 >= argc) {
+				fprintf(stderr, "widget-control: usb serial id for -u option\n");
+				exit(finish(1));
+			} else {
+				usb_serial_id = argv[++i];
+				continue;
+			}
+		}
 		if (strcmp(argv[i], "-v") == 0) { // be verbose
 			verbose = 1;
 			continue;
 		}
 		if (strcmp(argv[i], "-d") == 0) { // list default values
-			print_all_features(features_default);
-			exit(0);
+			exit(get_default());
 		}
 		if (strcmp(argv[i], "-l") == 0) { // list available features
 			list_all_features();
@@ -333,9 +431,6 @@ int main(int argc, char *argv[]) {
 		if (strcmp(argv[i], "-r") == 0) { // reboot widget
 			exit(reset_widget());
 		}
-		//		if (strcmp(argv[i], "-f") == 0) { // factory reset widget
-		//			exit(factory_reset_widget());
-		//		}
 	}
 	fprintf(stderr, usage);
 	exit(1);
