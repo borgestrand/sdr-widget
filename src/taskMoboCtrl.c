@@ -81,25 +81,18 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
  *
  * \retval none
  */
-static uint8_t i2c_device_probe(uint8_t addr, char *addr_report)
+static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
 {
 	uint8_t retval;
-
-	#if LCD_DISPLAY				// Multi-line LCD display
-	static uint8_t row=0, col=0;
-	#endif
+	char	report[20];
 
 	retval = (twi_probe(MOBO_TWI,addr)== TWI_SUCCESS);
 	#if LCD_DISPLAY				// Multi-line LCD display
 	if (retval)
     {
-    	if (row==4) { row=0;col=10; };
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    	lcd_q_goto(row,col);
-    	lcd_q_print(addr_report);
-    	xSemaphoreGive( mutexQueLCD );
-    	vTaskDelay( 2500 );
-    	row++;
+    	// Print and Log the result
+		sprintf(report,"%s probed: %02x", addr_report, addr);
+		widget_display_string_scroll_and_log(report);
     }
 	#endif
 
@@ -112,16 +105,16 @@ static uint8_t i2c_device_probe(uint8_t addr, char *addr_report)
 static void i2c_device_scan(void)
 {
 	#if Si570
-	i2c.si570 = i2c_device_probe(cdata.Si570_I2C_addr, "SI570  OK");
+	i2c.si570 = i2c_device_probe_and_log(cdata.Si570_I2C_addr, "SI570");
     #endif
 
 	#if TMP100
-	i2c.tmp100 = i2c_device_probe(cdata.TMP100_I2C_addr, "TMP100 OK");
+	i2c.tmp100 = i2c_device_probe_and_log(cdata.TMP100_I2C_addr, "TMP100");
 	// If not found at first address, then test second address
 	if (!i2c.tmp100)
 	{
     	// Test for the presence of a TMP101
-		i2c.tmp100 = i2c_device_probe(TMP101_I2C_ADDRESS, "TMP101 OK");
+		i2c.tmp100 = i2c_device_probe_and_log(TMP101_I2C_ADDRESS, "TMP101");
 			// If found, then write into Flash
     	if (i2c.tmp100)
     	{
@@ -132,18 +125,18 @@ static void i2c_device_scan(void)
     #endif
 
 	#if AD5301
-	i2c.ad5301 = i2c_device_probe(cdata.AD5301_I2C_addr, "AD5301 OK");
+	i2c.ad5301 = i2c_device_probe_and_log(cdata.AD5301_I2C_addr, "AD5301");
 	#endif
 
 	#if AD7991
-	i2c.ad7991 = i2c_device_probe(cdata.AD7991_I2C_addr, "AD7991 OK");
+	i2c.ad7991 = i2c_device_probe_and_log(cdata.AD7991_I2C_addr, "AD7991");
 	#endif
 
 	#if PCF8574
-	i2c.pcfmobo = i2c_device_probe(cdata.PCF_I2C_Mobo_addr, "PCF8574 OK");
-	i2c.pcflpf1 = i2c_device_probe(cdata.PCF_I2C_lpf1_addr, "PCFLPF1 OK");
-	i2c.pcflpf2 = i2c_device_probe(cdata.PCF_I2C_lpf2_addr, "PCFLPF2 OK");
-	i2c.pcfext = i2c_device_probe(cdata.PCF_I2C_Ext_addr, "PCF_EXT OK");
+	i2c.pcfmobo = i2c_device_probe_and_log(cdata.PCF_I2C_Mobo_addr, "PCF8574");
+	i2c.pcflpf1 = i2c_device_probe_and_log(cdata.PCF_I2C_lpf1_addr, "PCFLPF1");
+	i2c.pcflpf2 = i2c_device_probe_and_log(cdata.PCF_I2C_lpf2_addr, "PCFLPF2");
+	i2c.pcfext = i2c_device_probe_and_log(cdata.PCF_I2C_Ext_addr, "PCF_EXT");
 	// Probe for all possible PCF8574 addresses to prevent a later attempt to
 	// write to a nonexistent I2C device.  Otherwise the I2C driver would end
 	// up in a funk.
@@ -164,9 +157,6 @@ static void i2c_device_scan(void)
 	i2c.pcf0x3e = (twi_probe(MOBO_TWI,0x3e)== TWI_SUCCESS);
 	i2c.pcf0x3f = (twi_probe(MOBO_TWI,0x3f)== TWI_SUCCESS);
 	#endif
-
-	// Keep init info on LCD for 3 seconds
-	vTaskDelay( 30000 );
 }
 
 
@@ -608,8 +598,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 	{
 	    lcd_q_print("I2Cbus NOK");
 	}
-	// Keep init info on LCD for 4 seconds
-	vTaskDelay( 40000 );
+	// Keep init info on LCD for 2 seconds
+	vTaskDelay( 20000 );
  	lcd_q_clear();
 	xSemaphoreGive( mutexQueLCD );
  	#endif
