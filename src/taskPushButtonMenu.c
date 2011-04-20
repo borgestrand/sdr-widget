@@ -44,7 +44,7 @@
 //#include "LCD_bargraphs.h"
 
 // First Level Menu Items
-const uint8_t level0_menu_size = 17;
+const uint8_t level0_menu_size = 16;
 const char *level0_menu_items[] =
 				{  " 1-Save Frequency",		//done
 				   " 2-VFO Resolution",		//done
@@ -58,11 +58,11 @@ const char *level0_menu_items[] =
 				   "10-Si570 Calibrate",	//done
 				   "11-Frq Add/Sub/Mul",
 				   "12-Encoder Steps",		//done
-				   "13-UAC1/UAC2 Audio",	//done
-				   "14-Factory Reset",		//done
-				   "15-Feature Select",		//done
-				   "16-Startup Log",		//done
-				   "17-Exit" };				//done
+				   //"13-UAC1/UAC2 Audio",	//done
+				   "13-Factory Reset",		//done
+				   "14-Feature Select",		//done
+				   "15-Startup Log",		//done
+				   "16-Exit" };				//done
 
 // Flag for Frequency Menu Selection
 #define FREQ_MENU		1
@@ -250,17 +250,17 @@ const char *i2c_menu_items[] =
 // Flag for Encoder Resolution Change
 #define ENCODER_MENU	12
 
-// Flag for UAC Menu Selection
-#define UAC_MENU		13
-// UAC1/UAC2 Audio Selection Menu items
-const uint8_t uac_menu_size = 3;
-const char *uac_menu_items[] =
-				{  "Select UAC1 Audio",
-				   "Select UAC2 Audio",
-				   "Exit w/o change" };
+//// Flag for UAC Menu Selection
+//#define UAC_MENU		13
+//// UAC1/UAC2 Audio Selection Menu items
+//const uint8_t uac_menu_size = 3;
+//const char *uac_menu_items[] =
+//				{  "Select UAC1 Audio",
+//				   "Select UAC2 Audio",
+//				   "Exit w/o change" };
 
 // Flag for Factory Reset
-#define FACTORY_MENU	14
+#define FACTORY_MENU	13
 // Factory Reset menu Items
 const uint8_t factory_menu_size = 3;
 const char *factory_menu_items[] =
@@ -269,7 +269,7 @@ const char *factory_menu_items[] =
 				   "3-No - Exit"	};
 
 // Flag for Feature selection menu
-#define FEATURES_MENU	15
+#define FEATURES_MENU	14
 // menu items taken from feature_index_names
 // Flags for Feature submenu functions - computed
 #define FEATURES_SUBMENU(x) (FEATURES_MENU*100+(x))
@@ -277,7 +277,7 @@ const char *factory_menu_items[] =
 // menu items for submenus taken from feature_value_names
 
 // Flag for startup log review
-#define STARTUP_LOG_REVIEW 16
+#define STARTUP_LOG_REVIEW 15
 
 // LCD Queue Buffer for Menu Print
 char menu_lcd0[21];
@@ -2823,6 +2823,7 @@ void encoder_menu(void)
  *
  * \retval none
  */
+/*
 void uac_menu(void)
 {
 	static int8_t	current_selection;	// Keep track of current LCD menu selection
@@ -2921,7 +2922,7 @@ void uac_menu(void)
 				break;
 		}
 	}
-}
+}*/
 
 
 /*! \brief Factory Reset with all default values
@@ -3056,12 +3057,25 @@ void features_index_menu(void)
 		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 		lcd_q_clear();
 		lcd_q_goto(0,0);
-   		lcd_q_print("features");
+   		lcd_q_print("Features:");
    		xSemaphoreGive( mutexQueLCD );
 
 		// Print the Menu
 		lcd_scroll_Menu((char**)feature_index_names+2, menu_size, current_selection,
-				0, 8, 4, menu_lcd0, menu_lcd1, menu_lcd2, menu_lcd3);
+				0, 12, 4, menu_lcd0, menu_lcd1, menu_lcd2, menu_lcd3);
+
+		//todo!
+		// Show current status of currently selected menu item
+		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
+		lcd_q_goto(2,0);
+		lcd_q_print((char *)(feature_index_names+2)[current_selection]);
+		lcd_q_print(":");
+		lcd_q_goto(3,0);
+		if (current_selection < menu_size-1)
+			lcd_q_print((char *)feature_value_names[feature_get(current_selection+2)]);
+		else
+			lcd_q_print(" --       ");
+		xSemaphoreGive( mutexQueLCD );
 	}
 
 	if (scan_menu_button() == SHORT_PUSH)
@@ -3323,19 +3337,19 @@ void menu_level0(void)
 				menu_level = ENCODER_MENU;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
-			case 12: // UAC1/UAC2 Audio feature selection
-				menu_level = UAC_MENU;
-				LCD_upd = FALSE;	// force LCD reprint
-				break;
-			case 13: // Factory Reset
+			//case 12: // UAC1/UAC2 Audio feature selection
+			//	menu_level = UAC_MENU;
+			//	LCD_upd = FALSE;	// force LCD reprint
+			//	break;
+			case 12: // Factory Reset
 				menu_level = FACTORY_MENU;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
-		    case 14: // Feature selection
+		    case 13: // Feature selection
 				menu_level = FEATURES_MENU;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
-			case 15: // Startup log review
+			case 14: // Startup log review
 				menu_level = STARTUP_LOG_REVIEW;
 				LCD_upd = FALSE;	// force LCD reprint
 				break;
@@ -3471,7 +3485,7 @@ static void vtaskPushButtonMenu( void * pcParameters )
 
     			else if (menu_level == ENCODER_MENU) encoder_menu();	//done
 
-    			else if (menu_level == UAC_MENU) uac_menu();			//done
+    			//else if (menu_level == UAC_MENU) uac_menu();			//done
 
     			else if (menu_level == FACTORY_MENU) factory_menu();	//done
 				else if (menu_level == FEATURES_MENU) features_index_menu();
