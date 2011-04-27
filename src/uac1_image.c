@@ -45,6 +45,7 @@
 
 #if LCD_DISPLAY				// Multi-line LCD display
 #include "taskLCD.h"
+#include "taskStartupLogDisplay.h"
 #endif
 
 /*
@@ -83,7 +84,10 @@ static void x_image_task_init(void) {
   device_mouse_hid_task_init(UAC1_EP_HID_RX, UAC1_EP_HID_TX);
   uac1_device_audio_task_init(UAC1_EP_AUDIO_IN, UAC1_EP_AUDIO_OUT, UAC1_EP_AUDIO_OUT_FB);
 #endif
-
+#if LCD_DISPLAY						// Multi-line LCD display
+	if ( ! FEATURE_LOG_NONE )
+		vStartTaskStartupLogDisplay();
+#endif
 }
 
 // descriptor accessors

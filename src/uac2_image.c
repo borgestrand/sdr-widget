@@ -54,6 +54,7 @@
 
 #if LCD_DISPLAY				// Multi-line LCD display
 #include "taskLCD.h"
+#include "taskStartupLogDisplay.h"
 #endif
 
 /*
@@ -89,6 +90,10 @@ static void x_image_task_init(void) {
 	vStartTaskEXERCISE( tskIDLE_PRIORITY );
 	uac2_AK5394A_task_init();
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
+#endif
+#if LCD_DISPLAY						// Multi-line LCD display
+	if ( ! FEATURE_LOG_NONE )
+		vStartTaskStartupLogDisplay();
 #endif
 }
 

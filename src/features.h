@@ -31,6 +31,7 @@ typedef enum {
   feature_adc_index,			// adc identifier
   feature_dac_index,			// dac identifier
   feature_lcd_index,			// lcd display type
+  feature_log_index,			// startup log display timing
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -43,6 +44,7 @@ typedef enum {
 		"adc",										\
 		"dac",										\
 		"lcd",										\
+		"log"										\
 		"end"
 
 //
@@ -101,6 +103,9 @@ typedef enum {
 	feature_lcd_hd44780,		/* normal hd44780 lcd controller */
 	feature_lcd_ks0073,			/* ks0073 almost hd44780 compatible */
 	feature_end_lcd,
+	// log
+	feature_log_none,
+	feature_log_1sec,
 	// end
 	feature_end_values
 } feature_values_t;
@@ -136,6 +141,10 @@ typedef enum {
 		"none",															\
 		"hd44780",														\
 		"ks0073",														\
+		"end",															\
+		"none",															\
+		"1sec",															\
+		"end",															\
 		"end"
 	
 typedef uint8_t features_t[feature_end_index];
@@ -187,6 +196,9 @@ extern const features_t features_default;
 #define FEATURE_LCD_HD44780				(features[feature_lcd_index] == (uint8_t)feature_lcd_hd44780)
 #define FEATURE_LCD_KS0073				(features[feature_lcd_index] == (uint8_t)feature_lcd_ks0073)
 
+#define FEATURE_LOG_NONE				(features[feature_log_index] == (uint8_t)feature_log_none)
+#define FEATURE_LOG_1SEC				(features[feature_log_index] == (uint8_t)feature_log_1sec)
+
 //
 // the version in the features specifies
 // the number of feature indexes and the number of feature values
@@ -229,6 +241,8 @@ extern const features_t features_default;
 #ifndef FEATURE_LCD_DEFAULT
 #define FEATURE_LCD_DEFAULT				feature_lcd_hd44780
 #endif
+#ifndef FEATURE_LOG_DEFAULT
+#define FEATURE_LOG_DEFAULT				feature_log_1sec
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
 		FEATURE_MINOR_DEFAULT,						\
@@ -238,7 +252,8 @@ extern const features_t features_default;
 		FEATURE_OUT_DEFAULT,						\
 		FEATURE_ADC_DEFAULT,						\
 		FEATURE_DAC_DEFAULT,						\
-		FEATURE_LCD_DEFAULT
+		FEATURE_LCD_DEFAULT,						\
+		FEATURE_LOG_DEFAULT
 
 extern const char *feature_value_names[];
 extern const char *feature_index_names[];
