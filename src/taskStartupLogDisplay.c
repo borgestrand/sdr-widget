@@ -14,6 +14,11 @@
  */
 
 
+#include "board.h"
+
+#include "FreeRTOS.h"
+#include "task.h"
+
 #include "widget.h"
 #include "features.h"
 
@@ -43,7 +48,7 @@ static void vtaskStartupLogDisplay( void * pcParameters )
       current_line += 1;
       // refetch the startup log each time, since it may get
       // longer while we're scrolling through it
-      widget_get_startup_buffer_lines(&buffer_lines, lines);
+      widget_get_startup_buffer_lines(&buffer_lines, &lines);
       // if we're still working our way through the log,
       // display the next line, otherwise pause for 5 extra
       // delay periods at the end of the log
@@ -79,12 +84,10 @@ static void vtaskStartupLogDisplay( void * pcParameters )
  */
 void vStartTaskStartupLogDisplay(void)
 {
-  xStatus = xTaskCreate( vtaskStartupLogDisplay,
-			 configTSK_LOGDISPLAY_NAME,
-			 configTSK_LOGDISPLAY_STACK_SIZE,
-			 NULL, 
-			 configTSK_LOGDISPLAY_PRIORITY,
-                         (xTaskHandle *)NULL );
+	xTaskCreate( vtaskStartupLogDisplay,
+				 configTSK_LOGDISPLAY_NAME,
+				 configTSK_LOGDISPLAY_STACK_SIZE,
+				 NULL, 
+				 configTSK_LOGDISPLAY_PRIORITY,
+				 (xTaskHandle *)NULL );
 }
-
-#endif

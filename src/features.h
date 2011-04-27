@@ -243,6 +243,7 @@ extern const features_t features_default;
 #endif
 #ifndef FEATURE_LOG_DEFAULT
 #define FEATURE_LOG_DEFAULT				feature_log_1sec
+#endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
 		FEATURE_MINOR_DEFAULT,						\

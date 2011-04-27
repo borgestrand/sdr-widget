@@ -86,8 +86,7 @@ static void x_image_task_init(void) {
   hpsdr_device_audio_task_init(HPSDR_EP_IQ_IN, HPSDR_EP_IQ_OUT, 0);
 #endif
 #if LCD_DISPLAY						// Multi-line LCD display
-	if ( ! FEATURE_LOG_NONE )
-		vStartTaskStartupLogDisplay();
+  vStartTaskStartupLogDisplay();
 #endif
 }
 
