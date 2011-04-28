@@ -27,6 +27,7 @@
 #include "queue.h"
 //#include "rtc.h"
 
+#include "widget.h"
 #include "composite_widget.h"
 #include "taskPowerDisplay.h"
 #include "taskMoboCtrl.h"
@@ -142,9 +143,11 @@ static void vtaskPowerDisplay( void * pcParameters )
 	vTaskDelay(90000 );
 #else
 	// Wait until the Mobo Stuff, and other initialization, catches up
-	vTaskDelay(10000 );								// defer to other tasks
-	xSemaphoreTake( mutexInit, portMAX_DELAY );		// wait for initialization complete
-	xSemaphoreGive( mutexInit );					// release and continue
+	// and always wait first to give the initialization routines a slot
+	// to record the initialization
+	do vTaskDelay( configTICK_RATE_HZ/4 );							// defer to other tasks
+	while (widget_is_initializing()); 
+		
 #endif
 
 	// set these up here so the compiler knows they don't change

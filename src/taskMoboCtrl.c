@@ -498,6 +498,7 @@ static void mobo_ctrl_factory_reset_handler(void) {
 	// Force an EEPROM update in the mobo config
 	flashc_memset8((void *)&nvram_cdata.EEPROM_init_check, 0xFF, sizeof(uint8_t), TRUE);
 }
+#define LOGGING 1
 /*! \brief Initialize and run Mobo functions, including Si570 frequency control, filters and so on
  *
  * \retval none
@@ -507,9 +508,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 	uint32_t time, ten_s_counter=0;					// Time management
 	uint32_t lastIteration=0, Timerval;				// Counters to keep track of time
 
+	widget_initialization_start();
 	widget_factory_reset_handler_register(mobo_ctrl_factory_reset_handler);
-
-	xSemaphoreTake( mutexInit, portMAX_DELAY );
 
 	//----------------------------------------------------
 	// Initialize all Mobo Functions *********************
@@ -542,16 +542,21 @@ static void vtaskMoboCtrl( void * pcParameters )
 	gpio_set_gpio_pin(LCD_BL_PIN);	// Turn on LCD backlight
 	lcd_q_init();
 	lcd_bargraph_init();
+	#endif
 
 	features_display_all();
 
-	// Clear LCD and Print Firmware version
+#if LOGGING
+	widget_startup_log_line(FIRMWARE_VERSION);	// Log Firmware version
+#else
+	#if LCD_DISPLAY			// Multi-line LCD display
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_clear();
 	lcd_q_goto(3,10);
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
 	#endif
+#endif
 
 	// Create I2C comms semaphore
 	mutexI2C = xSemaphoreCreateMutex();
@@ -563,6 +568,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 	i2c_device_scan();
 	#endif
 
+#if LOGGING
+	widget_startup_log_line(FIRMWARE_VERSION);
+#else
 	#if LCD_DISPLAY			// Multi-line LCD display
     // Clear LCD and Print Firmware version again
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
@@ -570,44 +578,77 @@ static void vtaskMoboCtrl( void * pcParameters )
 	lcd_q_goto(3,10);
     lcd_q_print(FIRMWARE_VERSION);
 	xSemaphoreGive( mutexQueLCD );
+#endif
 
     #if Si570
     // Print capabilities on LCD
+#if ! LOGGING
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_goto(0,0);
+#endif
 	// A Full house
 	if (i2c.si570 && i2c.tmp100 && i2c.ad5301 && i2c.ad7991 && i2c.pcfmobo && i2c.pcflpf1)
 	{
+#if LOGGING
+		widget_startup_log_line("RX&TX&LPF Init OK");
+#else
 		lcd_q_print("RX&TX&LPF Init OK");
+#endif
 	}
 	else if (i2c.si570 && i2c.tmp100 && i2c.ad5301 && i2c.ad7991 && i2c.pcfmobo)
 	{
+#if LOGGING
+		widget_startup_log_line("RX & TX Init OK");
+#else
 	    lcd_q_print("RX & TX Init OK");
+#endif
 	}
 	else if (i2c.si570 && i2c.pcfmobo)
 	{
+#if LOGGING
+		widget_startup_log_line("RX Init OK");
+#else
 	    lcd_q_print("RX Init OK");
+#endif
 	}
 	// Si570 present
 	else if (i2c.si570)
 	{
+#if LOGGING
+		widget_startup_log_line("Si570 Init OK");
+#else
 	    lcd_q_print("Si570 Init OK");
+#endif
 	}
 	// I2C device problem
 	else
 	{
+#if LOGGING
+		widget_startup_log_line("I2Cbus NOK");
+#else
 	    lcd_q_print("I2Cbus NOK");
+#endif
 	}
+#if ! LOGGING
 	// Keep init info on LCD for 2 seconds
 	vTaskDelay( 20000 );
  	lcd_q_clear();
 	xSemaphoreGive( mutexQueLCD );
+#endif
  	#endif
 	// Indicate Receive as an initial state
+#if ! LOGGING
 	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
 	lcd_q_goto(0,0);
+#endif
+#if LOGGING
+	widget_startup_log_line("RX");
+#else
 	lcd_q_print("RX");
+#endif
+#if ! LOGGING
 	xSemaphoreGive( mutexQueLCD );
+#endif
 	#endif				// Multi-line LCD display
 
 	// Fetch last frequency stored
@@ -625,7 +666,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	TX_state = TRUE;
 	#endif
 
-	xSemaphoreGive( mutexInit );		// initialization complete
+	widget_initialization_finish();
 
 	//----------------------------------------------------
 	// Mobo Functions Loop *******************************

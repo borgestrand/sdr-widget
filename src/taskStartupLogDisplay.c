@@ -28,52 +28,54 @@
  */
 static void vtaskStartupLogDisplay( void * pcParameters )
 {
-  int current_line = -1;
-  int startup_log_delay;
 
-  if ( ! FEATURE_LOG_NONE ) {
+	widget_initialization_start();
+	if ( ! FEATURE_LOG_NONE ) {
+		int current_line = -1;
+		int startup_log_delay;
 
-    if ( FEATURE_LOG_1SEC )
-      startup_log_delay = 1 * configTSK_LOGDISPLAY_PERIOD;
-    else
-      startup_log_delay = configTSK_LOGDISPLAY_PERIOD;
+		if ( FEATURE_LOG_1SEC )
+			startup_log_delay = 1 * configTICK_RATE_HZ;
+		else
+			startup_log_delay = 1 * configTICK_RATE_HZ;
 
-    widget_display_grab();
-    widget_display_clear();
+		widget_display_clear();
 
-    while( 1 ) {
-      char **buffer_lines;
-      int lines;
+		while( 1 ) {
+			char **buffer_lines;
+			int lines;
     
-      current_line += 1;
-      // refetch the startup log each time, since it may get
-      // longer while we're scrolling through it
-      widget_get_startup_buffer_lines(&buffer_lines, &lines);
-      // if we're still working our way through the log,
-      // display the next line, otherwise pause for 5 extra
-      // delay periods at the end of the log
-      if (current_line < lines) {
-	widget_display_string_and_scroll(buffer_lines[current_line]);
-      } else if (current_line > lines + 5) {
-	break;
-      }
+			current_line += 1;
 
-      // Delay as defined in FreeRTOSConfig.h, initially 10ms
-      vTaskDelay( startup_log_delay );
-    }
-  
-    widget_display_drop();
+			// refetch the startup log each time, since it may get
+			// longer while we're scrolling through it
+			widget_get_startup_buffer_lines(&buffer_lines, &lines);
 
-    // delete ourself from the RTOS scheduler
-    vTaskDelete(NULL);
+			// if we're still working our way through the log,
+			// display the next line, otherwise pause for 2 extra
+			// delay periods at the end of the log
+			if (current_line < lines) {
+				widget_display_string_and_scroll(buffer_lines[current_line]);
+			} else if (current_line < lines + 2) {
+				;
+			} else {
+				break;
+			}
 
-    // just loop when we're done, we're not allowed to return
-    // but it's not clear what we can do after deleting ourself
-    while( 1 ) {
-      vTaskDelay( 100 * startup_log_delay );
-    }
-      
-  }
+			// Delay as specified by the feature above
+			vTaskDelay( startup_log_delay );
+		}
+	}
+	widget_initialization_finish();
+
+	// delete ourself from the RTOS scheduler
+	vTaskDelete(NULL);
+
+	// just loop when we're done, we're not allowed to return
+	// but it's not clear what we can do after deleting ourself
+	while( 1 ) {
+		vTaskDelay( 60 * configTICK_RATE_HZ );
+	}
   
 }
 

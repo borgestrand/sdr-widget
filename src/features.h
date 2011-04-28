@@ -44,7 +44,7 @@ typedef enum {
 		"adc",										\
 		"dac",										\
 		"lcd",										\
-		"log"										\
+		"log",										\
 		"end"
 
 //
@@ -65,15 +65,13 @@ typedef enum {
 // 2) #define FEATURE_IMAGE_ALEX_TEST 
 //
 typedef enum {
-	// board selection
-	feature_board_none = 0,
+	feature_board_none = 0,		// board selection
 	feature_board_widget,
 	feature_board_dib,
 	feature_board_ab1,
 	feature_board_test,
 	feature_end_board,
-	// image selection
-	feature_image_flashyblinky,
+	feature_image_flashyblinky,	// image selection
 	feature_image_uac1_audio,
 	feature_image_uac1_dg8saq,
 	feature_image_uac2_audio,
@@ -81,33 +79,29 @@ typedef enum {
 	feature_image_hpsdr,
 	feature_image_test,
 	feature_end_image,
-	// input channel
-	feature_in_normal,
+	feature_in_normal,			// input channel
 	feature_in_swapped,
 	feature_end_in,
-	// output channel
-	feature_out_normal,
+	feature_out_normal,			// output channel
 	feature_out_swapped,
 	feature_end_out,
-	// adc
-	feature_adc_none,
+	feature_adc_none,			// adc
 	feature_adc_ak5394a,
 	feature_end_adc,
-	// dac
-	feature_dac_none,
+	feature_dac_none,			// dac
 	feature_dac_cs4344,
 	feature_dac_es9022,
 	feature_end_dac,
-	// lcd
-	feature_lcd_none,
+	feature_lcd_none,			// lcd
 	feature_lcd_hd44780,		/* normal hd44780 lcd controller */
 	feature_lcd_ks0073,			/* ks0073 almost hd44780 compatible */
 	feature_end_lcd,
-	// log
-	feature_log_none,
+	feature_log_none,			// log
 	feature_log_1sec,
-	// end
-	feature_end_values
+	feature_log_2sec,
+	feature_log_4sec,
+	feature_end_log,
+	feature_end_values			// end
 } feature_values_t;
 
 #define FEATURE_VALUE_NAMES \
@@ -144,6 +138,8 @@ typedef enum {
 		"end",															\
 		"none",															\
 		"1sec",															\
+		"2sec",															\
+		"4sec",															\
 		"end",															\
 		"end"
 	

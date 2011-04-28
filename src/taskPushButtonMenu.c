@@ -3378,9 +3378,10 @@ static void vtaskPushButtonMenu( void * pcParameters )
 	gpio_enable_pin_pull_up(MENU_BUTTON);		// Enable pullup for the Frequency/Menu button
 
 	// Wait while the Mobo Stuff catches up
-	vTaskDelay(10000 );								// defer to other tasks
-	xSemaphoreTake( mutexInit, portMAX_DELAY );		// wait for initialization complete
-	xSemaphoreGive( mutexInit );					// release and continue
+	// and always wait first to give the initialization routines a slot
+	// to record the initialization
+	do vTaskDelay( configTICK_RATE_HZ/4 );		// defer to other tasks 1/4 second
+	while (widget_is_initializing());
 
     while( 1 )
     {
