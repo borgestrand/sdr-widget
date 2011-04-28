@@ -222,8 +222,7 @@ to exclude the API function. */
 /* taskStartupLogDisplay definitions */
 #define configTSK_LOGDISPLAY_NAME			((const signed portCHAR *)"taskStartupLogDisplay")
 #define configTSK_LOGDISPLAY_PRIORITY		configTSK_LCD_PRIORITY
-#define configTSK_LOGDISPLAY_STACK_SIZE		512
-#define configTSK_LOGDISPLAY_PERIOD		    10000		// 1 second
+#define configTSK_LOGDISPLAY_STACK_SIZE		1024
 
 /* taskExercise definitions */
 #define configTSK_EXERCISE_STACK_SIZE		256
