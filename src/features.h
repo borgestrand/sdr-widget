@@ -31,6 +31,7 @@ typedef enum {
   feature_adc_index,			// adc identifier
   feature_dac_index,			// dac identifier
   feature_lcd_index,			// lcd display type
+  feature_log_index,			// startup log display timing
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -43,6 +44,7 @@ typedef enum {
 		"adc",										\
 		"dac",										\
 		"lcd",										\
+		"log",										\
 		"end"
 
 //
@@ -63,15 +65,13 @@ typedef enum {
 // 2) #define FEATURE_IMAGE_ALEX_TEST 
 //
 typedef enum {
-	// board selection
-	feature_board_none = 0,
+	feature_board_none = 0,		// board selection
 	feature_board_widget,
 	feature_board_usbi2s,
 	feature_board_usbdac,
 	feature_board_test,
 	feature_end_board,
-	// image selection
-	feature_image_flashyblinky,
+	feature_image_flashyblinky,	// image selection
 	feature_image_uac1_audio,
 	feature_image_uac1_dg8saq,
 	feature_image_uac2_audio,
@@ -79,30 +79,29 @@ typedef enum {
 	feature_image_hpsdr,
 	feature_image_test,
 	feature_end_image,
-	// input channel
-	feature_in_normal,
+	feature_in_normal,			// input channel
 	feature_in_swapped,
 	feature_end_in,
-	// output channel
-	feature_out_normal,
+	feature_out_normal,			// output channel
 	feature_out_swapped,
 	feature_end_out,
-	// adc
-	feature_adc_none,
+	feature_adc_none,			// adc
 	feature_adc_ak5394a,
 	feature_end_adc,
-	// dac
-	feature_dac_none,
+	feature_dac_none,			// dac
 	feature_dac_cs4344,
 	feature_dac_es9022,
 	feature_end_dac,
-	// lcd
-	feature_lcd_none,
+	feature_lcd_none,			// lcd
 	feature_lcd_hd44780,		/* normal hd44780 lcd controller */
 	feature_lcd_ks0073,			/* ks0073 almost hd44780 compatible */
 	feature_end_lcd,
-	// end
-	feature_end_values
+	feature_log_none,			// log
+	feature_log_1sec,
+	feature_log_2sec,
+	feature_log_4sec,
+	feature_end_log,
+	feature_end_values			// end
 } feature_values_t;
 
 #define FEATURE_VALUE_NAMES \
@@ -136,6 +135,12 @@ typedef enum {
 		"none",															\
 		"hd44780",														\
 		"ks0073",														\
+		"end",															\
+		"none",															\
+		"1sec",															\
+		"2sec",															\
+		"4sec",															\
+		"end",															\
 		"end"
 	
 typedef uint8_t features_t[feature_end_index];
@@ -187,6 +192,11 @@ extern const features_t features_default;
 #define FEATURE_LCD_HD44780				(features[feature_lcd_index] == (uint8_t)feature_lcd_hd44780)
 #define FEATURE_LCD_KS0073				(features[feature_lcd_index] == (uint8_t)feature_lcd_ks0073)
 
+#define FEATURE_LOG_NONE				(features[feature_log_index] == (uint8_t)feature_log_none)
+#define FEATURE_LOG_1SEC				(features[feature_log_index] == (uint8_t)feature_log_1sec)
+#define FEATURE_LOG_2SEC				(features[feature_log_index] == (uint8_t)feature_log_2sec)
+#define FEATURE_LOG_4SEC				(features[feature_log_index] == (uint8_t)feature_log_4sec)
+
 //
 // the version in the features specifies
 // the number of feature indexes and the number of feature values
@@ -229,6 +239,9 @@ extern const features_t features_default;
 #ifndef FEATURE_LCD_DEFAULT
 #define FEATURE_LCD_DEFAULT				feature_lcd_hd44780
 #endif
+#ifndef FEATURE_LOG_DEFAULT
+#define FEATURE_LOG_DEFAULT				feature_log_1sec
+#endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
 		FEATURE_MINOR_DEFAULT,						\
@@ -238,7 +251,8 @@ extern const features_t features_default;
 		FEATURE_OUT_DEFAULT,						\
 		FEATURE_ADC_DEFAULT,						\
 		FEATURE_DAC_DEFAULT,						\
-		FEATURE_LCD_DEFAULT
+		FEATURE_LCD_DEFAULT,						\
+		FEATURE_LOG_DEFAULT
 
 extern const char *feature_value_names[];
 extern const char *feature_index_names[];

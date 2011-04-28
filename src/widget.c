@@ -24,6 +24,15 @@
 #include "Mobo_config.h"
 
 //
+// initialization flag
+//
+static int initialization_count = 0;
+
+int widget_is_initializing(void) { return initialization_count != 0; }
+void widget_initialization_start(void) { initialization_count += 1; }
+void widget_initialization_finish(void) { initialization_count -= 1; }
+
+//
 // startup log
 //
 #define STARTUP_LOG_SIZE 1024
@@ -74,9 +83,6 @@ void widget_startup_log_line(char *string) {
 void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
 	*buffer_lines = (char **)startup_log_lines;
 	*lines = startup_log_line_ptr - (char **)startup_log_lines;
-}
-
-void widget_free_startup_buffer_lines(char **buffer_lines) {
 }
 
 //
@@ -382,10 +388,8 @@ void widget_ready(char *msg) {
 
 void widget_report(void) {
 	char buff[32];
-	widget_display_grab();
-	widget_display_string_scroll_and_log("widget report:");
-	widget_display_string_scroll_and_log("firmware = " FIRMWARE_VERSION);
+	widget_startup_log_line("widget report:");
+	widget_startup_log_line("firmware = " FIRMWARE_VERSION);
 	sprintf(buff, "reset = %s", widget_reset_cause());
-	widget_display_string_scroll_and_log(buff);
-	widget_display_drop();
+	widget_startup_log_line(buff);
 }

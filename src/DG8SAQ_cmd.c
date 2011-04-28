@@ -1,3 +1,4 @@
+/* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 /*
  * DG8SAQ_cmd.c
  *
@@ -810,11 +811,11 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 				Buffer[0] = feature_get(wIndex);
 				return sizeof(uint8_t);
 			case 7:				// get feature index name
-			  strcpy((char *)Buffer, wIndex <= feature_end_index ? feature_index_names[wIndex] : "?");
-			  return strlen((char *)Buffer);
+				strcpy((char *)Buffer, (wIndex <= feature_end_index) ? feature_index_names[wIndex] : "?");
+				return strlen((char *)Buffer);
 			case 8:				// get feature value name
-			  strcpy((char *)Buffer, wIndex <= feature_end_values ? feature_value_names[wIndex] : "?");
-			  return strlen((char *)Buffer);
+				strcpy((char *)Buffer, (wIndex <= feature_end_values) ? feature_value_names[wIndex] : "?");
+				return strlen((char *)Buffer);
 			case 9:				// get feature from default
 				Buffer[0] = feature_get_default(wIndex);
 				return sizeof(uint8_t);

@@ -17,6 +17,12 @@ typedef void (*widget_factory_reset_handler_t)(void);
 // there are 2 known at present: features and moboConfig
 #define WIDGET_FACTORY_RESET_HANDLERS	4
 
+// widget is in initialization
+extern int widget_is_initializing(void);
+// widget module is starting initialization
+extern void widget_initialization_start(void);
+// widget module is finishing initialization
+extern void widget_initialization_finish(void);
 // append a character to the startup log
 extern void widget_startup_log_char(char c);
 // append a string to the startup log

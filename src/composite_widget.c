@@ -181,7 +181,6 @@
  *  A few global variables.
  */
 xSemaphoreHandle mutexEP_IN;
-xSemaphoreHandle mutexInit;
 
 //_____ M A C R O S ________________________________________________________
 
@@ -271,11 +270,6 @@ int main(void)
 	// initialize the image
 	image_init();
 
-	// Initialize the initialization mutex
-	// largely to keep the power display from starting
-	// over the top of the initialization sequence
-	mutexInit = xSemaphoreCreateMutex(); // for sequencing initialization
-  
 	// Start the image tasks
 	image_task_init();
 
