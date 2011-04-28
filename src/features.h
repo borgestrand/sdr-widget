@@ -194,6 +194,8 @@ extern const features_t features_default;
 
 #define FEATURE_LOG_NONE				(features[feature_log_index] == (uint8_t)feature_log_none)
 #define FEATURE_LOG_1SEC				(features[feature_log_index] == (uint8_t)feature_log_1sec)
+#define FEATURE_LOG_2SEC				(features[feature_log_index] == (uint8_t)feature_log_2sec)
+#define FEATURE_LOG_4SEC				(features[feature_log_index] == (uint8_t)feature_log_4sec)
 
 //
 // the version in the features specifies

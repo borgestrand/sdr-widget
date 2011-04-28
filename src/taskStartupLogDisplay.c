@@ -36,6 +36,10 @@ static void vtaskStartupLogDisplay( void * pcParameters )
 
 		if ( FEATURE_LOG_1SEC )
 			startup_log_delay = 1 * configTICK_RATE_HZ;
+		else if ( FEATURE_LOG_2SEC )
+			startup_log_delay = 2 * configTICK_RATE_HZ;
+		else if ( FEATURE_LOG_4SEC )
+			startup_log_delay = 4 * configTICK_RATE_HZ;
 		else
 			startup_log_delay = 1 * configTICK_RATE_HZ;
 
