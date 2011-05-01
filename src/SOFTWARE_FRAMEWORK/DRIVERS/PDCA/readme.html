@@ -1,0 +1,56 @@
+<!doctype HTML public "-//W3C//DTD HTML 4.0 Frameset//EN">
+<html>
+   <head>
+      <link rel="stylesheet" type="text/css" href="../../.docsrc/AVR32_ns.css">
+   </head>
+   <body>
+   <div id="wrapper">
+<p align="left" class="whs2"><a href="../DRIVERS_Readme.html"<font color="red"></font>Back to DRIVERS page</a></p>
+<h1 align="center" class="whs1">AVR UC3 Series Software Framework: Peripheral DMA Controller (PDCA) Driver<br>
+</h1>
+
+<p align="center" class="whs2">Copyright &copy; 2007 Atmel Corporation</p>
+
+<h2>Introduction</h2>
+    <p>The Peripheral DMA controller (PDCA) transfers data between on-chip peripheral modules such
+as USART, SPI, SSC and on- and off-chip memories. Using the PDCA avoids CPU intervention
+for data transfers, improving the performance of the microcontroller. The PDCA can transfer
+data from memory to a peripheral or from a peripheral to memory.</p>
+<p>The PDCA consists of a number of DMA channels. Each channel has:
+<li>A 32-bit memory pointer</li>
+<li>A 16-bit transfer counter</li>
+<li>A 32-bit memory pointer reload value</li>
+<li>A 16-bit transfer counter reload value</li>
+<p>The PDCA communicates with the peripheral modules over a number of handshake interfaces.
+The peripheral signals to the PDCA when it is ready to receive or transmit data. The PDCA
+acknowledges the request when the transmission has started.</p>
+<p>The number of handshake-interfaces may be higher than the number of DMA channels. If this is
+the case, the DMA channel must be programmed to use the desired interface.</p>
+<p>When a transmit buffer is empty or a receive buffer is full, an interrupt request can be signalled.</p>
+
+<p>&nbsp;</p>
+
+<h2>INTC Software Driver</h2>
+
+    <p>This driver provides an API to get access to the main features of the PDCA controller.</p>
+    <p>&nbsp;</p>
+    <p>The driver is composed of :
+     <li><a href="PDCA.c">PDCA.c</a> </li>
+     <li><a href="PDCA.h">PDCA.h</a> (for accurate API description, read this header file).</li>
+     
+    <p>&nbsp;</p>
+
+<h2>PDCA Software Driver Examples</h2>
+    <p>One examples are currently available:
+       <li><a href="./EXAMPLE/readme.html">The given example is a transfer of an ASCII Array stored in internal flash to the usrat output.
+ using PDCA.</a></li>       
+    </p>
+<p>&nbsp;</p>
+
+<hr align="center" width="50%" class="whs4">
+
+    <p class=legalfooter>AVR is a registered trademark of
+    Atmel Corporation.</p>
+</div>
+   </body>
+</html>
