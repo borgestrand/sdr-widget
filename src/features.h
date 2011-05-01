@@ -217,7 +217,7 @@ extern const features_t features_default;
 #if FEATURE_BOARD_DEFAULT == feature_board_widget
 #define FEATURE_IMAGE_DEFAULT			feature_image_uac1_dg8saq
 #else
-#define FEATURE_ADC_DEFAULT				feature_image_uac2_audio
+#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
 #endif
 #endif
 #ifndef FEATURE_IN_DEFAULT
