@@ -1,0 +1,29 @@
+#!/bin/bash
+##
+## program the sdr-widget under linux as of Sun May 1, 2011
+## accepts either a widget.elf file or a widget.hex file
+##
+echo program-widget with $1
+[[ -z $1 ]] && echo "no file specified to program-widget" && exit 1
+[[ ! -f $1 ]] && echo "no such file '$1'" && exit 1
+case $1 in
+    *.elf)
+	hex=/tmp/`basename $1 .elf`.hex
+	objcopy -O ihex $1 $hex && \
+	    dfu-programmer at32uc3a3256 erase --debug 6  && \
+	    dfu-programmer at32uc3a3256 flash --suppress-bootloader-mem $hex --debug 6 && \
+	    dfu-programmer at32uc3a3256 reset --debug 4 && \
+	    rm $hex && \
+	    exit 0
+	;;
+    *.hex)
+	dfu-programmer at32uc3a3256 erase --debug 6  && \
+	    dfu-programmer at32uc3a3256 flash --suppress-bootloader-mem $1 --debug 6 && \
+	    dfu-programmer at32uc3a3256 reset --debug 4 && \
+	    exit 0
+	;;
+    *)
+	echo unrecognized file format for programming: $1
+	exit 1
+esac
+	
