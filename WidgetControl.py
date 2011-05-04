@@ -289,6 +289,15 @@ class Launcher(model.Background):
 
        self.on_Refresh_command(-1)		# Refresh
 
+    def on_ComboBoxLog_textUpdate(self, event):
+       self.LogSelection = self.feature_value_lookup_dict['7'+event.target.stringSelection]
+       self.handle.claimInterface(interfacenum) # Open the USB device for traffic
+       output = self.devicetohost(0x71, 3, (9 + (self.LogSelection * 256)))
+       self.handle.releaseInterface()           # Release the USB device
+
+       self.on_Refresh_command(-1)		# Refresh
+
+
     #####################################
     #  Read firmware features
     #####################################
@@ -342,6 +351,17 @@ class Launcher(model.Background):
             self.components.LCDType.text = LCDType
         except:
             pass
+
+        try:
+            # Get Log Type
+            self.handle.claimInterface(interfacenum)# Open the USB device for traffic
+            output = self.devicetohost(0x71, 4, 9)
+            self.handle.releaseInterface()          # Release the USB device
+            LogType = self.feature_value_dict[output[0]]
+            self.components.LogType.text = LogType
+        except:
+            pass
+
 
         try:
            # Get Board Type

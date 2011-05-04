@@ -138,6 +138,27 @@
     'stringSelection':'hd44780', 
     'text':'LCD Type', 
     },
+
+{'type':'StaticText', 
+    'name':'LogType', 
+    'position':(50, 350),
+    'size':(175,-1),
+    'backgroundColor':(240, 235, 226), 
+    'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
+    'text':'Log Type:', 
+    },
+
+{'type':'ComboBox', 
+    'name':'ComboBoxLog', 
+    'position':(40, 400), 
+    'size':(100, -1), 
+    'items':[u'none', u'1sec', u'2sec', u'4sec'], 
+    'stringSelection':'widget', 
+    'text':'log', 
+    },
+
+
+
 {'type':'StaticBox', 
     'name':'readFromFirmware', 
     'position':(14, 522), 
