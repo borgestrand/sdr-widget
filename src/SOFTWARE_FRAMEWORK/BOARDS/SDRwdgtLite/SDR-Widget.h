@@ -91,7 +91,7 @@
 // Audio specific features ----------------------------------------------------------------
 #define	TX_BARGRAPH_dB		0	// TX audio bargraph in dB or VU-meter style
 
-// Menu Function specific features
+// Menu Function specific features --------------------------------------------------------
 #define PRG_AS_PUSH_BUTTON	1	// Activates the PRG button as a second optional Push Button
 								// used for the Menu Functions.
 

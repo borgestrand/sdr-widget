@@ -299,7 +299,7 @@ uint8_t new_freq_and_filters(uint32_t freq)
 
 	#if BPF_LPF_Module			// Band Pass and Low Pass filter switcing
 	#if !FLTR_CGH_DURING_TX		// Do not allow Filter changes when frequency is changed during TX
-	if (!TX_state)				// Only change filters when not transmitting
+	if (!TX_flag)				// Only change filters when not transmitting
 	#endif
 	#if CALC_BAND_MUL_ADD		// Band dependent Frequency Subtract and Multiply
 	band = SetFilter(freq);		// Select Band Pass Filter, according to the frequency selected
@@ -356,10 +356,11 @@ void freq_and_filter_control(void)
 			else freq_delta_from_enc = 0;			// Zero any changes while Menu Control
    		}
 
-   		// Check if a simple LCD update of Frequency display is required
+   		// Check if a simple LCD update of Frequency and filters display is required
 		if((FRQ_lcdupdate == TRUE) && (!MENU_mode))
 		{
 			display_frequency();
+			SetFilter(cdata.Freq[0]);				// Select Band Pass Filter, according to the frequency selected
 			FRQ_lcdupdate = FALSE;
 		}
     }
