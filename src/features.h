@@ -254,8 +254,8 @@ extern const features_t features_default;
 		FEATURE_LCD_DEFAULT,						\
 		FEATURE_LOG_DEFAULT
 
-extern const char *feature_value_names[];
-extern const char *feature_index_names[];
+extern const char * const feature_value_names[];
+extern const char * const feature_index_names[];
 extern void features_init();
 extern void features_display(char *title, features_t fp);
 extern void features_display_all();

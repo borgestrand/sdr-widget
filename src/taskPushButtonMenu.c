@@ -45,7 +45,7 @@
 
 // First Level Menu Items
 const uint8_t level0_menu_size = 16;
-const char *level0_menu_items[] =
+const char * const level0_menu_items[] =
 				{  " 1-Save Frequency",		//done
 				   " 2-VFO Resolution",		//done
 				   " 3-PCF8574 Control",	//done
@@ -68,7 +68,7 @@ const char *level0_menu_items[] =
 #define FREQ_MENU		1
 // Frequency Menu Items
 const uint8_t freq_menu_size = 11;
-const char *freq_menu_items[] =
+const char * const freq_menu_items[] =
 				{  "CH1",
 				   "CH2",
 				   "CH3",
@@ -88,7 +88,7 @@ const char *freq_menu_items[] =
 #define PCF8574_MENU	3
 // PCF8584 Control Menu Items
 const uint8_t pcf8574_menu_size = 4;
-const char *pcf8574_menu_items[] =
+const char * const pcf8574_menu_items[] =
 				{  "1-Set Addr",
 				   "2-Write",
 				   "3-Go Back",
@@ -104,7 +104,7 @@ uint8_t pcf8574_value = 0;		// Current Read/Write value
 #define PSWR_MENU		4
 // PSWR Menu Items
 const uint8_t pswr_menu_size = 9;
-const char *pswr_menu_items[] =
+const char * const pswr_menu_items[] =
 				{  "1-PowerMeterCal",  // Develop for adj when TX
 				   "2-PowerBargraph",  // Normal dial and set menu
 				   "3-SWR  Bargraph",  // Normal dial and set menu
@@ -134,7 +134,7 @@ const char *pswr_menu_items[] =
 #define BIAS_MENU		5
 // Bias Control Menu Items
 const uint8_t bias_menu_size = 7;
-const char *bias_menu_items[] =
+const char * const bias_menu_items[] =
 				{  "1-Set Low",
 				   "2-Set High",
 				   "3-Default",
@@ -151,7 +151,7 @@ const char *bias_menu_items[] =
 #define BIAS_CASE4_MENU	505
 // Bias High/Low Select Menu
 const uint8_t bias_hilo_menu_size = 2;
-const char *bias_hilo_menu_items[] =
+const char * const bias_hilo_menu_items[] =
 				{  "LOW",
 				   "HIGH" };
 
@@ -160,7 +160,7 @@ const char *bias_hilo_menu_items[] =
 #define TMP_MENU		6
 // Temperature Control Menu Items
 const uint8_t temperature_menu_size = 5;
-const char *temperature_menu_items[] =
+const char * const temperature_menu_items[] =
 				{  "1-Tmp Alarm",
 				   "2-Fan ON",
 				   "3-Fan Off",
@@ -176,7 +176,7 @@ const char *temperature_menu_items[] =
 #define FILTERS_MENU	7
 // Filters top level menu Items
 const uint8_t filters_menu_size = 6;
-const char *filters_menu_items[] =
+const char * const filters_menu_items[] =
 				{  "1-BPF Crossover",
 				   "2-BPF Order",
 				   "3-LPF Crossover",
@@ -193,7 +193,7 @@ const char *filters_menu_items[] =
 #define FILTER_LPF_ADJUST_MENU		712
 // Filter Menu Items
 const uint8_t swp_menu_size = 17;
-const char *swp_menu_items[] =
+const char * const swp_menu_items[] =
 				{  "CP-1",
 				   "CP-2",
 				   "CP-3",
@@ -219,7 +219,7 @@ const char *swp_menu_items[] =
 #define I2C_MENU		9
 // I2C Control Menu Items
 const uint8_t i2c_menu_size = 10;
-const char *i2c_menu_items[] =
+const char * const i2c_menu_items[] =
 				{  "Si570 VCXO",
 				   "PCF8574 Mobo",
 				   "PCF8574 LPF1",
@@ -263,7 +263,7 @@ const char *i2c_menu_items[] =
 #define FACTORY_MENU	13
 // Factory Reset menu Items
 const uint8_t factory_menu_size = 3;
-const char *factory_menu_items[] =
+const char * const factory_menu_items[] =
 				{  "1-Yes  Reset",
 				   "2-No - Go back",
 				   "3-No - Exit"	};

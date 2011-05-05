@@ -28,9 +28,9 @@ const features_t features_default = { FEATURES_DEFAULT };
 // these arrays of names need to be kept in sync
 // with the enumerations defined in features.h
 //
-const char *feature_value_names[] = { FEATURE_VALUE_NAMES };
+const char * const feature_value_names[] = { FEATURE_VALUE_NAMES };
 
-const char *feature_index_names[] = { FEATURE_INDEX_NAMES };
+const char * const feature_index_names[] = { FEATURE_INDEX_NAMES };
 
 // factory reset handler for features
 static void feature_factory_reset_handler(void) {
