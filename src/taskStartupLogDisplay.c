@@ -21,6 +21,7 @@
 
 #include "widget.h"
 #include "features.h"
+#include "Mobo_config.h"
 
 /*! \brief scroll through a line of startup and go to sleep
  *
@@ -45,6 +46,8 @@ static void vtaskStartupLogDisplay( void * pcParameters )
 
 		widget_display_clear();
 
+		MENU_mode = TRUE;			// Grab LCD from Mobo tasks
+
 		while( 1 ) {
 			char **buffer_lines;
 			int lines;
@@ -63,6 +66,8 @@ static void vtaskStartupLogDisplay( void * pcParameters )
 			} else if (current_line < lines + 2) {
 				;
 			} else {
+				TX_state = TRUE;	// Force Mobo LCD housekeeping
+				MENU_mode = FALSE;	// return LCD to Mobo tasks
 				break;
 			}
 
