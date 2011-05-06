@@ -152,7 +152,7 @@
     'name':'ComboBoxLog', 
     'position':(40, 400), 
     'size':(100, -1), 
-    'items':[u'none', u'1sec', u'2sec', u'4sec'], 
+    'items':[u'none', u'125ms', u'1sec', u'2sec', u'4sec'], 
     'stringSelection':'widget', 
     'text':'log', 
     },
