@@ -81,7 +81,7 @@ static void x_image_task_init(void) {
   vStartTaskPushButtonMenu();
   #endif
   vStartTaskMoboCtrl();
-  vStartTaskEXERCISE( tskIDLE_PRIORITY );
+  // vStartTaskEXERCISE( tskIDLE_PRIORITY );
   hpsdr_AK5394A_task_init();
   hpsdr_device_audio_task_init(HPSDR_EP_IQ_IN, HPSDR_EP_IQ_OUT, 0);
 #endif

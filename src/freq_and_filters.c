@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include "freq_and_filters.h"
+#include "widget.h"
 #include "Mobo_config.h"
 #include "DG8SAQ_cmd.h"
 #include "rotary_encoder.h"
@@ -371,10 +372,14 @@ void freq_and_filter_control(void)
 		if (FRQ_fromusb == TRUE)					// Print once to LCD
        	{
    			FRQ_fromusb = FALSE;					// Clear input flags
+#if 0
 			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
         	lcd_q_goto(0,3);
         	lcd_q_print("No Si570 OSC");
         	xSemaphoreGive( mutexQueLCD );
+#else
+			widget_startup_log_line("No Si570 OSC");
+#endif
        	}
     }
 	#endif
