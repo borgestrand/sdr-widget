@@ -36,14 +36,14 @@ static void vtaskStartupLogDisplay( void * pcParameters )
 		int current_line = -1;
 		unsigned startup_log_delay;
 
-		if ( FEATURE_LOG_125MS )
-			startup_log_delay = 125L * configTICK_RATE_HZ / 1000;
-		if ( FEATURE_LOG_1SEC )
+		if ( FEATURE_LOG_250MS )
+			startup_log_delay = 250L * configTICK_RATE_HZ / 1000;
+		else if ( FEATURE_LOG_500MS )
+			startup_log_delay = 500L * configTICK_RATE_HZ / 1000;
+		else if ( FEATURE_LOG_1SEC )
 			startup_log_delay = 1 * configTICK_RATE_HZ;
 		else if ( FEATURE_LOG_2SEC )
 			startup_log_delay = 2 * configTICK_RATE_HZ;
-		else if ( FEATURE_LOG_4SEC )
-			startup_log_delay = 4 * configTICK_RATE_HZ;
 		else
 			startup_log_delay = 1 * configTICK_RATE_HZ;
 
