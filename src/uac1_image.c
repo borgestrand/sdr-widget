@@ -79,7 +79,7 @@ static void x_image_task_init(void) {
   vStartTaskPushButtonMenu();
 #endif
   vStartTaskMoboCtrl();
-  vStartTaskEXERCISE( tskIDLE_PRIORITY );
+  // vStartTaskEXERCISE( tskIDLE_PRIORITY );
   uac1_AK5394A_task_init();
   device_mouse_hid_task_init(UAC1_EP_HID_RX, UAC1_EP_HID_TX);
   uac1_device_audio_task_init(UAC1_EP_AUDIO_IN, UAC1_EP_AUDIO_OUT, UAC1_EP_AUDIO_OUT_FB);

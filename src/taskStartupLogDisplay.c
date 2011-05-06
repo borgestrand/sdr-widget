@@ -33,8 +33,10 @@ static void vtaskStartupLogDisplay( void * pcParameters )
 	widget_initialization_start();
 	if ( ! FEATURE_LOG_NONE ) {
 		int current_line = -1;
-		int startup_log_delay;
+		unsigned startup_log_delay;
 
+		if ( FEATURE_LOG_125MS )
+			startup_log_delay = 125L * configTICK_RATE_HZ / 1000;
 		if ( FEATURE_LOG_1SEC )
 			startup_log_delay = 1 * configTICK_RATE_HZ;
 		else if ( FEATURE_LOG_2SEC )
@@ -45,6 +47,8 @@ static void vtaskStartupLogDisplay( void * pcParameters )
 			startup_log_delay = 1 * configTICK_RATE_HZ;
 
 		widget_display_clear();
+
+		vTaskDelay( startup_log_delay );
 
 		MENU_mode = TRUE;			// Grab LCD from Mobo tasks
 

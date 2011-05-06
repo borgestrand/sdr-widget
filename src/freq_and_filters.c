@@ -10,6 +10,7 @@
 #include <stdio.h>
 
 #include "freq_and_filters.h"
+#include "widget.h"
 #include "Mobo_config.h"
 #include "DG8SAQ_cmd.h"
 #include "rotary_encoder.h"
