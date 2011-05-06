@@ -364,20 +364,5 @@ void freq_and_filter_control(void)
 			FRQ_lcdupdate = FALSE;
 		}
     }
-	#if LCD_DISPLAY      						    // Multi-line LCD display
-	#if FRQ_IN_FIRST_LINE							// Normal Frequency display in first line of LCD. Can be disabled for Debug
-	else
-    {
-		if (FRQ_fromusb == TRUE)					// Print once to LCD
-       	{
-   			FRQ_fromusb = FALSE;					// Clear input flags
-			xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-        	lcd_q_goto(0,3);
-        	lcd_q_print("No Si570 OSC");
-        	xSemaphoreGive( mutexQueLCD );
-       	}
-    }
-	#endif
-	#endif
 }
 
