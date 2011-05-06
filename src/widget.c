@@ -143,10 +143,6 @@ void widget_display_string_scroll_and_delay(char *string, unsigned delay) {
 	widget_delay_task(delay);
 }
 
-void widget_display_string_scroll_and_log(char *string) {
-	widget_display_string_and_scroll(string);
-	widget_startup_log_line(string);
-}
 //
 // provide a place for disasters to be reported
 // only works when taskLCD is active
@@ -388,8 +384,8 @@ void widget_ready(char *msg) {
 
 void widget_report(void) {
 	char buff[32];
-	widget_startup_log_line("widget report:");
-	widget_startup_log_line("firmware = " FIRMWARE_VERSION);
+	widget_startup_log_line("sdr-widget");
+	widget_startup_log_line(FIRMWARE_VERSION);
 	sprintf(buff, "reset = %s", widget_reset_cause());
 	widget_startup_log_line(buff);
 }

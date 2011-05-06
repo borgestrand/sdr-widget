@@ -58,9 +58,9 @@ void features_init() {
 void features_display(char *title, features_t fp) {
 	int i;
 	char buff[32];
-	widget_display_string_scroll_and_log(title);
+	widget_startup_log_line(title);
 	sprintf(buff, "%s = %u.%u", "version", fp[feature_major_index], fp[feature_minor_index]);
-	widget_display_string_scroll_and_log(buff);
+	widget_startup_log_line(buff);
 	for (i = feature_board_index; i < feature_end_index; i += 1) {
 		strcpy(buff, feature_index_names[i]);
 		strcat(buff, " = ");
@@ -68,7 +68,7 @@ void features_display(char *title, features_t fp) {
 			strcat(buff, (char *)feature_value_names[fp[i]]);
 		else
 			strcat(buff, "invalid!");
-		widget_display_string_scroll_and_log(buff);
+		widget_startup_log_line(buff);
 	}
 }
 
