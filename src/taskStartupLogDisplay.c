@@ -29,6 +29,7 @@
  */
 static void vtaskStartupLogDisplay( void * pcParameters )
 {
+	MENU_mode = TRUE;			// Grab LCD from Mobo tasks
 
 	widget_initialization_start();
 	if ( ! FEATURE_LOG_NONE ) {
@@ -49,8 +50,6 @@ static void vtaskStartupLogDisplay( void * pcParameters )
 		widget_display_clear();
 
 		vTaskDelay( startup_log_delay );
-
-		MENU_mode = TRUE;			// Grab LCD from Mobo tasks
 
 		while( 1 ) {
 			char **buffer_lines;
