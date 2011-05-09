@@ -10,6 +10,7 @@
 #define FEATURES_H_
 
 #include <stdint.h>
+#include "signature.h"
 
 //
 // each feature index defines a feature set
@@ -32,7 +33,8 @@ typedef enum {
   feature_dac_index,			// dac identifier
   feature_lcd_index,			// lcd display type
   feature_log_index,			// startup log display timing
-  feature_end_index				// end marker, used to size arrays
+  feature_signature_index,		// git signature
+  feature_end_index			// end marker, used to size arrays
 } feature_index_t;
 
 #define FEATURE_INDEX_NAMES "major",				\
@@ -45,6 +47,7 @@ typedef enum {
 		"dac",										\
 		"lcd",										\
 		"log",										\
+		"signature",									\
 		"end"
 
 //
@@ -102,6 +105,8 @@ typedef enum {
 	feature_log_1sec,
 	feature_log_2sec,
 	feature_end_log,
+	feature_signature_git,			// signature
+	feature_end_signature,
 	feature_end_values			// end
 } feature_values_t;
 
@@ -142,6 +147,8 @@ typedef enum {
 		"500ms",														\
 		"1sec",															\
 		"2sec",															\
+		"end",															\
+		FEATURE_SIGNATURE_GIT_VALUE,												\
 		"end",															\
 		"end"
 	
@@ -200,6 +207,8 @@ extern const features_t features_default;
 #define FEATURE_LOG_1SEC				(features[feature_log_index] == (uint8_t)feature_log_1sec)
 #define FEATURE_LOG_2SEC				(features[feature_log_index] == (uint8_t)feature_log_2sec)
 
+#define	FEATURE_SIGNATURE_GIT				(features[feature_signature_index] == (uint8_t)feature_signature_git)
+
 //
 // the version in the features specifies
 // the number of feature indexes and the number of feature values
@@ -245,6 +254,9 @@ extern const features_t features_default;
 #ifndef FEATURE_LOG_DEFAULT
 #define FEATURE_LOG_DEFAULT				feature_log_500ms
 #endif
+#ifndef FEATURE_SIGNATURE_DEFAULT
+#define FEATURE_SIGNATURE_DEFAULT			feature_signature_git
+#endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
 		FEATURE_MINOR_DEFAULT,						\
@@ -255,7 +267,8 @@ extern const features_t features_default;
 		FEATURE_ADC_DEFAULT,						\
 		FEATURE_DAC_DEFAULT,						\
 		FEATURE_LCD_DEFAULT,						\
-		FEATURE_LOG_DEFAULT
+		FEATURE_LOG_DEFAULT,						\
+		FEATURE_SIGNATURE_DEFAULT
 
 extern const char * const feature_value_names[];
 extern const char * const feature_index_names[];

@@ -11,14 +11,14 @@ Release/widget.elf::
 	./make-widget
 
 audio-widget::
-	rm -f Release/widget.elf Release/src/features.o
+	rm -f Release/widget.elf Release/src/features.o src/signature.h
 	CFLAGS=-DFEATURE_DEFAULT_BOARD=feature_board_dib ./make-widget
 
 sdr-widget::
-	rm -f Release/widget.elf Release/src/features.o
+	rm -f Release/widget.elf Release/src/features.o src/signature.h
 	CFLAGS=-DFEATURE_DEFAULT_BOARD=feature_board_widget ./make-widget
 
-widget-control: widget-control.c src/features.h
+widget-control: widget-control.c src/features.h src/signature.h
 	gcc -o widget-control widget-control.c -lusb-1.0
 
 clean::

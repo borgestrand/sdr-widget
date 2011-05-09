@@ -47,15 +47,30 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: widget.elf
+all: ../src/signature.h widget.elf 
 
 # Tool invocations
-widget.elf: $(OBJS) $(USER_OBJS)
+widget.elf: $(OBJS) $(USER_OBJS) ../src/signature.h
 	@echo Link $@
 	@avr32-gcc -nostartfiles -Wl,--gc-sections -Wl,-e,_trampoline -mpart=uc3a3256 -Wl,--gc-sections --rodata-writable -Wl,--direct-data -o"widget.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 # Other Targets
 clean:
-	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) widget.elf
+	-$(RM) $(OBJS)$(C_DEPS)$(EXECUTABLES) widget.elf ../src/signature.h
+
+#
+# Generates a source file containing the git HEAD SHA (the first twelve characters)
+# IW0HDV May 9, 2011
+#
+../src/signature.h:
+	@echo "#ifndef SIGNATURE_H_"                                    >  ../src/signature.h
+	@echo "#define SIGNATURE_H_"                                    >> ../src/signature.h
+	@echo -n "#define FEATURE_SIGNATURE_GIT_TAG \""                 >> ../src/signature.h
+	@echo -n `git describe --tag`                                   >> ../src/signature.h
+	@echo "\""                                                      >> ../src/signature.h
+	@echo -n "#define FEATURE_SIGNATURE_GIT_VALUE \""               >> ../src/signature.h
+	@echo -n `git rev-parse HEAD` | sed -e 's/^\(.\{12\}\).*$$/\1/'  >> ../src/signature.h
+	@echo "\""                                                      >> ../src/signature.h
+	@echo "#endif"                                                  >> ../src/signature.h
 
 .PHONY: all clean dependents
 .SECONDARY:
