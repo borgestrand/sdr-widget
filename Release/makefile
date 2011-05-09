@@ -64,12 +64,18 @@ clean:
 ../src/signature.h:
 	@echo "#ifndef SIGNATURE_H_"                                    >  ../src/signature.h
 	@echo "#define SIGNATURE_H_"                                    >> ../src/signature.h
+	@echo ""                                                        >> ../src/signature.h
+	@echo "// please do not version this file with git !"           >> ../src/signature.h
+	@echo "// automatically generated @`date`, please don't change manually">> ../src/signature.h
+	@echo ""                                                        >> ../src/signature.h
 	@echo -n "#define FEATURE_SIGNATURE_GIT_TAG \""                 >> ../src/signature.h
 	@echo -n `git describe --tag`                                   >> ../src/signature.h
 	@echo "\""                                                      >> ../src/signature.h
+	@echo ""                                                        >> ../src/signature.h
 	@echo -n "#define FEATURE_SIGNATURE_GIT_VALUE \""               >> ../src/signature.h
-	@echo -n `git rev-parse HEAD` | sed -e 's/^\(.\{12\}\).*$$/\1/'  >> ../src/signature.h
+	@echo -n `git rev-parse HEAD` | sed -e 's/^\(.\{12\}\).*$$/\1/' >> ../src/signature.h
 	@echo "\""                                                      >> ../src/signature.h
+	@echo ""                                                        >> ../src/signature.h
 	@echo "#endif"                                                  >> ../src/signature.h
 
 .PHONY: all clean dependents
