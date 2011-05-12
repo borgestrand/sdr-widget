@@ -68,11 +68,11 @@ clean:
 	@echo "// please do not version this file with git !"           >> ../src/signature.h
 	@echo "// automatically generated @`date`, please don't change manually">> ../src/signature.h
 	@echo ""                                                        >> ../src/signature.h
-	@echo -n "#define FEATURE_SIGNATURE_GIT_TAG \""                 >> ../src/signature.h
+	@echo -n "#define FEATURE_TAG_GIT_VALUE \""                     >> ../src/signature.h
 	@echo -n `git describe --tag`                                   >> ../src/signature.h
 	@echo "\""                                                      >> ../src/signature.h
 	@echo ""                                                        >> ../src/signature.h
-	@echo -n "#define FEATURE_SIGNATURE_GIT_VALUE \""               >> ../src/signature.h
+	@echo -n "#define FEATURE_SHA_GIT_VALUE \""                     >> ../src/signature.h
 	@echo -n `git rev-parse HEAD`                                   >> ../src/signature.h
 	@echo "\""                                                      >> ../src/signature.h
 	@echo ""                                                        >> ../src/signature.h
