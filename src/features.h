@@ -47,7 +47,7 @@ typedef enum {
 		"dac",										\
 		"lcd",										\
 		"log",										\
-		"signature",									\
+		"sig",									\
 		"end"
 
 //

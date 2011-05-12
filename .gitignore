@@ -8,3 +8,4 @@
 *.d
 *.elf
 widget-control
+signature.h

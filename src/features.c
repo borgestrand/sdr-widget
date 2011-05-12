@@ -58,16 +58,14 @@ void features_init() {
 void features_display(char *title, features_t fp) {
 	int i;
 	char buff[32];
+
 	widget_startup_log_line(title);
-	sprintf(buff, "%s = %u.%u", "version", fp[feature_major_index], fp[feature_minor_index]);
+	snprintf(buff, sizeof(buff), "%s = %u.%u", "version", fp[feature_major_index], fp[feature_minor_index]);
 	widget_startup_log_line(buff);
 	for (i = feature_board_index; i < feature_end_index; i += 1) {
-		strcpy(buff, feature_index_names[i]);
-		strcat(buff, " = ");
-		if (features[i] < feature_end_values)
-			strcat(buff, (char *)feature_value_names[fp[i]]);
-		else
-			strcat(buff, "invalid!");
+		snprintf (buff, sizeof(buff), "%s = %s", feature_index_names[i],
+				  (features[i] < feature_end_values) ? (char *)feature_value_names[fp[i]] : "invalid!"
+		);
 		widget_startup_log_line(buff);
 	}
 }

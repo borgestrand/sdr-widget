@@ -73,7 +73,7 @@ clean:
 	@echo "\""                                                      >> ../src/signature.h
 	@echo ""                                                        >> ../src/signature.h
 	@echo -n "#define FEATURE_SIGNATURE_GIT_VALUE \""               >> ../src/signature.h
-	@echo -n `git rev-parse HEAD` | sed -e 's/^\(.\{12\}\).*$$/\1/' >> ../src/signature.h
+	@echo -n `git rev-parse HEAD`                                   >> ../src/signature.h
 	@echo "\""                                                      >> ../src/signature.h
 	@echo ""                                                        >> ../src/signature.h
 	@echo "#endif"                                                  >> ../src/signature.h

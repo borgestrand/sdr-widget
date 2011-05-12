@@ -131,7 +131,7 @@ void widget_display_string_and_scroll(char *string) {
 		}
 		display_row = 3;
 	}
-	sprintf(&display_contents[display_row][0], "%-20.20s", string);
+	snprintf(&display_contents[display_row][0], sizeof(display_contents[display_row][0]), "%-20.20s", string);
 	lcd_q_goto(display_row, 0);
 	lcd_q_print(&display_contents[display_row][0]);
 	display_row += 1;
@@ -386,6 +386,6 @@ void widget_report(void) {
 	char buff[32];
 	widget_startup_log_line("sdr-widget");
 	widget_startup_log_line(FIRMWARE_VERSION);
-	sprintf(buff, "reset = %s", widget_reset_cause());
+	snprintf (buff, sizeof(buff), "reset = %s", widget_reset_cause());
 	widget_startup_log_line(buff);
 }
