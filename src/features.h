@@ -34,7 +34,7 @@ typedef enum {
   feature_lcd_index,			// lcd display type
   feature_log_index,			// startup log display timing
   feature_tag_index,			// git tag
-//  feature_sha_index,			// git SHA signature
+  feature_sha_index,			// git SHA signature
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -49,7 +49,7 @@ typedef enum {
 		"lcd",										\
 		"log",										\
 		"tag",										\
-//		"sha",										\
+		"sha",										\
 		"end"
 
 //
@@ -109,8 +109,8 @@ typedef enum {
 	feature_end_log,
 	feature_tag_val,			// git tag
 	feature_end_tag,
-//	feature_sha_val,			// git SHA1's signature
-//	feature_end_sha,
+	feature_sha_val,			// git SHA1's signature
+	feature_end_sha,
 	feature_end_values			// end
 } feature_values_t;
 
@@ -154,8 +154,8 @@ typedef enum {
 		"end",															\
 		FEATURE_TAG_GIT_VALUE,											\
 		"end",															\
-//		FEATURE_SHA_GIT_VALUE,											\
-//		"end",															\
+		FEATURE_SHA_GIT_VALUE,											\
+		"end",															\
 		"end"
 	
 typedef uint8_t features_t[feature_end_index];
@@ -214,7 +214,7 @@ extern const features_t features_default;
 #define FEATURE_LOG_2SEC				(features[feature_log_index] == (uint8_t)feature_log_2sec)
 
 #define FEATURE_TAG_VAL					(features[feature_tag_index] == (uint8_t)feature_tag_val)
-//#define FEATURE_SHA_VAL					(features[feature_tag_index] == (uint8_t)feature_sha_val)
+#define FEATURE_SHA_VAL					(features[feature_tag_index] == (uint8_t)feature_sha_val)
 
 //
 // the version in the features specifies
@@ -278,8 +278,8 @@ extern const features_t features_default;
 		FEATURE_DAC_DEFAULT,						\
 		FEATURE_LCD_DEFAULT,						\
 		FEATURE_LOG_DEFAULT,						\
-		FEATURE_TAG_DEFAULT //,						\
-//		FEATURE_SHA_DEFAULT
+		FEATURE_TAG_DEFAULT,						\
+		FEATURE_SHA_DEFAULT
 
 extern const char * const feature_value_names[];
 extern const char * const feature_index_names[];
