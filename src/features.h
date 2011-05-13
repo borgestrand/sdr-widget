@@ -97,10 +97,10 @@ typedef enum {
 	feature_lcd_ks0073,			/* ks0073 almost hd44780 compatible */
 	feature_end_lcd,
 	feature_log_none,			// log
-	feature_log_125ms,
+	feature_log_250ms,
+	feature_log_500ms,
 	feature_log_1sec,
 	feature_log_2sec,
-	feature_log_4sec,
 	feature_end_log,
 	feature_end_values			// end
 } feature_values_t;
@@ -138,10 +138,10 @@ typedef enum {
 		"ks0073",														\
 		"end",															\
 		"none",															\
-		"125ms",														\
+		"250ms",														\
+		"500ms",														\
 		"1sec",															\
 		"2sec",															\
-		"4sec",															\
 		"end",															\
 		"end"
 	
@@ -195,10 +195,10 @@ extern const features_t features_default;
 #define FEATURE_LCD_KS0073				(features[feature_lcd_index] == (uint8_t)feature_lcd_ks0073)
 
 #define FEATURE_LOG_NONE				(features[feature_log_index] == (uint8_t)feature_log_none)
-#define FEATURE_LOG_125MS				(features[feature_log_index] == (uint8_t)feature_log_125ms)
+#define FEATURE_LOG_250MS				(features[feature_log_index] == (uint8_t)feature_log_250ms)
+#define FEATURE_LOG_500MS				(features[feature_log_index] == (uint8_t)feature_log_500ms)
 #define FEATURE_LOG_1SEC				(features[feature_log_index] == (uint8_t)feature_log_1sec)
 #define FEATURE_LOG_2SEC				(features[feature_log_index] == (uint8_t)feature_log_2sec)
-#define FEATURE_LOG_4SEC				(features[feature_log_index] == (uint8_t)feature_log_4sec)
 
 //
 // the version in the features specifies
@@ -243,7 +243,7 @@ extern const features_t features_default;
 #define FEATURE_LCD_DEFAULT				feature_lcd_hd44780
 #endif
 #ifndef FEATURE_LOG_DEFAULT
-#define FEATURE_LOG_DEFAULT				feature_log_125ms
+#define FEATURE_LOG_DEFAULT				feature_log_500ms
 #endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
