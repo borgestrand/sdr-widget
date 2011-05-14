@@ -140,7 +140,7 @@
     'name':'ComboBoxLog', 
     'position':(413, 154), 
     'size':(100, -1), 
-    'items':[u'none', u'125ms', u'1sec', u'2sec', u'4sec'], 
+    'items':[u'none', u'125ms', u'250ms', u'500ms', u'1sec', u'2sec', u'4sec'], 
     'text':'log', 
     },
 
