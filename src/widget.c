@@ -45,29 +45,29 @@ static char **startup_log_line_ptr = (char **)startup_log_lines;
 static int startup_log_line_start = 1;
 
 void widget_startup_log_char(char c) {
-	if (startup_log_ptr == startup_log) {
-		// we could initialize by erasing the entire buffer
-	}
-	if (startup_log_line_start) {
-		if (startup_log_line_ptr < (char **)startup_log_lines + STARTUP_LOG_LINES) {
-#if 0
-			flashc_memset32((void *)startup_log_line_ptr, (uint32_t)startup_log_ptr, sizeof(char *), TRUE);
-#else
-			*startup_log_line_ptr = startup_log_ptr;
-#endif
-			startup_log_line_ptr += 1;
-		}
-		startup_log_line_start = 0;
-	}
+	// if we have room to remamber another character
 	if (startup_log_ptr < (char *)startup_log + STARTUP_LOG_SIZE) {
-#if 0
-		flashc_memset8((void *)startup_log_ptr, c, sizeof(char), TRUE);
-#else
+
+		// if we are at the beginning of a line, remember where it starts
+		if (startup_log_line_start) {
+			// but only if we have room to remember another line start
+			if (startup_log_line_ptr < (char **)startup_log_lines + STARTUP_LOG_LINES) {
+				*startup_log_line_ptr = startup_log_ptr;
+				startup_log_line_ptr += 1;
+			}
+			// and clear the beginning of a line flag
+			startup_log_line_start = 0;
+		}
+
+		// remember the character
 		*startup_log_ptr = c;
-#endif
 		startup_log_ptr += 1;
+		// we're at the beginning of a line if this character was a NUL
+		startup_log_line_start = (c == '\0');
+	} else if (startup_log[STARTUP_LOG_SIZE-1] != '\0') {
+		// make sure that the last line recorded has a NUL on it
+		startup_log[STARTUP_LOG_SIZE-1] = '\0';
 	}
-	startup_log_line_start = (c == '\0');
 }
 
 void widget_startup_log_string(char *string) {
@@ -81,6 +81,7 @@ void widget_startup_log_line(char *string) {
 }
 
 void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
+	// append a usage summary to any startup log listing
 	static char log_usage[2][20];
 	sprintf(log_usage[0], "log %d/%d lines", (int)(startup_log_line_ptr - (char **)startup_log_lines), STARTUP_LOG_LINES);
 	sprintf(log_usage[1], "log %d/%d chars", (int)(startup_log_ptr-startup_log), STARTUP_LOG_SIZE);
