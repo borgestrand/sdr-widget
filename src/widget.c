@@ -39,7 +39,7 @@ void widget_initialization_finish(void) { initialization_count -= 1; }
 #define STARTUP_LOG_LINES 64
 
 static char startup_log[STARTUP_LOG_SIZE];
-static char *startup_log_lines[STARTUP_LOG_LINES];
+static char *startup_log_lines[STARTUP_LOG_LINES+2];
 static char *startup_log_ptr = (char *)startup_log;
 static char **startup_log_line_ptr = (char **)startup_log_lines;
 static int startup_log_line_start = 1;
@@ -81,8 +81,13 @@ void widget_startup_log_line(char *string) {
 }
 
 void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
+	static char log_usage[2][20];
+	sprintf(log_usage[0], "log %d/%d lines", (int)(startup_log_line_ptr - (char **)startup_log_lines), STARTUP_LOG_LINES);
+	sprintf(log_usage[1], "log %d/%d chars", (int)(startup_log_ptr-startup_log), STARTUP_LOG_SIZE);
+	startup_log_line_ptr[0] = log_usage[0];
+	startup_log_line_ptr[1] = log_usage[1];
 	*buffer_lines = (char **)startup_log_lines;
-	*lines = startup_log_line_ptr - (char **)startup_log_lines;
+	*lines = (startup_log_line_ptr - (char **)startup_log_lines) + 2;
 }
 
 //
