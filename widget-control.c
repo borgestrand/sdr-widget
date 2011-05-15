@@ -10,7 +10,8 @@
 */
 const char usage[] = {
 	"usage: sudo ./widget-control [options] [values]\n"
-	"options: -d = print the default feature values.\n"
+	"options: -a = list the devices connected and their serialIds.\n"
+	"         -d = print the default feature values.\n"
 	//	"         -f = factory reset to image default values;\n"
 	//	"           doesn't perform a reset, just marks the features\n"
 	//	"           to be restored to original values on next reset.\n"
@@ -19,7 +20,7 @@ const char usage[] = {
 	"         -m = get the feature values from the widget ram.\n"
 	"         -r = reboot the widget.\n"
 	"         -s = set the feature values in the widget nvram.\n"
-	"		  -u serialId = open the device with the specified serialId.\n"
+	"         -u serialId = open the device with the specified serialId.\n"
 	"Only -s and -u take values.\n"
 	"The -s option takes values in the form printed by -d or -g or -m.\n"
 	"The acceptable values for each feature are listed by -l.\n"
@@ -157,7 +158,7 @@ int device_to_host(unsigned char request, unsigned short value, unsigned short i
 
 // this needs modification to handle the -u usb_serial_id option
 // must get the total list of devices and query matches for serial id
-libusb_device_handle *find_device() {
+libusb_device_handle *find_device(int list_all) {
 	libusb_device **list;
 	ssize_t n_items = libusb_get_device_list(NULL, &list);
 	int i;
@@ -205,8 +206,16 @@ libusb_device_handle *find_device() {
 				libusb_close(h);
 				continue;
 			}
-			usb_handle = h;
-			break;
+			if (list_all) {
+				fprintf(stdout, "%04x:%04x %s\n", desc.idVendor, desc.idProduct, serialId);
+				if (usb_handle == NULL)
+					usb_handle = h;
+				else
+					libusb_close(h);
+			} else {
+				usb_handle = h;
+				break;
+			}
 		}
 	}
 	libusb_free_device_list(list, 1);
@@ -215,7 +224,7 @@ libusb_device_handle *find_device() {
 
 void setup() {
 	libusb_init(NULL);
-	usb_handle = find_device();
+	usb_handle = find_device(0);
 	if (usb_handle == NULL) {
 		fprintf(stderr, "widget-control: failed to find device\n");
 		libusb_exit(NULL);
@@ -310,6 +319,12 @@ int finish(int return_value) {
 	return return_value;
 }
 
+int get_all_devices() {
+	libusb_init(NULL);
+	usb_handle = find_device(1);
+	return finish(0);
+}
+
 /*
 ** functions
 */
@@ -373,7 +388,6 @@ int get_mem() {
 }
 
 int get_default() {
-	int i;
 	setup();
 	print_all_features(true_features_default);
 	return finish(0);
@@ -447,6 +461,9 @@ int main(int argc, char *argv[]) {
 				usb_serial_id = argv[++i];
 				continue;
 			}
+		}
+		if (strcmp(argv[i], "-a") == 0) { // list all devices connected
+			exit(get_all_devices());
 		}
 		if (strcmp(argv[i], "-v") == 0) { // be verbose
 			verbose = 1;
