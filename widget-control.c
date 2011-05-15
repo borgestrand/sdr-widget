@@ -151,8 +151,12 @@ char *error_string(int err) {
 	}
 }
 
+int device_to_host_handle(libusb_device_handle *h, unsigned char request, unsigned short value, unsigned short index, unsigned short length) {
+	return libusb_control_transfer(h, (REQDIR_DEVICETOHOST | REQTYPE_VENDOR | REQTYPE_STANDARD), request, value, index, usb_data, length, usb_timeout);
+}
+	
 int device_to_host(unsigned char request, unsigned short value, unsigned short index, unsigned short length) {
-	return libusb_control_transfer(usb_handle, (REQDIR_DEVICETOHOST | REQTYPE_VENDOR | REQTYPE_STANDARD), request, value, index, usb_data, length, usb_timeout);
+	return device_to_host_handle(usb_handle, request, value, index, length);
 }
 	
 
@@ -213,6 +217,16 @@ libusb_device_handle *find_device(int list_all) {
 				else
 					libusb_close(h);
 			} else {
+				// one last check to see if this device implements the features api
+				libusb_claim_interface(h, 0);
+				status = device_to_host_handle(h, FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_NVRAM, true_feature_major_index, 8);
+				libusb_release_interface(h, 0);
+				if (status != 1 || (usb_data[0] & 0xff) == 0xff) { 
+					if (verbose)
+						fprintf(stderr, "find_device: %04x:%04x did not respond to features request\n", desc.idVendor, desc.idProduct);
+					libusb_close(h);
+					continue;
+				}
 				usb_handle = h;
 				break;
 			}
