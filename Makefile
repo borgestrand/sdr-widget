@@ -12,7 +12,7 @@ Release/widget.elf::
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o
-	CFLAGS=-DFEATURE_DEFAULT_BOARD=feature_board_dib ./make-widget
+	CFLAGS=-DFEATURE_DEFAULT_BOARD=feature_board_usbdac,FEATURE_DAC_DEFAULT=feature_dac_es9022,FEATURE_IMAGE_DEFAULT=feature_image_uac2_audio ./make-widget
 
 sdr-widget::
 	rm -f Release/widget.elf Release/src/features.o
