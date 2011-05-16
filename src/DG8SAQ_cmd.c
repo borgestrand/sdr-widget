@@ -53,6 +53,7 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 
 //	LED_Toggle(LED1);
 
+	*Buffer = 255;				// default error return
 	switch (type)
 	{
 	case 0x30:
@@ -147,6 +148,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 
 //	LED_Toggle(LED1);
 
+	*Buffer = 255;				// default error return
 	switch (type)
 	{
 	case 0x00:								// Return software version number

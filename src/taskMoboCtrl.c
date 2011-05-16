@@ -521,6 +521,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	// This can be the result of either a fresh firmware upload, or cmd 0x41 with data 0xff
 	if(nvram_cdata.EEPROM_init_check != cdata.EEPROM_init_check)
 	{
+		widget_startup_log_line("reset mobo nvram");
 		flashc_memcpy((void *)&nvram_cdata, &cdata, sizeof(cdata), TRUE);
 	}
 	else
