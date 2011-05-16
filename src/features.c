@@ -47,6 +47,7 @@ void features_init() {
   // checksum in the memory copy and the matching number in the NVRAM storage.
   // This can be the result of either a fresh firmware upload, or cmd 0x41 with data 0xff
   if( FEATURE_MAJOR != FEATURE_MAJOR_NVRAM || FEATURE_MINOR != FEATURE_MINOR_NVRAM ) {
+	  widget_startup_log_line("reset feature nvram");
 	  flashc_memcpy((void *)&features_nvram, &features, sizeof(features), TRUE);
   } else {
 	  memcpy(&features, &features_nvram, sizeof(features));
