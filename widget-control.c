@@ -10,7 +10,8 @@
 */
 const char usage[] = {
 	"usage: sudo ./widget-control [options] [values]\n"
-	"options: -d = print the default feature values.\n"
+	"options: -a = list the devices connected and their serialIds.\n"
+	"         -d = print the default feature values.\n"
 	//	"         -f = factory reset to image default values;\n"
 	//	"           doesn't perform a reset, just marks the features\n"
 	//	"           to be restored to original values on next reset.\n"
@@ -19,12 +20,15 @@ const char usage[] = {
 	"         -m = get the feature values from the widget ram.\n"
 	"         -r = reboot the widget.\n"
 	"         -s = set the feature values in the widget nvram.\n"
-	"Only -s takes values, in the form printed by -d or -g or -m.\n"
+	"         -u serialId = open the device with the specified serialId.\n"
+	"Only -s and -u take values.\n"
+	"The -s option takes values in the form printed by -d or -g or -m.\n"
 	"The acceptable values for each feature are listed by -l.\n"
 	"The major and minor version numbers are optional to -s, but\n"
 	"if provided they must match the ones printed by -d, -g, -l, and -m,\n"
-	"which must all match each other, or your widget-control is out of\n"
-	"sync with your widget.\n"
+	"which should all match each other\n"
+	"The -u option takes one value which is the serialId of the device you\n"
+	"want to program.\n"
 }; 
 
 #include <stdlib.h>
@@ -123,32 +127,6 @@ char usb_data[1024];
 unsigned int usb_timeout = 2000;
 
 
-int device_to_host(unsigned char request, unsigned short value, unsigned short index, unsigned short length) {
-	return libusb_control_transfer(usb_handle, (REQDIR_DEVICETOHOST | REQTYPE_VENDOR | REQTYPE_STANDARD), request, value, index, usb_data, length, usb_timeout);
-}
-	
-
-// this needs modification to handle the -u usb_serial_id option
-// must get the total list of devices and query matches for serial id
-libusb_device_handle *find_device() {
-	usb_handle = libusb_open_device_with_vid_pid(NULL, DG8SAQ_VENDOR_ID, DG8SAQ_PRODUCT_ID);
-	if (usb_handle != NULL) {
-		usb_device = "dg8saq";
-		return usb_handle;
-	}
-	usb_handle = libusb_open_device_with_vid_pid(NULL, AUDIO_VENDOR_ID, AUDIO_PRODUCT_ID);
-	if (usb_handle != NULL) {
-		usb_device = "audio";
-		return usb_handle;
-	}
-	usb_handle = libusb_open_device_with_vid_pid(NULL, HPSDR_VENDOR_ID, HPSDR_PRODUCT_ID);
-	if (usb_handle != NULL) {
-		usb_device = "hpsdr";
-		return usb_handle;
-	}
-	return usb_handle;
-}
-
 char *error_string(int err) {
 	switch (err) {
 	case LIBUSB_SUCCESS: return "Success (no error).";
@@ -173,9 +151,94 @@ char *error_string(int err) {
 	}
 }
 
+int device_to_host_handle(libusb_device_handle *h, unsigned char request, unsigned short value, unsigned short index, unsigned short length) {
+	return libusb_control_transfer(h, (REQDIR_DEVICETOHOST | REQTYPE_VENDOR | REQTYPE_STANDARD), request, value, index, usb_data, length, usb_timeout);
+}
+	
+int device_to_host(unsigned char request, unsigned short value, unsigned short index, unsigned short length) {
+	return device_to_host_handle(usb_handle, request, value, index, length);
+}
+	
+
+// this needs modification to handle the -u usb_serial_id option
+// must get the total list of devices and query matches for serial id
+libusb_device_handle *find_device(int list_all) {
+	libusb_device **list;
+	ssize_t n_items = libusb_get_device_list(NULL, &list);
+	int i;
+	for (i = 0; i < n_items; i += 1) {
+		libusb_device *d = list[i];
+		struct libusb_device_descriptor desc;
+		if (libusb_get_device_descriptor(d, &desc) != 0) {
+			continue;
+		}
+		if ((desc.idVendor == DG8SAQ_VENDOR_ID && desc.idProduct == DG8SAQ_PRODUCT_ID) ||
+			(desc.idVendor == AUDIO_VENDOR_ID && desc.idProduct == AUDIO_PRODUCT_ID) ||
+			(desc.idVendor == HPSDR_VENDOR_ID && desc.idProduct == HPSDR_PRODUCT_ID)) {
+			libusb_device_handle *h;
+			int status;
+			if ((status = libusb_open(d, &h)) != 0) {
+				if (verbose)
+					fprintf(stderr, "find_device: libusb_open(%04x:%04x, ...) failed: %s", desc.idVendor, desc.idProduct, error_string(status));
+				continue;
+			}
+			if ((status = libusb_claim_interface(h, 0)) != 0) {
+				if (verbose)
+					fprintf(stderr, "find_device: libusb_claim_interface(%04x:%04x, ...) failed: %s", desc.idVendor, desc.idProduct, error_string(status));
+				libusb_close(h);
+				continue;
+			}
+			unsigned char serialId[1024];
+			if ((status = libusb_get_string_descriptor_ascii(h, desc.iSerialNumber, serialId, sizeof(serialId))) <= 0) {
+				if (verbose)
+					if (status == 0)
+						fprintf(stderr, "find_device: libusb_get_string_descriptor_ascii(%04x:%04x, ...) returned 0 bytes", desc.idVendor, desc.idProduct);
+					else
+						fprintf(stderr, "find_device: libusb_get_string_descriptor_ascii(%04x:%04x, ...) failed: %s", desc.idVendor, desc.idProduct, error_string(status));
+				libusb_release_interface(h, 0);
+				libusb_close(h);
+				continue;
+			}
+			serialId[status] = 0;
+			if ((status = libusb_release_interface(h, 0)) != 0) {
+				if (verbose)
+					fprintf(stderr, "find_device: libusb_release_interface(%04x:%04x, ...) failed: %s", desc.idVendor, desc.idProduct, error_string(status));
+				libusb_close(h);
+				continue;
+			}
+			if (usb_serial_id != NULL && strcmp(serialId, usb_serial_id) != 0) {
+				libusb_close(h);
+				continue;
+			}
+			if (list_all) {
+				fprintf(stdout, "%04x:%04x %s\n", desc.idVendor, desc.idProduct, serialId);
+				if (usb_handle == NULL)
+					usb_handle = h;
+				else
+					libusb_close(h);
+			} else {
+				// one last check to see if this device implements the features api
+				libusb_claim_interface(h, 0);
+				status = device_to_host_handle(h, FEATURE_DG8SAQ_COMMAND, FEATURE_DG8SAQ_GET_NVRAM, true_feature_major_index, 8);
+				libusb_release_interface(h, 0);
+				if (status != 1 || (usb_data[0] & 0xff) == 0xff) { 
+					if (verbose)
+						fprintf(stderr, "find_device: %04x:%04x did not respond to features request\n", desc.idVendor, desc.idProduct);
+					libusb_close(h);
+					continue;
+				}
+				usb_handle = h;
+				break;
+			}
+		}
+	}
+	libusb_free_device_list(list, 1);
+	return usb_handle;
+}
+
 void setup() {
 	libusb_init(NULL);
-	usb_handle = find_device();
+	usb_handle = find_device(0);
 	if (usb_handle == NULL) {
 		fprintf(stderr, "widget-control: failed to find device\n");
 		libusb_exit(NULL);
@@ -270,6 +333,12 @@ int finish(int return_value) {
 	return return_value;
 }
 
+int get_all_devices() {
+	libusb_init(NULL);
+	usb_handle = find_device(1);
+	return finish(0);
+}
+
 /*
 ** functions
 */
@@ -333,7 +402,6 @@ int get_mem() {
 }
 
 int get_default() {
-	int i;
 	setup();
 	print_all_features(true_features_default);
 	return finish(0);
@@ -407,6 +475,9 @@ int main(int argc, char *argv[]) {
 				usb_serial_id = argv[++i];
 				continue;
 			}
+		}
+		if (strcmp(argv[i], "-a") == 0) { // list all devices connected
+			exit(get_all_devices());
 		}
 		if (strcmp(argv[i], "-v") == 0) { // be verbose
 			verbose = 1;
