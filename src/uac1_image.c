@@ -104,22 +104,40 @@ static uint16_t x_dg8saq_get_dev_desc_length(void) {
 	return (uint16_t)sizeof(uac1_dg8saq_usb_dev_desc);
 }
 static uint8_t *x_image_get_conf_desc_pointer(void) {
-	return (uint8_t *)&uac1_usb_conf_desc_fs;
+	if ( FEATURE_BOARD_WIDGET )
+		return (uint8_t *)&uac1_usb_conf_desc_fs_widget;
+	else
+		return (uint8_t *)&uac1_usb_conf_desc_fs;
 }
 static uint16_t x_image_get_conf_desc_length(void) {
-	return sizeof(uac1_usb_conf_desc_fs);
+	if ( FEATURE_BOARD_WIDGET )
+		return sizeof(uac1_usb_conf_desc_fs_widget);
+	else
+		return sizeof(uac1_usb_conf_desc_fs);
 }
 static uint8_t *x_image_get_conf_desc_fs_pointer(void) {
-	return (uint8_t *)&uac1_usb_conf_desc_fs;
+	if ( FEATURE_BOARD_WIDGET )
+		return (uint8_t *)&uac1_usb_conf_desc_fs_widget;
+	else
+		return (uint8_t *)&uac1_usb_conf_desc_fs;
 }
 static uint16_t x_image_get_conf_desc_fs_length(void) {
-	return sizeof(uac1_usb_conf_desc_fs);
+	if ( FEATURE_BOARD_WIDGET )
+		return sizeof(uac1_usb_conf_desc_fs_widget);
+	else
+		return sizeof(uac1_usb_conf_desc_fs);
 }
 static uint8_t *x_image_get_conf_desc_hs_pointer(void) {
-	return (uint8_t *)&uac1_usb_conf_desc_hs;
+	if ( FEATURE_BOARD_WIDGET )
+		return (uint8_t *)&uac1_usb_conf_desc_hs_widget;
+	else
+		return (uint8_t *)&uac1_usb_conf_desc_hs;
 }
 static uint16_t x_image_get_conf_desc_hs_length(void) {
-	return sizeof(uac1_usb_conf_desc_hs);
+	if ( FEATURE_BOARD_WIDGET )
+		return sizeof(uac1_usb_conf_desc_hs_widget);
+	else
+		return sizeof(uac1_usb_conf_desc_hs);
 }
 static uint8_t *x_image_get_qualifier_desc_pointer(void) {
 	return (uint8_t *)&uac1_usb_qualifier_desc;
