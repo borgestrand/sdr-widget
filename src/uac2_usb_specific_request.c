@@ -115,6 +115,7 @@ static U16   wLength;
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
+/*
 int Speedx_1[26] = {
 0x02,0x00,				//number of sample rate triplets
 
@@ -125,6 +126,31 @@ int Speedx_1[26] = {
 0x80,0xbb,0x00,0x00,	//48k Min
 0x00,0xee,0x02,0x00,	//192k Max
 0x80,0xbb,0x00,0x00,	//48k Res
+};
+*/
+
+int Speedx_1[62] = {
+0x05,0x00,				//number of sample rate triplets
+						// EP0 limit of 64 bytes so max of 5 triplets
+0x44,0xac,0x00,0x00,	//44.1k Min
+0x44,0xac,0x00,0x00,	//44.1k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x80,0xbb,0x00,0x00,	//48k Min
+0x80,0xbb,0x00,0x00,	//48k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x88,0x58,0x01,0x00,	//88.2k Min
+0x88,0x58,0x01,0x00,	//88.2k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x00,0x77,0x01,0x00,	//96k Min
+0x00,0x77,0x01,0x00,	//96k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x00,0xee,0x02,0x00,	//192k Min
+0x00,0xee,0x02,0x00,	//192k Max
+0x00,0x00,0x00,0x00		// 0 Res
 };
 
 int Speedx_2[38] = {
@@ -142,6 +168,8 @@ int Speedx_2[38] = {
 0x00,0xee,0x02,0x00,	//192k Max
 0x00,0x00,0x00,0x00		// 0 Res
 };
+
+
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -373,9 +401,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						&& request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[3]); // 0x0000bb80 is 48khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[2]); // 0x00017700 is 96khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[1]); // 0x0002ee00 is 192khz
+						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[3]);
+						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[2]);
+						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[1]);
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[0]);
 						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received());
@@ -403,9 +431,11 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < (wLength); i++)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
-						//							  LED_Toggle(LED0);
+						for (i = 0; i < (wLength); i++){
+							if (FEATURE_DAC_ES9022)
+								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
+							else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+						}
 						Usb_ack_control_in_ready_send();
 
 						while (!Is_usb_control_out_received());
