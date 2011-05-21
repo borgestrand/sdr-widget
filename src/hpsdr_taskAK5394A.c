@@ -106,8 +106,8 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (Is_usb_full_speed_mode()) FB_rate = 96 << 14;
-				else FB_rate = (96) << 13;
+	//			if (Is_usb_full_speed_mode()) FB_rate = 96 << 14;
+				FB_rate = (96) << 14;
 
 			} else if (current_freq.frequency == 192000) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -124,8 +124,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 							0);                 // GCLK1 = 12.288Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (Is_usb_full_speed_mode()) FB_rate = 192 << 14;
-				else FB_rate = (192) << 13;
+				FB_rate = 192 << 14;
 
 			} else if (current_freq.frequency == 48000) {
 
@@ -143,8 +142,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (Is_usb_full_speed_mode()) FB_rate = 48 << 14;
-				else FB_rate = (48) << 13;
+				FB_rate = 48 << 14;
 
 			}
 
