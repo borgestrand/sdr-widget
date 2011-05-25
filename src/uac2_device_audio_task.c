@@ -201,7 +201,7 @@ void uac2_device_audio_task(void *pvParameters)
 		}
 
 
-		if (usb_alternate_setting == 1) {
+		if ((usb_alternate_setting == 1) && Mic_freq_valid) {
 			if (current_freq.frequency == 96000) num_samples = 24;
 			else if (current_freq.frequency == 48000) num_samples = 12;
 			else num_samples = 48;	// freq 192khz
