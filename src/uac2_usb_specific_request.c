@@ -204,12 +204,6 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	   usb_alternate_setting_out_changed = TRUE;
    }
 
-   //* Check whether it is the audio streaming interface and Alternate Setting that is being set
-   usb_interface_nb = wIndex;
-   if (usb_interface_nb == DSC_INTERFACE_AS) {
-	   usb_alternate_setting = wValue;
-	   usb_alternate_setting_changed = TRUE;
-   }
 }
 
 //! This function is called by the standard USB read request function when

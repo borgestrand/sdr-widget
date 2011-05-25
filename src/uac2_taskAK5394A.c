@@ -116,8 +116,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-	//			if (Is_usb_full_speed_mode()) FB_rate = 96 << 14;
-				FB_rate = (96) << 14;
+				FB_rate = 96 << 14;
 
 			}
 

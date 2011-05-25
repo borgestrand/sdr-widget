@@ -24,7 +24,7 @@
 
 #include "compiler.h"
 
-#define FIRMWARE_VERSION	"V:ALL-005"
+#define FIRMWARE_VERSION	"V:ALL-006"
 
 /*! \name Peripherals to include at compile time. */
 //! @{
