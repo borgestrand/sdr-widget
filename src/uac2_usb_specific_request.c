@@ -583,6 +583,10 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						current_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						freq_changed = TRUE;
+
+						if (current_freq.frequency == Mic_freq.frequency) 								Mic_freq_valid = TRUE;
+						else Mic_freq_valid = FALSE;
+
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready()); //!< waits for status phase done
