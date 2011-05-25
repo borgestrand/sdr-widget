@@ -112,7 +112,6 @@ static U8    wValue_lsb;
 static U16   wIndex;
 static U16   wLength;
 
-Bool Mic_clock_valid = TRUE;
 S_freq Mic_freq;
 
 extern const    void *pbuffer;
@@ -364,9 +363,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						// Only valid if Mic freq is set to the same as SPK freq
-						// Hack to workaround Win uac2 driver
-						Usb_write_endpoint_data(EP_CONTROL, 8, Mic_clock_valid);
+						Usb_write_endpoint_data(EP_CONTROL, 8, TRUE);
 						// temp hack to give total # of bytes requested
 						for (i = 0; i < (wLength - 1); i++)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
@@ -565,9 +562,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Mic_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						Mic_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
 
-// The Mic freq is only valid if it is set to the same as the playback SPK freq
-						if (current_freq.frequency == Mic_freq.frequency) Mic_clock_valid = TRUE;
-						else Mic_clock_valid = FALSE;
+						current_freq.frequency = Mic_freq.frequency;
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
