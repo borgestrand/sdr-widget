@@ -112,6 +112,9 @@ static U8    wValue_lsb;
 static U16   wIndex;
 static U16   wLength;
 
+Bool Mic_clock_valid = TRUE;
+S_freq Mic_freq;
+
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
@@ -346,9 +349,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[3]); // 0x0000bb80 is 48khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[2]); // 0x00017700 is 96khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[1]); // 0x0002ee00 is 192khz
+						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[3]);
+						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[2]);
+						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[1]);
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[0]);
 						Usb_ack_control_in_ready_send();
 
@@ -361,7 +364,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						Usb_write_endpoint_data(EP_CONTROL, 8, TRUE);	// always valid
+						// Only valid if Mic freq is set to the same as SPK freq
+						// Hack to workaround Win uac2 driver
+						Usb_write_endpoint_data(EP_CONTROL, 8, Mic_clock_valid);
 						// temp hack to give total # of bytes requested
 						for (i = 0; i < (wLength - 1); i++)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
@@ -549,8 +554,28 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				} // end switch EntityID
 			} else if (type == OUT_CL_INTERFACE){		// set controls
 				switch (wIndex /256){
-				case CSD_ID_1:							// set CUR freq
-				case CSD_ID_2:
+				case CSD_ID_1:							// set CUR freq of Mic
+					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
+						&& request == AUDIO_CS_REQUEST_CUR){
+						Usb_ack_setup_received_free();
+						while (!Is_usb_control_out_received());
+						Usb_reset_endpoint_fifo_access(EP_CONTROL);
+						Mic_freq.freq_bytes[3]=Usb_read_endpoint_data(EP_CONTROL, 8);		// read 4 bytes freq to set
+						Mic_freq.freq_bytes[2]=Usb_read_endpoint_data(EP_CONTROL, 8);
+						Mic_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
+						Mic_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
+
+// The Mic freq is only valid if it is set to the same as the playback SPK freq
+						if (current_freq.frequency == Mic_freq.frequency) Mic_clock_valid = TRUE;
+						else Mic_clock_valid = FALSE;
+
+						Usb_ack_control_out_received_free();
+						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
+						while (!Is_usb_control_in_ready()); //!< waits for status phase done
+						return TRUE;
+					}
+					else return FALSE;
+				case CSD_ID_2:							// set CUR freq
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
