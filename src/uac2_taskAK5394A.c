@@ -116,8 +116,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (Is_usb_full_speed_mode()) FB_rate = 96 << 14;
-				else FB_rate = (96) << 13;
+				FB_rate = 96 << 14;
 
 			}
 
@@ -143,9 +142,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (Is_usb_full_speed_mode()) FB_rate = (88 << 14) + (1<<13)/5;
-					else FB_rate = (88 << 14) + (1<<13)/5;
-
+				FB_rate = (88 << 14) + (1<<14)/5;
 				}
 
 	       	else if (current_freq.frequency == 176400)
@@ -169,8 +166,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 	    								  0);                 // GCLK1 = 12.288Mhz
 	    			pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-	    			if (Is_usb_full_speed_mode()) FB_rate = (176 << 14) + ((1<<13) * 4)/ 10;
-	    				else FB_rate = (176 << 14) + ((1<<13)*4) / 10;
+	    			FB_rate = (176 << 14) + ((1<<14) * 4)/ 10;
 
 	        	}
 
@@ -196,8 +192,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // GCLK1 = 12.288Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (Is_usb_full_speed_mode()) FB_rate = 192 << 14;
-				else FB_rate = (192) << 13;
+				FB_rate = 192 << 14;
 
 			} else if (current_freq.frequency == 48000) {
 				// if there are two XO, PX16 sets the 48x
@@ -223,8 +218,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (Is_usb_full_speed_mode()) FB_rate = 48 << 14;
-				else FB_rate = (48) << 13;
+				FB_rate = 48 << 14;
 
 			}
 
@@ -252,8 +246,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (Is_usb_full_speed_mode()) FB_rate = (44 << 14) + (1 << 13)/10 ;
-				else FB_rate = (44 << 13) + (1 << 13)/10;
+				FB_rate = (44 << 14) + (1 << 14)/10 ;
 
 			}
 

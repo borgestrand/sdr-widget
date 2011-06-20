@@ -311,11 +311,11 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
 						LED_Toggle(LED0);
-						FB_rate -= 32;
+						FB_rate -= 64;
 						old_gap = gap;
 					} else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 						LED_Toggle(LED1);
-						FB_rate += 32;
+						FB_rate += 64;
 						old_gap = gap;
 					}
 
@@ -327,15 +327,15 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
 				} else {
 					// HS mode
-					// FB rate is 4 bytes in 12.13 format
+					// FB rate is 4 bytes in 12.14 format
 
 					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 						LED_Toggle(LED0);
-						FB_rate -= 16;
+						FB_rate -= 64;
 						old_gap = gap;
 					} else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 						LED_Toggle(LED1);
-						FB_rate += 16;
+						FB_rate += 64;
 						old_gap = gap;
 					}
 

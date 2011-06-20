@@ -115,7 +115,7 @@ static U16   wLength;
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
-int Speedx_1[26] = {
+U8 Speedx_1[26] = {
 0x02,0x00,				//number of sample rate triplets
 
 0x44,0xac,0x00,0x00,	//44.1k Min
@@ -127,7 +127,7 @@ int Speedx_1[26] = {
 0x80,0xbb,0x00,0x00,	//48k Res
 };
 
-int Speedx_2[38] = {
+U8 Speedx_2[38] = {
 0x03,0x00,				//number of sample rate triplets
 
 0x80,0xbb,0x00,0x00,	//48k Min
@@ -176,12 +176,6 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	   usb_alternate_setting_out_changed = TRUE;
    }
 
-   //* Check whether it is the audio streaming interface and Alternate Setting that is being set
-   usb_interface_nb = wIndex;
-   if (usb_interface_nb == DSC_INTERFACE_AS) {
-	   usb_alternate_setting = wValue;
-	   usb_alternate_setting_changed = TRUE;
-   }
 }
 
 //! This function is called by the standard USB read request function when
