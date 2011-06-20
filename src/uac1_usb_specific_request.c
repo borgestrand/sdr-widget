@@ -175,15 +175,30 @@ static Bool uac1_user_get_interface_descriptor() {
 	case HID_DESCRIPTOR:
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
-			data_to_transfer = sizeof(uac1_usb_conf_desc_fs.hid);
-			pbuffer          = (const U8*)&uac1_usb_conf_desc_fs.hid;
-#else
-			if( Is_usb_full_speed_mode() ) {
+			if (FEATURE_BOARD_WIDGET) {
+				data_to_transfer = sizeof(uac1_usb_conf_desc_fs_widget.hid);
+				pbuffer          = (const U8*)&uac1_usb_conf_desc_fs_widget.hid;
+			} else {
 				data_to_transfer = sizeof(uac1_usb_conf_desc_fs.hid);
 				pbuffer          = (const U8*)&uac1_usb_conf_desc_fs.hid;
+			}
+#else
+			if (FEATURE_BOARD_WIDGET) {
+				if( Is_usb_full_speed_mode() ) {
+					data_to_transfer = sizeof(uac1_usb_conf_desc_fs_widget.hid);
+					pbuffer          = (const U8*)&uac1_usb_conf_desc_fs_widget.hid;
+				} else {
+					data_to_transfer = sizeof(uac1_usb_conf_desc_hs_widget.hid);
+					pbuffer          = (const U8*)&uac1_usb_conf_desc_hs_widget.hid;
+				}
 			} else {
-				data_to_transfer = sizeof(uac1_usb_conf_desc_hs.hid);
-				pbuffer          = (const U8*)&uac1_usb_conf_desc_hs.hid;
+				if( Is_usb_full_speed_mode() ) {
+					data_to_transfer = sizeof(uac1_usb_conf_desc_fs.hid);
+					pbuffer          = (const U8*)&uac1_usb_conf_desc_fs.hid;
+				} else {
+					data_to_transfer = sizeof(uac1_usb_conf_desc_hs.hid);
+					pbuffer          = (const U8*)&uac1_usb_conf_desc_hs.hid;
+				}
 			}
 			break;
 		}
@@ -535,8 +550,10 @@ void audio_set_cur(void)
    if ((usb_type == USB_SETUP_SET_CLASS_ENDPOINT) && (wValue_msb == UAC_EP_CS_ATTR_SAMPLE_RATE)){
 		if (Usb_read_endpoint_data(EP_CONTROL, 8) == 0x44) speed = 0;
 		else speed = 1;
-
-		if (speed == 0){		// 44.1khz
+        if (FEATURE_BOARD_WIDGET) {
+           speed = 1; 		// forced to 48khz
+        } else
+		if (speed == 0){		// 44.1khz 
 				if (FEATURE_BOARD_USBI2S)
 					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 				else if (FEATURE_BOARD_USBDAC)
