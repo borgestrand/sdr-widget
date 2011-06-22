@@ -1,0 +1,47 @@
+An attempt at a server using libusb 1.0 synchronous API.
+
+
+The server program in the ghpsdr3 suite of programs is the the program that forms the interface to the hardware. One instance o this program must be running to communicate with one of the HPSDR communication boards (OZY, MAGISTER, or METIS).
+
+Currently the server program is a command line program and it has several options.
+
+--receivers (1|2|3|4)
+
+    receivers (note the plural) is the number of simultaneous receiver you want to monitor from your receiver card. the use of this option is dependent on the version of the FPGA code you are using. All versions support one receiver. Bruce Walkers FPGA code supports 4 receivers. 
+
+--samplerate (48000|96000|192000)
+
+    samplerate is the rate at which you want the HPSDR hardware to sample the incoming signals. 
+
+--dither (off|on)
+
+    dither turns on or off the hardware dither option. 
+
+--random (off|on)
+
+    random turns on or off the hardware random option. 
+
+--preamp (off|on)
+
+    preamp turns on or off the hardware preamp option. 
+
+--10mhzsource (atlas|penelope|mercury)
+
+    10mhzsource sets the source of the 10 mHz clock source, options include off the ATLAS buss for example from EXCALIBUR, from PENELOPE or from MERCURY. 
+
+--122.88mhzsource (atlas|penelope|mercury)
+
+    122.88mhzsource sets the source of the 122.88 mHz clock source, options include off the ATLAS buss for example from EXCALIBUR, from PENELOPE or from MERCURY. 
+
+--micsource (janus|penelope)
+
+    micsource sets the source of the microphone source, options include from JANUS or from PENELOPE. 
+
+--class (other|E)
+
+    class sets the class of power amplifier used. (Options are incomplete). 
+
+--timing (1)
+
+    timing sets the timing used. (Options are incomplete). 
+

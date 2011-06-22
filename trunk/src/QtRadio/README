@@ -1,0 +1,15 @@
+The beginnings of a more feature rich Qt 4 radio.
+
+Warning - this is an in progress development so may not even compile and not all menus, buttons may be implemented yet.
+
+This works connecting to the dspserver.  There is a new dspserver to support
+the added functions. Alwasy use the latest dspserver with this code.
+
+Now setup to use QtCreator  development environment than NetBeans. This code compile on Linux, Windows and Mac OS.
+
+For more information of this open-sources LGPL development environment go to
+http://qt.nokia.com/
+
+John g0orx/n6lyt
+
+john.d.melton@googlemail.com

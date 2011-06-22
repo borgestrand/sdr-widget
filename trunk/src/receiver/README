@@ -1,0 +1,57 @@
+ghpsdr - Gtk+ Application for running HPSDR on Linux
+
+ghpsdr is a an application written specifically for HPSDR. It uses a modifed version of DttSP that is ported from the Windows version. DttSP is built as a static library that is linked with the GUI code.
+
+The following has been verified with a clean install of Ubunto 9.04.
+
+Building ghpsdr
+---------------
+
+You will need to install gtk+, fftw and libusb1.0
+
+    sudo apt-get install libgtk2.0-dev
+    sudo apt-get install libfftw3-dev
+    sudo apt-get install libusb-1.0-0-dev
+
+If you are going to build DttSP.a you will also need to install libgsl
+
+    sudo apt-get install libgsl0-dev
+
+From the ghpsdr install directry run the command
+
+    make
+
+If all is OK you will end up with the ghpsdr binary.
+
+Included with the the ghpsdr source is a built version of libDttSP.a for 32 bit Linux.  If you are building on 64 bit linux then copy over the libDttSP.a.64 to libDttSP.a.  See below for instructions on how to build libDttSP.a.
+
+Running ghpsdr
+--------------
+
+To be able to run as a non root user you will need to add a udev script to set the permissions on the USB Ozy device.
+
+In /etc/udev/rules.d create a file called 90-ozy.rules with the following line in it:
+
+SUBSYSTEMS=="usb",ATTRS{idVendor}=="fffe",ATTRS{idProduct}=="0007",SYMLINK+="ozy",MODE="666"
+
+When Ozy is powered on and plugged in udev will recognise it and create /dev/ozy with permissions to allow you to access it as a non root user.
+
+You will also need to download initozy and the related files to load Ozy and the FPGA code.
+
+
+From the ghpsdr install directory run the command:
+
+./ghpsdr
+
+
+Building libDttSP.a
+-------------------
+
+Included in this directory is DttSP.tar.gz which when unpacked contains the modifed source of DttSP ported from the Windows dll.
+
+If you wish to build libDttSP.a then from within the ghpsdr directory perform the following commands:
+
+    tar xvzf DttSP.tar.gz
+    cd DttSP
+    make
+    cp libDttSP.a ..

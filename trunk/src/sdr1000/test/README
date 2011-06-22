@@ -1,0 +1,24 @@
+This program provides hardware control for the SDR-1000 for Windows (VS2005, Cygwin)
+and Linux environments including USB Adapter support.
+
+To build this project, browse to the \build folder and choose the appropriate
+subfolder based on your OS/compiler.  Under linux and cygwin, simply run 'make'.
+For Visual Studio 2005, there is a complete project file.
+
+The outputs will be put in the \bin folder.
+
+
+Requirements:
+
+Linux:
+libusb
+build-essentials
+
+Cygwin:
+libusb-win32
+porttalk.sys in \system32\drivers
+gcc
+g++
+
+VS2005:
+Visual Studio 2005 (any version including the free Express edition)

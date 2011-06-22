@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jnlp spec="1.0+" codebase="http://g0orx.homelinux.net/" href="jmonitor.jnlp">
+    <information>
+        <title>JMonitor</title>
+        <vendor>John Melton g0orx/n6lyt</vendor>
+        <shortcut online="false">
+          <desktop/>
+          <menu submenu="HPSDR"/>
+        </shortcut>
+        <offline-allowed/>
+    </information>
+    <resources>
+        <j2se version="1.5+" href="http://java.sun.com/products/autodl/j2se" />
+        <jar href="jmonitor.jar" main="true" />
+        <jar href="lib/AbsoluteLayout.jar"/>
+    </resources>
+    <application-desc main-class="jmonitor.Main">
+        <argument>--server</argument>
+        <argument>86.146.61.118</argument>
+        <argument>--receiver</argument>
+        <argument>0</argument>
+    </application-desc>
+</jnlp>					
+

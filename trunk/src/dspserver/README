@@ -1,0 +1,62 @@
+dspserver - Application for running HPSDR on Linux
+
+dspserver is an application written specifically for HPSDR. It uses a modifed version of DttSP that is ported from the Windows version. DttSP is built as a static library that is linked with the server code.
+
+The following has been verified with a clean install of Ubunto 9.04.
+
+Building dspserver
+------------------
+
+You will need to install fftw
+
+    sudo apt-get install libfftw3-dev
+
+If you are going to build DttSP.a you will also need to install libgsl
+
+    sudo apt-get install libgsl0-dev
+
+From the dspserver install directory run the command
+
+    make
+
+If all is OK you will end up with the dspserver binary.
+
+Running dspserver
+-----------------
+
+From the ghpsdr3 bin directory run the command:
+
+./dspserver --receiver R --server a.b.c.d
+
+command line options:
+
+    --receiver rx
+
+       default 0
+       for HPSDR running multiple receivers this should be 0..3
+       for softrock only 0 is supported.
+
+    --server a.b.c.d
+
+       default 127.0.0.1
+       IP address of hardware server.
+
+    -- soundcard cardname
+
+       default HPSDR
+       SANTA_CRUZ
+       AUDIGY_2_ZS
+       MP3_PLUS
+       EXTIGY
+       DELTA_44
+       FIREBOX
+       EDIROL_FA_66
+       HPSDR
+       UNDEFINED
+
+    -- offset x
+
+       default 0
+       sets the I/Q offset. Needed for some cards such as some SoundBlaster
+       card where the samples are delayed by 1 sample between the 2 channels.
+       (i.e. --offset -1).

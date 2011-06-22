@@ -1,0 +1,46 @@
+server - a server implemented using libusb 1.0 sync API.
+
+    server
+        --receivers [1..8]
+        --samplerate [48000|96000|192000]
+        --dither [off|on]
+        --random [off|on]
+        --preamp [off|on]
+        --10mhzsource [atlas|penelope|mercury]
+        --122.88mhzsource [penelope|mercury]
+        --micsource [janus|penelope]
+        --class [other|E]
+
+
+receiver - ghpsdr modified for client/server.
+
+    ghpsdr
+        --receiver [0..7]
+        --server ipaddress
+
+monitor -  a simple waterfall client.
+
+    monitor
+        --receiver [0..7]
+        --frequency <frequency-in-hz>
+        --server ipaddress
+
+
+bandscope - a banscope client.
+
+    bandscope
+        --server ipaddress
+
+
+
+
+softrock - a simple softrock receiver server.
+sdr1000 - a start of a SDR-1000 receiver server.
+
+Test stuff.
+----------
+ozydriver - Linux device driver for Ozy.
+async_server - a sever implemented using libusb 1.0 async API.
+hpsdrsvr - a server implemented using the ozy device driver (read/write).
+
+

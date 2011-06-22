@@ -1,0 +1,17 @@
+/*
+ * qtMonitor.h
+ *
+ *  Created on: 5 Aug 2010
+ *      Author: john
+ */
+
+#ifndef QTMONITOR_H_
+#define QTMONITOR_H_
+
+class qtMonitor {
+public:
+	qtMonitor();
+	virtual ~qtMonitor();
+};
+
+#endif /* QTMONITOR_H_ */

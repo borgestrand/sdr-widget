@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jnlp codebase="http://g0orx.homelinux.net/" href="jmonitorapplet.jnlp" spec="1.0+">
+    <information>
+        <title>JMonitor</title>
+        <vendor>John Melton g0orx/n6lyt</vendor>
+        <homepage href="http;//g0orx.homelinux.net"/>
+        <description>HPSDR Java remote radio</description>
+        <description kind="short">JMonitor</description>
+    <offline-allowed/>
+</information>
+    <resources>
+<j2se version="1.5+"/>
+<jar eager="true" href="jmonitor.jar" main="true"/>
+    <jar href="lib/AbsoluteLayout.jar"/>
+</resources>
+    <applet-desc height="230" main-class="jmonitor.MonitorApplet" name="JMonitor" width="480">
+    </applet-desc>
+</jnlp>

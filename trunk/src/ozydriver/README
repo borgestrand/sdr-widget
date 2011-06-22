@@ -1,0 +1,14 @@
+Simple Linux device driver for HPSDR.
+
+Currently allows only read/write of 512 byte frames.
+
+Build:
+
+     make
+
+Install:
+
+    sudo insmod hpsdr.ko
+
+When installed there will be a device created /dev/hpsdr0.  I have not tested with multiple HPSDR systems connected.
+

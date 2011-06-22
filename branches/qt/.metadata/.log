@@ -1,0 +1,9 @@
+!SESSION 2010-08-05 10:53:15.433 -----------------------------------------------
+eclipse.buildId=M20100211-1343
+java.version=1.6.0_18
+java.vendor=Sun Microsystems Inc.
+BootLoader constants: OS=linux, ARCH=x86, WS=gtk, NL=en_GB
+Command-line arguments:  -os linux -ws gtk -arch x86
+
+!ENTRY org.eclipse.cdt.core 1 0 2010-08-05 10:55:35.661
+!MESSAGE Indexed 'qtMonitor' (0 sources, 76 headers) in 0.96 sec: 2,086 declarations; 2,330 references; 0 unresolved inclusions; 0 syntax errors; 0 unresolved names (0.00%)

@@ -1,0 +1,29 @@
+A client that simply dislays a waterfall.  Right click to select frequency.
+
+monitor accepts the following command on the command line.
+
+--receiver 0|1|2|3 (default 0)
+
+    Receiver that this client is attached to (Please note singular). Also please not that receivers are 0 based. 
+
+--server 0.0.0.0 (default 127.0.0.1)
+
+    ip address of the server machine. Default is the localhost (127.0.0.1). 
+
+--frequency 0 (default 0)
+
+    The center frequency of the waterfall spectrum. 
+
+--update 15 (default 15)
+
+    The center update rate of the waterfall spectrum. The range is 1-40/second. (default 15/second). 
+
+--high -60 (default -60)
+
+    The upper limit of the color for the waterfall signal intensity (default -60 db). 
+
+--low -130 (default -130)
+
+    The lower limit of the color for the waterfall signal intensity (default -130 db). 
+
+

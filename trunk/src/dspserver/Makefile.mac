@@ -1,0 +1,59 @@
+#
+# Makefile to build ghpsdr on Mac OS X
+#
+CC=gcc
+LINK=gcc
+OPTIONS=-g
+INCLUDES=-I. -I/usr/local/include/gtk-2.0 -I/usr/lib/gtk-2.0/include\
+         -I/usr/include/atk-1.0 -I/usr/include/cairo\
+         -I/usr/include/pango-1.0 -I/usr/include/glib-2.0\
+         -I/usr/lib/glib-2.0/include -I/usr/include/pixman-1\
+         -I"/usr/X11R6 1/include/freetype2/freetype" -I/usr/include/libpng12\
+         -I/Library/Frameworks/Gtk.framework/Headers\
+         -I/Library/Frameworks/GLib.framework/Headers\
+         -I/Library/Frameworks/Cairo.framework/Headers
+
+LIBS=-L/usr/local/lib -L"/usr/X11R6 1/lib" -L.\
+     -lDttSP\
+     -lfftw3f -lfreetype -lfontconfig -lusb-1.0\
+     -lpthread\
+     -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0\
+     -lm -lpangocairo-1.0 -lgio-2.0 -lcairo -lpango-1.0 -lz\
+     -lgobject-2.0 -lgmodule-2.0 -lglib-2.0
+
+COMPILE=$(CC) $(INCLUDES)
+
+SOURCES= agc.c audio.c band.c bandscope.c bandscope_control.c bandscope_update.c command.c\
+         display.c filter.c frequency.c libusbio.c main.c meter.c\
+         meter_update.c mode.c ozy_buffers.c ozy.c ozy_ringbuffer.c\
+         preamp.c property.c receiver.c\
+         setup.c display_setup.c hpsdr_setup.c xvtr_setup.c\
+         soundcard.c spectrum_buffers.c spectrum.c spectrum_update.c util.c vfo.c volume.c\
+         sinewave.c transmit.c\
+         iphone.c audiostream.c\
+         subrx.c
+
+OBJS= agc.o audio.o band.o bandscope.o bandscope_control.o bandscope_update.o command.o\
+      display.o filter.o frequency.o libusbio.o main.o meter.o\
+      meter_update.o mode.o ozy_buffers.o ozy.o ozy_ringbuffer.o\
+      preamp.o property.o receiver.o\
+      setup.o display_setup.o hpsdr_setup.o xvtr_setup.o\
+      soundcard.o spectrum_buffers.o spectrum.o spectrum_update.o util.o vfo.o volume.o\
+      sinewave.o transmit.o\
+      iphone.o audiostream.o\
+      subrx.o
+
+PROGRAM=ghpsdr
+
+all: ghpsdr
+
+ghpsdr: $(OBJS)
+	$(LINK) -o ghpsdr $(OBJS) $(LIBS)
+
+.c.o:
+	$(COMPILE) $(OPTIONS) -c -o $@ $<
+
+clean:
+	-rm -f *.o
+	-rm -f ghpsdr
+

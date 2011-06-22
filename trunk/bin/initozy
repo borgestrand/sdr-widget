@@ -1,0 +1,44 @@
+#!/bin/bash
+
+PATH=.:$PATH
+
+USB_VID=0xfffe
+USB_PID=0x0007
+
+OZY_HEX=ozyfw-sdr1k.hex
+JANUS_RBF=Ozy_Janus.rbf
+
+/bin/echo "Loading Ozy hex file $OZY_HEX"
+loadFW $USB_VID $USB_PID $OZY_HEX
+sleep 5
+
+
+/bin/echo "Loading Janus FPGA file $JANUS_RBF"
+loadFPGA $USB_VID $USB_PID $JANUS_RBF
+sleep 1
+
+#        1E 00 - Reset chip
+#        12 01 - set digital interface active
+#        08 15 - D/A on, mic input, mic 20dB boost
+#        08 14 - ditto but no mic boost
+#        0C 00 - All chip power on
+#        0E 02 - Slave, 16 bit, I2S
+#        10 00 - 48k, Normal mode
+#        0A 00 - turn D/A mute off
+#write_i2c $USB_VID $USB_PID 0x1a 0x1e 0x00 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1a 0x12 0x01 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1a 0x08 0x14 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1a 0x0c 0x00 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1a 0x0e 0x02 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1a 0x10 0x00 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1a 0x0a 0x00 0x00 2
+
+#write_i2c $USB_VID $USB_PID 0x1b 0x1e 0x00 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1b 0x12 0x01 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1b 0x08 0x14 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1b 0x0c 0x00 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1b 0x0e 0x02 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1b 0x10 0x00 0x00 2
+#write_i2c $USB_VID $USB_PID 0x1b 0x0a 0x00 0x00 2
+
+exit 0

@@ -1,0 +1,60 @@
+A simple server for a softrock receiver.
+
+command line arguments:
+
+    --samplerate   48000 | 96000 | 19200
+    --input        Input device (see below)
+    --output       Output device (see below)
+    --iq           Samples in I/Q order
+    --qi           Samples in Q/I order
+    --si570        Use si570 to set frequency (default off)
+    --verbose      Enable  verbose output for si570 (default 0ff)
+    --startupfreq  si570 startupFrequency (default 56.32)
+    --multiplier   si570 frequency multiplier (default 4)
+    --correctedfreq si570 corrected xtal frequency (default 114.285)
+
+Input and Output device should be set to the Port Audio device number for the /dev/dsp(x) to be used.
+
+
+Enter the following command to get the list of sound cards:
+
+    cat /proc/asound/cards
+
+The output should be something like:
+
+ 0 [V8237          ]: VIA8237 - VIA 8237
+                      VIA 8237 with ALC655 at 0xd000, irq 22
+ 1 [CA0106         ]: CA0106 - CA0106
+                      X-Fi Extreme Audio [SB0790] at 0xec00 irq 18
+
+
+Card 0 will be /dev/dsp and card 1 will be /dev/dsp1, etc.
+
+
+Run softrock without any arguments and then CTRL-C to kill it if it does not get any errors. You should see output that will include:
+
+16 - /dev/dsp
+maxInputChannels: 16
+maxOututChannels: 16
+17 - /dev/dsp1
+maxInputChannels: 16
+maxOututChannels: 16
+
+To use the X-F1 Extreme use:
+
+    --input 17 --output 17
+
+
+
+
+To allow user access to the USB device you need to set the device permissions.  Create a file in /etc/udev/rules.d called 90-softrock.rules containing the following line (you will need to be root):
+
+ 
+SUBSYSTEMS=="usb",ATTRS{idVendor}=="16c0",ATTRS{idProduct}=="05dc",SYMLINK+="softrock",MODE="666"
+
+Now when you plug the usb cable into the computer it will create a /dev/softrock and it will have the permissions set to allow any user to read/write to it.
+
+
+
+
+

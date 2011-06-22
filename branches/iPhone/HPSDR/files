@@ -1,0 +1,13 @@
+rm -rf ./build/Release-iphoneos/._HPSDR.app
+rm -rf ./build/HPSDR.build/._HPSDR.pbxindex
+rm -rf ./build/._HPSDR.build
+rm -rf ./._audiostream.h
+rm -rf ./._connection.c
+rm -rf ./._connection.h
+rm -rf ./._audiostream.c
+rm -rf ./._samples.h
+rm -rf ./._build
+rm -rf ./._samples.c
+rm -rf ./._.DS_Store
+rm -rf ./Classes/._MainViewController.m
+rm -rf ./Classes/._MainView.m

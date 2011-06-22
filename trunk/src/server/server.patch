@@ -1,0 +1,286 @@
+diff -u server/Makefile /home/alex/Desktop/server/Makefile
+--- server/Makefile	2011-03-27 07:11:06.902788181 +0800
++++ /home/alex/Desktop/server/Makefile	2010-11-29 14:40:39.510028001 +0800
+@@ -3,8 +3,8 @@
+ # modified by Dave Larsen, KV0S
+ #
+ CC            = gcc
+-CFLAGS        = 
+-LIBS          = -lpthread -lusb-1.0
++CFLAGS        = -O3 -std=gnu99
++LIBS          = -lpthread -lusb-1.0 -lusb -lm
+ TARGET 	=	../../bin/server
+ SOURCES = 	bandscope.c  \
+ 		listener.c \
+@@ -15,7 +15,9 @@
+ 		ozy.c \
+ 		ozyio.c \
+ 		metis.c \
+-		server.c
++		server.c \
++		operations.c \
++		config_ops.c
+ OBJECTS =       bandscope.o  \
+                 listener.o \
+                 receiver.o \
+@@ -25,7 +27,9 @@
+                 ozy.o \
+                 ozyio.o \
+                 metis.o \
+-                server.o
++                server.o \
++		operations.o \
++		config_ops.o
+ 
+ .c.o:
+ 	$(CC) -c $(CFLAGS) $(INCPATH) -o "$@" "$<"
+diff -u server/ozy.c /home/alex/Desktop/server/ozy.c
+--- server/ozy.c	2011-03-27 07:11:06.906788198 +0800
++++ /home/alex/Desktop/server/ozy.c	2011-03-13 19:06:57.076751952 +0800
+@@ -223,12 +223,14 @@
+             exit(1);
+         }
+ 
++/*
+         // create a thread to read from EP4
+         rc=pthread_create(&ep4_io_thread_id,NULL,ozy_ep4_io_thread,NULL);
+         if(rc != 0) {
+             fprintf(stderr,"pthread_create failed on ozy_ep4_io_thread: rc=%d\n", rc);
+             exit(1);
+         }
++*/
+     }
+ 
+     return 0;
+@@ -326,6 +328,15 @@
+     strcpy(ozy_firmware,"ozyfw-sdr1k.hex");
+     strcpy(ozy_fpga,"Ozy_Janus.rbf");
+ 
++    // setup defaults
++/*
++    control_out[0] = MOX_DISABLED;
++    control_out[1] = CONFIG_MERCURY | MERCURY_122_88MHZ_SOURCE | MERCURY_10MHZ_SOURCE | speed | MIC_SOURCE_PENELOPE;
++    control_out[2] = MODE_OTHERS;
++    control_out[3] = ALEX_ATTENUATION_0DB | LT2208_GAIN_OFF | LT2208_DITHER_ON | LT2208_RANDOM_ON;
++    control_out[4] = DUPLEX | ((receivers-1)<<3);
++*/
++
+         // On Windows, the following is replaced by init_hpsdr() in OzyInit.c
+ #ifdef __linux__
+ 
+@@ -336,24 +347,9 @@
+         exit(1);
+     }
+ 
+-    // load Ozy FW
+-    ozy_reset_cpu(1);
+-    ozy_load_firmware(ozy_firmware);
+-    ozy_reset_cpu(0);
+-ozy_close();
+-    sleep(5);
+-ozy_open();
+-    ozy_set_led(1,1);
+-    ozy_load_fpga(ozy_fpga);
+-    ozy_set_led(1,0);
+-    ozy_close();
+-
+-    ozy_open();
+-    rc=ozy_get_firmware_string(ozy_firmware_version,8);
+-    fprintf(stderr,"Ozy FX2 version: %s\n",ozy_firmware_version);
+ #endif
+ 
+-
++    ozy_set_speed(speed);
+     return rc;
+ }
+ 
+diff -u server/ozyio.c /home/alex/Desktop/server/ozyio.c
+--- server/ozyio.c	2011-03-27 07:11:07.066788997 +0800
++++ /home/alex/Desktop/server/ozyio.c	2011-03-13 19:02:24.434989729 +0800
+@@ -100,12 +100,14 @@
+     libusb_close(ozy_handle);
+ }
+ 
+-int ozy_get_firmware_string(char* buffer,int buffer_size) {
++int ozy_set_speed(char speed) {
+     int rc;
++    char buffer[8];
++    int buffer_size = 8;
+ 
+-    rc=libusb_control_transfer(ozy_handle, VRT_VENDOR_IN, VRQ_SDR1K_CTL, SDR1KCTRL_READ_VERSION, 0, buffer, buffer_size, OZY_IO_TIMEOUT);
++    rc=libusb_control_transfer(ozy_handle, VRT_VENDOR_IN, 0x71, 0, speed, buffer, buffer_size, OZY_IO_TIMEOUT);
+     if(rc<0) {
+-        fprintf(stderr,"ozy__get_firmware_string failed: %d\n",rc);
++        fprintf(stderr,"ozy_set_speed failed: %d\n",rc);
+         return rc;
+     }
+     buffer[rc]='\0';
+diff -u server/ozyio.h /home/alex/Desktop/server/ozyio.h
+--- server/ozyio.h	2011-03-27 07:11:07.062788980 +0800
++++ /home/alex/Desktop/server/ozyio.h	2011-03-13 19:04:00.083464417 +0800
+@@ -24,9 +24,10 @@
+ *
+ */
+ 
++
+ int ozy_open(void);
+ int ozy_close();
+-int ozy_get_firmware_string(char* buffer,int buffer_size);
++int ozy_set_speed(char);
+ int ozy_write(int ep,unsigned char* buffer,int buffer_size);
+ int ozy_read(int ep,unsigned char* buffer,int buffer_size);
+ 
+Binary files server/ozyio.o and /home/alex/Desktop/server/ozyio.o differ
+Binary files server/ozy.o and /home/alex/Desktop/server/ozy.o differ
+diff -u server/README /home/alex/Desktop/server/README
+--- server/README	2011-03-27 07:11:07.066788997 +0800
++++ /home/alex/Desktop/server/README	2010-11-29 12:00:14.565659000 +0800
+@@ -45,11 +45,3 @@
+ 
+     timing sets the timing used. (Options are incomplete). 
+ 
+---metis
+-
+-    use Metis ethernet interface rather than Ozy USB.
+-
+---interface <interface>
+-
+-    specify ethernet interface to use for Metis (default eth0).
+-
+diff -u server/receiver.c /home/alex/Desktop/server/receiver.c
+--- server/receiver.c	2011-03-27 07:11:07.062788980 +0800
++++ /home/alex/Desktop/server/receiver.c	2011-03-13 11:21:21.579282503 +0800
+@@ -35,16 +35,20 @@
+ #include <netdb.h>
+ #endif 
+ #include <string.h>
+-
++#include <usb.h>
+ #include "buffer.h"
+ #include "client.h"
+ #include "receiver.h"
+ #include "messages.h"
+ #include "ozy.h"
++#include "ozyio.h"
+ #include "util.h"
+ 
+ #define SMALL_PACKETS
+ 
++extern int si570;
++extern usb_dev_handle* handle;
++
+ RECEIVER receiver[MAX_RECEIVERS];
+ static int iq_socket;
+ static struct sockaddr_in iq_addr;
+@@ -129,7 +133,8 @@
+     if(client->receiver<0) {
+         return RECEIVER_INVALID;
+     }
+-
++   if(si570)
++        setFrequency(handle,(double)frequency/1000000.0);
+     receiver[client->receiver].frequency=frequency;
+     receiver[client->receiver].frequency_changed=1;
+
+diff -u server/server.c /home/alex/Desktop/server/server.c
+--- server/server.c	2011-03-27 07:11:07.066788997 +0800
++++ /home/alex/Desktop/server/server.c	2011-03-13 19:10:56.689940132 +0800
+@@ -41,7 +41,7 @@
+ #include <winsock.h>
+ #include "getopt.h"
+ #endif
+-
++#include <usb.h>
+ 
+ #include "client.h"
+ #include "listener.h"
+@@ -49,6 +49,7 @@
+ #include "receiver.h"
+ #include "bandscope.h"
+ #include "metis.h"
++#include "ozyio.h"
+ 
+ static struct option long_options[] = {
+     {"receivers",required_argument, 0, 0},
+@@ -67,11 +68,21 @@
+     {"metis",no_argument,0,13},
+     {"interface",required_argument,0,14},
+     {"metisip",required_argument,0,15},
++    {"si570",no_argument,0,16},
+     {0,0,0,0},
+ };
+ static char* short_options="";
+ static int option_index;
+ 
++int verbose=0;
++int si570=0;
++usb_dev_handle* handle = NULL;
++double startupFreq=56.32;
++double multiplier=4;
++int i2cAddress = 0x55;
++double fXtall = 114.285;
++char* usbSerialID=NULL;
++
+ static int metis=0;
+ static char* interface="eth0";
+ static char* metisip="0.0.0.0";
+@@ -80,6 +91,7 @@
+ 
+ int main(int argc,char* argv[]) {
+ 
++	int rc;
+ #ifndef __linux__
+         WORD wVersionRequested;
+         WSADATA wsaData;
+@@ -102,6 +114,16 @@
+         ozy_set_buffers(2);
+     }
+ 
++
++   if(si570) {
++        usb_init();
++        rc=usbOpenDevice(&handle,0xfffe,"www.obdev.at",0x0007,"DG8SAQ-I2C",usbSerialID);
++        if(rc!=0) {
++            fprintf(stderr,"Cannot open USB device\n");
++            exit(1);
++        }
++    }
++
+     init_receivers();
+     init_bandscope();
+ 
+@@ -113,6 +135,7 @@
+         create_ozy_thread();
+     }
+ 
++
+     while(1) {
+ #ifdef __linux__
+         sleep(10);
+@@ -132,7 +155,6 @@
+             case 0: // receivers
+                 ozy_set_receivers(atoi(optarg));
+                 break;
+-                break;
+             case 1: // sample rate
+                 ozy_set_sample_rate(atoi(optarg));
+                 break;
+@@ -231,7 +253,9 @@
+                 metisip=optarg;
+ fprintf(stderr,"metisip=%s\n",metisip);
+                 break;
+-
++	    case 16: // si570
++		si570 = 1;
++		break;
+             default:
+                 fprintf(stderr,"Usage: \n");
+                 fprintf(stderr,"  server --receivers N (default 1)\n");
+@@ -245,6 +269,7 @@
+                 fprintf(stderr,"         --timing 1\n");
+                 fprintf(stderr,"         --metis\n");
+                 fprintf(stderr,"         --interface if\n");
++		fprintf(stderr,"         --si570\n");
+                 exit(1);
+                 break;
+
