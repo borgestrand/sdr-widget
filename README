@@ -7,7 +7,7 @@ The changes are in trunk/src/:
 softrock    - added an IF offset of 9khz (ala PSDR-IQ) 
 dspserver  - added IF offset of 9khz 
 server       - hpsdr protocol with full control of sdr-widget/Mobo 
-receiver     - Makefile modified to compile in x86_64
+receiver     - Makefile modified to compile in x86_64, changed local-audio to direct alsa output, changed portaudio to use callback
 QtRadio    - no changes yet.  Same as stock QtRadio 
 
 To run the softrock server (defaults to using pulse for IQ input.  So 
