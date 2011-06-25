@@ -92,6 +92,16 @@ void uac1_AK5394A_task(void *pvParameters) {
 
 		vTaskDelayUntil(&xLastWakeTime, UAC1_configTSK_AK5394A_PERIOD);
 
+		if (freq_changed) {
+			if (current_freq.frequency == 48000)
+			{
+				FB_rate = 48 << 14;
+			}
+			else
+			{
+				FB_rate = (44 << 14) + (1 << 14)/10 ;
+			}
+		}
 		if (usb_alternate_setting_changed) {
 
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
