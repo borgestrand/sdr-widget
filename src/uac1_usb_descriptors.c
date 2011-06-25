@@ -294,8 +294,8 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		,   EP_ATTRIBUTES_3
 		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
 		,   EP_INTERVAL_3_FS
-		,   0x00
-		,   EP_BSYNC_ADDRESS_3
+		,   0x05
+		,   ENDPOINT_NB_5
 	}
 	,
 	{  sizeof(S_usb_endpoint_audio_specific_1)
@@ -305,7 +305,6 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
 	}
-	/*
 	  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_1)
       ,   ENDPOINT_DESCRIPTOR
@@ -316,7 +315,6 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
       ,   EP_REFRESH_5_FS
       ,   0x00
       }
-	*/
 	,
 	{  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
@@ -600,8 +598,8 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		,   EP_ATTRIBUTES_3
 		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
 		,   EP_INTERVAL_3_HS
-		,   0x00
-		,   EP_BSYNC_ADDRESS_3
+		,   0x05
+		,   ENDPOINT_NB_5
     }
 	,
     {  sizeof(S_usb_endpoint_audio_specific_1)
@@ -611,7 +609,6 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
     }
-	/*
 	  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_1)
       ,   ENDPOINT_DESCRIPTOR
@@ -622,7 +619,6 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
       ,   EP_REFRESH_5_HS
       ,   0x00
       }
-	*/
 	,
     {  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
@@ -914,7 +910,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
     }
-	/*
+	
 	  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_1)
       ,   ENDPOINT_DESCRIPTOR
@@ -925,7 +921,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
       ,   EP_REFRESH_5_HS
       ,   0x00
       }
-	*/
+	
 	,
     {  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
@@ -1216,7 +1212,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
 	}
-	/*
+	
 	  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_1)
       ,   ENDPOINT_DESCRIPTOR
@@ -1227,7 +1223,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
       ,   EP_REFRESH_5_FS
       ,   0x00
       }
-	*/
+
 	,
 	{  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
