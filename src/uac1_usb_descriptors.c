@@ -686,7 +686,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 
 
 // usb_user_configuration_descriptor HS
-const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
+const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget =
 {
 	{
 		sizeof(S_usb_configuration_descriptor),
@@ -881,7 +881,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  Usb_format_mcu_to_usb_data(16, SPK_AS_FORMAT_TAG)
 	}
 	,
-	{  sizeof(S_usb_format_type_1)
+	{  sizeof(S_usb_format_type_1_one_freq)
 	   ,  CS_INTERFACE
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
@@ -986,7 +986,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 };
 
 
-const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
+const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget =
 {
 	{
 		sizeof(S_usb_configuration_descriptor),
@@ -1183,7 +1183,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  Usb_format_mcu_to_usb_data(16, SPK_AS_FORMAT_TAG)
     }
 	,
-    {  sizeof(S_usb_format_type_1)
+    {  sizeof(S_usb_format_type_1_one_freq)
 	   ,  CS_INTERFACE
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE

@@ -304,13 +304,56 @@ __attribute__((__packed__))
 #endif
 S_usb_user_configuration_descriptor;
 
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+	  S_usb_configuration_descriptor cfg;
+	  S_usb_interface_descriptor	 ifc0;
+	  S_usb_interface_descriptor	ifc1;
+	  S_usb_hid_descriptor           hid;
+	  S_usb_endpoint_descriptor      ep1;
+	  S_usb_endpoint_descriptor		 ep2;
+	  S_usb_interface_association_descriptor iad1;
+	  S_usb_interface_descriptor     	ifc2;
+	  S_usb_ac_interface_descriptor_1  	audioac;
+	  S_usb_in_ter_descriptor_1		 	mic_in_ter;
+	  S_usb_feature_unit_descriptor_1  	mic_fea_unit;
+	  S_usb_out_ter_descriptor_1	 	mic_out_ter;
+	  S_usb_in_ter_descriptor_1			spk_in_ter;
+	  S_usb_feature_unit_descriptor_1	spk_fea_unit;
+	  S_usb_out_ter_descriptor_1		spk_out_ter;
+	  S_usb_as_interface_descriptor 	spk_as_alt0;
+	  S_usb_as_interface_descriptor 	spk_as_alt1;
+	  S_usb_as_g_interface_descriptor_1	spk_g_as;
+	  S_usb_format_type_1_one_freq		spk_format_type;
+	  S_usb_endpoint_audio_descriptor_1	ep3;
+	  S_usb_endpoint_audio_specific_1 	ep3_s;
+	  S_usb_endpoint_audio_descriptor_1	ep5;
+	  S_usb_as_interface_descriptor 	mic_as_alt0;
+	  S_usb_as_interface_descriptor 	mic_as_alt1;
+	  S_usb_as_g_interface_descriptor_1	mic_g_as;
+	  S_usb_format_type_1_one_freq		mic_format_type;
+	  S_usb_endpoint_audio_descriptor_1	ep4;
+	  S_usb_endpoint_audio_specific_1 	ep4_s;
+}
+#if (defined __ICCAVR32__)
+#pragma pack()
+#endif
+S_usb_user_configuration_descriptor_one_freq;
+
 extern const S_usb_device_descriptor uac1_audio_usb_dev_desc;
 extern const S_usb_device_descriptor uac1_dg8saq_usb_dev_desc;
 extern const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc;
 extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs;
-extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget;
+extern const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget;
 extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs;
-extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget;
+extern const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget;
 extern const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc;
 
 #endif  // _UAC1_USB_DESCRIPTORS_H_
