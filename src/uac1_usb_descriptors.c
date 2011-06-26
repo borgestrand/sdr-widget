@@ -101,7 +101,8 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
-	,
+/*	
+,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -140,6 +141,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS),
 		EP_INTERVAL_2
 	}
+*/
 	,
 
 	{ sizeof(S_usb_interface_association_descriptor)
@@ -294,8 +296,8 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		,   EP_ATTRIBUTES_3
 		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
 		,   EP_INTERVAL_3_FS
-		,   0x05
-		,   ENDPOINT_NB_5
+		,   EP_REFRESH_3_FS
+		,   EP_BSYNC_ADDRESS_3			// FB EP
 	}
 	,
 	{  sizeof(S_usb_endpoint_audio_specific_1)
@@ -308,11 +310,11 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_1)
       ,   ENDPOINT_DESCRIPTOR
-      ,   ENDPOINT_NB_5
-      ,   EP_ATTRIBUTES_5
-      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_5_FS)
-      ,   EP_INTERVAL_5_FS
-      ,   EP_REFRESH_5_FS
+      ,   ENDPOINT_NB_4
+      ,   EP_ATTRIBUTES_4
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS)
+      ,   EP_INTERVAL_4_FS
+      ,   EP_REFRESH_4_FS
       ,   0x00
       }
 	,
@@ -362,10 +364,10 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
     ,
 	{   sizeof(S_usb_endpoint_audio_descriptor_1)
         ,   ENDPOINT_DESCRIPTOR
-        ,   ENDPOINT_NB_4
-        ,   EP_ATTRIBUTES_4
-        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS)
-        ,   EP_INTERVAL_4_FS
+        ,   ENDPOINT_NB_5
+        ,   EP_ATTRIBUTES_5
+        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_5_FS)
+        ,   EP_INTERVAL_5_FS
         ,   0x00
         ,   0x00
 	}
@@ -405,8 +407,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		INTERFACE_SUB_CLASS0,
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
-	},
-
+	}
+/*
+,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -445,7 +448,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS),
 		EP_INTERVAL_2
 	}
-
+*/
 	,
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
@@ -598,8 +601,8 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		,   EP_ATTRIBUTES_3
 		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
 		,   EP_INTERVAL_3_HS
-		,   0x05
-		,   ENDPOINT_NB_5
+		,   EP_REFRESH_3_HS
+		,   EP_BSYNC_ADDRESS_3
     }
 	,
     {  sizeof(S_usb_endpoint_audio_specific_1)
@@ -612,11 +615,11 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_1)
       ,   ENDPOINT_DESCRIPTOR
-      ,   ENDPOINT_NB_5
-      ,   EP_ATTRIBUTES_5
-      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_5_HS)
-      ,   EP_INTERVAL_5_HS
-      ,   EP_REFRESH_5_HS
+      ,   ENDPOINT_NB_4
+      ,   EP_ATTRIBUTES_4
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_4_HS)
+      ,   EP_INTERVAL_4_HS
+      ,   EP_REFRESH_4_HS
       ,   0x00
       }
 	,
@@ -650,7 +653,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  Usb_format_mcu_to_usb_data(16, AS_FORMAT_TAG)
     }
 	,
-    {  sizeof(S_usb_format_type_1)
+    {  sizeof(S_usb_format_type_1_one_freq)
 	   ,  CS_INTERFACE
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
@@ -666,10 +669,10 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	,
 	{   sizeof(S_usb_endpoint_audio_descriptor_1)
 		,   ENDPOINT_DESCRIPTOR
-		,   ENDPOINT_NB_4
-		,   EP_ATTRIBUTES_4
-		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_4_HS)
-		,   EP_INTERVAL_4_HS
+		,   ENDPOINT_NB_5
+		,   EP_ATTRIBUTES_5
+		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_5_HS)
+		,   EP_INTERVAL_5_HS
 		,   0x00
 		,   0x00
 	}
@@ -691,7 +694,7 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget 
 	{
 		sizeof(S_usb_configuration_descriptor),
 		CONFIGURATION_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor)),
+		Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor_one_freq)),
 		NB_INTERFACE,
 		CONF_NB,
 		CONF_INDEX,
@@ -708,8 +711,10 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget 
 		INTERFACE_SUB_CLASS0,
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
-	},
+	}
 
+/*
+,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -748,11 +753,11 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget 
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS),
 		EP_INTERVAL_2
 	}
-
+*/
 	,
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
-	  ,  FIRST_INTERFACE1					// bFirstInterface
+	  ,  FIRST_INTERFACE1				// bFirstInterface
 	  ,  INTERFACE_COUNT1 				// bInterfaceCount
 	  ,  INTERFACE_CLASS2
 	  ,  INTERFACE_SUB_CLASS2
@@ -899,7 +904,7 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget 
 		,   EP_ATTRIBUTES_3
 		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
 		,   EP_INTERVAL_3_HS
-		,   0x00
+		,   EP_REFRESH_3_HS
 		,   EP_BSYNC_ADDRESS_3
     }
 	,
@@ -914,11 +919,11 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget 
 	  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_1)
       ,   ENDPOINT_DESCRIPTOR
-      ,   ENDPOINT_NB_5
-      ,   EP_ATTRIBUTES_5
-      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_5_HS)
-      ,   EP_INTERVAL_5_HS
-      ,   EP_REFRESH_5_HS
+      ,   ENDPOINT_NB_4
+      ,   EP_ATTRIBUTES_4
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_4_HS)
+      ,   EP_INTERVAL_4_HS
+      ,   EP_REFRESH_4_HS
       ,   0x00
       }
 	
@@ -953,7 +958,7 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget 
 	   ,  Usb_format_mcu_to_usb_data(16, AS_FORMAT_TAG)
     }
 	,
-    {  sizeof(S_usb_format_type_1)
+    {  sizeof(S_usb_format_type_1_one_freq)
 	   ,  CS_INTERFACE
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
@@ -967,10 +972,10 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget 
 	,
 	{   sizeof(S_usb_endpoint_audio_descriptor_1)
 		,   ENDPOINT_DESCRIPTOR
-		,   ENDPOINT_NB_4
-		,   EP_ATTRIBUTES_4
-		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_4_HS)
-		,   EP_INTERVAL_4_HS
+		,   ENDPOINT_NB_5
+		,   EP_ATTRIBUTES_5
+		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_5_HS)
+		,   EP_INTERVAL_5_HS
 		,   0x00
 		,   0x00
 	}
@@ -991,7 +996,7 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget 
 	{
 		sizeof(S_usb_configuration_descriptor),
 		CONFIGURATION_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor)),
+		Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor_one_freq)),
 		NB_INTERFACE,
 		CONF_NB,
 		CONF_INDEX,
@@ -1010,6 +1015,7 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget 
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
+/*
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -1049,8 +1055,8 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget 
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS),
 		EP_INTERVAL_2
 	}
+*/
 	,
-
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
 	  ,  FIRST_INTERFACE1					// bFirstInterface
@@ -1201,7 +1207,7 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget 
 		,   EP_ATTRIBUTES_3
 		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
 		,   EP_INTERVAL_3_FS
-		,   0x00
+		,   EP_REFRESH_3_FS
 		,   EP_BSYNC_ADDRESS_3
 	}
 	,
@@ -1216,11 +1222,11 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget 
 	  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_1)
       ,   ENDPOINT_DESCRIPTOR
-      ,   ENDPOINT_NB_5
-      ,   EP_ATTRIBUTES_5
-      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_5_FS)
-      ,   EP_INTERVAL_5_FS
-      ,   EP_REFRESH_5_FS
+      ,   ENDPOINT_NB_4
+      ,   EP_ATTRIBUTES_4
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS)
+      ,   EP_INTERVAL_4_FS
+      ,   EP_REFRESH_4_FS
       ,   0x00
       }
 
@@ -1269,10 +1275,10 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget 
     ,
 	{   sizeof(S_usb_endpoint_audio_descriptor_1)
         ,   ENDPOINT_DESCRIPTOR
-        ,   ENDPOINT_NB_4
-        ,   EP_ATTRIBUTES_4
-        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS)
-        ,   EP_INTERVAL_4_FS
+        ,   ENDPOINT_NB_5
+        ,   EP_ATTRIBUTES_5
+        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_5_FS)
+        ,   EP_INTERVAL_5_FS
         ,   0x00
         ,   0x00
 	}
