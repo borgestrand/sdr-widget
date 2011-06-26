@@ -82,7 +82,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     sizeof(S_usb_configuration_descriptor),
     CONFIGURATION_DESCRIPTOR,
     Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor)),
-    NB_INTERFACE,
+    3, //NB_INTERFACE,
     CONF_NB,
     CONF_INDEX,
     CONF_ATTRIBUTES,
@@ -105,7 +105,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 	{ sizeof(S_usb_interface_association_descriptor)
 	,  DESCRIPTOR_IAD
 	,  FIRST_INTERFACE1					// bFirstInterface
-	,  INTERFACE_COUNT1 				// bInterfaceCount
+	,2 //  INTERFACE_COUNT1 				// bInterfaceCount
 	,  INTERFACE_CLASS1
 	,  INTERFACE_SUB_CLASS1
 	,  INTERFACE_PROTOCOL1
@@ -132,12 +132,14 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  Usb_format_mcu_to_usb_data(16, AUDIO_CLASS_REVISION_2)
     ,  HEADSET_CATEGORY
     ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_2)
-    		+ 2*sizeof(S_usb_clock_source_descriptor) + sizeof(S_usb_clock_selector_descriptor)
-    		+ 2*sizeof(S_usb_in_ter_descriptor_2)
-            + 2*sizeof(S_usb_feature_unit_descriptor_2)
-			+ 2*sizeof(S_usb_out_ter_descriptor_2))
+  //  		+ sizeof(S_usb_clock_selector_descriptor)
+			+ /*2* */sizeof(S_usb_clock_source_descriptor)
+    		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
+            + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
+			+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
     ,  MIC_LATENCY_CONTROL
     }
+/*
  , {  sizeof (S_usb_clock_source_descriptor)
     ,  CS_INTERFACE
     ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SOURCE
@@ -147,6 +149,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  INPUT_TERMINAL_ID
     ,  0x00
     }
+*/
   , {  sizeof (S_usb_clock_source_descriptor)
      ,  CS_INTERFACE
      ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SOURCE
@@ -156,6 +159,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
      ,  INPUT_TERMINAL_ID
      ,  0x00
      }
+/*
   ,
 
   {  sizeof (S_usb_clock_selector_descriptor)
@@ -168,6 +172,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  CSX_CONTROL
     ,  0x00
     }
+*/
+/*
   ,
     {  sizeof(S_usb_in_ter_descriptor_2)
     ,  CS_INTERFACE
@@ -175,7 +181,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  INPUT_TERMINAL_ID
     ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_TYPE)
     ,  INPUT_TERMINAL_ASSOCIATION
-    ,  CSX_ID
+//    ,  CSX_ID
+	,  CSD_ID_1
     ,  INPUT_TERMINAL_NB_CHANNELS
     ,  Usb_format_mcu_to_usb_data(32, INPUT_TERMINAL_CHANNEL_CONF)
     ,  INPUT_TERMINAL_CH_NAME_ID
@@ -201,10 +208,12 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  Usb_format_mcu_to_usb_data(16, OUTPUT_TERMINAL_TYPE)
     ,  OUTPUT_TERMINAL_ASSOCIATION
     ,  OUTPUT_TERMINAL_SOURCE_ID
-    ,  CSX_ID
+ //   ,  CSX_ID
+	,  CSD_ID_1
     ,  Usb_format_mcu_to_usb_data(16,OUTPUT_TERMINAL_CONTROLS)
     ,  0x00
     }
+*/
   ,
   {  sizeof(S_usb_in_ter_descriptor_2)
   ,  CS_INTERFACE
@@ -212,7 +221,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  SPK_INPUT_TERMINAL_ID
   ,  Usb_format_mcu_to_usb_data(16, SPK_INPUT_TERMINAL_TYPE)
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
-  ,  CSX_ID
+//  ,  CSX_ID
+	,  CSD_ID_2
   ,  SPK_INPUT_TERMINAL_NB_CHANNELS
   ,  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
   ,  INPUT_TERMINAL_CH_NAME_ID
@@ -238,14 +248,16 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  Usb_format_mcu_to_usb_data(16, SPK_OUTPUT_TERMINAL_TYPE)
   ,  SPK_OUTPUT_TERMINAL_ASSOCIATION
   ,  SPK_OUTPUT_TERMINAL_SOURCE_ID
-  ,  CSX_ID
+//  ,  CSX_ID
+	,  CSD_ID_2
   ,  Usb_format_mcu_to_usb_data(16,SPK_OUTPUT_TERMINAL_CONTROLS)
   ,  0x00
   }
+
  ,
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
-    ,  STD_AS_INTERFACE_IN
+     ,  STD_AS_INTERFACE_OUT
     ,  ALT0_AS_INTERFACE_INDEX
     ,  ALT0_AS_NB_ENDPOINT
     ,  ALT0_AS_INTERFACE_CLASS
@@ -256,9 +268,9 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
  ,
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
-    ,  STD_AS_INTERFACE_IN
+     ,  STD_AS_INTERFACE_OUT
     ,  ALT1_AS_INTERFACE_INDEX
-    ,  ALT1_AS_NB_ENDPOINT
+     ,  ALT1_AS_NB_ENDPOINT_OUT
     ,  ALT1_AS_INTERFACE_CLASS
     ,  ALT1_AS_INTERFACE_SUB_CLASS
     ,  ALT1_AS_INTERFACE_PROTOCOL
@@ -268,7 +280,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     {  sizeof(S_usb_as_g_interface_descriptor_2)
     ,  CS_INTERFACE
     ,  GENERAL_SUB_TYPE
-    ,  AS_TERMINAL_LINK
+     ,  SPK_INPUT_TERMINAL_ID
     ,  AS_CONTROLS
     ,  AS_FORMAT_TYPE
     ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
@@ -287,23 +299,33 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,
       {   sizeof(S_usb_endpoint_audio_descriptor_2)
       ,   ENDPOINT_DESCRIPTOR
-      ,   ENDPOINT_NB_1
-      ,   EP_ATTRIBUTES_1
-      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS)
-      ,   EP_INTERVAL_1_FS
+       ,   ENDPOINT_NB_2
+       ,   EP_ATTRIBUTES_2
+       ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS)
+       ,   EP_INTERVAL_2_FS
       }
    ,
       {  sizeof(S_usb_endpoint_audio_specific_2)
       ,  CS_ENDPOINT
       ,  GENERAL_SUB_TYPE
       ,  AUDIO_EP_ATRIBUTES
+       ,  AUDIO_EP_CONTROLS
       ,  AUDIO_EP_DELAY_UNIT
       ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
       }
   ,
+       {   sizeof(S_usb_endpoint_audio_descriptor_2)
+       ,   ENDPOINT_DESCRIPTOR
+       ,   ENDPOINT_NB_3
+       ,   EP_ATTRIBUTES_3
+       ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
+       ,   EP_INTERVAL_3_FS
+       }
+/*
+  ,
      {  sizeof(S_usb_as_interface_descriptor)
      ,  INTERFACE_DESCRIPTOR
-     ,  STD_AS_INTERFACE_OUT
+     ,  STD_AS_INTERFACE_IN
      ,  ALT0_AS_INTERFACE_INDEX
      ,  ALT0_AS_NB_ENDPOINT
      ,  ALT0_AS_INTERFACE_CLASS
@@ -314,9 +336,9 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,
      {  sizeof(S_usb_as_interface_descriptor)
      ,  INTERFACE_DESCRIPTOR
-     ,  STD_AS_INTERFACE_OUT
+     ,  STD_AS_INTERFACE_IN
      ,  ALT1_AS_INTERFACE_INDEX
-     ,  ALT1_AS_NB_ENDPOINT_OUT
+     ,  ALT1_AS_NB_ENDPOINT
      ,  ALT1_AS_INTERFACE_CLASS
      ,  ALT1_AS_INTERFACE_SUB_CLASS
      ,  ALT1_AS_INTERFACE_PROTOCOL
@@ -326,7 +348,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
      {  sizeof(S_usb_as_g_interface_descriptor_2)
      ,  CS_INTERFACE
      ,  GENERAL_SUB_TYPE
-     ,  SPK_INPUT_TERMINAL_ID
+     ,  AS_TERMINAL_LINK
      ,  AS_CONTROLS
      ,  AS_FORMAT_TYPE
      ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
@@ -345,10 +367,10 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
    ,
        {   sizeof(S_usb_endpoint_audio_descriptor_2)
        ,   ENDPOINT_DESCRIPTOR
-       ,   ENDPOINT_NB_2
-       ,   EP_ATTRIBUTES_2
-       ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS)
-       ,   EP_INTERVAL_2_FS
+       ,   ENDPOINT_NB_1
+       ,   EP_ATTRIBUTES_1
+       ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS)
+       ,   EP_INTERVAL_1_FS
        }
     ,
        {  sizeof(S_usb_endpoint_audio_specific_2)
@@ -358,14 +380,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
        ,  AUDIO_EP_DELAY_UNIT
        ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
        }
-  ,
-       {   sizeof(S_usb_endpoint_audio_descriptor_2)
-       ,   ENDPOINT_DESCRIPTOR
-       ,   ENDPOINT_NB_3
-       ,   EP_ATTRIBUTES_3
-       ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
-       ,   EP_INTERVAL_3_FS
-       }
+*/
 };
 
 
@@ -378,12 +393,13 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     sizeof(S_usb_configuration_descriptor),
     CONFIGURATION_DESCRIPTOR,
     Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor)),
-    NB_INTERFACE,
+    3, //NB_INTERFACE,
     CONF_NB,
     CONF_INDEX,
     CONF_ATTRIBUTES,
     MAX_POWER
   },
+
 	{
 	sizeof(S_usb_interface_descriptor),
 	INTERFACE_DESCRIPTOR,
@@ -394,15 +410,16 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   INTERFACE_SUB_CLASS0,
   INTERFACE_PROTOCOL0,
   INTERFACE_INDEX0
-},
+}
 
+ ,
 
 //! Here is where Audio Class 2 specific stuff is
 
 	{ sizeof(S_usb_interface_association_descriptor) // 4.6
 	,  DESCRIPTOR_IAD
 	,  FIRST_INTERFACE1					// bFirstInterface
-	,  INTERFACE_COUNT1 				// bInterfaceCount
+	,2 //,  INTERFACE_COUNT1 				// bInterfaceCount
 	,  FUNCTION_CLASS
 	,  FUNCTION_SUB_CLASS
 	,  FUNCTION_PROTOCOL
@@ -430,13 +447,14 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
    ,  Usb_format_mcu_to_usb_data(16, AUDIO_CLASS_REVISION_2)
    ,  HEADSET_CATEGORY
    ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_2)
-   		+ 2*sizeof(S_usb_clock_source_descriptor) + sizeof(S_usb_clock_selector_descriptor)
-   		+ 2*sizeof(S_usb_in_ter_descriptor_2)
-        + 2*sizeof(S_usb_feature_unit_descriptor_2)
-	    + 2*sizeof(S_usb_out_ter_descriptor_2))
+//   	+ sizeof(S_usb_clock_selector_descriptor)
+		+ /*2* */sizeof(S_usb_clock_source_descriptor)
+   		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
+        + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
+	    + /*2* */sizeof(S_usb_out_ter_descriptor_2))
    ,  MIC_LATENCY_CONTROL
    }
-
+/*
 , {  sizeof (S_usb_clock_source_descriptor)
   ,  CS_INTERFACE
   ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SOURCE
@@ -446,7 +464,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  OUTPUT_TERMINAL_ID
   ,  CLOCK_SOURCE_1_INDEX
   }
-
+*/
   , {  sizeof (S_usb_clock_source_descriptor)
     ,  CS_INTERFACE
     ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SOURCE
@@ -456,6 +474,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  OUTPUT_TERMINAL_ID
     ,  CLOCK_SOURCE_2_INDEX
     }
+
+/*
 ,
 {  sizeof (S_usb_clock_selector_descriptor)
   ,  CS_INTERFACE
@@ -467,6 +487,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  CSX_CONTROL
   ,  CLOCK_SELECTOR_INDEX
   }
+*/
+/*
 ,
   {  sizeof(S_usb_in_ter_descriptor_2)
   ,  CS_INTERFACE
@@ -474,7 +496,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  INPUT_TERMINAL_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_TYPE)
   ,  INPUT_TERMINAL_ASSOCIATION
-  ,  CSX_ID
+//  ,  CSX_ID
+  ,  CSD_ID_1
   ,  INPUT_TERMINAL_NB_CHANNELS
   ,  Usb_format_mcu_to_usb_data(32, INPUT_TERMINAL_CHANNEL_CONF)
   ,  INPUT_TERMINAL_CH_NAME_ID
@@ -500,10 +523,12 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  Usb_format_mcu_to_usb_data(16, OUTPUT_TERMINAL_TYPE)
     ,  OUTPUT_TERMINAL_ASSOCIATION
     ,  OUTPUT_TERMINAL_SOURCE_ID
-    ,  CSX_ID
+//    ,  CSX_ID
+  	,  CSD_ID_1
     ,  Usb_format_mcu_to_usb_data(16, OUTPUT_TERMINAL_CONTROLS)
     , AOT_INDEX
     }
+*/
  ,
  {  sizeof(S_usb_in_ter_descriptor_2)
   ,  CS_INTERFACE
@@ -511,7 +536,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  SPK_INPUT_TERMINAL_ID
   ,  Usb_format_mcu_to_usb_data(16, SPK_INPUT_TERMINAL_TYPE)
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
-  ,  CSX_ID
+//  ,  CSX_ID
+  ,  CSD_ID_2
   ,  SPK_INPUT_TERMINAL_NB_CHANNELS
   ,  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
   ,  INPUT_TERMINAL_CH_NAME_ID
@@ -537,42 +563,44 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  Usb_format_mcu_to_usb_data(16, SPK_OUTPUT_TERMINAL_TYPE)
   ,  SPK_OUTPUT_TERMINAL_ASSOCIATION
   ,  SPK_OUTPUT_TERMINAL_SOURCE_ID
-  ,  CSX_ID
+//  ,  CSX_ID
+  ,  CSD_ID_2
   ,  Usb_format_mcu_to_usb_data(16,SPK_OUTPUT_TERMINAL_CONTROLS)
   ,  0x00
   },
 
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
-    ,  STD_AS_INTERFACE_IN
+      ,  STD_AS_INTERFACE_OUT
     ,  ALT0_AS_INTERFACE_INDEX
     ,  ALT0_AS_NB_ENDPOINT
     ,  ALT0_AS_INTERFACE_CLASS
     ,  ALT0_AS_INTERFACE_SUB_CLASS
     ,  ALT0_AS_INTERFACE_PROTOCOL
-    , AIN_INDEX
+      ,  0x00
     }
  ,
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
-    ,  STD_AS_INTERFACE_IN
+      ,  STD_AS_INTERFACE_OUT
     ,  ALT1_AS_INTERFACE_INDEX
-    ,  ALT1_AS_NB_ENDPOINT
+      ,  ALT1_AS_NB_ENDPOINT_OUT
     ,  ALT1_AS_INTERFACE_CLASS
     ,  ALT1_AS_INTERFACE_SUB_CLASS
     ,  ALT1_AS_INTERFACE_PROTOCOL
-    , AIA_INDEX
+      ,  0x00
     }
  ,
     {  sizeof(S_usb_as_g_interface_descriptor_2)
     ,  CS_INTERFACE
     ,  GENERAL_SUB_TYPE
-    ,  AS_TERMINAL_LINK
+      ,  SPK_INPUT_TERMINAL_ID
     ,  AS_CONTROLS
     ,  AS_FORMAT_TYPE
     ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
     ,  AS_NB_CHANNELS
     ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
+      ,  0x00
     }
  ,
     {  sizeof(S_usb_format_type_2)
@@ -581,15 +609,14 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  FORMAT_TYPE_1
     ,  FORMAT_SUBSLOT_SIZE_1
     ,  FORMAT_BIT_RESOLUTION_1
-
     }
  ,
     {   sizeof(S_usb_endpoint_audio_descriptor_2)
     ,   ENDPOINT_DESCRIPTOR
-    ,   ENDPOINT_NB_1
-    ,   EP_ATTRIBUTES_1
-    ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS)
-    ,   EP_INTERVAL_1_HS
+        ,   ENDPOINT_NB_2
+        ,   EP_ATTRIBUTES_2
+        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS)
+        ,   EP_INTERVAL_2_HS
     }
  ,
     {  sizeof(S_usb_endpoint_audio_specific_2)
@@ -600,40 +627,47 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  AUDIO_EP_DELAY_UNIT
     ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
     }
-
+  ,
+      {   sizeof(S_usb_endpoint_audio_descriptor_2)
+      ,   ENDPOINT_DESCRIPTOR
+      ,   ENDPOINT_NB_3
+      ,   EP_ATTRIBUTES_3
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
+      ,   EP_INTERVAL_3_HS
+      }
+/*
   ,
       {  sizeof(S_usb_as_interface_descriptor)
       ,  INTERFACE_DESCRIPTOR
-      ,  STD_AS_INTERFACE_OUT
+  ,  STD_AS_INTERFACE_IN
       ,  ALT0_AS_INTERFACE_INDEX
       ,  ALT0_AS_NB_ENDPOINT
       ,  ALT0_AS_INTERFACE_CLASS
       ,  ALT0_AS_INTERFACE_SUB_CLASS
       ,  ALT0_AS_INTERFACE_PROTOCOL
-      ,  0x00
+  , AIN_INDEX
       }
    ,
       {  sizeof(S_usb_as_interface_descriptor)
       ,  INTERFACE_DESCRIPTOR
-      ,  STD_AS_INTERFACE_OUT
+  ,  STD_AS_INTERFACE_IN
       ,  ALT1_AS_INTERFACE_INDEX
-      ,  ALT1_AS_NB_ENDPOINT_OUT
+      ,  ALT1_AS_NB_ENDPOINT
       ,  ALT1_AS_INTERFACE_CLASS
       ,  ALT1_AS_INTERFACE_SUB_CLASS
       ,  ALT1_AS_INTERFACE_PROTOCOL
-      ,  0x00
+  , AIA_INDEX
       }
    ,
       {  sizeof(S_usb_as_g_interface_descriptor_2)
       ,  CS_INTERFACE
       ,  GENERAL_SUB_TYPE
-      ,  SPK_INPUT_TERMINAL_ID
+  ,  AS_TERMINAL_LINK
       ,  AS_CONTROLS
       ,  AS_FORMAT_TYPE
       ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
       ,  AS_NB_CHANNELS
       ,  Usb_format_mcu_to_usb_data(32,AS_CHAN_CONFIG)
-      ,  0x00
       }
    ,
       {  sizeof(S_usb_format_type_2)
@@ -646,27 +680,21 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,
         {   sizeof(S_usb_endpoint_audio_descriptor_2)
         ,   ENDPOINT_DESCRIPTOR
-        ,   ENDPOINT_NB_2
-        ,   EP_ATTRIBUTES_2
-        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS)
-        ,   EP_INTERVAL_2_HS
+  ,   ENDPOINT_NB_1
+  ,   EP_ATTRIBUTES_1
+  ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS)
+  ,   EP_INTERVAL_1_HS
         }
      ,
         {  sizeof(S_usb_endpoint_audio_specific_2)
         ,  CS_ENDPOINT
         ,  GENERAL_SUB_TYPE
         ,  AUDIO_EP_ATRIBUTES
+  ,  AUDIO_EP_CONTROLS
         ,  AUDIO_EP_DELAY_UNIT
         ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
         }
-  ,
-      {   sizeof(S_usb_endpoint_audio_descriptor_2)
-      ,   ENDPOINT_DESCRIPTOR
-      ,   ENDPOINT_NB_3
-      ,   EP_ATTRIBUTES_3
-      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
-      ,   EP_INTERVAL_3_HS
-      }
+*/
 };
 
 // usb_qualifier_desc FS

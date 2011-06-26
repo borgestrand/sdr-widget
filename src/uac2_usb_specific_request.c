@@ -112,9 +112,13 @@ static U8    wValue_lsb;
 static U16   wIndex;
 static U16   wLength;
 
+Bool Mic_freq_valid = FALSE;
+S_freq Mic_freq;
+
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
+/*
 U8 Speedx_1[26] = {
 0x02,0x00,				//number of sample rate triplets
 
@@ -125,6 +129,31 @@ U8 Speedx_1[26] = {
 0x80,0xbb,0x00,0x00,	//48k Min
 0x00,0xee,0x02,0x00,	//192k Max
 0x80,0xbb,0x00,0x00,	//48k Res
+};
+*/
+
+U8 Speedx_1[62] = {
+0x05,0x00,				//number of sample rate triplets
+						// EP0 limit of 64 bytes so max of 5 triplets
+0x44,0xac,0x00,0x00,	//44.1k Min
+0x44,0xac,0x00,0x00,	//44.1k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x80,0xbb,0x00,0x00,	//48k Min
+0x80,0xbb,0x00,0x00,	//48k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x88,0x58,0x01,0x00,	//88.2k Min
+0x88,0x58,0x01,0x00,	//88.2k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x00,0x77,0x01,0x00,	//96k Min
+0x00,0x77,0x01,0x00,	//96k Max
+0x00,0x00,0x00,0x00,	// 0 Res
+
+0x00,0xee,0x02,0x00,	//192k Min
+0x00,0xee,0x02,0x00,	//192k Max
+0x00,0x00,0x00,0x00		// 0 Res
 };
 
 U8 Speedx_2[38] = {
@@ -143,6 +172,8 @@ U8 Speedx_2[38] = {
 0x00,0x00,0x00,0x00		// 0 Res
 };
 
+
+
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
@@ -152,13 +183,13 @@ U8 Speedx_2[38] = {
 void uac2_user_endpoint_init(U8 conf_nb)
 {
 	if( Is_usb_full_speed_mode() ) {
-		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, DOUBLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_FS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, DOUBLE_BANK, 0);
+		//(void)Usb_configure_endpoint(UAC2_EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, DOUBLE_BANK, 0);
 	} else {
-		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, DOUBLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_HS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, DOUBLE_BANK, 0);
+		//(void)Usb_configure_endpoint(UAC2_EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, DOUBLE_BANK, 0);
 	}
 }
 
@@ -313,7 +344,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 			if (type == IN_CL_INTERFACE){			// get controls
 				switch (wIndex /256){
 				case CSD_ID_1:
-					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
+					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
 
@@ -328,7 +359,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_control_out_received_free();
 						return TRUE;
 					}
-					else if (wValue_msb == AUDIO_CS_CONTROL_CLOCK_VALID && wValue_lsb == 0
+					else if (wValue_msb == AUDIO_CS_CONTROL_CLOCK_VALID //&& wValue_lsb == 0
 							 && request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
 
@@ -342,17 +373,17 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_control_out_received_free();
 						return TRUE;
 					}
-					else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
+					else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							 && request == AUDIO_CS_REQUEST_RANGE){
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < (wLength); i++){
-							if (FEATURE_DAC_ES9022)
-								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
-							else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+						for (i = 0; i < min(wLength, sizeof(Speedx_1)); i++){
+							//if (FEATURE_DAC_ES9022)
+								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 							}
 						Usb_ack_control_in_ready_send();
 
@@ -363,7 +394,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 					} else return FALSE;
 
 				case CSD_ID_2:
-					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
+					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -376,7 +407,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_control_out_received_free();
 						return TRUE;
 					}
-					else if (wValue_msb == AUDIO_CS_CONTROL_CLOCK_VALID && wValue_lsb == 0
+					else if (wValue_msb == AUDIO_CS_CONTROL_CLOCK_VALID //&& wValue_lsb == 0
 							 && request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -390,16 +421,18 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_control_out_received_free();
 						return TRUE;
 					}
-					else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
+					else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							 && request == AUDIO_CS_REQUEST_RANGE){
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < (wLength); i++)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
-						//							  LED_Toggle(LED0);
+						for (i = 0; i < min(wLength, sizeof(Speedx_1)); i++){
+							//if (FEATURE_DAC_ES9022)
+								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
+							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+						}
 						Usb_ack_control_in_ready_send();
 
 						while (!Is_usb_control_out_received());
@@ -412,7 +445,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 
 				case CSX_ID:
-					if (wValue_msb == AUDIO_CX_CLOCK_SELECTOR && wValue_lsb == 0
+					if (wValue_msb == AUDIO_CX_CLOCK_SELECTOR //&& wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -462,7 +495,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 
 				case INPUT_TERMINAL_ID:
-					if (wValue_msb == AUDIO_TE_CONTROL_CS_CLUSTER && wValue_lsb == 0
+					if (wValue_msb == AUDIO_TE_CONTROL_CS_CLUSTER //&& wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -489,7 +522,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 					} else return FALSE;
 
 				case SPK_INPUT_TERMINAL_ID:
-					if (wValue_msb == AUDIO_TE_CONTROL_CS_CLUSTER && wValue_lsb == 0
+					if (wValue_msb == AUDIO_TE_CONTROL_CS_CLUSTER //&& wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -519,8 +552,39 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				} // end switch EntityID
 			} else if (type == OUT_CL_INTERFACE){		// set controls
 				switch (wIndex /256){
-				case CSD_ID_1:							// set CUR freq
-				case CSD_ID_2:
+				case CSD_ID_1:							// set CUR freq of Mic
+					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
+						&& request == AUDIO_CS_REQUEST_CUR){
+						Usb_ack_setup_received_free();
+						while (!Is_usb_control_out_received());
+						Usb_reset_endpoint_fifo_access(EP_CONTROL);
+/*
+						Mic_freq.freq_bytes[3]=Usb_read_endpoint_data(EP_CONTROL, 8);		// read 4 bytes freq to set
+						Mic_freq.freq_bytes[2]=Usb_read_endpoint_data(EP_CONTROL, 8);
+						Mic_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
+						Mic_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
+*/
+						current_freq.freq_bytes[3]=Usb_read_endpoint_data(EP_CONTROL, 8);		// read 4 bytes freq to set
+						current_freq.freq_bytes[2]=Usb_read_endpoint_data(EP_CONTROL, 8);
+						current_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
+						current_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
+						Mic_freq.freq_bytes[3]=current_freq.freq_bytes[3];		// read 4 bytes freq to set
+						Mic_freq.freq_bytes[2]=current_freq.freq_bytes[2];
+						Mic_freq.freq_bytes[1]=current_freq.freq_bytes[1];
+						Mic_freq.freq_bytes[0]=current_freq.freq_bytes[0];
+
+						freq_changed = TRUE;
+
+						if (current_freq.frequency == Mic_freq.frequency) 								Mic_freq_valid = TRUE;
+						else Mic_freq_valid = FALSE;
+
+						Usb_ack_control_out_received_free();
+						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
+						while (!Is_usb_control_in_ready()); //!< waits for status phase done
+						return TRUE;
+					}
+					else return FALSE;
+				case CSD_ID_2:							// set CUR freq
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
 						Usb_ack_setup_received_free();
@@ -531,6 +595,10 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						current_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						freq_changed = TRUE;
+
+						if (current_freq.frequency == Mic_freq.frequency) 								Mic_freq_valid = TRUE;
+						else Mic_freq_valid = FALSE;
+
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready()); //!< waits for status phase done

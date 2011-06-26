@@ -100,7 +100,7 @@ static U32  index, spk_index;
 static U16  old_gap = SPK_BUFFER_SIZE;
 static U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out to the USB
 static volatile U32 *audio_buffer_ptr;
-static volatile U32 *spk_buffer_ptr;
+//static volatile U32 *spk_buffer_ptr;
 
 static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 
@@ -115,7 +115,7 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	audio_buffer_ptr = audio_buffer_0;
 	spk_index = 0;
 	spk_buffer_in = 0;
-	spk_buffer_ptr = spk_buffer_0;
+//	spk_buffer_ptr = spk_buffer_0;
 	mute = FALSE;
 	spk_mute = FALSE;
 	volume = 0x5000;
@@ -397,7 +397,7 @@ void uac1_device_audio_task(void *pvParameters)
 						if (spk_index >= SPK_BUFFER_SIZE){
 							spk_index = 0;
 							spk_buffer_in = 1 - spk_buffer_in;
-							spk_buffer_ptr = spk_buffer_in ? spk_buffer_0 : spk_buffer_1;
+//							spk_buffer_ptr = spk_buffer_in ? spk_buffer_0 : spk_buffer_1;
 						}
 					}
 					Usb_ack_out_received_free(EP_AUDIO_OUT);

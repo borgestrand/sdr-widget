@@ -51,6 +51,7 @@
 #include "usb_specific_request.h"
 #include "device_audio_task.h"
 #include "uac2_device_audio_task.h"
+#include "uac2_usb_descriptors.h"
 #include "taskAK5394A.h"
 #include "uac2_taskAK5394A.h"
 #include "Mobo_config.h"
@@ -85,6 +86,9 @@ void uac2_AK5394A_task(void *pvParameters) {
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 	int i;
+	U32 poolingFreq;
+	U32 FB_rate_int;
+	U32 FB_rate_frac;
 
 	while (TRUE) {
 		// All the hardwork is done by the pdca and the interrupt handler.
@@ -93,6 +97,12 @@ void uac2_AK5394A_task(void *pvParameters) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_AK5394A_PERIOD);
 
 		if (freq_changed) {
+
+			poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
+			FB_rate_int = current_freq.frequency / poolingFreq;
+			FB_rate_frac = current_freq.frequency % poolingFreq;
+			FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
+
 
 			if (current_freq.frequency == 96000) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -116,7 +126,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				FB_rate = 96 << 14;
+				//if (Is_usb_full_speed_mode()) FB_rate = 96 << 14;
+				//else FB_rate = (96) << 13;
 
 			}
 
@@ -142,7 +153,9 @@ void uac2_AK5394A_task(void *pvParameters) {
 								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				FB_rate = (88 << 14) + (1<<14)/5;
+				//if (Is_usb_full_speed_mode()) FB_rate = (88 << 14) + (1<<13)/5;
+				//	else FB_rate = (88 << 14) + (1<<13)/5;
+
 				}
 
 	       	else if (current_freq.frequency == 176400)
@@ -166,7 +179,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 	    								  0);                 // GCLK1 = 12.288Mhz
 	    			pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-	    			FB_rate = (176 << 14) + ((1<<14) * 4)/ 10;
+	    			//if (Is_usb_full_speed_mode()) FB_rate = (176 << 14) + ((1<<13) * 4)/ 10;
+	    			//	else FB_rate = (176 << 14) + ((1<<13)*4) / 10;
 
 	        	}
 
@@ -192,7 +206,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // GCLK1 = 12.288Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				FB_rate = 192 << 14;
+				//if (Is_usb_full_speed_mode()) FB_rate = 192 << 14;
+				//else FB_rate = (192) << 13;
 
 			} else if (current_freq.frequency == 48000) {
 				// if there are two XO, PX16 sets the 48x
@@ -218,7 +233,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				FB_rate = 48 << 14;
+				//if (Is_usb_full_speed_mode()) FB_rate = 48 << 14;
+				//else FB_rate = (48) << 13;
 
 			}
 
@@ -246,7 +262,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				FB_rate = (44 << 14) + (1 << 14)/10 ;
+				//if (Is_usb_full_speed_mode()) FB_rate = (44 << 14) + (1 << 13)/10 ;
+				//else FB_rate = (44 << 13) + (1 << 13)/10;
 
 			}
 

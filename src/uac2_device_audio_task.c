@@ -200,93 +200,95 @@ void uac2_device_audio_task(void *pvParameters)
 			}
 		}
 
+		if ((usb_alternate_setting == 1))
+		{
+			if(Mic_freq_valid) {
+				if (current_freq.frequency == 96000) num_samples = 24;
+				else if (current_freq.frequency == 48000) num_samples = 12;
+				else num_samples = 48;	// freq 192khz
 
-		if (usb_alternate_setting == 1) {
-			if (current_freq.frequency == 96000) num_samples = 24;
-			else if (current_freq.frequency == 48000) num_samples = 12;
-			else num_samples = 48;	// freq 192khz
+				if (!FEATURE_ADC_NONE){
+					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 
-			if (!FEATURE_ADC_NONE){
-				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
+						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
-					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
+						// Sync AK data stream with USB data stream
+						// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
+						// buffer 0 is set in the reload register of the pdca
+						// So the actual loading is occuring in buffer 1
+						// USB data is being taken from audio_buffer_out
 
-					// Sync AK data stream with USB data stream
-					// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
-					// buffer 0 is set in the reload register of the pdca
-					// So the actual loading is occuring in buffer 1
-					// USB data is being taken from audio_buffer_out
+						// find out the current status of PDCA transfer
+						// gap is how far the audio_buffer_out is from overlapping audio_buffer_in
 
-					// find out the current status of PDCA transfer
-					// gap is how far the audio_buffer_out is from overlapping audio_buffer_in
-
-					num_remaining = pdca_channel->tcr;
-					if (audio_buffer_in != audio_buffer_out) {
-						// AK and USB using same buffer
-						if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
-						else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
-					} else {
-						// usb and pdca working on different buffers
-						gap = (AUDIO_BUFFER_SIZE - index) + (AUDIO_BUFFER_SIZE - num_remaining);
-					}
-
-					if ( gap < AUDIO_BUFFER_SIZE/2 ) {
-						// throttle back, transfer less
-						num_samples--;
-					} else if (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)) {
-						// transfer more
-						num_samples++;
-					}
-
-					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
-					for( i=0 ; i < num_samples ; i++ ) {
-						   // Fill endpoint with samples
-						if (!mute) {
-							if (audio_buffer_out == 0) {
-								sample_LSB = audio_buffer_0[index+IN_LEFT];
-								sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
-								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
-							} else {
-								sample_LSB = audio_buffer_1[index+IN_LEFT];
-								sample_SB = audio_buffer_1[index+IN_LEFT] >> 8;
-								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 16;
-							}
-
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-
-							if (audio_buffer_out == 0) {
-								sample_LSB = audio_buffer_0[index+IN_RIGHT];
-								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
-								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
-							} else {
-								sample_LSB = audio_buffer_1[index+IN_RIGHT];
-								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 8;
-								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 16;
-							}
-
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-
-							index += 2;
-							if (index >= AUDIO_BUFFER_SIZE) {
-								index=0;
-								audio_buffer_out = 1 - audio_buffer_out;
-							}
+						num_remaining = pdca_channel->tcr;
+						if (audio_buffer_in != audio_buffer_out) {
+							// AK and USB using same buffer
+							if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
+							else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
 						} else {
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							}
+							// usb and pdca working on different buffers
+							gap = (AUDIO_BUFFER_SIZE - index) + (AUDIO_BUFFER_SIZE - num_remaining);
 						}
-					Usb_send_in(EP_AUDIO_IN);		// send the current bank
-				}
-			} // end FEATURE_ADC
+
+						if ( gap < AUDIO_BUFFER_SIZE/2 ) {
+							// throttle back, transfer less
+							num_samples--;
+						} else if (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)) {
+							// transfer more
+							num_samples++;
+						}
+
+						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
+						for( i=0 ; i < num_samples ; i++ ) {
+							   // Fill endpoint with samples
+							if (!mute) {
+								if (audio_buffer_out == 0) {
+									sample_LSB = audio_buffer_0[index+IN_LEFT];
+									sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
+									sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
+								} else {
+									sample_LSB = audio_buffer_1[index+IN_LEFT];
+									sample_SB = audio_buffer_1[index+IN_LEFT] >> 8;
+									sample_MSB = audio_buffer_1[index+IN_LEFT] >> 16;
+								}
+
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+
+								if (audio_buffer_out == 0) {
+									sample_LSB = audio_buffer_0[index+IN_RIGHT];
+									sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
+									sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
+								} else {
+									sample_LSB = audio_buffer_1[index+IN_RIGHT];
+									sample_SB = audio_buffer_1[index+IN_RIGHT] >> 8;
+									sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 16;
+								}
+
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+
+								index += 2;
+								if (index >= AUDIO_BUFFER_SIZE) {
+									index=0;
+									audio_buffer_out = 1 - audio_buffer_out;
+								}
+							} else {
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								}
+							}
+						Usb_send_in(EP_AUDIO_IN);		// send the current bank
+					}
+				} // end FEATURE_ADC
+			}
 		} // end alt setting 1
 
 		if (usb_alternate_setting_out == 1){
@@ -352,11 +354,10 @@ void uac2_device_audio_task(void *pvParameters)
 				Usb_send_in(EP_AUDIO_OUT_FB);
 			} // end sub_in_ready
 
-
-			if (Is_usb_out_received(EP_AUDIO_OUT)) {
+		if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
+				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 8;
 
 				for (i = 0; i < num_samples; i++) {
 					if (spk_mute) {
@@ -364,6 +365,7 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_SB = 0;
 						sample_MSB = 0;
 					} else {
+						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -378,6 +380,7 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_SB = 0;
 						sample_MSB = 0;
 					} else {
+						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -396,9 +399,7 @@ void uac2_device_audio_task(void *pvParameters)
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 			}	// end usb_out_received
 		} // end usb_alternate_setting_out == 1
-		
 	} // end while vTask
-
 }
 
 #endif  // USB_DEVICE_FEATURE == ENABLED
