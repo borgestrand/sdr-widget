@@ -56,20 +56,21 @@
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
+#define NB_INTERFACE	   4	//!  DG8SAQ, Audio (3)
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
 #define MAX_POWER          250    // 500 mA
 
-//Audio Streaming (AS) interface descriptor
-#define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
-#define STD_AS_INTERFACE_OUT			0x03
+
 
 // IAD for Audio
-#define FIRST_INTERFACE1	2
+#define FIRST_INTERFACE1	1
 #define INTERFACE_COUNT1	3
 
+//Audio Streaming (AS) interface descriptor
+#define STD_AS_INTERFACE_OUT			0x02
+#define STD_AS_INTERFACE_IN				0x03
 
 // USB DG8SAQ Interface descriptor
 #define INTERFACE_NB0			    0
@@ -82,7 +83,7 @@
 
 #define DSC_INTERFACE_DG8SAQ		INTERFACE_NB0
 
-
+/*
 // USB HID Interface descriptor
 #define INTERFACE_NB1			    1
 #define ALTERNATE_NB1	            0                  //! The alt setting nb of this interface
@@ -117,8 +118,10 @@
 #define EP_SIZE_2_HS            EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2           5               //! Interrupt polling interval from host
 
+*/
+
 // Standard Audio Control (AC) interface descriptor
-#define INTERFACE_NB2       2
+#define INTERFACE_NB2       1
 #define ALTERNATE_NB2       0
 #define NB_ENDPOINT2        0			     //! No endpoint for AC interface
 #define INTERFACE_CLASS2    AUDIO_CLASS  	//! Audio Class
@@ -138,33 +141,35 @@
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_3_HS    0x04			 // One packet per 8 uframe
-#define EP_BSYNC_ADDRESS_3	0x05			 // feedback EP is EP 5
+#define EP_REFRESH_3_FS		0x01
+#define EP_REFRESH_3_HS     0x04
+#define EP_BSYNC_ADDRESS_3	0x84			 // feedback EP is EP 4, need to explicitly set it to IN endpoint
 //#define EP_BSYNC_ADDRESS_3	0x04			 // feedback EP is EP 4 - using audio input pipe to sync
 //#define EP_BSYNC_ADDRESS_3	0x00
 
-// USB Endpoint 4 descriptor
-#define ENDPOINT_NB_4       ( UAC1_EP_AUDIO_IN | MSK_EP_DIR )
-#define EP_ATTRIBUTES_4     0b00100101      // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
-#define EP_IN_LENGTH_4_HS   294				// 3 bytes * 48 khz * stereo + 6 bytes for add sample
-#define EP_IN_LENGTH_4_FS	294
-#define EP_SIZE_4_FS		EP_IN_LENGTH_4_FS
-#define EP_SIZE_4_HS        EP_IN_LENGTH_4_HS
-#define EP_INTERVAL_4_FS	0x01			 // one packet per uframe
-#define EP_INTERVAL_4_HS    0x04			 // One packet per 8 uframe
 
 /* Note:  The EPs have to be re-arranged.  Feedback EP has to be immediately following the OUT EP
-// USB Endpoint 5 descriptor*/
-#define ENDPOINT_NB_5       ( UAC1_EP_AUDIO_OUT_FB | MSK_EP_DIR )
-#define EP_ATTRIBUTES_5     0b00010001      // ISOCHROUNOUS FEEDBACK
-#define EP_IN_LENGTH_5_FS   4				// 3 bytes
-#define EP_IN_LENGTH_5_HS	4				// 4 bytes
+// USB Endpoint 4 descriptor*/
+#define ENDPOINT_NB_4       ( UAC1_EP_AUDIO_OUT_FB | MSK_EP_DIR )
+#define EP_ATTRIBUTES_4     0b00010001      // ISOCHROUNOUS FEEDBACK
+#define EP_IN_LENGTH_4_FS   3				// 3 bytes
+#define EP_IN_LENGTH_4_HS	4				// 4 bytes
+#define EP_SIZE_4_FS		EP_IN_LENGTH_4_FS
+#define EP_SIZE_4_HS        EP_IN_LENGTH_4_HS
+#define EP_INTERVAL_4_FS	0x01
+#define EP_INTERVAL_4_HS    0x04
+#define EP_REFRESH_4_FS		0x05			 //  64ms
+#define EP_REFRESH_4_HS		0x05			 // 2^(10-1) = 512 uframe = 64ms
+
+// USB Endpoint 5 descriptor
+#define ENDPOINT_NB_5       ( UAC1_EP_AUDIO_IN | MSK_EP_DIR )
+#define EP_ATTRIBUTES_5     0b00100101      // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
+#define EP_IN_LENGTH_5_HS   294				// 3 bytes * 48 khz * stereo + 6 bytes for add sample
+#define EP_IN_LENGTH_5_FS	294
 #define EP_SIZE_5_FS		EP_IN_LENGTH_5_FS
 #define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
-#define EP_INTERVAL_5_FS	0x01
-#define EP_INTERVAL_5_HS    0x04
-#define EP_REFRESH_5_FS		0x05			 //  64ms
-#define EP_REFRESH_5_HS		0x05			 // 2^(10-1) = 512 uframe = 64ms
-
+#define EP_INTERVAL_5_FS	0x01			 // one packet per uframe
+#define EP_INTERVAL_5_HS    0x04			 // One packet per 8 uframe
 
 // AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION			0x0100
@@ -272,10 +277,12 @@ __attribute__((__packed__))
 {
 	  S_usb_configuration_descriptor cfg;
 	  S_usb_interface_descriptor	 ifc0;
+/*
 	  S_usb_interface_descriptor	ifc1;
 	  S_usb_hid_descriptor           hid;
 	  S_usb_endpoint_descriptor      ep1;
 	  S_usb_endpoint_descriptor		 ep2;
+*/
 	  S_usb_interface_association_descriptor iad1;
 	  S_usb_interface_descriptor     	ifc2;
 	  S_usb_ac_interface_descriptor_1  	audioac;
@@ -304,13 +311,58 @@ __attribute__((__packed__))
 #endif
 S_usb_user_configuration_descriptor;
 
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+	  S_usb_configuration_descriptor cfg;
+	  S_usb_interface_descriptor	 ifc0;
+/*
+	  S_usb_interface_descriptor	ifc1;
+	  S_usb_hid_descriptor           hid;
+	  S_usb_endpoint_descriptor      ep1;
+	  S_usb_endpoint_descriptor		 ep2;
+*/
+	  S_usb_interface_association_descriptor iad1;
+	  S_usb_interface_descriptor     	ifc2;
+	  S_usb_ac_interface_descriptor_1  	audioac;
+	  S_usb_in_ter_descriptor_1		 	mic_in_ter;
+	  S_usb_feature_unit_descriptor_1  	mic_fea_unit;
+	  S_usb_out_ter_descriptor_1	 	mic_out_ter;
+	  S_usb_in_ter_descriptor_1			spk_in_ter;
+	  S_usb_feature_unit_descriptor_1	spk_fea_unit;
+	  S_usb_out_ter_descriptor_1		spk_out_ter;
+	  S_usb_as_interface_descriptor 	spk_as_alt0;
+	  S_usb_as_interface_descriptor 	spk_as_alt1;
+	  S_usb_as_g_interface_descriptor_1	spk_g_as;
+	  S_usb_format_type_1_one_freq		spk_format_type;
+	  S_usb_endpoint_audio_descriptor_1	ep3;
+	  S_usb_endpoint_audio_specific_1 	ep3_s;
+	  S_usb_endpoint_audio_descriptor_1	ep5;
+	  S_usb_as_interface_descriptor 	mic_as_alt0;
+	  S_usb_as_interface_descriptor 	mic_as_alt1;
+	  S_usb_as_g_interface_descriptor_1	mic_g_as;
+	  S_usb_format_type_1_one_freq		mic_format_type;
+	  S_usb_endpoint_audio_descriptor_1	ep4;
+	  S_usb_endpoint_audio_specific_1 	ep4_s;
+}
+#if (defined __ICCAVR32__)
+#pragma pack()
+#endif
+S_usb_user_configuration_descriptor_one_freq;
+
 extern const S_usb_device_descriptor uac1_audio_usb_dev_desc;
 extern const S_usb_device_descriptor uac1_dg8saq_usb_dev_desc;
 extern const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc;
 extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs;
-extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget;
+extern const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget;
 extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs;
-extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget;
+extern const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_hs_widget;
 extern const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc;
 
 #endif  // _UAC1_USB_DESCRIPTORS_H_
