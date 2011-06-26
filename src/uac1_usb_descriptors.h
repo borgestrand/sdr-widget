@@ -138,7 +138,7 @@
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_3_HS    0x04			 // One packet per 8 uframe
-#define EP_BSYNC_ADDRESS_3	0x05			 // feedback EP is EP 5
+#define EP_BSYNC_ADDRESS_3	0x85			 // feedback EP is EP 5
 //#define EP_BSYNC_ADDRESS_3	0x04			 // feedback EP is EP 4 - using audio input pipe to sync
 //#define EP_BSYNC_ADDRESS_3	0x00
 
@@ -156,7 +156,7 @@
 // USB Endpoint 5 descriptor*/
 #define ENDPOINT_NB_5       ( UAC1_EP_AUDIO_OUT_FB | MSK_EP_DIR )
 #define EP_ATTRIBUTES_5     0b00010001      // ISOCHROUNOUS FEEDBACK
-#define EP_IN_LENGTH_5_FS   4				// 3 bytes
+#define EP_IN_LENGTH_5_FS   3				// 3 bytes
 #define EP_IN_LENGTH_5_HS	4				// 4 bytes
 #define EP_SIZE_5_FS		EP_IN_LENGTH_5_FS
 #define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
