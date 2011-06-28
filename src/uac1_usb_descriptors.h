@@ -298,13 +298,13 @@ __attribute__((__packed__))
 	  S_usb_format_type_1				spk_format_type;
 	  S_usb_endpoint_audio_descriptor_1	ep3;
 	  S_usb_endpoint_audio_specific_1 	ep3_s;
-	  S_usb_endpoint_audio_descriptor_1	ep5;
+	  S_usb_endpoint_audio_descriptor_1	ep4;
 	  S_usb_as_interface_descriptor 	mic_as_alt0;
 	  S_usb_as_interface_descriptor 	mic_as_alt1;
 	  S_usb_as_g_interface_descriptor_1	mic_g_as;
 	  S_usb_format_type_1				mic_format_type;
-	  S_usb_endpoint_audio_descriptor_1	ep4;
-	  S_usb_endpoint_audio_specific_1 	ep4_s;
+	  S_usb_endpoint_audio_descriptor_1	ep5;
+	  S_usb_endpoint_audio_specific_1 	ep5_s;
 }
 #if (defined __ICCAVR32__)
 #pragma pack()
@@ -343,13 +343,13 @@ __attribute__((__packed__))
 	  S_usb_format_type_1_one_freq		spk_format_type;
 	  S_usb_endpoint_audio_descriptor_1	ep3;
 	  S_usb_endpoint_audio_specific_1 	ep3_s;
-	  S_usb_endpoint_audio_descriptor_1	ep5;
+	  S_usb_endpoint_audio_descriptor_1	ep4;
 	  S_usb_as_interface_descriptor 	mic_as_alt0;
 	  S_usb_as_interface_descriptor 	mic_as_alt1;
 	  S_usb_as_g_interface_descriptor_1	mic_g_as;
 	  S_usb_format_type_1_one_freq		mic_format_type;
-	  S_usb_endpoint_audio_descriptor_1	ep4;
-	  S_usb_endpoint_audio_specific_1 	ep4_s;
+	  S_usb_endpoint_audio_descriptor_1	ep5;
+	  S_usb_endpoint_audio_specific_1 	ep5_s;
 }
 #if (defined __ICCAVR32__)
 #pragma pack()

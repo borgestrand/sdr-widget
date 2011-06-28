@@ -146,7 +146,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
-	  ,  FIRST_INTERFACE1					// bFirstInterface
+	  ,  FIRST_INTERFACE1				// bFirstInterface
 	  ,  INTERFACE_COUNT1 				// bInterfaceCount
 	  ,  INTERFACE_CLASS2
 	  ,  INTERFACE_SUB_CLASS2
@@ -452,7 +452,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	,
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
-	  ,  FIRST_INTERFACE1					// bFirstInterface
+	  ,  FIRST_INTERFACE1				// bFirstInterface
 	  ,  INTERFACE_COUNT1 				// bInterfaceCount
 	  ,  INTERFACE_CLASS2
 	  ,  INTERFACE_SUB_CLASS2
@@ -653,7 +653,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  Usb_format_mcu_to_usb_data(16, AS_FORMAT_TAG)
     }
 	,
-    {  sizeof(S_usb_format_type_1_one_freq)
+    {  sizeof(S_usb_format_type_1)
 	   ,  CS_INTERFACE
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
@@ -1261,7 +1261,7 @@ const S_usb_user_configuration_descriptor_one_freq uac1_usb_conf_desc_fs_widget 
 	   ,  Usb_format_mcu_to_usb_data(16, AS_FORMAT_TAG)
 	}
 	,
-	{  sizeof(S_usb_format_type_1)
+	{  sizeof(S_usb_format_type_1_one_freq)
 	   ,  CS_INTERFACE
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
