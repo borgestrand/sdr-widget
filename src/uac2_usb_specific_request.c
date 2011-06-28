@@ -118,8 +118,8 @@ S_freq Mic_freq;
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
-/*
-U8 Speedx_1[26] = {
+
+const U8 Speedx_1[26] = {
 0x02,0x00,				//number of sample rate triplets
 
 0x44,0xac,0x00,0x00,	//44.1k Min
@@ -130,9 +130,9 @@ U8 Speedx_1[26] = {
 0x00,0xee,0x02,0x00,	//192k Max
 0x80,0xbb,0x00,0x00,	//48k Res
 };
-*/
 
-U8 Speedx_1[62] = {
+/*
+const U8 Speedx_1[62] = {
 0x05,0x00,				//number of sample rate triplets
 						// EP0 limit of 64 bytes so max of 5 triplets
 0x44,0xac,0x00,0x00,	//44.1k Min
@@ -155,8 +155,9 @@ U8 Speedx_1[62] = {
 0x00,0xee,0x02,0x00,	//192k Max
 0x00,0x00,0x00,0x00		// 0 Res
 };
+*/
 
-U8 Speedx_2[38] = {
+const U8 Speedx_2[38] = {
 0x03,0x00,				//number of sample rate triplets
 
 0x80,0xbb,0x00,0x00,	//48k Min
