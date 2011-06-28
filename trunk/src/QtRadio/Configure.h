@@ -28,8 +28,8 @@
 
 #include <QSettings>
 #include <QDebug>
-#include <QtMultimedia/QAudioFormat>
-#include <QtMultimedia/QAudioDeviceInfo>
+#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimediaKit/QAudioDeviceInfo>
 
 #include "ui_Configure.h"
 
@@ -142,6 +142,10 @@ public slots:
 
     void slotXVTRAdd();
     void slotXVTRDelete();
+
+private slots:
+    void on_pBtnAddHost_clicked();
+    void on_pBtnRemHost_clicked();
 
 private:
     Ui::Configure widget;

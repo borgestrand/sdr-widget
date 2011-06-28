@@ -13,3 +13,37 @@ http://qt.nokia.com/
 John g0orx/n6lyt
 
 john.d.melton@googlemail.com
+
+################################################################################
+
+Due to Nokia moving QtMultimedia into QtMobility and naming it QtMobilityKit, it
+is necessary to do the following:
+
+using Synaptic etc. install qtmobility.dev
+
+In the QtRadio.pro file modify it as follows:
+#-------------------------------------------------
+#
+# Project created by QtCreator 2010-07-05T10:00:09
+#
+#-------------------------------------------------
+
+//QT       += core gui network multimedia
+QT += mobility multimediakit
+CONFIG += mobility
+MOBILITY += multimedia
+
+INCLUDEPATH += /usr/include/QtMobility
+INCLUDEPATH += /usr/include/QtMultimediaKit
+
+TARGET = QtRadio
+TEMPLATE = app
+
+Build the software and as each QtMultimedia/xxx error is trapped
+change the line to QtMultimediaKit/xxx e.g. <QtMultimedia/
+QAudioFormat> becomes <QtMultimediaKit/QAudioFormat>. There asre about
+10 or so to do and after that it compiles.
+
+Graeme Jury ZL2APV
+
+################################################################################

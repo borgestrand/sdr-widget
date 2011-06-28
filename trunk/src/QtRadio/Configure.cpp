@@ -509,3 +509,13 @@ void Configure::slotXVTRDelete() {
     qDebug()<<"Configure::slotXVTRDelete"<<index;
     emit deleteXVTR(index);
 }
+
+void Configure::on_pBtnAddHost_clicked()
+{
+    widget.hostComboBox->addItem(widget.hostComboBox->currentText());
+}
+
+void Configure::on_pBtnRemHost_clicked()
+{
+    widget.hostComboBox->removeItem(widget.hostComboBox->currentIndex());
+}

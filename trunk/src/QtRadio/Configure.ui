@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>4</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="Server">
     <attribute name="title">
@@ -98,6 +98,32 @@
      </property>
      <property name="maximum">
       <number>3</number>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pBtnAddHost">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>70</y>
+       <width>101</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Add Host</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pBtnRemHost">
+     <property name="geometry">
+      <rect>
+       <x>210</x>
+       <y>110</y>
+       <width>101</width>
+       <height>27</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Remove Host</string>
      </property>
     </widget>
    </widget>
