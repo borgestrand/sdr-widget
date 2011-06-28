@@ -115,7 +115,7 @@ static U16   wLength;
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
-U8 Speedx_1[26] = {
+const U8 Speedx_1[26] = {
 0x02,0x00,				//number of sample rate triplets
 
 0x44,0xac,0x00,0x00,	//44.1k Min
@@ -127,7 +127,7 @@ U8 Speedx_1[26] = {
 0x80,0xbb,0x00,0x00,	//48k Res
 };
 
-U8 Speedx_2[38] = {
+const U8 Speedx_2[38] = {
 0x03,0x00,				//number of sample rate triplets
 
 0x80,0xbb,0x00,0x00,	//48k Min
