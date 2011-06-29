@@ -117,7 +117,9 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	audio_buffer_ptr = audio_buffer_0;
 	spk_index = 0;
 	spk_buffer_in = 0;
-	//spk_buffer_ptr = spk_buffer_0;
+
+//	spk_buffer_ptr = spk_buffer_0;
+
 	mute = FALSE;
 	spk_mute = FALSE;
 	volume = 0x5000;
@@ -140,7 +142,8 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 
 void uac1_device_audio_task(void *pvParameters)
 {
-	U8 playerStarted = 0;
+
+	Bool playerStarted = FALSE;
 	static U32  time=0;
 	static Bool startup=TRUE;
 	int i;
@@ -373,9 +376,10 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
 
-					if(playerStarted == 0)
+
+					if(!playerStarted)
 					{
-						playerStarted = 1;
+						playerStarted = TRUE;
 						num_remaining = spk_pdca_channel->tcr;
 						if (spk_buffer_in != spk_buffer_out)
 							spk_buffer_in = 1 - spk_buffer_in;
@@ -415,14 +419,16 @@ void uac1_device_audio_task(void *pvParameters)
 						if (spk_index >= SPK_BUFFER_SIZE){
 							spk_index = 0;
 							spk_buffer_in = 1 - spk_buffer_in;
-							//spk_buffer_ptr = spk_buffer_in ? spk_buffer_0 : spk_buffer_1;
+//							spk_buffer_ptr = spk_buffer_in ? spk_buffer_0 : spk_buffer_1;
 						}
 					}
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
 				}	// end usb_out_received
 			} // end usb_alternate_setting_out == 1
 			else
-				playerStarted = 0;
+
+				playerStarted = FALSE;
+
 		//}	// end startup else
 	} // end while vTask
 
