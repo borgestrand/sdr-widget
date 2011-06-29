@@ -90,7 +90,6 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-#define FB_RATE_DELTA 64
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -312,18 +311,15 @@ void uac2_device_audio_task(void *pvParameters)
 				//feedback calculate only in playing mode
 				if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 
-					if(playerStarted)
-					{
-						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-							LED_Toggle(LED0);
-							FB_rate -= FB_RATE_DELTA;
-							old_gap = gap;
-						} else
-							if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-							LED_Toggle(LED1);
-							FB_rate += FB_RATE_DELTA;
-							old_gap = gap;
-						}
+
+					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+						LED_Toggle(LED0);
+						FB_rate -= 64;
+						old_gap = gap;
+					} else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+						LED_Toggle(LED1);
+						FB_rate += 64;
+						old_gap = gap;
 					}
 
 					sample_LSB = FB_rate;
@@ -336,19 +332,14 @@ void uac2_device_audio_task(void *pvParameters)
 					// HS mode
 					// FB rate is 4 bytes in 12.14 format
 
-					//feedback calculate only in playing mode
-					if(playerStarted)
-					{
-						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
-							LED_Toggle(LED0);
-							FB_rate -= FB_RATE_DELTA;
-							old_gap = gap;
-						} else
-							if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-							LED_Toggle(LED1);
-							FB_rate += FB_RATE_DELTA;
-							old_gap = gap;
-							}
+					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
+						LED_Toggle(LED0);
+						FB_rate -= 64;
+						old_gap = gap;
+					} else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+						LED_Toggle(LED1);
+						FB_rate += 64;
+						old_gap = gap;
 					}
 					sample_LSB = FB_rate;
 					sample_SB = FB_rate >> 8;
