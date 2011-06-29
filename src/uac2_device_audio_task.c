@@ -90,6 +90,7 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
+#define FB_RATE_DELTA 64
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -311,11 +312,11 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
 						LED_Toggle(LED0);
-						FB_rate -= 64;
+						FB_rate -= FB_RATE_DELTA;
 						old_gap = gap;
 					} else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 						LED_Toggle(LED1);
-						FB_rate += 64;
+						FB_rate += FB_RATE_DELTA;
 						old_gap = gap;
 					}
 
@@ -331,11 +332,11 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 						LED_Toggle(LED0);
-						FB_rate -= 64;
+						FB_rate -= FB_RATE_DELTA;
 						old_gap = gap;
 					} else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 						LED_Toggle(LED1);
-						FB_rate += 64;
+						FB_rate += FB_RATE_DELTA;
 						old_gap = gap;
 					}
 
