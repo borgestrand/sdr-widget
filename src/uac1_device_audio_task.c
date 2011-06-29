@@ -91,13 +91,15 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 
+#define FB_RATE_DELTA (1<<12)
+
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
 //? why are these defined as statics?
 
 static U32  index, spk_index;
-static U16  old_gap = SPK_BUFFER_SIZE;
+//static U16  old_gap = SPK_BUFFER_SIZE;
 static U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out to the USB
 static volatile U32 *audio_buffer_ptr;
 //static volatile U32 *spk_buffer_ptr;
@@ -138,6 +140,7 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 
 void uac1_device_audio_task(void *pvParameters)
 {
+	Bool playerStarted = FALSE;
 	static U32  time=0;
 	static Bool startup=TRUE;
 	int i;
@@ -318,14 +321,17 @@ void uac1_device_audio_task(void *pvParameters)
 
 					if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 
-						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+						if (gap < SPK_BUFFER_SIZE - 10 ) {
 						LED_Toggle(LED0);
-							FB_rate -= 1<<14;
-							old_gap = gap;
-						} else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+							FB_rate -= FB_RATE_DELTA;
+							//old_gap = gap;
+						} else
+							//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+							if ( gap > SPK_BUFFER_SIZE + 10 ) {
 							LED_Toggle(LED1);
-							FB_rate += 1<<14;
-							old_gap = gap;
+							FB_rate += FB_RATE_DELTA;
+							//old_gap = gap;
 					}
 
 						sample_LSB = FB_rate;
@@ -338,14 +344,17 @@ void uac1_device_audio_task(void *pvParameters)
 						// HS mode
 						// FB rate is 4 bytes in 12.14 format
 
-						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
+						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
+						if ( gap < SPK_BUFFER_SIZE - 10 ){
 							LED_Toggle(LED0);
-							FB_rate -= 1<<14;
-							old_gap = gap;
-						} else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+							FB_rate -= FB_RATE_DELTA;
+							//old_gap = gap;
+						} else
+							//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+							if ( gap > SPK_BUFFER_SIZE + 10 ) {
 						LED_Toggle(LED1);
-							FB_rate += 1<<14;
-							old_gap = gap;
+							FB_rate += FB_RATE_DELTA;
+							//old_gap = gap;
 							}
 						sample_LSB = FB_rate;
 						sample_SB = FB_rate >> 8;
@@ -363,6 +372,15 @@ void uac1_device_audio_task(void *pvParameters)
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
+
+					if(!playerStarted)
+					{
+						playerStarted = TRUE;
+						num_remaining = spk_pdca_channel->tcr;
+						if (spk_buffer_in != spk_buffer_out)
+							spk_buffer_in = 1 - spk_buffer_in;
+						spk_index = SPK_BUFFER_SIZE - num_remaining;
+					}
 
 					for (i = 0; i < num_samples; i++) {
 						if (spk_mute) {
@@ -403,6 +421,8 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
 				}	// end usb_out_received
 			} // end usb_alternate_setting_out == 1
+			else
+				playerStarted = FALSE;
 		//}	// end startup else
 	} // end while vTask
 
