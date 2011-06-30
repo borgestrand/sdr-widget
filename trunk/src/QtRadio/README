@@ -41,7 +41,7 @@ TEMPLATE = app
 
 Build the software and as each QtMultimedia/xxx error is trapped
 change the line to QtMultimediaKit/xxx e.g. <QtMultimedia/
-QAudioFormat> becomes <QtMultimediaKit/QAudioFormat>. There asre about
+QAudioFormat> becomes <QtMultimediaKit/QAudioFormat>. There are about
 10 or so to do and after that it compiles.
 
 Graeme Jury ZL2APV
