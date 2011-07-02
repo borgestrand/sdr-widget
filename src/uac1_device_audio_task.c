@@ -117,9 +117,7 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	audio_buffer_ptr = audio_buffer_0;
 	spk_index = 0;
 	spk_buffer_in = 0;
-
 //	spk_buffer_ptr = spk_buffer_0;
-
 	mute = FALSE;
 	spk_mute = FALSE;
 	volume = 0x5000;
@@ -142,7 +140,6 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 
 void uac1_device_audio_task(void *pvParameters)
 {
-
 	Bool playerStarted = FALSE;
 	static U32  time=0;
 	static Bool startup=TRUE;
@@ -376,7 +373,6 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
 
-
 					if(!playerStarted)
 					{
 						playerStarted = TRUE;
@@ -426,9 +422,7 @@ void uac1_device_audio_task(void *pvParameters)
 				}	// end usb_out_received
 			} // end usb_alternate_setting_out == 1
 			else
-
 				playerStarted = FALSE;
-
 		//}	// end startup else
 	} // end while vTask
 
