@@ -101,6 +101,7 @@ void uac1_AK5394A_task(void *pvParameters) {
 			{
 				FB_rate = (44 << 14) + (1 << 14)/10 ;
 			}
+			freq_changed = FALSE;
 		}
 		if (usb_alternate_setting_changed) {
 
