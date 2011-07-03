@@ -159,7 +159,8 @@ void uac1_device_audio_task(void *pvParameters)
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
-	FB_rate = 48 << 14;
+	if (current_freq.frequency == 48000) FB_rate = 48 << 14;
+	else FB_rate = (44 << 14) + (1 << 14)/10;
 
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
