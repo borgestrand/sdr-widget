@@ -366,7 +366,7 @@ void uac2_device_audio_task(void *pvParameters)
 		if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 8;
+				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
 
 				if(!playerStarted)
 				{
