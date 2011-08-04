@@ -48,6 +48,9 @@ public:
     int getLow();
     int getHigh();
 
+    void setAutomatic(bool state);
+    bool getAutomatic();
+
     void setSampleRate(int r);
     void setFrequency(long long f);
     void setSubRxFrequency(long long f);
@@ -72,6 +75,7 @@ private:
     float* samples;
     int waterfallHigh;
     int waterfallLow;
+    bool waterfallAutomatic;
 
     int button;
     int startX;

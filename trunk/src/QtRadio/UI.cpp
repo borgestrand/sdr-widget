@@ -174,6 +174,7 @@ UI::UI() {
     connect(&configure,SIGNAL(fpsChanged(int)),this,SLOT(fpsChanged(int)));
     connect(&configure,SIGNAL(waterfallHighChanged(int)),this,SLOT(waterfallHighChanged(int)));
     connect(&configure,SIGNAL(waterfallLowChanged(int)),this,SLOT(waterfallLowChanged(int)));
+    connect(&configure,SIGNAL(waterfallAutomaticChanged(bool)),this,SLOT(waterfallAutomaticChanged(bool)));
 
     configure.initAudioDevices(&audio);
     connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),this,SLOT(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
@@ -342,6 +343,10 @@ void UI::waterfallLowChanged(int low) {
     widget.waterfallFrame->setLow(low);
     configure.setWaterfallLow(low);
     band.setWaterfallLow(low);
+}
+
+void UI::waterfallAutomaticChanged(bool state) {
+    widget.waterfallFrame->setAutomatic(state);
 }
 
 void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) {

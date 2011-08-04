@@ -515,7 +515,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>30</y>
+        <y>60</y>
         <width>41</width>
         <height>17</height>
        </rect>
@@ -528,7 +528,7 @@
       <property name="geometry">
        <rect>
         <x>20</x>
-        <y>60</y>
+        <y>90</y>
         <width>31</width>
         <height>17</height>
        </rect>
@@ -541,7 +541,7 @@
       <property name="geometry">
        <rect>
         <x>60</x>
-        <y>30</y>
+        <y>60</y>
         <width>81</width>
         <height>21</height>
        </rect>
@@ -563,7 +563,7 @@
       <property name="geometry">
        <rect>
         <x>60</x>
-        <y>60</y>
+        <y>90</y>
         <width>81</width>
         <height>21</height>
        </rect>
@@ -579,6 +579,19 @@
       </property>
       <property name="value">
        <number>-120</number>
+      </property>
+     </widget>
+     <widget class="QCheckBox" name="waterfallAutomatic">
+      <property name="geometry">
+       <rect>
+        <x>30</x>
+        <y>30</y>
+        <width>98</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Automatic</string>
       </property>
      </widget>
     </widget>

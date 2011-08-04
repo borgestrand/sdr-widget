@@ -84,6 +84,14 @@ void Waterfall::setLow(int low) {
     waterfallLow=low;
 }
 
+void Waterfall::setAutomatic(bool state) {
+    waterfallAutomatic=state;
+}
+
+bool Waterfall::getAutomatic() {
+    return waterfallAutomatic;
+}
+
 void Waterfall::setObjectName(QString name) {
     QFrame::setObjectName(name);
 }
@@ -204,6 +212,7 @@ void Waterfall::paintEvent(QPaintEvent*) {
 void Waterfall::updateWaterfall(char*header,char* buffer,int size) {
     int x,y;
     int sample;
+    int average;
 
     //qDebug() << "updateWaterfall: " << width() << ":" << height();
 
@@ -231,10 +240,17 @@ void Waterfall::updateWaterfall(char*header,char* buffer,int size) {
             }
         }
 
+        average=0;
         // draw the new line
         for(x=0;x<size;x++) {
             sample=0-(buffer[x]&0xFF);
             image.setPixel(x,0,this->calculatePixel(sample));
+            average+=sample;
+        }
+
+        if(waterfallAutomatic) {
+            waterfallLow=(average/size)-10;
+            waterfallHigh=waterfallLow+60;
         }
     }
 

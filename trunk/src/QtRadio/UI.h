@@ -31,7 +31,7 @@
 #include <QDebug>
 #include <QSettings>
 #include <QTimer>
-#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimedia/QAudioFormat>
 #include <QVector>
 
 #include "About.h"
@@ -186,6 +186,7 @@ public slots:
     void fpsChanged(int f);
     void waterfallHighChanged(int high);
     void waterfallLowChanged(int low);
+    void waterfallAutomaticChanged(bool state);
 
     void hostChanged(QString host);
     void receiverChanged(int rx);

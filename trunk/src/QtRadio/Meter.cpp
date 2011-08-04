@@ -79,5 +79,9 @@ QImage Meter::getImage(int dbm) {
     calculateLine(dbm,0,75);
     painter.drawLine(dxmin, dymin, dxmax, dymax);
 
+    painter.setPen(Qt::black);
+    strDbm.sprintf("%d dBm",dbm);
+    painter.drawText(image->width()-80,image->height()-2,strDbm);
+
     return qImage;
 }

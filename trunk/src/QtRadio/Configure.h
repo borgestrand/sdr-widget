@@ -28,8 +28,8 @@
 
 #include <QSettings>
 #include <QDebug>
-#include <QtMultimediaKit/QAudioFormat>
-#include <QtMultimediaKit/QAudioDeviceInfo>
+#include <QtMultimedia/QAudioFormat>
+#include <QtMultimedia/QAudioDeviceInfo>
 
 #include "ui_Configure.h"
 
@@ -90,6 +90,7 @@ signals:
     void fpsChanged(int fps);
     void waterfallHighChanged(int high);
     void waterfallLowChanged(int low);
+    void waterfallAutomaticChanged(bool state);
     void audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian order);
 //    void sampleRateChanged(int rate);
 //    void channelsChanged(int channels);
@@ -122,6 +123,7 @@ public slots:
     void slotFpsChanged(int fps);
     void slotWaterfallHighChanged(int high);
     void slotWaterfallLowChanged(int low);
+    void slotWaterfallAutomaticChanged(bool state);
     void slotAudioDeviceChanged(int selection);
     void slotSampleRateChanged(int rate);
     void slotChannelsChanged(int channels);

@@ -67,6 +67,7 @@ Configure::Configure() {
     connect(widget.fpsSpinBox,SIGNAL(valueChanged(int)),this,SLOT(slotFpsChanged(int)));
     connect(widget.waterfallHighSpinBox,SIGNAL(valueChanged(int)),this,SLOT(slotWaterfallHighChanged(int)));
     connect(widget.waterfallLowSpinBox,SIGNAL(valueChanged(int)),this,SLOT(slotWaterfallLowChanged(int)));
+    connect(widget.waterfallAutomatic,SIGNAL(toggled(bool)),this,SLOT(slotWaterfallAutomaticChanged(bool)));
 
     connect(widget.audioDeviceComboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(slotAudioDeviceChanged(int)));
     connect(widget.audioChannelsSpinBox,SIGNAL(valueChanged(int)),this,SLOT(slotChannelsChanged(int)));
@@ -175,6 +176,7 @@ void Configure::loadSettings(QSettings* settings) {
     if(settings->contains("fps"))widget.fpsSpinBox->setValue(settings->value("fps").toInt());
     if(settings->contains("waterfallHigh"))widget.waterfallHighSpinBox->setValue(settings->value("waterfallHigh").toInt());
     if(settings->contains("waterfallLow"))widget.waterfallLowSpinBox->setValue(settings->value("waterfallLow").toInt());
+    if(settings->contains("waterfallAutomatic"))widget.waterfallAutomatic->setChecked(settings->value("waterfallAutomatic").toBool());
     settings->endGroup();
     settings->beginGroup("Audio");
     if(settings->contains("device")) widget.audioDeviceComboBox->setCurrentIndex(settings->value("device").toInt());
@@ -221,6 +223,7 @@ void Configure::saveSettings(QSettings* settings) {
     settings->setValue("fps",widget.fpsSpinBox->value());
     settings->setValue("waterfallHigh",widget.waterfallHighSpinBox->value());
     settings->setValue("waterfallLow",widget.waterfallLowSpinBox->value());
+    settings->setValue("waterfallAutomatic",widget.waterfallAutomatic->checkState());
     settings->endGroup();
     settings->beginGroup("Audio");
     settings->setValue("device",widget.audioDeviceComboBox->currentIndex());
@@ -274,6 +277,10 @@ void Configure::slotWaterfallHighChanged(int high) {
 
 void Configure::slotWaterfallLowChanged(int low) {
     emit waterfallLowChanged(low);
+}
+
+void Configure::slotWaterfallAutomaticChanged(bool state) {
+    emit waterfallAutomaticChanged(state);
 }
 
 void Configure::slotAudioDeviceChanged(int selection) {
