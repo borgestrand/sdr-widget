@@ -4,7 +4,14 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network multimedia
+//QT       += core gui network multimedia
+QT	+= mobility multimediakit
+CONFIG	+= mobility
+MOBILITY += multimedia
+
+INCLUDEPATH += /usr/include/QtMobility
+INCLUDEPATH += /usr/include/QtMultimediaKit
+
 
 TARGET = QtRadio
 TEMPLATE = app

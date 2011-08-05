@@ -27,9 +27,9 @@
 #define	AUDIO_H
 
 #include <QtCore>
-#include <QtMultimedia/QAudioFormat>
-#include <QtMultimedia/QAudioOutput>
-#include <QtMultimedia/QAudioDeviceInfo>
+#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimediaKit/QAudioOutput>
+#include <QtMultimediaKit/QAudioDeviceInfo>
 #include <QtGui/QComboBox>
 
 #define AUDIO_BUFFER_SIZE 480
