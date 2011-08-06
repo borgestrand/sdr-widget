@@ -17,6 +17,7 @@ The master branch uses the 'old' QtMultimedia directory structure.  The new-qt b
 Note you will need some dev packages to be installed for using Qt (used by QtRadio), including:
 
 libqt4-opengl-dev
+glutg3-dev
 
 
 To run the softrock server (defaults to using pulse for IQ input.  So 
