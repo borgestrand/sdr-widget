@@ -8,7 +8,16 @@ softrock    - added an IF offset of 9khz (ala PSDR-IQ)
 dspserver  - added IF offset of 9khz 
 server       - hpsdr protocol with full control of sdr-widget/Mobo 
 receiver     - Makefile modified to compile in x86_64, changed local-audio to direct alsa output, changed portaudio to use callback
-QtRadio    - no changes yet.  Same as stock QtRadio 
+QtRadio      - added dialog to store server ip addresses
+
+There are two branches, master and new-qt.
+
+The master branch uses the 'old' QtMultimedia directory structure.  The new-qt branch uses the QtMobility diectory structure which will be used in the upcoming new version of Qt.
+
+Note you will need some dev packages to be installed for using Qt (used by QtRadio), including:
+
+libqt4-opengl-dev
+
 
 To run the softrock server (defaults to using pulse for IQ input.  So 
 use pulse chooser to set the default pulse source to the IQ sound 
