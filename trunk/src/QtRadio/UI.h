@@ -228,7 +228,6 @@ private:
     int audio_device;
     int audio_sample_rate;
     int audio_channels;
-    int audio_encoding;
     int audio_buffers;
     QAudioFormat::Endian audio_byte_order;
     char* first_audio_buffer;

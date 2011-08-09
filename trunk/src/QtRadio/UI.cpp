@@ -209,7 +209,6 @@ UI::UI() {
     audio_device=0;
     audio_sample_rate=configure.getSampleRate();
     audio_channels=configure.getChannels();
-    audio_encoding = configure.getEncoding();
     audio_byte_order=configure.getByteOrder();
     audio.initialize_audio(AUDIO_BUFFER_SIZE);
 
@@ -248,7 +247,7 @@ UI::UI() {
 UI::~UI() {
     connection.disconnect();
 }
-
+    int audio_encoding;
 void UI::actionAbout() {
     about.setVisible(TRUE);
 }
@@ -355,7 +354,7 @@ void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFo
 }
 
 void UI::encodingChanged(int choice) {
-    // not supported yet
+    audio.audio_encoding = choice;
 }
 
 void UI::actionConnect() {

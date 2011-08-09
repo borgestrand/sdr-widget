@@ -32,8 +32,7 @@
 #include <QtMultimediaKit/QAudioDeviceInfo>
 #include <QtGui/QComboBox>
 
-//#define AUDIO_BUFFER_SIZE 480
-#define AUDIO_BUFFER_SIZE 1024
+#define AUDIO_BUFFER_SIZE 480
 
 #define BIGENDIAN
 
@@ -55,7 +54,7 @@ public:
     int get_sample_rate();
     int get_channels();
 
-    int encoding_method;
+    int audio_encoding;
 private:
     void aLawDecode(char* buffer,int length);
     void init_decodetable();

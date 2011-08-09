@@ -72,6 +72,7 @@ Configure::Configure() {
 
     connect(widget.audioDeviceComboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(slotAudioDeviceChanged(int)));
     connect(widget.audioChannelsSpinBox,SIGNAL(valueChanged(int)),this,SLOT(slotChannelsChanged(int)));
+    connect(widget.encodingComboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(slotEncodingChanged(int)));
     connect(widget.byteOrderComboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(slotByteOrderChanged(int)));
     connect(widget.sampleRateComboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(slotSampleRateChanged(int)));
 
@@ -318,6 +319,10 @@ void Configure::slotByteOrderChanged(int selection) {
                             );
 }
 
+void Configure::slotEncodingChanged(int index){
+        emit encodingChanged(index);
+}
+
 void Configure::slotNrTapsChanged(int taps) {
     emit nrValuesChanged(widget.nrTapsSpinBox->value(),widget.nrDelaySpinBox->value(),(double)widget.nrGainSpinBox->value()*0.00001,(double)widget.nrLeakSpinBox->value()*0.0000001);
 }
@@ -536,5 +541,6 @@ void Configure::on_pBtnRemHost_clicked()
 
 void Configure::on_encodingComboBox_currentIndexChanged(int index)
 {
-
+    qDebug() << "audio_encoding changed to :  " << index;
+    emit encodingChanged(index);
 }

@@ -29,6 +29,7 @@ Audio::Audio() {
     audio_output=NULL;
     audio_out=NULL;
     sampleRate=8000;
+    audio_encoding = 0;
     audio_channels=1;
     audio_byte_order=QAudioFormat::LittleEndian;
 
@@ -163,6 +164,9 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
     audio_channels=channels;
     audio_byte_order=byteOrder;
 
+
+    qDebug() << "select_audio: audio_encoding := " << audio_encoding;
+
     if(audio_output!=NULL) {
         audio_output->stop();
         audio_output->disconnect(this);
@@ -210,7 +214,8 @@ void Audio::process_audio(char* header,char* buffer,int length) {
     //qDebug() << "process audio";
     int written=0;
 
-    aLawDecode(buffer,length);
+    if (audio_encoding == 0 || audio_encoding == 1 || audio_encoding == 2) aLawDecode(buffer,length);
+
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
         while(written<decoded_buffer.length()) {

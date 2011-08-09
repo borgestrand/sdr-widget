@@ -93,6 +93,7 @@ signals:
     void waterfallLowChanged(int low);
     void waterfallAutomaticChanged(bool state);
     void audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian order);
+    void encodingChanged(int index);
 //    void sampleRateChanged(int rate);
 //    void channelsChanged(int channels);
 //    void byteOrderChanged(QAudioFormat::Endian order);
@@ -128,6 +129,7 @@ public slots:
     void slotAudioDeviceChanged(int selection);
     void slotSampleRateChanged(int rate);
     void slotChannelsChanged(int channels);
+    void slotEncodingChanged(int index);
     void slotByteOrderChanged(int selection);
 
     void slotNrTapsChanged(int taps);
