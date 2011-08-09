@@ -66,6 +66,7 @@ public:
     void setWaterfallLow(int low);
 
     QAudioFormat::Endian getByteOrder();
+    int getEncoding();
     int getSampleRate();
     int getChannels();
     
@@ -148,6 +149,8 @@ public slots:
 private slots:
     void on_pBtnAddHost_clicked();
     void on_pBtnRemHost_clicked();
+
+    void on_encodingComboBox_currentIndexChanged(int index);
 
 private:
     Ui::Configure widget;

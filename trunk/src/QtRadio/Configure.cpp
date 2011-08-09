@@ -183,6 +183,7 @@ void Configure::loadSettings(QSettings* settings) {
     if(settings->contains("device")) widget.audioDeviceComboBox->setCurrentIndex(settings->value("device").toInt());
     if(settings->contains("channels"))widget.audioChannelsSpinBox->setValue(settings->value("channels").toInt());
     if(settings->contains("samplerate")) widget.sampleRateComboBox->setCurrentIndex(settings->value("samplerate").toInt());
+    if(settings->contains("encoding")) widget.encodingComboBox->setCurrentIndex(settings->value("encoding").toInt());
     if(settings->contains("byteorder")) widget.byteOrderComboBox->setCurrentIndex(settings->value("byteorder").toInt());
     settings->endGroup();
     settings->beginGroup("NR");
@@ -230,6 +231,7 @@ void Configure::saveSettings(QSettings* settings) {
     settings->setValue("device",widget.audioDeviceComboBox->currentIndex());
     settings->setValue("channels",widget.audioChannelsSpinBox->value());
     settings->setValue("samplerate",widget.sampleRateComboBox->currentIndex());
+    settings->setValue("encoding",widget.encodingComboBox->currentIndex());
     settings->setValue("byteorder",widget.byteOrderComboBox->currentIndex());
     settings->endGroup();
     settings->beginGroup("NR");
@@ -409,6 +411,10 @@ int Configure::getSampleRate() {
     return widget.sampleRateComboBox->currentText().toInt();
 }
 
+int Configure::getEncoding(){
+    return widget.encodingComboBox->currentIndex();
+}
+
 void Configure::setSpectrumLow(int low) {
     widget.spectrumLowSpinBox->setValue(low);
 }
@@ -526,4 +532,9 @@ void Configure::on_pBtnAddHost_clicked()
 void Configure::on_pBtnRemHost_clicked()
 {
     widget.hostComboBox->removeItem(widget.hostComboBox->currentIndex());
+}
+
+void Configure::on_encodingComboBox_currentIndexChanged(int index)
+{
+
 }
