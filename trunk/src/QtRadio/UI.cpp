@@ -209,6 +209,7 @@ UI::UI() {
     audio_device=0;
     audio_sample_rate=configure.getSampleRate();
     audio_channels=configure.getChannels();
+    audio_encoding = configure.getEncoding();
     audio_byte_order=configure.getByteOrder();
     audio.initialize_audio(AUDIO_BUFFER_SIZE);
 

@@ -209,6 +209,7 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
 void Audio::process_audio(char* header,char* buffer,int length) {
     //qDebug() << "process audio";
     int written=0;
+
     aLawDecode(buffer,length);
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
