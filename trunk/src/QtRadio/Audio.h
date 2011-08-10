@@ -57,6 +57,7 @@ public:
     int audio_encoding;
 private:
     void aLawDecode(char* buffer,int length);
+    void codec2Decode(char* buffer, int length);
     void init_decodetable();
     QAudioFormat     audio_format;
     QAudioOutput*    audio_output;

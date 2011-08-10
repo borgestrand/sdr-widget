@@ -214,7 +214,8 @@ void Audio::process_audio(char* header,char* buffer,int length) {
     //qDebug() << "process audio";
     int written=0;
 
-    if (audio_encoding == 0 || audio_encoding == 1 || audio_encoding == 2) aLawDecode(buffer,length);
+    if (audio_encoding == 0 || audio_encoding == 1) aLawDecode(buffer,length);
+    else if (audio_encoding == 2) codec2Decode(buffer,length);
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
@@ -248,6 +249,29 @@ void Audio::aLawDecode(char* buffer,int length) {
 
 }
 
+void Audio::codec2Decode(char* buffer,int length) {
+    int i;
+    short v;
+
+    //qDebug() << "codec2wDecode " << decoded_buffer.length();
+    decoded_buffer.clear();
+
+    for (i=0; i < length; i++) {
+        v=decodetable[buffer[i]&0xFF];
+
+        switch(audio_byte_order) {
+        case QAudioFormat::LittleEndian:
+            decoded_buffer.append((char)(v&0xFF));
+            decoded_buffer.append((char)((v>>8)&0xFF));
+            break;
+        case QAudioFormat::BigEndian:
+            decoded_buffer.append((char)((v>>8)&0xFF));
+            decoded_buffer.append((char)(v&0xFF));
+            break;
+        }
+    }
+
+}
 
 void Audio::init_decodetable() {
     qDebug() << "init_decodetable";
