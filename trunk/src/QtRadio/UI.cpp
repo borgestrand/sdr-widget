@@ -354,7 +354,10 @@ void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFo
 }
 
 void UI::encodingChanged(int choice) {
+    QString command;
     audio.audio_encoding = choice;
+    command.clear(); QTextStream(&command) << "setEncoding " << choice;
+    connection.sendCommand(command);
 }
 
 void UI::actionConnect() {
