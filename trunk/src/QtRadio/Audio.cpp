@@ -216,6 +216,7 @@ void Audio::process_audio(char* header,char* buffer,int length) {
 
     if (audio_encoding == 0 || audio_encoding == 1) aLawDecode(buffer,length);
     else if (audio_encoding == 2) codec2Decode(buffer,length);
+    else aLawDecode(buffer,length);
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
