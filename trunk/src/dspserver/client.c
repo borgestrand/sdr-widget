@@ -385,6 +385,7 @@ if(timing) {
                         if(token!=NULL) {
                             encoding=atoi(token);
 			    if (encoding < 0 || encoding > 2) encoding = 0;
+			    fprintf(stderr,"encoding changed to %d\n", encoding);
                         } else {
                             fprintf(stderr,"Invalid command: '%s'\n",message);
                         }
