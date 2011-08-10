@@ -38,7 +38,7 @@
 #include "client.h"
 #include "buffer.h"
 
-int audio_buffer_size=2048;			// changed from 480
+int audio_buffer_size=480;
 int audio_sample_rate=8000;
 int audio_channels=1;
 unsigned char* audio_buffer=NULL;
@@ -74,7 +74,8 @@ void audio_stream_reset() {
     if(audio_buffer!=NULL) {
         free(audio_buffer);
     }
-    audio_buffer=(char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
+    if (encoding == 0) audio_buffer=(char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
+    else if (encoding == 1) audio_buffer=(char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 bytre PCM
     audio_stream_buffer_insert=0;
 }
 
@@ -85,10 +86,27 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
     if(sample_count==0) {
         // use this sample and convert to a-law
         if(audio_channels==1) {
-            audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2);
+            if (encoding == 0) audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2);
+	    else if (encoding == 1) {
+		audio_buffer[audio_stream_buffer_insert*2+48] = ((left_sample+right_sample)/2) >> 8;
+		audio_buffer[audio_stream_buffer_insert*2+1+48] = ((left_sample+right_sample)/2) & 0x00ff;
+		} 
+            else audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2); //encoding == others
         } else {
+	    if (encoding == 0){
             audio_buffer[(audio_stream_buffer_insert*2)+48]=alaw(left_sample);
             audio_buffer[(audio_stream_buffer_insert*2)+1+48]=alaw(right_sample);
+	    }
+	    else if (encoding == 1) {
+		audio_buffer[audio_stream_buffer_insert*4+48] = left_sample >> 8;
+		audio_buffer[audio_stream_buffer_insert*4+1+48] = left_sample & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*4+2+48] = right_sample >> 8;
+		audio_buffer[audio_stream_buffer_insert*4+3+48] = right_sample & 0x00ff;
+		}
+	    else { // encoding == others
+            audio_buffer[(audio_stream_buffer_insert*2)+48]=alaw(left_sample);
+            audio_buffer[(audio_stream_buffer_insert*2)+1+48]=alaw(right_sample);
+	    }
         }
         audio_stream_buffer_insert++;
         if(audio_stream_buffer_insert==audio_buffer_size) {

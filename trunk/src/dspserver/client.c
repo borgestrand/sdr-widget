@@ -73,6 +73,7 @@ static float spectrumBuffer[SAMPLE_BUFFER_SIZE];
 
 static float meter;
 static float subrx_meter;
+int encoding = 0;
 
 static sem_t network_semaphore;
 
@@ -379,6 +380,14 @@ if(timing) {
                         send_audio=1;
                     } else if(strcmp(token,"stopaudiostream")==0) {
                         send_audio=0;
+                    } else if(strcmp(token,"setencoding")==0) {
+                        token=strtok(NULL," ");
+                        if(token!=NULL) {
+                            encoding=atoi(token);
+			    if (encoding < 0 || encoding > 2) encoding = 0;
+                        } else {
+                            fprintf(stderr,"Invalid command: '%s'\n",message);
+                        }
                     } else if(strcmp(token,"setsubrx")==0) {
                         int state;
                         token=strtok(NULL," ");
