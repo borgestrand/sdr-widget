@@ -75,12 +75,12 @@ void audio_stream_reset() {
         free(audio_buffer);
     }
     if (encoding == 0) audio_buffer=(char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
-    else if (encoding == 1) audio_buffer=(char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 bytre PCM
+    else if (encoding == 1) audio_buffer=(char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
     audio_stream_buffer_insert=0;
 }
 
 void audio_stream_put_samples(short left_sample,short right_sample) {
-
+	int audio_buffer_length;
     // samples are delivered at 48K
     // output to stream at 8K (1 in 6) or 48K (1 in 1)
     if(sample_count==0) {
@@ -112,7 +112,9 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
         if(audio_stream_buffer_insert==audio_buffer_size) {
             audio_buffer[0]=AUDIO_BUFFER;
             sprintf(&audio_buffer[1],"%f",HEADER_VERSION);
-            sprintf(&audio_buffer[26],"%d",audio_buffer_size*audio_channels);
+	    if (encoding == 1) audio_buffer_length = audio_buffer_size*audio_channels*2;
+	    else audio_buffer_length = audio_buffer_size*audio_channels;
+            sprintf(&audio_buffer[26],"%d", audio_buffer_length);
             client_send_audio();
             audio_stream_buffer_insert=0;
         }
