@@ -375,8 +375,7 @@ if(timing) {
                             }
                         }
                         fprintf(stderr,"starting audio stream at %d with %d channels and buffer size %d\n",audio_sample_rate,audio_channels,audio_buffer_size);
-                        free(audio_buffer);
-                        audio_buffer=malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
+ 
                         audio_stream_reset();
                         send_audio=1;
                     } else if(strcmp(token,"stopaudiostream")==0) {

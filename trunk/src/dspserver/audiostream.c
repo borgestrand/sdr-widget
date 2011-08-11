@@ -85,8 +85,8 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
         if(audio_channels==1) {
             if (encoding == 0) audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2);
 	    else if (encoding == 1) {
-		audio_buffer[audio_stream_buffer_insert*2+48] = (left_sample/2+right_sample/2)/256;
-		audio_buffer[audio_stream_buffer_insert*2+1+48] = (left_sample/2+right_sample/2) % 256;
+		audio_buffer[audio_stream_buffer_insert*2+48] = (left_sample/2+right_sample/2) & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*2+1+48] = (left_sample/2+right_sample/2) >> 8;
 		} 
             else {
 		audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2); //encoding == others
@@ -97,10 +97,10 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
             audio_buffer[(audio_stream_buffer_insert*2)+1+48]=alaw(right_sample);
 	    }
 	    else if (encoding == 1) {
-		audio_buffer[audio_stream_buffer_insert*4+48] = left_sample/256;
-		audio_buffer[audio_stream_buffer_insert*4+1+48] = left_sample % 256;
-		audio_buffer[audio_stream_buffer_insert*4+2+48] = right_sample/256;
-		audio_buffer[audio_stream_buffer_insert*4+3+48] = right_sample % 256;
+		audio_buffer[audio_stream_buffer_insert*4+48] = left_sample & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*4+1+48] = left_sample >> 8;
+		audio_buffer[audio_stream_buffer_insert*4+2+48] = right_sample & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*4+3+48] = right_sample >> 8;
 		}
 	    else { // encoding == others
             audio_buffer[(audio_stream_buffer_insert*2)+48]=alaw(left_sample);

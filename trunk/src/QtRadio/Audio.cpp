@@ -259,12 +259,12 @@ void Audio::pcmDecode(char* buffer,int length) {
 
         switch(audio_byte_order) {
         case QAudioFormat::LittleEndian:
-            decoded_buffer.append(buffer[i]);
             decoded_buffer.append(buffer[i+1]);
+            decoded_buffer.append(buffer[i]);
             break;
         case QAudioFormat::BigEndian:
-            decoded_buffer.append(buffer[i+1]);
             decoded_buffer.append(buffer[i]);
+            decoded_buffer.append(buffer[i+1]);
             break;
         }
     }
