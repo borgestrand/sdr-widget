@@ -357,8 +357,6 @@ void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFo
 void UI::encodingChanged(int choice) {
     QString command;
     audio.audio_encoding = choice;
-    command.clear(); QTextStream(&command) << "setEncoding " << choice;
-    connection.sendCommand(command);
 }
 
 void UI::actionConnect() {
@@ -424,6 +422,10 @@ void UI::connected() {
     widget.actionSubrx->setDisabled(FALSE);
     widget.actionMuteSubRx->setDisabled(TRUE);
 
+    // select audio encoding
+    command.clear(); QTextStream(&command) << "setEncoding " << audio.audio_encoding;
+    connection.sendCommand(command);
+    qDebug() << "select_audio: audio_encoding := " << audio.audio_encoding;
 
     // start the audio
     audio_buffers=0;
