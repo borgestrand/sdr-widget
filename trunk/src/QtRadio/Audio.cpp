@@ -164,9 +164,6 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
     audio_channels=channels;
     audio_byte_order=byteOrder;
 
-
-    qDebug() << "select_audio: audio_encoding := " << audio_encoding;
-
     if(audio_output!=NULL) {
         audio_output->stop();
         audio_output->disconnect(this);
@@ -190,6 +187,8 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
     audio_out = audio_output->start();
+
+    qDebug() << "select_audio: audio_encoding := " << audio_encoding;
 
     if(audio_output->error()!=0) {
         qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
@@ -256,16 +255,16 @@ void Audio::pcmDecode(char* buffer,int length) {
 
     decoded_buffer.clear();
 
-    for (i=0; i < length; i++) {
+    for (i=0; i < length; i+=2) {
 
         switch(audio_byte_order) {
         case QAudioFormat::LittleEndian:
-            decoded_buffer.append(buffer[i+1]);
             decoded_buffer.append(buffer[i]);
+            decoded_buffer.append(buffer[i+1]);
             break;
         case QAudioFormat::BigEndian:
-            decoded_buffer.append(buffer[i]);
             decoded_buffer.append(buffer[i+1]);
+            decoded_buffer.append(buffer[i]);
             break;
         }
     }

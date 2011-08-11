@@ -25,6 +25,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -56,11 +57,7 @@ unsigned char alaw(short sample);
 void init_alaw_tables();
 
 void audio_stream_init(int receiver) {
-
-    int rc;
-
     init_alaw_tables();
-
 }
 
 /* --------------------------------------------------------------------------*/
@@ -74,8 +71,8 @@ void audio_stream_reset() {
     if(audio_buffer!=NULL) {
         free(audio_buffer);
     }
-    if (encoding == 0) audio_buffer=(char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
-    else if (encoding == 1) audio_buffer=(char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
+    if (encoding == 0) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
+    else if (encoding == 1) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
     audio_stream_buffer_insert=0;
 }
 
@@ -84,31 +81,34 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
     // samples are delivered at 48K
     // output to stream at 8K (1 in 6) or 48K (1 in 1)
     if(sample_count==0) {
-        // use this sample and convert to a-law
+        // use this sample and convert to a-law or PCM
         if(audio_channels==1) {
             if (encoding == 0) audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2);
 	    else if (encoding == 1) {
-		audio_buffer[audio_stream_buffer_insert*2+48] = ((left_sample+right_sample)/2) >> 8;
-		audio_buffer[audio_stream_buffer_insert*2+1+48] = ((left_sample+right_sample)/2) & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*2+48] = (left_sample/2+right_sample/2)/256;
+		audio_buffer[audio_stream_buffer_insert*2+1+48] = (left_sample/2+right_sample/2) % 256;
 		} 
-            else audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2); //encoding == others
+            else {
+		audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2); //encoding == others
+		}
         } else {
 	    if (encoding == 0){
             audio_buffer[(audio_stream_buffer_insert*2)+48]=alaw(left_sample);
             audio_buffer[(audio_stream_buffer_insert*2)+1+48]=alaw(right_sample);
 	    }
 	    else if (encoding == 1) {
-		audio_buffer[audio_stream_buffer_insert*4+48] = left_sample >> 8;
-		audio_buffer[audio_stream_buffer_insert*4+1+48] = left_sample & 0x00ff;
-		audio_buffer[audio_stream_buffer_insert*4+2+48] = right_sample >> 8;
-		audio_buffer[audio_stream_buffer_insert*4+3+48] = right_sample & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*4+48] = left_sample/256;
+		audio_buffer[audio_stream_buffer_insert*4+1+48] = left_sample % 256;
+		audio_buffer[audio_stream_buffer_insert*4+2+48] = right_sample/256;
+		audio_buffer[audio_stream_buffer_insert*4+3+48] = right_sample % 256;
 		}
 	    else { // encoding == others
             audio_buffer[(audio_stream_buffer_insert*2)+48]=alaw(left_sample);
             audio_buffer[(audio_stream_buffer_insert*2)+1+48]=alaw(right_sample);
 	    }
         }
-        audio_stream_buffer_insert++;
+
+	audio_stream_buffer_insert++;
         if(audio_stream_buffer_insert==audio_buffer_size) {
             audio_buffer[0]=AUDIO_BUFFER;
             sprintf(&audio_buffer[1],"%f",HEADER_VERSION);
