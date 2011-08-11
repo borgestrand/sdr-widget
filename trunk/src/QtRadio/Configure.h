@@ -28,8 +28,8 @@
 
 #include <QSettings>
 #include <QDebug>
-#include <QtMultimediaKit/QAudioFormat>
-#include <QtMultimediaKit/QAudioDeviceInfo>
+#include <QtMultimedia/QAudioFormat>
+#include <QtMultimedia/QAudioDeviceInfo>
 
 #include "ui_Configure.h"
 
