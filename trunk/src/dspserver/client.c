@@ -99,9 +99,10 @@ void client_init(int receiver) {
 
     signal(SIGPIPE, SIG_IGN);
 
-    audio_buffer=malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
+    if (encoding == 0) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
+    else if (encoding == 1) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
 
-fprintf(stderr,"client_init audio_buffer_size=%d audio_buffer=%ld\n",audio_buffer_size,audio_buffer);
+    fprintf(stderr,"client_init audio_buffer_size=%d audio_buffer=%ld\n",audio_buffer_size,audio_buffer);
 
     port=BASE_PORT+receiver;
     clientSocket=-1;
@@ -667,13 +668,16 @@ void client_send_samples(int size) {
 
 void client_send_audio() {
     int rc;
+    int audio_buffer_length;
 
         if(clientSocket!=-1) {
             sem_wait(&network_semaphore);
-                if(send_audio && (clientSocket!=-1)) {
-                    rc=send(clientSocket,audio_buffer,(audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE,MSG_NOSIGNAL);
-                    if(rc!=((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE)) {
-                        fprintf(stderr,"client_send_audio sent %d bytes",rc);
+            if(send_audio && (clientSocket!=-1)) {
+	    	if (encoding == 1) audio_buffer_length = audio_buffer_size*audio_channels*2;
+	   	else audio_buffer_length = audio_buffer_size*audio_channels;
+                rc=send(clientSocket,audio_buffer, audio_buffer_length+BUFFER_HEADER_SIZE,MSG_NOSIGNAL);
+                if(rc!=(audio_buffer_length+BUFFER_HEADER_SIZE)) {
+                    fprintf(stderr,"client_send_audio sent %d bytes",rc);
                     }
                 }
             sem_post(&network_semaphore);
