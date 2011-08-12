@@ -498,7 +498,7 @@ void UI::spectrumBuffer(char* header,char* buffer) {
     //qDebug() << "spectrumBuffer";
     int length=atoi(&header[26]);
     sampleRate=atoi(&header[32]);
-    widget.spectrumFrame->updateSpectrum(header,buffer,length);
+    widget.spectrumFrame->updateSpectrumFrame(header,buffer,length);
     widget.waterfallFrame->updateWaterfall(header,buffer,length);
     connection.freeBuffers(header,buffer);
     connection.SemSpectrum.release();
