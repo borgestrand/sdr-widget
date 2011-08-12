@@ -242,6 +242,10 @@ UI::UI() {
     widget.actionMuteSubRx->setDisabled(TRUE);
 
     band.initBand(band.getBand());
+
+    // make spectrum timer
+    spectrumTimer = new QTimer(this);
+    connect ( spectrumTimer, SIGNAL ( timeout() ), this, SLOT ( updateSpectrum()) );
     
 }
 
@@ -467,11 +471,13 @@ void UI::connected() {
     // start the spectrum
     //qDebug() << "starting spectrum timer";
     //QTimer::singleShot(1000/fps,this,SLOT(updateSpectrum()));
-    updateSpectrum();
+    spectrumTimer->start(1000/fps);
 }
 
 void UI::disconnected(QString message) {
     qDebug() << "UI::disconnected: " << message;
+
+    spectrumTimer->stop();
 
     widget.statusbar->showMessage(message,0);
 
@@ -496,7 +502,7 @@ void UI::spectrumBuffer(char* header,char* buffer) {
     widget.spectrumFrame->updateSpectrum(header,buffer,length);
     widget.waterfallFrame->updateWaterfall(header,buffer,length);
     connection.freeBuffers(header,buffer);
-    QTimer::singleShot(1000/fps,this,SLOT(updateSpectrum()));
+//    QTimer::singleShot(1000/fps,this,SLOT(updateSpectrum()));
 }
 
 void UI::audioBuffer(char* header,char* buffer) {

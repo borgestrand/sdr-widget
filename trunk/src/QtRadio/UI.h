@@ -261,6 +261,7 @@ private:
     long long frequency;
 
     int fps;
+    QTimer* spectrumTimer;
 
     About about;
     Configure configure;
