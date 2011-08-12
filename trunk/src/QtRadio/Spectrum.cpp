@@ -415,7 +415,7 @@ void Spectrum::setFilter(QString f) {
     repaint();
 }
 
-void Spectrum::updateSpectrum(char* header,char* buffer,int width) {
+void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
     int i;
 
     //qDebug() << "updateSpectrum: width=" << width() << " height=" << height();
