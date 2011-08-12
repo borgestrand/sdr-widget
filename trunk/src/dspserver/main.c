@@ -195,6 +195,7 @@ int main(int argc,char* argv[]) {
     reset_for_buflen(1,1024);
 
     client_init(receiver);
+    spectrum_init();
     audio_stream_init(receiver);
 
     // initialize ozy

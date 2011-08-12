@@ -54,7 +54,7 @@ static int timing=0;
 static struct timeb start_time;
 static struct timeb end_time;
 
-static pthread_t client_thread_id;
+static pthread_t client_thread_id, spectrum_thread_id;
 
 static int client_terminate=0;
 
@@ -75,7 +75,7 @@ static float meter;
 static float subrx_meter;
 int encoding = 0;
 
-static sem_t network_semaphore;
+static sem_t network_semaphore, spectrum_semaphore;
 
 void* client_thread(void* arg);
 
@@ -83,7 +83,7 @@ void client_send_samples(int size);
 void client_set_samples(float* samples,int size);
 
 static unsigned char* client_samples;
-
+int samples;
 
 float getFilterSizeCalibrationOffset() {
     int size=1024; // dspBufferSize
@@ -112,6 +112,36 @@ void client_init(int receiver) {
     }
 
 }
+
+void spectrum_init() {
+    int rc;
+
+    sem_init(&spectrum_semaphore,0,1);
+
+    signal(SIGPIPE, SIG_IGN);
+
+    fprintf(stderr,"spectrum_init\n");
+
+    rc=pthread_create(&spectrum_thread_id,NULL,spectrum_thread,NULL);
+    if(rc != 0) {
+        fprintf(stderr,"pthread_create failed on spectrum_thread: rc=%d\n", rc);
+    }
+
+}
+
+void spectrum_thread(){
+    while (1){
+	    sem_wait(&spectrum_semaphore);
+	    Process_Panadapter(0,spectrumBuffer);
+	    meter=CalculateRXMeter(0,0,0)+multimeterCalibrationOffset+getFilterSizeCalibrationOffset();
+	    subrx_meter=CalculateRXMeter(0,1,0)+multimeterCalibrationOffset+getFilterSizeCalibrationOffset();
+	    client_samples=malloc(BUFFER_HEADER_SIZE+samples);
+	    client_set_samples(spectrumBuffer,samples);
+	    client_send_samples(samples);
+	    free(client_samples);
+    }
+}
+
 
 void client_set_timing() {
     timing=1;
@@ -205,17 +235,12 @@ if(timing) {
                     }
                     
                     if(strcmp(token,"getspectrum")==0) {
-                        int samples;
                         token=strtok(NULL," ");
                         if(token!=NULL) {
                             samples=atoi(token);
-                            Process_Panadapter(0,spectrumBuffer);
-                            meter=CalculateRXMeter(0,0,0)+multimeterCalibrationOffset+getFilterSizeCalibrationOffset();
-                            subrx_meter=CalculateRXMeter(0,1,0)+multimeterCalibrationOffset+getFilterSizeCalibrationOffset();
-                            client_samples=malloc(BUFFER_HEADER_SIZE+samples);
-                            client_set_samples(spectrumBuffer,samples);
-                            client_send_samples(samples);
-                            free(client_samples);
+			    int semaphore_state;
+			    sem_getvalue(&spectrum_semaphore, &semaphore_state);
+ 			    if (semaphore_state <= 0) sem_post(&spectrum_semaphore);
                         } else {
                             fprintf(stderr,"Invalid command: '%s'\n",message);
                         }
