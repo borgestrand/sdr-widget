@@ -501,6 +501,7 @@ void UI::spectrumBuffer(char* header,char* buffer) {
     widget.spectrumFrame->updateSpectrum(header,buffer,length);
     widget.waterfallFrame->updateWaterfall(header,buffer,length);
     connection.freeBuffers(header,buffer);
+    connection.SemSpectrum.release();
 }
 
 void UI::audioBuffer(char* header,char* buffer) {
