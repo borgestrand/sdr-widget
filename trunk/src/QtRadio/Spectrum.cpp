@@ -343,12 +343,14 @@ void Spectrum::paintEvent(QPaintEvent*) {
 
     }
 
+
     // plot Spectrum
     painter.setOpacity(0.9);
     painter.setPen(QPen(Qt::yellow, 1));
     if(plot.count()==width()) {
         painter.drawPolyline(plot.constData(),plot.count());
     }
+
 
     // show the subrx frequency
     if(subRx) {

@@ -470,6 +470,7 @@ void UI::connected() {
 
     // start the spectrum
     //qDebug() << "starting spectrum timer";
+    connection.SemSpectrum.release();
     spectrumTimer->start(1000/fps);
 }
 
@@ -490,8 +491,11 @@ void UI::disconnected(QString message) {
 
 void UI::updateSpectrum() {
     QString command;
-    command.clear(); QTextStream(&command) << "getSpectrum " << widget.spectrumFrame->width();
-    connection.sendCommand(command);
+    if (connection.SemSpectrum.available() > 0){
+        connection.SemSpectrum.acquire();
+        command.clear(); QTextStream(&command) << "getSpectrum " << widget.spectrumFrame->width();
+        connection.sendCommand(command);
+    }
 }
 
 void UI::spectrumBuffer(char* header,char* buffer) {
