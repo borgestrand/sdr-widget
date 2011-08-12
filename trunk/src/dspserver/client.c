@@ -75,7 +75,7 @@ static float meter;
 static float subrx_meter;
 int encoding = 0;
 
-static sem_t network_semaphore, spectrum_semaphore;
+static sem_t network_semaphore, get_spectrum_semaphore, ready_spectrum_semaphore;
 
 void* client_thread(void* arg);
 
@@ -116,7 +116,9 @@ void client_init(int receiver) {
 void spectrum_init() {
     int rc;
 
-    sem_init(&spectrum_semaphore,0,1);
+    sem_init(&get_spectrum_semaphore,0,1);
+    sem_init(&ready_spectrum_semaphore,0,1);
+    sem_post(&ready_spectrum_semaphore);
 
     signal(SIGPIPE, SIG_IGN);
 
@@ -131,7 +133,7 @@ void spectrum_init() {
 
 void spectrum_thread(){
     while (1){
-	    sem_wait(&spectrum_semaphore);
+	    sem_wait(&get_spectrum_semaphore);
 	    Process_Panadapter(0,spectrumBuffer);
 	    meter=CalculateRXMeter(0,0,0)+multimeterCalibrationOffset+getFilterSizeCalibrationOffset();
 	    subrx_meter=CalculateRXMeter(0,1,0)+multimeterCalibrationOffset+getFilterSizeCalibrationOffset();
@@ -139,6 +141,7 @@ void spectrum_thread(){
 	    client_set_samples(spectrumBuffer,samples);
 	    client_send_samples(samples);
 	    free(client_samples);
+	    sem_post(&ready_spectrum_semaphore);
     }
 }
 
@@ -237,10 +240,11 @@ if(timing) {
                     if(strcmp(token,"getspectrum")==0) {
                         token=strtok(NULL," ");
                         if(token!=NULL) {
-                            samples=atoi(token);
-			    int semaphore_state;
-			    sem_getvalue(&spectrum_semaphore, &semaphore_state);
- 			    if (semaphore_state <= 0) sem_post(&spectrum_semaphore);
+			    int rc = sem_trywait(&ready_spectrum_semaphore);
+			    if (rc == 0){
+                            	samples=atoi(token);
+ 			    	sem_post(&get_spectrum_semaphore);
+			    }
                         } else {
                             fprintf(stderr,"Invalid command: '%s'\n",message);
                         }
