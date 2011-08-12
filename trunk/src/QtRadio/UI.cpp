@@ -252,7 +252,7 @@ UI::UI() {
 UI::~UI() {
     connection.disconnect();
 }
-    int audio_encoding;
+
 void UI::actionAbout() {
     about.setVisible(TRUE);
 }
@@ -374,7 +374,7 @@ void UI::actionConnect() {
 void UI::actionDisconnect() {
     //qDebug() << "UI::actionDisconnect";
 
-//    qTimer->stop();
+    spectrumTimer->stop();
 
     connection.disconnect();
     widget.actionConnectToServer->setDisabled(FALSE);
@@ -470,7 +470,6 @@ void UI::connected() {
 
     // start the spectrum
     //qDebug() << "starting spectrum timer";
-    //QTimer::singleShot(1000/fps,this,SLOT(updateSpectrum()));
     spectrumTimer->start(1000/fps);
 }
 
@@ -502,7 +501,6 @@ void UI::spectrumBuffer(char* header,char* buffer) {
     widget.spectrumFrame->updateSpectrum(header,buffer,length);
     widget.waterfallFrame->updateWaterfall(header,buffer,length);
     connection.freeBuffers(header,buffer);
-//    QTimer::singleShot(1000/fps,this,SLOT(updateSpectrum()));
 }
 
 void UI::audioBuffer(char* header,char* buffer) {

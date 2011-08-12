@@ -155,25 +155,27 @@ void Connection::processBuffer() {
     char* nextHeader;
     char* nextBuffer;
 
-    buffer=queue.dequeue();
-    nextHeader=buffer->getHeader();
-    nextBuffer=buffer->getBuffer();
+    while (! queue.isEmpty()){
+        buffer=queue.dequeue();
+        nextHeader=buffer->getHeader();
+        nextBuffer=buffer->getBuffer();
 
-    //qDebug() << "processBuffer " << nextHeader[0];
-    // emit a signal to show what buffer we have
-    if(nextHeader[0]==SPECTRUM_BUFFER) {
-        emit spectrumBuffer(nextHeader,nextBuffer);
-    } else if(nextHeader[0]==AUDIO_BUFFER) {
-        emit audioBuffer(nextHeader,nextBuffer);
-    } else if(nextHeader[0]==BANDSCOPE_BUFFER) {
-        //qDebug() << "socketData: bandscope";
-        emit bandscopeBuffer(nextHeader,nextBuffer);
-    } else {
-        qDebug() << "Connection::socketData: invalid header: " << nextHeader[0];
+        //qDebug() << "processBuffer " << nextHeader[0];
+        // emit a signal to show what buffer we have
+        if(nextHeader[0]==SPECTRUM_BUFFER) {
+            emit spectrumBuffer(nextHeader,nextBuffer);
+        } else if(nextHeader[0]==AUDIO_BUFFER) {
+            emit audioBuffer(nextHeader,nextBuffer);
+        } else if(nextHeader[0]==BANDSCOPE_BUFFER) {
+            //qDebug() << "socketData: bandscope";
+            emit bandscopeBuffer(nextHeader,nextBuffer);
+        } else {
+            qDebug() << "Connection::socketData: invalid header: " << nextHeader[0];
+        }
     }
 }
 
 void Connection::freeBuffers(char* header,char* buffer) {
-    free(header);
-    free(buffer);
+    if (header != NULL) free(header);
+    if (buffer != NULL) free(buffer);
 }
