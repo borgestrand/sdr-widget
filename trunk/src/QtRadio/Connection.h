@@ -32,6 +32,7 @@
 #include <QTimer>
 #include <QMutex>
 #include <QQueue>
+#include <QSemaphore>
 
 #include "Buffer.h"
 
@@ -54,6 +55,8 @@ public:
     void disconnect();
     void sendCommand(QString command);
     void freeBuffers(char* header,char* buffer);
+
+    QSemaphore SemSpectrum;
 
 public slots:
     void connected();
