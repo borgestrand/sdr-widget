@@ -238,7 +238,9 @@ if(timing) {
                         token=strtok(NULL," ");
                         if(token!=NULL) {
                             samples=atoi(token);
- 			    sem_post(&spectrum_semaphore);
+			    int semaphore_state;
+			    sem_getvalue(&spectrum_semaphore, &semaphore_state);
+ 			    if (semaphore_state <= 0) sem_post(&spectrum_semaphore);
                         } else {
                             fprintf(stderr,"Invalid command: '%s'\n",message);
                         }
