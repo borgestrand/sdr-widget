@@ -134,7 +134,7 @@ char* set_frequency(CLIENT* client,long frequency) {
         return RECEIVER_INVALID;
     }
    if(si570)
-        setFrequency(handle,(double)frequency/1000000.0);
+        setFreqByValue(handle,(double)frequency/1000000.0);
     receiver[client->receiver].frequency=frequency;
     receiver[client->receiver].frequency_changed=1;
 
