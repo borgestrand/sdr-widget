@@ -135,7 +135,7 @@ void Audio::get_audio_devices(QComboBox* comboBox) {
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
-    audio_output->setBufferSize(1024*8);
+    audio_output->setBufferSize(1024*48);
     audio_out = audio_output->start();
 
     //    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(audio_stateChanged(QAudio::State)));
@@ -183,7 +183,7 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
-    audio_output->setBufferSize(1028*8);
+    audio_output->setBufferSize(1024*48);
     audio_out = audio_output->start();
 
     if(audio_output->error()!=0) {
