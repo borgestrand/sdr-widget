@@ -135,7 +135,7 @@ void Audio::get_audio_devices(QComboBox* comboBox) {
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
-    audio_output->setBufferSize(1024*48);
+  //  audio_output->setBufferSize(1024*48);
     audio_out = audio_output->start();
 
     //    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(audio_stateChanged(QAudio::State)));
@@ -183,7 +183,7 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
-    audio_output->setBufferSize(1024*48);
+ //   audio_output->setBufferSize(1024*48);
     audio_out = audio_output->start();
 
     if(audio_output->error()!=0) {
@@ -222,7 +222,7 @@ void Audio::process_audio(char* header,char* buffer,int length) {
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
-        while( written<decoded_buffer.length() && (audio_output->bytesFree() >= (decoded_buffer.length()-written)) ) {
+        while( written<decoded_buffer.length() && (audio_output->bytesFree() >= 32) ) {
             written+=audio_out->write(&decoded_buffer.data()[written],decoded_buffer.length()-written);
         }
     }
