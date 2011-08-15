@@ -27,7 +27,6 @@
 
 Audio::Audio() {
     audio_output=NULL;
-    audio_out=NULL;
     sampleRate=8000;
     audio_encoding = 0;
     audio_channels=1;
@@ -136,7 +135,10 @@ void Audio::get_audio_devices(QComboBox* comboBox) {
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
+    audio_output->setBufferSize(1024*8);
     audio_out = audio_output->start();
+
+    //    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(audio_stateChanged(QAudio::State)));
 
     if(audio_output->error()!=0) {
         qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
@@ -148,13 +150,9 @@ void Audio::get_audio_devices(QComboBox* comboBox) {
         qDebug() << "    sample size: " << audio_format.sampleSize();
         qDebug() << "    sample type: " << audio_format.sampleType();
         qDebug() << "    channels: " << audio_format.channels();
-        audio_out=NULL;
+        audio_out = NULL;
+        delete audio_output;
     }
-
-    if(audio_out==NULL) {
-        qDebug() << "Audio::selectAudio: audio_out is NULL!";
-    }
-
 }
 
 void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) {
@@ -167,8 +165,7 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
     if(audio_output!=NULL) {
         audio_output->stop();
         audio_output->disconnect(this);
-        audio_output=NULL;
-        audio_out=NULL;
+        delete audio_output;
     }
 
 
@@ -186,6 +183,7 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
+    audio_output->setBufferSize(1028*8);
     audio_out = audio_output->start();
 
     if(audio_output->error()!=0) {
@@ -198,13 +196,19 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
         qDebug() << "    sample size: " << audio_format.sampleSize();
         qDebug() << "    sample type: " << audio_format.sampleType();
         qDebug() << "    channels: " << audio_format.channels();
-        audio_out=NULL;
+        audio_out = NULL;
     }
+}
 
-    if(audio_out==NULL) {
-        qDebug() << "Audio::selectAudio: audio_out is NULL!";
+void Audio::audio_stateChanged(QAudio::State State){
+    switch (State) {
+        case QAudio::StoppedState:
+            if (audio_output->error() != QAudio::NoError) {
+                qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
+            } else {
+            }
+            break;
     }
-
 }
 
 void Audio::process_audio(char* header,char* buffer,int length) {
@@ -218,7 +222,7 @@ void Audio::process_audio(char* header,char* buffer,int length) {
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
-        while(written<decoded_buffer.length()) {
+        while( written<decoded_buffer.length() && (audio_output->bytesFree() >= (decoded_buffer.length()-written)) ) {
             written+=audio_out->write(&decoded_buffer.data()[written],decoded_buffer.length()-written);
         }
     }
@@ -253,7 +257,7 @@ void Audio::pcmDecode(char* buffer,int length) {
 
     decoded_buffer.clear();
 
-    for (i=0; i < length; i+=2) {
+    for (i=0; i < length; i+=2) {           // try reducing the audio output
 
         switch(audio_byte_order) {
         case QAudioFormat::LittleEndian:
