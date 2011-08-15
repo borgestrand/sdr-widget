@@ -55,6 +55,9 @@ public:
     int get_channels();
 
     int audio_encoding;
+
+public slots:
+        void audio_stateChanged(QAudio::State);
 private:
     void aLawDecode(char* buffer,int length);
     void pcmDecode(char * buffer,int length);
