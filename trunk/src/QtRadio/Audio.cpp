@@ -214,6 +214,8 @@ void Audio::audio_stateChanged(QAudio::State State){
 void Audio::process_audio(char* header,char* buffer,int length) {
     //qDebug() << "process audio";
     int written=0;
+    int period_size = audio_output->periodSize();
+    int length_to_write;
 
     if (audio_encoding == 0) aLawDecode(buffer,length);
     else if (audio_encoding == 1) pcmDecode(buffer,length);
@@ -222,8 +224,10 @@ void Audio::process_audio(char* header,char* buffer,int length) {
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
-        while( written<decoded_buffer.length() && (audio_output->bytesFree() >= 32) ) {
-            written+=audio_out->write(&decoded_buffer.data()[written],decoded_buffer.length()-written);
+        while( written<decoded_buffer.length() && (audio_output->bytesFree() >= 8) ) {
+            length_to_write = ((decoded_buffer.length()-written)  > period_size) ?
+                                period_size : (decoded_buffer.length()-written);
+            written+=audio_out->write(&decoded_buffer.data()[written],length_to_write);
         }
     }
 }
