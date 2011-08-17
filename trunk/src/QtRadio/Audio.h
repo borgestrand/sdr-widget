@@ -50,15 +50,14 @@ public:
     void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
     void process_audio(char* header,char* buffer,int length);
     void get_audio_devices(QComboBox* comboBox);
-
     int get_sample_rate();
     int get_channels();
 
     int audio_encoding;
 
 public slots:
-        void audio_stateChanged(QAudio::State);
-        void audio_bytesWritten(qint64 bytes);
+        void stateChanged(QAudio::State);
+        void bytesWritten(qint64 bytes);
 private:
     void aLawDecode(char* buffer,int length);
     void pcmDecode(char * buffer,int length);

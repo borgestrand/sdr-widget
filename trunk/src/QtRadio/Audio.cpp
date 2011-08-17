@@ -132,14 +132,14 @@ void Audio::get_audio_devices(QComboBox* comboBox) {
     qDebug() << "Audio::get_audio_devices: default is " << audio_device.deviceName();
 
     audio_output = new QAudioOutput(audio_device, audio_format, this);
-    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(audio_stateChanged(QAudio::State)));
+    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(stateChanged(QAudio::State)));
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
   //  audio_output->setBufferSize(1024*48);
     audio_out = audio_output->start();
 
-    connect(audio_out,SIGNAL(bytesWritten(qint64)),SLOT(audio_bytesWritten(qint64)));
+    connect(audio_out,SIGNAL(bytesWritten(qint64)),SLOT(bytesWritten(qint64)));
 
     if(audio_output->error()!=0) {
         qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
@@ -181,13 +181,13 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
     }
 
     audio_output = new QAudioOutput(audio_device, audio_format, this);
-    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(audio_stateChanged(QAudio::State)));
+    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(stateChanged(QAudio::State)));
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
  //   audio_output->setBufferSize(1024*48);
     audio_out = audio_output->start();
-    connect(audio_out,SIGNAL(bytesWritten(qint64)),SLOT(audio_bytesWritten(qint64)));
+    connect(audio_out,SIGNAL(bytesWritten(qint64)),SLOT(bytesWritten(qint64)));
 
     if(audio_output->error()!=0) {
         qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
@@ -203,7 +203,7 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
     }
 }
 
-void Audio::audio_stateChanged(QAudio::State State){
+void Audio::stateChanged(QAudio::State State){
     switch (State) {
         case QAudio::StoppedState:
             if (audio_output->error() != QAudio::NoError) {
@@ -218,7 +218,7 @@ void Audio::audio_stateChanged(QAudio::State State){
     }
 }
 
-void Audio::audio_bytesWritten(qint64 bytes){
+void Audio::bytesWritten(qint64 bytes){
     qDebug() << "bytesWritten = " << bytes;
 }
 
@@ -235,7 +235,7 @@ void Audio::process_audio(char* header,char* buffer,int length) {
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
         length_to_write = decoded_buffer.length();
-        while( written<length_to_write ) {
+        while( written<length_to_write) {
             written+=audio_out->write(&decoded_buffer.data()[written],length_to_write-written);
         }
     }
