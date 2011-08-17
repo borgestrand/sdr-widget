@@ -57,7 +57,7 @@ int Audio::get_channels() {
 void Audio::initialize_audio(int buffer_size) {
     qDebug() << "initialize_audio " << buffer_size;
 
-    decoded_buffer.resize(buffer_size*2);
+    decoded_buffer.resize(buffer_size*4+8);
 
     init_decodetable();
 
@@ -132,13 +132,12 @@ void Audio::get_audio_devices(QComboBox* comboBox) {
     qDebug() << "Audio::get_audio_devices: default is " << audio_device.deviceName();
 
     audio_output = new QAudioOutput(audio_device, audio_format, this);
+    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(stateChanged(QAudio::State)));
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
   //  audio_output->setBufferSize(1024*48);
     audio_out = audio_output->start();
-
-    //    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(audio_stateChanged(QAudio::State)));
 
     if(audio_output->error()!=0) {
         qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
@@ -180,6 +179,7 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
     }
 
     audio_output = new QAudioOutput(audio_device, audio_format, this);
+    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(stateChanged(QAudio::State)));
 
     qDebug() << "QAudioOutput: error=" << audio_output->error() << " state=" << audio_output->state();
 
@@ -200,33 +200,43 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
     }
 }
 
-void Audio::audio_stateChanged(QAudio::State State){
+void Audio::stateChanged(QAudio::State State){
     switch (State) {
         case QAudio::StoppedState:
             if (audio_output->error() != QAudio::NoError) {
-                qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
-            } else {
-            }
+                qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << State;
             break;
+            }
+        case QAudio::IdleState:
+        case QAudio::SuspendedState:
+        case QAudio::ActiveState:
+        default:
+ //           qDebug() << "QAudioOutput: state changed" << " state=" << State;
+        return;
     }
 }
 
 void Audio::process_audio(char* header,char* buffer,int length) {
     //qDebug() << "process audio";
     int written=0;
-    int period_size = audio_output->periodSize();
-    int length_to_write;
+    int length_to_write, total_to_write;
+    int skip_bytes = 1;
 
     if (audio_encoding == 0) aLawDecode(buffer,length);
-    else if (audio_encoding == 1) pcmDecode(buffer,length);
+    else if (audio_encoding == 1) {
+        pcmDecode(buffer,length);
+        skip_bytes = 2;
+    }
     else if (audio_encoding == 2) codec2Decode(buffer,length);
     else aLawDecode(buffer,length);
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
-        while( written<decoded_buffer.length() && (audio_output->bytesFree() >= 8) ) {
-            length_to_write = ((decoded_buffer.length()-written)  > period_size) ?
-                                period_size : (decoded_buffer.length()-written);
+        total_to_write = decoded_buffer.length();
+        while( written< total_to_write) {
+            if (audio_output->bytesFree() < 4) total_to_write -= skip_bytes;
+            length_to_write = (audio_output->periodSize() > (decoded_buffer.length()-written)) ?
+                        (decoded_buffer.length()-written) : audio_output->periodSize();
             written+=audio_out->write(&decoded_buffer.data()[written],length_to_write);
         }
     }
