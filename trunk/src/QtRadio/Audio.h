@@ -57,7 +57,7 @@ public:
 
 public slots:
         void stateChanged(QAudio::State);
-        void bytesWritten(qint64 bytes);
+
 private:
     void aLawDecode(char* buffer,int length);
     void pcmDecode(char * buffer,int length);
