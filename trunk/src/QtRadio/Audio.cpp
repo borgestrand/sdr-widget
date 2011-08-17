@@ -57,7 +57,7 @@ int Audio::get_channels() {
 void Audio::initialize_audio(int buffer_size) {
     qDebug() << "initialize_audio " << buffer_size;
 
-    decoded_buffer.resize(buffer_size*2);
+    decoded_buffer.resize(buffer_size*4+8);
 
     init_decodetable();
 
@@ -138,7 +138,7 @@ void Audio::get_audio_devices(QComboBox* comboBox) {
   //  audio_output->setBufferSize(1024*48);
     audio_out = audio_output->start();
 
-    //    connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(audio_stateChanged(QAudio::State)));
+        connect(audio_output,SIGNAL(stateChanged(QAudio::State)),SLOT(audio_stateChanged(QAudio::State)));
 
     if(audio_output->error()!=0) {
         qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
@@ -205,17 +205,20 @@ void Audio::audio_stateChanged(QAudio::State State){
         case QAudio::StoppedState:
             if (audio_output->error() != QAudio::NoError) {
                 qDebug() << "QAudioOutput: after start error=" << audio_output->error() << " state=" << audio_output->state();
-            } else {
-            }
             break;
+            }
+        case QAudio::IdleState:
+        case QAudio::SuspendedState:
+        case QAudio::ActiveState:
+        default:
+            qDebug() << "QAudioOutput: state changed";
     }
 }
 
 void Audio::process_audio(char* header,char* buffer,int length) {
     //qDebug() << "process audio";
     int written=0;
-    int period_size = audio_output->periodSize();
-    int length_to_write;
+    int length_to_write = decoded_buffer.length();
 
     if (audio_encoding == 0) aLawDecode(buffer,length);
     else if (audio_encoding == 1) pcmDecode(buffer,length);
@@ -224,10 +227,8 @@ void Audio::process_audio(char* header,char* buffer,int length) {
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
-        while( written<decoded_buffer.length() && (audio_output->bytesFree() >= 8) ) {
-            length_to_write = ((decoded_buffer.length()-written)  > period_size) ?
-                                period_size : (decoded_buffer.length()-written);
-            written+=audio_out->write(&decoded_buffer.data()[written],length_to_write);
+        while( (written<length_to_write) && (audio_output->bytesFree() >= 0) ) {
+            written+=audio_out->write(&decoded_buffer.data()[written],length_to_write-written);
         }
     }
 }
