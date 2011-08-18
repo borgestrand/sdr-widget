@@ -35,8 +35,9 @@
 
 #define CODEC2_SAMPLES_PER_FRAME 160
 #define CODEC2_BITS_PER_FRAME     50
+#define BITS_SIZE	((CODEC2_BITS_PER_FRAME + 7) / 8)
 
-extern "C" void *codec2_create();
+void *codec2_create();
 void codec2_destroy(void *codec2_state);
 void codec2_encode(void *codec2_state, unsigned char * bits, short speech_in[]);
 void codec2_decode(void *codec2_state, short speech_out[],
