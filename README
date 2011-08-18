@@ -4,11 +4,12 @@ http://openhpsdr.org/wiki/index.php?title=Ghpsdr3
 
 The changes are in trunk/src/: 
 
-softrock    - added an IF offset of 9khz (ala PSDR-IQ) 
-dspserver  - added IF offset of 9khz 
-server       - hpsdr protocol with full control of sdr-widget/Mobo 
-receiver     - Makefile modified to compile in x86_64, changed local-audio to direct alsa output, changed portaudio to use callback
-QtRadio      - added dialog to store server ip addresses
+softrock    - added an IF offset of 9khz (ala PSDR-IQ).  Works with all softrocks.
+dspserver  - added IF offset of 9khz.  More robust audio and spectrum transfers.
+server       - hpsdr protocol with full control of sdr-widget/Mobo/SR.  Only for sdr-widget.
+receiver     - Makefile modified to compile in x86_64, changed local-audio to direct alsa output, changed portaudio to use callback.
+               To run under Ubuntu with pulseaudio:  $ ./ghpsdr --local-audio 1 --audio-device pulse
+QtRadio      - added dialog to store server ip addresses.  Fixed high cpu util bug.  Implemented 16 bit PCM audio.
 
 There are two branches, master and new-qt.
 
