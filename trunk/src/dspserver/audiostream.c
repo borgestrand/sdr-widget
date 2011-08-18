@@ -38,15 +38,22 @@
 #include "audiostream.h"
 #include "client.h"
 #include "buffer.h"
+#include "codec2.h"
 
 int audio_buffer_size=480;
 int audio_sample_rate=8000;
 int audio_channels=1;
 unsigned char* audio_buffer=NULL;
+short* codec2_buffer=NULL;
 int send_audio=0;
 
+// process 8 codec2 frames per transfer
+#define NO_CODEC2_FRAMES	8
+#define BITS_SIZE	((CODEC2_BITS_PER_FRAME + 7) / 8)
+void * codec2 = NULL;
 
 static int sample_count=0;
+static int codec2_count=0;
 
 static int audio_stream_buffer_insert=0;
 
@@ -71,23 +78,41 @@ void audio_stream_reset() {
     if(audio_buffer!=NULL) {
         free(audio_buffer);
     }
+
+    if(codec2_buffer != NULL) free(codec2_buffer);
+
+    if (codec2 != NULL) codec2_destroy(codec2);
+
+    codec2 = codec2_create();
+
     if (encoding == 0) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
     else if (encoding == 1) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
+    else if (encoding == 2) {
+	audio_buffer_size = 
+	audio_buffer=(unsigned char*)malloc(BITS_SIZE*NO_CODEC2_FRAMES + BUFFER_HEADER_SIZE);
+	codec2_buffer=(short*)malloc(CODEC2_SAMPLES_PER_FRAME * sizeof(short));
+	};
     audio_stream_buffer_insert=0;
+    codec2_count = 0;
 }
 
 void audio_stream_put_samples(short left_sample,short right_sample) {
 	int audio_buffer_length;
     // samples are delivered at 48K
     // output to stream at 8K (1 in 6) or 48K (1 in 1)
+    // codec2 encoding works only for 8K
+
     if(sample_count==0) {
-        // use this sample and convert to a-law or PCM
+        // use this sample and convert to a-law or PCM or codec2
         if(audio_channels==1) {
             if (encoding == 0) audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2);
 	    else if (encoding == 1) {
 		audio_buffer[audio_stream_buffer_insert*2+48] = (left_sample/2+right_sample/2) & 0x00ff;
 		audio_buffer[audio_stream_buffer_insert*2+1+48] = (left_sample/2+right_sample/2) >> 8;
-		} 
+		}
+	    else if (encoding == 2) {
+		codec2_buffer[audio_stream_buffer_insert] = (left_sample+right_sample)/2;
+		}
             else {
 		audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2); //encoding == others
 		}
@@ -110,17 +135,31 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
 
 	audio_stream_buffer_insert++;
         if(audio_stream_buffer_insert==audio_buffer_size) {
-            audio_buffer[0]=AUDIO_BUFFER;
-            sprintf(&audio_buffer[1],"%f",HEADER_VERSION);
-	    if (encoding == 1) audio_buffer_length = audio_buffer_size*audio_channels*2;
-	    else audio_buffer_length = audio_buffer_size*audio_channels;
-            sprintf(&audio_buffer[26],"%d", audio_buffer_length);
-            client_send_audio();
-            audio_stream_buffer_insert=0;
+	    if (encoding == 2 && codec2 !=NULL) {
+		codec2_encode(codec2, &audio_buffer[48+BITS_SIZE*codec2_count], codec2_buffer);
+		codec2_count++;
+		if (codec2_count >= NO_CODEC2_FRAMES){
+		    audio_buffer[0]=AUDIO_BUFFER;
+		    sprintf(&audio_buffer[1],"%f",HEADER_VERSION);
+		    audio_buffer_length = BITS_SIZE*NO_CODEC2_FRAMES + BUFFER_HEADER_SIZE;
+		    sprintf(&audio_buffer[26],"%d", audio_buffer_length);
+		    client_send_audio();
+		    codec2_count = 0;
+		    }
+	    }
+	    else {
+		audio_buffer[0]=AUDIO_BUFFER;
+		sprintf(&audio_buffer[1],"%f",HEADER_VERSION);
+		if (encoding == 1) audio_buffer_length = audio_buffer_size*audio_channels*2;
+		else audio_buffer_length = audio_buffer_size*audio_channels;
+		sprintf(&audio_buffer[26],"%d", audio_buffer_length);
+		client_send_audio();
+		}
+	    audio_stream_buffer_insert=0;
         }
     }
     sample_count++;
-    if(audio_sample_rate==48000 ) {
+    if(audio_sample_rate==48000) {
         sample_count=0;
     } else {
         if(sample_count==6) {

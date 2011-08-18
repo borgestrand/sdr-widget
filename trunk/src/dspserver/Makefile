@@ -7,7 +7,7 @@ LINK=gcc
 OPTIONS=-g -O3 -Wall
 INCLUDES=-I. 
 LIBS=-L. -L../DttSP -lDttSP -lpthread\
-     -lm -lfftw3f 
+     -lm -lfftw3f -lcodec2
 
 BIN=../../bin
 
