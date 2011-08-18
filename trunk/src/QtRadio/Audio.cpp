@@ -24,6 +24,7 @@
 */
 
 #include "Audio.h"
+#include "codec2.h"
 
 Audio::Audio() {
     audio_output=NULL;
@@ -40,10 +41,12 @@ Audio::Audio() {
     audio_format.setSampleSize(16);
     audio_format.setCodec("audio/pcm");
     audio_format.setByteOrder(audio_byte_order);
+    codec2 = codec2_create();
 
 }
 
 Audio::~Audio() {
+    codec2_destroy(codec2);
 }
 
 int Audio::get_sample_rate() {

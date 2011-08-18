@@ -4,12 +4,13 @@ http://openhpsdr.org/wiki/index.php?title=Ghpsdr3
 
 The changes are in trunk/src/: 
 
-softrock    - added an IF offset of 9khz (ala PSDR-IQ).  Works with all softrocks.
-dspserver  - added IF offset of 9khz.  More robust audio and spectrum transfers.
+softrock     - added an IF offset of 9khz (ala PSDR-IQ).  Works with all softrocks.
+dspserver    - added IF offset of 9khz.  More robust audio and spectrum transfers.
 server       - hpsdr protocol with full control of sdr-widget/Mobo/SR.  Only for sdr-widget.
 receiver     - Makefile modified to compile in x86_64, changed local-audio to direct alsa output, changed portaudio to use callback.
                To run under Ubuntu with pulseaudio:  $ ./ghpsdr --local-audio 1 --audio-device pulse
-QtRadio      - added dialog to store server ip addresses.  Fixed high cpu util bug.  Implemented 16 bit PCM audio.
+QtRadio      - added dialog to store server ip addresses.  Fixed high cpu util bug.  Implemented 16 bit PCM audio.  See below for
+               codec2 encoding and decoding.
 
 There are two branches, master and new-qt.
 
@@ -44,5 +45,20 @@ cd ~/ghpsdr3-alex/trunk/bin
 
 After that, you start dspserver (to connect to this server) and 
 QtRadio etc. 
+
+
+QtRadio with codec2 low bit rate audio encoding and decoding
+============================================================
+We are adding a low bit rate audio codec called codec 2 to QtRadio/dspserver.  You need
+to download and build the codec2 library.  See:
+
+http://www.rowetel.com/blog/?page_id=452
+
+After building the shared library libcodec2.so libcodec2.so.0 (which can be found in the ~/codec2/src/.libs
+subdirectory, you make a symlink to /usr/lib as follows:
+
+$ sudo ln -s ~/codec2/src/.libs/libcodec2.so .
+$ sudo ln -s ~/codec2/src/.libs/libcodec2.so.0 .
+
 
 

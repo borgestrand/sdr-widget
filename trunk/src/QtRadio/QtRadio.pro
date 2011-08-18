@@ -4,6 +4,7 @@
 #
 #-------------------------------------------------
 
+
 QT       += core gui network multimedia
 
 TARGET = QtRadio
@@ -87,7 +88,8 @@ HEADERS  += \
     Xvtr.h \
     XvtrEntry.h \
     Bookmarks.h \
-    KeypadDialog.h
+    KeypadDialog.h \
+    codec2.h
 
 FORMS    += \   
     UI.ui \
@@ -101,4 +103,10 @@ FORMS    += \
 
 OTHER_FILES +=
 
-RESOURCES +=
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../usr/lib/release/ -lcodec2
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../usr/lib/debug/ -lcodec2
+else:symbian: LIBS += -lcodec2
+else:unix: LIBS += -L$$PWD/../../../../../../usr/lib/ -lcodec2
+
+INCLUDEPATH += $$PWD/../../../../codec2/src
+DEPENDPATH += $$PWD/../../../../codec2/src

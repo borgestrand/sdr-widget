@@ -54,6 +54,7 @@ public:
     int get_channels();
 
     int audio_encoding;
+    void * codec2;
 
 public slots:
         void stateChanged(QAudio::State);
