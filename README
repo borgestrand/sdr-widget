@@ -59,6 +59,8 @@ subdirectory, you make a symlink to /usr/lib as follows:
 
 $ sudo ln -s ~/codec2/src/.libs/libcodec2.so .
 $ sudo ln -s ~/codec2/src/.libs/libcodec2.so.0 .
+$ sudo ldconfig
+
 
 
 
