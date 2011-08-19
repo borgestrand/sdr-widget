@@ -50,7 +50,7 @@ short* codec2_buffer=NULL;
 int send_audio=0;
 
 // process 8 codec2 frames per transfer
-#define NO_CODEC2_FRAMES	8
+#define NO_CODEC2_FRAMES	4
 #define BITS_SIZE	((CODEC2_BITS_PER_FRAME + 7) / 8)
 void * codec2 = NULL;
 unsigned char bits[BITS_SIZE];
@@ -82,7 +82,10 @@ void audio_stream_reset() {
         free(audio_buffer);
     }
 
-    if(codec2_buffer != NULL) free(codec2_buffer);
+    if(codec2_buffer != NULL) {
+	free(codec2_buffer);
+	codec2_buffer = NULL;
+	}
 
     if (codec2 != NULL) {
 	codec2_destroy(codec2);
