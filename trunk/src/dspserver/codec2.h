@@ -35,7 +35,6 @@
 void *codec2_create();
 void codec2_destroy(void *codec2_state);
 void codec2_encode(void *codec2_state, unsigned char * bits, short speech_in[]);
-void codec2_decode(void *codec2_state, short speech_out[],
-      const unsigned char * bits);
-
+void codec2_decode(void *codec2_state, short speech_out[],const unsigned char * bits);
+extern void* codec2;
 #endif
