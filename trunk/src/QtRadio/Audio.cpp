@@ -60,7 +60,9 @@ int Audio::get_channels() {
 void Audio::initialize_audio(int buffer_size) {
     qDebug() << "initialize_audio " << buffer_size;
 
-    decoded_buffer.resize(buffer_size*4+8);
+    if ( (buffer_size*4) < CODEC2_SAMPLES_PER_FRAME*8)
+        decoded_buffer.resize(CODEC2_SAMPLES_PER_FRAME*8); // To cater to 8 frames of codec2
+    else decoded_buffer.resize(buffer_size*4);  // To cater to 2 channels and 16 bits
 
     init_decodetable();
 
@@ -291,25 +293,31 @@ void Audio::pcmDecode(char* buffer,int length) {
 }
 
 void Audio::codec2Decode(char* buffer,int length) {
-    int i;
-    short v;
+    int i,j;
+    short v[CODEC2_SAMPLES_PER_FRAME];
+    unsigned char * bits;
 
     //qDebug() << "codec2wDecode " << decoded_buffer.length();
+
     decoded_buffer.clear();
 
-    for (i=0; i < length; i++) {
-        v=decodetable[buffer[i]&0xFF];
+    j = 0;
+    while (j < length) {
+        bits = (unsigned char *) &buffer[i];
+        codec2_decode(codec2, v, bits);
 
+        for (i=0; i < CODEC2_SAMPLES_PER_FRAME; i++)
         switch(audio_byte_order) {
         case QAudioFormat::LittleEndian:
-            decoded_buffer.append((char)(v&0xFF));
-            decoded_buffer.append((char)((v>>8)&0xFF));
+            decoded_buffer.append((char)(v[i]&0xFF));
+            decoded_buffer.append((char)((v[i]>>8)&0xFF));
             break;
         case QAudioFormat::BigEndian:
-            decoded_buffer.append((char)((v>>8)&0xFF));
-            decoded_buffer.append((char)(v&0xFF));
+            decoded_buffer.append((char)((v[i]>>8)&0xFF));
+            decoded_buffer.append((char)(v[i]&0xFF));
             break;
         }
+        j += BITS_SIZE;
     }
 
 }
