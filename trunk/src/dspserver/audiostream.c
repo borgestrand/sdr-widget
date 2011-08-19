@@ -88,7 +88,6 @@ void audio_stream_reset() {
     if (encoding == 0) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
     else if (encoding == 1) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
     else if (encoding == 2) {
-	audio_buffer_size = 
 	audio_buffer=(unsigned char*)malloc(BITS_SIZE*NO_CODEC2_FRAMES + BUFFER_HEADER_SIZE);
 	codec2_buffer=(short*)malloc(CODEC2_SAMPLES_PER_FRAME * sizeof(short));
 	};
