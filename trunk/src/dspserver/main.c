@@ -98,6 +98,7 @@
 #include "soundcard.h"
 #include "ozy.h"
 #include "version.h"
+#include "codec2.h"
 
 char propertyPath[128];
 
@@ -198,6 +199,8 @@ int main(int argc,char* argv[]) {
     spectrum_init();
     audio_stream_init(receiver);
 
+    codec2 = codec2_create();
+
     // initialize ozy
     ozy_init();
 
@@ -205,5 +208,6 @@ int main(int argc,char* argv[]) {
         sleep(10000);
     }
 
+ //   codec2_destroy(codec2);
     return 0;
 }

@@ -46,14 +46,14 @@ int audio_buffer_size = AUDIO_BUFFER_SIZE;
 int audio_sample_rate=8000;
 int audio_channels=1;
 unsigned char* audio_buffer=NULL;
-short* codec2_buffer=NULL;
 int send_audio=0;
 
 // process 8 codec2 frames per transfer
-#define NO_CODEC2_FRAMES	4
+#define NO_CODEC2_FRAMES	8
 #define BITS_SIZE	((CODEC2_BITS_PER_FRAME + 7) / 8)
 void * codec2 = NULL;
 unsigned char bits[BITS_SIZE];
+short codec2_buffer[CODEC2_SAMPLES_PER_FRAME];
 
 static int sample_count=0;
 static int codec2_count=0;
@@ -83,16 +83,6 @@ void audio_stream_reset() {
 	audio_buffer = NULL;
     }
 
-    if(codec2_buffer != NULL) {
-	free(codec2_buffer);
-	codec2_buffer = NULL;
-	}
-
-    if (codec2 != NULL) {
-	codec2_destroy(codec2);
-	codec2 = NULL;
-	}
-
     if (encoding == 0) {
 	audio_buffer_size = AUDIO_BUFFER_SIZE;	
 	audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
@@ -103,10 +93,8 @@ void audio_stream_reset() {
 	}
     else if (encoding == 2) {
     	codec2_count = 0;
-	codec2 = codec2_create();
 	audio_buffer_size = BITS_SIZE*NO_CODEC2_FRAMES;
 	audio_buffer=(unsigned char*)malloc(audio_buffer_size*audio_channels + BUFFER_HEADER_SIZE);
-	codec2_buffer=(short*)malloc(CODEC2_SAMPLES_PER_FRAME * sizeof(short));
 	};
 
     audio_stream_buffer_insert=0;
