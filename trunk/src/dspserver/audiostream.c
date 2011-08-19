@@ -80,6 +80,7 @@ void audio_stream_init(int receiver) {
 void audio_stream_reset() {
     if(audio_buffer!=NULL) {
         free(audio_buffer);
+	audio_buffer = NULL;
     }
 
     if(codec2_buffer != NULL) {
