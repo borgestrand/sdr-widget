@@ -53,6 +53,7 @@ int send_audio=0;
 #define NO_CODEC2_FRAMES	8
 #define BITS_SIZE	((CODEC2_BITS_PER_FRAME + 7) / 8)
 void * codec2 = NULL;
+unsigned char bits[BITS_SIZE];
 
 static int sample_count=0;
 static int codec2_count=0;
@@ -83,9 +84,10 @@ void audio_stream_reset() {
 
     if(codec2_buffer != NULL) free(codec2_buffer);
 
-    if (codec2 != NULL) codec2_destroy(codec2);
-
-    codec2 = codec2_create();
+    if (codec2 != NULL) {
+	codec2_destroy(codec2);
+	codec2 = NULL;
+	}
 
     if (encoding == 0) {
 	audio_buffer_size = AUDIO_BUFFER_SIZE;	
@@ -96,12 +98,14 @@ void audio_stream_reset() {
 	audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
 	}
     else if (encoding == 2) {
+    	codec2_count = 0;
+	codec2 = codec2_create();
 	audio_buffer_size = BITS_SIZE*NO_CODEC2_FRAMES;
 	audio_buffer=(unsigned char*)malloc(audio_buffer_size*audio_channels + BUFFER_HEADER_SIZE);
 	codec2_buffer=(short*)malloc(CODEC2_SAMPLES_PER_FRAME * sizeof(short));
 	};
+
     audio_stream_buffer_insert=0;
-    codec2_count = 0;
 }
 
 void audio_stream_put_samples(short left_sample,short right_sample) {
@@ -145,7 +149,8 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
 
 
 	if ((encoding == 2) && (audio_stream_buffer_insert == CODEC2_SAMPLES_PER_FRAME))  {
-		codec2_encode(codec2, &audio_buffer[48+BITS_SIZE*codec2_count], codec2_buffer);
+		codec2_encode(codec2, bits, codec2_buffer);
+		memcpy(&audio_buffer[48+BITS_SIZE*codec2_count], bits, BITS_SIZE);
 		codec2_count++;
 		audio_stream_buffer_insert = 0;
 		if (codec2_count >= NO_CODEC2_FRAMES){
