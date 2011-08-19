@@ -156,7 +156,7 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
 		if (codec2_count >= NO_CODEC2_FRAMES){
 		    audio_buffer[0]=AUDIO_BUFFER;
 		    sprintf(&audio_buffer[1],"%f",HEADER_VERSION);
-		    audio_buffer_length = BITS_SIZE*NO_CODEC2_FRAMES + BUFFER_HEADER_SIZE;
+		    audio_buffer_length = BITS_SIZE*NO_CODEC2_FRAMES;
 		    sprintf(&audio_buffer[26],"%d", audio_buffer_length);
 		    client_send_audio();
 		    codec2_count = 0;

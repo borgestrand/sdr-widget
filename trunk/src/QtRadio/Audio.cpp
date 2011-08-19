@@ -295,7 +295,7 @@ void Audio::pcmDecode(char* buffer,int length) {
 void Audio::codec2Decode(char* buffer,int length) {
     int i,j;
     short v[CODEC2_SAMPLES_PER_FRAME];
-    unsigned char * bits;
+    unsigned char bits[BITS_SIZE];
 
     //qDebug() << "codec2wDecode " << decoded_buffer.length();
 
@@ -303,7 +303,7 @@ void Audio::codec2Decode(char* buffer,int length) {
 
     j = 0;
     while (j < length) {
-        bits = (unsigned char *) &buffer[i];
+        memcpy(bits,&buffer[j],BITS_SIZE);
         codec2_decode(codec2, v, bits);
 
         for (i=0; i < CODEC2_SAMPLES_PER_FRAME; i++)
