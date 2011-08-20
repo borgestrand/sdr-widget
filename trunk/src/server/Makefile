@@ -2,7 +2,10 @@
 # Makefile for Linux version of ghpsdr3
 # modified by Dave Larsen, KV0S
 #
+ifeq ($(CC),clang)
+else
 CC            = gcc
+endif
 CFLAGS        = -O3 -std=gnu99
 LIBS          = -lpthread -lusb-1.0 -lusb -lm
 TARGET 	=	../../bin/server
