@@ -1,8 +1,15 @@
 #
 # ghpsdr Makefile (Linux)
 #
-CC=gcc 
+ifeq ($(CC),clang)
+else
+CC=gcc
+endif
+ifeq ($(CC),clang)
+LINK=clang
+else
 LINK=gcc
+endif
 OPTIONS=-g -O3 -msse -msse3 -ffast-math -Wall
 INCLUDES=-I. -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include\
          -I/usr/include/atk-1.0 -I/usr/include/cairo\

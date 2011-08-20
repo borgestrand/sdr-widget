@@ -88,11 +88,18 @@ distcleancheck_listfiles = find . -type f -print
 #AUTOHEADER = ${SHELL} /home/jm57878/ghpsdr/DttSP/missing --run autoheader
 #AUTOMAKE = ${SHELL} /home/jm57878/ghpsdr/DttSP/missing --run automake-1.10
 AWK = mawk
+ifeq ($(CC),clang)
+else
 CC = gcc
+endif
 CCDEPMODE = depmode=gcc3
 #CFLAGS = -g -O2
 CFLAGS=-g -O3 -msse -msse3 -ffast-math -march=core2 -Wall
+ifeq ($(CC),clang)
+CPP = clang -E
+else
 CPP = gcc -E
+endif
 CPPFLAGS = 
 CYGPATH_W = echo
 DEFS = -DPACKAGE_NAME=\"dttsp\" -DPACKAGE_TARNAME=\"dttsp\" -DPACKAGE_VERSION=\"new\" -DPACKAGE_STRING=\"dttsp\ new\" -DPACKAGE_BUGREPORT=\"ab2kt@arrl.net\>\ or\ \<rwmcgwier@gmail.com\" -DPACKAGE=\"dttsp\" -DVERSION=\"new\" -DHAVE_LIBFFTW3F=1 -DHAVE_LIBJACK=1 -DHAVE_LIBM=1 -DHAVE_LIBPTHREAD=1 -DHAVE_LIBLO=1 -DSTDC_HEADERS=1 -DHAVE_SYS_WAIT_H=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_FCNTL_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_SYS_IOCTL_H=1 -DHAVE_SYS_PARAM_H=1 -DHAVE_SYS_SOCKET_H=1 -DHAVE_SYS_TIME_H=1 -DHAVE_UNISTD_H=1 -DTIME_WITH_SYS_TIME=1 -DHAVE__BOOL=1 -DHAVE_STDBOOL_H=1 -DLSTAT_FOLLOWS_SLASHED_SYMLINK=1 -DHAVE_FLOOR=1 -DHAVE_GETTIMEOFDAY=1 -DHAVE_MEMSET=1 -DHAVE_POW=1 -DHAVE_SQRT=1
@@ -131,7 +138,11 @@ VERSION = new
 #abs_srcdir = /home/jm57878/ghpsdr/DttSP
 #abs_top_builddir = /home/jm57878/ghpsdr/DttSP
 #abs_top_srcdir = /home/jm57878/ghpsdr/DttSP
+ifeq ($(CC),clang)
+ac_ct_CC = clang
+else
 ac_ct_CC = gcc
+endif
 am__include = include
 am__leading_dot = .
 am__quote = 
