@@ -1,8 +1,15 @@
 #
 # ghpsdr Makefile (Linux)
 #
-CC=gcc 
+ifeq ($(CC),clang)
+else
+CC=gcc
+endif
+ifeq ($(CC),clang)
+LINK=clang
+else
 LINK=gcc
+endif
 #OPTIONS=-g -O3 -msse -msse3 -ffast-math -march=core2 -Wall
 OPTIONS=-g -O3 -Wall
 INCLUDES=-I. 
