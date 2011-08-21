@@ -412,6 +412,16 @@ int Configure::getChannels() {
     return widget.audioChannelsSpinBox->value();
 }
 
+void Configure::setChannels(int channels){
+    widget.audioChannelsSpinBox->setValue(channels);
+}
+
+void Configure::setSampleRate(int samplerate){
+    if (samplerate == 8000) widget.sampleRateComboBox->setCurrentIndex(0);
+    else if (samplerate == 48000) widget.sampleRateComboBox->setCurrentIndex(1);
+    else widget.sampleRateComboBox->setCurrentIndex(0);
+}
+
 int Configure::getSampleRate() {
     return widget.sampleRateComboBox->currentText().toInt();
 }

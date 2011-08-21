@@ -361,6 +361,10 @@ void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFo
 void UI::encodingChanged(int choice) {
     QString command;
     audio.audio_encoding = choice;
+    if (choice == 2){               // Codec 2
+        configure.setChannels(1);
+        configure.setSampleRate(8000);
+    }
 }
 
 void UI::actionConnect() {

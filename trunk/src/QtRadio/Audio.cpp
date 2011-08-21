@@ -172,8 +172,6 @@ void Audio::select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioForma
         delete audio_output;
     }
 
-
-
     audio_device=info;
     audio_format.setFrequency(sampleRate+(sampleRate==8000?SAMPLE_RATE_FUDGE:0));
     audio_format.setChannels(audio_channels);
