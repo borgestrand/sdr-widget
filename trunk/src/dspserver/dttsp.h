@@ -25,8 +25,7 @@
 * 
 */
 
-
-
+#define BOOLEAN int
 
 //
 // what we know about DttSP
@@ -171,3 +170,19 @@ extern int SetRXOutputGain(unsigned int thread, unsigned subrx, double gain);
 extern int SetRXPan(unsigned int thread, unsigned subrx, float pos);
 
 extern int SetRingBufferOffset(unsigned int thread, int offset);
+
+extern void SetSpectrumPolyphase (unsigned int thread, BOOLEAN setit);
+
+extern void SetSquelchVal (unsigned int thread, unsigned int subrx, float setit);
+
+extern void SetSquelchState (unsigned int thread, unsigned int subrx, BOOLEAN setit);
+
+extern void SetRXDCBlock(unsigned int thread, unsigned int subrx, BOOLEAN setit);
+
+extern void SetNBvals (unsigned int thread, unsigned subrx, double threshold);
+
+extern void SetNRvals (unsigned int thread, unsigned subrx, int taps, int delay, double gain, double leakage);
+
+
+
+
