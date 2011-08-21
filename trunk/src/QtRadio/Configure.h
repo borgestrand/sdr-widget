@@ -69,6 +69,9 @@ public:
     int getEncoding();
     int getSampleRate();
     int getChannels();
+
+    void setSampleRate(int samplerate);
+    void setChannels(int channels);
     
     int getNrTaps();
     int getNrDelay();
