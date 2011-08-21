@@ -62,6 +62,7 @@
 #include "Xvtr.h"
 #include "XvtrEntry.h"
 #include "KeypadDialog.h"
+#include "vfo.h"
 
 #define DSPSERVER_BASE_PORT 8000
 
@@ -223,6 +224,7 @@ private:
     QString stringFrequency(long long frequency);
 
     Ui::UI widget;
+    vfo* myVfo;
 
     Audio audio;
     int audio_device;
