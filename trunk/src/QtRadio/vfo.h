@@ -22,6 +22,7 @@ public:
 
 public slots:
     void togglePTT(bool pttRq); //Request to toggle ptt & return freq
+    void getFrequency(int freq); //Displays "freq" on current vfo according to ptt state
 
 signals:
     void sendVfoFreq(int freq);
@@ -68,6 +69,7 @@ private:
     int browsePtr; // Memory browsing pointer
     bool ptt; // ptt on = true, ptt off = false
     char selectedVFO; //'A', 'B', 'S' to indicate which vfo state.
+    long long spectrumFrequency;
     enum BandData
         {
             bDat_mem00,
