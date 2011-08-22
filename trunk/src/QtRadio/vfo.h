@@ -16,9 +16,11 @@ class vfo : public QWidget
 public:
     explicit vfo(QWidget *parent = 0);
     ~vfo();
-    void SaveMySettings(){
-        writeSettings();
-    }
+//    void SaveMySettings(){
+//        writeSettings();
+    void readSettings(QSettings* settings);
+    void writeSettings(QSettings* settings);
+//    }
 
 public slots:
     void togglePTT(bool pttRq); //Request to toggle ptt & return freq
@@ -33,7 +35,7 @@ signals:
 protected:
     void wheelEvent( QWheelEvent*);
     void mousePressEvent( QMouseEvent*);
-    void closeEvent(QCloseEvent *);
+//    void closeEvent(QCloseEvent *);
 
 private slots:
     void btnGrpBand(int);
@@ -55,8 +57,6 @@ private:
     QBasicTimer timer;
     void writeA(int);
     void writeB(int);
-    void readSettings();
-    void writeSettings();
     void vfoEnabled(bool setA, bool setB);
     void storeVFO();
     void setBandButton(int freq);
