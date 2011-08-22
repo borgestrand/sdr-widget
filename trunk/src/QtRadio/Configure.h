@@ -132,7 +132,7 @@ public slots:
     void slotAudioDeviceChanged(int selection);
     void slotSampleRateChanged(int rate);
     void slotChannelsChanged(int channels);
-    void slotEncodingChanged(int index);
+//    void slotEncodingChanged(int index);
     void slotByteOrderChanged(int selection);
 
     void slotNrTapsChanged(int taps);
@@ -154,7 +154,6 @@ public slots:
 private slots:
     void on_pBtnAddHost_clicked();
     void on_pBtnRemHost_clicked();
-
     void on_encodingComboBox_currentIndexChanged(int index);
 
 private:
