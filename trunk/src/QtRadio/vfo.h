@@ -69,6 +69,7 @@ private:
     int browsePtr; // Memory browsing pointer
     bool ptt; // ptt on = true, ptt off = false
     char selectedVFO; //'A', 'B', 'S' to indicate which vfo state.
+    long long spectrumFrequency;
     enum BandData
         {
             bDat_mem00,
