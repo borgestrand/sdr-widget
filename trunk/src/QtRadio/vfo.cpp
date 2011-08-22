@@ -1,5 +1,6 @@
 #include "vfo.h"
 #include "ui_vfo.h"
+#include "UI.h"
 #include <QDebug>
 
 vfo::vfo(QWidget *parent) :
@@ -55,7 +56,11 @@ void vfo::togglePTT(bool pttRq)
     } else {                // We are receiving so we
         freq = readA();     // will Rx on vfoA.
         vfoUsed = true;
-    }  // We have decided on vfo to use and got basic freq. Lets now see if we
+    }
+
+    emit frequencyChanged((long long) freq);
+
+    // We have decided on vfo to use and got basic freq. Lets now see if we
        // are doing a valid changeover and if it is Rx to Tx or Tx to Rx.
     if (pttRq == true && ptt == false) { // Going from Rx to Tx
         ptt = true;
@@ -321,10 +326,12 @@ void vfo::writeA(int freq)
     if (ptt) {
         if (selectedVFO == 'A') {
             emit setFreq(freq, ptt);
+            emit frequencyChanged((long long) freq);
 qDebug() << "Using vfoA, freq = " << freq << ", ptt = " << ptt;
         }
     } else if (selectedVFO != 'B') {
         emit setFreq(freq, ptt);
+        emit frequencyChanged((long long) freq);
 qDebug() << "Using vfoA, freq = " << freq << ", ptt = " << ptt;
     }
 }
@@ -352,10 +359,12 @@ void vfo::writeB(int freq)
     if (ptt) {
         if (selectedVFO != 'A') {
             emit setFreq(freq, ptt);
+            emit frequencyChanged((long long) freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
         }
     } else if (selectedVFO == 'B') {
         emit setFreq(freq, ptt);
+        emit frequencyChanged((long long) freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
     }
 }

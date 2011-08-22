@@ -25,15 +25,15 @@
 * 
 */
 
-#define BOOLEAN int
+#include "complex.h"
+#include "datatypes.h"
+#include "defs.h"
+#include "bufvec.h"
+#include "dttspagc.h"
 
 //
 // what we know about DttSP
 //
-
-#define MAXRX 4
-
-typedef enum _trxmode { RX, TX } TRXMODE;
 
 /* --------------------------------------------------------------------------*/
 /** 
@@ -183,6 +183,23 @@ extern void SetNBvals (unsigned int thread, unsigned subrx, double threshold);
 
 extern void SetNRvals (unsigned int thread, unsigned subrx, int taps, int delay, double gain, double leakage);
 
+extern void SetMode (unsigned int thread, unsigned int subrx, SDRMODE m);
 
+extern void SetRXFilter (unsigned int thread, unsigned int subrx, double low_frequency, double high_frequency);
 
+extern void SetRXAGC (unsigned int thread, unsigned subrx, AGCMODE setit);
+
+extern void SetNR (unsigned int thread, unsigned subrx, BOOLEAN setit);
+
+extern void SetNB (unsigned int thread, unsigned subrx, BOOLEAN setit);
+
+extern void SetSDROM (unsigned int thread, unsigned subrx, BOOLEAN setit);
+
+extern void SetANF (unsigned int thread, unsigned subrx, BOOLEAN setit);
+
+extern void SetSubRXSt(unsigned int thread, unsigned int subrx, BOOLEAN setit);
+
+extern void SetSDROMvals (unsigned int thread, unsigned subrx, double threshold);
+
+extern void SetANFvals (unsigned int thread, unsigned subrx, int taps, int delay, double gain, double leakage);
 

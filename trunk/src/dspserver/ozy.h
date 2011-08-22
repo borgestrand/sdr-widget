@@ -263,6 +263,8 @@ void ozy_set_local_audio(int state);
 void ozy_set_port_audio(int state);
 void ozy_set_debug(int state);
 int ozySetMox(int state);
+int ozySetOpenCollectorOutputs(char* state);
+
 
 #endif	/* _OZY_H */
 
