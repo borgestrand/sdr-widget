@@ -176,12 +176,6 @@ UI::UI() {
     connect(widget.spectrumFrame, SIGNAL(waterfallLowChanged(int)),
             this,SLOT(waterfallLowChanged(int)));
 
-//    gvj code
-    connect(myVfo, SIGNAL(setFrequency(long long)),
-            this, SLOT(frequencyChanged(long long)));
-    connect(myVfo, SIGNAL(setFrequency(long long)),
-            this, SLOT(setKeypadFrequency(long long)));
-
     // connect up waterfall frame
     connect(widget.waterfallFrame, SIGNAL(frequencyMoved(int,int)),
             this, SLOT(frequencyMoved(int,int)));
@@ -1163,7 +1157,7 @@ void UI::frequencyChanged(long long f) {
     widget.spectrumFrame->setFrequency(f);
 
 //    gvj code
-//    myVfo->getFrequency(frequency);
+    myVfo->getFrequency(frequency);
     qDebug() << "At frequency changed and frequency is " << f;
 
     widget.waterfallFrame->setFrequency(f);
@@ -1198,7 +1192,7 @@ void UI::frequencyMoved(int increment,int step) {
         widget.spectrumFrame->setFrequency(frequency);
 
 //        gvj code
-//        myVfo->getFrequency(frequency);
+        myVfo->getFrequency(frequency);
 
         widget.waterfallFrame->setFrequency(frequency);
         connection.sendCommand(command);

@@ -28,7 +28,6 @@ signals:
     void sendVfoFreq(int freq);
     void sendTxFreq(int freq, bool ptt);
     void setFreq(int freq, bool ptt);
-    void setFrequency(int f);
 
 protected:
     void wheelEvent( QWheelEvent*);

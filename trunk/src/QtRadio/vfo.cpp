@@ -363,12 +363,10 @@ void vfo::writeB(int freq)
     if (ptt) {
         if (selectedVFO != 'A') {
             emit setFreq(freq, ptt);
-            emit setFrequency(freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
         }
     } else if (selectedVFO == 'B') {
         emit setFreq(freq, ptt);
-        emit setFrequency(freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
     }
 }
