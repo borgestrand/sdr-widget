@@ -286,6 +286,7 @@ void UI::loadSettings() {
     if(settings.contains("gain")) gain=subRxGain=settings.value("gain").toInt();
     if(settings.contains("agc")) agc=settings.value("agc").toInt();
     settings.endGroup();
+    myVfo->readSettings(&settings);
 }
 
 void UI::saveSettings() {
@@ -308,7 +309,7 @@ void UI::saveSettings() {
     settings.setValue("subRxGain",subRxGain);
     settings.setValue("agc",agc);
     settings.endGroup();
-
+    myVfo->writeSettings(&settings);
 }
 
 void UI::hostChanged(QString host) {
