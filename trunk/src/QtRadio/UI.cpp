@@ -417,6 +417,9 @@ void UI::connected() {
     widget.spectrumFrame->setFrequency(frequency);
     widget.waterfallFrame->setFrequency(frequency);
 
+//    gvj code
+    myVfo->getFrequency(frequency);
+
     command.clear(); QTextStream(&command) << "setMode " << band.getMode();
     connection.sendCommand(command);
 
@@ -752,6 +755,10 @@ void UI::bandChanged(int previousBand,int newBand) {
     connection.sendCommand(command);
 
     widget.spectrumFrame->setFrequency(frequency);
+
+//    gvj code
+    myVfo->getFrequency(frequency);
+
     widget.spectrumFrame->setSubRxFrequency(subRxFrequency);
     widget.spectrumFrame->setHigh(band.getSpectrumHigh());
     widget.spectrumFrame->setLow(band.getSpectrumLow());
@@ -1150,6 +1157,11 @@ void UI::frequencyChanged(long long f) {
     band.setFrequency(f);
     connection.sendCommand(command);
     widget.spectrumFrame->setFrequency(f);
+
+//    gvj code
+    myVfo->getFrequency(frequency);
+    qDebug() << "At frequency changed and frequency is " << f;
+
     widget.waterfallFrame->setFrequency(f);
 }
 
@@ -1180,6 +1192,10 @@ void UI::frequencyMoved(int increment,int step) {
         frequency=band.getFrequency();
         command.clear(); QTextStream(&command) << "setFrequency " << frequency;
         widget.spectrumFrame->setFrequency(frequency);
+
+//        gvj code
+        myVfo->getFrequency(frequency);
+
         widget.waterfallFrame->setFrequency(frequency);
         connection.sendCommand(command);
     }
@@ -1524,6 +1540,9 @@ void UI::selectBookmark(QAction* action) {
 
     widget.spectrumFrame->setFrequency(frequency);
     widget.waterfallFrame->setFrequency(frequency);
+
+//    gvj code
+    myVfo->getFrequency(frequency);
 
     mode.setMode(bookmarks.getMode());
 
