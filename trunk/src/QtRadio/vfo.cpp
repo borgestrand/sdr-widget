@@ -1,6 +1,7 @@
 #include "vfo.h"
 #include "ui_vfo.h"
 #include <QDebug>
+#include "UI.h"
 
 vfo::vfo(QWidget *parent) :
     QWidget(parent),
@@ -35,6 +36,15 @@ vfo::vfo(QWidget *parent) :
 vfo::~vfo()
 {
     delete ui;
+}
+
+void vfo::getFrequency(int freq)
+{
+    if (selectedVFO == 'A') {
+        writeA(freq);
+    } else if (selectedVFO == 'B') {
+        writeB(freq);
+    } else writeA(freq);
 }
 
 
@@ -321,6 +331,7 @@ void vfo::writeA(int freq)
     if (ptt) {
         if (selectedVFO == 'A') {
             emit setFreq(freq, ptt);
+
 qDebug() << "Using vfoA, freq = " << freq << ", ptt = " << ptt;
         }
     } else if (selectedVFO != 'B') {
@@ -352,10 +363,12 @@ void vfo::writeB(int freq)
     if (ptt) {
         if (selectedVFO != 'A') {
             emit setFreq(freq, ptt);
+            emit setFrequency(freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
         }
     } else if (selectedVFO == 'B') {
         emit setFreq(freq, ptt);
+        emit setFrequency(freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
     }
 }

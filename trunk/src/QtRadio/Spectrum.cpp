@@ -370,8 +370,12 @@ void Spectrum::paintEvent(QPaintEvent*) {
 void Spectrum::setFrequency(long long f) {
     frequency=f;
     subRxFrequency=f;
-    strFrequency.sprintf("%lld.%03lld.%03lld",f/1000000,f%1000000/1000,f%1000);
-    strSubRxFrequency.sprintf("%lld.%03lld.%03lld",f/1000000,f%1000000/1000,f%1000);
+
+//    gvj code
+//      vfo.getFrequency(f);
+
+//    strFrequency.sprintf("%lld.%03lld.%03lld",f/1000000,f%1000000/1000,f%1000);
+//    strSubRxFrequency.sprintf("%lld.%03lld.%03lld",f/1000000,f%1000000/1000,f%1000);
     //qDebug() << "Spectrum:setFrequency: " << f;
 }
 

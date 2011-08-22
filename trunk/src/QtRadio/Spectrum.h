@@ -35,6 +35,7 @@
 
 #include <Meter.h>
 
+
 class Spectrum: public QFrame {
     Q_OBJECT
 public:
