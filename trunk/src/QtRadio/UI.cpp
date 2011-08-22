@@ -43,6 +43,7 @@
 #include "DIGLFilters.h"
 #include "DIGUFilters.h"
 #include "XvtrEntry.h"
+#include "vfo.h"
 
 UI::UI() {
     widget.setupUi(this);
@@ -209,6 +210,7 @@ UI::UI() {
 
     connect(&xvtr,SIGNAL(xvtrSelected(QAction*)),this,SLOT(selectXVTR(QAction*)));
 
+    connect(myVfo,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
 
     bandscope=NULL;
 
