@@ -15,7 +15,7 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0" colspan="2">
+    <item row="1" column="0" colspan="2">
      <widget class="Spectrum" name="spectrumFrame">
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
@@ -25,8 +25,54 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="0" colspan="2">
+    <item row="2" column="0" colspan="2">
      <widget class="Waterfall" name="waterfallFrame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QFrame" name="meterFrame">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <widget class="QLabel" name="label">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>40</y>
+         <width>62</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Smeter</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_2">
+       <property name="geometry">
+        <rect>
+         <x>40</x>
+         <y>60</y>
+         <width>62</width>
+         <height>17</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>position</string>
+       </property>
+      </widget>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QFrame" name="auxFrame">
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>

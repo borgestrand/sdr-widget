@@ -82,7 +82,7 @@ void* client_thread(void* arg);
 void client_send_samples(int size);
 void client_set_samples(float* samples,int size);
 
-static unsigned char* client_samples;
+char* client_samples;
 int samples;
 
 float getFilterSizeCalibrationOffset() {
@@ -102,7 +102,7 @@ void client_init(int receiver) {
     if (encoding == 0) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
     else if (encoding == 1) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
 
-    fprintf(stderr,"client_init audio_buffer_size=%d audio_buffer=%ld\n",audio_buffer_size,audio_buffer);
+    fprintf(stderr,"client_init audio_buffer_size=%d audio_buffer=%ld\n",audio_buffer_size, sizeof(audio_buffer));
 
     port=BASE_PORT+receiver;
     clientSocket=-1;
@@ -155,7 +155,7 @@ void* client_thread(void* arg) {
     char *token;
     int i;
     int bytesRead;
-    char message[32];
+    char message[64];
     int on=1;
 
 fprintf(stderr,"client_thread\n");
@@ -220,7 +220,7 @@ if(timing) ftime(&start_time);
                     }
                     break;
                 }
-                message[bytesRead]=0;
+                message[bytesRead]=0;			// for Linux strings terminating in NULL
 
 //fprintf(stderr,"Message: %s\n",message);
 if(timing) {
@@ -236,14 +236,15 @@ if(timing) {
                        token[i]=tolower(token[i]);
                        i++;
                     }
-                    
-                    if(strcmp(token,"getspectrum")==0) {
+                    if(strcmp(token,"mic")==0){		// This is incoming microphone data
+			}
+                    else if(strcmp(token,"getspectrum")==0) {
                         token=strtok(NULL," ");
                         if(token!=NULL) {
 			    int rc = sem_trywait(&ready_spectrum_semaphore);
 			    if (rc == 0){
                             	samples=atoi(token);
- 			    	sem_post(&get_spectrum_semaphore);
+ 			    	sem_post(&get_spectrum_semaphore);		// unblocks the get_spectrum thread
 			    }
                         } else {
                             fprintf(stderr,"Invalid command: '%s'\n",message);
@@ -552,7 +553,7 @@ if(timing) {
                             fprintf(stderr,"Invalid command: '%s'\n",message);
                         } else {
                             SetNBvals(0,0,threshold);
-                            SetNRvals(0,1,threshold);
+                            SetNBvals(0,1,threshold);
                         }
                     } else if(strcmp(token,"setsdromvals")==0) {
                         double threshold;

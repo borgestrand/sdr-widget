@@ -54,6 +54,7 @@ public:
     void connect(QString host,int receiver);
     void disconnect();
     void sendCommand(QString command);
+    void sendAudio(int length,char* buffer);
     void freeBuffers(char* header,char* buffer);
 
     QSemaphore SemSpectrum;
