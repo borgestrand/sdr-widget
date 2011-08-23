@@ -11,10 +11,9 @@ update.o: update.c common.h fromsys.h /usr/include/sys/types.h \
   /usr/include/bits/time.h /usr/include/sys/sysmacros.h \
   /usr/include/bits/pthreadtypes.h /usr/include/sys/stat.h \
   /usr/include/bits/stat.h /usr/include/xlocale.h /usr/include/fcntl.h \
-  /usr/include/bits/fcntl.h /usr/include/stdlib.h \
-  /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
-  /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h \
-  /usr/include/_G_config.h /usr/include/wchar.h \
+  /usr/include/bits/fcntl.h /usr/include/stdlib.h /usr/include/alloca.h \
+  /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h \
+  /usr/include/wchar.h \
   /home/alex/build/Release+Asserts/bin/../lib/clang/3.0/include/stdarg.h \
   /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
   /usr/include/bits/stdio.h /usr/include/ctype.h /usr/include/string.h \
@@ -30,9 +29,9 @@ update.o: update.c common.h fromsys.h /usr/include/sys/types.h \
   noiseblanker.h correctIQ.h dcblock.h speechproc.h wscompand.h \
   spottone.h meter.h spectrum.h isoband.h graphiceq.h \
   /usr/include/pthread.h /usr/include/sched.h /usr/include/bits/sched.h \
-  /usr/include/bits/setjmp.h /usr/include/semaphore.h \
-  /usr/include/bits/semaphore.h sdrexport.h hilbert.h local.h \
-  diversity.h
+  /usr/include/signal.h /usr/include/bits/setjmp.h \
+  /usr/include/semaphore.h /usr/include/bits/semaphore.h sdrexport.h \
+  hilbert.h local.h diversity.h
 
 common.h:
 
@@ -89,10 +88,6 @@ fromsys.h:
 /usr/include/bits/fcntl.h:
 
 /usr/include/stdlib.h:
-
-/usr/include/bits/waitflags.h:
-
-/usr/include/bits/waitstatus.h:
 
 /usr/include/alloca.h:
 
@@ -211,6 +206,8 @@ graphiceq.h:
 /usr/include/sched.h:
 
 /usr/include/bits/sched.h:
+
+/usr/include/signal.h:
 
 /usr/include/bits/setjmp.h:
 

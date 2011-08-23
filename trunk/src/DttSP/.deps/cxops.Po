@@ -11,10 +11,9 @@ cxops.o: cxops.c cxops.h complex.h datatypes.h fromsys.h \
   /usr/include/bits/time.h /usr/include/sys/sysmacros.h \
   /usr/include/bits/pthreadtypes.h /usr/include/sys/stat.h \
   /usr/include/bits/stat.h /usr/include/xlocale.h /usr/include/fcntl.h \
-  /usr/include/bits/fcntl.h /usr/include/stdlib.h \
-  /usr/include/bits/waitflags.h /usr/include/bits/waitstatus.h \
-  /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h \
-  /usr/include/_G_config.h /usr/include/wchar.h \
+  /usr/include/bits/fcntl.h /usr/include/stdlib.h /usr/include/alloca.h \
+  /usr/include/stdio.h /usr/include/libio.h /usr/include/_G_config.h \
+  /usr/include/wchar.h \
   /home/alex/build/Release+Asserts/bin/../lib/clang/3.0/include/stdarg.h \
   /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h \
   /usr/include/bits/stdio.h /usr/include/ctype.h /usr/include/string.h \
@@ -85,10 +84,6 @@ fromsys.h:
 /usr/include/bits/fcntl.h:
 
 /usr/include/stdlib.h:
-
-/usr/include/bits/waitflags.h:
-
-/usr/include/bits/waitstatus.h:
 
 /usr/include/alloca.h:
 
