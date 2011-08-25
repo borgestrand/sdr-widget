@@ -5,7 +5,7 @@
 #define CENTER_Y 85
 
 Meter::Meter(QString title) {
-    image=new QImage(150,60,QImage::Format_ARGB32);
+    image=new QImage(150,56,QImage::Format_ARGB32);
     image->fill(0xFFFFFFFF);
 
     QPainter painter(image);

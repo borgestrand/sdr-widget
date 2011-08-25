@@ -36,39 +36,13 @@
      </widget>
     </item>
     <item row="0" column="0">
-     <widget class="QFrame" name="meterFrame">
+     <widget class="sMeter" name="sMeterFrame">
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
       <property name="frameShadow">
        <enum>QFrame::Raised</enum>
       </property>
-      <widget class="QLabel" name="label">
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>40</y>
-         <width>62</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Smeter</string>
-       </property>
-      </widget>
-      <widget class="QLabel" name="label_2">
-       <property name="geometry">
-        <rect>
-         <x>40</x>
-         <y>60</y>
-         <width>62</width>
-         <height>17</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>position</string>
-       </property>
-      </widget>
      </widget>
     </item>
     <item row="0" column="1">
@@ -823,6 +797,12 @@
    <class>Waterfall</class>
    <extends>QFrame</extends>
    <header>Waterfall.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>sMeter</class>
+   <extends>QFrame</extends>
+   <header>smeter.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

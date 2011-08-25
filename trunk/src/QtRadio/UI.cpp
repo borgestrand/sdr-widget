@@ -25,6 +25,7 @@
 
 #include <QDebug>
 #include <QSettings>
+#include <QPainter>
 
 #include "UI.h"
 #include "About.h"
@@ -44,6 +45,9 @@
 #include "DIGUFilters.h"
 #include "XvtrEntry.h"
 #include "vfo.h"
+#include "Meter.h"
+#include "Spectrum.h"
+#include "smeter.h"
 
 UI::UI() {
     widget.setupUi(this);
@@ -51,13 +55,17 @@ UI::UI() {
     myVfo = new vfo(this);
     QFrame* auxFrame = new QFrame(this);
 
+    sMeter = new Meter("Smeter");
+    meter=-121;
+
+
     // layout the screen
     widget.gridLayout->setContentsMargins(2,2,2,2);
     widget.gridLayout->setVerticalSpacing(0);
     widget.gridLayout->setContentsMargins(0,0,0,0);
     widget.gridLayout->setVerticalSpacing(0);
-    widget.meterFrame->setFixedWidth(150);
-    widget.gridLayout->addWidget(widget.meterFrame,0,0);
+    widget.sMeterFrame->setFixedWidth(150);
+    widget.gridLayout->addWidget(widget.sMeterFrame,0,0);
     widget.gridLayout->addWidget(myVfo,0,1);
     widget.gridLayout->addWidget(auxFrame,0,2);
     widget.gridLayout->addWidget(widget.spectrumFrame,1,0,1,3);
@@ -176,6 +184,8 @@ UI::UI() {
             this,SLOT(waterfallHighChanged(int)));
     connect(widget.spectrumFrame, SIGNAL(waterfallLowChanged(int)),
             this,SLOT(waterfallLowChanged(int)));
+    connect(widget.spectrumFrame, SIGNAL(meterValue(int)),
+            this, SLOT(getMeterValue(int)));
 
     // connect up waterfall frame
     connect(widget.waterfallFrame, SIGNAL(frequencyMoved(int,int)),
@@ -556,6 +566,7 @@ void UI::actionSubRx() {
         subRx=FALSE;
         widget.spectrumFrame->setSubRxState(FALSE);
         widget.waterfallFrame->setSubRxState(FALSE);
+        widget.sMeterFrame->setSubRxState(FALSE);
         widget.actionMuteSubRx->setChecked(FALSE);
         widget.actionMuteSubRx->setDisabled(TRUE);
     } else {
@@ -569,6 +580,7 @@ void UI::actionSubRx() {
         }
         widget.spectrumFrame->setSubRxState(TRUE);
         widget.waterfallFrame->setSubRxState(TRUE);
+        widget.sMeterFrame->setSubRxState(TRUE);
         command.clear(); QTextStream(&command) << "SetSubRXFrequency " << frequency - subRxFrequency;
         connection.sendCommand(command);
 
@@ -1661,4 +1673,10 @@ void UI::deleteXVTR(int index) {
 
 void UI::selectXVTR(QAction* action) {
     xvtr.select(action);
+}
+
+void UI::getMeterValue(int m)
+{
+    widget.sMeterFrame->meter_dbm = m;
+    widget.sMeterFrame->update();
 }
