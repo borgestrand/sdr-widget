@@ -334,15 +334,15 @@ void Spectrum::paintEvent(QPaintEvent*) {
     painter.drawText(5,15,text);
 
     // draw the analog meters
-    painter.setOpacity(0.8);
-    QImage image=sMeterMain->getImage(meter);
-    painter.drawImage(width()-image.width()-5,0,image);
+//    painter.setOpacity(0.8);
+//    QImage image=sMeterMain->getImage(meter);
+//    painter.drawImage(width()-image.width()-5,0,image);
     emit meterValue(meter);
 
-    qDebug() << "Spectrum meter value = " << meter;
+//    qDebug() << "Spectrum meter value = " << meter;
     if(subRx) {
-        image=sMeterSub->getImage(subrx_meter);
-        painter.drawImage(width()-image.width()-5,image.height()+5,image);
+//        image=sMeterSub->getImage(subrx_meter);
+//        painter.drawImage(width()-image.width()-5,image.height()+5,image);
         emit meterValue(subrx_meter);
     }
 
@@ -366,7 +366,7 @@ void Spectrum::paintEvent(QPaintEvent*) {
         // show the frequency
         painter.setPen(QPen(Qt::green,1));
         painter.setFont(QFont("Verdana", 30));
-        painter.drawText(width()/2,image.height()+5+30,strSubRxFrequency);
+//        painter.drawText(width()/2,image.height()+5+30,strSubRxFrequency);
     }
 }
 

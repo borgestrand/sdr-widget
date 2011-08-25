@@ -20,13 +20,14 @@ void sMeter::setSubRxState(bool state)
 
 void sMeter::paintEvent(QPaintEvent*)
 {
-qDebug() << "smeter.cpp - Meter value is equal to " << meter_dbm;
+//qDebug() << "smeter.cpp - Meter value is equal to " << meter_dbm;
 
     // Draw the Main Rx S-Meter
     QPainter painter(this);
     QImage image=sMeterMain->getImage(meter_dbm);
     painter.drawImage(4,0,image);
 
+    // Draw the Sub Rx S-Meter
     if(subRx) {
         image=sMeterSub->getImage(meter_dbm);
         painter.drawImage(4,image.height()+1,image);
