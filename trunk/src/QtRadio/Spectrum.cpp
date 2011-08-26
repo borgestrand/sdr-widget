@@ -25,6 +25,7 @@
 
 #include "Spectrum.h"
 
+
 Spectrum::Spectrum() {
 }
 
@@ -333,14 +334,16 @@ void Spectrum::paintEvent(QPaintEvent*) {
     painter.drawText(5,15,text);
 
     // draw the analog meters
-    painter.setOpacity(0.8);
-    QImage image=sMeterMain->getImage(meter);
-    painter.drawImage(width()-image.width()-5,0,image);
+//    painter.setOpacity(0.8);
+//    QImage image=sMeterMain->getImage(meter);
+//    painter.drawImage(width()-image.width()-5,0,image);
+    emit meterValue(meter, subrx_meter);
 
+//    qDebug() << "Spectrum meter value = " << meter;
     if(subRx) {
-        image=sMeterSub->getImage(subrx_meter);
-        painter.drawImage(width()-image.width()-5,image.height()+5,image);
-
+//        image=sMeterSub->getImage(subrx_meter);
+//        painter.drawImage(width()-image.width()-5,image.height()+5,image);
+//        emit meterValue(subrx_meter);
     }
 
 
@@ -363,7 +366,7 @@ void Spectrum::paintEvent(QPaintEvent*) {
         // show the frequency
         painter.setPen(QPen(Qt::green,1));
         painter.setFont(QFont("Verdana", 30));
-        painter.drawText(width()/2,image.height()+5+30,strSubRxFrequency);
+//        painter.drawText(width()/2,image.height()+5+30,strSubRxFrequency);
     }
 }
 
@@ -372,7 +375,6 @@ void Spectrum::setFrequency(long long f) {
     subRxFrequency=f;
 
 //    gvj code
-//      vfo.getFrequency(f);
 
 //    strFrequency.sprintf("%lld.%03lld.%03lld",f/1000000,f%1000000/1000,f%1000);
 //    strSubRxFrequency.sprintf("%lld.%03lld.%03lld",f/1000000,f%1000000/1000,f%1000);
@@ -450,6 +452,11 @@ void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
 
     //qDebug() << "updateSpectrum: repaint";
     this->repaint();
+}
+
+int Spectrum::getMeter()
+{
+    return meter;
 }
 
 

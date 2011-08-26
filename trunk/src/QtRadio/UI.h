@@ -83,6 +83,8 @@ public:
     void sendCommand(QString command);
 
 public slots:
+    void getMeterValue(int m, int s);
+
     void actionConfigure();
     void actionAbout();
     void actionConnect();
@@ -213,6 +215,10 @@ public slots:
 signals:
     void subRxStateChanged(bool state);
 
+protected:
+//    void paintEvent(QPaintEvent*);
+
+
 private:
     void setSubRxPan();
     void actionGain(int g);
@@ -278,7 +284,8 @@ private:
     Bookmarks bookmarks;
 
     KeypadDialog keypad;
-
+    Meter* sMeter;
+    int meter;
 };
 
 #endif	/* _UI_H */

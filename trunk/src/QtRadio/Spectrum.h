@@ -42,6 +42,8 @@ public:
     Spectrum();
     Spectrum(QWidget*& widget);
     virtual ~Spectrum();
+
+    int getMeter();
     void setObjectName(QString name);
     void setGeometry(QRect rect);
     void initialize();
@@ -75,6 +77,7 @@ signals:
     void spectrumLowChanged(int low);
     void waterfallHighChanged(int high);
     void waterfallLowChanged(int low);
+    void meterValue(int meter, int subrx_meter);
 
 protected:
     void paintEvent(QPaintEvent*);
