@@ -184,8 +184,8 @@ UI::UI() {
             this,SLOT(waterfallHighChanged(int)));
     connect(widget.spectrumFrame, SIGNAL(waterfallLowChanged(int)),
             this,SLOT(waterfallLowChanged(int)));
-    connect(widget.spectrumFrame, SIGNAL(meterValue(int)),
-            this, SLOT(getMeterValue(int)));
+    connect(widget.spectrumFrame, SIGNAL(meterValue(int,int)),
+            this, SLOT(getMeterValue(int,int)));
 
     // connect up waterfall frame
     connect(widget.waterfallFrame, SIGNAL(frequencyMoved(int,int)),
@@ -1675,8 +1675,9 @@ void UI::selectXVTR(QAction* action) {
     xvtr.select(action);
 }
 
-void UI::getMeterValue(int m)
+void UI::getMeterValue(int m, int s)
 {
     widget.sMeterFrame->meter_dbm = m;
+    widget.sMeterFrame->sub_meter_dbm = s;
     widget.sMeterFrame->update();
 }

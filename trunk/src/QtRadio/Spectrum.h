@@ -77,7 +77,7 @@ signals:
     void spectrumLowChanged(int low);
     void waterfallHighChanged(int high);
     void waterfallLowChanged(int low);
-    void meterValue(int meter);
+    void meterValue(int meter, int subrx_meter);
 
 protected:
     void paintEvent(QPaintEvent*);

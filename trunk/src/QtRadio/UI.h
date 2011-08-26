@@ -83,7 +83,7 @@ public:
     void sendCommand(QString command);
 
 public slots:
-    void getMeterValue(int m);
+    void getMeterValue(int m, int s);
 
     void actionConfigure();
     void actionAbout();

@@ -18,6 +18,7 @@ public:
     sMeter(QWidget*& widget);
     virtual ~sMeter();
     int meter_dbm;
+    int sub_meter_dbm;
     void setSubRxState(bool state);
 
 protected:

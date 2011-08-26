@@ -337,13 +337,13 @@ void Spectrum::paintEvent(QPaintEvent*) {
 //    painter.setOpacity(0.8);
 //    QImage image=sMeterMain->getImage(meter);
 //    painter.drawImage(width()-image.width()-5,0,image);
-    emit meterValue(meter);
+    emit meterValue(meter, subrx_meter);
 
 //    qDebug() << "Spectrum meter value = " << meter;
     if(subRx) {
 //        image=sMeterSub->getImage(subrx_meter);
 //        painter.drawImage(width()-image.width()-5,image.height()+5,image);
-        emit meterValue(subrx_meter);
+//        emit meterValue(subrx_meter);
     }
 
 
