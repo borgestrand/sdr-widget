@@ -32,7 +32,7 @@
 */
 
 
-#define AUDIO_BUFFER_SIZE 480
+#define AUDIO_BUFFER_SIZE 400
 
 int audio_buffer_size;
 int audio_sample_rate;
