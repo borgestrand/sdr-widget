@@ -469,7 +469,7 @@ void UI::connected() {
     connection.sendCommand(command);
 
     if (!getenv("QT_RADIO_NO_LOCAL_AUDIO")) {
-       command.clear(); QTextStream(&command) << "startAudioStream " << (1024*(audio.get_sample_rate()/8000)) << " " << audio.get_sample_rate() << " " << audio.get_channels();
+       command.clear(); QTextStream(&command) << "startAudioStream " << (AUDIO_BUFFER_SIZE*(audio.get_sample_rate()/8000)) << " " << audio.get_sample_rate() << " " << audio.get_channels();
        connection.sendCommand(command);
     }
 

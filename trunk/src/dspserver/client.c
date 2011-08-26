@@ -49,6 +49,7 @@
 #include "soundcard.h"
 #include "dttsp.h"
 #include "buffer.h"
+#include "codec2.h"
 
 static int timing=0;
 static struct timeb start_time;
@@ -378,7 +379,7 @@ if(timing) {
                     } else if(strcmp(token,"startaudiostream")==0) {
                         token=strtok(NULL," ");
                         if(token==NULL) {
-                            audio_buffer_size=480;
+                            audio_buffer_size= AUDIO_BUFFER_SIZE;
                         } else {
                             audio_buffer_size=atoi(token);
                         }
@@ -404,7 +405,10 @@ if(timing) {
                                 audio_channels=1;
                             }
                         }
-                        fprintf(stderr,"starting audio stream at %d with %d channels and buffer size %d\n",audio_sample_rate,audio_channels,audio_buffer_size);
+
+			if (encoding == 2) audio_buffer_size = BITS_SIZE*NO_CODEC2_FRAMES;
+                        
+			fprintf(stderr,"starting audio stream at %d with %d channels and buffer size %d\n",audio_sample_rate,audio_channels,audio_buffer_size);
  
                         audio_stream_reset();
                         send_audio=1;
@@ -704,7 +708,8 @@ void client_send_audio() {
             sem_wait(&network_semaphore);
             if(send_audio && (clientSocket!=-1)) {
 	    	if (encoding == 1) audio_buffer_length = audio_buffer_size*audio_channels*2;
-	   	else audio_buffer_length = audio_buffer_size*audio_channels;
+	   	else if (encoding == 0) audio_buffer_length = audio_buffer_size*audio_channels;
+		else audio_buffer_length = BITS_SIZE*NO_CODEC2_FRAMES;
                 rc=send(clientSocket,audio_buffer, audio_buffer_length+BUFFER_HEADER_SIZE,MSG_NOSIGNAL);
                 if(rc!=(audio_buffer_length+BUFFER_HEADER_SIZE)) {
                     fprintf(stderr,"client_send_audio sent %d bytes",rc);

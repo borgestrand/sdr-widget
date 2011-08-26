@@ -31,6 +31,9 @@
 * @return
 */
 
+
+#define AUDIO_BUFFER_SIZE 400
+
 int audio_buffer_size;
 int audio_sample_rate;
 int audio_channels;
@@ -42,3 +45,5 @@ void audio_stream_reset();
 void audio_stream_put_samples(short left_sample,short right_sample);
 
 void audio_stream_init(int port);
+
+
