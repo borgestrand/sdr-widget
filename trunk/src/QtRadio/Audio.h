@@ -32,7 +32,7 @@
 #include <QtMultimediaKit/QAudioDeviceInfo>
 #include <QtGui/QComboBox>
 
-#define AUDIO_BUFFER_SIZE 1024
+#define AUDIO_BUFFER_SIZE 400
 
 #define BIGENDIAN
 

@@ -40,7 +40,6 @@
 #include "buffer.h"
 #include "codec2.h"
 
-#define AUDIO_BUFFER_SIZE 480
 
 int audio_buffer_size = AUDIO_BUFFER_SIZE;
 int audio_sample_rate=8000;
@@ -48,9 +47,6 @@ int audio_channels=1;
 unsigned char* audio_buffer=NULL;
 int send_audio=0;
 
-// process 8 codec2 frames per transfer
-#define NO_CODEC2_FRAMES	8
-#define BITS_SIZE	((CODEC2_BITS_PER_FRAME + 7) / 8)
 void * codec2 = NULL;
 unsigned char bits[BITS_SIZE];
 short codec2_buffer[CODEC2_SAMPLES_PER_FRAME];
@@ -84,11 +80,9 @@ void audio_stream_reset() {
     }
 
     if (encoding == 0) {
-	audio_buffer_size = AUDIO_BUFFER_SIZE;	
 	audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
 	}
     else if (encoding == 1) {
-	audio_buffer_size = AUDIO_BUFFER_SIZE;	
 	audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
 	}
     else if (encoding == 2) {
