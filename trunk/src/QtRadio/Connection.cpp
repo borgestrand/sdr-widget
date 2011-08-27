@@ -156,7 +156,7 @@ void Connection::socketData() {
             bytes+=thisRead;
             qDebug() << "read audio header" << bytes;
             if ((bytes == AUDIO_HEADER_SIZE)){
-                    length = atoi(&hdr[5]);
+                    length = atoi(&hdr[26]);
                     buffer = (char*)malloc(length);
                     bytes = 0;
                     state = READ_BUFFER;
