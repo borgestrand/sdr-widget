@@ -80,15 +80,15 @@ void audio_stream_reset() {
     }
 
     if (encoding == 0) {
-	audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
+	audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+AUDIO_BUFFER_HEADER_SIZE);
 	}
     else if (encoding == 1) {
-	audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
+	audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+AUDIO_BUFFER_HEADER_SIZE); // 2 byte PCM
 	}
     else if (encoding == 2) {
     	codec2_count = 0;
 	audio_buffer_size = BITS_SIZE*NO_CODEC2_FRAMES;
-	audio_buffer=(unsigned char*)malloc(audio_buffer_size*audio_channels + BUFFER_HEADER_SIZE);
+	audio_buffer=(unsigned char*)malloc(audio_buffer_size*audio_channels + AUDIO_BUFFER_HEADER_SIZE);
 	};
 
     audio_stream_buffer_insert=0;
@@ -103,31 +103,31 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
     if(sample_count==0) {
         // use this sample and convert to a-law or PCM or codec2
         if(audio_channels==1) {
-            if (encoding == 0) audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2);
+            if (encoding == 0) audio_buffer[audio_stream_buffer_insert+AUDIO_BUFFER_HEADER_SIZE]=alaw((left_sample+right_sample)/2);
 	    else if (encoding == 1) {
-		audio_buffer[audio_stream_buffer_insert*2+48] = (left_sample/2+right_sample/2) & 0x00ff;
-		audio_buffer[audio_stream_buffer_insert*2+1+48] = (left_sample/2+right_sample/2) >> 8;
+		audio_buffer[audio_stream_buffer_insert*2+AUDIO_BUFFER_HEADER_SIZE] = (left_sample/2+right_sample/2) & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*2+1+AUDIO_BUFFER_HEADER_SIZE] = (left_sample/2+right_sample/2) >> 8;
 		}
 	    else if (encoding == 2) {
 		codec2_buffer[audio_stream_buffer_insert] = (left_sample+right_sample)/2;
 		}
             else {
-		audio_buffer[audio_stream_buffer_insert+48]=alaw((left_sample+right_sample)/2); //encoding == others
+		audio_buffer[audio_stream_buffer_insert+AUDIO_BUFFER_HEADER_SIZE]=alaw((left_sample+right_sample)/2); //encoding == others
 		}
         } else {
 	    if (encoding == 0){
-            audio_buffer[(audio_stream_buffer_insert*2)+48]=alaw(left_sample);
-            audio_buffer[(audio_stream_buffer_insert*2)+1+48]=alaw(right_sample);
+            audio_buffer[(audio_stream_buffer_insert*2)+AUDIO_BUFFER_HEADER_SIZE]=alaw(left_sample);
+            audio_buffer[(audio_stream_buffer_insert*2)+1+AUDIO_BUFFER_HEADER_SIZE]=alaw(right_sample);
 	    }
 	    else if (encoding == 1) {
-		audio_buffer[audio_stream_buffer_insert*4+48] = left_sample & 0x00ff;
-		audio_buffer[audio_stream_buffer_insert*4+1+48] = left_sample >> 8;
-		audio_buffer[audio_stream_buffer_insert*4+2+48] = right_sample & 0x00ff;
-		audio_buffer[audio_stream_buffer_insert*4+3+48] = right_sample >> 8;
+		audio_buffer[audio_stream_buffer_insert*4+AUDIO_BUFFER_HEADER_SIZE] = left_sample & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*4+1+AUDIO_BUFFER_HEADER_SIZE] = left_sample >> 8;
+		audio_buffer[audio_stream_buffer_insert*4+2+AUDIO_BUFFER_HEADER_SIZE] = right_sample & 0x00ff;
+		audio_buffer[audio_stream_buffer_insert*4+3+AUDIO_BUFFER_HEADER_SIZE] = right_sample >> 8;
 		}
 	    else { // encoding == others
-            audio_buffer[(audio_stream_buffer_insert*2)+48]=alaw(left_sample);
-            audio_buffer[(audio_stream_buffer_insert*2)+1+48]=alaw(right_sample);
+            audio_buffer[(audio_stream_buffer_insert*2)+AUDIO_BUFFER_HEADER_SIZE]=alaw(left_sample);
+            audio_buffer[(audio_stream_buffer_insert*2)+1+AUDIO_BUFFER_HEADER_SIZE]=alaw(right_sample);
 	    }
         }
 
@@ -136,7 +136,7 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
 
 	if ((encoding == 2) && (audio_stream_buffer_insert == CODEC2_SAMPLES_PER_FRAME))  {
 		codec2_encode(codec2, bits, codec2_buffer);
-		memcpy(&audio_buffer[48+BITS_SIZE*codec2_count], bits, BITS_SIZE);
+		memcpy(&audio_buffer[AUDIO_BUFFER_HEADER_SIZE+BITS_SIZE*codec2_count], bits, BITS_SIZE);
 		codec2_count++;
 		audio_stream_buffer_insert = 0;
 		if (codec2_count >= NO_CODEC2_FRAMES){
