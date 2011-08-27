@@ -204,7 +204,6 @@ UI::UI() {
 
     configure.initAudioDevices(audio);
     connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),this,SLOT(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
-
     connect(&configure,SIGNAL(hostChanged(QString)),this,SLOT(hostChanged(QString)));
     connect(&configure,SIGNAL(receiverChanged(int)),this,SLOT(receiverChanged(int)));
 
@@ -237,7 +236,7 @@ UI::UI() {
     audio_sample_rate=configure.getSampleRate();
     audio_channels=configure.getChannels();
     audio_byte_order=configure.getByteOrder();
-    emit initialize_audio(AUDIO_BUFFER_SIZE);
+    audio->initialize_audio(AUDIO_BUFFER_SIZE);
 
     // load any saved settings
     loadSettings();
