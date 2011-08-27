@@ -82,6 +82,14 @@ public:
 
     void sendCommand(QString command);
 
+signals:
+    void initialize_audio(int length);
+    void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
+    void process_audio(char* header,char* buffer,int length);
+    void get_audio_devices(QComboBox* comboBox);
+    int get_sample_rate();
+    int get_channels();
+
 public slots:
     void getMeterValue(int m, int s);
 

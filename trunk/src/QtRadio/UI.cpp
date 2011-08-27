@@ -236,7 +236,7 @@ UI::UI() {
     audio_sample_rate=configure.getSampleRate();
     audio_channels=configure.getChannels();
     audio_byte_order=configure.getByteOrder();
-    audio->initialize_audio(AUDIO_BUFFER_SIZE);
+    emit initialize_audio(AUDIO_BUFFER_SIZE);
 
     // load any saved settings
     loadSettings();
@@ -381,7 +381,7 @@ void UI::waterfallAutomaticChanged(bool state) {
 }
 
 void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) {
-    audio->select_audio(info,rate,channels,byteOrder);
+    emit select_audio(info,rate,channels,byteOrder);
 }
 
 void UI::encodingChanged(int choice) {
