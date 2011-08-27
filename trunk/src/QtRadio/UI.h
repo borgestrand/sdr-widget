@@ -232,7 +232,7 @@ private:
     Ui::UI widget;
     vfo* myVfo;
 
-    Audio audio;
+    Audio* audio;
     int audio_device;
     int audio_sample_rate;
     int audio_channels;
