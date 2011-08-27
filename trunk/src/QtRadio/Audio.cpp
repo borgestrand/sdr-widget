@@ -210,14 +210,6 @@ void Audio::set_audio_encoding(int enc){
     audio_encoding = enc;
 }
 
-int Audio::get_sample_rate(){
-    return sampleRate;
-}
-
-int Audio::get_channels(){
-    return audio_channels;
-}
-
 void Audio::process_audio(char* header,char* buffer,int length) {
     //qDebug() << "process audio";
     int written=0;
@@ -231,6 +223,7 @@ void Audio::process_audio(char* header,char* buffer,int length) {
     }
     else if (audio_encoding == 2) codec2Decode(buffer,length);
     else aLawDecode(buffer,length);
+
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();

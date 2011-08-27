@@ -31,6 +31,7 @@
 #include <QtMultimedia/QAudioOutput>
 #include <QtMultimedia/QAudioDeviceInfo>
 #include <QtGui/QComboBox>
+#include <QMutex>
 
 #define AUDIO_BUFFER_SIZE 400
 
@@ -46,8 +47,6 @@ public:
     Audio(const Audio& orig);
     virtual ~Audio();
     void * codec2;
-    int get_sample_rate();
-    int get_channels();
 
 public slots:
         void stateChanged(QAudio::State);
