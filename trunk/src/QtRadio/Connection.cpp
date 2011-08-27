@@ -144,8 +144,9 @@ void Connection::socketData() {
     while(bytesRead<toRead) {
         switch(state) {
         case READ_HEADER_TYPE:
-            tcpSocket->read(&hdr[0],1);
-            bytes++;
+            thisRead=tcpSocket->read(&hdr[0],1);
+            qDebug() << "read headertype byte " << hdr[0];
+            if (thisRead == 1) bytes++;
             if (hdr[0] == AUDIO_BUFFER) state=READ_AUDIO_HEADER;
             else state=READ_HEADER;
             break;
@@ -153,6 +154,7 @@ void Connection::socketData() {
         case READ_AUDIO_HEADER:
             thisRead=tcpSocket->read(&hdr[bytes],AUDIO_HEADER_SIZE - bytes);
             bytes+=thisRead;
+            qDebug() << "read audio header" << bytes;
             if ((bytes == AUDIO_HEADER_SIZE)){
                     length = atoi(&hdr[5]);
                     buffer = (char*)malloc(length);

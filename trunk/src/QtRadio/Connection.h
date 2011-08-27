@@ -41,7 +41,7 @@
 #define BANDSCOPE_BUFFER    2
 
 #define HEADER_SIZE 48
-#define AUDIO_HEADER_SIZE 10
+#define AUDIO_HEADER_SIZE 12
 
 #define READ_HEADER 0
 #define READ_BUFFER 1
