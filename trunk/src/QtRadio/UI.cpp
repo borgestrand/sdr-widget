@@ -26,6 +26,7 @@
 #include <QDebug>
 #include <QSettings>
 #include <QPainter>
+#include <QThread>
 
 #include "UI.h"
 #include "About.h"
@@ -50,6 +51,8 @@
 #include "smeter.h"
 
 UI::UI() {
+    QThread* audio_thread;
+
     widget.setupUi(this);
 
     myVfo = new vfo(this);
@@ -57,7 +60,13 @@ UI::UI() {
     sMeter = new Meter("Smeter");
     meter=-121;
 
+
     audio = new Audio();
+    audio_thread = new QThread();
+
+
+    //audio->moveToThread(audio_thread);
+    //audio_thread->start();
 
 
     // layout the screen

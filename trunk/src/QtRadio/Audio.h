@@ -31,6 +31,7 @@
 #include <QtMultimediaKit/QAudioOutput>
 #include <QtMultimediaKit/QAudioDeviceInfo>
 #include <QtGui/QComboBox>
+#include <QMutex>
 
 #define AUDIO_BUFFER_SIZE 400
 
