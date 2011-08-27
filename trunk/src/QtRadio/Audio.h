@@ -45,9 +45,9 @@ public:
     Audio();
     Audio(const Audio& orig);
     virtual ~Audio();
-
-    int audio_encoding;
     void * codec2;
+    int get_sample_rate();
+    int get_channels();
 
 public slots:
         void stateChanged(QAudio::State);
@@ -55,8 +55,7 @@ public slots:
         void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
         void process_audio(char* header,char* buffer,int length);
         void get_audio_devices(QComboBox* comboBox);
-        int get_sample_rate();
-        int get_channels();
+        void set_audio_encoding(int enc);
 
 private:
     void aLawDecode(char* buffer,int length);
@@ -73,7 +72,7 @@ private:
     int sampleRate;
     int audio_channels;
     QAudioFormat::Endian audio_byte_order;
-
+    int audio_encoding;
 };
 
 #endif	/* AUDIO_H */

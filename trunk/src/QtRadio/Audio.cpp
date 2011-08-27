@@ -49,13 +49,6 @@ Audio::~Audio() {
     codec2_destroy(codec2);
 }
 
-int Audio::get_sample_rate() {
-    return sampleRate;
-}
-
-int Audio::get_channels() {
-    return audio_channels;
-}
 
 void Audio::initialize_audio(int buffer_size) {
     qDebug() << "initialize_audio " << buffer_size;
@@ -65,12 +58,13 @@ void Audio::initialize_audio(int buffer_size) {
     else decoded_buffer.resize(buffer_size*4);  // To cater to 2 channels and 16 bits
 
     init_decodetable();
-
+/*
     audio_format.setFrequency(sampleRate+(sampleRate==8000?SAMPLE_RATE_FUDGE:0));
     audio_format.setChannels(audio_channels);
     audio_format.setSampleSize(16);
     audio_format.setCodec("audio/pcm");
     audio_format.setByteOrder(audio_byte_order);
+*/
 }
 
 void Audio::get_audio_devices(QComboBox* comboBox) {
@@ -217,6 +211,18 @@ void Audio::stateChanged(QAudio::State State){
  //           qDebug() << "QAudioOutput: state changed" << " state=" << State;
         return;
     }
+}
+
+void Audio::set_audio_encoding(int enc){
+    audio_encoding = enc;
+}
+
+int Audio::get_sample_rate(){
+    return sampleRate;
+}
+
+int Audio::get_channels(){
+    return audio_channels;
 }
 
 void Audio::process_audio(char* header,char* buffer,int length) {
