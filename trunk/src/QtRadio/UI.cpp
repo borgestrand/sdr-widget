@@ -560,7 +560,7 @@ void UI::spectrumBuffer(char* header,char* buffer) {
 
 void UI::audioBuffer(char* header,char* buffer) {
     //qDebug() << "audioBuffer";
-    int length=atoi(&header[5]);
+    int length=atoi(&header[26]);
     if(audio_buffers==0) {
         first_audio_header=header;
         first_audio_buffer=buffer;
