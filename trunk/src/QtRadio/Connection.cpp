@@ -28,7 +28,7 @@
 Connection::Connection() {
     //qDebug() << "Connection::Connection";
     tcpSocket=NULL;
-    state=READ_HEADER;
+    state=READ_HEADER_TYPE;
     bytes=0;
     hdr=(char*)malloc(HEADER_SIZE);
     SemSpectrum.release();
@@ -143,10 +143,27 @@ void Connection::socketData() {
     toRead=tcpSocket->bytesAvailable();
     while(bytesRead<toRead) {
         switch(state) {
-        case READ_HEADER:
-            thisRead=tcpSocket->read(&hdr[bytes],HEADER_SIZE-bytes);
+        case READ_HEADER_TYPE:
+            tcpSocket->read(&hdr[0],1);
+            bytes++;
+            if (hdr[0] == AUDIO_BUFFER) state=READ_AUDIO_HEADER;
+            else state=READ_HEADER;
+            break;
+
+        case READ_AUDIO_HEADER:
+            thisRead=tcpSocket->read(&hdr[bytes],AUDIO_HEADER_SIZE - bytes);
             bytes+=thisRead;
-            //qDebug() << "READ_HEADER: read " << bytes << " of " << HEADER_SIZE;
+            if ((bytes == AUDIO_HEADER_SIZE)){
+                    length = atoi(&hdr[5]);
+                    buffer = (char*)malloc(length);
+                    bytes = 0;
+                    state = READ_BUFFER;
+             }
+            break;
+
+         case READ_HEADER:
+            thisRead=tcpSocket->read(&hdr[bytes],HEADER_SIZE - bytes);
+            bytes+=thisRead;
             if(bytes==HEADER_SIZE) {
                 length=atoi(&hdr[26]);
                 buffer=(char*)malloc(length);
@@ -154,6 +171,7 @@ void Connection::socketData() {
                 state=READ_BUFFER;
             }
             break;
+
         case READ_BUFFER:
             thisRead=tcpSocket->read(&buffer[bytes],length-bytes);
             bytes+=thisRead;
@@ -163,7 +181,7 @@ void Connection::socketData() {
                 QTimer::singleShot(0,this,SLOT(processBuffer()));
                 hdr=(char*)malloc(HEADER_SIZE);
                 bytes=0;
-                state=READ_HEADER;
+                state=READ_HEADER_TYPE;
             }
             break;
         }
