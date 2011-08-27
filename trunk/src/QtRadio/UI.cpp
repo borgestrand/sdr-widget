@@ -200,6 +200,7 @@ UI::UI() {
     connect(&configure,SIGNAL(waterfallLowChanged(int)),this,SLOT(waterfallLowChanged(int)));
     connect(&configure,SIGNAL(waterfallAutomaticChanged(bool)),this,SLOT(waterfallAutomaticChanged(bool)));
     connect(&configure,SIGNAL(encodingChanged(int)),this,SLOT(encodingChanged(int)));
+    connect(&configure,SIGNAL(encodingChanged(int)),audio,SLOT(set_audio_encoding(int)));
 
     configure.initAudioDevices(audio);
     connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),this,SLOT(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
@@ -381,12 +382,14 @@ void UI::waterfallAutomaticChanged(bool state) {
 }
 
 void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) {
-    emit select_audio(info,rate,channels,byteOrder);
+    audio->select_audio(info,rate,channels,byteOrder);
+    audio_sample_rate = rate;
+    audio_channels = channels;
+    audio_byte_order = byteOrder;
 }
 
 void UI::encodingChanged(int choice) {
-    QString command;
-    audio->audio_encoding = choice;
+    audio_encoding = choice;
     if (choice == 2){               // Codec 2
         configure.setChannels(1);
         configure.setSampleRate(8000);
@@ -460,9 +463,9 @@ void UI::connected() {
     widget.actionMuteSubRx->setDisabled(TRUE);
 
     // select audio encoding
-    command.clear(); QTextStream(&command) << "setEncoding " << audio->audio_encoding;
+    command.clear(); QTextStream(&command) << "setEncoding " << audio_encoding;
     connection.sendCommand(command);
-    qDebug() << "select_audio: audio_encoding := " << audio->audio_encoding;
+    qDebug() << "Command: " << command;
 
     // start the audio
     audio_buffers=0;
@@ -470,8 +473,11 @@ void UI::connected() {
     connection.sendCommand(command);
 
     if (!getenv("QT_RADIO_NO_LOCAL_AUDIO")) {
-       command.clear(); QTextStream(&command) << "startAudioStream " << (AUDIO_BUFFER_SIZE*(audio->get_sample_rate()/8000)) << " " << audio->get_sample_rate() << " " << audio->get_channels();
+       command.clear(); QTextStream(&command) << "startAudioStream "
+            << (AUDIO_BUFFER_SIZE*(audio_sample_rate/8000)) << " " << audio_sample_rate << " "
+            << audio_channels;
        connection.sendCommand(command);
+       qDebug() << "command: " << command;
     }
 
     command.clear(); QTextStream(&command) << "SetPan 0.5"; // center

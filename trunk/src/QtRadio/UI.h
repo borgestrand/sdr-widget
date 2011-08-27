@@ -87,8 +87,6 @@ signals:
     void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
     void process_audio(char* header,char* buffer,int length);
     void get_audio_devices(QComboBox* comboBox);
-    int get_sample_rate();
-    int get_channels();
 
 public slots:
     void getMeterValue(int m, int s);
@@ -246,6 +244,7 @@ private:
     int audio_channels;
     int audio_buffers;
     QAudioFormat::Endian audio_byte_order;
+    int audio_encoding;
     char* first_audio_buffer;
     char* first_audio_header;
     int gain;
