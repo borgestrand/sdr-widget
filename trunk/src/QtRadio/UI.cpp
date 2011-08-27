@@ -54,9 +54,10 @@ UI::UI() {
 
     myVfo = new vfo(this);
     QFrame* auxFrame = new QFrame(this);
-
     sMeter = new Meter("Smeter");
     meter=-121;
+
+    audio = new Audio();
 
 
     // layout the screen
@@ -200,7 +201,7 @@ UI::UI() {
     connect(&configure,SIGNAL(waterfallAutomaticChanged(bool)),this,SLOT(waterfallAutomaticChanged(bool)));
     connect(&configure,SIGNAL(encodingChanged(int)),this,SLOT(encodingChanged(int)));
 
-    configure.initAudioDevices(&audio);
+    configure.initAudioDevices(audio);
     connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),this,SLOT(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
 
     connect(&configure,SIGNAL(hostChanged(QString)),this,SLOT(hostChanged(QString)));
@@ -235,7 +236,7 @@ UI::UI() {
     audio_sample_rate=configure.getSampleRate();
     audio_channels=configure.getChannels();
     audio_byte_order=configure.getByteOrder();
-    audio.initialize_audio(AUDIO_BUFFER_SIZE);
+    audio->initialize_audio(AUDIO_BUFFER_SIZE);
 
     // load any saved settings
     loadSettings();
@@ -380,12 +381,12 @@ void UI::waterfallAutomaticChanged(bool state) {
 }
 
 void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) {
-    audio.select_audio(info,rate,channels,byteOrder);
+    audio->select_audio(info,rate,channels,byteOrder);
 }
 
 void UI::encodingChanged(int choice) {
     QString command;
-    audio.audio_encoding = choice;
+    audio->audio_encoding = choice;
     if (choice == 2){               // Codec 2
         configure.setChannels(1);
         configure.setSampleRate(8000);
@@ -459,9 +460,9 @@ void UI::connected() {
     widget.actionMuteSubRx->setDisabled(TRUE);
 
     // select audio encoding
-    command.clear(); QTextStream(&command) << "setEncoding " << audio.audio_encoding;
+    command.clear(); QTextStream(&command) << "setEncoding " << audio->audio_encoding;
     connection.sendCommand(command);
-    qDebug() << "select_audio: audio_encoding := " << audio.audio_encoding;
+    qDebug() << "select_audio: audio_encoding := " << audio->audio_encoding;
 
     // start the audio
     audio_buffers=0;
@@ -469,7 +470,7 @@ void UI::connected() {
     connection.sendCommand(command);
 
     if (!getenv("QT_RADIO_NO_LOCAL_AUDIO")) {
-       command.clear(); QTextStream(&command) << "startAudioStream " << (AUDIO_BUFFER_SIZE*(audio.get_sample_rate()/8000)) << " " << audio.get_sample_rate() << " " << audio.get_channels();
+       command.clear(); QTextStream(&command) << "startAudioStream " << (AUDIO_BUFFER_SIZE*(audio->get_sample_rate()/8000)) << " " << audio->get_sample_rate() << " " << audio->get_channels();
        connection.sendCommand(command);
     }
 
@@ -549,12 +550,12 @@ void UI::audioBuffer(char* header,char* buffer) {
         audio_buffers++;
     } else if(audio_buffers==1) {
         audio_buffers++;
-        audio.process_audio(first_audio_header,first_audio_buffer,length);
+        audio->process_audio(first_audio_header,first_audio_buffer,length);
         connection.freeBuffers(first_audio_header,first_audio_buffer);
-        audio.process_audio(header,buffer,length);
+        audio->process_audio(header,buffer,length);
         connection.freeBuffers(header,buffer);
     } else {
-        audio.process_audio(header,buffer,length);
+        audio->process_audio(header,buffer,length);
         connection.freeBuffers(header,buffer);
     }
 }
