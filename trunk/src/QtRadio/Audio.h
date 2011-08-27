@@ -46,8 +46,6 @@ public:
     Audio(const Audio& orig);
     virtual ~Audio();
     void * codec2;
-    int get_sample_rate();
-    int get_channels();
 
 public slots:
         void stateChanged(QAudio::State);

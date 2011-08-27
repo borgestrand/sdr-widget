@@ -204,6 +204,7 @@ UI::UI() {
 
     configure.initAudioDevices(audio);
     connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),this,SLOT(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
+    connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),audio,SLOT(select_audio(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
     connect(&configure,SIGNAL(hostChanged(QString)),this,SLOT(hostChanged(QString)));
     connect(&configure,SIGNAL(receiverChanged(int)),this,SLOT(receiverChanged(int)));
 
@@ -223,6 +224,9 @@ UI::UI() {
 
     connect(myVfo,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
 
+    connect(this,SIGNAL(initialize_audio(int)),audio,SLOT(initialize_audio(int)));
+    connect(this,SIGNAL(process_audio(char*,char*,int)),audio,SLOT(process_audio(char*,char*,int)));
+
     bandscope=NULL;
 
     fps=15;
@@ -236,7 +240,7 @@ UI::UI() {
     audio_sample_rate=configure.getSampleRate();
     audio_channels=configure.getChannels();
     audio_byte_order=configure.getByteOrder();
-    audio->initialize_audio(AUDIO_BUFFER_SIZE);
+    emit initialize_audio(AUDIO_BUFFER_SIZE);
 
     // load any saved settings
     loadSettings();
@@ -381,7 +385,6 @@ void UI::waterfallAutomaticChanged(bool state) {
 }
 
 void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) {
-    audio->select_audio(info,rate,channels,byteOrder);
     audio_sample_rate = rate;
     audio_channels = channels;
     audio_byte_order = byteOrder;
@@ -555,12 +558,12 @@ void UI::audioBuffer(char* header,char* buffer) {
         audio_buffers++;
     } else if(audio_buffers==1) {
         audio_buffers++;
-        audio->process_audio(first_audio_header,first_audio_buffer,length);
+        emit process_audio(first_audio_header,first_audio_buffer,length);
         connection.freeBuffers(first_audio_header,first_audio_buffer);
-        audio->process_audio(header,buffer,length);
+        emit process_audio(header,buffer,length);
         connection.freeBuffers(header,buffer);
     } else {
-        audio->process_audio(header,buffer,length);
+        emit process_audio(header,buffer,length);
         connection.freeBuffers(header,buffer);
     }
 }
