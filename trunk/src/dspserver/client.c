@@ -100,10 +100,18 @@ void client_init(int receiver) {
 
     signal(SIGPIPE, SIG_IGN);
 
-    if (encoding == 0) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+BUFFER_HEADER_SIZE);
-    else if (encoding == 1) audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+BUFFER_HEADER_SIZE); // 2 byte PCM
+    if (encoding == 0) {
+audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels)+AUDIO_BUFFER_HEADER_SIZE);
+}
+    else if (encoding == 1) {
+audio_buffer=(unsigned char*)malloc((audio_buffer_size*audio_channels*2)+AUDIO_BUFFER_HEADER_SIZE); // 2 byte PCM
+	}
+    else {	// encoding = Codec 2
+	audio_buffer_size = BITS_SIZE*NO_CODEC2_FRAMES;
+	audio_buffer=(unsigned char*)malloc(audio_buffer_size*audio_channels + AUDIO_BUFFER_HEADER_SIZE);
+	};
 
-    fprintf(stderr,"client_init audio_buffer_size=%d audio_buffer=%ld\n",audio_buffer_size, sizeof(audio_buffer));
+    fprintf(stderr,"client_init audio_buffer_size=%d\n",audio_buffer_size);
 
     port=BASE_PORT+receiver;
     clientSocket=-1;
@@ -710,8 +718,8 @@ void client_send_audio() {
 	    	if (encoding == 1) audio_buffer_length = audio_buffer_size*audio_channels*2;
 	   	else if (encoding == 0) audio_buffer_length = audio_buffer_size*audio_channels;
 		else audio_buffer_length = BITS_SIZE*NO_CODEC2_FRAMES;
-                rc=send(clientSocket,audio_buffer, audio_buffer_length+BUFFER_HEADER_SIZE,MSG_NOSIGNAL);
-                if(rc!=(audio_buffer_length+BUFFER_HEADER_SIZE)) {
+                rc=send(clientSocket,audio_buffer, audio_buffer_length+AUDIO_BUFFER_HEADER_SIZE,MSG_NOSIGNAL);
+                if(rc!=(audio_buffer_length+AUDIO_BUFFER_HEADER_SIZE)) {
                     fprintf(stderr,"client_send_audio sent %d bytes",rc);
                     }
                 }
