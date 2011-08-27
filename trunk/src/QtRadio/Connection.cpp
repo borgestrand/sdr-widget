@@ -189,6 +189,11 @@ void Connection::socketData() {
     }
 }
 
+void Connection::process_audio_free(int state){
+    if (state !=0) audio_mutex.lock();
+    else audio_mutex.unlock();
+}
+
 void Connection::processBuffer() {
     Buffer* buffer;
     char* nextHeader;

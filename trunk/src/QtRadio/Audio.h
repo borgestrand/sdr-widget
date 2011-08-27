@@ -48,13 +48,16 @@ public:
     virtual ~Audio();
     void * codec2;
 
+signals:
+    void process_audio_free(int state);
+
 public slots:
-        void stateChanged(QAudio::State);
-        void initialize_audio(int buffer_size);
-        void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
-        void process_audio(char* header,char* buffer,int length);
-        void get_audio_devices(QComboBox* comboBox);
-        void set_audio_encoding(int enc);
+    void stateChanged(QAudio::State);
+    void initialize_audio(int buffer_size);
+    void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
+    void process_audio(char* header,char* buffer,int length);
+    void get_audio_devices(QComboBox* comboBox);
+    void set_audio_encoding(int enc);
 
 private:
     void aLawDecode(char* buffer,int length);

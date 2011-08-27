@@ -60,13 +60,10 @@ UI::UI() {
     sMeter = new Meter("Smeter");
     meter=-121;
 
-
-    audio = new Audio();
-    audio_thread = new QThread();
-
-
-    //audio->moveToThread(audio_thread);
-    //audio_thread->start();
+    audio = new Audio(); 
+    // audio_thread = new QThread();
+    // audio->moveToThread(audio_thread);
+    // audio_thread->start(QThread::TimeCriticalPriority);
 
 
     // layout the screen
@@ -94,6 +91,7 @@ UI::UI() {
     connect(&connection,SIGNAL(disconnected(QString)),this,SLOT(disconnected(QString)));
     connect(&connection,SIGNAL(audioBuffer(char*,char*)),this,SLOT(audioBuffer(char*,char*)));
     connect(&connection,SIGNAL(spectrumBuffer(char*,char*)),this,SLOT(spectrumBuffer(char*,char*)));
+    connect(audio,SIGNAL(process_audio_free(int)),&connection,SLOT(process_audio_free(int)));
 
     connect(widget.actionConfig,SIGNAL(triggered()),this,SLOT(actionConfigure()));
 
@@ -235,6 +233,7 @@ UI::UI() {
 
     connect(this,SIGNAL(initialize_audio(int)),audio,SLOT(initialize_audio(int)));
     connect(this,SIGNAL(process_audio(char*,char*,int)),audio,SLOT(process_audio(char*,char*,int)));
+
 
     bandscope=NULL;
 
@@ -481,7 +480,6 @@ void UI::connected() {
     // start the audio
     audio_buffers=0;
     actionGain(gain);
-    connection.sendCommand(command);
 
     if (!getenv("QT_RADIO_NO_LOCAL_AUDIO")) {
        command.clear(); QTextStream(&command) << "startAudioStream "

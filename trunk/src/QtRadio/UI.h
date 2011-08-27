@@ -86,6 +86,7 @@ signals:
     void initialize_audio(int length);
     void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
     void process_audio(char* header,char* buffer,int length);
+    void process_audio_free(int state);
     void get_audio_devices(QComboBox* comboBox);
 
 public slots:

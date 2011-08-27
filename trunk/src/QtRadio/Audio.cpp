@@ -216,6 +216,8 @@ void Audio::process_audio(char* header,char* buffer,int length) {
     int length_to_write, total_to_write;
     int skip_bytes = 1;
 
+    emit process_audio_free(1);
+
     if (audio_encoding == 0) aLawDecode(buffer,length);
     else if (audio_encoding == 1) {
         pcmDecode(buffer,length);
@@ -235,6 +237,7 @@ void Audio::process_audio(char* header,char* buffer,int length) {
             written+=audio_out->write(&decoded_buffer.data()[written],length_to_write);
         }
     }
+    emit process_audio_free(0);
 }
 
 void Audio::aLawDecode(char* buffer,int length) {
