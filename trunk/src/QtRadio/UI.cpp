@@ -296,7 +296,7 @@ void UI::actionAbout() {
 
 void UI::loadSettings() {
     QSettings settings("G0ORX", "QtRadio");
-    qDebug() << "saveSettings: " << settings.fileName();
+    qDebug() << "loadSettings: " << settings.fileName();
 
     band.loadSettings(&settings);
     xvtr.loadSettings(&settings);
@@ -309,6 +309,14 @@ void UI::loadSettings() {
     if(settings.contains("gain")) gain=subRxGain=settings.value("gain").toInt();
     if(settings.contains("agc")) agc=settings.value("agc").toInt();
     settings.endGroup();
+
+    settings.beginGroup("mainWindow");
+    qDebug() << "######################################################## getGeometryState = " << configure.getGeometryState();
+    if (configure.getGeometryState()) {
+        restoreGeometry(settings.value("geometry").toByteArray());
+    }
+    settings.endGroup();
+
     myVfo->readSettings(&settings);
 }
 
@@ -332,6 +340,11 @@ void UI::saveSettings() {
     settings.setValue("subRxGain",subRxGain);
     settings.setValue("agc",agc);
     settings.endGroup();
+
+    settings.beginGroup("mainWindow");
+    settings.setValue("geometry", saveGeometry());
+    settings.endGroup();
+
     myVfo->writeSettings(&settings);
 }
 
