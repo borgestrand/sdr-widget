@@ -155,7 +155,7 @@ void audio_stream_put_samples(short left_sample,short right_sample) {
 		sprintf(&audio_buffer[1],"%f",HEADER_VERSION);
 		if (encoding == 1) audio_buffer_length = audio_buffer_size*audio_channels*2;
 		else audio_buffer_length = audio_buffer_size*audio_channels;
-		sprintf(&audio_buffer[26],"%d", audio_buffer_length);
+		sprintf(&audio_buffer[5],"%d", audio_buffer_length);
 		client_send_audio();
 	    	audio_stream_buffer_insert=0;
         }
