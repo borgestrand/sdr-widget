@@ -42,6 +42,7 @@
 
 #define HEADER_SIZE 48
 #define AUDIO_HEADER_SIZE 48
+#define AUDIO_LENGTH_POSITION 1
 
 #define READ_HEADER 0
 #define READ_BUFFER 1

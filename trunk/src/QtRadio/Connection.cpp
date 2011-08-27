@@ -154,7 +154,7 @@ void Connection::socketData() {
             thisRead=tcpSocket->read(&hdr[bytes],AUDIO_HEADER_SIZE - bytes);
             bytes+=thisRead;
             if ((bytes == AUDIO_HEADER_SIZE)){
-                    length = atoi(&hdr[26]);
+                    length = atoi(&hdr[AUDIO_LENGTH_POSITION]);
                     buffer = (char*)malloc(length);
                     bytes = 0;
                     state = READ_BUFFER;
