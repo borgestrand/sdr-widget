@@ -41,9 +41,12 @@
 #define BANDSCOPE_BUFFER    2
 
 #define HEADER_SIZE 48
+#define AUDIO_HEADER_SIZE 10
 
 #define READ_HEADER 0
 #define READ_BUFFER 1
+#define READ_HEADER_TYPE 3
+#define READ_AUDIO_HEADER 4
 
 class Connection : public QObject {
     Q_OBJECT

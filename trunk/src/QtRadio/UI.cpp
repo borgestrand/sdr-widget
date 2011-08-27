@@ -26,6 +26,7 @@
 #include <QDebug>
 #include <QSettings>
 #include <QPainter>
+#include <QThread>
 
 #include "UI.h"
 #include "About.h"
@@ -50,13 +51,22 @@
 #include "smeter.h"
 
 UI::UI() {
+    QThread* audio_thread;
+
     widget.setupUi(this);
 
     myVfo = new vfo(this);
     QFrame* auxFrame = new QFrame(this);
-
     sMeter = new Meter("Smeter");
     meter=-121;
+
+
+    audio = new Audio();
+    audio_thread = new QThread();
+
+
+    //audio->moveToThread(audio_thread);
+    //audio_thread->start();
 
 
     // layout the screen
@@ -199,10 +209,11 @@ UI::UI() {
     connect(&configure,SIGNAL(waterfallLowChanged(int)),this,SLOT(waterfallLowChanged(int)));
     connect(&configure,SIGNAL(waterfallAutomaticChanged(bool)),this,SLOT(waterfallAutomaticChanged(bool)));
     connect(&configure,SIGNAL(encodingChanged(int)),this,SLOT(encodingChanged(int)));
+    connect(&configure,SIGNAL(encodingChanged(int)),audio,SLOT(set_audio_encoding(int)));
 
-    configure.initAudioDevices(&audio);
+    configure.initAudioDevices(audio);
     connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),this,SLOT(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
-
+    connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),audio,SLOT(select_audio(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
     connect(&configure,SIGNAL(hostChanged(QString)),this,SLOT(hostChanged(QString)));
     connect(&configure,SIGNAL(receiverChanged(int)),this,SLOT(receiverChanged(int)));
 
@@ -222,6 +233,9 @@ UI::UI() {
 
     connect(myVfo,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
 
+    connect(this,SIGNAL(initialize_audio(int)),audio,SLOT(initialize_audio(int)));
+    connect(this,SIGNAL(process_audio(char*,char*,int)),audio,SLOT(process_audio(char*,char*,int)));
+
     bandscope=NULL;
 
     fps=15;
@@ -235,7 +249,7 @@ UI::UI() {
     audio_sample_rate=configure.getSampleRate();
     audio_channels=configure.getChannels();
     audio_byte_order=configure.getByteOrder();
-    audio.initialize_audio(AUDIO_BUFFER_SIZE);
+    emit initialize_audio(AUDIO_BUFFER_SIZE);
 
     // load any saved settings
     loadSettings();
@@ -380,12 +394,13 @@ void UI::waterfallAutomaticChanged(bool state) {
 }
 
 void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) {
-    audio.select_audio(info,rate,channels,byteOrder);
+    audio_sample_rate = rate;
+    audio_channels = channels;
+    audio_byte_order = byteOrder;
 }
 
 void UI::encodingChanged(int choice) {
-    QString command;
-    audio.audio_encoding = choice;
+    audio_encoding = choice;
     if (choice == 2){               // Codec 2
         configure.setChannels(1);
         configure.setSampleRate(8000);
@@ -459,9 +474,9 @@ void UI::connected() {
     widget.actionMuteSubRx->setDisabled(TRUE);
 
     // select audio encoding
-    command.clear(); QTextStream(&command) << "setEncoding " << audio.audio_encoding;
+    command.clear(); QTextStream(&command) << "setEncoding " << audio_encoding;
     connection.sendCommand(command);
-    qDebug() << "select_audio: audio_encoding := " << audio.audio_encoding;
+    qDebug() << "Command: " << command;
 
     // start the audio
     audio_buffers=0;
@@ -469,8 +484,11 @@ void UI::connected() {
     connection.sendCommand(command);
 
     if (!getenv("QT_RADIO_NO_LOCAL_AUDIO")) {
-       command.clear(); QTextStream(&command) << "startAudioStream " << (AUDIO_BUFFER_SIZE*(audio.get_sample_rate()/8000)) << " " << audio.get_sample_rate() << " " << audio.get_channels();
+       command.clear(); QTextStream(&command) << "startAudioStream "
+            << (AUDIO_BUFFER_SIZE*(audio_sample_rate/8000)) << " " << audio_sample_rate << " "
+            << audio_channels;
        connection.sendCommand(command);
+       qDebug() << "command: " << command;
     }
 
     command.clear(); QTextStream(&command) << "SetPan 0.5"; // center
@@ -542,19 +560,19 @@ void UI::spectrumBuffer(char* header,char* buffer) {
 
 void UI::audioBuffer(char* header,char* buffer) {
     //qDebug() << "audioBuffer";
-    int length=atoi(&header[26]);
+    int length=atoi(&header[5]);
     if(audio_buffers==0) {
         first_audio_header=header;
         first_audio_buffer=buffer;
         audio_buffers++;
     } else if(audio_buffers==1) {
         audio_buffers++;
-        audio.process_audio(first_audio_header,first_audio_buffer,length);
+        emit process_audio(first_audio_header,first_audio_buffer,length);
         connection.freeBuffers(first_audio_header,first_audio_buffer);
-        audio.process_audio(header,buffer,length);
+        emit process_audio(header,buffer,length);
         connection.freeBuffers(header,buffer);
     } else {
-        audio.process_audio(header,buffer,length);
+        emit process_audio(header,buffer,length);
         connection.freeBuffers(header,buffer);
     }
 }

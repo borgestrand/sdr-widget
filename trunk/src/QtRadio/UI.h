@@ -82,6 +82,12 @@ public:
 
     void sendCommand(QString command);
 
+signals:
+    void initialize_audio(int length);
+    void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
+    void process_audio(char* header,char* buffer,int length);
+    void get_audio_devices(QComboBox* comboBox);
+
 public slots:
     void getMeterValue(int m, int s);
 
@@ -232,12 +238,13 @@ private:
     Ui::UI widget;
     vfo* myVfo;
 
-    Audio audio;
+    Audio* audio;
     int audio_device;
     int audio_sample_rate;
     int audio_channels;
     int audio_buffers;
     QAudioFormat::Endian audio_byte_order;
+    int audio_encoding;
     char* first_audio_buffer;
     char* first_audio_header;
     int gain;
