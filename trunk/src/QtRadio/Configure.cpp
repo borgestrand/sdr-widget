@@ -178,6 +178,7 @@ void Configure::loadSettings(QSettings* settings) {
     if(settings->contains("waterfallHigh"))widget.waterfallHighSpinBox->setValue(settings->value("waterfallHigh").toInt());
     if(settings->contains("waterfallLow"))widget.waterfallLowSpinBox->setValue(settings->value("waterfallLow").toInt());
     if(settings->contains("waterfallAutomatic"))widget.waterfallAutomatic->setChecked(settings->value("waterfallAutomatic").toBool());
+    if(settings->contains("WindowGeometryFlag"))widget.checkBoxWindowPosn->setChecked(settings->value("WindowGeometryFlag").toBool());
     settings->endGroup();
     settings->beginGroup("Audio");
     if(settings->contains("device")) widget.audioDeviceComboBox->setCurrentIndex(settings->value("device").toInt());
@@ -226,6 +227,7 @@ void Configure::saveSettings(QSettings* settings) {
     settings->setValue("waterfallHigh",widget.waterfallHighSpinBox->value());
     settings->setValue("waterfallLow",widget.waterfallLowSpinBox->value());
     settings->setValue("waterfallAutomatic",widget.waterfallAutomatic->checkState());
+    settings->setValue("WindowGeometryFlag", widget.checkBoxWindowPosn->checkState());
     settings->endGroup();
     settings->beginGroup("Audio");
     settings->setValue("device",widget.audioDeviceComboBox->currentIndex());
@@ -549,4 +551,9 @@ void Configure::on_encodingComboBox_currentIndexChanged(int index)
 {
     qDebug() << "audio_encoding changed to :  " << index;
     emit encodingChanged(index);
+}
+
+bool Configure::getGeometryState()
+{
+    return widget.checkBoxWindowPosn->checkState();
 }
