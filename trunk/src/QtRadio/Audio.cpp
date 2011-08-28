@@ -214,24 +214,21 @@ void Audio::process_audio(char* header,char* buffer,int length) {
     //qDebug() << "process audio";
     int written=0;
     int length_to_write, total_to_write;
-    int skip_bytes = 1;
 
     emit process_audio_free(1);
 
     if (audio_encoding == 0) aLawDecode(buffer,length);
-    else if (audio_encoding == 1) {
-        pcmDecode(buffer,length);
-        skip_bytes = 2;
-    }
+    else if (audio_encoding == 1) pcmDecode(buffer,length);
     else if (audio_encoding == 2) codec2Decode(buffer,length);
-    else aLawDecode(buffer,length);
-
+    else {
+        qDebug() << "Error:  audio_encoding = " << audio_encoding;
+    }
 
     if(audio_out!=NULL) {
         //qDebug() << "writing audio data length=: " <<  decoded_buffer.length();
         total_to_write = decoded_buffer.length();
         while( written< total_to_write) {
-            if (audio_output->bytesFree() < 4) total_to_write -= skip_bytes;
+            if (audio_output->bytesFree() < 4) usleep(1000);
             length_to_write = (audio_output->periodSize() > (decoded_buffer.length()-written)) ?
                         (decoded_buffer.length()-written) : audio_output->periodSize();
             written+=audio_out->write(&decoded_buffer.data()[written],length_to_write);

@@ -580,8 +580,9 @@ void UI::process_audio_free(int state){
 
 void UI::audioBuffer(char* header,char* buffer) {
     //qDebug() << "audioBuffer";
-    int length=atoi(&header[AUDIO_LENGTH_POSITION]);
+    int length;
 
+    length=atoi(&header[AUDIO_LENGTH_POSITION]);
 
     if(audio_buffers==0) {
         first_audio_header=header;
