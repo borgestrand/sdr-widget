@@ -237,6 +237,9 @@ void Audio::process_audio(char* header,char* buffer,int length) {
             written+=audio_out->write(&decoded_buffer.data()[written],length_to_write);
         }
     }
+
+    if (header != NULL) free(header);
+    if (buffer != NULL) free(buffer);
     emit process_audio_free(0);
 }
 

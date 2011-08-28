@@ -60,11 +60,13 @@ UI::UI() {
     sMeter = new Meter("Smeter");
     meter=-121;
 
-    audio = new Audio(); 
-    // audio_thread = new QThread();
-    // audio->moveToThread(audio_thread);
-    // audio_thread->start(QThread::TimeCriticalPriority);
+    audio = new Audio();
 
+/*
+    audio_thread = new QThread();
+    audio->moveToThread(audio_thread);
+    audio_thread->start(QThread::TimeCriticalPriority);
+*/
 
     // layout the screen
     widget.gridLayout->setContentsMargins(2,2,2,2);
@@ -398,8 +400,9 @@ void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFo
     audio_byte_order = byteOrder;
 }
 
-void UI::encodingChanged(int choice) {
+void UI::encodingChanged(int choice){
     audio_encoding = choice;
+    qDebug() << "UI: encodingChanged: " << audio_encoding;
     if (choice == 2){               // Codec 2
         configure.setChannels(1);
         configure.setSampleRate(8000);
@@ -566,12 +569,12 @@ void UI::audioBuffer(char* header,char* buffer) {
     } else if(audio_buffers==1) {
         audio_buffers++;
         emit process_audio(first_audio_header,first_audio_buffer,length);
-        connection.freeBuffers(first_audio_header,first_audio_buffer);
+  //      connection.freeBuffers(first_audio_header,first_audio_buffer);
         emit process_audio(header,buffer,length);
-        connection.freeBuffers(header,buffer);
+  //      connection.freeBuffers(header,buffer);
     } else {
         emit process_audio(header,buffer,length);
-        connection.freeBuffers(header,buffer);
+  //      connection.freeBuffers(header,buffer);
     }
 }
 
