@@ -85,6 +85,7 @@ public:
 
     double getNbThreshold();
     double getSdromThreshold();
+    bool getGeometryState();
 
 signals:
     void hostChanged(QString host);
