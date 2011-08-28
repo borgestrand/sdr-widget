@@ -33,6 +33,7 @@
 #include <QTimer>
 #include <QtMultimedia/QAudioFormat>
 #include <QVector>
+#include <QThread>
 
 #include "About.h"
 #include "Configure.h"
@@ -79,7 +80,6 @@ public:
     void loadSettings();
     void saveSettings();
     void closeEvent(QCloseEvent* event);
-
     void sendCommand(QString command);
 
 signals:
@@ -236,6 +236,7 @@ private:
     vfo* myVfo;
 
     Audio* audio;
+    QThread * audio_thread;
     int audio_device;
     int audio_sample_rate;
     int audio_channels;

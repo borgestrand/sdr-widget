@@ -51,7 +51,6 @@
 #include "smeter.h"
 
 UI::UI() {
-    QThread* audio_thread;
 
     widget.setupUi(this);
 
@@ -61,12 +60,12 @@ UI::UI() {
     meter=-121;
 
     audio = new Audio();
+    configure.initAudioDevices(audio);
 
-/*
     audio_thread = new QThread();
     audio->moveToThread(audio_thread);
     audio_thread->start(QThread::TimeCriticalPriority);
-*/
+
 
     // layout the screen
     widget.gridLayout->setContentsMargins(2,2,2,2);
@@ -210,10 +209,8 @@ UI::UI() {
     connect(&configure,SIGNAL(waterfallAutomaticChanged(bool)),this,SLOT(waterfallAutomaticChanged(bool)));
     connect(&configure,SIGNAL(encodingChanged(int)),this,SLOT(encodingChanged(int)));
     connect(&configure,SIGNAL(encodingChanged(int)),audio,SLOT(set_audio_encoding(int)));
-
-    configure.initAudioDevices(audio);
     connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),this,SLOT(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
-    connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),audio,SLOT(select_audio(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
+//    connect(&configure,SIGNAL(audioDeviceChanged(QAudioDeviceInfo,int,int,QAudioFormat::Endian)),audio,SLOT(select_audio(QAudioDeviceInfo,int,int,QAudioFormat::Endian)));
     connect(&configure,SIGNAL(hostChanged(QString)),this,SLOT(hostChanged(QString)));
     connect(&configure,SIGNAL(receiverChanged(int)),this,SLOT(receiverChanged(int)));
 
@@ -227,7 +224,7 @@ UI::UI() {
 
     connect(&configure,SIGNAL(addXVTR(QString,long long,long long,long long,long long,int,int)),this,SLOT(addXVTR(QString,long long,long long,long long,long long,int,int)));
     connect(&configure,SIGNAL(deleteXVTR(int)),this,SLOT(deleteXVTR(int)));
-    connect(&configure,SIGNAL(get_audio_devices(QComboBox*)),audio,SLOT(get_audio_devices(QComboBox*)));
+//    connect(&configure,SIGNAL(get_audio_devices(QComboBox*)),audio,SLOT(get_audio_devices(QComboBox*)));
 
     connect(&xvtr,SIGNAL(xvtrSelected(QAction*)),this,SLOT(selectXVTR(QAction*)));
 
@@ -407,10 +404,14 @@ void UI::waterfallAutomaticChanged(bool state) {
     widget.waterfallFrame->setAutomatic(state);
 }
 
-void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) {
+void UI::audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder) { 
     audio_sample_rate = rate;
     audio_channels = channels;
     audio_byte_order = byteOrder;
+    audio->moveToThread(QThread::currentThread());
+    audio->select_audio(info, rate, channels, byteOrder);
+    audio->moveToThread(audio_thread);
+    audio_thread->start(QThread::TimeCriticalPriority);
 }
 
 void UI::encodingChanged(int choice){
