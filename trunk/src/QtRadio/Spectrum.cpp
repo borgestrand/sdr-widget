@@ -454,9 +454,4 @@ void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
     this->repaint();
 }
 
-int Spectrum::getMeter()
-{
-    return meter;
-}
-
 

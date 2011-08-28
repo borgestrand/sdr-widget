@@ -43,7 +43,6 @@ public:
     Spectrum(QWidget*& widget);
     virtual ~Spectrum();
 
-    int getMeter();
     void setObjectName(QString name);
     void setGeometry(QRect rect);
     void initialize();
