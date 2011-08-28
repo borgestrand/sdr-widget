@@ -62,11 +62,11 @@ UI::UI() {
 
     audio = new Audio();
 
-/*
+
     audio_thread = new QThread();
     audio->moveToThread(audio_thread);
     audio_thread->start(QThread::TimeCriticalPriority);
-*/
+
 
     // layout the screen
     widget.gridLayout->setContentsMargins(2,2,2,2);
