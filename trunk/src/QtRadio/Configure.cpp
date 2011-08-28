@@ -93,14 +93,14 @@ Configure::Configure() {
 
     connect(widget.addPushButton,SIGNAL(clicked()),this,SLOT(slotXVTRAdd()));
     connect(widget.deletePushButton,SIGNAL(clicked()),this,SLOT(slotXVTRDelete()));
-
 }
 
 Configure::~Configure() {
 }
 
 void Configure::initAudioDevices(Audio* audio) {
-    audio->get_audio_devices(widget.audioDeviceComboBox);
+    qDebug() << "Configure: initAudioDevices";
+    audio->get_audio_devices(widget.audioDeviceComboBox); // TODO: how to change this to signal/slot
 }
 
 void Configure::updateXvtrList(Xvtr* xvtr) {

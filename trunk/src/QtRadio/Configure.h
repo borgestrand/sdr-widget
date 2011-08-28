@@ -98,6 +98,7 @@ signals:
     void waterfallAutomaticChanged(bool state);
     void audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian order);
     void encodingChanged(int index);
+    void get_audio_devices(QComboBox* comboBox);
 //    void sampleRateChanged(int rate);
 //    void channelsChanged(int channels);
 //    void byteOrderChanged(QAudioFormat::Endian order);

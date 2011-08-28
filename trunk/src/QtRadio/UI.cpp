@@ -62,10 +62,11 @@ UI::UI() {
 
     audio = new Audio();
 
+/*
     audio_thread = new QThread();
     audio->moveToThread(audio_thread);
     audio_thread->start(QThread::TimeCriticalPriority);
-
+*/
 
     // layout the screen
     widget.gridLayout->setContentsMargins(2,2,2,2);
@@ -226,7 +227,7 @@ UI::UI() {
 
     connect(&configure,SIGNAL(addXVTR(QString,long long,long long,long long,long long,int,int)),this,SLOT(addXVTR(QString,long long,long long,long long,long long,int,int)));
     connect(&configure,SIGNAL(deleteXVTR(int)),this,SLOT(deleteXVTR(int)));
-
+    connect(&configure,SIGNAL(get_audio_devices(QComboBox*)),audio,SLOT(get_audio_devices(QComboBox*)));
 
     connect(&xvtr,SIGNAL(xvtrSelected(QAction*)),this,SLOT(selectXVTR(QAction*)));
 
@@ -580,7 +581,7 @@ void UI::audioBuffer(char* header,char* buffer) {
     //qDebug() << "audioBuffer";
     int length=atoi(&header[AUDIO_LENGTH_POSITION]);
 
-/*
+
     if(audio_buffers==0) {
         first_audio_header=header;
         first_audio_buffer=buffer;
@@ -588,15 +589,10 @@ void UI::audioBuffer(char* header,char* buffer) {
     } else if(audio_buffers==1) {
         audio_buffers++;
         emit process_audio(first_audio_header,first_audio_buffer,length);
-  //      connection.freeBuffers(first_audio_header,first_audio_buffer);
         emit process_audio(header,buffer,length);
-  //      connection.freeBuffers(header,buffer);
     } else {
         emit process_audio(header,buffer,length);
-  //      connection.freeBuffers(header,buffer);
   }
-*/
-    emit process_audio(header,buffer,length);
 
 }
 
