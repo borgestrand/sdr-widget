@@ -32,7 +32,6 @@ Connection::Connection() {
     bytes=0;
     hdr=(char*)malloc(HEADER_SIZE);
     SemSpectrum.release();
-    audio_mutex.unlock();
 }
 
 Connection::Connection(const Connection& orig) {
@@ -190,10 +189,6 @@ void Connection::socketData() {
     }
 }
 
-void Connection::process_audio_free(int state){
-    if (state !=0) audio_mutex.lock();
-    else audio_mutex.unlock();
-}
 
 void Connection::processBuffer() {
     Buffer* buffer;

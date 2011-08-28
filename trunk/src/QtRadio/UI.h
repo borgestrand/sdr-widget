@@ -86,8 +86,6 @@ signals:
     void initialize_audio(int length);
     void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
     void process_audio(char* header,char* buffer,int length);
-    void process_audio_free(int state);
-    void get_audio_devices(QComboBox* comboBox);
 
 public slots:
     void getMeterValue(int m, int s);
@@ -181,10 +179,8 @@ public slots:
     void updateSpectrum();
 
     void audioDeviceChanged(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
-    //void sampleRateChanged(int choice);
-    //void audioChannelsChanged(int channels);
     void encodingChanged(int choice);
-    //void byteOrderChanged(int choice);
+    void process_audio_free(int state);
 
 
     void setSubRxGain(int gain);
@@ -246,6 +242,7 @@ private:
     int audio_buffers;
     QAudioFormat::Endian audio_byte_order;
     int audio_encoding;
+    QMutex audio_mutex;
     char* first_audio_buffer;
     char* first_audio_header;
     int gain;
