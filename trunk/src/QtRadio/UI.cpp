@@ -62,7 +62,6 @@ UI::UI() {
 
     audio = new Audio();
 
-
     audio_thread = new QThread();
     audio->moveToThread(audio_thread);
     audio_thread->start(QThread::TimeCriticalPriority);
@@ -93,7 +92,7 @@ UI::UI() {
     connect(&connection,SIGNAL(disconnected(QString)),this,SLOT(disconnected(QString)));
     connect(&connection,SIGNAL(audioBuffer(char*,char*)),this,SLOT(audioBuffer(char*,char*)));
     connect(&connection,SIGNAL(spectrumBuffer(char*,char*)),this,SLOT(spectrumBuffer(char*,char*)));
-    connect(audio,SIGNAL(process_audio_free(int)),&connection,SLOT(process_audio_free(int)));
+    connect(audio,SIGNAL(process_audio_free(int)),this,SLOT(process_audio_free(int)));
 
     connect(widget.actionConfig,SIGNAL(triggered()),this,SLOT(actionConfigure()));
 
@@ -572,9 +571,16 @@ void UI::spectrumBuffer(char* header,char* buffer) {
     connection.SemSpectrum.release();
 }
 
+void UI::process_audio_free(int state){
+    if (state != 0) audio_mutex.lock();
+    else audio_mutex.unlock();
+}
+
 void UI::audioBuffer(char* header,char* buffer) {
     //qDebug() << "audioBuffer";
     int length=atoi(&header[AUDIO_LENGTH_POSITION]);
+
+/*
     if(audio_buffers==0) {
         first_audio_header=header;
         first_audio_buffer=buffer;
@@ -588,7 +594,10 @@ void UI::audioBuffer(char* header,char* buffer) {
     } else {
         emit process_audio(header,buffer,length);
   //      connection.freeBuffers(header,buffer);
-    }
+  }
+*/
+    emit process_audio(header,buffer,length);
+
 }
 
 void UI::actionSubRx() {

@@ -60,7 +60,6 @@ public:
     void sendCommand(QString command);
     void sendAudio(int length,char* buffer);
     void freeBuffers(char* header,char* buffer);
-    QMutex audio_mutex;
     QSemaphore SemSpectrum;
 
 public slots:
@@ -69,7 +68,6 @@ public slots:
     void socketError(QAbstractSocket::SocketError socketError);
     void socketData();
     void processBuffer();
-    void process_audio_free(int state);
 
 signals:
     void isConnected();
