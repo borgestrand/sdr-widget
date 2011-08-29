@@ -14,6 +14,8 @@ rm -f	install-sh
 rm -f	missing
 rm -f	stamp-h1
 rm -f -r	trunk/src/DttSP/.deps/
+rm -f		trunk/src/DttSP/Makefile
+rm -f		trunk/src/DttSP/Makefile.in
 rm -f -r	trunk/src/QtRadio/.deps/
 rm -f -r	trunk/src/QtRadio/About.moc.cpp
 rm -f -r	trunk/src/QtRadio/Audio.moc.cpp
