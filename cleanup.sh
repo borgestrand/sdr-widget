@@ -2,7 +2,6 @@ rm -f	Makefile
 rm -f	Makefile.in
 rm -f	aclocal.m4
 rm -f -r autom4te.cache/
-rm -f	cleanup.sh
 rm -f	compile
 rm -f	config.h
 rm -f	config.h.in
@@ -15,7 +14,6 @@ rm -f	install-sh
 rm -f	missing
 rm -f	stamp-h1
 rm -f -r	trunk/src/DttSP/.deps/
-rm -f -r	trunk/src/DttSP/Makefile.am
 rm -f -r	trunk/src/QtRadio/.deps/
 rm -f -r	trunk/src/QtRadio/About.moc.cpp
 rm -f -r	trunk/src/QtRadio/Audio.moc.cpp
