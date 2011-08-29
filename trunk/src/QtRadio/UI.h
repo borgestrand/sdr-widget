@@ -31,7 +31,7 @@
 #include <QDebug>
 #include <QSettings>
 #include <QTimer>
-#include <QtMultimediaKit/QAudioFormat>
+#include <QtMultimedia/QAudioFormat>
 #include <QVector>
 #include <QThread>
 

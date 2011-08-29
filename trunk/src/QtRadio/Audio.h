@@ -27,13 +27,13 @@
 #define	AUDIO_H
 
 #include <QtCore>
-#include <QtMultimediaKit/QAudioFormat>
-#include <QtMultimediaKit/QAudioOutput>
-#include <QtMultimediaKit/QAudioDeviceInfo>
+#include <QtMultimedia/QAudioFormat>
+#include <QtMultimedia/QAudioOutput>
+#include <QtMultimedia/QAudioDeviceInfo>
 #include <QtGui/QComboBox>
 #include <QMutex>
 
-#define AUDIO_BUFFER_SIZE 400
+#define AUDIO_BUFFER_SIZE 800
 
 #define BIGENDIAN
 // There are problems running at 8000 samples per second on Mac OS X
