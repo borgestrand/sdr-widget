@@ -31,7 +31,7 @@
 
 #define CODEC2_SAMPLES_PER_FRAME 160
 #define CODEC2_BITS_PER_FRAME     50
-#define NO_CODEC2_FRAMES	2
+#define NO_CODEC2_FRAMES	4
 #define BITS_SIZE	((CODEC2_BITS_PER_FRAME + 7) / 8)
 
 void *codec2_create();
