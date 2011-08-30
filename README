@@ -47,19 +47,21 @@ Running the software
 
 To run the softrock server (defaults to using pulse for IQ input.  So 
 use pulse chooser to set the default pulse source to the IQ sound 
-card):
+card).  You also need to run pulse in network mode.  Use Pulseaudio Device Chooser
+to set up network access by checking the various option boxes.
 
-cd ~/ghpsdr3-alex/trunk/bin 
-./softrock --si570 --iq --samplerate 48000|96000|192000
+$ softrock --si570 --iq --samplerate 48000|96000|192000
 
 (If you find your I/Q is reversed, use --qi instead of -iq
 
 To run the dspserver: 
-cd ~/ghpsdr3-alex/trunk/bin 
-./dspserver 
+
+$ dspserver 
 
 Then you can run QtRadio to connect to the dspserver that is running. 
 
+For sdr-widget user only
+========================
 As an alternative to softrock server, you can use the modified 
 "server", which has been customized to connect to the sdr-widget using 
 the hpsdr protocol.  You need to setup sdr-widget for the hpsdr 
