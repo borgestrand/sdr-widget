@@ -49,7 +49,7 @@
 #include "soundcard.h"
 #include "dttsp.h"
 #include "buffer.h"
-#include "codec2.h"
+#include "codec2loc.h"
 
 static int timing=0;
 static struct timeb start_time;

@@ -38,7 +38,7 @@
 #include "audiostream.h"
 #include "client.h"
 #include "buffer.h"
-#include "codec2.h"
+#include "codec2loc.h"
 
 
 int audio_buffer_size = AUDIO_BUFFER_SIZE;

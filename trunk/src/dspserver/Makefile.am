@@ -3,12 +3,12 @@
 bin_PROGRAMS = dspserver
 
 dspserver_CFLAGS = -g -O3 -Wall -I../DttSP
-
+dspserver_CPPFLAGS = -I/usr/local/include
 dspserver_LDADD = ../DttSP/libDttSP.a
 
 
-dspserver_LDFLAGS = -lpulse-simple -lusb -lm -lfftw3f -lcodec2
 
+# dspserver_LDFLAGS = -lm
 dspserver_SOURCES = main.c\
          ozy.c\
          soundcard.c\
@@ -19,8 +19,8 @@ banal.h        \
 buffer.h       \
 bufvec.h       \
 client.h       \
-codec2.h       \
 complex.h      \
+codec2loc.h    \
 cxops.h        \
 datatypes.h    \
 defs.h         \

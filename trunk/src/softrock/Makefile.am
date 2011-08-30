@@ -11,8 +11,6 @@ bin_PROGRAMS = softrock
 
 softrock_CFLAGS = -std=gnu99 -g -O3 -Wall
 
-softrock_LDFLAGS = -lpulse-simple -lusb
-
 softrock_SOURCES = client.c        client.h       \
                    config_ops.c    config_ops.h   \
 		   listener.c      listener.h     \

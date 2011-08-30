@@ -98,7 +98,7 @@
 #include "soundcard.h"
 #include "ozy.h"
 #include "version.h"
-#include "codec2.h"
+#include "codec2loc.h"
 
 char propertyPath[128];
 

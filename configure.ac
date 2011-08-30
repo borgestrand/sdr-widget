@@ -20,14 +20,29 @@ AM_PROG_CC_C_O
 # library (in DttSP) used but `RANLIB' is undefined:  the usual way to define `RANLIB' is to add `AC_PROG_RANLIB'
 AC_PROG_RANLIB
 
+#
 # Checks for libraries.
+# Check both libraries binary and header files
+#
 
-# FIXME: Replace `main' with a function in `-lpthread':
 have_pthreads=no
 AC_SEARCH_LIBS([pthread_create], [pthread],[have_pthreads=yes])
 
 have_portaudio2=no
 AC_SEARCH_LIBS([Pa_Initialize], [portaudio],[have_portaudio2=yes])
+
+have_fftw3=no
+AC_SEARCH_LIBS([fftwf_malloc], [fftw3f],[have_fftw3=yes])
+
+have_codec2=no
+AC_SEARCH_LIBS([codec2_create], [codec2],[have_codec2=yes])
+
+have_pulse_simple=no
+AC_SEARCH_LIBS([pa_simple_new], [pulse-simple],[have_pulse_simple=yes])
+
+have_usb=no
+AC_SEARCH_LIBS([usb_init], [usb],[have_usb=yes])
+
 
 
 # Checks for header files.
@@ -55,6 +70,58 @@ if test "x${have_portaudio2}" = xno; then
     AC_MSG_ERROR([
 -----------------------------------
   The portaudio2 library and header file required to build ghpsdr3.
+-----------------------------------])
+
+fi
+
+
+if test "x${have_fftw3}" = xyes; then
+    AC_CHECK_HEADERS([fftw3.h], [], [have_fftw3=no])
+fi
+
+if test "x${have_fftw3}" = xno; then
+    AC_MSG_ERROR([
+-----------------------------------
+  The fftw3 library and header file required to build ghpsdr3.
+-----------------------------------])
+
+fi
+
+
+if test "x${have_codec2}" = xyes; then
+    AC_CHECK_HEADERS([codec2.h], [], [have_codec2=no])
+fi
+
+if test "x${have_codec2}" = xno; then
+    AC_MSG_ERROR([
+-----------------------------------
+  The codec2 library and header file required to build ghpsdr3.
+-----------------------------------])
+
+fi
+
+
+if test "x${have_pulse_simple}" = xyes; then
+    AC_CHECK_HEADERS([pulse-simple.h], [], [have_pulse_simple=no])
+fi
+
+if test "x${have_pulse_simple}" = xno; then
+    AC_MSG_ERROR([
+-----------------------------------
+  The pulse-simple library and header file required to build ghpsdr3.
+-----------------------------------])
+
+fi
+
+
+if test "x${have_usb}" = xyes; then
+    AC_CHECK_HEADERS([usb.h], [], [have_usb=no])
+fi
+
+if test "x${have_usb}" = xno; then
+    AC_MSG_ERROR([
+-----------------------------------
+  The libusb-0.1 library and header file required to build ghpsdr3.
 -----------------------------------])
 
 fi
