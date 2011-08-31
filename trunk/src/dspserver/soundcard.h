@@ -25,6 +25,9 @@
 * 
 */
 
+#if !defined __SOUNDCARD_H__
+#define __SOUNDCARD_H__
+
 #define SANTA_CRUZ 0
 #define AUDIGY_2_ZS 1
 #define MP3_PLUS 2
@@ -43,5 +46,8 @@ int sampleRate;
 float multimeterCalibrationOffset;
 float displayCalibrationOffset;
 
-int getSoundcardId();
+int getSoundcardId(char *name);
+void setSoundcard(int card);
+
+#endif
 

@@ -5,7 +5,7 @@
 
 noinst_LIBRARIES = libDttSP.a
 
-libDttSP_a_CFLAGS =   -g -O3 -msse -msse3 -ffast-math -march=core2 -Wall
+libDttSP_a_CFLAGS =   -g -O3 -msse -msse3 -ffast-math -march=core2 -Wall -Wno-unused-function
 
 # -DPACKAGE_NAME=\"dttsp\" -DPACKAGE_TARNAME=\"dttsp\" -DPACKAGE_VERSION=\"new\" -DPACKAGE_STRING=\"dttsp\ new\" -DPACKAGE_BUGREPORT=\"ab2kt@arrl.net\>\ or\ \<rwmcgwier@gmail.com\" -DPACKAGE=\"dttsp\" -DVERSION=\"new\"
 

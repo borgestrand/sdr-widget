@@ -2,7 +2,7 @@
 
 bin_PROGRAMS = dspserver
 
-dspserver_CFLAGS = -g -O3 -Wall -I../DttSP
+dspserver_CFLAGS = -g -O3 -Wall -I../DttSP -Wno-unused-function
 dspserver_CPPFLAGS = -I/usr/local/include
 dspserver_LDADD = ../DttSP/libDttSP.a
 

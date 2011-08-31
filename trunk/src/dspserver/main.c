@@ -165,7 +165,6 @@ void processCommands(int argc,char** argv) {
 */
 /* ----------------------------------------------------------------------------*/
 int main(int argc,char* argv[]) {
-    int i;
     char directory[1024];
 
     strcpy(soundCardName,"HPSDR");
