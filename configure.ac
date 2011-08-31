@@ -47,7 +47,7 @@ AC_SEARCH_LIBS([usb_init], [usb],[have_usb=yes])
 
 # Checks for header files.
 AC_FUNC_ALLOCA
-AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h malloc.h netdb.h netinet/in.h stddef.h stdlib.h string.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h sys/timeb.h unistd.h pulse/simple.h])
+AC_CHECK_HEADERS([arpa/inet.h fcntl.h limits.h malloc.h netdb.h netinet/in.h stddef.h stdlib.h string.h sys/ioctl.h sys/param.h sys/socket.h sys/time.h sys/timeb.h unistd.h])
 
 if test "x${have_pthreads}" = xyes; then
     AC_CHECK_HEADERS([pthread.h], [], [have_pthreads=no])
@@ -102,7 +102,7 @@ fi
 
 
 if test "x${have_pulse_simple}" = xyes; then
-    AC_CHECK_HEADERS([pulse-simple.h], [], [have_pulse_simple=no])
+    AC_CHECK_HEADERS([pulse/simple.h], [], [have_pulse_simple=no])
 fi
 
 if test "x${have_pulse_simple}" = xno; then
