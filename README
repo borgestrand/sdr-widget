@@ -50,14 +50,6 @@ $ sudo make install
 
 Then the 3 programs will be installed in /usr/local/bin.
 
-Note you will need some dev packages to be installed for using Qt (used by QtRadio), audio devices and USB, including:
-
-libqt4-opengl-dev
-glutg3-dev
-libportaudio19-dev
-libusb-dev
-libpulse-dev
-
 If you prefer to use qmake-qt4 for building QtRadio, you can use the audio-thread branch.
 
 Running the software
