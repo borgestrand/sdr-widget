@@ -105,6 +105,12 @@ If using aconf branch:
 
 $ ./configure CC=clang CXX=clang
 
+If the configure complains about some header file missing, please install the
+gcc-multilib package (see https://bugs.launchpad.net/ubuntu/+source/linux/+bug/778047):
+
+sudo apt-get install gcc-multilib
+
+
 For other branches I have modified the Makefile of server, softrock and dspserver to use clang if you do:
 
 $ make CC=clang
