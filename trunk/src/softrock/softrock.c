@@ -31,6 +31,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include "client.h"
 #include "softrock.h"
@@ -41,19 +42,19 @@
 static pthread_t softrock_io_thread_id;
 
 static int rx_frame=0;
-static int tx_frame=0;
+//static int tx_frame=0;
 static int receivers=1;
 static int current_receiver=0;
 
 static int speed=0;
 static int sample_rate=48000;
 
-static int samples=0;
+//static int samples=0;
 
 static int input_buffers;
 
-static struct sockaddr_in client;
-static int client_length;
+//static struct sockaddr_in client;
+//static int client_length;
 
 static int iq_socket;
 static struct sockaddr_in iq_address;
@@ -77,6 +78,8 @@ void* softrock_io_thread(void* arg);
 #ifndef PORTAUDIO
 void process_softrock_input_buffer(char* buffer);
 #endif
+
+int softrock_init(void);
 
 int create_softrock_thread() {
     int rc;
@@ -192,7 +195,7 @@ void softrock_set_playback(char* f) {
     playback=1;
 }
 
-int softrock_init() {
+int softrock_init(void) {
     int rc;
     int i;
 
@@ -262,17 +265,13 @@ fprintf(stderr,"playback: re-opening %s\n",filename);
     }
 }
 void* softrock_io_thread(void* arg) {
-#ifndef PULSEAUDIO
-    unsigned char input_buffer[BUFFER_SIZE*2]; // samples * 2 * 2
-    int bytes;
-#endif
-#ifndef PORTAUDIO
-    unsigned char input_buffer[BUFFER_SIZE*2]; // samples * 2 * 2
-    int bytes;
-#endif
+#if defined PULSEAUDIO || definedPORTAUDIO
     int rc;
-    int i,j;
-
+#else    
+    unsigned char input_buffer[BUFFER_SIZE*2]; // samples * 2 * 2
+    int bytes;
+#endif
+ 
     while(1) {
 
 #ifdef PULSEAUDIO

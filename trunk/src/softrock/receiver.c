@@ -39,6 +39,7 @@
 #include "receiver.h"
 #include "messages.h"
 #include "softrock.h"
+#include "operations.h"
 
 #define SMALL_PACKETS
 
@@ -145,7 +146,7 @@ void send_IQ_buffer(int rx) {
     struct sockaddr_in client;
     int client_length;
     unsigned short offset;
-    unsigned short length;
+    //unsigned short length;
     BUFFER buffer;
     int rc;
 

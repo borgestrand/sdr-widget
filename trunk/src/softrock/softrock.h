@@ -23,31 +23,37 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 *
 */
+#if !defined __SOFTROCK_H__
+#define __SOFTROCK_H__
 
 #define PULSEAUDIO
 //#define PORTAUDIO
 //#define DIRECTAUDIO
 
-int create_softrock_thread();
+int create_softrock_thread(void);
 void softrock_set_device(char* d);
-char* softrock_get_device();
+char* softrock_get_device(void);
 void softrock_set_receivers(int r);
-int softrock_get_receivers();
+int softrock_get_receivers(void);
 void softrock_set_sample_rate(int r);
 int softrock_get_sample_rate();
 
 void softrock_set_input(char* d);
-char* softrock_get_input();
+char* softrock_get_input(void);
 void softrock_set_output(char* d);
-char* softrock_get_output();
+char* softrock_get_output(void);
 
 void softrock_set_iq(int s);
-int softrock_get_iq();
+int softrock_get_iq(void);
 
 void softrock_set_record(char* filename);
 void softrock_set_playback(char* filename);
 void softrock_record_buffer(char* buffer,int length);
 void softrock_playback_buffer(char* buffer,int length);
 
-int softrock_get_record();
-int softrock_get_playback();
+int softrock_get_record(void);
+int softrock_get_playback(void);
+
+void process_softrock_output_buffer(float* left_output_buffer,float* right_output_buffer);
+
+#endif

@@ -60,7 +60,6 @@ void create_listener_thread() {
 
 void* listener_thread(void* arg) {
     int s;
-    int address_length;
     struct sockaddr_in address;
     CLIENT* client;
     int rc;
@@ -98,7 +97,7 @@ fprintf(stderr,"Listening for TCP connections on port %d\n",LISTEN_PORT);
         client->address_length=sizeof(client->address);
         client->iq_port=-1;
 
-        if((client->socket=accept(s,(struct sockaddr*)&client->address,&client->address_length))<0) {
+        if((client->socket=accept(s,(struct sockaddr*)&client->address,(socklen_t *)&client->address_length))<0) {
             perror("Command accept failed");
             exit(1);
         }

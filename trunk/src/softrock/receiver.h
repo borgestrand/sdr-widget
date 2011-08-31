@@ -24,6 +24,9 @@
 *
 */
 
+#if !defined __RECEIVER_H__
+#define __RECEIVER_H__
+
 #define MAX_RECEIVERS 8
 
 #define BUFFER_SIZE 1024
@@ -48,6 +51,10 @@ typedef struct _buffer {
     unsigned char data[500];
 } BUFFER;
 
+void  init_receivers(void);
 char* attach_receiver(int rx,CLIENT* client);
 char* detach_receiver(int rx,CLIENT* client);
 char* set_frequency(CLIENT* client,long f);
+void  send_IQ_buffer(int rx);
+
+#endif
