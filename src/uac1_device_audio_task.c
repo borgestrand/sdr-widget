@@ -92,6 +92,7 @@
 
 
 #define FB_RATE_DELTA (1<<12)
+#define FB_RATE_DELTA_NUM 2
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -144,6 +145,7 @@ void uac1_device_audio_task(void *pvParameters)
 	static U32  time=0;
 	static Bool startup=TRUE;
 	int i;
+	int delta_num = 0;
 	U16 num_samples, num_remaining, gap;
 	U8 sample_HSB;
 	U8 sample_MSB;
@@ -312,7 +314,6 @@ void uac1_device_audio_task(void *pvParameters)
 					num_remaining = spk_pdca_channel->tcr;
 					if (spk_buffer_in != spk_buffer_out) {
 						// CS4344 and USB using same buffer						
-
 						if ( spk_index < (SPK_BUFFER_SIZE - num_remaining)) gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
 						else gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
 					} else {
@@ -320,21 +321,28 @@ void uac1_device_audio_task(void *pvParameters)
 						gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 					}
 
-					if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
-
-						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-						if (gap < SPK_BUFFER_SIZE - 10 ) {
-						LED_Toggle(LED0);
-							FB_rate -= FB_RATE_DELTA;
-							//old_gap = gap;
-						} else
-							//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-							if ( gap > SPK_BUFFER_SIZE + 10 ) {
-							LED_Toggle(LED1);
-							FB_rate += FB_RATE_DELTA;
-							//old_gap = gap;
+					//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+					if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
+						LED_On(LED0);
+						FB_rate -= FB_RATE_DELTA;
+						delta_num--;
+						//old_gap = gap;
 					}
+					else
+						//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+						if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
+							LED_On(LED1);
+							FB_rate += FB_RATE_DELTA;
+							delta_num++;
+							//old_gap = gap;
+						}
+						else
+						{
+							LED_Off(LED0);
+							LED_Off(LED1);
+						}
 
+					if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 						sample_LSB = FB_rate;
 						sample_SB = FB_rate >> 8;
 						sample_MSB = FB_rate >> 16;
@@ -344,19 +352,6 @@ void uac1_device_audio_task(void *pvParameters)
 					} else {
 						// HS mode
 						// FB rate is 4 bytes in 12.14 format
-
-						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
-						if ( gap < SPK_BUFFER_SIZE - 10 ){
-							LED_Toggle(LED0);
-							FB_rate -= FB_RATE_DELTA;
-							//old_gap = gap;
-						} else
-							//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-							if ( gap > SPK_BUFFER_SIZE + 10 ) {
-						LED_Toggle(LED1);
-							FB_rate += FB_RATE_DELTA;
-							//old_gap = gap;
-							}
 						sample_LSB = FB_rate;
 						sample_SB = FB_rate >> 8;
 						sample_MSB = FB_rate >> 16;
@@ -381,6 +376,7 @@ void uac1_device_audio_task(void *pvParameters)
 						if (spk_buffer_in != spk_buffer_out)
 							spk_buffer_in = 1 - spk_buffer_in;
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
+						delta_num = 0;
 					}
 
 					for (i = 0; i < num_samples; i++) {

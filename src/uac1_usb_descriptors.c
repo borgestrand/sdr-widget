@@ -984,7 +984,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	}
 
 };
-
+#endif
 
 const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 {
@@ -1287,7 +1287,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 };
 
 
-
+#if (USB_HIGH_SPEED_SUPPORT==ENABLED)
 // usb_qualifier_desc FS
 const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc =
 {

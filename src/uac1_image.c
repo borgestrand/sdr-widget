@@ -127,6 +127,7 @@ static uint16_t x_image_get_conf_desc_fs_length(void) {
 	else
 		return sizeof(uac1_usb_conf_desc_fs);
 }
+#if USB_HIGH_SPEED_SUPPORT==ENABLED
 static uint8_t *x_image_get_conf_desc_hs_pointer(void) {
 	if ( FEATURE_BOARD_WIDGET )
 		return (uint8_t *)&uac1_usb_conf_desc_hs_widget;
@@ -145,7 +146,7 @@ static uint8_t *x_image_get_qualifier_desc_pointer(void) {
 static uint16_t x_image_get_qualifier_desc_length(void) {
 	return sizeof(uac1_usb_qualifier_desc);
 }
-
+#endif
 // specific request handlers
 static void x_image_user_endpoint_init(uint8_t conf_nb) {
 	uac1_user_endpoint_init(conf_nb);
@@ -168,10 +169,17 @@ const image_t uac1_audio_image = {
 	x_image_get_conf_desc_length,
 	x_image_get_conf_desc_fs_pointer,
 	x_image_get_conf_desc_fs_length,
+#if USB_HIGH_SPEED_SUPPORT==ENABLED
 	x_image_get_conf_desc_hs_pointer,
 	x_image_get_conf_desc_hs_length,
 	x_image_get_qualifier_desc_pointer,
 	x_image_get_qualifier_desc_length,
+#else
+	x_image_get_conf_desc_fs_pointer,
+	x_image_get_conf_desc_fs_length,
+	NULL,
+	NULL,
+#endif
 	x_image_user_endpoint_init,
 	x_image_user_read_request,
 	x_image_user_set_interface
@@ -187,10 +195,17 @@ const image_t uac1_dg8saq_image = {
 	x_image_get_conf_desc_length,
 	x_image_get_conf_desc_fs_pointer,
 	x_image_get_conf_desc_fs_length,
+#if USB_HIGH_SPEED_SUPPORT==ENABLED
 	x_image_get_conf_desc_hs_pointer,
 	x_image_get_conf_desc_hs_length,
 	x_image_get_qualifier_desc_pointer,
 	x_image_get_qualifier_desc_length,
+#else
+	x_image_get_conf_desc_fs_pointer,
+	x_image_get_conf_desc_fs_length,
+	NULL,
+	NULL,
+#endif
 	x_image_user_endpoint_init,
 	x_image_user_read_request,
 	x_image_user_set_interface

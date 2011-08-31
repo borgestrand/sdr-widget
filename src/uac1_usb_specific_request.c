@@ -203,9 +203,9 @@ static Bool uac1_user_get_interface_descriptor() {
 				}
 			}
 			break;
+#endif
 		}
 		return FALSE;
-#endif
 	case HID_REPORT_DESCRIPTOR:
 		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
 		data_to_transfer = sizeof(usb_hid_report_descriptor);

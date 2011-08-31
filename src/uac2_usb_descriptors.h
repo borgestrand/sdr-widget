@@ -310,7 +310,8 @@ S_usb_user_configuration_descriptor;
 extern const S_usb_device_descriptor uac2_dg8saq_usb_dev_desc;
 extern const S_usb_device_descriptor uac2_audio_usb_dev_desc;
 extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
+#if USB_HIGH_SPEED_SUPPORT==ENABLED
 extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;
 extern const S_usb_device_qualifier_descriptor uac2_usb_qualifier_desc;
-
+#endif
 #endif  // _UAC2_USB_DESCRIPTORS_H_
