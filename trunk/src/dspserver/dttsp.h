@@ -33,7 +33,7 @@
 #include "defs.h"
 #include "bufvec.h"
 #include "dttspagc.h"
-#include "sdrexport.h"
+#include <sdrexport.h>
 
 //
 // what we know about DttSP
