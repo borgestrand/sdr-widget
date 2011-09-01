@@ -74,9 +74,13 @@ static int fd;
 #endif
 
 int softrock_open(void) {
+#ifdef DIRECTAUDIO  
     int arg;
     int status;
-    int rc;
+#endif
+#ifdef PORTAUDIO
+    int status;
+#endif
 #ifdef PULSEAUDIO
     int error;
     pa_sample_spec params; 
@@ -278,7 +282,7 @@ int softrock_read(float* left_samples,float* right_samples) {
 
 
     if(softrock_get_playback()) {
-        softrock_playback_buffer(audio_buffer,sizeof(audio_buffer));
+        softrock_playback_buffer((char *)audio_buffer,sizeof(audio_buffer));
     } else {
         //fprintf(stderr,"read available=%ld\n",Pa_GetStreamReadAvailable(stream));
         //ftime(&start_time);
@@ -293,7 +297,7 @@ int softrock_read(float* left_samples,float* right_samples) {
 
     // record the I/Q samples
     if(softrock_get_record()) {
-        softrock_record_buffer(audio_buffer,sizeof(audio_buffer));
+        softrock_record_buffer((char *)audio_buffer,sizeof(audio_buffer));
     }
 
     // de-interleave samples

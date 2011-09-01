@@ -140,7 +140,7 @@ void spectrum_init() {
 
 }
 
-void spectrum_thread(){
+void *spectrum_thread(void *x) {
     while (1){
 	    sem_wait(&get_spectrum_semaphore);
 	    Process_Panadapter(0,spectrumBuffer);

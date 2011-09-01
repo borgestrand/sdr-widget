@@ -25,11 +25,15 @@
 * 
 */
 
+#if !defined __DTTSP_H__
+#define __DTTSP_H__
+
 #include "complex.h"
 #include "datatypes.h"
 #include "defs.h"
 #include "bufvec.h"
 #include "dttspagc.h"
+#include <sdrexport.h>
 
 //
 // what we know about DttSP
@@ -203,3 +207,10 @@ extern void SetSDROMvals (unsigned int thread, unsigned subrx, double threshold)
 
 extern void SetANFvals (unsigned int thread, unsigned subrx, int taps, int delay, double gain, double leakage);
 
+extern void SetTRX (unsigned int thread, TRXMODE setit);
+
+extern void SetThreadProcessingMode (unsigned int thread, RUNMODE runmode);
+
+extern int reset_for_buflen (unsigned int, int);
+
+#endif

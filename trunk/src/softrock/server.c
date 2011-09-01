@@ -42,6 +42,7 @@
 #include "listener.h"
 #include "softrock.h"
 #include "receiver.h"
+#include "operations.h"
 
 static struct option long_options[] = {
     {"samplerate",required_argument, 0, 0},

@@ -27,6 +27,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -38,6 +39,7 @@
 #include "client.h"
 #include "receiver.h"
 #include "messages.h"
+#include "softrock.h"
 
 short audio_port=AUDIO_PORT;
 
@@ -76,6 +78,7 @@ fprintf(stderr,"response: '%s'\n",response);
 fprintf(stderr,"client disconnected: %s:%d\n",inet_ntoa(client->address.sin_addr),ntohs(client->address.sin_port));
 
     free(client);
+    return 0;
 }
 
 char* parse_command(CLIENT* client,char* command) {
@@ -167,7 +170,7 @@ fprintf(stderr,"parse_command: '%s'\n",command);
         // empty command string
         return INVALID_COMMAND;
     }
-
+    return 0;
 }
 
 void* audio_thread(void* arg) {
@@ -206,7 +209,7 @@ fprintf(stderr,"audio_thread port=%d\n",audio_port+(rx->id*2));
 
     while(1) {
         // get audio from a client
-        bytes_read=recvfrom(rx->audio_socket,rx->output_buffer,sizeof(rx->output_buffer),0,(struct sockaddr*)&audio,&audio_length);
+        bytes_read=recvfrom(rx->audio_socket,rx->output_buffer,sizeof(rx->output_buffer),0,(struct sockaddr*)&audio,(socklen_t *)&audio_length);
         if(bytes_read<0) {
             perror("recvfrom socket failed for audio buffer");
             exit(1);
