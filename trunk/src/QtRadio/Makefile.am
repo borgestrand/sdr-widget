@@ -11,12 +11,11 @@ ACLOCAL_AMFLAGS = -I build-aux
 include $(top_srcdir)/build-aux/autotroll.mk
 
 QtRadio_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
-QtRadio_CPPFLAGS = -I/usr/include/QtMobility/ -I/usr/include/QtMultimediaKit/ $(QT_CPPFLAGS) $(AM_CPPFLAGS) 
+QtRadio_CPPFLAGS = $(QT_ADDITIONAL_INCLUDE_PATH) $(QT_CPPFLAGS) $(AM_CPPFLAGS) 
 ########## -I$(QT_INCPATH)/include/QtWebKit  -I$(QT_INCPATH)/include/QtMultimediaKit
 
-QtRadio_LDFLAGS  = $(QT_LDFLAGS) $(LDFLAGS) -lcodec2 -lQtMultimediaKit -lQtOpenGL -lQtGui -lQtNetwork -lQtCore -lGLU -lGL -lpthread 
-#QtRadio_LDADD    = $(QT_LIBS) $(LDADD) -lcodec2 -lQtMultimediaKit -lQtOpenGL -lQtGui -lQtNetwork -lQtCore -lGLU -lGL -lpthread 
-
+QtRadio_LDFLAGS  = $(QT_LDFLAGS) $(LDFLAGS) $(QT_ADDITIONAL_LDFLAG) -lQtOpenGL  -lcodec2  
+QtRadio_LDADD    = $(QT_LIBS) $(LDADD)
 
 # For a program:
 bin_PROGRAMS = QtRadio

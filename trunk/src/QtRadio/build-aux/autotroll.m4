@@ -156,7 +156,7 @@ dnl Memo: AC_ARG_WITH(package, help-string, [if-given], [if-not-given])
 
   # Find qmake.
   AC_ARG_VAR([QMAKE], [Qt Makefile generator command])
-  AC_PATH_PROGS([QMAKE], [qmake qmake-qt4 qmake-qt3], [missing],
+  AC_PATH_PROGS([QMAKE], [qmake qmake-qt4 qmake], [missing],
                 [$QT_DIR:$QT_PATH:$PATH:$tmp_qt_paths])
   if test x"$QMAKE" = xmissing; then
     AX_INSTEAD_IF([$4], [Cannot find qmake in your PATH. Try using --with-qt.])
@@ -165,7 +165,7 @@ dnl Memo: AC_ARG_WITH(package, help-string, [if-given], [if-not-given])
 
   # Find moc (Meta Object Compiler).
   AC_ARG_VAR([MOC], [Qt Meta Object Compiler command])
-  AC_PATH_PROGS([MOC], [moc moc-qt4 moc-qt3], [missing],
+  AC_PATH_PROGS([MOC], [moc moc-qt4 moc], [missing],
                 [$QT_PATH:$PATH:$tmp_qt_paths])
   if test x"$MOC" = xmissing; then
     AX_INSTEAD_IF([$4],
@@ -175,7 +175,7 @@ dnl Memo: AC_ARG_WITH(package, help-string, [if-given], [if-not-given])
 
   # Find uic (User Interface Compiler).
   AC_ARG_VAR([UIC], [Qt User Interface Compiler command])
-  AC_PATH_PROGS([UIC], [uic uic-qt4 uic-qt3 uic3], [missing],
+  AC_PATH_PROGS([UIC], [uic uic-qt4 uic], [missing],
                 [$QT_PATH:$PATH:$tmp_qt_paths])
   if test x"$UIC" = xmissing; then
     AX_INSTEAD_IF([$4],
@@ -212,6 +212,45 @@ dnl Memo: AC_ARG_WITH(package, help-string, [if-given], [if-not-given])
     break
   fi
   AC_SUBST([QT_PATH])
+
+  #
+  # Check for Ubuntu non standard installation
+  #
+  
+  # get the path of the standard header 
+  #
+  QT_INSTALL_HEADERS=`"$QMAKE" -query QT_INSTALL_HEADERS`
+  AC_SUBST([QT_INSTALL_HEADERS])
+
+  # up one level
+  #
+  QT_INSTALL_HEADERS_UP=`echo "$QT_INSTALL_HEADERS" | sed 's,/*[[^/]]\+/*$,,'`
+  AC_SUBST([QT_INSTALL_HEADERS_UP])
+
+  # default for standard QtSDK and binary packages before U11.04
+  #
+  QT_ADDITIONAL_INCLUDE_PATH=""
+  QT_ADDITIONAL_LDFLAG="-lQtMultimedia"
+
+  # if there is a suspicious QtMultimediaKit (sibling of the standard Qt include path)
+  # we are hit an Ubuntu binary package (11.04)
+  #
+  if test -f "$QT_INSTALL_HEADERS_UP/QtMultimediaKit/QAudio"; then
+      QT_ADDITIONAL_INCLUDE_PATH="-I$QT_INSTALL_HEADERS_UP/QtMultimediaKit/"
+      QT_ADDITIONAL_LDFLAG="-lQtMultimediaKit"
+  else
+      QT_ADDITIONAL_INCLUDE_PATH="-I$QT_INSTALL_HEADERS/QtMultimedia/"
+  fi
+  if test -f "$QT_INSTALL_HEADERS_UP/QtMobility/qmobilityglobal.h"; then
+      QT_ADDITIONAL_INCLUDE_PATH="$QT_ADDITIONAL_INCLUDE_PATH -I$QT_INSTALL_HEADERS_UP/QtMobility/"
+      QT_ADDITIONAL_LDFLAG="-lQtMultimediaKit"
+  fi
+
+  AC_SUBST([QT_ADDITIONAL_INCLUDE_PATH])
+  AC_SUBST([QT_ADDITIONAL_LDFLAG])
+
+
+
 
   # Get ready to build a test-app with Qt.
   if mkdir conftest.dir && cd conftest.dir; then :; else
