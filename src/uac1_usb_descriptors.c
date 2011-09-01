@@ -43,7 +43,9 @@ const S_usb_device_descriptor uac1_dg8saq_usb_dev_desc =
 {
 	sizeof(S_usb_device_descriptor),
 	DEVICE_DESCRIPTOR,
-	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
+	// BSB Changed 20110901 according to mail from Roger
+	Usb_format_mcu_to_usb_data(16, USB_1_1_SPECIFICATION),
+	//	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
 	DEVICE_CLASS,
 	DEVICE_SUB_CLASS,
 	DEVICE_PROTOCOL,
@@ -61,7 +63,9 @@ const S_usb_device_descriptor uac1_audio_usb_dev_desc =
 {
 	sizeof(S_usb_device_descriptor),
 	DEVICE_DESCRIPTOR,
-	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
+	// BSB Changed 20110901 according to mail from Roger
+	Usb_format_mcu_to_usb_data(16, USB_1_1_SPECIFICATION),
+	//	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
 	DEVICE_CLASS,
 	DEVICE_SUB_CLASS,
 	DEVICE_PROTOCOL,
@@ -1293,7 +1297,9 @@ const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc =
 {
 	sizeof(S_usb_device_qualifier_descriptor),
 	DEVICE_QUALIFIER_DESCRIPTOR,
-	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
+	// BSB Changed 20110901 according to mail from Roger
+	Usb_format_mcu_to_usb_data(16, USB_1_1_SPECIFICATION),
+	//	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
 	DEVICE_CLASS,
 	DEVICE_SUB_CLASS,
 	DEVICE_PROTOCOL,

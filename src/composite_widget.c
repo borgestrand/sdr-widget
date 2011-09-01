@@ -209,6 +209,8 @@ int main(void)
 	gpio_set_gpio_pin(AVR32_PIN_PX51);	// Enables power to XO and DAC in USBI2C AB-1 board
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);
 
+	gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED Added BSB 20110817
+	gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED -> PINK-ish!
 
 
 	// Initialize Real Time Counter

@@ -115,6 +115,10 @@
 //_____ U S B    D E F I N E S _____________________________________________
 
 // USB Device descriptor
+
+// BSB Added 20110901 according to mail from Roger
+#define USB_1_1_SPECIFICATION     0x0101
+
 #define USB_SPECIFICATION     0x0200
 #define DEVICE_CLASS          0xef          //!
 #define DEVICE_SUB_CLASS      0x02          //!
