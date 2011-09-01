@@ -272,6 +272,13 @@ UI::UI() {
     xvtr.buildMenu(widget.menuXVTR);
 
     widget.spectrumFrame->setHost(configure.getHost());
+
+    //gvj code added
+
+    widget.statusbar->showMessage("Server: "+configure.getHost(),0);
+
+    setWindowTitle("QtRadio - Server: "+configure.getHost());
+
     widget.spectrumFrame->setReceiver(configure.getReceiver());
 
     widget.actionSubrx->setDisabled(TRUE);
@@ -428,6 +435,9 @@ void UI::actionConnect() {
     widget.statusbar->clearMessage();
     connection.connect(configure.getHost(), DSPSERVER_BASE_PORT+configure.getReceiver());
     widget.spectrumFrame->setHost(configure.getHost());
+    //gvj code added
+    //widget.statusbar->showMessage(configure.getHost(),0);
+    setWindowTitle("QtRadio - Server: "+configure.getHost());
     widget.spectrumFrame->setReceiver(configure.getReceiver());
 }
 
