@@ -28,8 +28,7 @@ libusb-0.1-4
 libfftw3-dev
 portaudio19-dev
 libpulse-dev
-libusb-0.1-4
-=======
+
 The master branch uses the 'old' QtMultimedia directory structure which will build in older distributions such as Ubuntu 10.04.  
 The new-qt and other branches use the QtMobility directory structure which will be used in the upcoming new version of Qt.  
 Ubuntu 11.04 or later has this new QtMobility structure.
@@ -92,7 +91,6 @@ http://www.rowetel.com/blog/?page_id=452
 
 $ svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2
 $ cd codec2
-$ vi src/Makefile.am +87 # append /include to the line #87
 $ autoreconf -i
 $ ./configure
 $ make
