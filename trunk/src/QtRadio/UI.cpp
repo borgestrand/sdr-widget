@@ -275,11 +275,11 @@ UI::UI() {
 
     //gvj code added
 
-    widget.statusbar->showMessage("Server: "+configure.getHost(),0);
+    widget.statusbar->showMessage(band.getStringBand()+", "+mode.getStringMode()+", "+"filters",0);
 
-    setWindowTitle("QtRadio - Server: "+configure.getHost());
+    setWindowTitle("QtRadio - Server xxx: "+configure.getHost());
 
-    widget.spectrumFrame->setReceiver(configure.getReceiver());
+    //widget.spectrumFrame->setReceiver(configure.getReceiver()); //deleted by gvj
 
     widget.actionSubrx->setDisabled(TRUE);
     widget.actionMuteSubRx->setDisabled(TRUE);
@@ -434,7 +434,7 @@ void UI::actionConnect() {
     //qDebug() << "UI::actionConnect";
     widget.statusbar->clearMessage();
     connection.connect(configure.getHost(), DSPSERVER_BASE_PORT+configure.getReceiver());
-    widget.spectrumFrame->setHost(configure.getHost());
+    //widget.spectrumFrame->setHost(configure.getHost()); //deleted by gvj
     //gvj code added
     //widget.statusbar->showMessage(configure.getHost(),0);
     setWindowTitle("QtRadio - Server: "+configure.getHost());
@@ -1014,6 +1014,10 @@ void UI::filtersChanged(FiltersBase* previousFilters,FiltersBase* newFilters) {
 
     filters.selectFilter(filters.getFilter());
     widget.spectrumFrame->setFilter(filters.getText());
+    //gvj added code
+    widget.statusbar->showMessage(band.getStringBand()+", "+mode.getStringMode()+", "+filters.getText(),0);
+    widget.statusbar->showMessage(band.getStringBand()+", "+mode.getStringMode()+", "+filters.getText(),0);
+
 
 }
 
