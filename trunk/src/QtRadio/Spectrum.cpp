@@ -319,7 +319,7 @@ void Spectrum::paintEvent(QPaintEvent*) {
     painter.setPen(QPen(Qt::red, 1));
     painter.drawLine(width()/2,0,width()/2,height());
 
-    // show the frequency
+/*    // show the frequency
     painter.setPen(QPen(Qt::green,1));
     painter.setFont(QFont("Verdana", 30));
     painter.drawText(width()/2,30,strFrequency);
@@ -335,7 +335,7 @@ void Spectrum::paintEvent(QPaintEvent*) {
     // show the server and receiver
     text="Server:"+host+" Rx:"+QString::number(receiver);
     painter.drawText(5,15,text);
-
+*/
     // gvj some code deleted
     // draw the analog meters
 //    painter.setOpacity(0.8);
@@ -404,27 +404,32 @@ void Spectrum::setFilter(int low, int high) {
 
 void Spectrum::setHost(QString h) {
     host=h;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::setReceiver(int r) {
     receiver=r;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::setMode(QString m) {
     mode=m;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::setBand(QString b) {
     band=b;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::setFilter(QString f) {
     filter=f;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
@@ -455,7 +460,9 @@ void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
     }
 
     //qDebug() << "updateSpectrum: repaint";
-    this->repaint();
+//    this->repaint();
+    this->update();
+
 }
 
 
