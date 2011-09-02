@@ -356,6 +356,7 @@ void UI::saveSettings() {
 
 void UI::hostChanged(QString host) {
     widget.spectrumFrame->setHost(host);
+    printWindowTitle("Remote disconnected");
 }
 
 void UI::receiverChanged(int rx) {

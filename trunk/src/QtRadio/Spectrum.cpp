@@ -69,12 +69,14 @@ Spectrum::~Spectrum() {
 
 void Spectrum::setHigh(int high) {
     spectrumHigh=high;
-    repaint();
+    //repaint();
+    update();
 }
 
 void Spectrum::setLow(int low) {
     spectrumLow=low;
-    repaint();
+//    repaint();
+    update();
 }
 
 int Spectrum::getHigh() {
@@ -405,7 +407,7 @@ void Spectrum::setFilter(int low, int high) {
 void Spectrum::setHost(QString h) {
     host=h;
 //    repaint();
-    update();
+//    update();
 }
 
 void Spectrum::setReceiver(int r) {
