@@ -68,6 +68,8 @@
 #include "usb_standard_request.h"
 #include "usb_device_task.h"
 
+#include "features.h"
+
 
 //_____ M A C R O S ________________________________________________________
 
@@ -144,7 +146,10 @@ void usb_start_device(void)
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
   Usb_force_full_speed_mode();
 #else
-  Usb_use_dual_speed_mode();
+  if(FEATURE_IMAGE_UAC1_AUDIO || FEATURE_IMAGE_UAC1_DG8SAQ)
+	  Usb_force_full_speed_mode();
+  else
+	  Usb_use_dual_speed_mode();
 #endif
   
   usb_init_device();  // Configure the USB controller EP0
