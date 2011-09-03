@@ -20,15 +20,16 @@ The next major feature to be developed is SSB Tx.
 Building the software
 =====================
 
-$ cd ghpsdr3-alex
-$ autoreconf -i
-$ ./configure
-$ make all
-$ sudo make install
+You will need Qt4.  I would recommend downloading and installing the QtSDK from http://qt.nokia.com/downloads/
+instead of using the distributions's Qt.
 
-Then the 3 programs will be installed in /usr/local/bin.
+Set up your path to point to the QtSDK:
 
-Note you will need Qt4 and some dev packages to be installed for using Qt
+For example, in my system:
+
+$ export PATH=/home/alex/QtSDK/Desktop/Qt/473/gcc/bin:$PATH
+
+Note that in addition to Qt, you will need some dev packages to be installed for using Qt
 (used by QtRadio), including (Ubuntu/Debian naming convention):
 
 libqt4-opengl-dev
@@ -38,6 +39,17 @@ libfftw3-dev
 portaudio19-dev
 libpulse-dev
 libusb-0.1-4
+
+To build:
+
+$ cd ghpsdr3-alex
+$ autoreconf -i
+$ ./configure
+$ make all
+$ sudo make install
+
+Then the 3 programs will be installed in /usr/local/bin.
+
 
 Running the software
 ====================
