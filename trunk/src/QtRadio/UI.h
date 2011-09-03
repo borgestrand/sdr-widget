@@ -223,6 +223,9 @@ protected:
 
 
 private:
+    void printWindowTitle(QString message);
+    void printStatusBar(QString message);
+    QLabel modeInfo;
     void setSubRxPan();
     void actionGain(int g);
     void setGain(bool state);

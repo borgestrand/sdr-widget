@@ -9,22 +9,18 @@ dspserver    - added IF offset of 9khz.  More robust audio and spectrum transfer
 server       - hpsdr protocol with full control of sdr-widget/Mobo/SR.  Only for sdr-widget.
 receiver     - Makefile modified to compile in x86_64, changed local-audio to direct alsa output, changed portaudio to use callback.
                To run under Ubuntu with pulseaudio:  $ ./ghpsdr --local-audio 1 --audio-device pulse
+
 QtRadio      - added dialog to store server ip addresses.  Fixed high cpu util bug.  Implemented 16 bit PCM audio.  			See below for codec2 encoding and decoding.  Implemented a separate high priority thread for
 		Audio with improved sound quality.
 
-There are four branches, master, new-qt, audio-thread and aconf.
+The QtRadio audio quality is vastly improved with the audio codes running in a separate, high priority thread from the main GUI thread.
 
-The master branch uses the 'old' QtMultimedia directory structure which will build in older distributions such as Ubuntu 10.04.  The new-qt and other branches use the QtMobility diectory structure which will be used in the upcoming new version of Qt.  Ubuntu 11.04 or later has this new QtMobility structure.
-
-The QtRadio audio quality is vastly improved with the audio codes running in a separate, high priority thread from the main GUI thread.  This has been implemented in the master, audio-thread and aconf branches.
+The next major feature to be developed is SSB Tx.
 
 Building the software
 =====================
 
-If you are new to this, use the aconf branch to build all the following software:  softrock, dspserver and QtRadio.
-
 $ cd ghpsdr3-alex
-$ git checkout aconf
 $ autoreconf -i
 $ ./configure
 $ make all
@@ -32,15 +28,16 @@ $ sudo make install
 
 Then the 3 programs will be installed in /usr/local/bin.
 
-Note you will need some dev packages to be installed for using Qt (used by QtRadio), audio devices and USB, including:
+Note you will need Qt4 and some dev packages to be installed for using Qt
+(used by QtRadio), including (Ubuntu/Debian naming convention):
 
 libqt4-opengl-dev
 glutg3-dev
-libportaudio19-dev
-libusb-dev
+libusb-0.1-4
+libfftw3-dev
+portaudio19-dev
 libpulse-dev
-
-If you prefer to use qmake-qt4 for building QtRadio, you can use the audio-thread branch.
+libusb-0.1-4
 
 Running the software
 ====================
@@ -83,6 +80,7 @@ http://www.rowetel.com/blog/?page_id=452
 
 $ svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2
 $ cd codec2
+$ autoreconf -i
 $ ./configure
 $ make
 $ sudo make install
@@ -90,9 +88,14 @@ $ sudo ldconfig
 
 Compiling with clang instead of default gcc
 ===========================================
-If using aconf branch:
 
 $ ./configure CC=clang CXX=clang
+
+If the configure complains about some header file missing, please install the
+gcc-multilib package (see https://bugs.launchpad.net/ubuntu/+source/linux/+bug/778047):
+
+sudo apt-get install gcc-multilib
+
 
 For other branches I have modified the Makefile of server, softrock and dspserver to use clang if you do:
 
@@ -102,6 +105,49 @@ Otherwise it will use the default gcc
 
 The one big advantage of clang over gcc is the more meaningful error/warning messages and other
 options to help with debugging.
+
+
+Autotools building system
+=========================
+An attempt to create a 'standard' building system.
+This branch is experimental and could not generate the right binaries.
+Signal bugs and issues to andrew att montefusco dott com.
+
+Please note that in order to use the building system, you need to install GNU autoconf, automake 
+and libtool packages.
+
+sudo apt-get install autoconf automake autotools-dev libtool
+
+Next extract the aconf branch from repository and run autoreconf.
+
+cd
+git clone git@github.com:alexlee188/ghpsdr3-alex.git ghpsdr3-aconf
+cd aconf
+git checkout aconf
+autoreconf -i
+
+Now you are ready to run, as usual, 
+
+./configure 
+make
+sudo make install
+
+In order to release a package as tarball:
+
+make distcheck
+make dist
+
+Please note that, if you don't want pollute your git sandbox, you can build standing on a 
+different unrelated directory the whole thing.
+
+In order to clean up the sandbox, there exists a convenience script that quickly
+clean the sandbox:
+
+cd ~/aconf
+make clean
+sh cleanup.sh
+
+
 
 
 

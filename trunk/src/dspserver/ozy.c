@@ -15,7 +15,8 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
+#include <unistd.h>
+ 
 #include "ozy.h"
 #include "dttsp.h"
 #include "audiostream.h"
@@ -32,20 +33,20 @@
 // Added by Alex lee 18 Aug 2010
 double LO_offset = 9000;  // LO offset 9khz
 
-static char ozy_firmware_version[9];
-int mercury_software_version=0;
-int penelope_software_version=0;
-int ozy_software_version=0;
+//static char ozy_firmware_version[9];
+//int mercury_software_version=0;
+//int penelope_software_version=0;
+//int ozy_software_version=0;
 
 int forwardPower=0;
 
 static pthread_t iq_thread_id;
-static pthread_t keepalive_thread_id;
+//static pthread_t keepalive_thread_id;
 
-static long rxFrequency=7056000;
-static int rxFrequency_changed=1;
-static long txFrequency=7056000;
-static int txFrequency_changed=1;
+//static long rxFrequency=7056000;
+//static int rxFrequency_changed=1;
+//static long txFrequency=7056000;
+//static int txFrequency_changed=1;
 
 static int ozy_debug=0;
 
@@ -145,8 +146,7 @@ static int port_audio=0;
 void dump_udp_buffer(unsigned char* buffer);
 
 void* iq_thread(void* arg) {
-    int bytes_read;
-    int bytes_written;
+    //int bytes_written;
     int iq_socket;
     struct sockaddr_in iq_addr;
     int iq_length;
@@ -189,9 +189,10 @@ fprintf(stderr,"iq_thread: socket %d\n",iq_socket);
 fprintf(stderr,"output_sample_increment=%d\n",output_sample_increment);
     
     while(1) {
+        int bytes_read;
 #ifdef SMALL_PACKETS
         while(1) {
-            bytes_read=recvfrom(iq_socket,(char*)&buffer,sizeof(buffer),0,(struct sockaddr*)&client_addr,&client_length);
+            bytes_read=recvfrom(iq_socket,(char*)&buffer,sizeof(buffer),0,(struct sockaddr*)&client_addr,(socklen_t *)&client_length);
             if(bytes_read<0) {
                 perror("recvfrom socket failed for iq buffer");
                 exit(1);

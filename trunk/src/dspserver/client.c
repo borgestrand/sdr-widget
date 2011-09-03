@@ -49,7 +49,7 @@
 #include "soundcard.h"
 #include "dttsp.h"
 #include "buffer.h"
-#include "codec2.h"
+#include "codec2loc.h"
 
 static int timing=0;
 static struct timeb start_time;
@@ -140,7 +140,7 @@ void spectrum_init() {
 
 }
 
-void spectrum_thread(){
+void *spectrum_thread(void *x) {
     while (1){
 	    sem_wait(&get_spectrum_semaphore);
 	    Process_Panadapter(0,spectrumBuffer);

@@ -25,9 +25,14 @@
 * 
 */
 
+#if ! defined __CLIENT_H__
+#define __CLIENT_H__
+
 extern int encoding;
 void client_init(int receiver);
 void spectrum_init();
-void spectrum_thread();
+void *spectrum_thread(void *);
 void client_set_timing();
 void client_send_audio();
+
+#endif
