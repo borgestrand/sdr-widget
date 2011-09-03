@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 
-#QT       += core gui network multimedia
+QT       += core gui network multimedia
 
 CONFIG	+= mobility
 MOBILITY += multimedia
