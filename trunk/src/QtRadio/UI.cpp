@@ -834,7 +834,7 @@ void UI::bandChanged(int previousBand,int newBand) {
     widget.waterfallFrame->setLow(band.getWaterfallLow());
 
 
-    widget.spectrumFrame->setBand(band.getStringBand());
+//    widget.spectrumFrame->setBand(band.getStringBand()); //gvj obsolete code as spectrum no longer paints text data
     BandLimit limits=band.getBandLimits(band.getFrequency()-(samplerate/2),band.getFrequency()+(samplerate/2));
     widget.spectrumFrame->setBandLimits(limits.min(),limits.max());
 
