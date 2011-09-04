@@ -27,9 +27,9 @@
 #define	AUDIO_H
 
 #include <QtCore>
-#include <QtMultimedia/QAudioFormat>
-#include <QtMultimedia/QAudioOutput>
-#include <QtMultimedia/QAudioDeviceInfo>
+#include <QAudioFormat>
+#include <QAudioOutput>
+#include <QAudioDeviceInfo>
 #include <QtGui/QComboBox>
 #include <QMutex>
 
