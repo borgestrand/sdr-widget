@@ -38,7 +38,15 @@ libusb-0.1-4
 libfftw3-dev
 portaudio19-dev
 libpulse-dev
-libusb-0.1-4
+
+The master branch uses the 'old' QtMultimedia directory structure which will build in older distributions such as Ubuntu 10.04.  
+The new-qt and other branches use the QtMobility directory structure which will be used in the upcoming new version of Qt.  
+Ubuntu 11.04 or later has this new QtMobility structure.
+
+The QtRadio audio quality is vastly improved with the audio codes running in a separate, high priority thread from the main GUI thread.  This has been implemented in the master, audio-thread and aconf branches.
+
+Building the software
+=====================
 
 To build:
 
