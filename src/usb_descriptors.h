@@ -1052,27 +1052,6 @@ __attribute__((__packed__))
 	U8		bMsbyteiSamFreq_2;
 } S_usb_format_type_1;
 
-//! Audio Format Type descriptor
-typedef
-#if (defined __ICCAVR32__)
-#pragma pack(1)
-#endif
-struct
-#if (defined __GNUC__)
-__attribute__((__packed__))
-#endif
-{
-	U8		bLenght;
-	U8 	bDescriptorType;
-	U8 	bDescriptorSubType;
-	U8		bFormatType;
-	U8		bNrChannels;
-	U8		bSubFrameSize;
-	U8		bBitResolution;
-	U8		bSampleFreqType;
-	U16	wLsbyteiSamFreq_1;
-	U8		bMsbyteiSamFreq_1;
-} S_usb_format_type_1_one_freq;
 
 //! Endpoint AUDIO Specific descriptor
 typedef
