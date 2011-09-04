@@ -152,6 +152,29 @@
 </tool>
 </toolChain>
 </folderInfo>
+<folderInfo id="avr32.managedbuild.config.gnu.exe.debug.947438078.917143538" name="/" resourcePath="src">
+<toolChain id="avr32.managedbuild.toolchain.gnu.exe.debug.1366205211" name="AVR32 Standalone GCC" superClass="avr32.managedbuild.toolchain.gnu.exe.debug" unusedChildren="">
+<tool id="avr32.managedbuild.tool.gnu.archiver.exe.debug.280388420" name="AVR32/GNU Archiver" superClass="avr32.managedbuild.tool.gnu.archiver.exe.debug.500438018"/>
+<tool id="avr32.managedbuild.tool.gnu.cpp.compiler.exe.debug.716338862" name="AVR32/GNU C++ Compiler" superClass="avr32.managedbuild.tool.gnu.cpp.compiler.exe.debug.1890966324">
+<option id="gnu.cpp.compiler.option.optimization.level.1088346449" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.debugging.level.1308564962" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
+</tool>
+<tool id="avr32.managedbuild.tool.gnu.c.compiler.exe.debug.1959235257" name="AVR32/GNU C Compiler" superClass="avr32.managedbuild.tool.gnu.c.compiler.exe.debug.178903007">
+<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.364004031" superClass="gnu.c.compiler.option.optimization.level" valueType="enumerated"/>
+<option id="gnu.c.compiler.option.debugging.level.551659395" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+<inputType id="avr32.managedbuild.tool.gnu.c.compiler.input.58402523" superClass="avr32.managedbuild.tool.gnu.c.compiler.input"/>
+</tool>
+<tool id="avr32.managedbuild.tool.gnu.c.linker.exe.debug.1914073024" name="AVR32/GNU C Linker" superClass="avr32.managedbuild.tool.gnu.c.linker.exe.debug.444513735"/>
+<tool id="avr32.managedbuild.tool.gnu.cpp.linker.exe.debug.1606582371" name="AVR32/GNU C++ Linker" superClass="avr32.managedbuild.tool.gnu.cpp.linker.exe.debug.1222019975"/>
+<tool id="avr32.managedbuild.tool.gnu.assembler.exe.debug.200868746" name="AVR32/GNU Assembler" superClass="avr32.managedbuild.tool.gnu.assembler.exe.debug.484413640">
+<option id="avr32.both.asm.option.debugging.level.1489458669" superClass="avr32.both.asm.option.debugging.level" value="avr32.both.asm.debugging.level.max" valueType="enumerated"/>
+</tool>
+<tool id="avr32.managedbuild.tool.gnu.preprocessor.exe.debug.353150889" name="AVR32/GNU Preprocessing Assembler" superClass="avr32.managedbuild.tool.gnu.preprocessor.exe.debug.439858484">
+<option id="avr32.both.preprocessor.option.debugging.level.1055433625" superClass="avr32.both.preprocessor.option.debugging.level" value="avr32.both.preprocessor.debugging.level.max" valueType="enumerated"/>
+<inputType id="avr32.managedbuild.tool.gnu.preprocessor.input.1114767358" superClass="avr32.managedbuild.tool.gnu.preprocessor.input"/>
+</tool>
+</toolChain>
+</folderInfo>
 <sourceEntries>
 <entry excluding="SOFTWARE_FRAMEWORK/DRIVERS/SSC/I2S/ssc_i2s.h|SOFTWARE_FRAMEWORK/DRIVERS/INTC/exception.x" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 </sourceEntries>
@@ -795,6 +818,30 @@
 <listOptionValue builtIn="false" value="../src/SOFTWARE_FRAMEWORK/BOARDS"/>
 </option>
 <inputType id="avr32.managedbuild.tool.gnu.preprocessor.input.2042471216" superClass="avr32.managedbuild.tool.gnu.preprocessor.input"/>
+</tool>
+</toolChain>
+</folderInfo>
+<folderInfo id="avr32.managedbuild.config.gnu.exe.release.443509445.636293136" name="/" resourcePath="src">
+<toolChain id="avr32.managedbuild.toolchain.gnu.exe.release.1852703567" name="AVR32 Standalone GCC" superClass="avr32.managedbuild.toolchain.gnu.exe.release" unusedChildren="">
+<tool id="avr32.managedbuild.tool.gnu.archiver.exe.release.1597355795" name="AVR32/GNU Archiver" superClass="avr32.managedbuild.tool.gnu.archiver.exe.release.664036229"/>
+<tool id="avr32.managedbuild.tool.gnu.cpp.compiler.exe.release.81397602" name="AVR32/GNU C++ Compiler" superClass="avr32.managedbuild.tool.gnu.cpp.compiler.exe.release.1670012223">
+<option id="gnu.cpp.compiler.option.optimization.level.1927431558" superClass="gnu.cpp.compiler.option.optimization.level" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
+<option id="gnu.cpp.compiler.option.debugging.level.1087349595" superClass="gnu.cpp.compiler.option.debugging.level" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
+<option defaultValue="gnu.c.optimization.level.most" id="avr32.cpp.compiler.option.optimization.level.release.405047620" superClass="avr32.cpp.compiler.option.optimization.level.release" valueType="enumerated"/>
+</tool>
+<tool id="avr32.managedbuild.tool.gnu.c.compiler.exe.release.344398689" name="AVR32/GNU C Compiler" superClass="avr32.managedbuild.tool.gnu.c.compiler.exe.release.587585738">
+<option defaultValue="gnu.c.optimization.level.most" id="avr32.c.compiler.option.optimization.level.release.1205174245" superClass="avr32.c.compiler.option.optimization.level.release" valueType="enumerated"/>
+<option id="gnu.c.compiler.option.debugging.level.2117495874" superClass="gnu.c.compiler.option.debugging.level" value="gnu.c.debugging.level.none" valueType="enumerated"/>
+<inputType id="avr32.managedbuild.tool.gnu.c.compiler.input.1677646227" superClass="avr32.managedbuild.tool.gnu.c.compiler.input"/>
+</tool>
+<tool id="avr32.managedbuild.tool.gnu.c.linker.exe.release.1563147870" name="AVR32/GNU C Linker" superClass="avr32.managedbuild.tool.gnu.c.linker.exe.release.1672467119"/>
+<tool id="avr32.managedbuild.tool.gnu.cpp.linker.exe.release.470607746" name="AVR32/GNU C++ Linker" superClass="avr32.managedbuild.tool.gnu.cpp.linker.exe.release.1034523506"/>
+<tool id="avr32.managedbuild.tool.gnu.assembler.exe.release.1607258751" name="AVR32/GNU Assembler" superClass="avr32.managedbuild.tool.gnu.assembler.exe.release.174636845">
+<option id="avr32.both.asm.option.debugging.level.612474629" superClass="avr32.both.asm.option.debugging.level" value="avr32.both.asm.debugging.level.none" valueType="enumerated"/>
+</tool>
+<tool id="avr32.managedbuild.tool.gnu.preprocessor.exe.release.1808510989" name="AVR32/GNU Preprocessing Assembler" superClass="avr32.managedbuild.tool.gnu.preprocessor.exe.release.1076590366">
+<option id="avr32.both.preprocessor.option.debugging.level.757455234" superClass="avr32.both.preprocessor.option.debugging.level" value="avr32.both.preprocessor.debugging.level.none" valueType="enumerated"/>
+<inputType id="avr32.managedbuild.tool.gnu.preprocessor.input.836791143" superClass="avr32.managedbuild.tool.gnu.preprocessor.input"/>
 </tool>
 </toolChain>
 </folderInfo>

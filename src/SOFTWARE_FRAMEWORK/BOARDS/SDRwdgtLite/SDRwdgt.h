@@ -83,11 +83,32 @@
 //! Number of LEDs.
 #define LED_COUNT   4
 
+
 /*! \name GPIO Connections of LEDs
  */
 //! @{
-#define LED0_GPIO   AVR32_PIN_PX20
-#define LED1_GPIO   AVR32_PIN_PX46
+
+// Use #defines for LED functionality BSB 20110903 Move somewhere else??
+#define LED_STATUS_MOD 	0 // LED0 and LED1 are on USB-I2S module, compatibility mode
+#define LED_STATUS_AB 	1 // LED0 and LED1 are on the front of AB-1.1, override initial in main()
+#define LED_STATUS		LED_STATUS_MOD
+
+#define LED_AB_RED		0 // LED on the front of AB-1.1 is initially RED
+#define LED_AB_GREEN	1 // LED on the front of AB-1.1 is initially GREEN
+#define LED_AB_PINK		2 // LED on the front of AB-1.1 is initially PINK (looks of it with both LEDs on)
+#define LED_AB_FRONT 	LED_AB_PINK
+
+
+#if LED_STATUS == LED_STATUS_MOD
+	#define LED0_GPIO   AVR32_PIN_PX20 // Red on module and other boards
+	#define LED1_GPIO   AVR32_PIN_PX46 // Green on module and other boards
+#endif
+
+#if LED_STATUS == LED_STATUS_AB
+	#define LED0_GPIO   AVR32_PIN_PX29 // Red on AB-1.1
+	#define LED1_GPIO   AVR32_PIN_PX32 // Green on AB-1.1
+#endif
+
 #define LED2_GPIO   AVR32_PIN_PX50
 #define LED3_GPIO   AVR32_PIN_PX57
 //! @}
