@@ -1,4 +1,4 @@
-AC_INIT([QtRadio Build], [1.0], [andrew att montefusco dott com], [QtRadio])
+AC_INIT([QtRadio Build], [1.1], [andrew att montefusco dott com], [QtRadio])
 
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC_CONFIG_MACRO_DIR([m4])
