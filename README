@@ -38,7 +38,9 @@ libusb-0.1-4
 libfftw3-dev
 portaudio19-dev
 libpulse-dev
-libusb-0.1-4
+
+Building the software
+=====================
 
 To build:
 
