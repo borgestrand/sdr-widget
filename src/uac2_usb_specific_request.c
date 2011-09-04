@@ -118,7 +118,10 @@ S_freq Mic_freq;
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> master
 const U8 Speedx_1[26] = {
 0x02,0x00,				//number of sample rate triplets
 
@@ -131,6 +134,7 @@ const U8 Speedx_1[26] = {
 0x80,0xbb,0x00,0x00,	//48k Res
 };
 
+<<<<<<< HEAD
 /*
 const U8 Speedx_1[62] = {
 0x05,0x00,				//number of sample rate triplets
@@ -157,6 +161,8 @@ const U8 Speedx_1[62] = {
 };
 */
 
+=======
+>>>>>>> master
 const U8 Speedx_2[38] = {
 0x03,0x00,				//number of sample rate triplets
 

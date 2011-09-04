@@ -131,17 +131,17 @@ extern          U16   data_to_transfer;
 void uac1_user_endpoint_init(U8 conf_nb)
 {
 	if (Is_usb_full_speed_mode()){
-		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, SINGLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, SINGLE_BANK, 0);
+//		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, SINGLE_BANK, 0);
+//		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, SINGLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_FS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_FS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_FS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_FS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_FS, DOUBLE_BANK, 0);
 	} else {
-		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, SINGLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, SINGLE_BANK, 0);
+//		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, SINGLE_BANK, 0);
+//		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, SINGLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_HS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_HS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_HS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_HS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_HS, DOUBLE_BANK, 0);
 	}
 }
 
@@ -174,6 +174,8 @@ static Bool uac1_user_get_interface_descriptor() {
 	descriptor_type = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read MSB of wValue    */
 	wInterface = usb_format_usb_to_mcu_data(16,Usb_read_endpoint_data(EP_CONTROL, 16));
 	switch( descriptor_type ) {
+
+/*
 	case HID_DESCRIPTOR:
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
@@ -215,6 +217,8 @@ static Bool uac1_user_get_interface_descriptor() {
 		// TODO
 		return FALSE;
 		break;
+
+*/
 	default:
 		return FALSE;
 	}
@@ -273,10 +277,10 @@ static Bool uac1_user_get_interface_descriptor() {
 void usb_hid_set_idle (U8 u8_report_id, U8 u8_duration )
 {
    Usb_ack_setup_received_free();
-  
+/*  
    if( wIndex == DSC_INTERFACE_HID )
      g_u8_report_rate = u8_duration;
-   
+*/ 
    Usb_ack_control_in_ready_send();
    while (!Is_usb_control_in_ready());
 }
@@ -289,13 +293,14 @@ void usb_hid_set_idle (U8 u8_report_id, U8 u8_duration )
 void usb_hid_get_idle (U8 u8_report_id)
 {
 	Usb_ack_setup_received_free();
-   
+  
+/* 
    if( (wLength != 0) && (wIndex == DSC_INTERFACE_HID) )
    {
       Usb_write_endpoint_data(EP_CONTROL, 8, g_u8_report_rate);
       Usb_ack_control_in_ready_send();
    }
-   
+*/   
    while (!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
 }
@@ -636,7 +641,8 @@ Bool uac1_user_read_request(U8 type, U8 request)
 	wIndex = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 	wLength = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
-	//** Specific request from Class HID
+/*
+	// Specific request from Class HID
 	// this should vector to specified interface handler
 	if( wIndex == DSC_INTERFACE_HID )   // Interface number of HID
 		{
@@ -733,7 +739,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 						}
 				}
 		}  // if wIndex ==  HID Interface
-
+*/
 
 	//  assume all other requests are for AUDIO interface
 

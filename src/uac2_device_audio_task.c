@@ -204,7 +204,10 @@ void uac2_device_audio_task(void *pvParameters)
 
 		if ((usb_alternate_setting == 1))
 		{
+<<<<<<< HEAD
 			if(Mic_freq_valid) {
+=======
+>>>>>>> master
 				if (current_freq.frequency == 96000) num_samples = 24;
 				else if (current_freq.frequency == 48000) num_samples = 12;
 				else num_samples = 48;	// freq 192khz
@@ -290,7 +293,10 @@ void uac2_device_audio_task(void *pvParameters)
 						Usb_send_in(EP_AUDIO_IN);		// send the current bank
 					}
 				} // end FEATURE_ADC
+<<<<<<< HEAD
 			}
+=======
+>>>>>>> master
 		} // end alt setting 1
 
 		if (usb_alternate_setting_out == 1){
@@ -382,13 +388,29 @@ void uac2_device_audio_task(void *pvParameters)
 					LED_Off(LED1);
 				}
 
+				if(!playerStarted)
+				{
+					playerStarted = TRUE;
+					num_remaining = spk_pdca_channel->tcr;
+					if (spk_buffer_in != spk_buffer_out)
+						spk_buffer_in = 1 - spk_buffer_in;
+					spk_index = SPK_BUFFER_SIZE - num_remaining;
+
+					LED_Off(LED0);
+					LED_Off(LED1);
+				}
+
 				for (i = 0; i < num_samples; i++) {
 					if (spk_mute) {
 						sample_LSB = 0;
 						sample_SB = 0;
 						sample_MSB = 0;
 					} else {
+<<<<<<< HEAD
 						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+=======
+		//	sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+>>>>>>> master
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -403,7 +425,11 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_SB = 0;
 						sample_MSB = 0;
 					} else {
+<<<<<<< HEAD
 						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+=======
+		//	sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+>>>>>>> master
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);

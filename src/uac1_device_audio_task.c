@@ -92,7 +92,10 @@
 
 
 #define FB_RATE_DELTA (1<<12)
+<<<<<<< HEAD
 #define FB_RATE_DELTA_NUM 2
+=======
+>>>>>>> master
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -161,6 +164,10 @@ void uac1_device_audio_task(void *pvParameters)
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
+<<<<<<< HEAD
+=======
+	
+>>>>>>> master
 	if (current_freq.frequency == 48000) FB_rate = 48 << 14;
 	else FB_rate = (44 << 14) + (1 << 14)/10;
 
@@ -321,12 +328,28 @@ void uac1_device_audio_task(void *pvParameters)
 						gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 					}
 
+<<<<<<< HEAD
 					//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
 					if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
 						LED_On(LED0);
 						FB_rate -= FB_RATE_DELTA;
 						delta_num--;
 						//old_gap = gap;
+=======
+					if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
+
+						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+						if (gap < SPK_BUFFER_SIZE - 10 ) {
+						LED_Toggle(LED0);
+							FB_rate -= FB_RATE_DELTA;
+							//old_gap = gap;
+						} else
+							//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+							if ( gap > SPK_BUFFER_SIZE + 10 ) {
+							LED_Toggle(LED1);
+							FB_rate += FB_RATE_DELTA;
+							//old_gap = gap;
+>>>>>>> master
 					}
 					else
 						//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
@@ -352,6 +375,22 @@ void uac1_device_audio_task(void *pvParameters)
 					} else {
 						// HS mode
 						// FB rate is 4 bytes in 12.14 format
+<<<<<<< HEAD
+=======
+
+						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
+						if ( gap < SPK_BUFFER_SIZE - 10 ){
+							LED_Toggle(LED0);
+							FB_rate -= FB_RATE_DELTA;
+							//old_gap = gap;
+						} else
+							//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+							if ( gap > SPK_BUFFER_SIZE + 10 ) {
+						LED_Toggle(LED1);
+							FB_rate += FB_RATE_DELTA;
+							//old_gap = gap;
+							}
+>>>>>>> master
 						sample_LSB = FB_rate;
 						sample_SB = FB_rate >> 8;
 						sample_MSB = FB_rate >> 16;
@@ -376,7 +415,10 @@ void uac1_device_audio_task(void *pvParameters)
 						if (spk_buffer_in != spk_buffer_out)
 							spk_buffer_in = 1 - spk_buffer_in;
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
+<<<<<<< HEAD
 						delta_num = 0;
+=======
+>>>>>>> master
 					}
 
 					for (i = 0; i < num_samples; i++) {
