@@ -3,6 +3,8 @@ ACLOCAL_AMFLAGS = -I build-aux
 #SUBDIRS = src gui tests
 #EXTRA_DIST = bootstrap
 
+EXTRA_DIST = GITSTR
+
 # Manually list the files you're using from build-aux here.
 # Note: Automake already takes care of the .mk and .m4 files you use.
 #EXTRA_DIST += \
@@ -11,7 +13,7 @@ ACLOCAL_AMFLAGS = -I build-aux
 include $(srcdir)/build-aux/autotroll.mk
 
 QtRadio_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
-QtRadio_CPPFLAGS = $(QT_ADDITIONAL_INCLUDE_PATH) $(QT_CPPFLAGS) $(AM_CPPFLAGS) 
+QtRadio_CPPFLAGS = $(QT_ADDITIONAL_INCLUDE_PATH) $(QT_CPPFLAGS) $(AM_CPPFLAGS) -DGITREV="\"$(GITSTR)\""
 
 QtRadio_LDFLAGS  = $(QT_LDFLAGS) $(LDFLAGS) $(QT_ADDITIONAL_LDFLAG) -lQtOpenGL  -lcodec2  
 QtRadio_LDADD    = $(QT_LIBS) $(LDADD)

@@ -1,4 +1,4 @@
-AC_INIT([QtRadio Build], [1.1], [andrew att montefusco dott com], [QtRadio])
+AC_INIT([QtRadio Build], [1.2], [andrew att montefusco dott com], [QtRadio])
 
 #AC_CONFIG_AUX_DIR([build-aux])
 #AC_CONFIG_MACRO_DIR([m4])
@@ -21,6 +21,17 @@ AC_PROG_LIBTOOL
 # If you happen to have some C code:
 #AC_LANG([C])
 #AC_PROG_CC
+
+#
+# git repository parameters copied in GITSTR in order to display in "About" panel
+#
+GITSTR=`(git show -s --pretty=format:"%h!%s" 2>&1)`"!"`(git branch --no-color 2>&1  | sed -e '/^[[^*]]/d' -e 's/* \(.*\)/\1/')`
+if { ! ( git show ) 1>/dev/null 2>&1 || test "$GITSTR" = "fatal"; } ;
+   then GITSTR=`cat $srcdir/GITSTR`
+   else echo $GITSTR>$srcdir/GITSTR
+fi
+AC_SUBST(GITSTR)
+
 
 # QtRadio with Qt.
 AT_WITH_QT([core gui network])
