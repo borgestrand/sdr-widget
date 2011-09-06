@@ -52,7 +52,7 @@ void* client_thread(void* arg) {
     int bytes_read;
     char* response;
 
-fprintf(stderr,"client connected: %s:%d\n",inet_ntoa(client->address.sin_addr),ntohs(client->address.sin_port));
+		fprintf(stderr,"client connected: %s:%d\n",inet_ntoa(client->address.sin_addr),ntohs(client->address.sin_port));
 
     client->state=RECEIVER_DETACHED;
 
@@ -65,7 +65,7 @@ fprintf(stderr,"client connected: %s:%d\n",inet_ntoa(client->address.sin_addr),n
         response=parse_command(client,command);
         send(client->socket,response,strlen(response),0);
 
-fprintf(stderr,"response: '%s'\n",response);
+				fprintf(stderr,"response: '%s'\n",response);
     }
 
     if(client->state==RECEIVER_ATTACHED) {
@@ -75,7 +75,7 @@ fprintf(stderr,"response: '%s'\n",response);
 
     close(client->socket);
 
-fprintf(stderr,"client disconnected: %s:%d\n",inet_ntoa(client->address.sin_addr),ntohs(client->address.sin_port));
+		fprintf(stderr,"client disconnected: %s:%d\n",inet_ntoa(client->address.sin_addr),ntohs(client->address.sin_port));
 
     free(client);
     return 0;
@@ -85,7 +85,7 @@ char* parse_command(CLIENT* client,char* command) {
     
     char* token;
 
-fprintf(stderr,"parse_command: '%s'\n",command);
+		fprintf(stderr,"parse_command: '%s'\n",command);
 
     token=strtok(command," \r\n");
     if(token!=NULL) {
@@ -124,10 +124,12 @@ fprintf(stderr,"parse_command: '%s'\n",command);
                     if(token!=NULL) {
                         client->iq_port=atoi(token);
                     }
+#ifndef JACKAUDIO
                     if(pthread_create(&receiver[client->receiver].audio_thread_id,NULL,audio_thread,&receiver[client->receiver])!=0) {
                         fprintf(stderr,"failed to create audio thread for rx %d\n",client->receiver);
                         exit(1);
                     }
+#endif
                     return OK;
                 } else if(strcmp(token,"bandscope")==0) {
                     token=strtok(NULL," \r\n");
@@ -173,6 +175,7 @@ fprintf(stderr,"parse_command: '%s'\n",command);
     return 0;
 }
 
+
 void* audio_thread(void* arg) {
     RECEIVER *rx=(RECEIVER*)arg;
     struct sockaddr_in audio;
@@ -181,7 +184,7 @@ void* audio_thread(void* arg) {
     int bytes_read;
     int on=1;
 
-fprintf(stderr,"audio_thread port=%d\n",audio_port+(rx->id*2));
+		fprintf(stderr,"audio_thread port=%d\n",audio_port+(rx->id*2));
 
     pthread_setcancelstate(PTHREAD_CANCEL_ENABLE,&old_state);
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS,&old_type);
@@ -214,9 +217,9 @@ fprintf(stderr,"audio_thread port=%d\n",audio_port+(rx->id*2));
             perror("recvfrom socket failed for audio buffer");
             exit(1);
         }
-
+#ifndef JACKAUDIO
         process_softrock_output_buffer(rx->output_buffer,&rx->output_buffer[BUFFER_SIZE]);
-
+#endif
     }
 }
 

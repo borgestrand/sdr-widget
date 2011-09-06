@@ -26,10 +26,14 @@
 #if !defined __SOFTROCK_H__
 #define __SOFTROCK_H__
 
-#define PULSEAUDIO
+//#define PULSEAUDIO
 //#define PORTAUDIO
 //#define DIRECTAUDIO
+#define JACKAUDIO
 
+#ifdef JACKAUDIO
+#include <jack/jack.h>
+#endif
 int create_softrock_thread(void);
 void softrock_set_device(char* d);
 char* softrock_get_device(void);
@@ -55,5 +59,12 @@ int softrock_get_record(void);
 int softrock_get_playback(void);
 
 void process_softrock_output_buffer(float* left_output_buffer,float* right_output_buffer);
+
+#ifdef JACKAUDIO
+int init_jack_audio(void);
+void jack_cleanup(void);
+int process(jack_nframes_t number_of_frames, void *arg);
+void jack_shutdown (void *arg);
+#endif
 
 #endif

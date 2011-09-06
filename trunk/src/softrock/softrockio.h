@@ -38,3 +38,4 @@ int softrock_read(float* left_samples,float* right_samples);
 int softrock_write(unsigned char* buffer,int buffer_size);
 int softrock_read(unsigned char* buffer,int buffer_size);
 #endif
+

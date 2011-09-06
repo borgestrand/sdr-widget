@@ -27,7 +27,7 @@
 #if !defined __RECEIVER_H__
 #define __RECEIVER_H__
 
-#define MAX_RECEIVERS 8
+#define MAX_RECEIVERS 4
 
 #define BUFFER_SIZE 1024
 

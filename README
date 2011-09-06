@@ -161,7 +161,24 @@ cd ~/aconf
 make clean
 sh cleanup.sh
 
+Using Jack Audio Connection Kit
+===============================
 
+At this time to use JACK you need to go into the source file ../trunk/src/softrock/
+and make lines 25-32 look like this:
 
+//#define PULSEAUDIO
+//#define PORTAUDIO
+//#define DIRECTAUDIO
+#define JACKAUDIO
+
+Then you neet to make and sudo make install again.  (I will be working on a runtime
+option instead of compile time to pick JACK, but for now this is how it works.)
+
+It is best to start JACK with the options you want (right sound card, sample rate, etc.) 
+and I use qjackctl.  Receiver 0 is connected with the first two inputs, receiver 1 with the 
+next two and so on up to receiver 3 (four receivers total).  Of course you can reconnect them
+however you like in qjackctrl.  To use more than one receiver, you need a dspserver instance
+for each.  Use the --receiver=[0,1,2,3] option for each dspserver instance.
 
 
