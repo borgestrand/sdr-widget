@@ -59,7 +59,8 @@ static struct option long_options[] = {
     {"serialid",required_argument, 0, 11},
     {"record",required_argument, 0, 12},
     {"playback",required_argument, 0, 13},
-		{"receivers",required_argument, 0, 14}
+		{"receivers",required_argument, 0, 14},
+		{"jack",no_argument, 0, 15}
 };
 
 static char* short_options="sd";
@@ -112,6 +113,7 @@ void process_args(int argc,char* argv[]) {
     // set defaults
     softrock_set_receivers(1);
     softrock_set_sample_rate(96000);
+		softrock_set_jack(0);
     //softrock_set_device("/dev/dsp");
 
     while((i=getopt_long(argc,argv,short_options,long_options,&option_index))!=EOF) {
@@ -129,7 +131,7 @@ void process_args(int argc,char* argv[]) {
                 softrock_set_input(optarg);
                 break;
             case 3: // output
-fprintf(stderr,"process_args: output=%s\n",optarg);
+								fprintf(stderr,"process_args: output=%s\n",optarg);
                 softrock_set_output(optarg);
                 break;
             case 4: // iq
@@ -164,6 +166,9 @@ fprintf(stderr,"process_args: output=%s\n",optarg);
                 break;
 					  case 14: // rececvers
                 softrock_set_receivers(atoi(optarg));
+                break;
+						case 15: // rececvers
+                softrock_set_jack(1);
                 break;
             default:
                 fprintf(stderr,"invalid argument\n");

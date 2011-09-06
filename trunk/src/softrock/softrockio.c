@@ -63,12 +63,6 @@ static int sample_count=0;
 #define SAMPLE_SIZE 16
 #endif
 
-#ifdef JACKAUDIO
-/* global jack variables. */
-jack_client_t *test_client;
-jack_port_t *audio_input_port_left, *audio_input_port_right;
-#endif
-
 #ifdef PULSEAUDIO
 static pa_simple* stream;
 #endif

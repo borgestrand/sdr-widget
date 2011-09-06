@@ -25,16 +25,7 @@
 *
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <pthread.h>
-#include <string.h>
+
 
 #include "client.h"
 #include "receiver.h"
@@ -124,12 +115,14 @@ char* parse_command(CLIENT* client,char* command) {
                     if(token!=NULL) {
                         client->iq_port=atoi(token);
                     }
-#ifndef JACKAUDIO
+//#ifndef JACKAUDIO
+									if(softrock_get_jack() == 0) { //not running jack audio
                     if(pthread_create(&receiver[client->receiver].audio_thread_id,NULL,audio_thread,&receiver[client->receiver])!=0) {
                         fprintf(stderr,"failed to create audio thread for rx %d\n",client->receiver);
                         exit(1);
                     }
-#endif
+									}
+//#endif
                     return OK;
                 } else if(strcmp(token,"bandscope")==0) {
                     token=strtok(NULL," \r\n");
@@ -217,9 +210,9 @@ void* audio_thread(void* arg) {
             perror("recvfrom socket failed for audio buffer");
             exit(1);
         }
-#ifndef JACKAUDIO
-        process_softrock_output_buffer(rx->output_buffer,&rx->output_buffer[BUFFER_SIZE]);
-#endif
+				if(softrock_get_jack () == 1) {
+        	process_softrock_output_buffer(rx->output_buffer,&rx->output_buffer[BUFFER_SIZE]);
+				}
     }
 }
 

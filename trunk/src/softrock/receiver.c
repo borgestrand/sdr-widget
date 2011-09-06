@@ -25,17 +25,9 @@
 *
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <string.h>
 
-#include <usb.h>
 
-#include "client.h"
+
 #include "receiver.h"
 #include "messages.h"
 #include "softrock.h"

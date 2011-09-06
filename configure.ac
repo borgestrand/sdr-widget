@@ -43,6 +43,8 @@ AC_SEARCH_LIBS([pa_simple_new], [pulse-simple],[have_pulse_simple=yes])
 have_usb=no
 AC_SEARCH_LIBS([usb_init], [usb],[have_usb=yes])
 
+have_jack=no
+AC_SEARCH_LIBS([jack_client_open], [jack],[have_jack=yes])
 
 
 # Checks for header files.
@@ -126,7 +128,17 @@ if test "x${have_usb}" = xno; then
 
 fi
 
+if test "x${have_jack}" = xyes; then
+    AC_CHECK_HEADERS([jack/jack.h], [], [have_jack=no])
+fi
 
+if test "x${have_jack}" = xno; then
+    AC_MSG_ERROR([
+-----------------------------------
+  The libjack library and header file required to build ghpsdr3.
+-----------------------------------])
+
+fi
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_HEADER_STDBOOL
