@@ -1,16 +1,9 @@
 ACLOCAL_AMFLAGS = -I build-aux
 
-#SUBDIRS = src gui tests
-#EXTRA_DIST = bootstrap
-
-EXTRA_DIST = GITSTR
-
 # Manually list the files you're using from build-aux here.
 # Note: Automake already takes care of the .mk and .m4 files you use.
-#EXTRA_DIST += \
-#		tests/test.sh
-
 include $(srcdir)/build-aux/autotroll.mk
+
 
 QtRadio_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
 QtRadio_CPPFLAGS = $(QT_ADDITIONAL_INCLUDE_PATH) $(QT_CPPFLAGS) $(AM_CPPFLAGS) -DGITREV="\"$(GITSTR)\""
@@ -140,5 +133,27 @@ vfo.moc.cpp                      \
 Waterfall.moc.cpp                \
 Xvtr.moc.cpp                     \
 smeter.moc.cpp                   
+
+#
+# auxiliary services, git string, icons
+#
+
+EXTRA_DIST = GITSTR QtRadio.desktop icons
+
+desktopdir = $(datadir)/applications
+desktop_in_files = QtRadio.desktop
+desktop_DATA = $(desktop_in_files:.desktop=.desktop)
+
+pixmapdir = $(datadir)/icons
+pixmap_DATA = $(srcdir)/icons/QtRadio.png
+
+
+install-data-local:
+	xdg-desktop-menu install --mode user --novendor $(srcdir)/QtRadio.desktop
+
+# Remove menu on uninstall
+uninstall-local:
+	xdg-desktop-menu uninstall --mode user --novendor QtRadio.desktop
+
 
 

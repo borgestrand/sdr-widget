@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=QtRadio
+Name[xx]=QtRadio
+Generic Name=SDR GUI
+Exec=QtRadio
+Icon=QtRadio
+Terminal=False
+Categories=Network;HamRadio;
+
