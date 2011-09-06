@@ -9,17 +9,27 @@ dspserver    - added IF offset of 9khz.  More robust audio and spectrum transfer
 server       - hpsdr protocol with full control of sdr-widget/Mobo/SR.  Only for sdr-widget.
 receiver     - Makefile modified to compile in x86_64, changed local-audio to direct alsa output, changed portaudio to use callback.
                To run under Ubuntu with pulseaudio:  $ ./ghpsdr --local-audio 1 --audio-device pulse
-QtRadio      - added dialog to store server ip addresses.  Fixed high cpu util bug.  Implemented 16 bit PCM audio.  			
-               See below for codec2 encoding and decoding.  Implemented a separate high priority thread for
-		       Audio with improved sound quality.
 
-There are four branches, master, new-qt, audio-thread and aconf.
+QtRadio      - added dialog to store server ip addresses.  Fixed high cpu util bug.  Implemented 16 bit PCM audio.  			See below for codec2 encoding and decoding.  Implemented a separate high priority thread for
+		Audio with improved sound quality.
 
-The master and aconf branches use the 'old' QtMultimedia directory structure.
-The new-qt branch uses the QtMobility diectory structure which will be used in
-the upcoming new version of Qt.
+The QtRadio audio quality is vastly improved with the audio codes running in a separate, high priority thread from the main GUI thread.
 
-Note you will need some dev packages to be installed for using Qt
+The next major feature to be developed is SSB Tx.
+
+Building the software
+=====================
+
+You will need Qt4.  I would recommend downloading and installing the QtSDK from http://qt.nokia.com/downloads/
+instead of using the distributions's Qt.
+
+Set up your path to point to the QtSDK:
+
+For example, in my system:
+
+$ export PATH=/home/alex/QtSDK/Desktop/Qt/473/gcc/bin:$PATH
+
+Note that in addition to Qt, you will need some dev packages to be installed for using Qt
 (used by QtRadio), including (Ubuntu/Debian naming convention):
 
 libqt4-opengl-dev
@@ -28,21 +38,13 @@ libusb-0.1-4
 libfftw3-dev
 portaudio19-dev
 libpulse-dev
-libusb-0.1-4
-=======
-The master branch uses the 'old' QtMultimedia directory structure which will build in older distributions such as Ubuntu 10.04.  
-The new-qt and other branches use the QtMobility directory structure which will be used in the upcoming new version of Qt.  
-Ubuntu 11.04 or later has this new QtMobility structure.
-
-The QtRadio audio quality is vastly improved with the audio codes running in a separate, high priority thread from the main GUI thread.  This has been implemented in the master, audio-thread and aconf branches.
 
 Building the software
 =====================
 
-If you are new to this, use the aconf branch to build all the following software:  softrock, dspserver and QtRadio.
+To build:
 
 $ cd ghpsdr3-alex
-$ git checkout aconf
 $ autoreconf -i
 $ ./configure
 $ make all
@@ -50,9 +52,9 @@ $ sudo make install
 
 Then the 3 programs will be installed in /usr/local/bin.
 
-If you prefer to use qmake-qt4 for building QtRadio, you can use the audio-thread branch.
 
 Running the software
+====================
 
 To run the softrock server (defaults to using pulse for IQ input.  So 
 use pulse chooser to set the default pulse source to the IQ sound 
@@ -92,7 +94,6 @@ http://www.rowetel.com/blog/?page_id=452
 
 $ svn co https://freetel.svn.sourceforge.net/svnroot/freetel/codec2
 $ cd codec2
-$ vi src/Makefile.am +87 # append /include to the line #87
 $ autoreconf -i
 $ ./configure
 $ make
@@ -101,7 +102,6 @@ $ sudo ldconfig
 
 Compiling with clang instead of default gcc
 ===========================================
-If using aconf branch:
 
 $ ./configure CC=clang CXX=clang
 

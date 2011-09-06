@@ -69,12 +69,14 @@ Spectrum::~Spectrum() {
 
 void Spectrum::setHigh(int high) {
     spectrumHigh=high;
-    repaint();
+    //repaint();
+    update();
 }
 
 void Spectrum::setLow(int low) {
     spectrumLow=low;
-    repaint();
+//    repaint();
+    update();
 }
 
 int Spectrum::getHigh() {
@@ -319,7 +321,7 @@ void Spectrum::paintEvent(QPaintEvent*) {
     painter.setPen(QPen(Qt::red, 1));
     painter.drawLine(width()/2,0,width()/2,height());
 
-    // show the frequency
+/*    // show the frequency
     painter.setPen(QPen(Qt::green,1));
     painter.setFont(QFont("Verdana", 30));
     painter.drawText(width()/2,30,strFrequency);
@@ -329,10 +331,14 @@ void Spectrum::paintEvent(QPaintEvent*) {
     text=band+" "+mode+" "+filter+"Hz";
     painter.drawText((width()/2),50,text);
 
+    // gvj code changes
+
+
     // show the server and receiver
     text="Server:"+host+" Rx:"+QString::number(receiver);
     painter.drawText(5,15,text);
-
+*/
+    // gvj some code deleted
     // draw the analog meters
 //    painter.setOpacity(0.8);
 //    QImage image=sMeterMain->getImage(meter);
@@ -340,11 +346,11 @@ void Spectrum::paintEvent(QPaintEvent*) {
     emit meterValue(meter, subrx_meter);
 
 //    qDebug() << "Spectrum meter value = " << meter;
-    if(subRx) {
+//    if(subRx) {
 //        image=sMeterSub->getImage(subrx_meter);
 //        painter.drawImage(width()-image.width()-5,image.height()+5,image);
 //        emit meterValue(subrx_meter);
-    }
+//    }
 
 
     // plot Spectrum
@@ -400,27 +406,32 @@ void Spectrum::setFilter(int low, int high) {
 
 void Spectrum::setHost(QString h) {
     host=h;
-    repaint();
+//    repaint();
+//    update();
 }
 
 void Spectrum::setReceiver(int r) {
     receiver=r;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::setMode(QString m) {
     mode=m;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::setBand(QString b) {
     band=b;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::setFilter(QString f) {
     filter=f;
-    repaint();
+//    repaint();
+    update();
 }
 
 void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
@@ -451,7 +462,9 @@ void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
     }
 
     //qDebug() << "updateSpectrum: repaint";
-    this->repaint();
+//    this->repaint();
+    this->update();
+
 }
 
 
