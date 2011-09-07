@@ -138,22 +138,27 @@ smeter.moc.cpp
 # auxiliary services, git string, icons
 #
 
-EXTRA_DIST = GITSTR QtRadio.desktop icons
 
+desktop_in_files = QtRadio.desktop.in
 desktopdir = $(datadir)/applications
-desktop_in_files = QtRadio.desktop
-desktop_DATA = $(desktop_in_files:.desktop=.desktop)
+desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
+
+
+
+EXTRA_DIST = GITSTR  icons $(desktop_in_files) $(desktop_DATA)
 
 pixmapdir = $(datadir)/icons
 pixmap_DATA = $(srcdir)/icons/QtRadio.png
 
 
-install-data-local:
+UPDATE_DESKTOP = \
+	if which update-desktop-database>/dev/null 2>&1 ; then \
+		update-desktop-database; \
+	fi
+
+install-data-hook:
 	xdg-desktop-menu install --mode user --novendor $(srcdir)/QtRadio.desktop
 
-# Remove menu on uninstall
-uninstall-local:
+uninstall-hook:
 	xdg-desktop-menu uninstall --mode user --novendor QtRadio.desktop
-
-
 
