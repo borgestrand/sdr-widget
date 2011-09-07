@@ -23,9 +23,10 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 *
 */
-//#ifdef JACKAUDIO
+
 #include "jackio.h"
 
+#ifdef JACKAUDIO
 static int frame;
 static int buffers;
 
@@ -170,4 +171,4 @@ int process(jack_nframes_t number_of_frames, void* arg)
 	return 0;
 }
 
-//#endif
+#endif

@@ -113,7 +113,9 @@ void process_args(int argc,char* argv[]) {
     // set defaults
     softrock_set_receivers(1);
     softrock_set_sample_rate(96000);
+#ifdef JACKAUDIO
 		softrock_set_jack(0);
+#endif
     //softrock_set_device("/dev/dsp");
 
     while((i=getopt_long(argc,argv,short_options,long_options,&option_index))!=EOF) {
@@ -164,12 +166,14 @@ void process_args(int argc,char* argv[]) {
             case 13: // playback
                 softrock_set_playback(optarg);
                 break;
-					  case 14: // rececvers
+					  case 14: // receivers
                 softrock_set_receivers(atoi(optarg));
                 break;
-						case 15: // rececvers
+#ifdef JACKAUDIO
+						case 15: // jack
                 softrock_set_jack(1);
                 break;
+#endif
             default:
                 fprintf(stderr,"invalid argument\n");
                 exit(1);

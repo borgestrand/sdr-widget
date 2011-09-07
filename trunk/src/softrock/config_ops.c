@@ -76,7 +76,7 @@ void displayLPFtable(usb_dev_handle *handle, unsigned short *FilterCrossOver, in
 
 void calibrate(usb_dev_handle *handle)
 {
-	char buffer[6];
+	unsigned char buffer[6];
 	int request = REQUEST_READ_REGISTERS;
 	int value = SI570_I2C_ADDR;
 	int index = 0;

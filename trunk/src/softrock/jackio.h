@@ -30,19 +30,11 @@
 #define __JACKIO_H__
 #include <jack/jack.h>
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <unistd.h>
-#include <pthread.h>
 
 #include "softrock.h"
+
+#ifdef JACKAUDIO
 #include "receiver.h"
-
-
-
 
 
 int init_jack_audio(void);
@@ -54,6 +46,6 @@ void jack_shutdown (void *arg);
 jack_client_t *softrock_client;
 jack_port_t *audio_input_port_left[MAX_RECEIVERS], *audio_input_port_right[MAX_RECEIVERS];
 
-//#endif
+#endif
 
 #endif

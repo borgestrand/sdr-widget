@@ -92,7 +92,10 @@ int init_jack_audio (void);
 int create_softrock_thread() {
 	int rc;
 	softrock_init();
-	if(softrock_get_jack() == 0) { //not running jack audio
+#ifdef JACKAUDIO
+	if(softrock_get_jack() == 0) 
+#endif
+		{ //not running jack audio
 		// create a thread to read from the audio deice
 		rc=pthread_create(&softrock_io_thread_id,NULL,softrock_io_thread,NULL);
 		if(rc != 0) {
@@ -157,7 +160,7 @@ void softrock_set_receivers(int r) {
 int softrock_get_receivers() {
     return receivers;
 }
-
+#ifdef JACKAUDIO
 void softrock_set_jack(int flag) {
 	use_jack = flag;
 }
@@ -165,7 +168,7 @@ void softrock_set_jack(int flag) {
 int softrock_get_jack() {
     return use_jack;
 }
-
+#endif
 void softrock_set_rx_frame(int frame) {
 	rx_frame = frame;
 }
