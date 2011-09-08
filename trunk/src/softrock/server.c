@@ -73,6 +73,7 @@ double multiplier=4;
 int i2cAddress = 0x55;
 double fXtall = 114.285;
 char* usbSerialID=NULL;
+int setByValue = 1;
 
 usb_dev_handle* handle = NULL;
 
@@ -156,6 +157,7 @@ void process_args(int argc,char* argv[]) {
                 break;
             case 10: // corrected xtal freq
                 fXtall=atof(optarg);
+								setByValue = 0;
                 break;
             case 11: // serial ID
                 usbSerialID=optarg;

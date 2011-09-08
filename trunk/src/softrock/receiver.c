@@ -46,9 +46,10 @@ static unsigned long sequence=0L;
 
 extern int si570;
 extern usb_dev_handle* handle;
+extern int setByValue;
 
 void init_receivers() {
-    int i;
+	  int i;
     for(i=0;i<MAX_RECEIVERS;i++) {
         receiver[i].client=(CLIENT*)NULL;
     }
@@ -127,6 +128,9 @@ char* set_frequency(CLIENT* client,long frequency) {
     receiver[client->receiver].frequency_changed=1;
 
     if(si570) {
+			if (setByValue)
+        setFreqByValue(handle, (double)frequency/1000000.0);
+      else
         setFreqByValue(handle,(double)frequency/1000000.0);
     } else {
         fprintf(stderr,"Warning: no way to set the softrock frequency\n");
