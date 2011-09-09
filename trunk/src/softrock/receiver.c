@@ -131,7 +131,7 @@ char* set_frequency(CLIENT* client,long frequency) {
 			if (setByValue)
         setFreqByValue(handle, (double)frequency/1000000.0);
       else
-        setFreqByValue(handle,(double)frequency/1000000.0);
+        setFrequency(handle,(double)frequency/1000000.0);
     } else {
         fprintf(stderr,"Warning: no way to set the softrock frequency\n");
     }
