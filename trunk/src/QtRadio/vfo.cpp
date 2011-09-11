@@ -153,6 +153,9 @@ void vfo::btnGrpBand(int btn)
 //    bool vfoBflag;
 
     btn = -1 * (btn + 2); //Map buttons (-2 .. -14) to (0 .. 11)
+    emit bandBtnClicked(btn);
+}
+/*
     // Test to see if we are changing band.
     if (btn != cur_Band) {
         cur_Band = btn; //Yes, so retrieve current freq for band.
@@ -185,6 +188,7 @@ void vfo::btnGrpBand(int btn)
     }
 }
 
+*/
 
 // When we arrive here from a right button click on the bandButtons group the variable
 // cur_Band will hold the index to the required band button
