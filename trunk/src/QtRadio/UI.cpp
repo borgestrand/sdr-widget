@@ -113,6 +113,7 @@ UI::UI() {
     connect(widget.actionKeypad, SIGNAL(triggered()),this,SLOT(actionKeypad()));
     connect(&keypad,SIGNAL(setKeypadFrequency(long long)),this,SLOT(setKeypadFrequency(long long)));
 
+    connect(myVfo, SIGNAL(bandBtnClicked(int)),this,SLOT(getBandBtn(int)));
     connect(widget.action160, SIGNAL(triggered()),this,SLOT(action160()));
     connect(widget.action80, SIGNAL(triggered()),this,SLOT(action80()));
     connect(widget.action60, SIGNAL(triggered()),this,SLOT(action60()));
@@ -664,6 +665,10 @@ void UI::actionKeypad() {
 
 void UI::setKeypadFrequency(long long f) {
     frequencyChanged(f);
+}
+
+void UI::getBandBtn(int btn) {
+    band.selectBand(btn);
 }
 
 void UI::action160() {

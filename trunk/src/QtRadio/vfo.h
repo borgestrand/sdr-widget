@@ -31,6 +31,7 @@ signals:
     void sendTxFreq(int freq, bool ptt);
     void setFreq(int freq, bool ptt);
     void frequencyChanged(long long freq);
+    void bandBtnClicked(int band);
 
 protected:
     void wheelEvent( QWheelEvent*);
