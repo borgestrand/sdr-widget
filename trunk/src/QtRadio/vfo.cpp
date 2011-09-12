@@ -25,7 +25,7 @@ vfo::vfo(QWidget *parent) :
         bands[row][bDat_index] = 0; // Overwrite the index to zero for each row
     }
 //    readSettings();
-    setBandButton(readA());
+//gvj    setBandButton(readA());
     connect(ui->btnGrpBand, SIGNAL(buttonClicked(int)),
                 this, SLOT(btnGrpBand(int)));
     connect(ui->hSlider, SIGNAL(valueChanged(int)),
@@ -336,7 +336,7 @@ void vfo::writeA(int freq)
         else ui->lbl_Amhz->setText(myStr.at(cnt)+ui->lbl_Amhz->text());
     }
     if (selectedVFO != 'B') {  // i.e. selectedVFO is 'A' or 'S'
-        setBandButton(freq);
+//gvj        setBandButton(freq);
     }
     if (ptt) {
         if (selectedVFO == 'A') {
@@ -370,7 +370,7 @@ void vfo::writeB(int freq)
         else ui->lbl_Bmhz->setText(myStr.at(cnt)+ui->lbl_Bmhz->text());
     }
     if (selectedVFO == 'B') {
-        setBandButton(freq);
+//gvj        setBandButton(freq);
     }
     if (ptt) {
         if (selectedVFO != 'A') {
@@ -427,7 +427,7 @@ void vfo::on_pBtnvfoA_clicked()
         ui->pBtnvfoB->setStyleSheet("background-color: normal");
         ui->pBtnSplit->setStyleSheet("background-color: normal");
         vfoEnabled(true, false);
-        setBandButton(readA());
+//gvj        setBandButton(readA());
         writeA(readA());
     }
 }
@@ -444,7 +444,7 @@ void vfo::on_pBtnvfoB_clicked()
         ui->pBtnvfoA->setStyleSheet("background-color: normal");
         ui->pBtnSplit->setStyleSheet("background-color: normal");
         vfoEnabled(false, true);
-        setBandButton(readB());
+//gvj        setBandButton(readB());
         writeB(readB());
     }
 }
@@ -461,7 +461,7 @@ void vfo::on_pBtnSplit_clicked()
         ui->pBtnvfoB->setStyleSheet("background-color: rgb(255, 155, 155)");
         ui->pBtnSplit->setStyleSheet("background-color: rgb(0, 170, 255)");
         vfoEnabled(true, false);
-        setBandButton(readA());
+//gvj        setBandButton(readA());
         if (ptt == true) {
             writeB(readB());
         } else {

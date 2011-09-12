@@ -1244,7 +1244,7 @@ void UI::frequencyChanged(long long f) {
 void UI::frequencyMoved(int increment,int step) {
     QString command;
 
-    //qDebug() << __FUNCTION__ << ": increment=" << increment << " step=" << step;
+    qDebug() << __FUNCTION__ << ": increment=" << increment << " step=" << step;
 
     long long f;
 

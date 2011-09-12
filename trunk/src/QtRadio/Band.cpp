@@ -661,12 +661,31 @@ BandLimit Band::getBandLimits(long long minDisplay, long long maxDisplay) {
             break;
         }
     }
-
+    qDebug() << "gvj value of result is min, max ... " << result.min() << "," << result.max();
     return result;
 
 }
 
 void Band::setFrequency(long long f) {
+    BandLimit band;
+    int i;
+
+    //Now check to see what band this frequency lies in
+    for(i=0;i<limits.size();i++) {
+        band=limits.at(i);
+        if((band.min()<=f)&&(band.max()>=f)) {; // then frequency is within this band
+            break;
+        }
+    }
+    if(i == limits.size()) { //frequency is not within any band so it is "GEN"
+        i = 11;
+    }
+    qDebug() << "In setFrequency(), the value of i, currentBand = " << i <<", " << currentBand;
+    //See if we have stepped out of the current band
+    if(i != currentBand) {
+        selectBand(i);
+//        setFrequency(f);
+    }
     bandstack[currentBand][currentStack].setFrequency(f);
 }
 
