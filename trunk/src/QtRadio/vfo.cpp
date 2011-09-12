@@ -39,7 +39,7 @@ vfo::~vfo()
     delete ui;
 }
 
-void vfo::getFrequency(int freq)
+void vfo::setFrequency(int freq)
 {
     spectrumFrequency = freq;
     if (selectedVFO == 'A') {
@@ -295,7 +295,7 @@ void vfo::wheelEvent(QWheelEvent *event)
 {
     QString str;
     int x, digit;
-    int direction = 0;
+    int direction = 1;
     static const int mult[2][9] = {
         {100000000,10000000,1000000,100000,10000,1000,100,10,1},            // Retrieve with mult[0][0 ... 8]
         {-100000000,-10000000,-1000000,-100000,-10000,-1000,-100,-10,-1}    // Retrieve with mult[1][0 ... 8]
@@ -303,7 +303,7 @@ void vfo::wheelEvent(QWheelEvent *event)
 
     digit = getDigit(event->x(), event->y());
     if (digit != 9) {  // getDigit returns 9 if click was outside display area so we just fall through.
-        if (event->delta() < 0) direction = 1;  // x becomes pos or neg depending on wheel rotation.
+        if (event->delta() < 0) direction = 0;  // x becomes pos or neg depending on wheel rotation.
         if (digit < 9) { // getDigit returns 0 ... 8 if we clicked on vfoA
             x = mult[direction][digit];
             x = x + readA();
@@ -383,6 +383,11 @@ qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
         if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
     }
+}
+
+void vfo::checkBandBtn(int band)
+{
+    ui->btnGrpBand->button((band+2)*-1)->setChecked(true);
 }
 
 void vfo::setBandButton(int freq)

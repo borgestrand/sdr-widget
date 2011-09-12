@@ -184,8 +184,8 @@ UI::UI() {
     // connect up spectrum frame
     connect(widget.spectrumFrame, SIGNAL(frequencyMoved(int,int)),
             this, SLOT(frequencyMoved(int,int)));
-    connect(widget.spectrumFrame, SIGNAL(frequencyChanged(long long)),
-            this, SLOT(frequencyChanged(long long)));
+//    connect(widget.spectrumFrame, SIGNAL(frequencyChanged(long long)),
+//            this, SLOT(frequencyChanged(long long)));
     connect(widget.spectrumFrame, SIGNAL(spectrumHighChanged(int)),
             this,SLOT(spectrumHighChanged(int)));
     connect(widget.spectrumFrame, SIGNAL(spectrumLowChanged(int)),
@@ -473,7 +473,7 @@ void UI::connected() {
     widget.waterfallFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->getFrequency(frequency);
+    myVfo->setFrequency(frequency);
 
     command.clear(); QTextStream(&command) << "setMode " << band.getMode();
     connection.sendCommand(command);
@@ -810,6 +810,8 @@ void UI::bandChanged(int previousBand,int newBand) {
             widget.actionWWV->setChecked(TRUE);
             break;
     }
+    //Now select the correct band button in myVFO
+    myVfo->checkBandBtn(newBand);
 
     // get the band setting
     mode.setMode(band.getMode());
@@ -828,7 +830,7 @@ void UI::bandChanged(int previousBand,int newBand) {
     widget.spectrumFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->getFrequency(frequency);
+    myVfo->setFrequency(frequency);
 
     widget.spectrumFrame->setSubRxFrequency(subRxFrequency);
     widget.spectrumFrame->setHigh(band.getSpectrumHigh());
@@ -1235,8 +1237,8 @@ void UI::frequencyChanged(long long f) {
     widget.spectrumFrame->setFrequency(f);
 
 //    gvj code
-    myVfo->getFrequency(frequency);
-    qDebug() << "At frequency changed and frequency is " << f;
+    myVfo->setFrequency(frequency);
+    qDebug() << "At UI::frequencyChanged(long long f), line 1227 and frequency is " << f;
 
     widget.waterfallFrame->setFrequency(f);
 }
@@ -1270,7 +1272,7 @@ void UI::frequencyMoved(int increment,int step) {
         widget.spectrumFrame->setFrequency(frequency);
 
 //        gvj code
-        myVfo->getFrequency(frequency);
+        myVfo->setFrequency(frequency);
 
         widget.waterfallFrame->setFrequency(frequency);
         connection.sendCommand(command);
@@ -1618,7 +1620,7 @@ void UI::selectBookmark(QAction* action) {
     widget.waterfallFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->getFrequency(frequency);
+    myVfo->setFrequency(frequency);
 
     mode.setMode(bookmarks.getMode());
 
