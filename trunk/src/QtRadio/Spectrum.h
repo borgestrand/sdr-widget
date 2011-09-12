@@ -71,7 +71,7 @@ public:
 
 signals:
     void frequencyMoved(int steps,int step);
-    void frequencyChanged(long long frequency);
+//    void frequencyChanged(long long frequency);
     void spectrumHighChanged(int high);
     void spectrumLowChanged(int low);
     void waterfallHighChanged(int high);

@@ -684,7 +684,6 @@ void Band::setFrequency(long long f) {
     //See if we have stepped out of the current band
     if(i != currentBand) {
         selectBand(i);
-//        setFrequency(f);
     }
     bandstack[currentBand][currentStack].setFrequency(f);
 }

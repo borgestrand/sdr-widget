@@ -24,7 +24,8 @@ public:
 
 public slots:
     void togglePTT(bool pttRq); //Request to toggle ptt & return freq
-    void getFrequency(int freq); //Displays "freq" on current vfo according to ptt state
+    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
+    void checkBandBtn(int band);
 
 signals:
     void sendVfoFreq(int freq);
