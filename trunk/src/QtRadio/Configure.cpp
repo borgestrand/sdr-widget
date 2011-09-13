@@ -33,13 +33,14 @@
 Configure::Configure() {
     widget.setupUi(this);
 
+    //Populate the combo boxes with defaults. The loadSettings may overwrite or add values.
     widget.sampleRateComboBox->addItem("8000");
     widget.sampleRateComboBox->addItem("48000");
     widget.audioChannelsSpinBox->setValue(1);
     widget.hostComboBox->addItem("127.0.0.1");
     widget.hostComboBox->addItem("g0orx.homelinux.net");
-    widget.spectrumHighSpinBox->setValue(-40);
-    widget.spectrumLowSpinBox->setValue(-160);
+//    widget.spectrumHighSpinBox->setValue(-40);
+//    widget.spectrumLowSpinBox->setValue(-160);
     widget.waterfallHighSpinBox->setValue(-60);
     widget.waterfallLowSpinBox->setValue(-120);
     widget.fpsSpinBox->setValue(15);
@@ -166,20 +167,24 @@ void Configure::loadSettings(QSettings* settings) {
         }
         widget.hostComboBox->setCurrentIndex(settings->value("selected").toInt());
     }
-    qDebug() << "server count=" << widget.hostComboBox->count();
-    qDebug() << "server selected: " << widget.hostComboBox->currentIndex();
-
     if(settings->contains("rx")) widget.rxSpinBox->setValue(settings->value("rx").toInt());
     settings->endGroup();
+
     settings->beginGroup("Display");
-    if(settings->contains("spectrumHigh"))widget.spectrumHighSpinBox->setValue(settings->value("spectrumHigh").toInt());
-    if(settings->contains("spectrumLow"))widget.spectrumLowSpinBox->setValue(settings->value("spectrumLow").toInt());
+    if(settings->contains("spectrumHigh")) {
+        qDebug() << "The value of spectrumHigh is ... " << settings->value("spectrumHigh").toInt();
+    }
+    widget.spectrumHighSpinBox->setValue(settings->value("spectrumHigh",-40).toInt());
+    widget.spectrumHighSpinBox->setValue(settings->value("spectrumHigh",-40).toInt());
+//    if(settings->contains("spectrumHigh"))widget.spectrumHighSpinBox->setValue(settings->value("spectrumHigh",-40).toInt());
+//    if(settings->contains("spectrumLow"))widget.spectrumLowSpinBox->setValue(settings->value("spectrumLow",-160).toInt());
     if(settings->contains("fps"))widget.fpsSpinBox->setValue(settings->value("fps").toInt());
     if(settings->contains("waterfallHigh"))widget.waterfallHighSpinBox->setValue(settings->value("waterfallHigh").toInt());
     if(settings->contains("waterfallLow"))widget.waterfallLowSpinBox->setValue(settings->value("waterfallLow").toInt());
     if(settings->contains("waterfallAutomatic"))widget.waterfallAutomatic->setChecked(settings->value("waterfallAutomatic").toBool());
     if(settings->contains("WindowGeometryFlag"))widget.checkBoxWindowPosn->setChecked(settings->value("WindowGeometryFlag").toBool());
     settings->endGroup();
+
     settings->beginGroup("Audio");
     if(settings->contains("device")) widget.audioDeviceComboBox->setCurrentIndex(settings->value("device").toInt());
     if(settings->contains("channels"))widget.audioChannelsSpinBox->setValue(settings->value("channels").toInt());
@@ -187,21 +192,25 @@ void Configure::loadSettings(QSettings* settings) {
     if(settings->contains("encoding")) widget.encodingComboBox->setCurrentIndex(settings->value("encoding").toInt());
     if(settings->contains("byteorder")) widget.byteOrderComboBox->setCurrentIndex(settings->value("byteorder").toInt());
     settings->endGroup();
+
     settings->beginGroup("NR");
     if(settings->contains("taps")) widget.nrGainSpinBox->setValue(settings->value("taps").toInt());
     if(settings->contains("delay"))widget.nrDelaySpinBox->setValue(settings->value("delay").toInt());
     if(settings->contains("gain")) widget.nrGainSpinBox->setValue(settings->value("gain").toInt());
     if(settings->contains("leak")) widget.nrLeakSpinBox->setValue(settings->value("leak").toInt());
     settings->endGroup();
+
     settings->beginGroup("ANF");
     if(settings->contains("taps")) widget.anfGainSpinBox->setValue(settings->value("taps").toInt());
     if(settings->contains("delay"))widget.anfDelaySpinBox->setValue(settings->value("delay").toInt());
     if(settings->contains("gain")) widget.anfGainSpinBox->setValue(settings->value("gain").toInt());
     if(settings->contains("leak")) widget.anfLeakSpinBox->setValue(settings->value("leak").toInt());
     settings->endGroup();
+
     settings->beginGroup("NB");
     if(settings->contains("threshold")) widget.nbThresholdSpinBox->setValue(settings->value("threshold").toInt());
     settings->endGroup();
+
     settings->beginGroup("SDROM");
     if(settings->contains("threshold")) widget.nbThresholdSpinBox->setValue(settings->value("threshold").toInt());
     settings->endGroup();

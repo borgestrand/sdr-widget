@@ -454,6 +454,7 @@ void Band::loadSettings(QSettings* settings) {
             limits << BandLimit(limitMin,limitMax);
         }
     }
+    settings->endGroup();
 }
 
 void Band::saveSettings(QSettings* settings) {
