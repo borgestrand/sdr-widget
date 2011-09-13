@@ -410,7 +410,8 @@ Band::~Band() {
 void Band::loadSettings(QSettings* settings) {
     int i,j;
     QString s;
-
+    BandLimit limitItem;
+    long long limitMin,limitMax;
 
     settings->beginGroup("Band");
     if(settings->contains("currentBand")) {
@@ -442,11 +443,23 @@ void Band::loadSettings(QSettings* settings) {
         }
         settings->endGroup();
     }
+    settings->beginGroup("bandLimits");
+    if(settings->contains("limits.22.min")) { //We have a table of valid limits stored
+        limits.clear();
+        for (i=0;i<23;i++) {
+            s.sprintf("limits.%d.min",i);
+            limitMin=settings->value(s).toLongLong();
+            s.sprintf("limits.%d.max",i);
+            limitMax=settings->value(s).toLongLong();
+            limits << BandLimit(limitMin,limitMax);
+        }
+    }
 }
 
 void Band::saveSettings(QSettings* settings) {
     int i,j;
     QString s;
+    BandLimit limitItem;
     
     settings->beginGroup("Band");
     settings->setValue("currentBand",currentBand);
@@ -476,7 +489,23 @@ void Band::saveSettings(QSettings* settings) {
             }
         }
     }
-    
+    settings->endGroup();
+
+    settings->beginGroup("bandLimits");
+    i = 0;
+    limitItem = limits.at(i);
+    while (limitItem.min()!=0LL) {
+        s.sprintf("limits.%d.min",i);
+        settings->setValue(s,limitItem.min());
+        s.sprintf("limits.%d.max",i);
+        settings->setValue(s,limitItem.max());
+        i++;
+        limitItem = limits.at(i);
+    }
+    s.sprintf("limits.%d.min",i);
+    settings->setValue(s,0);
+    s.sprintf("limits.%d.max",i);
+    settings->setValue(s,0);
     settings->endGroup();
 }
 

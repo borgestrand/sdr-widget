@@ -318,7 +318,7 @@ void UI::loadSettings() {
     settings.endGroup();
 
     settings.beginGroup("mainWindow");
-    qDebug() << "######################################################## getGeometryState = " << configure.getGeometryState();
+//    qDebug() << "######################################################## getGeometryState = " << configure.getGeometryState();//gvj
     if (configure.getGeometryState()) {
         restoreGeometry(settings.value("geometry").toByteArray());
     }
@@ -1226,21 +1226,17 @@ void UI::filterChanged(int previousFilter,int newFilter) {
 
 void UI::frequencyChanged(long long f) {
     QString command;
-    //qDebug() << __FUNCTION__ << ": " << f;
 
     frequency=f;
     command.clear();
-    QTextStream(&command) << "setFrequency " << f;
+    QTextStream(&command) << "setFrequency " << frequency;
 
-    band.setFrequency(f);
     connection.sendCommand(command);
-    widget.spectrumFrame->setFrequency(f);
-
-//    gvj code
+    band.setFrequency(frequency);
+    widget.spectrumFrame->setFrequency(frequency);
     myVfo->setFrequency(frequency);
-    qDebug() << "At UI::frequencyChanged(long long f), line 1227 and frequency is " << f;
-
-    widget.waterfallFrame->setFrequency(f);
+    widget.waterfallFrame->setFrequency(frequency);
+    qDebug() << __FUNCTION__ << ": line 1227 and frequency is " << f;
 }
 
 void UI::frequencyMoved(int increment,int step) {
