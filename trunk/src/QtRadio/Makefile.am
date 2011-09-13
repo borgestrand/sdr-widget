@@ -1,18 +1,12 @@
 ACLOCAL_AMFLAGS = -I build-aux
 
-#SUBDIRS = src gui tests
-#EXTRA_DIST = bootstrap
-
 # Manually list the files you're using from build-aux here.
 # Note: Automake already takes care of the .mk and .m4 files you use.
-#EXTRA_DIST += \
-#		tests/test.sh
-
 include $(srcdir)/build-aux/autotroll.mk
 
+
 QtRadio_CXXFLAGS = $(QT_CXXFLAGS) $(AM_CXXFLAGS)
-QtRadio_CPPFLAGS = $(QT_ADDITIONAL_INCLUDE_PATH) $(QT_CPPFLAGS) $(AM_CPPFLAGS) 
-########## -I$(QT_INCPATH)/include/QtWebKit  -I$(QT_INCPATH)/include/QtMultimediaKit
+QtRadio_CPPFLAGS = $(QT_ADDITIONAL_INCLUDE_PATH) $(QT_CPPFLAGS) $(AM_CPPFLAGS) -DGITREV="\"$(GITSTR)\""
 
 QtRadio_LDFLAGS  = $(QT_LDFLAGS) $(LDFLAGS) $(QT_ADDITIONAL_LDFLAG) -lQtOpenGL  -lcodec2  
 QtRadio_LDADD    = $(QT_LIBS) $(LDADD)
@@ -140,4 +134,31 @@ Waterfall.moc.cpp                \
 Xvtr.moc.cpp                     \
 smeter.moc.cpp                   
 
+#
+# auxiliary services, git string, icons
+#
+
+
+desktop_in_files = QtRadio.desktop.in
+desktopdir = $(datadir)/applications
+desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
+
+
+
+EXTRA_DIST = GITSTR  icons $(desktop_in_files) $(desktop_DATA)
+
+pixmapdir = $(datadir)/icons
+pixmap_DATA = $(srcdir)/icons/QtRadio.png
+
+
+UPDATE_DESKTOP = \
+	if which update-desktop-database>/dev/null 2>&1 ; then \
+		update-desktop-database; \
+	fi
+
+install-data-hook:
+	xdg-desktop-menu install --mode user --novendor $(srcdir)/QtRadio.desktop
+
+uninstall-hook:
+	xdg-desktop-menu uninstall --mode user --novendor QtRadio.desktop
 
