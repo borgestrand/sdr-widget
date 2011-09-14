@@ -702,25 +702,33 @@ BandLimit Band::getBandLimits(long long minDisplay, long long maxDisplay) {
 
 void Band::setFrequency(long long f) {  //Called by UI::frequencyChanged(long long frequency)
     BandLimit band;
-    int i;
+    int newBand, newStack;
 
-    //Now check to see what band this frequency lies in
-    for(i=0;i<limits.size();i++) {
-        band=limits.at(i);
+    for(newBand=0;newBand<limits.size();newBand++) {      //Check to see what band this frequency lies in
+        band=limits.at(newBand);
         if((band.min()<=f)&&(band.max()>=f)) {; // then frequency is within this band
             break;
         }
     }
-    if(i == limits.size()) { //frequency is not within any band so it is "GEN"
-        i = BAND_GEN;
+    if(newBand == limits.size()) { //frequency not found within any band so it is "GEN"
+        newBand = BAND_GEN;
     }
-    qDebug() << "In setFrequency(), the value of i, currentBand & f = " << i <<", " << currentBand << ", " << f;
-    //See if we have stepped out of the current band
-    if(i != currentBand) {
-//        selectBand(i);
-        bandSelected(i,f);
+
+    qDebug() << "In setFrequency(), the value of newBand, currentBand & f = " << newBand <<", " << currentBand << ", " << f;
+
+    if(currentBand!=newBand) {   //True if we changed band so setup new band
+        newStack = stack[newBand];
+        bandstack[newBand][newStack].setFrequency(f);
+        bandstack[newBand][newStack].setMode(getMode());
+        bandstack[newBand][newStack].setFilter(getFilter());
+        bandstack[newBand][newStack].setSpectrumHigh(getSpectrumHigh());
+        bandstack[newBand][newStack].setSpectrumLow(getSpectrumLow());
+        bandstack[newBand][newStack].setWaterfallHigh(getWaterfallHigh());
+        bandstack[newBand][newStack].setWaterfallLow(getWaterfallLow());
+        selectBand(newBand);
+    } else {
+        bandstack[currentBand][currentStack].setFrequency(f);
     }
-    bandstack[currentBand][currentStack].setFrequency(f);
 }
 
 void Band::setMode(int m) {
