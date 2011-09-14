@@ -512,6 +512,7 @@ void Band::saveSettings(QSettings* settings) {
 
 void Band::initBand(int b) {
     currentBand=b;
+    qDebug() << __FUNCTION__ << ": currentBand = " << currentBand; //gvj temp
     emit bandChanged(currentBand, currentBand);
 }
 
@@ -531,7 +532,7 @@ void Band::selectBand(int b) {
         stack[currentBand]=currentStack;
     } else {
         // new band
-        qDebug() << "Band::selectBand: new band: stack: " << stack[currentBand];
+        qDebug() << "Band::selectBand: new band: stack: " << stack[previousBand];
         currentStack=stack[currentBand];
     }
 
@@ -539,6 +540,45 @@ void Band::selectBand(int b) {
     
     emit bandChanged(previousBand,currentBand);
 
+}
+
+void Band::bandSelected(int b,long long currentFrequency) {
+    long long f=0;
+    int previousBand=currentBand;
+    currentBand=b;
+
+    // save the current frequency in the current bandstack entry
+    bandstack[currentBand][currentStack].setFrequency(currentFrequency);
+
+    if(previousBand==currentBand) {
+        // step through band stack
+        currentStack++;
+        if(currentStack==BANDSTACK_ENTRIES) {
+            currentStack=0;
+        } else if(bandstack[currentBand][currentStack].getFrequency()==0LL) {
+            currentStack=0;
+        }
+
+
+        qDebug() << "same band currentStack " << currentStack;
+
+    } else {
+        // save the current stack
+        //stack[currentBand]=currentStack;
+
+        // change the band
+        //currentBand=b;
+        // get the last stack entry used
+        currentStack=stack[currentBand];
+        bandstack[currentBand][currentStack].setFrequency(currentFrequency);
+        bandstack[currentBand][currentStack].setMode(getMode());
+        bandstack[currentBand][currentStack].setFilter(getFilter());
+        qDebug() << "currentBand currentStack " << currentBand << ", " << currentStack;
+        emit bandChanged(previousBand,currentBand);
+    }
+
+//    f = bandstack[currentBand][currentStack].getFrequency();
+//    return f;
 }
 
 int Band::getBand() {
@@ -605,42 +645,6 @@ QString Band::getStringBand(int band) {
     return b;
 }
 
-long long Band::bandSelected(int b,long long currentFrequency) {
-    long long f;
-
-    // save the current frequency in the current bandstack entry
-    bandstack[currentBand][currentStack].setFrequency(currentFrequency);
-
-    if(currentBand==b) {
-        // step through band stack
-        currentStack++;
-        if(currentStack==BANDSTACK_ENTRIES) {
-            currentStack=0;
-        } else if(bandstack[currentBand][currentStack].getFrequency()==0LL) {
-            currentStack=0;
-        }
-        
-
-        qDebug() << "same band currentStack " << currentStack;
-
-    } else {
-        // save the current stack
-        stack[currentBand]=currentStack;
-
-        // change the band
-        currentBand=b;
-        // get the last stack entry used
-        currentStack=stack[currentBand];
-
-        qDebug() << "change band currentStack " << currentStack;
-        
-    }
-    
-    f = bandstack[currentBand][currentStack].getFrequency();
-
-    return f;
-}
-
 int Band::getBandStackEntry() {
     return currentStack;
 }
@@ -696,7 +700,7 @@ BandLimit Band::getBandLimits(long long minDisplay, long long maxDisplay) {
 
 }
 
-void Band::setFrequency(long long f) {
+void Band::setFrequency(long long f) {  //Called by UI::frequencyChanged(long long frequency)
     BandLimit band;
     int i;
 
@@ -708,12 +712,13 @@ void Band::setFrequency(long long f) {
         }
     }
     if(i == limits.size()) { //frequency is not within any band so it is "GEN"
-        i = 11;
+        i = BAND_GEN;
     }
-    qDebug() << "In setFrequency(), the value of i, currentBand = " << i <<", " << currentBand;
+    qDebug() << "In setFrequency(), the value of i, currentBand & f = " << i <<", " << currentBand << ", " << f;
     //See if we have stepped out of the current band
     if(i != currentBand) {
-        selectBand(i);
+//        selectBand(i);
+        bandSelected(i,f);
     }
     bandstack[currentBand][currentStack].setFrequency(f);
 }

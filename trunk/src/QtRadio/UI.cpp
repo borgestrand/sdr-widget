@@ -831,7 +831,7 @@ void UI::bandChanged(int previousBand,int newBand) {
 
 //    gvj code
     myVfo->setFrequency(frequency);
-
+    qDebug() << __FUNCTION__ << ": frequency, newBand = " << frequency << ", " << newBand;
     widget.spectrumFrame->setSubRxFrequency(subRxFrequency);
     widget.spectrumFrame->setHigh(band.getSpectrumHigh());
     widget.spectrumFrame->setLow(band.getSpectrumLow());
@@ -1228,15 +1228,15 @@ void UI::frequencyChanged(long long f) {
     QString command;
 
     frequency=f;
+    //Send command to server
     command.clear();
     QTextStream(&command) << "setFrequency " << frequency;
-
     connection.sendCommand(command);
+    //Adjust all frequency displays & Check for exiting current band
     band.setFrequency(frequency);
     widget.spectrumFrame->setFrequency(frequency);
     myVfo->setFrequency(frequency);
     widget.waterfallFrame->setFrequency(frequency);
-    qDebug() << __FUNCTION__ << ": line 1227 and frequency is " << f;
 }
 
 void UI::frequencyMoved(int increment,int step) {
@@ -1262,16 +1262,7 @@ void UI::frequencyMoved(int increment,int step) {
         setSubRxPan();
 
     } else {
-        band.setFrequency(band.getFrequency()-(long long)(increment*step));
-        frequency=band.getFrequency();
-        command.clear(); QTextStream(&command) << "setFrequency " << frequency;
-        widget.spectrumFrame->setFrequency(frequency);
-
-//        gvj code
-        myVfo->setFrequency(frequency);
-
-        widget.waterfallFrame->setFrequency(frequency);
-        connection.sendCommand(command);
+        frequencyChanged(band.getFrequency()-(long long)(increment*step));
     }
 }
 
