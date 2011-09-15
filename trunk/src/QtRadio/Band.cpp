@@ -410,7 +410,8 @@ Band::~Band() {
 void Band::loadSettings(QSettings* settings) {
     int i,j;
     QString s;
-
+    BandLimit limitItem;
+    long long limitMin,limitMax;
 
     settings->beginGroup("Band");
     if(settings->contains("currentBand")) {
@@ -442,11 +443,24 @@ void Band::loadSettings(QSettings* settings) {
         }
         settings->endGroup();
     }
+    settings->beginGroup("bandLimits");
+    if(settings->contains("limits.22.min")) { //We have a table of valid limits stored
+        limits.clear();
+        for (i=0;i<23;i++) {
+            s.sprintf("limits.%d.min",i);
+            limitMin=settings->value(s).toLongLong();
+            s.sprintf("limits.%d.max",i);
+            limitMax=settings->value(s).toLongLong();
+            limits << BandLimit(limitMin,limitMax);
+        }
+    }
+    settings->endGroup();
 }
 
 void Band::saveSettings(QSettings* settings) {
     int i,j;
     QString s;
+    BandLimit limitItem;
     
     settings->beginGroup("Band");
     settings->setValue("currentBand",currentBand);
@@ -476,12 +490,29 @@ void Band::saveSettings(QSettings* settings) {
             }
         }
     }
-    
+    settings->endGroup();
+
+    settings->beginGroup("bandLimits");
+    i = 0;
+    limitItem = limits.at(i);
+    while (limitItem.min()!=0LL) {
+        s.sprintf("limits.%d.min",i);
+        settings->setValue(s,limitItem.min());
+        s.sprintf("limits.%d.max",i);
+        settings->setValue(s,limitItem.max());
+        i++;
+        limitItem = limits.at(i);
+    }
+    s.sprintf("limits.%d.min",i);
+    settings->setValue(s,0);
+    s.sprintf("limits.%d.max",i);
+    settings->setValue(s,0);
     settings->endGroup();
 }
 
 void Band::initBand(int b) {
     currentBand=b;
+    qDebug() << __FUNCTION__ << ": currentBand = " << currentBand; //gvj temp
     emit bandChanged(currentBand, currentBand);
 }
 
@@ -501,7 +532,7 @@ void Band::selectBand(int b) {
         stack[currentBand]=currentStack;
     } else {
         // new band
-        qDebug() << "Band::selectBand: new band: stack: " << stack[currentBand];
+        qDebug() << "Band::selectBand: new band: stack: " << stack[previousBand];
         currentStack=stack[currentBand];
     }
 
@@ -509,6 +540,45 @@ void Band::selectBand(int b) {
     
     emit bandChanged(previousBand,currentBand);
 
+}
+
+void Band::bandSelected(int b,long long currentFrequency) {
+    long long f=0;
+    int previousBand=currentBand;
+    currentBand=b;
+
+    // save the current frequency in the current bandstack entry
+    bandstack[currentBand][currentStack].setFrequency(currentFrequency);
+
+    if(previousBand==currentBand) {
+        // step through band stack
+        currentStack++;
+        if(currentStack==BANDSTACK_ENTRIES) {
+            currentStack=0;
+        } else if(bandstack[currentBand][currentStack].getFrequency()==0LL) {
+            currentStack=0;
+        }
+
+
+        qDebug() << "same band currentStack " << currentStack;
+
+    } else {
+        // save the current stack
+        //stack[currentBand]=currentStack;
+
+        // change the band
+        //currentBand=b;
+        // get the last stack entry used
+        currentStack=stack[currentBand];
+        bandstack[currentBand][currentStack].setFrequency(currentFrequency);
+        bandstack[currentBand][currentStack].setMode(getMode());
+        bandstack[currentBand][currentStack].setFilter(getFilter());
+        qDebug() << "currentBand currentStack " << currentBand << ", " << currentStack;
+        emit bandChanged(previousBand,currentBand);
+    }
+
+//    f = bandstack[currentBand][currentStack].getFrequency();
+//    return f;
 }
 
 int Band::getBand() {
@@ -575,42 +645,6 @@ QString Band::getStringBand(int band) {
     return b;
 }
 
-long long Band::bandSelected(int b,long long currentFrequency) {
-    long long f;
-
-    // save the current frequency in the current bandstack entry
-    bandstack[currentBand][currentStack].setFrequency(currentFrequency);
-
-    if(currentBand==b) {
-        // step through band stack
-        currentStack++;
-        if(currentStack==BANDSTACK_ENTRIES) {
-            currentStack=0;
-        } else if(bandstack[currentBand][currentStack].getFrequency()==0LL) {
-            currentStack=0;
-        }
-        
-
-        qDebug() << "same band currentStack " << currentStack;
-
-    } else {
-        // save the current stack
-        stack[currentBand]=currentStack;
-
-        // change the band
-        currentBand=b;
-        // get the last stack entry used
-        currentStack=stack[currentBand];
-
-        qDebug() << "change band currentStack " << currentStack;
-        
-    }
-    
-    f = bandstack[currentBand][currentStack].getFrequency();
-
-    return f;
-}
-
 int Band::getBandStackEntry() {
     return currentStack;
 }
@@ -661,13 +695,40 @@ BandLimit Band::getBandLimits(long long minDisplay, long long maxDisplay) {
             break;
         }
     }
-
+    qDebug() << "gvj value of result is min, max ... " << result.min() << "," << result.max();
     return result;
 
 }
 
-void Band::setFrequency(long long f) {
-    bandstack[currentBand][currentStack].setFrequency(f);
+void Band::setFrequency(long long f) {  //Called by UI::frequencyChanged(long long frequency)
+    BandLimit band;
+    int newBand, newStack;
+
+    for(newBand=0;newBand<limits.size();newBand++) {      //Check to see what band this frequency lies in
+        band=limits.at(newBand);
+        if((band.min()<=f)&&(band.max()>=f)) {; // then frequency is within this band
+            break;
+        }
+    }
+    if(newBand == limits.size()) { //frequency not found within any band so it is "GEN"
+        newBand = BAND_GEN;
+    }
+
+    qDebug() << "In setFrequency(), the value of newBand, currentBand & f = " << newBand <<", " << currentBand << ", " << f;
+
+    if(currentBand!=newBand) {   //True if we changed band so setup new band
+        newStack = stack[newBand];
+        bandstack[newBand][newStack].setFrequency(f);
+        bandstack[newBand][newStack].setMode(getMode());
+        bandstack[newBand][newStack].setFilter(getFilter());
+        bandstack[newBand][newStack].setSpectrumHigh(getSpectrumHigh());
+        bandstack[newBand][newStack].setSpectrumLow(getSpectrumLow());
+        bandstack[newBand][newStack].setWaterfallHigh(getWaterfallHigh());
+        bandstack[newBand][newStack].setWaterfallLow(getWaterfallLow());
+        selectBand(newBand);
+    } else {
+        bandstack[currentBand][currentStack].setFrequency(f);
+    }
 }
 
 void Band::setMode(int m) {

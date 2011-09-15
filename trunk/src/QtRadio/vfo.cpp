@@ -14,6 +14,7 @@ vfo::vfo(QWidget *parent) :
     browsePtr = 0;
     selectedVFO = 'A';
     ptt = false;
+
     bands = new int*[12];  // Create 12 rows (there are 12 buttons)
     for (int nCount=0; nCount < 12; nCount++)
         bands[nCount] = new int[bDat_index + 1];  // Create 8 columns
@@ -25,9 +26,10 @@ vfo::vfo(QWidget *parent) :
         bands[row][bDat_index] = 0; // Overwrite the index to zero for each row
     }
 //    readSettings();
-    setBandButton(readA());
+//gvj    setBandButton(readA());
+    ui->btnGrpBand->addButton(ui->bandBtn_12);
     connect(ui->btnGrpBand, SIGNAL(buttonClicked(int)),
-                this, SLOT(btnGrpBand(int)));
+                this, SLOT(btnGrpClicked(int)));
     connect(ui->hSlider, SIGNAL(valueChanged(int)),
                 this, SLOT(processRIT(int)));
     connect(ui->pBtnClrTrail, SIGNAL(toggled(bool)),
@@ -39,7 +41,7 @@ vfo::~vfo()
     delete ui;
 }
 
-void vfo::getFrequency(int freq)
+void vfo::setFrequency(int freq)
 {
     spectrumFrequency = freq;
     if (selectedVFO == 'A') {
@@ -145,48 +147,13 @@ void vfo::on_pBtnRIT_clicked()
     }
 }
 
-void vfo::btnGrpBand(int btn)
+void vfo::btnGrpClicked(int btn)
 {
-    int retrievedFreq;
-    int vfoFreq;
-    int cnt;
-//    bool vfoBflag;
-
-    btn = -1 * (btn + 2); //Map buttons (-2 .. -14) to (0 .. 11)
-    // Test to see if we are changing band.
-    if (btn != cur_Band) {
-        cur_Band = btn; //Yes, so retrieve current freq for band.
-        retrievedFreq = bands[btn][bDat_cFreq];
-        for (cnt = 0; cnt < 4; cnt++) {   //If the freq is in one of the memories then set
-            if (retrievedFreq == bands[btn][cnt]) break;  // the browsePtr to point to it.
-        }
-        if (cnt != 4) { //cnt will be 4 if no matching memory.
-            browsePtr = cnt; // Points to matching memory position
-        }   else {
-            browsePtr = bands[btn][bDat_index]; //Initialised to point to last stored freq.
-        }
-    } else {
-        retrievedFreq = bands[btn][browsePtr];
-        if (selectedVFO != 'B') {
-        vfoFreq = readA();
-        }   else {
-        vfoFreq = readB();
-        }
-        if (vfoFreq == retrievedFreq) {
-            browsePtr++;
-            browsePtr &= 0x03;
-            retrievedFreq = bands[btn][browsePtr];
-        }
-    }
-    if (selectedVFO != 'B') {
-        writeA(retrievedFreq);
-    } else {
-        writeB(retrievedFreq);
-    }
+    btn = -1 * (btn + 2); //Map buttons (-2 .. -15) to (0 .. 12)
+    emit bandBtnClicked(btn);
 }
 
-
-// When we arrive here from a right button click on the bandButtons group the variable
+// We arrive here from a mousePressEvent detecting aright button click on the bandButtons area the variable
 // cur_Band will hold the index to the required band button
 void vfo::storeVFO()
 {
@@ -237,12 +204,10 @@ void vfo::mousePressEvent(QMouseEvent *event)
 // qDebug() << (QString::number(event->x()) + "/" + QString::number(event->y()));
         //Check to see if we have right clicked on the band button group
         if ((event->x() > 414) && (event->x() < 573) && (event->y() > 6) && (event->y() < 111)) {
-//            qDebug() << "Button Group Clicked";
-            storeVFO();
-
-        // Check to see if we have right clicked the RIT slider
+            qDebug() << "Band buttons have been rightClicked";
+            emit rightBandClick();
         } else if ((event->x() > 189) && (event->x() < 403) && (event->y() > 89) && (event->y() < 111)) {
-                ui->hSlider->setValue(0);
+                ui->hSlider->setValue(0); // Check to see if we have right clicked the RIT slider
         } else { // We have clicked either on the display or somewhere else on the widget
             digit = getDigit(event->x(), event->y());
             if (digit != 9) {  // getDigit returns 9 if click was outside display area.
@@ -291,7 +256,7 @@ void vfo::wheelEvent(QWheelEvent *event)
 {
     QString str;
     int x, digit;
-    int direction = 0;
+    int direction = 1;
     static const int mult[2][9] = {
         {100000000,10000000,1000000,100000,10000,1000,100,10,1},            // Retrieve with mult[0][0 ... 8]
         {-100000000,-10000000,-1000000,-100000,-10000,-1000,-100,-10,-1}    // Retrieve with mult[1][0 ... 8]
@@ -299,7 +264,7 @@ void vfo::wheelEvent(QWheelEvent *event)
 
     digit = getDigit(event->x(), event->y());
     if (digit != 9) {  // getDigit returns 9 if click was outside display area so we just fall through.
-        if (event->delta() < 0) direction = 1;  // x becomes pos or neg depending on wheel rotation.
+        if (event->delta() < 0) direction = 0;  // x becomes pos or neg depending on wheel rotation.
         if (digit < 9) { // getDigit returns 0 ... 8 if we clicked on vfoA
             x = mult[direction][digit];
             x = x + readA();
@@ -332,7 +297,7 @@ void vfo::writeA(int freq)
         else ui->lbl_Amhz->setText(myStr.at(cnt)+ui->lbl_Amhz->text());
     }
     if (selectedVFO != 'B') {  // i.e. selectedVFO is 'A' or 'S'
-        setBandButton(freq);
+//gvj        setBandButton(freq);
     }
     if (ptt) {
         if (selectedVFO == 'A') {
@@ -366,7 +331,7 @@ void vfo::writeB(int freq)
         else ui->lbl_Bmhz->setText(myStr.at(cnt)+ui->lbl_Bmhz->text());
     }
     if (selectedVFO == 'B') {
-        setBandButton(freq);
+//gvj        setBandButton(freq);
     }
     if (ptt) {
         if (selectedVFO != 'A') {
@@ -379,6 +344,11 @@ qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
         if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
     }
+}
+
+void vfo::checkBandBtn(int band)
+{
+    ui->btnGrpBand->button((band+2)*-1)->setChecked(true);
 }
 
 void vfo::setBandButton(int freq)
@@ -423,7 +393,7 @@ void vfo::on_pBtnvfoA_clicked()
         ui->pBtnvfoB->setStyleSheet("background-color: normal");
         ui->pBtnSplit->setStyleSheet("background-color: normal");
         vfoEnabled(true, false);
-        setBandButton(readA());
+//gvj        setBandButton(readA());
         writeA(readA());
     }
 }
@@ -440,7 +410,7 @@ void vfo::on_pBtnvfoB_clicked()
         ui->pBtnvfoA->setStyleSheet("background-color: normal");
         ui->pBtnSplit->setStyleSheet("background-color: normal");
         vfoEnabled(false, true);
-        setBandButton(readB());
+//gvj        setBandButton(readB());
         writeB(readB());
     }
 }
@@ -457,7 +427,7 @@ void vfo::on_pBtnSplit_clicked()
         ui->pBtnvfoB->setStyleSheet("background-color: rgb(255, 155, 155)");
         ui->pBtnSplit->setStyleSheet("background-color: rgb(0, 170, 255)");
         vfoEnabled(true, false);
-        setBandButton(readA());
+//gvj        setBandButton(readA());
         if (ptt == true) {
             writeB(readB());
         } else {
@@ -513,9 +483,8 @@ void vfo::vfoEnabled(bool setA, bool setB)
 
 void vfo::readSettings(QSettings* settings)
 {
-//    QSettings settings("freesoftware", "vfo");
-
     settings->beginGroup("vfo");
+/*
     bands[0][bDat_mem00] = (settings->value("Band0_Mem00",1850000).toInt());
     bands[0][bDat_mem01] = (settings->value("Band0_Mem01",1860000).toInt());
     bands[0][bDat_mem02] = (settings->value("Band0_Mem02",1870000).toInt());
@@ -659,20 +628,19 @@ void vfo::readSettings(QSettings* settings)
     bands[11][bDat_filtH] = (settings->value("Band11_FiltH",2800).toInt());
     bands[11][bDat_filtL] = (settings->value("Band11_FiltL",200).toInt());
     bands[11][bDat_index] = (settings->value("Band11_Index",0).toInt());
+*/
 
-
-    writeA(settings->value("vfoA_f",3502000).toInt());  // These need to be done after all the frequency
+//    writeA(settings->value("vfoA_f",3502000).toInt());  // These need to be done after all the frequency
     writeB(settings->value("vfoB_f",14234567).toInt()); // settings have been read and set.
     settings->endGroup();
 }
 
 void vfo::writeSettings(QSettings* settings)
 {
-//    QSettings settings("freesoftware","vfo");
-
     settings->beginGroup("vfo");
-    settings->setValue("vfoA_f", readA());
+//    settings->setValue("vfoA_f", readA());
     settings->setValue("vfoB_f", readB());
+/*
     settings->setValue("Band0_Mem00",bands[0][bDat_mem00]);
     settings->setValue("Band0_Mem01",bands[0][bDat_mem01]);
     settings->setValue("Band0_Mem02",bands[0][bDat_mem02]);
@@ -816,6 +784,7 @@ void vfo::writeSettings(QSettings* settings)
     settings->setValue("Band11_FiltH",bands[11][bDat_filtH]);
     settings->setValue("Band11_FiltL",bands[11][bDat_filtL]);
     settings->setValue("Band11_Index",bands[11][bDat_index]);
+*/
     settings->endGroup();
 }
 

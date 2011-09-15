@@ -27,7 +27,19 @@
 #if !defined __RECEIVER_H__
 #define __RECEIVER_H__
 
-#define MAX_RECEIVERS 8
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <string.h>
+
+#include <usb.h>
+
+#include "client.h"
+
+#define MAX_RECEIVERS 4
 
 #define BUFFER_SIZE 1024
 

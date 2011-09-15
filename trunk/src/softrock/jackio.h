@@ -1,13 +1,13 @@
 /**
-* @file softrockio.h
-* @brief Audio I/O
-* @author John Melton, G0ORX/N6LYT
+* @file jackio.h
+* @brief Softrock implementation
+* @author Rob Frohne, KL7NA "at" arrl "dot" net
 * @version 0.1
-* @date 2009-10-13
+* @date 20011-09-05
 */
 
 /* Copyright (C)
-* 2009 - John Melton, G0ORX/N6LYT
+* 2011 Rob Frohne
 * This program is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
 * as published by the Free Software Foundation; either version 2
@@ -23,19 +23,29 @@
 * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 *
 */
+//#ifdef JACKAUDIO
 
-int softrock_open(void);
-int softrock_close();
-#ifdef PULSEAUDIO
-int softrock_write(float* left_samples,float* right_samples);
-int softrock_read(float* left_samples,float* right_samples);
-#endif
-#ifdef PORTAUDIO
-int softrock_write(float* left_samples,float* right_samples);
-int softrock_read(float* left_samples,float* right_samples);
-#endif
-#ifdef DIRECTAUDIO
-int softrock_write(unsigned char* buffer,int buffer_size);
-int softrock_read(unsigned char* buffer,int buffer_size);
+
+#if !defined __JACKIO_H__
+#define __JACKIO_H__
+#include <jack/jack.h>
+
+
+#include "softrock.h"
+
+#ifdef JACKAUDIO
+#include "receiver.h"
+
+
+int init_jack_audio(void);
+void jack_cleanup(void);
+int process(jack_nframes_t number_of_frames, void *arg);
+void jack_shutdown (void *arg);
+
+/* global jack variables. */
+jack_client_t *softrock_client;
+jack_port_t *audio_input_port_left[MAX_RECEIVERS], *audio_input_port_right[MAX_RECEIVERS];
+
 #endif
 
+#endif

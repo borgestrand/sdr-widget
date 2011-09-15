@@ -58,7 +58,9 @@ static struct option long_options[] = {
     {"correctedfreq",required_argument, 0, 10},
     {"serialid",required_argument, 0, 11},
     {"record",required_argument, 0, 12},
-    {"playback",required_argument, 0, 13}
+    {"playback",required_argument, 0, 13},
+		{"receivers",required_argument, 0, 14},
+		{"jack",no_argument, 0, 15}
 };
 
 static char* short_options="sd";
@@ -71,6 +73,7 @@ double multiplier=4;
 int i2cAddress = 0x55;
 double fXtall = 114.285;
 char* usbSerialID=NULL;
+int setByValue = 1;
 
 usb_dev_handle* handle = NULL;
 
@@ -79,8 +82,9 @@ void process_args(int argc,char* argv[]);
 int main(int argc,char* argv[]) {
 
     int rc;
-
+#ifdef DIRECTAUDIO
     softrock_set_device("/dev/dsp");
+#endif
 
     process_args(argc,argv);
 
@@ -110,24 +114,27 @@ void process_args(int argc,char* argv[]) {
     // set defaults
     softrock_set_receivers(1);
     softrock_set_sample_rate(96000);
+#ifdef JACKAUDIO
+		softrock_set_jack(0);
+#endif
     //softrock_set_device("/dev/dsp");
 
     while((i=getopt_long(argc,argv,short_options,long_options,&option_index))!=EOF) {
         switch(option_index) {
             case 0: // sample rate
-fprintf(stderr,"process_args: samplerate=%s\n",optarg);
+								fprintf(stderr,"process_args: samplerate=%s\n",optarg);
                 softrock_set_sample_rate(atoi(optarg));
                 break;
             case 1: // device
-fprintf(stderr,"process_args: device=%s\n",optarg);
+								fprintf(stderr,"process_args: device=%s\n",optarg);
                 softrock_set_device(optarg);
                 break;
             case 2: // input
-fprintf(stderr,"process_args: input=%s\n",optarg);
+								fprintf(stderr,"process_args: input=%s\n",optarg);
                 softrock_set_input(optarg);
                 break;
             case 3: // output
-fprintf(stderr,"process_args: output=%s\n",optarg);
+								fprintf(stderr,"process_args: output=%s\n",optarg);
                 softrock_set_output(optarg);
                 break;
             case 4: // iq
@@ -150,6 +157,7 @@ fprintf(stderr,"process_args: output=%s\n",optarg);
                 break;
             case 10: // corrected xtal freq
                 fXtall=atof(optarg);
+								setByValue = 0;
                 break;
             case 11: // serial ID
                 usbSerialID=optarg;
@@ -160,6 +168,14 @@ fprintf(stderr,"process_args: output=%s\n",optarg);
             case 13: // playback
                 softrock_set_playback(optarg);
                 break;
+					  case 14: // receivers
+                softrock_set_receivers(atoi(optarg));
+                break;
+#ifdef JACKAUDIO
+						case 15: // jack
+                softrock_set_jack(1);
+                break;
+#endif
             default:
                 fprintf(stderr,"invalid argument\n");
                 exit(1);

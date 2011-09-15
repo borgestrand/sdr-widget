@@ -529,7 +529,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="pBtnTime">
+   <widget class="QPushButton" name="bandBtn_12">
     <property name="geometry">
      <rect>
       <x>353</x>
@@ -545,7 +545,10 @@
      </font>
     </property>
     <property name="text">
-     <string>Time</string>
+     <string>WWV</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="Line" name="line_2">
@@ -630,7 +633,7 @@
      </font>
     </property>
     <property name="text">
-     <string>40</string>
+     <string>60</string>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -655,7 +658,7 @@
      </font>
     </property>
     <property name="text">
-     <string>30</string>
+     <string>40</string>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -680,7 +683,7 @@
      </font>
     </property>
     <property name="text">
-     <string>20</string>
+     <string>30</string>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -705,7 +708,7 @@
      </font>
     </property>
     <property name="text">
-     <string>17</string>
+     <string>20</string>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -730,7 +733,7 @@
      </font>
     </property>
     <property name="text">
-     <string>15</string>
+     <string>17</string>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -755,7 +758,7 @@
      </font>
     </property>
     <property name="text">
-     <string>12</string>
+     <string>15</string>
     </property>
     <property name="checkable">
      <bool>true</bool>
@@ -780,7 +783,7 @@
      </font>
     </property>
     <property name="text">
-     <string>11</string>
+     <string>12</string>
     </property>
     <property name="checkable">
      <bool>true</bool>

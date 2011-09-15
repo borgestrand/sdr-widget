@@ -29,7 +29,8 @@
 #define PULSEAUDIO
 //#define PORTAUDIO
 //#define DIRECTAUDIO
-
+#define JACKAUDIO
+ 
 int create_softrock_thread(void);
 void softrock_set_device(char* d);
 char* softrock_get_device(void);
@@ -50,6 +51,15 @@ void softrock_set_record(char* filename);
 void softrock_set_playback(char* filename);
 void softrock_record_buffer(char* buffer,int length);
 void softrock_playback_buffer(char* buffer,int length);
+
+void softrock_set_jack(int flag);
+int softrock_get_jack(void);
+
+void softrock_set_rx_frame(int frame);
+int softrock_get_rx_frame(void);
+
+void softrock_set_input_buffers(int buffers);
+int softrock_get_input_buffers(void);
 
 int softrock_get_record(void);
 int softrock_get_playback(void);

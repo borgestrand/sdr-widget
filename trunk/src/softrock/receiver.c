@@ -25,17 +25,9 @@
 *
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <string.h>
 
-#include <usb.h>
 
-#include "client.h"
+
 #include "receiver.h"
 #include "messages.h"
 #include "softrock.h"
@@ -54,9 +46,10 @@ static unsigned long sequence=0L;
 
 extern int si570;
 extern usb_dev_handle* handle;
+extern int setByValue;
 
 void init_receivers() {
-    int i;
+	  int i;
     for(i=0;i<MAX_RECEIVERS;i++) {
         receiver[i].client=(CLIENT*)NULL;
     }
@@ -135,7 +128,10 @@ char* set_frequency(CLIENT* client,long frequency) {
     receiver[client->receiver].frequency_changed=1;
 
     if(si570) {
-        setFreqByValue(handle,(double)frequency/1000000.0);
+			if (setByValue)
+        setFreqByValue(handle, (double)frequency/1000000.0);
+      else
+        setFrequency(handle,(double)frequency/1000000.0);
     } else {
         fprintf(stderr,"Warning: no way to set the softrock frequency\n");
     }

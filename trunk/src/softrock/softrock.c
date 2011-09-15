@@ -1,10 +1,10 @@
 /**
-* @file softrock.c
-* @brief Softrock audio implementation
-* @author John Melton, G0ORX/N6LYT
-* @version 0.1
-* @date 2009-10-13
-*/
+ * @file softrock.c
+ * @brief Softrock audio implementation
+ * @author John Melton, G0ORX/N6LYT
+ * @version 0.1
+ * @date 2009-10-13
+ */
 
 
 /* Copyright (C)
@@ -38,6 +38,7 @@
 #include "softrockio.h"
 #include "receiver.h"
 #include "util.h"
+#include "jackio.h"
 
 static pthread_t softrock_io_thread_id;
 
@@ -45,6 +46,8 @@ static int rx_frame=0;
 //static int tx_frame=0;
 static int receivers=1;
 static int current_receiver=0;
+
+static int use_jack=0;
 
 static int speed=0;
 static int sample_rate=48000;
@@ -75,26 +78,46 @@ static FILE* recording;
 
 void* softrock_io_thread(void* arg);
 
-#ifndef PORTAUDIO
+#if (defined PULSEAUDIO || defined DIRECTAUDIO)
 void process_softrock_input_buffer(char* buffer);
 #endif
 
+#ifdef JACKAUDIO
+
+#endif
+
 int softrock_init(void);
+int init_jack_audio (void);
 
 int create_softrock_thread() {
-    int rc;
-
-    softrock_init();
-
-    // create a thread to read from the audio deice
-    rc=pthread_create(&softrock_io_thread_id,NULL,softrock_io_thread,NULL);
-    if(rc != 0) {
-        fprintf(stderr,"pthread_create failed on softrock_io_thread: rc=%d\n", rc);
-        exit(1);
-    }
-
-    return 0;
+	int rc;
+	softrock_init();
+#ifdef JACKAUDIO
+	if(softrock_get_jack() == 0) 
+#endif
+		{ //not running jack audio
+		// create a thread to read from the audio deice
+		rc=pthread_create(&softrock_io_thread_id,NULL,softrock_io_thread,NULL);
+		if(rc != 0) {
+			fprintf(stderr,"pthread_create failed on softrock_io_thread: rc=%d\n", rc);
+			exit(1);
+		}
+		return 0;
+	}
+#ifdef JACKAUDIO //(Using callback)
+	else {
+		if (init_jack_audio() != 0) {
+			fprintf(stderr, "There was a problem initializing Jack Audio.\n");
+			return 1;
+		}
+		else
+			{
+				return 0;
+			}
+	}
+#endif			
 }
+
 
 void softrock_set_device(char* d) {
 fprintf(stderr,"softrock_set_device %s\n",d);
@@ -137,6 +160,31 @@ void softrock_set_receivers(int r) {
 int softrock_get_receivers() {
     return receivers;
 }
+#ifdef JACKAUDIO
+void softrock_set_jack(int flag) {
+	use_jack = flag;
+}
+
+int softrock_get_jack() {
+    return use_jack;
+}
+#endif
+void softrock_set_rx_frame(int frame) {
+	rx_frame = frame;
+}
+
+int softrock_get_rx_frame() {
+    return rx_frame;
+}
+
+void softrock_set_input_buffers(int buffers) {
+	input_buffers = buffers;
+}
+
+int softrock_get_input_buffers() {
+    return input_buffers;
+}
+
 
 void softrock_set_sample_rate(int r) {
 fprintf(stderr,"softrock_set_sample_rate %d\n",r);
@@ -220,7 +268,7 @@ int softrock_init(void) {
         recording=fopen(filename,"w");
     } else if(playback) {
         recording=fopen(filename,"r");
-fprintf(stderr,"opening %s\n",filename);
+				fprintf(stderr,"opening %s\n",filename);
     }
 
     // open softrock audio
@@ -235,7 +283,7 @@ fprintf(stderr,"opening %s\n",filename);
         receiver[i].frequency_changed=1;
     }
 
-fprintf(stderr,"server configured for %d receivers at %d\n",receivers,sample_rate);
+		fprintf(stderr,"server configured for %d receivers at %d\n",receivers,sample_rate);
     return rc;
 }
 
@@ -257,15 +305,17 @@ void softrock_playback_buffer(char* buffer,int length) {
             // assumes eof
             fclose(recording);
             recording=fopen(filename,"r");
-fprintf(stderr,"playback: re-opening %s\n",filename);
+						fprintf(stderr,"playback: re-opening %s\n",filename);
             bytes=fread(buffer,sizeof(char),length,recording);
         } else {
-//fprintf(stderr,"playback: read %d bytes\n",bytes);
+					//fprintf(stderr,"playback: read %d bytes\n",bytes);
         }
     }
 }
+
+//#ifndef JACKAUDIO
 void* softrock_io_thread(void* arg) {
-#if defined PULSEAUDIO || definedPORTAUDIO
+#if (defined PULSEAUDIO || defined PORTAUDIO)
     int rc;
 #else    
     unsigned char input_buffer[BUFFER_SIZE*2]; // samples * 2 * 2
@@ -319,6 +369,7 @@ void* softrock_io_thread(void* arg) {
         }
     }
 }
+//#endif
 
 #ifdef DIRECTAUDIO
 void process_softrock_input_buffer(char* buffer) {
@@ -333,7 +384,7 @@ void process_softrock_input_buffer(char* buffer) {
     while(b<(BUFFER_SIZE*2*2)) {
         // extract each of the receivers
         for(r=0;r<receivers;r++) {
-//fprintf(stderr,"%d: %02X%02X %02X%02X\n",samples,buffer[b]&0xFF,buffer[b+1]&0xFF,buffer[b+2]&0xFF,buffer[b+3]&0xFF);
+					//fprintf(stderr,"%d: %02X%02X %02X%02X\n",samples,buffer[b]&0xFF,buffer[b+1]&0xFF,buffer[b+2]&0xFF,buffer[b+3]&0xFF);
             left_sample   = (int)((unsigned char)buffer[b++]);
             left_sample  |= (int)((signed char)buffer[b++])<<8;
             //left_sample  += (int)((unsigned char)buffer[b++])<<8;
@@ -351,8 +402,8 @@ void process_softrock_input_buffer(char* buffer) {
             receiver[r].input_buffer[samples]=left_sample_float;
             receiver[r].input_buffer[samples+BUFFER_SIZE]=right_sample_float;
 
-//fprintf(stderr,"%d: %d %d\n",samples,left_sample,right_sample);
-//fprintf(stderr,"%d: %f %f\n",samples,left_sample_float,right_sample_float);
+						//fprintf(stderr,"%d: %d %d\n",samples,left_sample,right_sample);
+						//fprintf(stderr,"%d: %f %f\n",samples,left_sample_float,right_sample_float);
         }
         samples++;
 
@@ -410,3 +461,4 @@ void process_softrock_output_buffer(float* left_output_buffer,float* right_outpu
 
 
 #endif
+

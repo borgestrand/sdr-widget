@@ -60,7 +60,7 @@ public:
     virtual ~Band();
     void initBand(int b);
     void selectBand(int b);
-    long long bandSelected(int b,long long currentFrequency);
+    void bandSelected(int b,long long currentFrequency);
     int getBandStackEntry();
     void setFrequency(long long f);
     long long getFrequency();

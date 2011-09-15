@@ -24,6 +24,19 @@
 *
 */
 
+#if !defined __CLIENT_H__
+#define __CLIENT_H__
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <pthread.h>
+#include <string.h>
 #define AUDIO_PORT 15000
 
 typedef enum {
@@ -44,3 +57,4 @@ typedef struct _client {
 
 void* client_thread(void* arg);
 
+#endif

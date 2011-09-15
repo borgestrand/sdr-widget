@@ -46,7 +46,7 @@
      </widget>
     </item>
     <item row="0" column="1">
-     <widget class="QFrame" name="auxFrame">
+     <widget class="Aux" name="auxFrame">
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
       </property>
@@ -807,6 +807,12 @@
    <class>sMeter</class>
    <extends>QFrame</extends>
    <header>smeter.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>Aux</class>
+   <extends>QFrame</extends>
+   <header location="global">aux.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

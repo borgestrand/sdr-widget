@@ -48,6 +48,7 @@
 #include <linux/soundcard.h>
 #endif
 
+
 static int timing=0;
 static struct timeb start_time;
 static struct timeb end_time;
@@ -61,7 +62,6 @@ static int sample_count=0;
 #ifdef DIRECTAUDIO
 #define SAMPLE_SIZE 16
 #endif
-
 
 #ifdef PULSEAUDIO
 static pa_simple* stream;
@@ -79,6 +79,7 @@ int softrock_open(void) {
     int status;
 #endif
 #ifdef PORTAUDIO
+		int rc;
     int status;
 #endif
 #ifdef PULSEAUDIO
@@ -275,7 +276,7 @@ int softrock_write(float* left_samples,float* right_samples) {
 }
 
 int softrock_read(float* left_samples,float* right_samples) {
-    int rc;
+    int rc=0;
     int error;
     int i;
     float audio_buffer[SAMPLES_PER_BUFFER*2];
@@ -363,7 +364,7 @@ int softrock_read(float* left_samples,float* right_samples) {
         for(i=0;i<SAMPLES_PER_BUFFER;i++) {
             left_samples[i]=audio_buffer[i*2];
             right_samples[i]=audio_buffer[(i*2)+1];
-//fprintf(stderr,"%d left=%f right=%f\n",i, left_samples[i],right_samples[i]);
+					//fprintf(stderr,"%d left=%f right=%f\n",i, left_samples[i],right_samples[i]);
         }
     } else {
         for(i=0;i<SAMPLES_PER_BUFFER;i++) {
@@ -403,3 +404,4 @@ int softrock_read(unsigned char* buffer,int buffer_size) {
     return rc;
 }
 #endif
+

@@ -24,13 +24,16 @@ public:
 
 public slots:
     void togglePTT(bool pttRq); //Request to toggle ptt & return freq
-    void getFrequency(int freq); //Displays "freq" on current vfo according to ptt state
+    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
+    void checkBandBtn(int band);
 
 signals:
     void sendVfoFreq(int freq);
     void sendTxFreq(int freq, bool ptt);
     void setFreq(int freq, bool ptt);
     void frequencyChanged(long long freq);
+    void bandBtnClicked(int band);
+    void rightBandClick();
 
 protected:
     void wheelEvent( QWheelEvent*);
@@ -38,7 +41,7 @@ protected:
 //    void closeEvent(QCloseEvent *);
 
 private slots:
-    void btnGrpBand(int);
+    void btnGrpClicked(int);
     void on_pBtnvfoA_clicked();
     void on_pBtnvfoB_clicked();
     void on_pBtnScanDn_clicked();

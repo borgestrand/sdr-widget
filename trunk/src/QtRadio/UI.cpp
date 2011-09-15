@@ -68,14 +68,14 @@ UI::UI() {
 
 
     // layout the screen
-    widget.gridLayout->setContentsMargins(2,2,2,2);
+//    widget.gridLayout->setContentsMargins(2,2,2,2);
     widget.gridLayout->setVerticalSpacing(0);
     widget.gridLayout->setContentsMargins(0,0,0,0);
     widget.gridLayout->setVerticalSpacing(0);
     widget.sMeterFrame->setFixedWidth(150);
     widget.gridLayout->addWidget(widget.sMeterFrame,0,0);
     widget.gridLayout->addWidget(myVfo,0,1);
-    widget.gridLayout->addWidget(auxFrame,0,2);
+    widget.gridLayout->addWidget(widget.auxFrame,0,2);
     widget.gridLayout->addWidget(widget.spectrumFrame,1,0,1,3);
     widget.gridLayout->addWidget(widget.waterfallFrame,2,0,1,3);
 
@@ -113,6 +113,7 @@ UI::UI() {
     connect(widget.actionKeypad, SIGNAL(triggered()),this,SLOT(actionKeypad()));
     connect(&keypad,SIGNAL(setKeypadFrequency(long long)),this,SLOT(setKeypadFrequency(long long)));
 
+    connect(myVfo, SIGNAL(bandBtnClicked(int)),this,SLOT(getBandBtn(int)));
     connect(widget.action160, SIGNAL(triggered()),this,SLOT(action160()));
     connect(widget.action80, SIGNAL(triggered()),this,SLOT(action80()));
     connect(widget.action60, SIGNAL(triggered()),this,SLOT(action60()));
@@ -183,8 +184,8 @@ UI::UI() {
     // connect up spectrum frame
     connect(widget.spectrumFrame, SIGNAL(frequencyMoved(int,int)),
             this, SLOT(frequencyMoved(int,int)));
-    connect(widget.spectrumFrame, SIGNAL(frequencyChanged(long long)),
-            this, SLOT(frequencyChanged(long long)));
+//    connect(widget.spectrumFrame, SIGNAL(frequencyChanged(long long)),
+//            this, SLOT(frequencyChanged(long long)));
     connect(widget.spectrumFrame, SIGNAL(spectrumHighChanged(int)),
             this,SLOT(spectrumHighChanged(int)));
     connect(widget.spectrumFrame, SIGNAL(spectrumLowChanged(int)),
@@ -317,7 +318,7 @@ void UI::loadSettings() {
     settings.endGroup();
 
     settings.beginGroup("mainWindow");
-    qDebug() << "######################################################## getGeometryState = " << configure.getGeometryState();
+//    qDebug() << "######################################################## getGeometryState = " << configure.getGeometryState();//gvj
     if (configure.getGeometryState()) {
         restoreGeometry(settings.value("geometry").toByteArray());
     }
@@ -472,7 +473,7 @@ void UI::connected() {
     widget.waterfallFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->getFrequency(frequency);
+    myVfo->setFrequency(frequency);
 
     command.clear(); QTextStream(&command) << "setMode " << band.getMode();
     connection.sendCommand(command);
@@ -666,6 +667,10 @@ void UI::setKeypadFrequency(long long f) {
     frequencyChanged(f);
 }
 
+void UI::getBandBtn(int btn) {
+    band.selectBand(btn);
+}
+
 void UI::action160() {
     band.selectBand(BAND_160);
 }
@@ -805,6 +810,8 @@ void UI::bandChanged(int previousBand,int newBand) {
             widget.actionWWV->setChecked(TRUE);
             break;
     }
+    //Now select the correct band button in myVFO
+    myVfo->checkBandBtn(newBand);
 
     // get the band setting
     mode.setMode(band.getMode());
@@ -823,8 +830,8 @@ void UI::bandChanged(int previousBand,int newBand) {
     widget.spectrumFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->getFrequency(frequency);
-
+    myVfo->setFrequency(frequency);
+    qDebug() << __FUNCTION__ << ": frequency, newBand = " << frequency << ", " << newBand;
     widget.spectrumFrame->setSubRxFrequency(subRxFrequency);
     widget.spectrumFrame->setHigh(band.getSpectrumHigh());
     widget.spectrumFrame->setLow(band.getSpectrumLow());
@@ -1219,27 +1226,23 @@ void UI::filterChanged(int previousFilter,int newFilter) {
 
 void UI::frequencyChanged(long long f) {
     QString command;
-    //qDebug() << __FUNCTION__ << ": " << f;
 
     frequency=f;
+    //Send command to server
     command.clear();
-    QTextStream(&command) << "setFrequency " << f;
-
-    band.setFrequency(f);
+    QTextStream(&command) << "setFrequency " << frequency;
     connection.sendCommand(command);
-    widget.spectrumFrame->setFrequency(f);
-
-//    gvj code
-    myVfo->getFrequency(frequency);
-    qDebug() << "At frequency changed and frequency is " << f;
-
-    widget.waterfallFrame->setFrequency(f);
+    //Adjust all frequency displays & Check for exiting current band
+    band.setFrequency(frequency);
+    widget.spectrumFrame->setFrequency(frequency);
+    myVfo->setFrequency(frequency);
+    widget.waterfallFrame->setFrequency(frequency);
 }
 
 void UI::frequencyMoved(int increment,int step) {
     QString command;
 
-    //qDebug() << __FUNCTION__ << ": increment=" << increment << " step=" << step;
+    qDebug() << __FUNCTION__ << ": increment=" << increment << " step=" << step;
 
     long long f;
 
@@ -1259,16 +1262,7 @@ void UI::frequencyMoved(int increment,int step) {
         setSubRxPan();
 
     } else {
-        band.setFrequency(band.getFrequency()-(long long)(increment*step));
-        frequency=band.getFrequency();
-        command.clear(); QTextStream(&command) << "setFrequency " << frequency;
-        widget.spectrumFrame->setFrequency(frequency);
-
-//        gvj code
-        myVfo->getFrequency(frequency);
-
-        widget.waterfallFrame->setFrequency(frequency);
-        connection.sendCommand(command);
+        frequencyChanged(band.getFrequency()-(long long)(increment*step));
     }
 }
 
@@ -1613,7 +1607,7 @@ void UI::selectBookmark(QAction* action) {
     widget.waterfallFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->getFrequency(frequency);
+    myVfo->setFrequency(frequency);
 
     mode.setMode(bookmarks.getMode());
 
