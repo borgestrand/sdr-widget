@@ -24,6 +24,7 @@ BUILT_SOURCES=                  \
     ui_BookmarksEditDialog.h \
     ui_KeypadDialog.h \
     ui_vfo.h \
+    ui_aux.h \
 About.moc.cpp                    \
 Audio.moc.cpp                    \
 Band.moc.cpp                     \
@@ -46,7 +47,8 @@ UI.moc.cpp                       \
 vfo.moc.cpp                      \
 Waterfall.moc.cpp                \
 Xvtr.moc.cpp \
-smeter.moc.cpp 
+smeter.moc.cpp \
+aux.moc.cpp 
 
 	
 nodist_QtRadio_SOURCES = \
@@ -59,6 +61,7 @@ nodist_QtRadio_SOURCES = \
     ui_BookmarksEditDialog.h \
     ui_KeypadDialog.h \
     ui_vfo.h \
+    ui_aux.h \
 About.moc.cpp                  \
 Audio.moc.cpp                  \
 Band.moc.cpp                   \
@@ -81,7 +84,8 @@ UI.moc.cpp                     \
 vfo.moc.cpp                    \
 Waterfall.moc.cpp              \
 Xvtr.moc.cpp                   \
-smeter.moc.cpp                 
+smeter.moc.cpp                 \
+aux.moc.cpp
 
 
 
@@ -93,12 +97,15 @@ Audio.cpp      BookmarkDialog.cpp       Connection.cpp   Filter.cpp       Keypad
 Band.cpp       Bookmarks.cpp            CWLFilters.cpp   FiltersBase.cpp  LSBFilters.cpp     UI.cpp                         \
 BandLimit.cpp  BookmarksDialog.cpp      CWUFilters.cpp   Filters.cpp      main.cpp           USBFilters.cpp                 \
 Bandscope.cpp  BookmarksEditDialog.cpp  DIGLFilters.cpp  FMNFilters.cpp   Meter.cpp          vfo.cpp         smeter.cpp     \
+aux.cpp \
 About.h      Bandscope.h        BookmarksEditDialog.h  Connection.h   DSBFilters.h   Frequency.h      Mode.h        vfo.h        \
 AMFilters.h  BandStackEntry.h   Bookmarks.h            CWLFilters.h   Filter.h       FrequencyInfo.h  SAMFilters.h  Waterfall.h  \
 Audio.h      BookmarkDialog.h   Buffer.h               CWUFilters.h   FiltersBase.h  KeypadDialog.h   Spectrum.h    XvtrEntry.h  \
 Band.h       Bookmark.h         codec2.h               DIGLFilters.h  Filters.h      LSBFilters.h     UI.h          Xvtr.h       \
 BandLimit.h  BookmarksDialog.h  Configure.h            DIGUFilters.h  FMNFilters.h   Meter.h          USBFilters.h  smeter.h \
-About.ui  Bandscope.ui  BookmarksDialog.ui  BookmarksEditDialog.ui  Bookmark.ui  Configure.ui  KeypadDialog.ui  UI.ui  vfo.ui
+aux.h \
+About.ui  Bandscope.ui  BookmarksDialog.ui  BookmarksEditDialog.ui  Bookmark.ui  Configure.ui  KeypadDialog.ui  UI.ui  vfo.ui \
+aux.ui
 
 CLEANFILES =                  \
     ui_UI.h \
@@ -110,6 +117,7 @@ CLEANFILES =                  \
     ui_BookmarksEditDialog.h \
     ui_KeypadDialog.h \
     ui_vfo.h \
+    ui_aux.h \
 About.moc.cpp                    \
 Audio.moc.cpp                    \
 Band.moc.cpp                     \
@@ -132,7 +140,8 @@ UI.moc.cpp                       \
 vfo.moc.cpp                      \
 Waterfall.moc.cpp                \
 Xvtr.moc.cpp                     \
-smeter.moc.cpp                   
+smeter.moc.cpp                   \
+aux.moc.cpp
 
 #
 # auxiliary services, git string, icons
