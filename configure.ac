@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.65])
-AC_INIT([ghpsdr3], [1.3], [andrew@montefusco.com])
+AC_INIT([ghpsdr3], [1.4], [andrew@montefusco.com])
 
 AM_INIT_AUTOMAKE
 
