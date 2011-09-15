@@ -33,6 +33,7 @@ signals:
     void setFreq(int freq, bool ptt);
     void frequencyChanged(long long freq);
     void bandBtnClicked(int band);
+    void rightBandClick();
 
 protected:
     void wheelEvent( QWheelEvent*);
