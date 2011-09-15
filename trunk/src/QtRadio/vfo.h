@@ -40,7 +40,7 @@ protected:
 //    void closeEvent(QCloseEvent *);
 
 private slots:
-    void btnGrpBand(int);
+    void btnGrpClicked(int);
     void on_pBtnvfoA_clicked();
     void on_pBtnvfoB_clicked();
     void on_pBtnScanDn_clicked();

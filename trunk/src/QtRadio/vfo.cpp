@@ -14,6 +14,7 @@ vfo::vfo(QWidget *parent) :
     browsePtr = 0;
     selectedVFO = 'A';
     ptt = false;
+
     bands = new int*[12];  // Create 12 rows (there are 12 buttons)
     for (int nCount=0; nCount < 12; nCount++)
         bands[nCount] = new int[bDat_index + 1];  // Create 8 columns
@@ -26,8 +27,9 @@ vfo::vfo(QWidget *parent) :
     }
 //    readSettings();
 //gvj    setBandButton(readA());
+    ui->btnGrpBand->addButton(ui->bandBtn_12);
     connect(ui->btnGrpBand, SIGNAL(buttonClicked(int)),
-                this, SLOT(btnGrpBand(int)));
+                this, SLOT(btnGrpClicked(int)));
     connect(ui->hSlider, SIGNAL(valueChanged(int)),
                 this, SLOT(processRIT(int)));
     connect(ui->pBtnClrTrail, SIGNAL(toggled(bool)),
@@ -145,7 +147,7 @@ void vfo::on_pBtnRIT_clicked()
     }
 }
 
-void vfo::btnGrpBand(int btn)
+void vfo::btnGrpClicked(int btn)
 {
     int retrievedFreq;
     int vfoFreq;

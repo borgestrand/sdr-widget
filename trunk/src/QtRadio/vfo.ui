@@ -529,7 +529,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="pBtnTime">
+   <widget class="QPushButton" name="bandBtn_12">
     <property name="geometry">
      <rect>
       <x>353</x>
@@ -546,6 +546,9 @@
     </property>
     <property name="text">
      <string>WWV</string>
+    </property>
+    <property name="checkable">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="Line" name="line_2">

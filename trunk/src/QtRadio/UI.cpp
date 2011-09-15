@@ -811,7 +811,7 @@ void UI::bandChanged(int previousBand,int newBand) {
             break;
     }
     //Now select the correct band button in myVFO
-    if(newBand<12) myVfo->checkBandBtn(newBand);
+    myVfo->checkBandBtn(newBand);
 
     // get the band setting
     mode.setMode(band.getMode());
