@@ -58,7 +58,8 @@ SOURCES += main.cpp\
     Bookmarks.cpp \
     KeypadDialog.cpp \
     vfo.cpp \
-    smeter.cpp
+    smeter.cpp \
+    aux.cpp
         
 
 HEADERS  += \ 
@@ -101,7 +102,8 @@ HEADERS  += \
     KeypadDialog.h \
     codec2.h \
     vfo.h \
-    smeter.h
+    smeter.h \
+    aux.h
 
 FORMS    += \   
     UI.ui \
@@ -112,7 +114,8 @@ FORMS    += \
     BookmarksDialog.ui \
     BookmarksEditDialog.ui \
     KeypadDialog.ui \
-    vfo.ui
+    vfo.ui \
+    aux.ui
 
 OTHER_FILES +=
 
@@ -120,3 +123,6 @@ win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../usr/lib/
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../usr/lib/debug/ -lcodec2
 else:symbian: LIBS += -lcodec2
 else:unix: LIBS += -lcodec2
+
+
+

@@ -68,14 +68,14 @@ UI::UI() {
 
 
     // layout the screen
-    widget.gridLayout->setContentsMargins(2,2,2,2);
+//    widget.gridLayout->setContentsMargins(2,2,2,2);
     widget.gridLayout->setVerticalSpacing(0);
     widget.gridLayout->setContentsMargins(0,0,0,0);
     widget.gridLayout->setVerticalSpacing(0);
     widget.sMeterFrame->setFixedWidth(150);
     widget.gridLayout->addWidget(widget.sMeterFrame,0,0);
     widget.gridLayout->addWidget(myVfo,0,1);
-    widget.gridLayout->addWidget(auxFrame,0,2);
+    widget.gridLayout->addWidget(widget.auxFrame,0,2);
     widget.gridLayout->addWidget(widget.spectrumFrame,1,0,1,3);
     widget.gridLayout->addWidget(widget.waterfallFrame,2,0,1,3);
 
