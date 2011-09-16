@@ -1,0 +1,24 @@
+  * Band button changes with band shift, band memory changes,
+    merge branch 'band' into gvj
+    WWV button now working
+    Provided Aux panel for TX controls
+    Bugfix - missed settings->endGroup() in band
+    Band limits now saved in config file
+    Fixed checking of band buttons & vfo mouse wheel direction
+    Merge branch 'master' of github.com:alexlee188/ghpsdr3-alex
+    Made the project file work for Ubuntu 11.04 and made notes for th...
+    When --correctedfreq is used assume old firmware.
+     
+  * JACK audio and multiple receivers.
+    This comit makes --jack a command line option.
+
+  * menu machinery
+
+  * git string added in About; Source and PPA release 1.3
+
+  * Bug fixed in debian/control: qtmobility-dev was missing
+
+  * Bug fixed in QtRadio Makefile.am
+
+  * Initial release
+
