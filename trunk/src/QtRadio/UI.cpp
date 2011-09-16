@@ -55,7 +55,6 @@ UI::UI() {
     widget.setupUi(this);
 
     myVfo = new vfo(this);
-    QFrame* auxFrame = new QFrame(this);
     sMeter = new Meter("Smeter");
     meter=-121;
 
@@ -230,7 +229,7 @@ UI::UI() {
     connect(&xvtr,SIGNAL(xvtrSelected(QAction*)),this,SLOT(selectXVTR(QAction*)));
 
     connect(myVfo,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
-
+    connect(myVfo,SIGNAL(subRxButtonClicked()),this,SLOT(actionSubRx()));
     connect(this,SIGNAL(initialize_audio(int)),audio,SLOT(initialize_audio(int)));
     connect(this,SIGNAL(process_audio(char*,char*,int)),audio,SLOT(process_audio(char*,char*,int)));
 
@@ -623,9 +622,10 @@ void UI::actionSubRx() {
         widget.sMeterFrame->setSubRxState(FALSE);
         widget.actionMuteSubRx->setChecked(FALSE);
         widget.actionMuteSubRx->setDisabled(TRUE);
+        myVfo->uncheckSubRx();
     } else {
         subRx=TRUE;
-
+        myVfo->checkSubRx();
         // check frequency in range
         int samplerate = widget.spectrumFrame->samplerate();
         long long frequency=band.getFrequency();

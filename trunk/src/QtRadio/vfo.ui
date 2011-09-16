@@ -917,12 +917,12 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="pBtnClrTrail">
+   <widget class="QPushButton" name="pBtnSubRx">
     <property name="geometry">
      <rect>
       <x>60</x>
       <y>85</y>
-      <width>71</width>
+      <width>51</width>
       <height>25</height>
      </rect>
     </property>
@@ -933,7 +933,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Nothing</string>
+     <string>subRx</string>
     </property>
     <property name="checkable">
      <bool>true</bool>

@@ -20,6 +20,8 @@ public:
 //        writeSettings();
     void readSettings(QSettings* settings);
     void writeSettings(QSettings* settings);
+    void checkSubRx();
+    void uncheckSubRx();
 //    }
 
 public slots:
@@ -34,6 +36,7 @@ signals:
     void frequencyChanged(long long freq);
     void bandBtnClicked(int band);
     void rightBandClick();
+    void subRxButtonClicked();
 
 protected:
     void wheelEvent( QWheelEvent*);
@@ -53,6 +56,8 @@ private slots:
     void processRIT(int);
 
     void on_pBtnRIT_clicked();
+
+    void on_pBtnSubRx_clicked();
 
 private:
     Ui::vfo *ui;

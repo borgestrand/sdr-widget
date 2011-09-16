@@ -32,8 +32,8 @@ vfo::vfo(QWidget *parent) :
                 this, SLOT(btnGrpClicked(int)));
     connect(ui->hSlider, SIGNAL(valueChanged(int)),
                 this, SLOT(processRIT(int)));
-    connect(ui->pBtnClrTrail, SIGNAL(toggled(bool)),
-            this, SLOT(togglePTT(bool)));
+//    connect(ui->pBtnSubRx, SIGNAL(toggled(bool)),
+//            this, SLOT(togglePTT(bool)));
 }
 
 vfo::~vfo()
@@ -788,7 +788,22 @@ void vfo::writeSettings(QSettings* settings)
     settings->endGroup();
 }
 
+void vfo::checkSubRx()
+{
+    ui->pBtnSubRx->setChecked(TRUE);
+}
+
+void vfo::uncheckSubRx()
+{
+    ui->pBtnSubRx->setChecked(FALSE);
+}
+
 //void vfo::closeEvent(QCloseEvent *)
 // {
 //     SaveMySettings();
 // }
+
+void vfo::on_pBtnSubRx_clicked()
+{
+    emit subRxButtonClicked();
+}
