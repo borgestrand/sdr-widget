@@ -340,8 +340,10 @@ void vfo::writeB(int freq)
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
         }
     } else if (selectedVFO == 'B') {
-        emit setFreq(freq, ptt);
-        if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
+        if (!ui->pBtnSubRx->isChecked()) {
+            emit setFreq(freq, ptt);
+            if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
+        }
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
     }
 }
