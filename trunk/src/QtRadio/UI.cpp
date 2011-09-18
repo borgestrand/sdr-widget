@@ -625,13 +625,13 @@ void UI::actionSubRx() {
         myVfo->uncheckSubRx();
     } else {
         subRx=TRUE;
-        myVfo->checkSubRx();
         // check frequency in range
         int samplerate = widget.spectrumFrame->samplerate();
         long long frequency=band.getFrequency();
         if ((subRxFrequency < (frequency - (samplerate / 2))) || (subRxFrequency > (frequency + (samplerate / 2)))) {
             subRxFrequency=band.getFrequency();
         }
+        myVfo->checkSubRx(subRxFrequency);
         widget.spectrumFrame->setSubRxState(TRUE);
         widget.waterfallFrame->setSubRxState(TRUE);
         widget.sMeterFrame->setSubRxState(TRUE);
@@ -646,7 +646,6 @@ void UI::actionSubRx() {
     //widget.actionSubrx.setChecked(subRx);
     command.clear(); QTextStream(&command) << "SetSubRX " << subRx;
     connection.sendCommand(command);
-
 }
 
 void UI::setSubRxGain(int gain) {
@@ -839,6 +838,7 @@ void UI::bandChanged(int previousBand,int newBand) {
     widget.waterfallFrame->setSubRxFrequency(subRxFrequency);
     widget.waterfallFrame->setHigh(band.getWaterfallHigh());
     widget.waterfallFrame->setLow(band.getWaterfallLow());
+    myVfo->setSubRxFrequency(subRxFrequency);
 
 
 //    widget.spectrumFrame->setBand(band.getStringBand()); //gvj obsolete code as spectrum no longer paints text data
@@ -1259,6 +1259,7 @@ void UI::frequencyMoved(int increment,int step) {
         connection.sendCommand(command);
         widget.spectrumFrame->setSubRxFrequency(subRxFrequency);
         widget.waterfallFrame->setSubRxFrequency(subRxFrequency);
+        myVfo->setSubRxFrequency(subRxFrequency);// gvj subRxFrequency
         setSubRxPan();
 
     } else {
@@ -1743,3 +1744,4 @@ void UI::printStatusBar(QString message)
 {
     modeInfo.setText(band.getStringBand()+", "+mode.getStringMode()+", "+filters.getText()+message);
 }
+

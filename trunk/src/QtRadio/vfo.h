@@ -20,8 +20,9 @@ public:
 //        writeSettings();
     void readSettings(QSettings* settings);
     void writeSettings(QSettings* settings);
-    void checkSubRx();
+    void checkSubRx(long long subRxFrequency);
     void uncheckSubRx();
+    void setSubRxFrequency(long long subRxFrequency);
 //    }
 
 public slots:
@@ -78,6 +79,7 @@ private:
     bool ptt; // ptt on = true, ptt off = false
     char selectedVFO; //'A', 'B', 'S' to indicate which vfo state.
     long long spectrumFrequency;
+    long long subRxFrequency;
     enum BandData
         {
             bDat_mem00,

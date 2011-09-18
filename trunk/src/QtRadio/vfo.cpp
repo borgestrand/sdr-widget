@@ -47,7 +47,7 @@ void vfo::setFrequency(int freq)
     if (selectedVFO == 'A') {
         writeA(freq);
     } else if (selectedVFO == 'B') {
-        writeB(freq);
+        if (!ui->pBtnSubRx->isChecked()) writeB(freq);
     } else writeA(freq);
 }
 
@@ -788,22 +788,32 @@ void vfo::writeSettings(QSettings* settings)
     settings->endGroup();
 }
 
-void vfo::checkSubRx()
+void vfo::on_pBtnSubRx_clicked()
 {
+    emit subRxButtonClicked();
+}
+
+void vfo::checkSubRx(long long f)
+{
+    subRxFrequency = f;
+    writeB(subRxFrequency);
+    on_pBtnvfoB_clicked();
+    ui->pBtnvfoB->setText("subRx");
+    ui->pBtnvfoA->setText("mainRx");
+    ui->pBtnvfoA->setEnabled(FALSE);
     ui->pBtnSubRx->setChecked(TRUE);
 }
 
 void vfo::uncheckSubRx()
 {
     ui->pBtnSubRx->setChecked(FALSE);
+    ui->pBtnvfoB->setText("VFO B");
+    ui->pBtnvfoA->setText("VFO A");
+    ui->pBtnvfoA->setEnabled(TRUE);
 }
 
-//void vfo::closeEvent(QCloseEvent *)
-// {
-//     SaveMySettings();
-// }
-
-void vfo::on_pBtnSubRx_clicked()
+void vfo::setSubRxFrequency(long long f)
 {
-    emit subRxButtonClicked();
+    subRxFrequency = f;
+    writeB(f);
 }
