@@ -55,7 +55,7 @@ UI::UI() {
     widget.setupUi(this);
 
     myVfo = new vfo(this);
-    sMeter = new Meter("Smeter");
+//    sMeter = new Meter("Smeter");
     meter=-121;
 
     audio = new Audio();
