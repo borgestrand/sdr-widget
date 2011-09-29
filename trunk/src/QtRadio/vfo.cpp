@@ -267,16 +267,17 @@ void vfo::wheelEvent(QWheelEvent *event)
         if (event->delta() < 0) direction = 0;  // x becomes pos or neg depending on wheel rotation.
         if (digit < 9) { // getDigit returns 0 ... 8 if we clicked on vfoA
             x = mult[direction][digit];
-            x = x + readA();
-            if (x >= 0 && x <= 999999999)  // Safe to update the display without overflow or underflow.
-                writeA(x);
+//            x = x + readA();
+//            if (x >= 0 && x <= 999999999)  // Safe to update the display without overflow or underflow.
+//                writeA(x);
         } else {                  // getDigit returns 10 ... 18 if we clicked on vfoB
             digit = digit - 10; // so convert to 1 ... 8.
             x = mult[direction][digit];
-            x = x + readB();
-            if (x >= 0 && x <= 999999999)  // Safe to update the display without overflow or underflow.
-                writeB(x);
+//            x = x + readB();
+//            if (x > 0 && x <= 999999999)  // Safe to update the display without overflow or underflow.
+//                writeB(x);
         }
+        emit frequencyMoved(x, 1);
     }  //We fall through to here without processing the wheel if getDigit returns 9.
 }
 
@@ -790,11 +791,13 @@ void vfo::writeSettings(QSettings* settings)
     settings->endGroup();
 }
 
+
 void vfo::on_pBtnSubRx_clicked()
 {
     emit subRxButtonClicked();
 }
 
+//Called when subRx is checked in main menu via actionSubRx()
 void vfo::checkSubRx(long long f)
 {
     subRxFrequency = f;
@@ -806,14 +809,17 @@ void vfo::checkSubRx(long long f)
     ui->pBtnSubRx->setChecked(TRUE);
 }
 
+//Called when subRx is checked in main menu via actionSubRx()
 void vfo::uncheckSubRx()
 {
     ui->pBtnSubRx->setChecked(FALSE);
     ui->pBtnvfoB->setText("VFO B");
     ui->pBtnvfoA->setText("VFO A");
     ui->pBtnvfoA->setEnabled(TRUE);
+    on_pBtnvfoA_clicked(); //Return to vfoA = default vfo
 }
 
+// Called by UI::frequencyMoved() in response to spectra freq move action.
 void vfo::setSubRxFrequency(long long f)
 {
     subRxFrequency = f;

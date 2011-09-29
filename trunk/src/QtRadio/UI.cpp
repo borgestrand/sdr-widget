@@ -228,6 +228,7 @@ UI::UI() {
 
     connect(&xvtr,SIGNAL(xvtrSelected(QAction*)),this,SLOT(selectXVTR(QAction*)));
 
+    connect(myVfo,SIGNAL(frequencyMoved(int,int)),this,SLOT(frequencyMoved(int,int)));
     connect(myVfo,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
     connect(myVfo,SIGNAL(subRxButtonClicked()),this,SLOT(actionSubRx()));
     connect(this,SIGNAL(initialize_audio(int)),audio,SLOT(initialize_audio(int)));
