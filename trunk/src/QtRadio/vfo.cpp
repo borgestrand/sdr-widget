@@ -823,5 +823,7 @@ void vfo::uncheckSubRx()
 void vfo::setSubRxFrequency(long long f)
 {
     subRxFrequency = f;
-    writeB(f);
+    if(ui->pBtnSubRx->isChecked()) {
+        writeB(f);
+    }
 }
