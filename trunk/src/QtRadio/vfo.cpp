@@ -794,6 +794,10 @@ void vfo::writeSettings(QSettings* settings)
 
 void vfo::on_pBtnSubRx_clicked()
 {
+    if(selectedVFO == 'B') {
+        on_pBtnBtoA_clicked();
+        on_pBtnvfoA_clicked();
+    }
     emit subRxButtonClicked();
 }
 
