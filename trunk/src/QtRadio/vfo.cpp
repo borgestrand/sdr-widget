@@ -122,13 +122,18 @@ void vfo::processRIT(int rit)
 {
     static int freq = 0;
 
-    freq = rit - freq; // freq now holds difference between last rit and this.
+/*
+    freq = rit - freq; // freq now holds difference between last rit and this.  
     if (selectedVFO != 'B') { // Using vfoA or Split if 'B' is not selectedVFO.
         freq += readA();
         if (ui->pBtnRIT->isChecked()) writeA(freq);
     } else {
         freq += readB();
         if (ui->pBtnRIT->isChecked()) writeB(freq);
+    }
+*/
+    if (ui->pBtnRIT->isChecked()) {
+        emit frequencyMoved(rit - freq, 1);
     }
     freq = rit;
 }
@@ -140,11 +145,14 @@ void vfo::on_pBtnRIT_clicked()
     if (ui->pBtnRIT->isChecked()) {
         chkd = 1;
     }
+/*
     if (selectedVFO != 'B') { // Using vfoA or Split if 'B' is not selectedVFO.
         writeA(readA() + ui->hSlider->value() * chkd);
     } else {
         writeB(readB() + ui->hSlider->value() * chkd);
     }
+*/
+    emit frequencyMoved(ui->hSlider->value() * chkd, 1);
 }
 
 void vfo::btnGrpClicked(int btn)
@@ -414,7 +422,9 @@ void vfo::on_pBtnvfoB_clicked()
         ui->pBtnSplit->setStyleSheet("background-color: normal");
         vfoEnabled(false, true);
 //gvj        setBandButton(readB());
-        writeB(readB());
+        if(!ui->pBtnRIT->isChecked()){
+            writeB(readB());
+        }
     }
 }
 
@@ -794,7 +804,8 @@ void vfo::writeSettings(QSettings* settings)
 
 void vfo::on_pBtnSubRx_clicked()
 {
-    if(selectedVFO == 'B') {
+//qDebug()<<Q_FUNC_INFO<<"VFO A readA() = "<<readA();
+    if((selectedVFO == 'B')&(ui->pBtnSubRx->isChecked())) {
         on_pBtnBtoA_clicked();
         on_pBtnvfoA_clicked();
     }
@@ -813,7 +824,7 @@ void vfo::checkSubRx(long long f)
     ui->pBtnSubRx->setChecked(TRUE);
 }
 
-//Called when subRx is checked in main menu via actionSubRx()
+//Called when subRx is unchecked in main menu via actionSubRx()
 void vfo::uncheckSubRx()
 {
     ui->pBtnSubRx->setChecked(FALSE);

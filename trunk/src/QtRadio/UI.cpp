@@ -615,7 +615,7 @@ void UI::audioBuffer(char* header,char* buffer) {
 
 void UI::actionSubRx() {
     QString command;
-    if(subRx) {
+    if(subRx) {        
         // on, so turn off
         subRx=FALSE;
         widget.spectrumFrame->setSubRxState(FALSE);
@@ -623,7 +623,9 @@ void UI::actionSubRx() {
         widget.sMeterFrame->setSubRxState(FALSE);
         widget.actionMuteSubRx->setChecked(FALSE);
         widget.actionMuteSubRx->setDisabled(TRUE);
+qDebug()<<Q_FUNC_INFO<<"band.getFrequency = "<<band.getFrequency();
         myVfo->uncheckSubRx();
+qDebug()<<Q_FUNC_INFO<<"band.getFrequency = "<<band.getFrequency();
     } else {
         subRx=TRUE;
         // check frequency in range
@@ -632,19 +634,16 @@ void UI::actionSubRx() {
         if ((subRxFrequency < (frequency - (samplerate / 2))) || (subRxFrequency > (frequency + (samplerate / 2)))) {
             subRxFrequency=band.getFrequency();
         }
-        myVfo->checkSubRx(subRxFrequency);
         widget.spectrumFrame->setSubRxState(TRUE);
         widget.waterfallFrame->setSubRxState(TRUE);
         widget.sMeterFrame->setSubRxState(TRUE);
+        myVfo->checkSubRx(subRxFrequency);
         command.clear(); QTextStream(&command) << "SetSubRXFrequency " << frequency - subRxFrequency;
         connection.sendCommand(command);
-
         setSubRxPan();
-
         widget.actionMuteSubRx->setDisabled(FALSE);
     }
-
-    //widget.actionSubrx.setChecked(subRx);
+    widget.actionSubrx->setChecked(subRx);
     command.clear(); QTextStream(&command) << "SetSubRX " << subRx;
     connection.sendCommand(command);
 }

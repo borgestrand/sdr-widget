@@ -16,14 +16,11 @@ class vfo : public QWidget
 public:
     explicit vfo(QWidget *parent = 0);
     ~vfo();
-//    void SaveMySettings(){
-//        writeSettings();
     void readSettings(QSettings* settings);
     void writeSettings(QSettings* settings);
     void checkSubRx(long long subRxFrequency);
     void uncheckSubRx();
     void setSubRxFrequency(long long subRxFrequency);
-//    }
 
 public slots:
     void togglePTT(bool pttRq); //Request to toggle ptt & return freq
