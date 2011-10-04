@@ -1,11 +1,9 @@
 #include "vfo.h"
 #include "ui_vfo.h"
-#include "UI.h"
 #include <QDebug>
-#include "UI.h"
 
 vfo::vfo(QWidget *parent) :
-    QWidget(parent),
+    QFrame(parent),
     ui(new Ui::vfo)
 {
     ui->setupUi(this);
@@ -123,7 +121,7 @@ void vfo::processRIT(int rit)
     static int freq = 0;
 
 /*
-    freq = rit - freq; // freq now holds difference between last rit and this.  
+    freq = rit - freq; // freq now holds difference between last rit and this.
     if (selectedVFO != 'B') { // Using vfoA or Split if 'B' is not selectedVFO.
         freq += readA();
         if (ui->pBtnRIT->isChecked()) writeA(freq);
@@ -168,7 +166,7 @@ void vfo::storeVFO()
     int retrievedFreq;
     int cnt;
 
-    qDebug() << "From storeVFO(), band button = " << cur_Band;
+//    qDebug() << "From storeVFO(), band button = " << cur_Band; //gjfix
 
     if (selectedVFO != 'B') {
         retrievedFreq = readA(); //Using vfoA

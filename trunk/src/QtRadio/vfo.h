@@ -1,21 +1,23 @@
 #ifndef VFO_H
 #define VFO_H
 
-#include <QWidget>
+#include <QFrame>
 #include <QWheelEvent>
 #include <QBasicTimer>
 #include <QSettings>
+
 namespace Ui {
     class vfo;
 }
 
-class vfo : public QWidget
+class vfo : public QFrame
 {
     Q_OBJECT
 
 public:
     explicit vfo(QWidget *parent = 0);
     ~vfo();
+
     void readSettings(QSettings* settings);
     void writeSettings(QSettings* settings);
     void checkSubRx(long long subRxFrequency);
@@ -60,6 +62,7 @@ private slots:
 
 private:
     Ui::vfo *ui;
+
     QSettings *settings;
     QBasicTimer timer;
     void writeA(int);
@@ -92,7 +95,6 @@ private:
             bDat_filtL,
             bDat_index
         };
-
 };
 
 #endif // VFO_H
