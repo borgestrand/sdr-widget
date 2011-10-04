@@ -57,7 +57,8 @@ UI::UI() {
     myVfo = new vfo(this);
 //    sMeter = new Meter("Smeter");
     meter=-121;
-
+    initRigCtl();
+    fprintf(stderr, "rigctl: Calling init\n");
     audio = new Audio();
     configure.initAudioDevices(audio);
 
@@ -1746,3 +1747,57 @@ void UI::printStatusBar(QString message)
     modeInfo.setText(band.getStringBand()+", "+mode.getStringMode()+", "+filters.getText()+message);
 }
 
+void UI::initRigCtl ()
+{
+        rigCtl = new RigCtlServer ( this, this );
+
+}
+
+long long UI::rigctlGetFreq()
+{
+    return(frequency);
+}
+
+QString UI::rigctlGetMode()
+{
+    QString  m = mode.getStringMode();
+    if(m == "CWU"){
+       m="CW";
+    }
+    if(m == "CWL"){
+       m="CWR";
+    }
+    return m;
+}
+
+QString UI::rigctlGetFilter()
+{
+    QString fwidth;
+    return fwidth.setNum(filters.getHigh() - filters.getLow());
+}
+
+QString UI::rigctlGetVFO()
+{
+    return myVfo->rigctlGetvfo();
+}
+
+void UI::rigctlSetVFOA()
+{
+    myVfo->on_pBtnvfoA_clicked();
+}
+
+void UI::rigctlSetVFOB()
+{
+    myVfo->on_pBtnvfoB_clicked();
+}
+
+void UI::rigctlSetFreq(long long f)
+{
+    frequencyChanged(f);
+}
+
+void UI::rigctlSetMode(int newmode)
+{
+    modeChanged(mode.getMode(), newmode);
+    mode.setMode(newmode);
+}

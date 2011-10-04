@@ -23,13 +23,16 @@ public:
     void checkSubRx(long long subRxFrequency);
     void uncheckSubRx();
     void setSubRxFrequency(long long subRxFrequency);
+    QString rigctlGetvfo();
 //    }
 
 public slots:
     void togglePTT(bool pttRq); //Request to toggle ptt & return freq
     void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void checkBandBtn(int band);
-
+    void on_pBtnvfoA_clicked();  // moved from private for rigctl
+    void on_pBtnvfoB_clicked();
+    
 signals:
     void sendVfoFreq(int freq);
     void sendTxFreq(int freq, bool ptt);
@@ -47,8 +50,6 @@ protected:
 
 private slots:
     void btnGrpClicked(int);
-    void on_pBtnvfoA_clicked();
-    void on_pBtnvfoB_clicked();
     void on_pBtnScanDn_clicked();
     void on_pBtnScanUp_clicked();
     void on_pBtnSplit_clicked();

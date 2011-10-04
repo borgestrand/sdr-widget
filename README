@@ -39,6 +39,7 @@ libfftw3-dev
 portaudio19-dev
 libpulse-dev
 
+
 Building the software
 =====================
 
@@ -171,5 +172,19 @@ and I use qjackctl.  Receiver 0 is connected with the first two inputs, receiver
 next two and so on up to receiver 3 (four receivers total).  Of course you can reconnect them
 however you like in qjackctrl.  To use more than one receiver, you need a dspserver instance
 for each.  Use the --receiver=[0,1,2,3] option for each dspserver instance.
+
+Using QtRadio with Hamlib applications ie fldigi
+======================================
+
+QtRadio will listen on port 19090 all interfaces for rigctl connections.
+
+Examples:
+rigctl  -m2 -r 127.0.0.1:19090  (from pkg libhamlib-utils, ? for help)
+
+grig -m2 -r 127.0.0.1:19090
+
+For fldigi set Transceiver Control to hamlib, Rig to 'Hamlib NET rigctl  (Beta)' and Device to "127.0.0.1:19090"
+Set Soundcard to PulseAudio and then in PulseAudio Volume Control (pavucontrol) Recording tab set fldigi to "Monitor of xxxx"
+
 
 

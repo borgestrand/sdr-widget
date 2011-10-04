@@ -831,3 +831,10 @@ void vfo::setSubRxFrequency(long long f)
         writeB(f);
     }
 }
+
+QString vfo::rigctlGetvfo()
+{
+    QString vfo;
+    vfo = selectedVFO;
+    return "VFO" + vfo;
+}

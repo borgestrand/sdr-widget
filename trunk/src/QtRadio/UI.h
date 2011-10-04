@@ -64,6 +64,7 @@
 #include "XvtrEntry.h"
 #include "KeypadDialog.h"
 #include "vfo.h"
+#include "rigctl.h"
 
 #define DSPSERVER_BASE_PORT 8000
 
@@ -81,7 +82,14 @@ public:
     void saveSettings();
     void closeEvent(QCloseEvent* event);
     void sendCommand(QString command);
-
+    long long rigctlGetFreq();
+    QString rigctlGetMode();
+    QString rigctlGetFilter();
+    QString rigctlGetVFO();
+    void rigctlSetVFOA();
+    void rigctlSetVFOB();
+    void rigctlSetFreq(long long f);
+    void rigctlSetMode(int newmode);
 signals:
     void initialize_audio(int length);
     void select_audio(QAudioDeviceInfo info,int rate,int channels,QAudioFormat::Endian byteOrder);
@@ -230,7 +238,8 @@ private:
     void setSubRxPan();
     void actionGain(int g);
     void setGain(bool state);
-
+    void initRigCtl();
+    RigCtlServer *rigCtl;
 
     void appendBookmark(Bookmark* bookmark);
 
