@@ -67,8 +67,12 @@ UI::UI() {
 
 
     // layout the screen
-    widget.sMeterFrame->setFixedWidth(150);
-    widget.vfoFrame->setFixedWidth(575);
+    widget.gridLayout->setContentsMargins(0,0,0,0);
+    widget.gridLayout->setVerticalSpacing(0);
+    widget.gridLayout->setHorizontalSpacing(0);
+
+//    widget.sMeterFrame->setFixedWidth(150);
+//    widget.vfoFrame->setFixedWidth(575);
 
 /*
 //    widget.gridLayout->setContentsMargins(2,2,2,2);

@@ -66,7 +66,7 @@
      <widget class="Aux" name="auxFrame">
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>230</width>
         <height>115</height>
        </size>
       </property>
