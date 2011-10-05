@@ -57,11 +57,10 @@ SOURCES += main.cpp\
     XvtrEntry.cpp \
     Bookmarks.cpp \
     KeypadDialog.cpp \
-    vfo.cpp \
     smeter.cpp \
     aux.cpp \
     rigctl.cpp
-        
+    vfo.cpp
 
 HEADERS  += \ 
     Waterfall.h \
@@ -102,10 +101,13 @@ HEADERS  += \
     Bookmarks.h \
     KeypadDialog.h \
     codec2.h \
-    vfo.h \
     smeter.h \
     aux.h \
+<<<<<<< HEAD
     rigctl.h
+=======
+    vfo.h
+>>>>>>> gvj
 
 FORMS    += \   
     UI.ui \
@@ -116,8 +118,8 @@ FORMS    += \
     BookmarksDialog.ui \
     BookmarksEditDialog.ui \
     KeypadDialog.ui \
-    vfo.ui \
-    aux.ui
+    aux.ui \
+    vfo.ui
 
 OTHER_FILES +=
 
@@ -125,6 +127,18 @@ win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../../../../../../usr/lib/
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../../../usr/lib/debug/ -lcodec2
 else:symbian: LIBS += -lcodec2
 else:unix: LIBS += -lcodec2
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

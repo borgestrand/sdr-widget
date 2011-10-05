@@ -1,11 +1,9 @@
 #include "vfo.h"
 #include "ui_vfo.h"
-#include "UI.h"
 #include <QDebug>
-#include "UI.h"
 
 vfo::vfo(QWidget *parent) :
-    QWidget(parent),
+    QFrame(parent),
     ui(new Ui::vfo)
 {
     ui->setupUi(this);
@@ -26,8 +24,20 @@ vfo::vfo(QWidget *parent) :
         bands[row][bDat_index] = 0; // Overwrite the index to zero for each row
     }
 //    readSettings();
-//gvj    setBandButton(readA());
-    ui->btnGrpBand->addButton(ui->bandBtn_12);
+//  setBandButton group ID numbers;
+    ui->btnGrpBand->setId(ui->bandBtn_00, 0); // 160
+    ui->btnGrpBand->setId(ui->bandBtn_01, 1); // 80
+    ui->btnGrpBand->setId(ui->bandBtn_02, 2);
+    ui->btnGrpBand->setId(ui->bandBtn_03, 3);
+    ui->btnGrpBand->setId(ui->bandBtn_04, 4);
+    ui->btnGrpBand->setId(ui->bandBtn_05, 5);
+    ui->btnGrpBand->setId(ui->bandBtn_06, 6); // etc.
+    ui->btnGrpBand->setId(ui->bandBtn_07, 7);
+    ui->btnGrpBand->setId(ui->bandBtn_08, 8);
+    ui->btnGrpBand->setId(ui->bandBtn_09, 9);
+    ui->btnGrpBand->setId(ui->bandBtn_10, 10); // 6
+    ui->btnGrpBand->setId(ui->bandBtn_11, 11); // GEN
+    ui->btnGrpBand->setId(ui->bandBtn_12, 12); // WWV
     connect(ui->btnGrpBand, SIGNAL(buttonClicked(int)),
                 this, SLOT(btnGrpClicked(int)));
     connect(ui->hSlider, SIGNAL(valueChanged(int)),
@@ -122,6 +132,7 @@ void vfo::processRIT(int rit)
 {
     static int freq = 0;
 
+/*
     freq = rit - freq; // freq now holds difference between last rit and this.
     if (selectedVFO != 'B') { // Using vfoA or Split if 'B' is not selectedVFO.
         freq += readA();
@@ -129,6 +140,10 @@ void vfo::processRIT(int rit)
     } else {
         freq += readB();
         if (ui->pBtnRIT->isChecked()) writeB(freq);
+    }
+*/
+    if (ui->pBtnRIT->isChecked()) {
+        emit frequencyMoved(rit - freq, 1);
     }
     freq = rit;
 }
@@ -140,16 +155,19 @@ void vfo::on_pBtnRIT_clicked()
     if (ui->pBtnRIT->isChecked()) {
         chkd = 1;
     }
+/*
     if (selectedVFO != 'B') { // Using vfoA or Split if 'B' is not selectedVFO.
         writeA(readA() + ui->hSlider->value() * chkd);
     } else {
         writeB(readB() + ui->hSlider->value() * chkd);
     }
+*/
+    emit frequencyMoved(ui->hSlider->value() * chkd, 1);
 }
 
 void vfo::btnGrpClicked(int btn)
 {
-    btn = -1 * (btn + 2); //Map buttons (-2 .. -15) to (0 .. 12)
+//    btn = -1 * (btn + 2); //Map buttons (-2 .. -15) to (0 .. 12)
     emit bandBtnClicked(btn);
 }
 
@@ -160,7 +178,7 @@ void vfo::storeVFO()
     int retrievedFreq;
     int cnt;
 
-    qDebug() << "From storeVFO(), band button = " << cur_Band;
+//    qDebug() << "From storeVFO(), band button = " << cur_Band; //gjfix
 
     if (selectedVFO != 'B') {
         retrievedFreq = readA(); //Using vfoA
@@ -351,7 +369,8 @@ qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
 
 void vfo::checkBandBtn(int band)
 {
-    ui->btnGrpBand->button((band+2)*-1)->setChecked(true);
+    qDebug()<<Q_FUNC_INFO<<": Value of band button is ... "<<band;
+    ui->btnGrpBand->button(band)->setChecked(TRUE);
 }
 
 void vfo::setBandButton(int freq)
@@ -361,7 +380,7 @@ void vfo::setBandButton(int freq)
     for (cnt = 0; cnt < 12; cnt++) { // 12 buttons (0 ... 11)
         if (bands[cnt][bDat_fqmin] <= freq && bands[cnt][bDat_fqmax] >= freq) {
             cur_Band = cnt;
-            ui->btnGrpBand->button((cnt+2)*-1)->setChecked(true);
+            ui->btnGrpBand->button(cnt)->setChecked(TRUE);
             bands[cnt][bDat_cFreq] = freq;
             break;
         }
@@ -414,7 +433,9 @@ void vfo::on_pBtnvfoB_clicked()
         ui->pBtnSplit->setStyleSheet("background-color: normal");
         vfoEnabled(false, true);
 //gvj        setBandButton(readB());
-        writeB(readB());
+        if(!ui->pBtnRIT->isChecked()){
+            writeB(readB());
+        }
     }
 }
 
@@ -794,7 +815,8 @@ void vfo::writeSettings(QSettings* settings)
 
 void vfo::on_pBtnSubRx_clicked()
 {
-    if(selectedVFO == 'B') {
+//qDebug()<<Q_FUNC_INFO<<"VFO A readA() = "<<readA();
+    if((selectedVFO == 'B')&(ui->pBtnSubRx->isChecked())) {
         on_pBtnBtoA_clicked();
         on_pBtnvfoA_clicked();
     }
@@ -813,7 +835,7 @@ void vfo::checkSubRx(long long f)
     ui->pBtnSubRx->setChecked(TRUE);
 }
 
-//Called when subRx is checked in main menu via actionSubRx()
+//Called when subRx is unchecked in main menu via actionSubRx()
 void vfo::uncheckSubRx()
 {
     ui->pBtnSubRx->setChecked(FALSE);

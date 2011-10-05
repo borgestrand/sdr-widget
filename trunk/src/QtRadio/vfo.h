@@ -1,27 +1,28 @@
 #ifndef VFO_H
 #define VFO_H
 
-#include <QWidget>
+#include <QFrame>
 #include <QWheelEvent>
 #include <QBasicTimer>
 #include <QSettings>
+
 namespace Ui {
     class vfo;
 }
 
-class vfo : public QWidget
+class vfo : public QFrame
 {
     Q_OBJECT
 
 public:
     explicit vfo(QWidget *parent = 0);
     ~vfo();
-//    void SaveMySettings(){
-//        writeSettings();
+
     void readSettings(QSettings* settings);
     void writeSettings(QSettings* settings);
     void checkSubRx(long long subRxFrequency);
     void uncheckSubRx();
+    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void setSubRxFrequency(long long subRxFrequency);
     QString rigctlGetvfo();
 //    }
@@ -33,6 +34,13 @@ public slots:
     void on_pBtnvfoA_clicked();  // moved from private for rigctl
     void on_pBtnvfoB_clicked();
     
+=======
+    void checkBandBtn(int band);
+
+public slots:
+    void togglePTT(bool pttRq); //Request to toggle ptt & return freq
+
+>>>>>>> gvj
 signals:
     void sendVfoFreq(int freq);
     void sendTxFreq(int freq, bool ptt);
@@ -64,6 +72,7 @@ private slots:
 
 private:
     Ui::vfo *ui;
+
     QSettings *settings;
     QBasicTimer timer;
     void writeA(int);
@@ -96,7 +105,6 @@ private:
             bDat_filtL,
             bDat_index
         };
-
 };
 
 #endif // VFO_H

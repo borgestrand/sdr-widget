@@ -54,8 +54,6 @@ UI::UI() {
 
     widget.setupUi(this);
 
-    myVfo = new vfo(this);
-//    sMeter = new Meter("Smeter");
     meter=-121;
     initRigCtl();
     fprintf(stderr, "rigctl: Calling init\n");
@@ -68,16 +66,9 @@ UI::UI() {
 
 
     // layout the screen
-//    widget.gridLayout->setContentsMargins(2,2,2,2);
-    widget.gridLayout->setVerticalSpacing(0);
     widget.gridLayout->setContentsMargins(0,0,0,0);
     widget.gridLayout->setVerticalSpacing(0);
-    widget.sMeterFrame->setFixedWidth(150);
-    widget.gridLayout->addWidget(widget.sMeterFrame,0,0);
-    widget.gridLayout->addWidget(myVfo,0,1);
-    widget.gridLayout->addWidget(widget.auxFrame,0,2);
-    widget.gridLayout->addWidget(widget.spectrumFrame,1,0,1,3);
-    widget.gridLayout->addWidget(widget.waterfallFrame,2,0,1,3);
+    widget.gridLayout->setHorizontalSpacing(0);
 
     // connect up all the menus
     connect(widget.actionAbout,SIGNAL(triggered()),this,SLOT(actionAbout()));
@@ -113,7 +104,13 @@ UI::UI() {
     connect(widget.actionKeypad, SIGNAL(triggered()),this,SLOT(actionKeypad()));
     connect(&keypad,SIGNAL(setKeypadFrequency(long long)),this,SLOT(setKeypadFrequency(long long)));
 
-    connect(myVfo, SIGNAL(bandBtnClicked(int)),this,SLOT(getBandBtn(int)));
+    qDebug()<<"Got to here";
+
+//    connect(myVfo, SIGNAL(bandBtnClicked(int)),this,SLOT(getBandBtn(int)));
+    connect(widget.vfoFrame,SIGNAL(bandBtnClicked(int)),this,SLOT(getBandBtn(int)));
+
+    qDebug()<<"Got to here";
+
     connect(widget.action160, SIGNAL(triggered()),this,SLOT(action160()));
     connect(widget.action80, SIGNAL(triggered()),this,SLOT(action80()));
     connect(widget.action60, SIGNAL(triggered()),this,SLOT(action60()));
@@ -167,7 +164,6 @@ UI::UI() {
 
     connect(widget.actionBookmarkThisFrequency,SIGNAL(triggered()),this,SLOT(actionBookmark()));
     connect(widget.actionEditBookmarks,SIGNAL(triggered()),this,SLOT(editBookmarks()));
-
 
 
     // connect up band and frequency changes
@@ -229,9 +225,9 @@ UI::UI() {
 
     connect(&xvtr,SIGNAL(xvtrSelected(QAction*)),this,SLOT(selectXVTR(QAction*)));
 
-    connect(myVfo,SIGNAL(frequencyMoved(int,int)),this,SLOT(frequencyMoved(int,int)));
-    connect(myVfo,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
-    connect(myVfo,SIGNAL(subRxButtonClicked()),this,SLOT(actionSubRx()));
+    connect(widget.vfoFrame,SIGNAL(frequencyMoved(int,int)),this,SLOT(frequencyMoved(int,int)));
+    connect(widget.vfoFrame,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
+    connect(widget.vfoFrame,SIGNAL(subRxButtonClicked()),this,SLOT(actionSubRx()));
     connect(this,SIGNAL(initialize_audio(int)),audio,SLOT(initialize_audio(int)));
     connect(this,SIGNAL(process_audio(char*,char*,int)),audio,SLOT(process_audio(char*,char*,int)));
 
@@ -325,7 +321,7 @@ void UI::loadSettings() {
     }
     settings.endGroup();
 
-    myVfo->readSettings(&settings);
+    widget.vfoFrame->readSettings(&settings);
 }
 
 void UI::saveSettings() {
@@ -353,7 +349,7 @@ void UI::saveSettings() {
     settings.setValue("geometry", saveGeometry());
     settings.endGroup();
 
-    myVfo->writeSettings(&settings);
+    widget.vfoFrame->writeSettings(&settings);
 }
 
 void UI::hostChanged(QString host) {
@@ -474,7 +470,7 @@ void UI::connected() {
     widget.waterfallFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->setFrequency(frequency);
+    widget.vfoFrame->setFrequency(frequency);
 
     command.clear(); QTextStream(&command) << "setMode " << band.getMode();
     connection.sendCommand(command);
@@ -616,7 +612,7 @@ void UI::audioBuffer(char* header,char* buffer) {
 
 void UI::actionSubRx() {
     QString command;
-    if(subRx) {
+    if(subRx) {        
         // on, so turn off
         subRx=FALSE;
         widget.spectrumFrame->setSubRxState(FALSE);
@@ -624,7 +620,9 @@ void UI::actionSubRx() {
         widget.sMeterFrame->setSubRxState(FALSE);
         widget.actionMuteSubRx->setChecked(FALSE);
         widget.actionMuteSubRx->setDisabled(TRUE);
-        myVfo->uncheckSubRx();
+qDebug()<<Q_FUNC_INFO<<"band.getFrequency = "<<band.getFrequency();
+        widget.vfoFrame->uncheckSubRx();
+qDebug()<<Q_FUNC_INFO<<"band.getFrequency = "<<band.getFrequency();
     } else {
         subRx=TRUE;
         // check frequency in range
@@ -633,19 +631,16 @@ void UI::actionSubRx() {
         if ((subRxFrequency < (frequency - (samplerate / 2))) || (subRxFrequency > (frequency + (samplerate / 2)))) {
             subRxFrequency=band.getFrequency();
         }
-        myVfo->checkSubRx(subRxFrequency);
         widget.spectrumFrame->setSubRxState(TRUE);
         widget.waterfallFrame->setSubRxState(TRUE);
         widget.sMeterFrame->setSubRxState(TRUE);
+        widget.vfoFrame->checkSubRx(subRxFrequency);
         command.clear(); QTextStream(&command) << "SetSubRXFrequency " << frequency - subRxFrequency;
         connection.sendCommand(command);
-
         setSubRxPan();
-
         widget.actionMuteSubRx->setDisabled(FALSE);
     }
-
-    //widget.actionSubrx.setChecked(subRx);
+    widget.actionSubrx->setChecked(subRx);
     command.clear(); QTextStream(&command) << "SetSubRX " << subRx;
     connection.sendCommand(command);
 }
@@ -812,7 +807,7 @@ void UI::bandChanged(int previousBand,int newBand) {
             break;
     }
     //Now select the correct band button in myVFO
-    myVfo->checkBandBtn(newBand);
+    widget.vfoFrame->checkBandBtn(newBand);
 
     // get the band setting
     mode.setMode(band.getMode());
@@ -831,7 +826,7 @@ void UI::bandChanged(int previousBand,int newBand) {
     widget.spectrumFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->setFrequency(frequency);
+    widget.vfoFrame->setFrequency(frequency);
     qDebug() << __FUNCTION__ << ": frequency, newBand = " << frequency << ", " << newBand;
     widget.spectrumFrame->setSubRxFrequency(subRxFrequency);
     widget.spectrumFrame->setHigh(band.getSpectrumHigh());
@@ -840,7 +835,7 @@ void UI::bandChanged(int previousBand,int newBand) {
     widget.waterfallFrame->setSubRxFrequency(subRxFrequency);
     widget.waterfallFrame->setHigh(band.getWaterfallHigh());
     widget.waterfallFrame->setLow(band.getWaterfallLow());
-    myVfo->setSubRxFrequency(subRxFrequency);
+    widget.vfoFrame->setSubRxFrequency(subRxFrequency);
 
 
 //    widget.spectrumFrame->setBand(band.getStringBand()); //gvj obsolete code as spectrum no longer paints text data
@@ -1237,7 +1232,7 @@ void UI::frequencyChanged(long long f) {
     //Adjust all frequency displays & Check for exiting current band
     band.setFrequency(frequency);
     widget.spectrumFrame->setFrequency(frequency);
-    myVfo->setFrequency(frequency);
+    widget.vfoFrame->setFrequency(frequency);
     widget.waterfallFrame->setFrequency(frequency);
 }
 
@@ -1261,7 +1256,7 @@ void UI::frequencyMoved(int increment,int step) {
         connection.sendCommand(command);
         widget.spectrumFrame->setSubRxFrequency(subRxFrequency);
         widget.waterfallFrame->setSubRxFrequency(subRxFrequency);
-        myVfo->setSubRxFrequency(subRxFrequency);// gvj subRxFrequency
+        widget.vfoFrame->setSubRxFrequency(subRxFrequency);// gvj subRxFrequency
         setSubRxPan();
 
     } else {
@@ -1610,7 +1605,7 @@ void UI::selectBookmark(QAction* action) {
     widget.waterfallFrame->setFrequency(frequency);
 
 //    gvj code
-    myVfo->setFrequency(frequency);
+    widget.vfoFrame->setFrequency(frequency);
 
     mode.setMode(bookmarks.getMode());
 
