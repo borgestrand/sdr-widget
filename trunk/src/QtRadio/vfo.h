@@ -24,6 +24,7 @@ public:
     void uncheckSubRx();
     void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void setSubRxFrequency(long long subRxFrequency);
+    void checkBandBtn(int band);
     QString rigctlGetvfo();
 //    }
 
@@ -32,7 +33,6 @@ public slots:
 //    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void on_pBtnvfoA_clicked();  // moved from private for rigctl
     void on_pBtnvfoB_clicked();
-    void checkBandBtn(int band);
 
 signals:
     void sendVfoFreq(int freq);
@@ -47,7 +47,6 @@ signals:
 protected:
     void wheelEvent( QWheelEvent*);
     void mousePressEvent( QMouseEvent*);
-//    void closeEvent(QCloseEvent *);
 
 private slots:
     void btnGrpClicked(int);
