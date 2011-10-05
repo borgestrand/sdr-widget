@@ -59,8 +59,8 @@ SOURCES += main.cpp\
     KeypadDialog.cpp \
     smeter.cpp \
     aux.cpp \
-    rigctl.cpp
-    vfo.cpp
+    rigctl.cpp \
+    vfo.cpp \
 
 HEADERS  += \ 
     Waterfall.h \
@@ -103,11 +103,8 @@ HEADERS  += \
     codec2.h \
     smeter.h \
     aux.h \
-<<<<<<< HEAD
-    rigctl.h
-=======
-    vfo.h
->>>>>>> gvj
+    rigctl.h \
+    vfo.h \
 
 FORMS    += \   
     UI.ui \

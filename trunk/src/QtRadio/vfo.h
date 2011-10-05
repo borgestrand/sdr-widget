@@ -29,18 +29,11 @@ public:
 
 public slots:
     void togglePTT(bool pttRq); //Request to toggle ptt & return freq
-    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
-    void checkBandBtn(int band);
+//    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void on_pBtnvfoA_clicked();  // moved from private for rigctl
     void on_pBtnvfoB_clicked();
-    
-=======
     void checkBandBtn(int band);
 
-public slots:
-    void togglePTT(bool pttRq); //Request to toggle ptt & return freq
-
->>>>>>> gvj
 signals:
     void sendVfoFreq(int freq);
     void sendTxFreq(int freq, bool ptt);
