@@ -24,8 +24,20 @@ vfo::vfo(QWidget *parent) :
         bands[row][bDat_index] = 0; // Overwrite the index to zero for each row
     }
 //    readSettings();
-//gvj    setBandButton(readA());
-    ui->btnGrpBand->addButton(ui->bandBtn_12);
+//  setBandButton group ID numbers;
+    ui->btnGrpBand->setId(ui->bandBtn_00, 0); // 160
+    ui->btnGrpBand->setId(ui->bandBtn_01, 1); // 80
+    ui->btnGrpBand->setId(ui->bandBtn_02, 2);
+    ui->btnGrpBand->setId(ui->bandBtn_03, 3);
+    ui->btnGrpBand->setId(ui->bandBtn_04, 4);
+    ui->btnGrpBand->setId(ui->bandBtn_05, 5);
+    ui->btnGrpBand->setId(ui->bandBtn_06, 6); // etc.
+    ui->btnGrpBand->setId(ui->bandBtn_07, 7);
+    ui->btnGrpBand->setId(ui->bandBtn_08, 8);
+    ui->btnGrpBand->setId(ui->bandBtn_09, 9);
+    ui->btnGrpBand->setId(ui->bandBtn_10, 10); // 6
+    ui->btnGrpBand->setId(ui->bandBtn_11, 11); // GEN
+    ui->btnGrpBand->setId(ui->bandBtn_12, 12); // WWV
     connect(ui->btnGrpBand, SIGNAL(buttonClicked(int)),
                 this, SLOT(btnGrpClicked(int)));
     connect(ui->hSlider, SIGNAL(valueChanged(int)),
@@ -155,7 +167,7 @@ void vfo::on_pBtnRIT_clicked()
 
 void vfo::btnGrpClicked(int btn)
 {
-    btn = -1 * (btn + 2); //Map buttons (-2 .. -15) to (0 .. 12)
+//    btn = -1 * (btn + 2); //Map buttons (-2 .. -15) to (0 .. 12)
     emit bandBtnClicked(btn);
 }
 
@@ -357,7 +369,8 @@ qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
 
 void vfo::checkBandBtn(int band)
 {
-    ui->btnGrpBand->button((band+2)*-1)->setChecked(true);
+    qDebug()<<Q_FUNC_INFO<<": Value of band button is ... "<<band;
+    ui->btnGrpBand->button(band)->setChecked(TRUE);
 }
 
 void vfo::setBandButton(int freq)
@@ -367,7 +380,7 @@ void vfo::setBandButton(int freq)
     for (cnt = 0; cnt < 12; cnt++) { // 12 buttons (0 ... 11)
         if (bands[cnt][bDat_fqmin] <= freq && bands[cnt][bDat_fqmax] >= freq) {
             cur_Band = cnt;
-            ui->btnGrpBand->button((cnt+2)*-1)->setChecked(true);
+            ui->btnGrpBand->button(cnt)->setChecked(TRUE);
             bands[cnt][bDat_cFreq] = freq;
             break;
         }

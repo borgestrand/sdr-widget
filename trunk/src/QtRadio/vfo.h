@@ -22,12 +22,12 @@ public:
     void writeSettings(QSettings* settings);
     void checkSubRx(long long subRxFrequency);
     void uncheckSubRx();
+    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void setSubRxFrequency(long long subRxFrequency);
+    void checkBandBtn(int band);
 
 public slots:
     void togglePTT(bool pttRq); //Request to toggle ptt & return freq
-    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
-    void checkBandBtn(int band);
 
 signals:
     void sendVfoFreq(int freq);
