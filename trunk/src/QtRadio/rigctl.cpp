@@ -81,15 +81,16 @@ void RigCtlSocket::readyRead() {
             out << main->rigctlGetFilter().toAscii() << "\n";
             output = true;
         } else if (command[0] == 'v') { // get_vfo
-            out << main->rigctlGetVFO().toAscii() << "\n";
+            //out << main->rigctlGetVFO().toAscii() << "\n";
+            out << "VFOA" << "\n"; // need to fix bug GT
             output = true;
         } else if (command[0] == 'V') { // set_VFO
             QString cmd = command.constData();
             if ( cmd.contains("VFOA")){
-               main->rigctlSetVFOA();
+               //main->rigctlSetVFOA();
             }
             if ( cmd.contains("VFOB")){
-               main->rigctlSetVFOB();
+               //main->rigctlSetVFOB();
             }
         } else if (command[0] == 'j') { // get_rit
             out << "0" << "\n";
