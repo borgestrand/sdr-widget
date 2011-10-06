@@ -104,12 +104,7 @@ UI::UI() {
     connect(widget.actionKeypad, SIGNAL(triggered()),this,SLOT(actionKeypad()));
     connect(&keypad,SIGNAL(setKeypadFrequency(long long)),this,SLOT(setKeypadFrequency(long long)));
 
-    qDebug()<<"Got to here";
-
-//    connect(myVfo, SIGNAL(bandBtnClicked(int)),this,SLOT(getBandBtn(int)));
     connect(widget.vfoFrame,SIGNAL(bandBtnClicked(int)),this,SLOT(getBandBtn(int)));
-
-    qDebug()<<"Got to here";
 
     connect(widget.action160, SIGNAL(triggered()),this,SLOT(action160()));
     connect(widget.action80, SIGNAL(triggered()),this,SLOT(action80()));
@@ -806,7 +801,7 @@ void UI::bandChanged(int previousBand,int newBand) {
             widget.actionWWV->setChecked(TRUE);
             break;
     }
-    //Now select the correct band button in myVFO
+    //Now select the correct band button in VFO
     widget.vfoFrame->checkBandBtn(newBand);
 
     // get the band setting
@@ -1773,17 +1768,17 @@ QString UI::rigctlGetFilter()
 
 QString UI::rigctlGetVFO()
 {
-    return myVfo->rigctlGetvfo();
+    return widget.vfoFrame->rigctlGetvfo();
 }
 
 void UI::rigctlSetVFOA()
 {
-    myVfo->on_pBtnvfoA_clicked();
+    widget.vfoFrame->on_pBtnvfoA_clicked();
 }
 
 void UI::rigctlSetVFOB()
 {
-    myVfo->on_pBtnvfoB_clicked();
+    widget.vfoFrame->on_pBtnvfoB_clicked();
 }
 
 void UI::rigctlSetFreq(long long f)

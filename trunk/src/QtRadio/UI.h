@@ -246,7 +246,6 @@ private:
     QString stringFrequency(long long frequency);
 
     Ui::UI widget;
-    vfo* myVfo;
 
     Audio* audio;
     QThread * audio_thread;

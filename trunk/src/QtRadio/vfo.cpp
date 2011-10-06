@@ -25,6 +25,7 @@
 #include "ui_vfo.h"
 #include <QDebug>
 #include "Band.h"
+#include "UI.h"
 
 vfo::vfo(QWidget *parent) :
     QFrame(parent),
@@ -77,7 +78,6 @@ vfo::~vfo()
 void vfo::setFrequency(int freq)
 {
     spectrumFrequency = freq;
-    spectrumFrequency = Band.getFrequency();
     if (selectedVFO == 'A') {
         writeA(freq);
     } else if (selectedVFO == 'B') {
