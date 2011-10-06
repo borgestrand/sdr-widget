@@ -20,7 +20,6 @@
 // Taken from sdr-shell project
 
 #include <cstdio>
-#include <hamlib/rig.h>
 
 #include "UI.h"
 #include "rigctl.h"
@@ -54,7 +53,7 @@ void RigCtlSocket::readyRead() {
         QStringList cmdlist = cmdstr.split(QRegExp("\\s+"));
         int cmdlistcnt = cmdlist.count();
         bool output = false;
-        int retcode = RIG_OK;
+        int retcode = 0;
         QTextStream out(conn);
 
         /* This isn't a full implementation of the rigctl protocol; it's
@@ -81,16 +80,15 @@ void RigCtlSocket::readyRead() {
             out << main->rigctlGetFilter().toAscii() << "\n";
             output = true;
         } else if (command[0] == 'v') { // get_vfo
-            //out << main->rigctlGetVFO().toAscii() << "\n";
-            out << "VFOA" << "\n"; // need to fix bug GT
+            out << main->rigctlGetVFO().toAscii() << "\n";
             output = true;
         } else if (command[0] == 'V') { // set_VFO
             QString cmd = command.constData();
             if ( cmd.contains("VFOA")){
-               //main->rigctlSetVFOA();
+               main->rigctlSetVFOA();
             }
             if ( cmd.contains("VFOB")){
-               //main->rigctlSetVFOB();
+               main->rigctlSetVFOB();
             }
         } else if (command[0] == 'j') { // get_rit
             out << "0" << "\n";
@@ -125,8 +123,8 @@ void RigCtlSocket::readyRead() {
         } else if (command == "\\dump_state" || command[0] == '1') {
             // See dump_state in rigctl_parse.c for what this means.
             out << "0\n"; // protocol version
-            out << RIG_MODEL_NETRIGCTL << "\n";
-            out << RIG_ITU_REGION2 << "\n";
+            out << "2" << "\n"; //RIG_MODEL_NETRIGCTL
+            out << "2" << "\n"; //RIG_ITU_REGION2
             // Not sure exactly what to send here but this seems to work
             out << "150000.000000 30000000.000000  0x900af -1 -1 0x10000003 0x3\n"; //("%"FREQFMT" %"FREQFMT" 0x%x %d %d 0x%x 0x%x\n",start,end,modes,low_power,high_power,vfo,ant)
             out << "0 0 0 0 0 0 0\n";
@@ -149,7 +147,7 @@ void RigCtlSocket::readyRead() {
             output = true;
         } else {
             fprintf(stderr, "rigctl: unknown command \"%s\"\n", command.constData());
-            retcode = -RIG_ENAVAIL;
+            retcode = -11;
         }
         //fprintf(stderr, "rigctl:  command \"%s\"\n", command.constData());
         if (!output) {
