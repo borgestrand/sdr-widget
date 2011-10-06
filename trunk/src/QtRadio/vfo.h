@@ -5,6 +5,7 @@
 #include <QWheelEvent>
 #include <QBasicTimer>
 #include <QSettings>
+#include "Band.h"
 
 namespace Ui {
     class vfo;

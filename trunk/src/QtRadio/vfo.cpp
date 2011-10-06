@@ -1,6 +1,30 @@
+/* File:   vfo.cpp
+ * Author: Graeme Jury, ZL2APV
+ *
+ * Created on 21 August 2011, 20:00
+ */
+
+/* Copyright (C)
+* 2011 - Graeme Jury, ZL2APV
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*
+*/
 #include "vfo.h"
 #include "ui_vfo.h"
 #include <QDebug>
+#include "Band.h"
 
 vfo::vfo(QWidget *parent) :
     QFrame(parent),
@@ -23,7 +47,6 @@ vfo::vfo(QWidget *parent) :
         }
         bands[row][bDat_index] = 0; // Overwrite the index to zero for each row
     }
-//    readSettings();
 //  setBandButton group ID numbers;
     ui->btnGrpBand->setId(ui->bandBtn_00, 0); // 160
     ui->btnGrpBand->setId(ui->bandBtn_01, 1); // 80
@@ -54,6 +77,7 @@ vfo::~vfo()
 void vfo::setFrequency(int freq)
 {
     spectrumFrequency = freq;
+    spectrumFrequency = Band.getFrequency();
     if (selectedVFO == 'A') {
         writeA(freq);
     } else if (selectedVFO == 'B') {
@@ -321,12 +345,15 @@ void vfo::writeA(int freq)
     if (ptt) {
         if (selectedVFO == 'A') {
             emit setFreq(freq, ptt);
+//qDebug()<<Q_FUNC_INFO<<": The value of Band.getFrequency() is ... "<<Band::getFrequency();
             if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
 
 qDebug() << "1. Using vfoA, freq = " << freq << ", ptt = " << ptt << ", readA = " << readA();
         }
     } else if (selectedVFO != 'B') {
         emit setFreq(freq, ptt);
+//qDebug()<<Q_FUNC_INFO<<": The value of Band.getFrequency() is ... "<<band.getFrequency();
+//        if(band.getFrequency()!=freq) emit frequencyChanged((long long) freq);
         if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
 qDebug() << "2. Using vfoA, freq = " << freq << ", ptt = " << ptt << ", readA = " << readA();
     }
@@ -508,307 +535,14 @@ void vfo::vfoEnabled(bool setA, bool setB)
 void vfo::readSettings(QSettings* settings)
 {
     settings->beginGroup("vfo");
-/*
-    bands[0][bDat_mem00] = (settings->value("Band0_Mem00",1850000).toInt());
-    bands[0][bDat_mem01] = (settings->value("Band0_Mem01",1860000).toInt());
-    bands[0][bDat_mem02] = (settings->value("Band0_Mem02",1870000).toInt());
-    bands[0][bDat_mem03] = (settings->value("Band0_Mem03",1880000).toInt());
-    bands[0][bDat_cFreq] = (settings->value("Band0_Cfreq",1840000).toInt());
-    bands[0][bDat_fqmin] = (settings->value("Band0_Fqmin",1800000).toInt());
-    bands[0][bDat_fqmax] = (settings->value("Band0_Fqmax",1950000).toInt());
-    bands[0][bDat_modee] = (settings->value("Band0_Modee",1).toInt());
-    bands[0][bDat_filtH] = (settings->value("Band0_FiltH",2800).toInt());
-    bands[0][bDat_filtL] = (settings->value("Band0_FiltL",200).toInt());
-    bands[0][bDat_index] = (settings->value("Band0_Index",0).toInt());
-
-    bands[1][bDat_mem00] = (settings->value("Band1_Mem00",3550000).toInt());
-    bands[1][bDat_mem01] = (settings->value("Band1_Mem01",3560000).toInt());
-    bands[1][bDat_mem02] = (settings->value("Band1_Mem02",3570000).toInt());
-    bands[1][bDat_mem03] = (settings->value("Band1_Mem03",3580000).toInt());
-    bands[1][bDat_cFreq] = (settings->value("Band1_Cfreq",3540000).toInt());
-    bands[1][bDat_fqmin] = (settings->value("Band1_Fqmin",3500000).toInt());
-    bands[1][bDat_fqmax] = (settings->value("Band1_Fqmax",3900000).toInt());
-    bands[1][bDat_modee] = (settings->value("Band1_Modee",1).toInt());
-    bands[1][bDat_filtH] = (settings->value("Band1_FiltH",2800).toInt());
-    bands[1][bDat_filtL] = (settings->value("Band1_FiltL",200).toInt());
-    bands[1][bDat_index] = (settings->value("Band1_Index",0).toInt());
-
-    bands[2][bDat_mem00] = (settings->value("Band2_Mem00",7050000).toInt());
-    bands[2][bDat_mem01] = (settings->value("Band2_Mem01",7060000).toInt());
-    bands[2][bDat_mem02] = (settings->value("Band2_Mem02",7070000).toInt());
-    bands[2][bDat_mem03] = (settings->value("Band2_Mem03",7080000).toInt());
-    bands[2][bDat_cFreq] = (settings->value("Band2_Cfreq",7040000).toInt());
-    bands[2][bDat_fqmin] = (settings->value("Band2_Fqmin",7000000).toInt());
-    bands[2][bDat_fqmax] = (settings->value("Band2_Fqmax",7300000).toInt());
-    bands[2][bDat_modee] = (settings->value("Band2_Modee",1).toInt());
-    bands[2][bDat_filtH] = (settings->value("Band2_FiltH",2800).toInt());
-    bands[2][bDat_filtL] = (settings->value("Band2_FiltL",200).toInt());
-    bands[2][bDat_index] = (settings->value("Band2_Index",0).toInt());
-
-    bands[3][bDat_mem00] = (settings->value("Band3_Mem00",10110000).toInt());
-    bands[3][bDat_mem01] = (settings->value("Band3_Mem01",10120000).toInt());
-    bands[3][bDat_mem02] = (settings->value("Band3_Mem02",10130000).toInt());
-    bands[3][bDat_mem03] = (settings->value("Band3_Mem03",10140000).toInt());
-    bands[3][bDat_cFreq] = (settings->value("Band3_Cfreq",10125000).toInt());
-    bands[3][bDat_fqmin] = (settings->value("Band3_Fqmin",10100000).toInt());
-    bands[3][bDat_fqmax] = (settings->value("Band3_Fqmax",10150000).toInt());
-    bands[3][bDat_modee] = (settings->value("Band3_Modee",1).toInt());
-    bands[3][bDat_filtH] = (settings->value("Band3_FiltH",2800).toInt());
-    bands[3][bDat_filtL] = (settings->value("Band3_FiltL",200).toInt());
-    bands[3][bDat_index] = (settings->value("Band3_Index",0).toInt());
-
-    bands[4][bDat_mem00] = (settings->value("Band4_Mem00",14020000).toInt());
-    bands[4][bDat_mem01] = (settings->value("Band4_Mem01",14120000).toInt());
-    bands[4][bDat_mem02] = (settings->value("Band4_Mem02",14130000).toInt());
-    bands[4][bDat_mem03] = (settings->value("Band4_Mem03",14140000).toInt());
-    bands[4][bDat_cFreq] = (settings->value("Band4_Cfreq",14125000).toInt());
-    bands[4][bDat_fqmin] = (settings->value("Band4_Fqmin",14000000).toInt());
-    bands[4][bDat_fqmax] = (settings->value("Band4_Fqmax",14350000).toInt());
-    bands[4][bDat_modee] = (settings->value("Band4_Modee",1).toInt());
-    bands[4][bDat_filtH] = (settings->value("Band4_FiltH",2800).toInt());
-    bands[4][bDat_filtL] = (settings->value("Band4_FiltL",200).toInt());
-    bands[4][bDat_index] = (settings->value("Band4_Index",0).toInt());
-
-    bands[5][bDat_mem00] = (settings->value("Band5_Mem00",18010000).toInt());
-    bands[5][bDat_mem01] = (settings->value("Band5_Mem01",18020000).toInt());
-    bands[5][bDat_mem02] = (settings->value("Band5_Mem02",18030000).toInt());
-    bands[5][bDat_mem03] = (settings->value("Band5_Mem03",18040000).toInt());
-    bands[5][bDat_cFreq] = (settings->value("Band5_Cfreq",18025000).toInt());
-    bands[5][bDat_fqmin] = (settings->value("Band5_Fqmin",18068000).toInt());
-    bands[5][bDat_fqmax] = (settings->value("Band5_Fqmax",18168000).toInt());
-    bands[5][bDat_modee] = (settings->value("Band5_Modee",1).toInt());
-    bands[5][bDat_filtH] = (settings->value("Band5_FiltH",2800).toInt());
-    bands[5][bDat_filtL] = (settings->value("Band5_FiltL",200).toInt());
-    bands[5][bDat_index] = (settings->value("Band5_Index",0).toInt());
-
-    bands[6][bDat_mem00] = (settings->value("Band6_Mem00",21010000).toInt());
-    bands[6][bDat_mem01] = (settings->value("Band6_Mem01",21020000).toInt());
-    bands[6][bDat_mem02] = (settings->value("Band6_Mem02",21130000).toInt());
-    bands[6][bDat_mem03] = (settings->value("Band6_Mem03",21140000).toInt());
-    bands[6][bDat_cFreq] = (settings->value("Band6_Cfreq",21225000).toInt());
-    bands[6][bDat_fqmin] = (settings->value("Band6_Fqmin",21000000).toInt());
-    bands[6][bDat_fqmax] = (settings->value("Band6_Fqmax",21450000).toInt());
-    bands[6][bDat_modee] = (settings->value("Band6_Modee",1).toInt());
-    bands[6][bDat_filtH] = (settings->value("Band6_FiltH",2800).toInt());
-    bands[6][bDat_filtL] = (settings->value("Band6_FiltL",200).toInt());
-    bands[6][bDat_index] = (settings->value("Band6_Index",0).toInt());
-
-    bands[7][bDat_mem00] = (settings->value("Band7_Mem00",24900000).toInt());
-    bands[7][bDat_mem01] = (settings->value("Band7_Mem01",24920000).toInt());
-    bands[7][bDat_mem02] = (settings->value("Band7_Mem02",24930000).toInt());
-    bands[7][bDat_mem03] = (settings->value("Band7_Mem03",24940000).toInt());
-    bands[7][bDat_cFreq] = (settings->value("Band7_Cfreq",24925000).toInt());
-    bands[7][bDat_fqmin] = (settings->value("Band7_Fqmin",24890000).toInt());
-    bands[7][bDat_fqmax] = (settings->value("Band7_Fqmax",24990000).toInt());
-    bands[7][bDat_modee] = (settings->value("Band7_Modee",1).toInt());
-    bands[7][bDat_filtH] = (settings->value("Band7_FiltH",2800).toInt());
-    bands[7][bDat_filtL] = (settings->value("Band7_FiltL",200).toInt());
-    bands[7][bDat_index] = (settings->value("Band7_Index",0).toInt());
-
-    bands[8][bDat_mem00] = (settings->value("Band8_Mem00",26955000).toInt());
-    bands[8][bDat_mem01] = (settings->value("Band8_Mem01",26960000).toInt());
-    bands[8][bDat_mem02] = (settings->value("Band8_Mem02",26970000).toInt());
-    bands[8][bDat_mem03] = (settings->value("Band8_Mem03",26980000).toInt());
-    bands[8][bDat_cFreq] = (settings->value("Band8_Cfreq",26990000).toInt());
-    bands[8][bDat_fqmin] = (settings->value("Band8_Fqmin",26950000).toInt());
-    bands[8][bDat_fqmax] = (settings->value("Band8_Fqmax",27300000).toInt());
-    bands[8][bDat_modee] = (settings->value("Band8_Modee",1).toInt());
-    bands[8][bDat_filtH] = (settings->value("Band8_FiltH",2800).toInt());
-    bands[8][bDat_filtL] = (settings->value("Band8_FiltL",200).toInt());
-    bands[8][bDat_index] = (settings->value("Band8_Index",0).toInt());
-
-    bands[9][bDat_mem00] = (settings->value("Band9_Mem00",28010000).toInt());
-    bands[9][bDat_mem01] = (settings->value("Band9_Mem01",28420000).toInt());
-    bands[9][bDat_mem02] = (settings->value("Band9_Mem02",28430000).toInt());
-    bands[9][bDat_mem03] = (settings->value("Band9_Mem03",28440000).toInt());
-    bands[9][bDat_cFreq] = (settings->value("Band9_Cfreq",28425000).toInt());
-    bands[9][bDat_fqmin] = (settings->value("Band9_Fqmin",28000000).toInt());
-    bands[9][bDat_fqmax] = (settings->value("Band9_Fqmax",29700000).toInt());
-    bands[9][bDat_modee] = (settings->value("Band9_Modee",1).toInt());
-    bands[9][bDat_filtH] = (settings->value("Band9_FiltH",2800).toInt());
-    bands[9][bDat_filtL] = (settings->value("Band9_FiltL",200).toInt());
-    bands[9][bDat_index] = (settings->value("Band9_Index",0).toInt());
-
-    bands[10][bDat_mem00] = (settings->value("Band10_Mem00",51010000).toInt());
-    bands[10][bDat_mem01] = (settings->value("Band10_Mem01",51060000).toInt());
-    bands[10][bDat_mem02] = (settings->value("Band10_Mem02",51070000).toInt());
-    bands[10][bDat_mem03] = (settings->value("Band10_Mem03",51080000).toInt());
-    bands[10][bDat_cFreq] = (settings->value("Band10_Cfreq",51940000).toInt());
-    bands[10][bDat_fqmin] = (settings->value("Band10_Fqmin",51000000).toInt());
-    bands[10][bDat_fqmax] = (settings->value("Band10_Fqmax",53000000).toInt());
-    bands[10][bDat_modee] = (settings->value("Band10_Modee",1).toInt());
-    bands[10][bDat_filtH] = (settings->value("Band10_FiltH",2800).toInt());
-    bands[10][bDat_filtL] = (settings->value("Band10_FiltL",200).toInt());
-    bands[10][bDat_index] = (settings->value("Band10_Index",0).toInt());
-
-    bands[11][bDat_mem00] = (settings->value("Band11_Mem00",8050000).toInt());
-    bands[11][bDat_mem01] = (settings->value("Band11_Mem01",9060000).toInt());
-    bands[11][bDat_mem02] = (settings->value("Band11_Mem02",10070000).toInt());
-    bands[11][bDat_mem03] = (settings->value("Band11_Mem03",11080000).toInt());
-    bands[11][bDat_cFreq] = (settings->value("Band11_Cfreq",15040000).toInt());
-    bands[11][bDat_fqmin] = (settings->value("Band11_Fqmin",000000).toInt());
-    bands[11][bDat_fqmax] = (settings->value("Band11_Fqmax",999000000).toInt());
-    bands[11][bDat_modee] = (settings->value("Band11_Modee",1).toInt());
-    bands[11][bDat_filtH] = (settings->value("Band11_FiltH",2800).toInt());
-    bands[11][bDat_filtL] = (settings->value("Band11_FiltL",200).toInt());
-    bands[11][bDat_index] = (settings->value("Band11_Index",0).toInt());
-*/
-
-//    writeA(settings->value("vfoA_f",3502000).toInt());  // These need to be done after all the frequency
-    writeB(settings->value("vfoB_f",14234567).toInt()); // settings have been read and set.
+    writeB(settings->value("vfoB_f",14234567).toInt()); // vfoA initial settings from band.ccp
     settings->endGroup();
 }
 
 void vfo::writeSettings(QSettings* settings)
 {
     settings->beginGroup("vfo");
-//    settings->setValue("vfoA_f", readA());
     settings->setValue("vfoB_f", readB());
-/*
-    settings->setValue("Band0_Mem00",bands[0][bDat_mem00]);
-    settings->setValue("Band0_Mem01",bands[0][bDat_mem01]);
-    settings->setValue("Band0_Mem02",bands[0][bDat_mem02]);
-    settings->setValue("Band0_Mem03",bands[0][bDat_mem03]);
-    settings->setValue("Band0_Cfreq",bands[0][bDat_cFreq]);
-    settings->setValue("Band0_Fqmin",bands[0][bDat_fqmin]);
-    settings->setValue("Band0_Fqmax",bands[0][bDat_fqmax]);
-    settings->setValue("Band0_Modee",bands[0][bDat_modee]);
-    settings->setValue("Band0_FiltH",bands[0][bDat_filtH]);
-    settings->setValue("Band0_FiltL",bands[0][bDat_filtL]);
-    settings->setValue("Band0_Index",bands[0][bDat_index]);
-
-    settings->setValue("Band1_Mem00",bands[1][bDat_mem00]);
-    settings->setValue("Band1_Mem01",bands[1][bDat_mem01]);
-    settings->setValue("Band1_Mem02",bands[1][bDat_mem02]);
-    settings->setValue("Band1_Mem03",bands[1][bDat_mem03]);
-    settings->setValue("Band1_Cfreq",bands[1][bDat_cFreq]);
-    settings->setValue("Band1_Fqmin",bands[1][bDat_fqmin]);
-    settings->setValue("Band1_Fqmax",bands[1][bDat_fqmax]);
-    settings->setValue("Band1_Modee",bands[1][bDat_modee]);
-    settings->setValue("Band1_FiltH",bands[1][bDat_filtH]);
-    settings->setValue("Band1_FiltL",bands[1][bDat_filtL]);
-    settings->setValue("Band1_Index",bands[1][bDat_index]);
-
-    settings->setValue("Band2_Mem00",bands[2][bDat_mem00]);
-    settings->setValue("Band2_Mem01",bands[2][bDat_mem01]);
-    settings->setValue("Band2_Mem02",bands[2][bDat_mem02]);
-    settings->setValue("Band2_Mem03",bands[2][bDat_mem03]);
-    settings->setValue("Band2_Cfreq",bands[2][bDat_cFreq]);
-    settings->setValue("Band2_Fqmin",bands[2][bDat_fqmin]);
-    settings->setValue("Band2_Fqmax",bands[2][bDat_fqmax]);
-    settings->setValue("Band2_Modee",bands[2][bDat_modee]);
-    settings->setValue("Band2_FiltH",bands[2][bDat_filtH]);
-    settings->setValue("Band2_FiltL",bands[2][bDat_filtL]);
-    settings->setValue("Band2_Index",bands[2][bDat_index]);
-
-    settings->setValue("Band3_Mem00",bands[3][bDat_mem00]);
-    settings->setValue("Band3_Mem01",bands[3][bDat_mem01]);
-    settings->setValue("Band3_Mem02",bands[3][bDat_mem02]);
-    settings->setValue("Band3_Mem03",bands[3][bDat_mem03]);
-    settings->setValue("Band3_Cfreq",bands[3][bDat_cFreq]);
-    settings->setValue("Band3_Fqmin",bands[3][bDat_fqmin]);
-    settings->setValue("Band3_Fqmax",bands[3][bDat_fqmax]);
-    settings->setValue("Band3_Modee",bands[3][bDat_modee]);
-    settings->setValue("Band3_FiltH",bands[3][bDat_filtH]);
-    settings->setValue("Band3_FiltL",bands[3][bDat_filtL]);
-    settings->setValue("Band3_Index",bands[3][bDat_index]);
-
-    settings->setValue("Band4_Mem00",bands[4][bDat_mem00]);
-    settings->setValue("Band4_Mem01",bands[4][bDat_mem01]);
-    settings->setValue("Band4_Mem02",bands[4][bDat_mem02]);
-    settings->setValue("Band4_Mem03",bands[4][bDat_mem03]);
-    settings->setValue("Band4_Cfreq",bands[4][bDat_cFreq]);
-    settings->setValue("Band4_Fqmin",bands[4][bDat_fqmin]);
-    settings->setValue("Band4_Fqmax",bands[4][bDat_fqmax]);
-    settings->setValue("Band4_Modee",bands[4][bDat_modee]);
-    settings->setValue("Band4_FiltH",bands[4][bDat_filtH]);
-    settings->setValue("Band4_FiltL",bands[4][bDat_filtL]);
-    settings->setValue("Band4_Index",bands[4][bDat_index]);
-
-    settings->setValue("Band5_Mem00",bands[5][bDat_mem00]);
-    settings->setValue("Band5_Mem01",bands[5][bDat_mem01]);
-    settings->setValue("Band5_Mem02",bands[5][bDat_mem02]);
-    settings->setValue("Band5_Mem03",bands[5][bDat_mem03]);
-    settings->setValue("Band5_Cfreq",bands[5][bDat_cFreq]);
-    settings->setValue("Band5_Fqmin",bands[5][bDat_fqmin]);
-    settings->setValue("Band5_Fqmax",bands[5][bDat_fqmax]);
-    settings->setValue("Band5_Modee",bands[5][bDat_modee]);
-    settings->setValue("Band5_FiltH",bands[5][bDat_filtH]);
-    settings->setValue("Band5_FiltL",bands[5][bDat_filtL]);
-    settings->setValue("Band5_Index",bands[5][bDat_index]);
-
-    settings->setValue("Band6_Mem00",bands[6][bDat_mem00]);
-    settings->setValue("Band6_Mem01",bands[6][bDat_mem01]);
-    settings->setValue("Band6_Mem02",bands[6][bDat_mem02]);
-    settings->setValue("Band6_Mem03",bands[6][bDat_mem03]);
-    settings->setValue("Band6_Cfreq",bands[6][bDat_cFreq]);
-    settings->setValue("Band6_Fqmin",bands[6][bDat_fqmin]);
-    settings->setValue("Band6_Fqmax",bands[6][bDat_fqmax]);
-    settings->setValue("Band6_Modee",bands[6][bDat_modee]);
-    settings->setValue("Band6_FiltH",bands[6][bDat_filtH]);
-    settings->setValue("Band6_FiltL",bands[6][bDat_filtL]);
-    settings->setValue("Band6_Index",bands[6][bDat_index]);
-
-    settings->setValue("Band7_Mem00",bands[7][bDat_mem00]);
-    settings->setValue("Band7_Mem01",bands[7][bDat_mem01]);
-    settings->setValue("Band7_Mem02",bands[7][bDat_mem02]);
-    settings->setValue("Band7_Mem03",bands[7][bDat_mem03]);
-    settings->setValue("Band7_Cfreq",bands[7][bDat_cFreq]);
-    settings->setValue("Band7_Fqmin",bands[7][bDat_fqmin]);
-    settings->setValue("Band7_Fqmax",bands[7][bDat_fqmax]);
-    settings->setValue("Band7_Modee",bands[7][bDat_modee]);
-    settings->setValue("Band7_FiltH",bands[7][bDat_filtH]);
-    settings->setValue("Band7_FiltL",bands[7][bDat_filtL]);
-    settings->setValue("Band7_Index",bands[7][bDat_index]);
-
-    settings->setValue("Band8_Mem00",bands[8][bDat_mem00]);
-    settings->setValue("Band8_Mem01",bands[8][bDat_mem01]);
-    settings->setValue("Band8_Mem02",bands[8][bDat_mem02]);
-    settings->setValue("Band8_Mem03",bands[8][bDat_mem03]);
-    settings->setValue("Band8_Cfreq",bands[8][bDat_cFreq]);
-    settings->setValue("Band8_Fqmin",bands[8][bDat_fqmin]);
-    settings->setValue("Band8_Fqmax",bands[8][bDat_fqmax]);
-    settings->setValue("Band8_Modee",bands[8][bDat_modee]);
-    settings->setValue("Band8_FiltH",bands[8][bDat_filtH]);
-    settings->setValue("Band8_FiltL",bands[8][bDat_filtL]);
-    settings->setValue("Band8_Index",bands[8][bDat_index]);
-
-    settings->setValue("Band9_Mem00",bands[9][bDat_mem00]);
-    settings->setValue("Band9_Mem01",bands[9][bDat_mem01]);
-    settings->setValue("Band9_Mem02",bands[9][bDat_mem02]);
-    settings->setValue("Band9_Mem03",bands[9][bDat_mem03]);
-    settings->setValue("Band9_Cfreq",bands[9][bDat_cFreq]);
-    settings->setValue("Band9_Fqmin",bands[9][bDat_fqmin]);
-    settings->setValue("Band9_Fqmax",bands[9][bDat_fqmax]);
-    settings->setValue("Band9_Modee",bands[9][bDat_modee]);
-    settings->setValue("Band9_FiltH",bands[9][bDat_filtH]);
-    settings->setValue("Band9_FiltL",bands[9][bDat_filtL]);
-    settings->setValue("Band9_Index",bands[9][bDat_index]);
-
-    settings->setValue("Band10_Mem00",bands[10][bDat_mem00]);
-    settings->setValue("Band10_Mem01",bands[10][bDat_mem01]);
-    settings->setValue("Band10_Mem02",bands[10][bDat_mem02]);
-    settings->setValue("Band10_Mem03",bands[10][bDat_mem03]);
-    settings->setValue("Band10_Cfreq",bands[10][bDat_cFreq]);
-    settings->setValue("Band10_Fqmin",bands[10][bDat_fqmin]);
-    settings->setValue("Band10_Fqmax",bands[10][bDat_fqmax]);
-    settings->setValue("Band10_Modee",bands[10][bDat_modee]);
-    settings->setValue("Band10_FiltH",bands[10][bDat_filtH]);
-    settings->setValue("Band10_FiltL",bands[10][bDat_filtL]);
-    settings->setValue("Band10_Index",bands[10][bDat_index]);
-
-    settings->setValue("Band11_Mem00",bands[11][bDat_mem00]);
-    settings->setValue("Band11_Mem01",bands[11][bDat_mem01]);
-    settings->setValue("Band11_Mem02",bands[11][bDat_mem02]);
-    settings->setValue("Band11_Mem03",bands[11][bDat_mem03]);
-    settings->setValue("Band11_Cfreq",bands[11][bDat_cFreq]);
-    settings->setValue("Band11_Fqmin",bands[11][bDat_fqmin]);
-    settings->setValue("Band11_Fqmax",bands[11][bDat_fqmax]);
-    settings->setValue("Band11_Modee",bands[11][bDat_modee]);
-    settings->setValue("Band11_FiltH",bands[11][bDat_filtH]);
-    settings->setValue("Band11_FiltL",bands[11][bDat_filtL]);
-    settings->setValue("Band11_Index",bands[11][bDat_index]);
-*/
     settings->endGroup();
 }
 
