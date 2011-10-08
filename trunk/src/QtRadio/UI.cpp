@@ -70,6 +70,8 @@ UI::UI() {
     widget.gridLayout->setVerticalSpacing(0);
     widget.gridLayout->setHorizontalSpacing(0);
 
+    connect(widget.vfoFrame,SIGNAL(getBandFrequency()),this,SLOT(getBandFrequency()));
+
     // connect up all the menus
     connect(widget.actionAbout,SIGNAL(triggered()),this,SLOT(actionAbout()));
     connect(widget.actionConnectToServer,SIGNAL(triggered()),this,SLOT(actionConnect()));
@@ -1790,4 +1792,9 @@ void UI::rigctlSetMode(int newmode)
 {
     modeChanged(mode.getMode(), newmode);
     mode.setMode(newmode);
+}
+
+void UI::getBandFrequency()
+{
+    widget.vfoFrame->setBandFrequency(band.getFrequency());
 }

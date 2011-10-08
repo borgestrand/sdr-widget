@@ -26,6 +26,7 @@ public:
     void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void setSubRxFrequency(long long subRxFrequency);
     void checkBandBtn(int band);
+    void setBandFrequency(long long f) {bandFrequency = f;}
     QString rigctlGetvfo();
 //    }
 
@@ -44,6 +45,7 @@ signals:
     void bandBtnClicked(int band);
     void rightBandClick();
     void subRxButtonClicked();
+    void getBandFrequency();
 
 protected:
     void wheelEvent( QWheelEvent*);
@@ -82,8 +84,8 @@ private:
     int browsePtr; // Memory browsing pointer
     bool ptt; // ptt on = true, ptt off = false
     char selectedVFO; //'A', 'B', 'S' to indicate which vfo state.
-    long long spectrumFrequency;
     long long subRxFrequency;
+    long long bandFrequency; //A copy of band.currentFrequency & updated by emit getbandFrequency
     enum BandData
         {
             bDat_mem00,

@@ -77,7 +77,6 @@ vfo::~vfo()
 
 void vfo::setFrequency(int freq)
 {
-    spectrumFrequency = freq;
     if (selectedVFO == 'A') {
         writeA(freq);
     } else if (selectedVFO == 'B') {
@@ -104,8 +103,8 @@ void vfo::togglePTT(bool pttRq)
         freq = readA();     // will Rx on vfoA.
         vfoUsed = true;
     }
-
-    if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
+    emit getBandFrequency();
+    if (bandFrequency != freq)  emit frequencyChanged((long long) freq);
 
     // We have decided on vfo to use and got basic freq. Lets now see if we
        // are doing a valid changeover and if it is Rx to Tx or Tx to Rx.
@@ -342,11 +341,12 @@ void vfo::writeA(int freq)
     if (selectedVFO != 'B') {  // i.e. selectedVFO is 'A' or 'S'
 //gvj        setBandButton(freq);
     }
+    emit getBandFrequency();
     if (ptt) {
         if (selectedVFO == 'A') {
             emit setFreq(freq, ptt);
 //qDebug()<<Q_FUNC_INFO<<": The value of Band.getFrequency() is ... "<<Band::getFrequency();
-            if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
+            if (bandFrequency != freq)  emit frequencyChanged((long long) freq);
 
 qDebug() << "1. Using vfoA, freq = " << freq << ", ptt = " << ptt << ", readA = " << readA();
         }
@@ -354,7 +354,7 @@ qDebug() << "1. Using vfoA, freq = " << freq << ", ptt = " << ptt << ", readA = 
         emit setFreq(freq, ptt);
 //qDebug()<<Q_FUNC_INFO<<": The value of Band.getFrequency() is ... "<<band.getFrequency();
 //        if(band.getFrequency()!=freq) emit frequencyChanged((long long) freq);
-        if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
+        if (bandFrequency != freq)  emit frequencyChanged((long long) freq);
 qDebug() << "2. Using vfoA, freq = " << freq << ", ptt = " << ptt << ", readA = " << readA();
     }
 }
@@ -379,16 +379,17 @@ void vfo::writeB(int freq)
     if (selectedVFO == 'B') {
 //gvj        setBandButton(freq);
     }
+    emit getBandFrequency();
     if (ptt) {
         if (selectedVFO != 'A') {
             emit setFreq(freq, ptt);
-            if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
+            if (bandFrequency != freq)  emit frequencyChanged((long long) freq);
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
         }
     } else if (selectedVFO == 'B') {
         if (!ui->pBtnSubRx->isChecked()) {
             emit setFreq(freq, ptt);
-            if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
+            if (bandFrequency != freq)  emit frequencyChanged((long long) freq);
         }
 qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
     }
