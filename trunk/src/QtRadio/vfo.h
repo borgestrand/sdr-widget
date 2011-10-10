@@ -28,11 +28,8 @@ public:
     void checkBandBtn(int band);
     void setBandFrequency(long long f) {bandFrequency = f;}
     QString rigctlGetvfo();
-//    }
 
 public slots:
-    void togglePTT(bool pttRq); //Request to toggle ptt & return freq
-//    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void on_pBtnvfoA_clicked();  // moved from private for rigctl
     void on_pBtnvfoB_clicked();
 
@@ -74,14 +71,12 @@ private:
     void writeB(int);
     void vfoEnabled(bool setA, bool setB);
     void storeVFO();
-    void setBandButton(int freq);
+//    void setBandButton(int freq);
     void timerEvent(QTimerEvent *event);
-    int **bands;
+//    int **bands;
     int readA();
     int readB();
     int getDigit(int x, int y);
-    int cur_Band;
-    int browsePtr; // Memory browsing pointer
     bool ptt; // ptt on = true, ptt off = false
     char selectedVFO; //'A', 'B', 'S' to indicate which vfo state.
     long long subRxFrequency;
