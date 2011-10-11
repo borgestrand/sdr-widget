@@ -21,7 +21,7 @@ public:
 
     void readSettings(QSettings* settings);
     void writeSettings(QSettings* settings);
-    void checkSubRx(long long subRxFrequency);
+    void checkSubRx(long long subRxFrequency, int samplerate);
     void uncheckSubRx();
     void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void setSubRxFrequency(long long subRxFrequency);
@@ -67,15 +67,13 @@ private:
 
     QSettings *settings;
     QBasicTimer timer;
-    void writeA(int);
-    void writeB(int);
+    void writeA(long long);
+    void writeB(long long);
     void vfoEnabled(bool setA, bool setB);
     void storeVFO();
-//    void setBandButton(int freq);
     void timerEvent(QTimerEvent *event);
-//    int **bands;
-    int readA();
-    int readB();
+    long long readA();
+    long long readB();
     int getDigit(int x, int y);
     bool ptt; // ptt on = true, ptt off = false
     char selectedVFO; //'A', 'B', 'S' to indicate which vfo state.
