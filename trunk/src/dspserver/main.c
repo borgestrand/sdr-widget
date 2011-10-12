@@ -108,6 +108,7 @@ struct option longOptions[] = {
     {"server",required_argument, 0, 2},
     {"offset",required_argument, 0, 3},
     {"timing",no_argument, 0, 4},
+    {"lookupcountry",no_argument, 0, 5},
     {0,0,0,0}
 };
 
@@ -141,6 +142,9 @@ void processCommands(int argc,char** argv) {
                 break;
             case 4:
                 client_set_timing();
+                break;
+            case 5:
+                setprintcountry();
                 break;
 	    default:
                 fprintf(stderr,"Usage: \n");

@@ -60,3 +60,9 @@ command line options:
        sets the I/Q offset. Needed for some cards such as some SoundBlaster
        card where the samples are delayed by 1 sample between the 2 channels.
        (i.e. --offset -1).
+       
+    -- lookupcountry
+       
+       default off
+       will try to determine the Country of incoming connections by IP.
+       

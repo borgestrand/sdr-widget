@@ -85,6 +85,7 @@ void client_set_samples(float* samples,int size);
 
 char* client_samples;
 int samples;
+int prncountry = -1;
 
 float getFilterSizeCalibrationOffset() {
     int size=1024; // dspBufferSize
@@ -204,7 +205,10 @@ fprintf(stderr,"client_thread: listening on port %d\n",port);
             struct tm *tod;
             time(&tt);
             tod=localtime(&tt);
-            //fprintf(stdout,"wget -O - http://api.hostip.info/get_html.php?ip=%s\n",inet_ntoa(client.sin_addr));
+            if(prncountry == 0){
+                printcountry();
+            }
+            //fprintf(stdout,"wget -O - --post-data 'ip=%s'  http://www.selfseo.com/ip_to_country.php 2>/dev/null |grep ' is assigned to '|perl -ne 'm/border=1> (.*?)</; print \"$1\\n\" '\n",inet_ntoa(client.sin_addr));
             fflush(stdout);
             fprintf(stderr,"%02d/%02d/%02d %02d:%02d:%02d RX%d: client connection from %s:%d\n",tod->tm_mday,tod->tm_mon+1,tod->tm_year+1900,tod->tm_hour,tod->tm_min,tod->tm_sec,receiver,inet_ntoa(client.sin_addr),ntohs(client.sin_port));
 
@@ -766,4 +770,37 @@ void client_set_samples(float* samples,int size) {
         client_samples[i+BUFFER_HEADER_SIZE]=(unsigned char)-(max+displayCalibrationOffset+preampOffset);
     }
 
+}
+
+void printcountry()
+{
+  // looks for the country for the connecting IP
+  FILE *fp;
+  int status;
+  char path[1035];
+  char sCmd[255];
+  /* Open the command for reading. */
+  sprintf(sCmd,"wget -O - --post-data 'ip=%s'  http://www.selfseo.com/ip_to_country.php 2>/dev/null |grep ' is assigned to '|perl -ne 'm/border=1> (.*?)</; print \"$1\\n\" '",inet_ntoa(client.sin_addr));
+  fp = popen(sCmd, "r");
+  if (fp == NULL) {
+    fprintf(stdout,"Failed to run printcountry command\n" );
+    return;
+  }
+
+  /* Read the output a line at a time - output it. */
+  fprintf(stdout,"\nIP %s is from ", inet_ntoa(client.sin_addr));
+  while (fgets(path, sizeof(path)-1, fp) != NULL) {
+    fprintf(stdout,"%s",  path);
+  }
+
+  /* close */
+  pclose(fp);
+
+  return;
+}
+
+void setprintcountry()
+{
+	prncountry = 0;
+	fprintf(stderr,"Country Lookup is On\n");
 }

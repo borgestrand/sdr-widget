@@ -53,7 +53,7 @@ void RigCtlSocket::readyRead() {
         QStringList cmdlist = cmdstr.split(QRegExp("\\s+"));
         int cmdlistcnt = cmdlist.count();
         bool output = false;
-        int retcode = 0;
+        int retcode = 0; //RIG_OK
         QTextStream out(conn);
 
         /* This isn't a full implementation of the rigctl protocol; it's

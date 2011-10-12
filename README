@@ -69,6 +69,8 @@ $ softrock --si570 --iq --samplerate 48000|96000|192000
 To run the dspserver: 
 
 $ dspserver 
+dspserver may be started with the option "-- lookupcountry" which will try 
+to determine the Country of incoming connections by IP. Off by default. May block.
 
 Then you can run QtRadio to connect to the dspserver that is running. 
 
