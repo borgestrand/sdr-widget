@@ -24,8 +24,8 @@
 #include "vfo.h"
 #include "ui_vfo.h"
 #include <QDebug>
-#include "Band.h"
-#include "UI.h"
+//#include "Band.h"
+//#include "UI.h"
 
 vfo::vfo(QWidget *parent) :
     QFrame(parent),
@@ -33,21 +33,9 @@ vfo::vfo(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    cur_Band = 20; // Initialise to a value which is != to any band.
-    browsePtr = 0;
     selectedVFO = 'A';
     ptt = false;
 
-    bands = new int*[12];  // Create 12 rows (there are 12 buttons)
-    for (int nCount=0; nCount < 12; nCount++)
-        bands[nCount] = new int[bDat_index + 1];  // Create 8 columns
-
-    for (int row = 0; row < 12; row ++) {
-        for (int col = 0; col == bDat_index; col++) {
-            bands[row][col] = 10000000;
-        }
-        bands[row][bDat_index] = 0; // Overwrite the index to zero for each row
-    }
 //  setBandButton group ID numbers;
     ui->btnGrpBand->setId(ui->bandBtn_00, 0); // 160
     ui->btnGrpBand->setId(ui->bandBtn_01, 1); // 80
@@ -66,8 +54,6 @@ vfo::vfo(QWidget *parent) :
                 this, SLOT(btnGrpClicked(int)));
     connect(ui->hSlider, SIGNAL(valueChanged(int)),
                 this, SLOT(processRIT(int)));
-//    connect(ui->pBtnSubRx, SIGNAL(toggled(bool)),
-//            this, SLOT(togglePTT(bool)));
 }
 
 vfo::~vfo()
@@ -77,149 +63,49 @@ vfo::~vfo()
 
 void vfo::setFrequency(int freq)
 {
-    spectrumFrequency = freq;
-    if (selectedVFO == 'A') {
+    if (selectedVFO == 'A' || selectedVFO == 'S') {
         writeA(freq);
-    } else if (selectedVFO == 'B') {
-        if (!ui->pBtnSubRx->isChecked()) writeB(freq);
+    } else if (!ui->pBtnSubRx->isChecked()) {
+        writeB(freq);
     } else writeA(freq);
 }
 
-
-void vfo::togglePTT(bool pttRq)
+void vfo::processRIT(int rit)  //rit holds slider value
 {
-    int freq;
-    bool vfoUsed; // true = vfoA, false = vfoB.
+    static int prevRITfreq = 0;
 
-    if (selectedVFO == 'A') {
-        freq = readA();
-        vfoUsed = true;
-    } else if (selectedVFO == 'B') {
-        freq = readB();
-        vfoUsed = false;
-    } else if (pttRq == true) { // Must be split and
-        freq = readB();         //we will Tx on vfoB
-        vfoUsed = false;
-    } else {                // We are receiving so we
-        freq = readA();     // will Rx on vfoA.
-        vfoUsed = true;
-    }
-
-    if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
-
-    // We have decided on vfo to use and got basic freq. Lets now see if we
-       // are doing a valid changeover and if it is Rx to Tx or Tx to Rx.
-    if (pttRq == true && ptt == false) { // Going from Rx to Tx
-        ptt = true;
-        if (ui->pBtnRIT->isChecked()) {
-            if (selectedVFO == 'A' || selectedVFO == 'B'){
-                freq = freq + ui->hSlider->value() * -1;
-                ui->pBtnRIT->setEnabled(false);
-                ui->hSlider->setEnabled(false);
-            } // We don't modify the vfo frequencies if on split
-        }     // and of course no modification if RIT not checked.
-        if (vfoUsed == true) { // Using vfoA for transmit frequency
-            writeA(freq);
-            ui->pBtnvfoA->setStyleSheet("background-color: rgb(255, 0, 0)"); //Red
-        } else {
-            writeB(freq);
-            //TODO set vfoA background to light green and disable display vfoEnabled(false, true)
-            vfoEnabled(false, true);
-            ui->pBtnvfoA->setStyleSheet("background-color: normal"); //Red
-            ui->pBtnvfoB->setStyleSheet("background-color: rgb(255, 0, 0)"); //Red
-        }
-    } else if (pttRq == false && ptt == true) { //Going from Tx to Rx
-        ptt = false;
-        if (ui->pBtnRIT->isChecked()) {
-            if (selectedVFO == 'A' || selectedVFO == 'B'){
-                freq = freq + ui->hSlider->value();
-                ui->pBtnRIT->setEnabled(true);
-                ui->hSlider->setEnabled(true);
-            } // We don't modify the vfo frequencies if on split
-        }     // and again no modification if RIT not checked.
-        if (selectedVFO == 'A') { // Using vfoA for receive frequency
-            writeA(freq);
-            ui->pBtnvfoA->setStyleSheet("background-color: rgb(85, 255, 0)"); //Green
-        } else  if (selectedVFO == 'B'){
-            writeB(freq);
-            ui->pBtnvfoB->setStyleSheet("background-color: rgb(85, 255, 0)"); //Green
-        } else {
-            writeA(freq);
-            ui->pBtnvfoB->setStyleSheet("background-color: rgb(255, 155, 155)"); //Light Red
-            ui->pBtnvfoA->setStyleSheet("background-color: rgb(85, 255, 0)"); //Green
-            vfoEnabled(true, false);
-        }
-    }
-}
-
-void vfo::processRIT(int rit)
-{
-    static int freq = 0;
-
-/*
-    freq = rit - freq; // freq now holds difference between last rit and this.
-    if (selectedVFO != 'B') { // Using vfoA or Split if 'B' is not selectedVFO.
-        freq += readA();
-        if (ui->pBtnRIT->isChecked()) writeA(freq);
-    } else {
-        freq += readB();
-        if (ui->pBtnRIT->isChecked()) writeB(freq);
-    }
-*/
     if (ui->pBtnRIT->isChecked()) {
-        emit frequencyMoved(rit - freq, 1);
+        emit frequencyMoved(prevRITfreq - rit, 1);
     }
-    freq = rit;
+    prevRITfreq = rit;
 }
 
 void vfo::on_pBtnRIT_clicked()
 {
-    int chkd = -1;
+    int chkd = 1;
 
     if (ui->pBtnRIT->isChecked()) {
-        chkd = 1;
+        chkd = -1;
     }
-/*
-    if (selectedVFO != 'B') { // Using vfoA or Split if 'B' is not selectedVFO.
-        writeA(readA() + ui->hSlider->value() * chkd);
-    } else {
-        writeB(readB() + ui->hSlider->value() * chkd);
+    if (ui->hSlider->value() != 0) {
+        emit frequencyMoved(ui->hSlider->value() * chkd, 1);
     }
-*/
-    emit frequencyMoved(ui->hSlider->value() * chkd, 1);
 }
 
 void vfo::btnGrpClicked(int btn)
 {
-//    btn = -1 * (btn + 2); //Map buttons (-2 .. -15) to (0 .. 12)
     emit bandBtnClicked(btn);
 }
 
-// We arrive here from a mousePressEvent detecting aright button click on the bandButtons area the variable
-// cur_Band will hold the index to the required band button
+// We arrive here from a mousePressEvent detecting a right button click on the bandButtons area.
 void vfo::storeVFO()
 {
     int retrievedFreq;
-    int cnt;
-
-//    qDebug() << "From storeVFO(), band button = " << cur_Band; //gjfix
 
     if (selectedVFO != 'B') {
         retrievedFreq = readA(); //Using vfoA
     } else {
         retrievedFreq = readB();
-    }
-    // Search to see if the freq is already stored
-    for (cnt = 0; cnt < 4; cnt++) {       //If the freq is in one of the memories then set
-        if (retrievedFreq == bands[cur_Band][cnt]) break;  // the browsePtr to point to it.
-    }
-    if (cnt != 4) { //cnt will be 4 if no matching memory freq.
-        browsePtr = cnt; // Points to matching memory position & we don't need to store it.
-    }   else {
-        bands[cur_Band][bDat_index]--;
-        bands[cur_Band][bDat_index] &= 0x03;
-        bands[cur_Band][bands[cur_Band][bDat_index]] = retrievedFreq;
-        browsePtr = bands[cur_Band][bDat_index]; //Point to last stored freq.
     }
     timer.start(500,this);
     ui->btnGrpBand->checkedButton()->setStyleSheet("background-color: yellow");
@@ -240,24 +126,39 @@ void vfo::mousePressEvent(QMouseEvent *event)
     bool isVFOa = false;
     int digit, cnt;
     QString myStr = "";
+    long long freq;
 
     if (event->button() == Qt::RightButton) {
 
-// qDebug() << (QString::number(event->x()) + "/" + QString::number(event->y()));
+//qDebug()<<Q_FUNC_INFO<<": event x/y = "<<event->x()<<"/"<<event->y();
+
         //Check to see if we have right clicked on the band button group
-        if ((event->x() > 414) && (event->x() < 573) && (event->y() > 6) && (event->y() < 111)) {
-            qDebug() << "Band buttons have been rightClicked";
-            emit rightBandClick();
-        } else if ((event->x() > 189) && (event->x() < 403) && (event->y() > 89) && (event->y() < 111)) {
-                ui->hSlider->setValue(0); // Check to see if we have right clicked the RIT slider
-        } else { // We have clicked either on the display or somewhere else on the widget
+        if ((event->x() > 414) && (event->x() < 573) &&
+            (event->y() > 6) && (event->y() < 111)) {
+            emit rightBandClick();  //Not implemented properly yet
+//A tempory call to storeVfo() to make the selected button flash yellow. Eventually this will
+//be coded to store in the correct band location and the correct vfo's band button flash.
+            storeVFO();
+
+        }   // Check to see if we have right clicked the RIT slider
+        else if ((event->x() > 189) && (event->x() < 403) &&
+                 (event->y() > 89) && (event->y() < 111)) {
+                ui->hSlider->setValue(0);
+        }
+        // We have clicked either on the display or somewhere else on the widget
+
+        else {  // Check to see if we have clicked outside the vfo display area
             digit = getDigit(event->x(), event->y());
-            if (digit != 9) {  // getDigit returns 9 if click was outside display area.
-                if (digit < 9) { // getDigit returns 0 ... 8 if we clicked on vfoA
+qDebug()<<Q_FUNC_INFO<<": The value of digit is ..."<<digit;
+            if (digit != 9) {       // getDigit returns 9 if click was outside display area.
+                if (digit < 9) {    // getDigit returns 0 ... 8 if we clicked on vfoA
+                    freq = readA();
                     isVFOa = true;
                     myStr = ui->lbl_Amhz->text() + ui->lbl_Akhz->text() + ui->lbl_Ahz->text();
-                } else {                  // getDigit returns 10 ... 18 if we clicked on vfoB
+                }
+                else {                  // getDigit returns 10 ... 18 if we clicked on vfoB
                     digit = digit - 10; // so convert to 1 ... 8.
+                    freq = readB();
                     myStr = ui->lbl_Bmhz->text() + ui->lbl_Bkhz->text() + ui->lbl_Bhz->text();
                 }
                 for (cnt = myStr.length(); cnt < 9; cnt++) {
@@ -267,12 +168,31 @@ void vfo::mousePressEvent(QMouseEvent *event)
                     myStr[cnt] = QChar('0');
                     ui->hSlider->setValue(0);
                 }
-                if (isVFOa) {
-                    writeA(myStr.toInt());
-                } else writeB(myStr.toInt());
+                freq = freq - myStr.toLongLong();
+                if (isVFOa) {   //We right clicked on vfoA
+                    if(selectedVFO == 'A' || selectedVFO == 'S') {
+                        emit frequencyMoved(freq, 1);
+qDebug()<<Q_FUNC_INFO<<": vfoA, emit frequencyChanged(myStr.toLongLong()) = "<<freq;
+                    }
+                    else {
+                        writeA(myStr.toLongLong());
+qDebug()<<Q_FUNC_INFO<<": vfoA, writeA(myStr.toInt()) = "<<freq;
+                    }
+                }
+//                else if(ui->pBtnSubRx->isChecked()) { //We right clicked on vfoB
+//qDebug()<<Q_FUNC_INFO<<": vfoB and subRx mode";
+//                }
+                else if(selectedVFO == 'B') {
+                        emit frequencyMoved(freq, -1);
+qDebug()<<Q_FUNC_INFO<<": Line 187 ... vfoB, emit frequencyMoved(freq, 1) = "<<freq;
+                }
+                else {
+                        writeB(myStr.toLongLong());
+qDebug()<<Q_FUNC_INFO<<": vfoB, writeA(myStr.toInt()) = "<<freq;
+                }
             }
         }
-    }
+    }   //If event not right button or getDigit = 9, fall thru to here with no processing.
 }
 
 int vfo::getDigit(int x, int y)
@@ -297,33 +217,42 @@ int vfo::getDigit(int x, int y)
 void vfo::wheelEvent(QWheelEvent *event)
 {
     QString str;
-    int x, digit;
+    long long x;
+    int digit;
     int direction = 1;
-    static const int mult[2][9] = {
-        {100000000,10000000,1000000,100000,10000,1000,100,10,1},            // Retrieve with mult[0][0 ... 8]
-        {-100000000,-10000000,-1000000,-100000,-10000,-1000,-100,-10,-1}    // Retrieve with mult[1][0 ... 8]
-    };
+    bool isVfoA = true;
+    static const int mult[9] = {100000000,10000000,1000000,100000,10000,1000,100,10,1};
 
     digit = getDigit(event->x(), event->y());
     if (digit != 9) {  // getDigit returns 9 if click was outside display area so we just fall through.
-        if (event->delta() < 0) direction = 0;  // x becomes pos or neg depending on wheel rotation.
-        if (digit < 9) { // getDigit returns 0 ... 8 if we clicked on vfoA
-            x = mult[direction][digit];
-//            x = x + readA();
-//            if (x >= 0 && x <= 999999999)  // Safe to update the display without overflow or underflow.
-//                writeA(x);
-        } else {                  // getDigit returns 10 ... 18 if we clicked on vfoB
+        if (event->delta() < 0) direction = -1;  // x becomes pos or neg depending on wheel rotation.
+        if (digit > 9) { // getDigit returns 10 ... 18 if we clicked on vfoB
             digit = digit - 10; // so convert to 1 ... 8.
-            x = mult[direction][digit];
-//            x = x + readB();
-//            if (x > 0 && x <= 999999999)  // Safe to update the display without overflow or underflow.
-//                writeB(x);
+            isVfoA = false;
         }
-        emit frequencyMoved(x, 1);
+        x = mult[digit]*direction;
+        if(isVfoA) {    //If true we scrolled on vfoA
+qDebug()<<Q_FUNC_INFO<<"The value of x = "<<", & readA() = "<<readA();
+            if(selectedVFO == 'A' || selectedVFO == 'S') {
+                emit frequencyMoved(x, 1);
+            }
+            else {
+                writeA(readA() - x);
+            }
+        }
+        else {  //We scrolled on vfoB
+qDebug()<<Q_FUNC_INFO<<"The value of x = "<< x<<", & readB() = "<<readB();
+            if(selectedVFO == 'B') {
+                emit frequencyMoved(x, 1);
+            }
+            else {
+                writeB(readB() - x);
+            }
+        }
     }  //We fall through to here without processing the wheel if getDigit returns 9.
 }
 
-void vfo::writeA(int freq)
+void vfo::writeA(long long freq)
 {
     QString myStr;
     int cnt = 0;
@@ -339,27 +268,9 @@ void vfo::writeA(int freq)
         else if (stgChrs - cnt < 6) ui->lbl_Akhz->setText(myStr.at(cnt)+ui->lbl_Akhz->text());
         else ui->lbl_Amhz->setText(myStr.at(cnt)+ui->lbl_Amhz->text());
     }
-    if (selectedVFO != 'B') {  // i.e. selectedVFO is 'A' or 'S'
-//gvj        setBandButton(freq);
-    }
-    if (ptt) {
-        if (selectedVFO == 'A') {
-            emit setFreq(freq, ptt);
-//qDebug()<<Q_FUNC_INFO<<": The value of Band.getFrequency() is ... "<<Band::getFrequency();
-            if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
-
-qDebug() << "1. Using vfoA, freq = " << freq << ", ptt = " << ptt << ", readA = " << readA();
-        }
-    } else if (selectedVFO != 'B') {
-        emit setFreq(freq, ptt);
-//qDebug()<<Q_FUNC_INFO<<": The value of Band.getFrequency() is ... "<<band.getFrequency();
-//        if(band.getFrequency()!=freq) emit frequencyChanged((long long) freq);
-        if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
-qDebug() << "2. Using vfoA, freq = " << freq << ", ptt = " << ptt << ", readA = " << readA();
-    }
 }
 
-void vfo::writeB(int freq)
+void vfo::writeB(long long freq)
 {
     QString myStr;
     int cnt = 0;
@@ -376,22 +287,6 @@ void vfo::writeB(int freq)
         else if (stgChrs - cnt < 6) ui->lbl_Bkhz->setText(myStr.at(cnt)+ui->lbl_Bkhz->text());
         else ui->lbl_Bmhz->setText(myStr.at(cnt)+ui->lbl_Bmhz->text());
     }
-    if (selectedVFO == 'B') {
-//gvj        setBandButton(freq);
-    }
-    if (ptt) {
-        if (selectedVFO != 'A') {
-            emit setFreq(freq, ptt);
-            if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
-qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
-        }
-    } else if (selectedVFO == 'B') {
-        if (!ui->pBtnSubRx->isChecked()) {
-            emit setFreq(freq, ptt);
-            if (spectrumFrequency != freq)  emit frequencyChanged((long long) freq);
-        }
-qDebug() << "Using vfoB, freq = " << freq << ", ptt = " << ptt;
-    }
 }
 
 void vfo::checkBandBtn(int band)
@@ -400,34 +295,20 @@ void vfo::checkBandBtn(int band)
     ui->btnGrpBand->button(band)->setChecked(TRUE);
 }
 
-void vfo::setBandButton(int freq)
-{
-    int cnt;
-
-    for (cnt = 0; cnt < 12; cnt++) { // 12 buttons (0 ... 11)
-        if (bands[cnt][bDat_fqmin] <= freq && bands[cnt][bDat_fqmax] >= freq) {
-            cur_Band = cnt;
-            ui->btnGrpBand->button(cnt)->setChecked(TRUE);
-            bands[cnt][bDat_cFreq] = freq;
-            break;
-        }
-    }
-}
-
-int vfo::readA()
+long long vfo::readA()
 {
     QString myStr;
 
     myStr = (ui->lbl_Amhz->text() + ui->lbl_Akhz->text() + ui->lbl_Ahz->text());
-    return myStr.toInt();
+    return myStr.toLongLong();
 }
 
-int vfo::readB()
+long long vfo::readB()
 {
     QString myStr;
 
     myStr = ui->lbl_Bmhz->text() + ui->lbl_Bkhz->text() + ui->lbl_Bhz->text();
-    return myStr.toInt();
+    return myStr.toLongLong();
 }
 
 void vfo::on_pBtnvfoA_clicked()
@@ -442,8 +323,7 @@ void vfo::on_pBtnvfoA_clicked()
         ui->pBtnvfoB->setStyleSheet("background-color: normal");
         ui->pBtnSplit->setStyleSheet("background-color: normal");
         vfoEnabled(true, false);
-//gvj        setBandButton(readA());
-        writeA(readA());
+        emit frequencyChanged(readA());
     }
 }
 
@@ -459,16 +339,28 @@ void vfo::on_pBtnvfoB_clicked()
         ui->pBtnvfoA->setStyleSheet("background-color: normal");
         ui->pBtnSplit->setStyleSheet("background-color: normal");
         vfoEnabled(false, true);
-//gvj        setBandButton(readB());
-        if(!ui->pBtnRIT->isChecked()){
-            writeB(readB());
-        }
+        emit frequencyChanged(readB());
     }
+}
+
+void vfo::vfoEnabled(bool setA, bool setB)
+// Set the screen info for the vfo in use to enabled.
+{
+    ui->lbl_Ahz->setEnabled(setA); //These are the labels used
+    ui->lbl_Akhz->setEnabled(setA);//to draw the frequency display.
+    ui->lbl_Amhz->setEnabled(setA);
+    ui->label->setEnabled(setA);   //The MHz decimal
+    ui->label_2->setEnabled(setA); //The Khz comma
+    ui->lbl_Bhz->setEnabled(setB);
+    ui->lbl_Bkhz->setEnabled(setB);
+    ui->lbl_Bmhz->setEnabled(setB);
+    ui->label_3->setEnabled(setB);
+    ui->label_4->setEnabled(setB);
 }
 
 void vfo::on_pBtnSplit_clicked()
 {
-    if (selectedVFO != 'S') {
+    if (selectedVFO != 'S' && ptt == false) {
         if (ui->pBtnRIT->isChecked()) {
             ui->pBtnRIT->setChecked(false);
             on_pBtnRIT_clicked();
@@ -478,12 +370,7 @@ void vfo::on_pBtnSplit_clicked()
         ui->pBtnvfoB->setStyleSheet("background-color: rgb(255, 155, 155)");
         ui->pBtnSplit->setStyleSheet("background-color: rgb(0, 170, 255)");
         vfoEnabled(true, false);
-//gvj        setBandButton(readA());
-        if (ptt == true) {
-            writeB(readB());
-        } else {
-            writeA(readA());
-        }
+        emit frequencyChanged(readA());
     }
 }
 
@@ -499,37 +386,31 @@ void vfo::on_pBtnScanUp_clicked()
 
 void vfo::on_pBtnExch_clicked()
 {
-    int exchTemp;
+    long long exchTemp1;
+    long long exchTemp2;
 
-    exchTemp = readA();
-    writeA(readB());
-    writeB(exchTemp);
+    exchTemp1 = readA();
+    exchTemp2 = readB();
+
+    writeA(exchTemp2);
+    writeB(exchTemp1);
+    if(selectedVFO == 'B') {
+        emit frequencyChanged(exchTemp1);
+    } else {
+        emit frequencyChanged(exchTemp2);
+    }
 }
 
 void vfo::on_pBtnAtoB_clicked()
 {
     writeB(readA());
+    emit frequencyChanged(readA()); //Doesn't matter which vfo as both now the same freq
 }
 
 void vfo::on_pBtnBtoA_clicked()
 {
     writeA(readB());
-}
-
-
-void vfo::vfoEnabled(bool setA, bool setB)
-// Set the screen info for the vfo in use to enabled.
-{
-    ui->lbl_Ahz->setEnabled(setA); //These are the labels used
-    ui->lbl_Akhz->setEnabled(setA);//to draw the frequency display.
-    ui->lbl_Amhz->setEnabled(setA);
-    ui->label->setEnabled(setA);   //The MHz decimal
-    ui->label_2->setEnabled(setA); //The Khz comma
-    ui->lbl_Bhz->setEnabled(setB);
-    ui->lbl_Bkhz->setEnabled(setB);
-    ui->lbl_Bmhz->setEnabled(setB);
-    ui->label_3->setEnabled(setB);
-    ui->label_4->setEnabled(setB);
+    emit frequencyChanged(readB());
 }
 
 void vfo::readSettings(QSettings* settings)
@@ -549,33 +430,47 @@ void vfo::writeSettings(QSettings* settings)
 
 void vfo::on_pBtnSubRx_clicked()
 {
-//qDebug()<<Q_FUNC_INFO<<"VFO A readA() = "<<readA();
-    if((selectedVFO == 'B')&(ui->pBtnSubRx->isChecked())) {
-        on_pBtnBtoA_clicked();
-        on_pBtnvfoA_clicked();
-    }
-    emit subRxButtonClicked();
+    qDebug()<<Q_FUNC_INFO<<": Here I am!!!";
+    emit subRxButtonClicked(); //Connected to "void UI::actionSubRx()"
 }
 
 //Called when subRx is checked in main menu via actionSubRx()
-void vfo::checkSubRx(long long f)
+void vfo::checkSubRx(long long f, int samplerate)
 {
-    subRxFrequency = f;
-    writeB(subRxFrequency);
-    on_pBtnvfoB_clicked();
+    long long vfoAfreq;
+
+    if(selectedVFO == 'B') {
+        on_pBtnBtoA_clicked();
+    }
+    vfoAfreq = readA();
+    if ((f < (vfoAfreq - (samplerate / 2))) || (f > (vfoAfreq + (samplerate / 2)))) {
+        f=vfoAfreq;
+    }
+    writeB(f);
+    emit frequencyChanged(readA());
+//    on_pBtnvfoA_clicked();
     ui->pBtnvfoB->setText("subRx");
     ui->pBtnvfoA->setText("mainRx");
+    selectedVFO = 'B';
+    ui->pBtnvfoB->setStyleSheet("background-color: rgb(85, 255, 0)");
+    ui->pBtnvfoA->setStyleSheet("background-color: normal");
+    ui->pBtnSplit->setStyleSheet("background-color: normal");
     ui->pBtnvfoA->setEnabled(FALSE);
+    vfoEnabled(false, true);
+
+//    ui->pBtnvfoA->setEnabled(FALSE);
+qDebug()<<Q_FUNC_INFO<<": About to check pBtnSubRx";
     ui->pBtnSubRx->setChecked(TRUE);
 }
 
 //Called when subRx is unchecked in main menu via actionSubRx()
 void vfo::uncheckSubRx()
 {
-    ui->pBtnSubRx->setChecked(FALSE);
     ui->pBtnvfoB->setText("VFO B");
     ui->pBtnvfoA->setText("VFO A");
     ui->pBtnvfoA->setEnabled(TRUE);
+    ui->pBtnSubRx->setChecked(FALSE);
+    vfoEnabled(true, false);
     on_pBtnvfoA_clicked(); //Return to vfoA = default vfo
 }
 

@@ -70,6 +70,8 @@ UI::UI() {
     widget.gridLayout->setVerticalSpacing(0);
     widget.gridLayout->setHorizontalSpacing(0);
 
+    connect(widget.vfoFrame,SIGNAL(getBandFrequency()),this,SLOT(getBandFrequency()));
+
     // connect up all the menus
     connect(widget.actionAbout,SIGNAL(triggered()),this,SLOT(actionAbout()));
     connect(widget.actionConnectToServer,SIGNAL(triggered()),this,SLOT(actionConnect()));
@@ -310,7 +312,6 @@ void UI::loadSettings() {
     settings.endGroup();
 
     settings.beginGroup("mainWindow");
-//    qDebug() << "######################################################## getGeometryState = " << configure.getGeometryState();//gvj
     if (configure.getGeometryState()) {
         restoreGeometry(settings.value("geometry").toByteArray());
     }
@@ -615,13 +616,19 @@ void UI::actionSubRx() {
         widget.sMeterFrame->setSubRxState(FALSE);
         widget.actionMuteSubRx->setChecked(FALSE);
         widget.actionMuteSubRx->setDisabled(TRUE);
-qDebug()<<Q_FUNC_INFO<<"band.getFrequency = "<<band.getFrequency();
+        widget.actionMuteMainRx->setChecked(FALSE);
+        actionMuteMainRx();
         widget.vfoFrame->uncheckSubRx();
-qDebug()<<Q_FUNC_INFO<<"band.getFrequency = "<<band.getFrequency();
     } else {
         subRx=TRUE;
-        // check frequency in range
+        widget.actionMuteSubRx->setChecked(FALSE);
+        actionMuteSubRx();
         int samplerate = widget.spectrumFrame->samplerate();
+//qDebug()<<Q_FUNC_INFO<<": The value of sample rate = "<<samplerate<<", The state of subRx = "<<subRx;
+//qDebug()<<Q_FUNC_INFO<<": band.getFrequency = "<<band.getFrequency();
+//qDebug()<<Q_FUNC_INFO<<": subRxFrequency = "<<subRxFrequency;
+        widget.vfoFrame->checkSubRx(subRxFrequency, samplerate);
+        // check frequency in range
         long long frequency=band.getFrequency();
         if ((subRxFrequency < (frequency - (samplerate / 2))) || (subRxFrequency > (frequency + (samplerate / 2)))) {
             subRxFrequency=band.getFrequency();
@@ -629,15 +636,18 @@ qDebug()<<Q_FUNC_INFO<<"band.getFrequency = "<<band.getFrequency();
         widget.spectrumFrame->setSubRxState(TRUE);
         widget.waterfallFrame->setSubRxState(TRUE);
         widget.sMeterFrame->setSubRxState(TRUE);
-        widget.vfoFrame->checkSubRx(subRxFrequency);
+
         command.clear(); QTextStream(&command) << "SetSubRXFrequency " << frequency - subRxFrequency;
         connection.sendCommand(command);
         setSubRxPan();
         widget.actionMuteSubRx->setDisabled(FALSE);
+        widget.actionMuteMainRx->setChecked(TRUE);
+        actionMuteMainRx();
     }
     widget.actionSubrx->setChecked(subRx);
     command.clear(); QTextStream(&command) << "SetSubRX " << subRx;
     connection.sendCommand(command);
+    frequencyMoved(0,1); //Dummy call to update frequency display
 }
 
 void UI::setSubRxGain(int gain) {
@@ -1790,4 +1800,9 @@ void UI::rigctlSetMode(int newmode)
 {
     modeChanged(mode.getMode(), newmode);
     mode.setMode(newmode);
+}
+
+void UI::getBandFrequency()
+{
+    widget.vfoFrame->setBandFrequency(band.getFrequency());
 }

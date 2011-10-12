@@ -223,6 +223,7 @@ public slots:
     void deleteXVTR(int index);
     void selectXVTR(QAction* action);
     void selectBookmark(QAction* action);
+    void getBandFrequency();
 
 signals:
     void subRxStateChanged(bool state);

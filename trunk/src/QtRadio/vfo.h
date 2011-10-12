@@ -21,17 +21,15 @@ public:
 
     void readSettings(QSettings* settings);
     void writeSettings(QSettings* settings);
-    void checkSubRx(long long subRxFrequency);
+    void checkSubRx(long long subRxFrequency, int samplerate);
     void uncheckSubRx();
     void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void setSubRxFrequency(long long subRxFrequency);
     void checkBandBtn(int band);
+    void setBandFrequency(long long f) {bandFrequency = f;}
     QString rigctlGetvfo();
-//    }
 
 public slots:
-    void togglePTT(bool pttRq); //Request to toggle ptt & return freq
-//    void setFrequency(int freq); //Displays "freq" on current vfo according to ptt state
     void on_pBtnvfoA_clicked();  // moved from private for rigctl
     void on_pBtnvfoB_clicked();
 
@@ -44,6 +42,7 @@ signals:
     void bandBtnClicked(int band);
     void rightBandClick();
     void subRxButtonClicked();
+    void getBandFrequency();
 
 protected:
     void wheelEvent( QWheelEvent*);
@@ -68,22 +67,18 @@ private:
 
     QSettings *settings;
     QBasicTimer timer;
-    void writeA(int);
-    void writeB(int);
+    void writeA(long long);
+    void writeB(long long);
     void vfoEnabled(bool setA, bool setB);
     void storeVFO();
-    void setBandButton(int freq);
     void timerEvent(QTimerEvent *event);
-    int **bands;
-    int readA();
-    int readB();
+    long long readA();
+    long long readB();
     int getDigit(int x, int y);
-    int cur_Band;
-    int browsePtr; // Memory browsing pointer
     bool ptt; // ptt on = true, ptt off = false
     char selectedVFO; //'A', 'B', 'S' to indicate which vfo state.
-    long long spectrumFrequency;
     long long subRxFrequency;
+    long long bandFrequency; //A copy of band.currentFrequency & updated by emit getbandFrequency
     enum BandData
         {
             bDat_mem00,
