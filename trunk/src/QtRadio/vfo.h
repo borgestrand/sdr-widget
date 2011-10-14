@@ -43,6 +43,7 @@ signals:
     void rightBandClick();
     void subRxButtonClicked();
     void getBandFrequency();
+    void vfoScanBtnClicked(int direction);
 
 protected:
     void wheelEvent( QWheelEvent*);
@@ -61,6 +62,10 @@ private slots:
     void on_pBtnRIT_clicked();
 
     void on_pBtnSubRx_clicked();
+
+    void on_toolBtnUp_clicked();
+
+    void on_toolBtnDn_clicked();
 
 private:
     Ui::vfo *ui;

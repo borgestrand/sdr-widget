@@ -381,7 +381,17 @@ void vfo::on_pBtnScanDn_clicked()
 
 void vfo::on_pBtnScanUp_clicked()
 {
-    ui->pBtnScanDn->setChecked(false);
+    ui->pBtnScanUp->setChecked(false);
+}
+
+void vfo::on_toolBtnUp_clicked()
+{
+    emit vfoScanBtnClicked(-1);  //Direction: 1 = down, -1 = up
+}
+
+void vfo::on_toolBtnDn_clicked()
+{
+    emit vfoScanBtnClicked(1);
 }
 
 void vfo::on_pBtnExch_clicked()

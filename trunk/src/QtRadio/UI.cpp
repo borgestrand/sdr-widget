@@ -225,6 +225,7 @@ UI::UI() {
     connect(widget.vfoFrame,SIGNAL(frequencyMoved(int,int)),this,SLOT(frequencyMoved(int,int)));
     connect(widget.vfoFrame,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
     connect(widget.vfoFrame,SIGNAL(subRxButtonClicked()),this,SLOT(actionSubRx()));
+    connect(widget.vfoFrame,SIGNAL(vfoScanBtnClicked(int)),this,SLOT(vfoScanBtnClicked(int)));
     connect(this,SIGNAL(initialize_audio(int)),audio,SLOT(initialize_audio(int)));
     connect(this,SIGNAL(process_audio(char*,char*,int)),audio,SLOT(process_audio(char*,char*,int)));
 
@@ -572,7 +573,7 @@ void UI::updateSpectrum() {
 }
 
 void UI::spectrumBuffer(char* header,char* buffer) {
-    //qDebug() << "spectrumBuffer";
+    //qDebug()<<Q_FUNC_INFO << "spectrumBuffer";
     int length=atoi(&header[26]);
     sampleRate=atoi(&header[32]);
     widget.spectrumFrame->updateSpectrumFrame(header,buffer,length);
@@ -1805,4 +1806,22 @@ void UI::rigctlSetMode(int newmode)
 void UI::getBandFrequency()
 {
     widget.vfoFrame->setBandFrequency(band.getFrequency());
+}
+
+void UI::vfoScanBtnClicked(int direction)
+{
+    long long f;
+    int samplerate = widget.spectrumFrame->samplerate();
+
+qDebug()<<Q_FUNC_INFO<<": vfo up or down button clicked. Direction = "<<direction<<", samplerate = "<<samplerate;
+    switch ( samplerate )
+    {
+        case 24000 : f = 20000; break;
+        case 48000 : f = 40000; break;
+        case 96000 : f = 80000; break;
+        case 192000 : f = 160000; break;
+
+        default : f = (samplerate * 8) / 10;
+    }
+    frequencyMoved(f, direction);
 }

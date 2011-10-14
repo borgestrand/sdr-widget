@@ -64,6 +64,9 @@
    <property name="text">
     <string>...</string>
    </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="arrowType">
     <enum>Qt::UpArrow</enum>
    </property>
