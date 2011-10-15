@@ -155,9 +155,14 @@ void Connection::socketData() {
             bytes+=thisRead;
             if ((bytes == AUDIO_HEADER_SIZE)){
                     length = atoi(&hdr[AUDIO_LENGTH_POSITION]);
-                    buffer = (char*)malloc(length);
-                    bytes = 0;
-                    state = READ_BUFFER;
+                    if ((length < 0) || (length > 4800 * 8)){
+                        state = READ_HEADER_TYPE;
+                    }
+                    else {
+                        buffer = (char*)malloc(length);
+                        bytes = 0;
+                        state = READ_BUFFER;
+                    }
              }
             break;
 
@@ -166,9 +171,14 @@ void Connection::socketData() {
             bytes+=thisRead;
             if(bytes==HEADER_SIZE) {
                 length=atoi(&hdr[26]);
-                buffer=(char*)malloc(length);
-                bytes=0;
-                state=READ_BUFFER;
+                if ((length < 0) || (length > 4096)){
+                        state = READ_HEADER_TYPE;
+                }
+                else {
+                    buffer=(char*)malloc(length);
+                    bytes=0;
+                    state=READ_BUFFER;
+                }
             }
             break;
 
@@ -187,6 +197,7 @@ void Connection::socketData() {
         }
         bytesRead+=thisRead;
     }
+
 }
 
 
