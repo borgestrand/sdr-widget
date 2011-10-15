@@ -284,13 +284,13 @@
   Usb_unicode('d'),\
   Usb_unicode('i'),\
   Usb_unicode('o'),\
-  Usb_unicode(' '),\
-  Usb_unicode('I'),\
-  Usb_unicode('n'),\
-  Usb_unicode(' '),\
-  Usb_unicode('T'),\
-  Usb_unicode('r'),\
-  Usb_unicode('m')\
+  Usb_unicode('-'),\
+  Usb_unicode('w'),\
+  Usb_unicode('i'),\
+  Usb_unicode('d'),\
+  Usb_unicode('g'),\
+  Usb_unicode('e'),\
+  Usb_unicode('t')\
 }
 #define USB_AOT_LENGTH         13
 #define USB_AOT \

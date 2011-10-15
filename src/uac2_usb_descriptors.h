@@ -94,7 +94,7 @@
 // USB Endpoint 1 descriptor
 #define ENDPOINT_NB_1       ( UAC2_EP_AUDIO_IN | MSK_EP_DIR )
 #define EP_ATTRIBUTES_1		0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
-//#define EP_IN_LENGTH_1_FS	294				// 4 bytes * 49 samples * stereo
+//#define EP_IN_LENGTH_1_FS	294				// 3 bytes * 49 samples * stereo
 //#define EP_IN_LENGTH_1_HS	294
 #define EP_IN_LENGTH_1_FS	392				// 4 bytes * 49 samples * stereo
 #define EP_IN_LENGTH_1_HS	392
@@ -109,7 +109,7 @@
 #define EP_ATTRIBUTES_2     0b00000101			// ISOCHRONOUS ASYNC
 //#define EP_OUT_LENGTH_2_HS  294				// 3 bytes * 49 samples * stereo
 //#define EP_OUT_LENGTH_2_FS	294
-#define EP_OUT_LENGTH_2_HS  392				// 3 bytes * 49 samples * stereo
+#define EP_OUT_LENGTH_2_HS  392				// 4 bytes * 49 samples * stereo
 #define EP_OUT_LENGTH_2_FS	392
 #define EP_SIZE_2_FS		EP_OUT_LENGTH_2_FS
 #define EP_SIZE_2_HS        EP_OUT_LENGTH_2_HS
@@ -183,7 +183,8 @@
 #define SPK_INPUT_TERMINAL_ASSOCIATION	0x00	// No association
 #define SPK_INPUT_TERMINAL_NB_CHANNELS	0x02
 #define SPK_INPUT_TERMINAL_CHANNEL_CONF	0x0003	// left front and right front
-#define SPK_INPUT_TERMINAL_CH_NAME_ID	0x00	// No channel name
+#define SPK_INPUT_TERMINAL_CH_NAME_ID	0x00	
+#define SPK_INPUT_TERMINAL_STRING_DESC	AIT_INDEX
 
 //SPK Feature Unit descriptor
 #define SPK_FEATURE_UNIT_ID            0x12

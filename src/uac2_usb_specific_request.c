@@ -533,7 +533,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-							Usb_write_endpoint_data(EP_CONTROL, 8, INPUT_TERMINAL_STRING_DESC);
+							Usb_write_endpoint_data(EP_CONTROL, 8, SPK_INPUT_TERMINAL_STRING_DESC);
 						}
 						else {			// zero's at startup alt setting 0
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
