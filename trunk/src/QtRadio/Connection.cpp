@@ -30,7 +30,8 @@ Connection::Connection() {
     tcpSocket=NULL;
     state=READ_HEADER_TYPE;
     bytes=0;
-    hdr=(char*)malloc(HEADER_SIZE);
+    hdr=(char*)malloc(HEADER_SIZE);  // HEADER_SIZE is larger than AUTIO_HEADER_SIZE so it is OK
+                                    // for both
     SemSpectrum.release();
 }
 
@@ -197,7 +198,6 @@ void Connection::socketData() {
         }
         bytesRead+=thisRead;
     }
-
 }
 
 
@@ -206,13 +206,12 @@ void Connection::processBuffer() {
     char* nextHeader;
     char* nextBuffer;
 
-    while (!queue.isEmpty() ){
+    while (!queue.isEmpty()){
         buffer=queue.dequeue();
         nextHeader=buffer->getHeader();
         nextBuffer=buffer->getBuffer();
-
-        //qDebug() << "processBuffer " << nextHeader[0];
         // emit a signal to show what buffer we have
+        //qDebug() << "processBuffer " << nextHeader[0];
         if(nextHeader[0]==SPECTRUM_BUFFER){
             emit spectrumBuffer(nextHeader,nextBuffer);
         }
@@ -223,6 +222,7 @@ void Connection::processBuffer() {
             emit bandscopeBuffer(nextHeader,nextBuffer);
         } else {
             qDebug() << "Connection::socketData: invalid header: " << nextHeader[0];
+            queue.clear();
         }
     }
 }

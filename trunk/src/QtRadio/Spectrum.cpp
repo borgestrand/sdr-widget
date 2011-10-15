@@ -436,35 +436,37 @@ void Spectrum::setFilter(QString f) {
 
 void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
     int i;
+    int header_sampleRate;
 
     //qDebug() << "updateSpectrum: width=" << width() << " height=" << height();
     //meter = atoi(&header[40]);
     meter = atoi(&header[14]);
     subrx_meter = atoi(&header[20]);
-    sampleRate = atoi(&header[32]);
+    header_sampleRate = atoi(&header[32]);
+    if ((header_sampleRate == 48000)||(header_sampleRate == 96000)||(header_sampleRate == 192000)){
+        sampleRate = header_sampleRate;
 
-    //qDebug() << "updateSpectrum: samplerate=" << sampleRate;
+        //qDebug() << "updateSpectrum: samplerate=" << sampleRate;
+        if(samples!=NULL) {
+            free(samples);
+        }
+        samples = (float*) malloc(width * sizeof (float));
 
-    if(samples!=NULL) {
-        free(samples);
+        for(i=0;i<width;i++) {
+            samples[i] = -(buffer[i] & 0xFF);
+        }
+
+        //qDebug() << "updateSpectrum: create plot points";
+        plot.clear();
+        for (i = 0; i < width; i++) {
+
+            plot << QPoint(i, (int) floor(((float) spectrumHigh - samples[i])*(float) height() / (float) (spectrumHigh - spectrumLow)));
+        }
+
+        //qDebug() << "updateSpectrum: repaint";
+    //    this->repaint();
+        this->update();
     }
-    samples = (float*) malloc(width * sizeof (float));
-
-    for(i=0;i<width;i++) {
-        samples[i] = -(buffer[i] & 0xFF);
-    }
-
-    //qDebug() << "updateSpectrum: create plot points";
-    plot.clear();
-    for (i = 0; i < width; i++) {
-
-        plot << QPoint(i, (int) floor(((float) spectrumHigh - samples[i])*(float) height() / (float) (spectrumHigh - spectrumLow)));
-    }
-
-    //qDebug() << "updateSpectrum: repaint";
-//    this->repaint();
-    this->update();
-
 }
 
 

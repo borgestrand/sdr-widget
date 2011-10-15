@@ -56,7 +56,6 @@ public:
     Connection(const Connection& orig);
     virtual ~Connection();
     void connect(QString host,int receiver);
-    void disconnect();
     void sendCommand(QString command);
     void sendAudio(int length,char* buffer);
     void freeBuffers(char* header,char* buffer);
@@ -65,6 +64,7 @@ public:
 public slots:
     void connected();
     void disconnected();
+    void disconnect();
     void socketError(QAbstractSocket::SocketError socketError);
     void socketData();
     void processBuffer();

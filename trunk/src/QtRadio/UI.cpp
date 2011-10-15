@@ -603,9 +603,9 @@ void UI::audioBuffer(char* header,char* buffer) {
         emit process_audio(header,buffer,length);
     } else {
         emit process_audio(header,buffer,length);
-  }
+    }
+ }
 
-}
 
 void UI::actionSubRx() {
     QString command;
