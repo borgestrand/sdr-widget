@@ -209,21 +209,41 @@ int main(void)
 	gpio_set_gpio_pin(AVR32_PIN_PX51);	// Enables power to XO and DAC in USBI2C AB-1 board
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);
 
-	// Set initial status of LEDs on the front of AB-1.1. BSB 20110903
-	// Overriden by #if LED_STATUS == LED_STATUS_AB in SDRwdgt.h
-	#if LED_AB_FRONT == LED_AB_RED
-		gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-		gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-	#endif
-	#if LED_AB_FRONT == LED_AB_GREEN
-		gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-		gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-	#endif
-	#if LED_AB_FRONT == LED_AB_PINK
-		gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-		gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
-	#endif
 
+
+
+	// Set initial status of LEDs on the front of AB-1.1. BSB 20110903, 20111016
+	// Overriden by #if LED_STATUS == LED_STATUS_AB in SDRwdgt.h
+	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+	{											// With UAC1:
+		#if LED_AB_FRONT_UAC1 == LED_AB_RED
+			gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+			gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+		#endif
+		#if LED_AB_FRONT_UAC1 == LED_AB_GREEN
+			gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
+			gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+		#endif
+		#if LED_AB_FRONT_UAC1 == LED_AB_PINK
+			gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+			gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
+		#endif
+	}
+	else
+	{											// With UAC != 1
+		#if LED_AB_FRONT == LED_AB_RED
+			gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+			gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+		#endif
+		#if LED_AB_FRONT == LED_AB_GREEN
+			gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
+			gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+		#endif
+		#if LED_AB_FRONT == LED_AB_PINK
+			gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+			gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
+		#endif
+	}
 
 	// Initialize Real Time Counter
 	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz
