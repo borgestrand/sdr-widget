@@ -386,12 +386,12 @@ void vfo::on_pBtnScanUp_clicked()
 
 void vfo::on_toolBtnUp_clicked()
 {
-    emit vfoScanBtnClicked(-1);  //Direction: 1 = down, -1 = up
+    emit vfoStepBtnClicked(-1);  //Direction: 1 = down, -1 = up
 }
 
 void vfo::on_toolBtnDn_clicked()
 {
-    emit vfoScanBtnClicked(1);
+    emit vfoStepBtnClicked(1);
 }
 
 void vfo::on_pBtnExch_clicked()

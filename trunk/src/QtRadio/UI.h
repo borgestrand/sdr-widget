@@ -224,7 +224,7 @@ public slots:
     void selectXVTR(QAction* action);
     void selectBookmark(QAction* action);
     void getBandFrequency();
-    void vfoScanBtnClicked(int direction);
+    void vfoStepBtnClicked(int direction);
 
 signals:
     void subRxStateChanged(bool state);

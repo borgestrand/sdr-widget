@@ -225,7 +225,7 @@ UI::UI() {
     connect(widget.vfoFrame,SIGNAL(frequencyMoved(int,int)),this,SLOT(frequencyMoved(int,int)));
     connect(widget.vfoFrame,SIGNAL(frequencyChanged(long long)),this,SLOT(frequencyChanged(long long)));
     connect(widget.vfoFrame,SIGNAL(subRxButtonClicked()),this,SLOT(actionSubRx()));
-    connect(widget.vfoFrame,SIGNAL(vfoScanBtnClicked(int)),this,SLOT(vfoScanBtnClicked(int)));
+    connect(widget.vfoFrame,SIGNAL(vfoStepBtnClicked(int)),this,SLOT(vfoStepBtnClicked(int)));
     connect(this,SIGNAL(initialize_audio(int)),audio,SLOT(initialize_audio(int)));
     connect(this,SIGNAL(process_audio(char*,char*,int)),audio,SLOT(process_audio(char*,char*,int)));
 
@@ -1808,7 +1808,7 @@ void UI::getBandFrequency()
     widget.vfoFrame->setBandFrequency(band.getFrequency());
 }
 
-void UI::vfoScanBtnClicked(int direction)
+void UI::vfoStepBtnClicked(int direction)
 {
     long long f;
     int samplerate = widget.spectrumFrame->samplerate();

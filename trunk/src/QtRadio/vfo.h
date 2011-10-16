@@ -43,7 +43,7 @@ signals:
     void rightBandClick();
     void subRxButtonClicked();
     void getBandFrequency();
-    void vfoScanBtnClicked(int direction);
+    void vfoStepBtnClicked(int direction);
 
 protected:
     void wheelEvent( QWheelEvent*);
