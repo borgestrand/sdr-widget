@@ -540,9 +540,9 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  CSD_ID_2
   ,  SPK_INPUT_TERMINAL_NB_CHANNELS
   ,  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
-  ,  INPUT_TERMINAL_CH_NAME_ID
+  ,  SPK_INPUT_TERMINAL_CH_NAME_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
-  ,  INPUT_TERMINAL_STRING_DESC
+  ,  SPK_INPUT_TERMINAL_STRING_DESC
   }
 ,
   {  sizeof(S_usb_feature_unit_descriptor_2)
