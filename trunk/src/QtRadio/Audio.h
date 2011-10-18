@@ -33,7 +33,7 @@
 #include <QtGui/QComboBox>
 #include <QMutex>
 
-#define AUDIO_BUFFER_SIZE 800
+#define AUDIO_BUFFER_SIZE 1600
 
 #define BIGENDIAN
 // There are problems running at 8000 samples per second on Mac OS X
