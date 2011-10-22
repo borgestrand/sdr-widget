@@ -256,11 +256,11 @@ static void vtaskLCD( void * pcParameters ) {
                                 if(position < 20)
                                     ___writeByteToLCD(COMMAND_REGISTER, 0x80 | position);
                                 else if(position >= 20 && position < 40)
-                                    ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 20 + (FEATURE_LCD_KS0073?0x20:0x40));
+                                    ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 20 + (FEATURE_LCD_KS0073?0x20:0x40)));
                                 else if(position >= 40 && position < 60)
-                                    ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 40 + (FEATURE_LCD_KS0073?0x40:0x14));
+                                    ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 40 + (FEATURE_LCD_KS0073?0x40:0x14)));
                                 else if(position >= 60 && position < 80)
-                                    ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 60 + (FEATURE_LCD_KS0073?0x60:0x54));
+                                    ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 60 + (FEATURE_LCD_KS0073?0x60:0x54)));
                         break;
                          
                 case lcdPUTC:
@@ -289,11 +289,11 @@ static void vtaskLCD( void * pcParameters ) {
                         if(position < 20)
                              ___writeByteToLCD(COMMAND_REGISTER, 0x80 | position);
                          else if(position >= 20 && position < 40)
-                             ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 20 + (FEATURE_LCD_KS0073?0x20:0x40));
+                             ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 20 + (FEATURE_LCD_KS0073?0x20:0x40)));
                          else if(position >= 41 && position < 60)
-                             ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 40 + (FEATURE_LCD_KS0073?0x40:0x14));
+                             ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 40 + (FEATURE_LCD_KS0073?0x40:0x14)));
                          else if(position >= 61 && position < 80)
-                             ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 60 + (FEATURE_LCD_KS0073?0x60:0x54));
+                             ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 60 + (FEATURE_LCD_KS0073?0x60:0x54)));
                         break;
 
                 case lcdPOSW:	// save the present cursor position
@@ -305,11 +305,11 @@ static void vtaskLCD( void * pcParameters ) {
 						if(position < 20)
 								 ___writeByteToLCD(COMMAND_REGISTER, 0x80 | position);
 						 else if(position >= 20 && position < 40)
-							 ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 20 + (FEATURE_LCD_KS0073?0x20:0x40));
+							 ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 20 + (FEATURE_LCD_KS0073?0x20:0x40)));
 						 else if(position >= 41 && position < 60)
-							 ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 40 + (FEATURE_LCD_KS0073?0x40:0x14));
+							 ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 40 + (FEATURE_LCD_KS0073?0x40:0x14)));
 						 else if(position >= 61 && position < 80)
-							 ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 60 + (FEATURE_LCD_KS0073?0x60:0x54));
+							 ___writeByteToLCD(COMMAND_REGISTER, 0x80 | (position % 60 + (FEATURE_LCD_KS0073?0x60:0x54)));
 
 					    break;
 
