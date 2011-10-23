@@ -98,11 +98,13 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 		if (freq_changed) {
 
+
+			spk_mute = TRUE;						// mute speaker while changing frequency and oscillator
+
 			poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
 			FB_rate_int = current_freq.frequency / poolingFreq;
 			FB_rate_frac = current_freq.frequency % poolingFreq;
 			FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
-
 
 			if (current_freq.frequency == 96000) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -287,16 +289,19 @@ void uac2_AK5394A_task(void *pvParameters) {
 				AK5394A_pdca_enable();
 			}
 
+			spk_mute = FALSE;
 			// reset freq_changed flag
 			freq_changed = FALSE;
 		}
 
 		if (usb_alternate_setting_out_changed) {
 			if (usb_alternate_setting_out != 1) {
+				spk_mute = TRUE;
 				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
 					spk_buffer_0[i] = 0;
 					spk_buffer_1[i] = 0;
 				}
+				spk_mute = FALSE;
 			}
 			usb_alternate_setting_out_changed = FALSE;
 		}
