@@ -93,6 +93,7 @@ void uac1_AK5394A_task(void *pvParameters) {
 		vTaskDelayUntil(&xLastWakeTime, UAC1_configTSK_AK5394A_PERIOD);
 
 		if (freq_changed) {
+			spk_mute = TRUE;
 			if (current_freq.frequency == 48000)
 			{
 				FB_rate = 48 << 14;
@@ -101,14 +102,15 @@ void uac1_AK5394A_task(void *pvParameters) {
 			{
 				FB_rate = (44 << 14) + (1 << 14)/10 ;
 			}
+			spk_mute = FALSE;
 			freq_changed = FALSE;
 		}
 		if (usb_alternate_setting_changed) {
 
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 			pdca_disable(PDCA_CHANNEL_SSC_RX);
-			// L L  -> 48khz
-			gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
+			// L L  -> 48khz   L H  -> 96khz
+			gpio_clr_gpio_pin(AK5394_DFS0);
 			gpio_clr_gpio_pin(AK5394_DFS1);
 
 			if (FEATURE_ADC_AK5394A) {
@@ -130,10 +132,12 @@ void uac1_AK5394A_task(void *pvParameters) {
 
 		if (usb_alternate_setting_out_changed){
 			if (usb_alternate_setting_out != 1){
+				spk_mute = TRUE;
 				for (i = 0; i < SPK_BUFFER_SIZE; i++){
 					spk_buffer_0[i] = 0;
 					spk_buffer_1[i] = 0;
 				}
+				spk_mute = FALSE;
 			}
 			usb_alternate_setting_out_changed = FALSE;
 		}
