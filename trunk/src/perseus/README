@@ -1,0 +1,174 @@
+0. Perseus server
+=================
+
+An attempt to write a I/Q server for Microtelecom Perseus HF Receiver.
+
+
+The code was derived from John Melton G0ORX/N6LYT code for HPSDR Ozymandias card.
+The code uses the REL-0.4 release of libperseus-sdr (written by Nico Palermo IN3NWV), see below for 
+preresite installation.
+The glue code has been written by Andrea Montefusco, IW0HDV andrew att montefusco dott com.
+
+A server program in the ghpsdr3 suite of programs is the program 
+that forms the interface to the hardware.  One instance of this program 
+must be running to communicate with the USRP hardware.
+
+Currently the perseus-server program is a command line program and it has several options.
+
+/perseus_server -h
+Allowed options:
+  -h [ --help ]                    print usage message
+  -d [ --debug ] arg (=0)          debug level
+  -r [ --receivers ] arg (=1)      # of receivers
+  -s [ --samplerate ] arg (=95000) samplerate (95000 | 125000 | 250000 )
+  -t [ --dither ] arg (=0)         dither on|off
+  -p [ --preamp ] arg (=0)         preamplifier on|off
+  -z [ --randomizer ] arg (=0)     randomizer on|off
+
+
+
+
+1. PREREQUISITE
+===============
+
+To build the server, several prerequisites have to be fullfilled.
+
+
+Install the libperseus-sdr found on http://code.google.com/p/libperseus-sdr/source/checkout.
+Please use the release 0.4:
+
+cd
+svn co  http://libperseus-sdr.googlecode.com/svn/tags/REL-0.4 perseus-r0.4
+cd perseus-r0.4
+./configure
+make
+sudo make install
+
+Read the perseus-r0.4/README for preliminary tests.
+
+
+Next install the remaining prerequisite:
+
+sudo apt-get install libportaudio2 portaudio19-dev libsamplerate0 libsamplerate0-dev
+sudo apt-get install git-core
+sudo apt-get install libqt4-dev
+sudo apt-get install libfftw3-3
+sudo apt-get install libboost-dev
+sudo apt-get install libboost-all-dev
+
+If using more recent distributions (with Qt 4.7 in binary packages):
+
+sudo apt-get install qtmobility-dev
+
+2. BUILD
+========
+
+
+2.1 Extract and build this package
+----------------------------------
+
+  Untar this package into your home directory:
+
+  cd ~
+  tar -zxvf ~/Download/perseus-hpsdr.tgz
+  cd perseus-hpsdr
+  make
+
+To compile on Linux (test done on Ubuntu Linux 10.04):
+
+  make
+
+
+2.2 Preliminary test
+--------------------
+
+To run the server you have to submit 
+
+  $ sudo ./perseus_server
+  DEBUG:      0
+  SAMPLERATE: 95000
+  RECEIVER:   1
+  DITHER:     0
+  PREAMP:     0
+  RANDOMIZER: 0
+  1 Perseus receiver found
+  Listening for TCP connections on port 11000
+
+The server looks for an attached (and turned on) Perseus receiver BUT doesn't activate it.
+
+
+
+2.3 gpsdr3 package from John Melton
+-----------------------------------
+
+
+  To install the package do the following steps:
+  
+  cd
+  svn co svn://svn.openhpsdr.org/svn/repos_sdr_hpsdr/trunk/N6LYT/ghpsdr3 ghpsdr3-new 
+  cd ~/ghpsdr3-new/trunk/src/
+
+  cd DttSP/
+  make 
+  cd ../dspserver
+  patch < ~/perseus-hpsdr/dspserver.patches
+  make
+
+  cd ../QtRadio
+  # Ubuntu 10.04 LTS
+  patch < ~/perseus-hpsdr/QtRadio.patches
+  #
+  # Warning: on Ubuntu 10.10 and in general on distributions using Qt 4.7,
+  # apply instead the following patch file
+  #
+  patch < ~/perseus-hpsdr/QtRadio.U10.10.patches
+
+  qmake-qt4 QtRadio.pro
+  make
+
+
+3. RUN
+======
+
+
+We have to run three components: server, dsp processing and graphical user interface.
+At the moment you need to run them in three separate terminal windows, strictly in the order shown below:
+
+  ~/perseus-hpsdr/perseus_server 
+
+  ~/ghpsdr3-new/trunk/bin/dspserver
+
+Allows for few seconds delay in order server complete the hardware setup.
+At this point you should already ear 
+
+  cd ~/ghpsdr3-new/trunk/src/QtRadio ; export QT_RADIO_NO_LOCAL_AUDIO=1 ; ./QtRadio
+
+When the GUI shows up, connect it to the DSP server (Menu Receiver, submenu Connect). 
+
+
+4. Troubleshooting
+==================
+
+4.1 perseus-server complains about the libperseus-sdr shared library missing.
+
+Run 
+
+sudo ldconfig
+
+
+4.2 All the process are up and running but no audio is played
+
+Stop all process and rerun only perseus-server with the debug option activated:
+
+sudo ~/perseus/perseus_server -d3
+
+Next, start in another terminal window the DSP:
+
+~/ghpsdr3/trunk/bin/dspserver
+
+into the perseus-server windows you should see the list of audio devices as seen by portaudio library.
+Just before of the big list the server signals what device is using:
+
+default input=12 output=12 devices=14
+
+
