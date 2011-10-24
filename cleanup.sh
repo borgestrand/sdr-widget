@@ -46,4 +46,19 @@ rm -f -r	trunk/src/softrock/Makefile
 rm -f -r	trunk/src/softrock/Makefile.in
 rm -f -r	ghpsdr3-1.*.tar.gz
 rm -f		trunk/src/QtRadio/GITSTR
+rm -f	-r  trunk/src/perseus/.deps/
+rm -f		  trunk/src/perseus/Makefile
+rm -f		  trunk/src/perseus/Makefile.in
+rm -f		  trunk/src/perseus/aclocal.m4
+rm -f	-r  trunk/src/perseus/autom4te.cache/
+rm -f		  trunk/src/perseus/compile
+rm -f		  trunk/src/perseus/config.h
+rm -f		  trunk/src/perseus/config.h.in
+rm -f		  trunk/src/perseus/config.log
+rm -f		  trunk/src/perseus/config.status
+rm -f		  trunk/src/perseus/configure
+rm -f		  trunk/src/perseus/depcomp
+rm -f		  trunk/src/perseus/install-sh
+rm -f		  trunk/src/perseus/missing
+rm -f		  trunk/src/perseus/stamp-h1
 

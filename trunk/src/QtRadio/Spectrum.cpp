@@ -443,7 +443,7 @@ void Spectrum::updateSpectrumFrame(char* header,char* buffer,int width) {
     meter = atoi(&header[14]);
     subrx_meter = atoi(&header[20]);
     header_sampleRate = atoi(&header[32]);
-    if ((header_sampleRate == 48000)||(header_sampleRate == 96000)||(header_sampleRate == 192000)){
+    if ((header_sampleRate == 48000)||(header_sampleRate == 96000)||(header_sampleRate == 192000)||(header_sampleRate ==95000)||(header_sampleRate ==125000)||(header_sampleRate ==250000)){
         sampleRate = header_sampleRate;
 
         //qDebug() << "updateSpectrum: samplerate=" << sampleRate;
