@@ -17,6 +17,18 @@ The QtRadio audio quality is vastly improved with the audio codes running in a s
 
 The next major feature to be developed is SSB Tx.
 
+Windows Users
+=====================
+
+At this time the only application working in Windows is the QtRadio client which can connect to
+any dspserver.  A ready to run windows executable is avilable at:
+	http://www.napan.com/ve9gj
+You can download the zip file which contains all the needed dlls and qtradio.exe.  Extract the qtradio folder
+to somewhere on your windows drive and double click qtradio.exe to run.
+The source for building with QtCreator 2.3.0 based on QT 4.7.4 is available via the win32 branch at:
+	https://github.com/alexlee188/ghpsdr3-alex
+Note that codec2 is not working in the win32 version.
+
 Building the software
 =====================
 
