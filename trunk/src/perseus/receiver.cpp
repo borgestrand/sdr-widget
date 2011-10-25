@@ -131,6 +131,13 @@ const char* attach_receiver(int rx, CLIENT* client)
 	printf("Configuring FPGA...\n");
 
 	switch (CORE_BANDWIDTH) {
+		case 48000:
+			if (perseus_set_sampling_rate(receiver[rx].pPd, 48000)<0) {
+				printf("fpga configuration error: %s\n", perseus_errorstr());
+				perseus_close (receiver[rx].pPd);
+				return RECEIVER_INVALID;
+			}
+		break;
 		case 95000:
 			if (perseus_set_sampling_rate(receiver[rx].pPd, 95000)<0) {
 				printf("fpga configuration error: %s\n", perseus_errorstr());
@@ -138,8 +145,22 @@ const char* attach_receiver(int rx, CLIENT* client)
 				return RECEIVER_INVALID;
 			}
 		break;
+		case 96000:
+			if (perseus_set_sampling_rate(receiver[rx].pPd, 96000)<0) {
+				printf("fpga configuration error: %s\n", perseus_errorstr());
+				perseus_close (receiver[rx].pPd);
+				return RECEIVER_INVALID;
+			}
+		break;
 		case 125000:
 			if (perseus_set_sampling_rate(receiver[rx].pPd, 125000)<0) {
+				printf("fpga configuration error: %s\n", perseus_errorstr());
+				perseus_close (receiver[rx].pPd);
+				return RECEIVER_INVALID;
+			}
+		break;
+		case 192000:
+			if (perseus_set_sampling_rate(receiver[rx].pPd, 192000)<0) {
 				printf("fpga configuration error: %s\n", perseus_errorstr());
 				perseus_close (receiver[rx].pPd);
 				return RECEIVER_INVALID;

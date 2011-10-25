@@ -61,7 +61,7 @@ int main(int argc,char* argv[]) {
         ("debug,d",      value<int>(&debug_level)->default_value(0),                   "debug level")
 
         ("receivers,r",  value<int>(&perseusConfig.nrx)->default_value(1),             "# of receivers")
-        ("samplerate,s", value<int>(&perseusConfig.sample_rate)->default_value(95000), "samplerate (95000 | 125000 | 250000 )")
+        ("samplerate,s", value<int>(&perseusConfig.sample_rate)->default_value(95000), "samplerate (48000 | 95000 | 96000 | 125000 | 192000 | 250000 )")
 
         ("dither,t",     value<bool>(&perseusConfig.dither)->default_value(false),     "dither on|off")
         ("preamp,p",     value<bool>(&perseusConfig.preamp)->default_value(false),     "preamplifier on|off")

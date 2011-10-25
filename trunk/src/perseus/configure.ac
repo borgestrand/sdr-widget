@@ -29,7 +29,7 @@ AC_CHECK_LIB([samplerate], [src_new])
 
 AC_CHECK_LIB([perseus-sdr], [main])
 
-AC_CHECK_LIB([boost_program_options], [main])
+AC_CHECK_LIB([boost_program_options], [perseus_init])
 
 # Checks for header files.
 AC_FUNC_ALLOCA
