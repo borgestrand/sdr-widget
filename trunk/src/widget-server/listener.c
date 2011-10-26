@@ -36,7 +36,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #else
-#include "pthread.h"
+#include "windows/pthread.h"
 #endif
 
 #include <string.h>

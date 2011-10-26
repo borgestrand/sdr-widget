@@ -161,7 +161,8 @@ AC_CONFIG_SUBDIRS([trunk/src/QtRadio])
 AC_CONFIG_FILES([Makefile
                  trunk/src/softrock/Makefile
                  trunk/src/DttSP/Makefile
-                 trunk/src/dspserver/Makefile])
+                 trunk/src/dspserver/Makefile
+                 trunk/src/widget-server/Makefile])
 
 
 

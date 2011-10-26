@@ -37,7 +37,7 @@
 #include <pthread.h>
 #include <getopt.h>
 #else // Windows
-#include "pthread.h"
+#include "windows/pthread.h"
 #include <winsock.h>
 #include "getopt.h"
 #endif

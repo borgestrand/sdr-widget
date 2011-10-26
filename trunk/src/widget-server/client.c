@@ -37,7 +37,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #else
-#include "pthread.h"
+#include "windows/pthread.h"
 #endif
 
 #include <string.h>
