@@ -16,5 +16,20 @@ widget_server_SOURCES = \
 		server.c \
 		operations.c \
 		config_ops.c \
-bandscope.h  buffer.h  client.h  config_ops.h  getopt.h  hpsdr_usb.h  listener.h  messages.h  metis.h  operations.h  ozy.h  ozyio.h  pthread.h  receiver.h  sched.h  semaphore.h  transmitter.h  usb.h  util.h
+    bandscope.h  \
+    buffer.h  \
+    client.h  \
+    config_ops.h \
+    getopt.h \
+    hpsdr_usb.h \
+    listener.h \
+    messages.h \
+    metis.h \
+    operations.h \
+    ozy.h \
+    ozyio.h \
+    receiver.h \
+    semaphore.h \
+    transmitter.h \
+    util.h
 
