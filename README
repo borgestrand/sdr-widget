@@ -69,6 +69,8 @@ Then the 3 programs will be installed in /usr/local/bin.
 Running the software
 ====================
 
+With softrock hardware:
+=======================
 To run the softrock server (defaults to using pulse for IQ input.  So 
 use pulse chooser to set the default pulse source to the IQ sound 
 card).  You also need to run pulse in network mode.  Use Pulseaudio Device Chooser
@@ -86,18 +88,38 @@ to determine the Country of incoming connections by IP. Off by default. May bloc
 
 Then you can run QtRadio to connect to the dspserver that is running. 
 
-For sdr-widget user only
-========================
-As an alternative to softrock server, you can use the modified 
-"server", which has been customized to connect to the sdr-widget using 
-the hpsdr protocol.  You need to setup sdr-widget for the hpsdr 
+With sdr-widget connected to softrock/Mobo for both soundcard and rig control through i2c
+=========================================================================================
+As an alternative to softrock server, you can use widget-server,
+which has been customized to connect to the sdr-widget using 
+a modified hpsdr protocol.  You need to setup sdr-widget for the hpsdr 
 protocol (with the WidgetControl.py tool), and then run server: 
 
+First build the software:
+
+cd ~/ghpsdr3-alex/trunk/src/widget-server
+make clean
+make
+
+Then run the server:
+
 cd ~/ghpsdr3-alex/trunk/bin 
-./server --si570 --receivers 1 --samplerate 48000|96000|192000
+./widget-server --si570 --receivers 1 --samplerate 48000|96000|192000
 
 After that, you start dspserver (to connect to this server) and 
 QtRadio etc. 
+
+With hpsdr hardware (Ozy/Metis)
+===============================
+Run the original "server" server.
+
+With Perseus hardware
+=====================
+Use the perseus-server branch.
+
+With Ettus usrp hardware
+========================
+Use the usrp-server branch.
 
 
 QtRadio with codec2 low bit rate audio encoding and decoding
