@@ -35,6 +35,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <pthread.h>
+#include <unistd.h>
 #else
 #include "pthread.h"
 #endif
@@ -46,6 +47,7 @@
 #include "receiver.h"
 #include "transmitter.h"
 #include "messages.h"
+#include "bandscope.h"
 
 short audio_port=AUDIO_PORT;
 

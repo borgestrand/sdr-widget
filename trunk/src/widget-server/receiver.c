@@ -43,6 +43,7 @@
 #include "ozy.h"
 #include "ozyio.h"
 #include "util.h"
+#include "operations.h"
 
 #define SMALL_PACKETS
 

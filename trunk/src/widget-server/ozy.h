@@ -25,8 +25,9 @@
 */
 
 #ifndef __linux__
-int ozy_init();
+int ozy_init(void);
 #endif
+int ozy_init(void);
 
 void ozy_prime();
 void ozy_set_buffers(int buffers);
@@ -48,9 +49,17 @@ void ozy_set_record(char* filename);
 void ozy_set_playback(char* filename);
 int ozy_set_playback_sleep(int sleep);
 
+void ozy_set_class(int);
+
 
 void process_ozy_input_buffer(char* buffer);
+void process_ozy_output_buffer(float*, float*, int);
 
 void ozy_set_metis(int state);
 
 void ozy_set_open_collector_outputs(int oc);
+
+void ozy_stop_record(void);
+
+
+

@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <libusb-1.0/libusb.h>
+#include <ctype.h>
 
 #include "ozyio.h"
 
@@ -183,7 +184,7 @@ static unsigned int hexitToUInt(char c) {
         return 0;
 }
 
-static int ishexit(c) {
+static int ishexit(char c) {
         c = tolower(c);
         if ( c >= '0' && c <= '9' ) return 1;
         if ( c >= 'a' && c <= 'f' ) return 1;

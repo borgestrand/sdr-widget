@@ -44,3 +44,7 @@ RECEIVER receiver[MAX_RECEIVERS];
 char* attach_receiver(int rx,CLIENT* client);
 char* detach_receiver(int rx,CLIENT* client);
 char* set_frequency(CLIENT* client,long f);
+void init_receivers(void);
+void send_IQ_buffer(int);
+
+

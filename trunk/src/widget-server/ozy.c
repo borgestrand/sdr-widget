@@ -34,6 +34,7 @@
 #include <netdb.h>
 #include <sys/timeb.h>
 #include <pthread.h>
+#include <unistd.h>
 #else
 #include "pthread.h"
 #endif
@@ -45,6 +46,7 @@
 //#include "transmitter.h"
 #include "util.h"
 #include "metis.h"
+#include "ozy.h"
 
 #define THREAD_STACK 32768
 

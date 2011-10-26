@@ -50,6 +50,7 @@
 #include "bandscope.h"
 #include "metis.h"
 #include "ozyio.h"
+#include "operations.h"
 
 static struct option long_options[] = {
     {"receivers",required_argument, 0, 0},
