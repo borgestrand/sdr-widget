@@ -8,7 +8,7 @@ CC            = gcc
 endif
 CFLAGS        = -O3 -std=gnu99
 LIBS          = -lpthread -lusb-1.0 -lusb -lm
-TARGET 	=	../../bin/server
+TARGET 	=	../../bin/widget-server
 SOURCES = 	bandscope.c  \
 		listener.c \
 		receiver.c \
