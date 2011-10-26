@@ -1,0 +1,45 @@
+<html>
+<body>
+<pre>
+<h1>Build Log</h1>
+<h3>
+--------------------Configuration: server - Win32 Debug--------------------
+</h3>
+<h3>Command Lines</h3>
+Creating temporary file "E:\DOCUME~1\David\LOCALS~1\Temp\RSP163.tmp" with contents
+[
+/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"Debug/server.pch" /YX /Fo"Debug/" /Fd"Debug/" /FD /GZ /c 
+"E:\Documents and Settings\David\My Documents\C\ghpsdr3win2\server\receiver.c"
+]
+Creating command line "cl.exe @E:\DOCUME~1\David\LOCALS~1\Temp\RSP163.tmp" 
+Creating temporary file "E:\DOCUME~1\David\LOCALS~1\Temp\RSP164.tmp" with contents
+[
+kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib wsock32.lib /nologo /subsystem:console /incremental:yes /pdb:"Debug/server.pdb" /debug /machine:I386 /out:"Debug/server.exe" /pdbtype:sept 
+".\Debug\bandscope.obj"
+".\Debug\client.obj"
+".\Debug\getopt.obj"
+".\Debug\getopt_long.obj"
+".\Debug\listener.obj"
+".\Debug\ozy.obj"
+".\Debug\OzyInit.obj"
+".\Debug\receiver.obj"
+".\Debug\server.obj"
+".\Debug\util.obj"
+".\pthreadVCE2.lib"
+".\libusb.lib"
+]
+Creating command line "link.exe @E:\DOCUME~1\David\LOCALS~1\Temp\RSP164.tmp"
+<h3>Output Window</h3>
+Compiling...
+receiver.c
+e:\documents and settings\david\my documents\c\ghpsdr3win2\server\receiver.c(139) : warning C4101: 'length' : unreferenced local variable
+e:\documents and settings\david\my documents\c\ghpsdr3win2\server\receiver.c(156) : warning C4761: integral size mismatch in argument; conversion supplied
+Linking...
+
+
+
+<h3>Results</h3>
+server.exe - 0 error(s), 2 warning(s)
+</pre>
+</body>
+</html>
