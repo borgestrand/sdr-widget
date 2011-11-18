@@ -319,10 +319,10 @@ void Test_SWR(void)
 		// Standard SWR formula multiplied by 100, eg 270 = SWR of 2.7
 		else
 		{
+			uint32_t diff = (uint32_t)(ad7991_adc[AD7991_POWER_OUT] - ad7991_adc[AD7991_POWER_REF]);
+			if (diff < 4) diff = 4;		// to avoid div by zero
 			swr = (uint32_t) 100 *
-			((uint32_t)ad7991_adc[AD7991_POWER_OUT] + (uint32_t)ad7991_adc[AD7991_POWER_REF])
-				/
-			(uint32_t)(ad7991_adc[AD7991_POWER_OUT] - ad7991_adc[AD7991_POWER_REF]);
+				((uint32_t)ad7991_adc[AD7991_POWER_OUT] + (uint32_t)ad7991_adc[AD7991_POWER_REF])/ diff;		
 		}
 		if (swr < 9990)											// Set an upper bound to avoid overrrun.
 			measured_SWR = swr;
