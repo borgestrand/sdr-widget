@@ -321,7 +321,6 @@ void Test_SWR(void)
 		{
 			uint32_t diff = (uint32_t)(ad7991_adc[AD7991_POWER_OUT] - ad7991_adc[AD7991_POWER_REF]);
 			uint32_t sum = (uint32_t)ad7991_adc[AD7991_POWER_OUT] + (uint32_t)ad7991_adc[AD7991_POWER_REF];
-			if (diff < 8) diff = 8;		// to avoid div by zero
 			swr = 100 * sum / diff;		
 		}
 		if (swr < 9990)											// Set an upper bound to avoid overrrun.
@@ -687,7 +686,7 @@ static void vtaskMoboCtrl( void * pcParameters )
        	{
 			if (i2c.ad7991)
 			{
-   				ad7991_poll(cdata.AD7991_I2C_addr);		// Poll the AD7991 for all four values
+   				if (ad7991_poll(cdata.AD7991_I2C_addr) == 0){		// Poll the AD7991 for all four values, success == 0
 
 				#if	POWER_SWR							// Power/SWR measurements and related actions
    				// SWR Protect
@@ -696,6 +695,7 @@ static void vtaskMoboCtrl( void * pcParameters )
    														// Writes to the PCF8574 every time (2 bytes)
    														// => constant traffic on I2C (can be improved to slightly
 				#endif									// reduce I2C traffic, at the cost of a few extra bytes)
+				}
 			}
        	}
 		//--------------------------
