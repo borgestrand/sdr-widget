@@ -249,12 +249,15 @@ static void vtaskPowerDisplay( void * pcParameters )
            	 		swr_tenths = swr_hundredths / 10;			// sub decimal point, 1/10 accuracy
 
            	 		// progress, maxprogress, len
-           	 		lcdProgressBar(measured_SWR - 100, cdata.SWR_fullscale*100, 12, lcd_bar2);
+					uint16_t swr_bar_value;
+					swr_bar_value = (measured_SWR > (cdata.SWR_fullscale*100 + 99)) ? cdata.SWR_fullscale*100 : measured_SWR - 100;
+           	 		lcdProgressBar(swr_bar_value, cdata.SWR_fullscale*100, 12, lcd_bar2);
            	 		sprintf(lcd_prt2,"%2u.", swr);				// Print the super decimal portion of the SWR
            	 		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
             		lcd_q_goto(3,0);
           	     	lcd_q_print(lcd_bar2);
           	     	lcd_q_print("SWR");
+
           	     	lcd_q_print(lcd_prt2);
 
            	 		#if SWR_ALARM_FUNC							// SWR alarm function, activates a secondary PTT

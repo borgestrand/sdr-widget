@@ -315,7 +315,6 @@ void Test_SWR(void)
 			swr = 100;											// Too little for valid measurement, SWR = 1.0
 		else if (ad7991_adc[AD7991_POWER_REF] >= ad7991_adc[AD7991_POWER_OUT])
 			swr = 9990; 										// Infinite (or more than infinite) SWR:
-
 		// Standard SWR formula multiplied by 100, eg 270 = SWR of 2.7
 		else
 		{
@@ -323,6 +322,7 @@ void Test_SWR(void)
 			uint32_t sum = (uint32_t)ad7991_adc[AD7991_POWER_OUT] + (uint32_t)ad7991_adc[AD7991_POWER_REF];
 			swr = 100 * sum / diff;		
 		}
+
 		if (swr < 9990)											// Set an upper bound to avoid overrrun.
 			measured_SWR = swr;
 		else measured_SWR = 9990;
