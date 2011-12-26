@@ -384,6 +384,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				for (i = 0; i < num_samples; i++) {
 					if (spk_mute) {
+						sample_HSB = 0;
 						sample_LSB = 0;
 						sample_SB = 0;
 						sample_MSB = 0;
@@ -394,11 +395,13 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					};
 
-					sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
+					//sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 					if (spk_buffer_in == 0) spk_buffer_0[spk_index+OUT_LEFT] = sample;
 					else spk_buffer_1[spk_index+OUT_LEFT] = sample;
 
 					if (spk_mute) {
+						sample_HSB = 0;
 						sample_LSB = 0;
 						sample_SB = 0;
 						sample_MSB = 0;
@@ -408,8 +411,8 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					};
-
-					sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
+					//sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 					if (spk_buffer_in == 0) spk_buffer_0[spk_index+OUT_RIGHT] = sample;
 					else spk_buffer_1[spk_index+OUT_RIGHT] = sample;
 
