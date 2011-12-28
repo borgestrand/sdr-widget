@@ -160,6 +160,7 @@ void uac1_user_set_interface(U8 wIndex, U8 wValue) {
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
 		usb_alternate_setting_out = Usb_read_endpoint_data(EP_CONTROL, 8);
+/*
 		if (usb_alternate_setting_out != 1) {
 			spk_mute = TRUE;						// mute speaker immediately
 			pdca_disable(PDCA_CHANNEL_SSC_TX);		// stop speaker PDAC
@@ -168,8 +169,9 @@ void uac1_user_set_interface(U8 wIndex, U8 wValue) {
 			spk_mute = FALSE;
 			pdca_enable(PDCA_CHANNEL_SSC_TX);
 			};
-	}
+*/
 
+	}
 }
 
 static Bool uac1_user_get_interface_descriptor() {
