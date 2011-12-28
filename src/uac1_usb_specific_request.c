@@ -159,13 +159,14 @@ void uac1_user_set_interface(U8 wIndex, U8 wValue) {
 	} else if (usb_interface_nb == STD_AS_INTERFACE_OUT){
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
+
 		if (usb_alternate_setting_out != 1) {
 			spk_mute = TRUE;						// mute speaker immediately
-			pdca_disable(PDCA_CHANNEL_SSC_TX);		// stop speaker PDAC
+			//pdca_disable(PDCA_CHANNEL_SSC_TX);		// stop speaker PDAC
 			}
 		else {
 			spk_mute = FALSE;
-			pdca_enable(PDCA_CHANNEL_SSC_TX);
+			//pdca_enable(PDCA_CHANNEL_SSC_TX);
 			};
 	}
 }
