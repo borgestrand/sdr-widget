@@ -321,26 +321,28 @@ void uac1_device_audio_task(void *pvParameters)
 						gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 					}
 
-					//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-					if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
-						LED_On(LED0);
-						FB_rate -= FB_RATE_DELTA;
-						delta_num--;
-						//old_gap = gap;
-					}
-					else
-						//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-						if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
-							LED_On(LED1);
-							FB_rate += FB_RATE_DELTA;
-							delta_num++;
+					if (playerStarted){
+						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+						if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
+							LED_On(LED0);
+							FB_rate -= FB_RATE_DELTA;
+							delta_num--;
 							//old_gap = gap;
 						}
 						else
-						{
-							LED_Off(LED0);
-							LED_Off(LED1);
-						}
+							//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+							if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
+								LED_On(LED1);
+								FB_rate += FB_RATE_DELTA;
+								delta_num++;
+								//old_gap = gap;
+							}
+							else
+							{
+								LED_Off(LED0);
+								LED_Off(LED1);
+							}
+					}
 
 					if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 						sample_LSB = FB_rate;
