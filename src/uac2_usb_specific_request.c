@@ -332,15 +332,6 @@ Bool uac2_user_read_request(U8 type, U8 request)
 					while (!Is_usb_control_out_received());
 					Usb_reset_endpoint_fifo_access(EP_CONTROL);
 					usb_alternate_setting_out = Usb_read_endpoint_data(EP_CONTROL, 8);
-					if (usb_alternate_setting_out == 0) {
-						spk_mute = TRUE;						// mute speaker immediately
-						pdca_disable(PDCA_CHANNEL_SSC_TX);		// stop speaker PDAC
-						}
-					else {
-						spk_mute = FALSE;
-						pdca_enable(PDCA_CHANNEL_SSC_TX);
-						};
-					
 					usb_alternate_setting_out_changed = TRUE;
 					Usb_ack_control_out_received_free();
 					Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase

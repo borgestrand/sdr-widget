@@ -43,6 +43,7 @@ extern volatile U32 spk_buffer_1[SPK_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
 extern volatile int audio_buffer_in;
 extern volatile int spk_buffer_out;
+extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 
 void AK5394A_pdca_disable(void);
 void AK5394A_pdca_enable(void);

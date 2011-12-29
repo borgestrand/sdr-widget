@@ -294,23 +294,30 @@ void uac2_AK5394A_task(void *pvParameters) {
 			freq_changed = FALSE;
 		}
 
+/*
 		if (usb_alternate_setting_out_changed) {
 			if (usb_alternate_setting_out != 1) {
-				spk_mute = TRUE;
 				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
 					spk_buffer_0[i] = 0;
 					spk_buffer_1[i] = 0;
 				}
-				spk_mute = FALSE;
 			}
 			usb_alternate_setting_out_changed = FALSE;
 		}
-
+*/
 		if (FEATURE_IMAGE_UAC2_DG8SAQ) {
 			spk_mute = TX_state ? FALSE : TRUE;
 			mute = TX_state ? TRUE : FALSE;
 		}
 
+// silence speaker if USB data out is stalled, as indicated by heart-beat counter
+		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
+				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
+					spk_buffer_0[i] = 0;
+					spk_buffer_1[i] = 0;
+				}
+		}
+		old_spk_usb_heart_beat = spk_usb_heart_beat;
 
 	} // end while (TRUE)
 }
