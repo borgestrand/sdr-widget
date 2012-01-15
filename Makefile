@@ -12,7 +12,7 @@ Release/widget.elf::
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o
-	CFLAGS=-DFEATURE_DEFAULT_BOARD=feature_board_dib ./make-widget
+	CFLAGS=-DFEATURE_DEFAULT_BOARD=feature_board_usbi2s ./make-widget
 
 sdr-widget::
 	rm -f Release/widget.elf Release/src/features.o
