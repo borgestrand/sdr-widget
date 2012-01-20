@@ -365,12 +365,11 @@ void uac2_device_audio_task(void *pvParameters)
 				Usb_send_in(EP_AUDIO_OUT_FB);
 			} // end sub_in_ready
 
-		if (Is_usb_out_received(EP_AUDIO_OUT)) {
-				spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
+		if (Is_usb_out_received(EP_AUDIO_OUT)){
 
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 8;
-
+				spk_usb_heart_beat += num_samples;			// indicates EP_AUDIO_OUT receiving data from hos
 				if(!playerStarted)
 				{
 					playerStarted = TRUE;

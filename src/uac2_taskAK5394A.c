@@ -89,12 +89,34 @@ void uac2_AK5394A_task(void *pvParameters) {
 	U32 poolingFreq;
 	U32 FB_rate_int;
 	U32 FB_rate_frac;
+	U32 sampling_rate;
 
 	while (TRUE) {
 		// All the hardwork is done by the pdca and the interrupt handler.
 		// Just check whether sampling freq is changed, to do rate change etc.
 
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_AK5394A_PERIOD);
+
+// silence speaker if USB data out is stalled, as indicated by heart-beat counter
+		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
+				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
+					spk_buffer_0[i] = 0;
+					spk_buffer_1[i] = 0;
+				}
+		}
+		else {
+			// computer approx incoming USB playback data rate
+			sampling_rate = (spk_usb_heart_beat - old_spk_usb_heart_beat) * 2;		// this tread is run every 5 ms
+			if ((sampling_rate > 920) && (sampling_rate < 1000) && (current_freq.frequency != 96000)) {
+				current_freq.frequency = 96000;
+				freq_changed = 1;
+			} else if ((sampling_rate > 1890) && (current_freq.frequency != 192000)){
+				current_freq.frequency = 192000;
+				freq_changed = 1;
+			}
+		}
+
+		old_spk_usb_heart_beat = spk_usb_heart_beat;
 
 		if (freq_changed) {
 
@@ -294,30 +316,11 @@ void uac2_AK5394A_task(void *pvParameters) {
 			freq_changed = FALSE;
 		}
 
-/*
-		if (usb_alternate_setting_out_changed) {
-			if (usb_alternate_setting_out != 1) {
-				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
-					spk_buffer_0[i] = 0;
-					spk_buffer_1[i] = 0;
-				}
-			}
-			usb_alternate_setting_out_changed = FALSE;
-		}
-*/
 		if (FEATURE_IMAGE_UAC2_DG8SAQ) {
 			spk_mute = TX_state ? FALSE : TRUE;
 			mute = TX_state ? TRUE : FALSE;
 		}
 
-// silence speaker if USB data out is stalled, as indicated by heart-beat counter
-		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
-				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
-					spk_buffer_0[i] = 0;
-					spk_buffer_1[i] = 0;
-				}
-		}
-		old_spk_usb_heart_beat = spk_usb_heart_beat;
 
 	} // end while (TRUE)
 }
