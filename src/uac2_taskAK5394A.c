@@ -90,6 +90,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 	U32 FB_rate_int;
 	U32 FB_rate_frac;
 	U32 sampling_rate;
+	int sampling_count = 0;
 
 	while (TRUE) {
 		// All the hardwork is done by the pdca and the interrupt handler.
@@ -105,18 +106,23 @@ void uac2_AK5394A_task(void *pvParameters) {
 				}
 		}
 		else {
-			// computer approx incoming USB playback data rate
-			sampling_rate = (spk_usb_heart_beat - old_spk_usb_heart_beat) * 2;		// this tread is run every 5 ms
-			if ((sampling_rate > 920) && (sampling_rate < 1000) && (current_freq.frequency != 96000)) {
-				current_freq.frequency = 96000;
-				freq_changed = 1;
-			} else if ((sampling_rate > 1890) && (current_freq.frequency != 192000)){
-				current_freq.frequency = 192000;
-				freq_changed = 1;
+			// compute approx incoming USB playback data rate	
+			if (sampling_count >= 20){		// 20*5ms = 100ms interval
+				sampling_rate = spk_usb_heart_beat - old_spk_usb_heart_beat;
+				if ((sampling_rate > 9200) && (sampling_rate < 10000) && (current_freq.frequency != 96000)) {
+					current_freq.frequency = 96000;
+					freq_changed = 1;
+				} else if ((sampling_rate > 18400) && (current_freq.frequency != 192000)){
+					current_freq.frequency = 192000;
+					freq_changed = 1;
+				}
+				old_spk_usb_heart_beat = spk_usb_heart_beat;
+				sampling_count = 0;
 			}
+			sampling_count++;
 		}
 
-		old_spk_usb_heart_beat = spk_usb_heart_beat;
+
 
 		if (freq_changed) {
 
