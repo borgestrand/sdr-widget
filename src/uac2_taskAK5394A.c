@@ -40,6 +40,7 @@
 #ifdef FREERTOS_USED
 #include "FreeRTOS.h"
 #include "task.h"
+#include "FreeRTOSConfig.h"
 #endif
 #include "usb_drv.h"
 #include "gpio.h"
@@ -106,16 +107,31 @@ void uac2_AK5394A_task(void *pvParameters) {
 				}
 		}
 		else {
-			// compute approx incoming USB playback data rate	
-			if (sampling_count >= 20){		// 20*5ms = 100ms interval
+			// compute approx incoming USB playback data rate
+			#define NUM_INTERVAL 40
+			if (sampling_count >= NUM_INTERVAL){		// task intervals, curently at 5ms
 				sampling_rate = spk_usb_heart_beat - old_spk_usb_heart_beat;
-				if ((sampling_rate > 9200) && (sampling_rate < 10000) && (current_freq.frequency != 96000)) {
+				if ((sampling_rate > 92*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
+						&& (sampling_rate < 100*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+						&& (current_freq.frequency != 96000)) {
 					current_freq.frequency = 96000;
 					freq_changed = 1;
-				} else if ((sampling_rate > 18400) && (current_freq.frequency != 192000)){
+				} else if ((sampling_rate > 84*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
+						&& (sampling_rate < 92*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+						&& (current_freq.frequency != 88200)) {
+					current_freq.frequency = 88200;
+					freq_changed = 1;
+				} else if ((sampling_rate > 172*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
+						&& (sampling_rate < 181*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+						&& (current_freq.frequency != 176400)) {
+					current_freq.frequency = 176400;
+					freq_changed = 1;
+				} else if ((sampling_rate > 188*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
+						&& (current_freq.frequency != 192000)) {
 					current_freq.frequency = 192000;
 					freq_changed = 1;
 				}
+
 				old_spk_usb_heart_beat = spk_usb_heart_beat;
 				sampling_count = 0;
 			}
@@ -128,6 +144,11 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 
 			spk_mute = TRUE;						// mute speaker while changing frequency and oscillator
+			for (i = 0; i < SPK_BUFFER_SIZE; i++) {	// clears speaker buffer
+				spk_buffer_0[i] = 0;
+				spk_buffer_1[i] = 0;
+			}
+
 
 			poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
 			FB_rate_int = current_freq.frequency / poolingFreq;
