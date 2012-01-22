@@ -66,6 +66,7 @@
 #ifdef FREERTOS_USED
 #include "FreeRTOS.h"
 #include "task.h"
+#include "semphr.h"
 #endif
 #include "pdca.h"
 #include "gpio.h"
@@ -198,7 +199,7 @@ void uac2_device_audio_task(void *pvParameters)
 					pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				}
 
-				freq_changed = 1;						// force a freq change reset
+				freq_changed = TRUE;						// force a freq change reset
 			}
 		}
 
@@ -369,7 +370,10 @@ void uac2_device_audio_task(void *pvParameters)
 
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 8;
-				spk_usb_heart_beat += num_samples;			// indicates EP_AUDIO_OUT receiving data from hos
+				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
+				spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
+				spk_usb_sample_counter += num_samples; 	// track the num of samples received
+				xSemaphoreGive(mutexSpkUSB);
 				if(!playerStarted)
 				{
 					playerStarted = TRUE;

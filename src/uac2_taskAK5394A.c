@@ -41,6 +41,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "FreeRTOSConfig.h"
+#include "semphr.h"
 #endif
 #include "usb_drv.h"
 #include "gpio.h"
@@ -87,58 +88,61 @@ void uac2_AK5394A_task(void *pvParameters) {
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 	int i;
+/*
 	U32 poolingFreq;
 	U32 FB_rate_int;
 	U32 FB_rate_frac;
-	U32 sampling_rate;
-	int sampling_count = 0;
 
+	#define NUM_INTERVAL 40
+	U32 sampling_rate = 48*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL;
+	U32 old_sampling_rate = 48*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL;
+	int sampling_count = 0;
+*/
 	while (TRUE) {
 		// All the hardwork is done by the pdca and the interrupt handler.
 		// Just check whether sampling freq is changed, to do rate change etc.
 
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_AK5394A_PERIOD);
 
-// silence speaker if USB data out is stalled, as indicated by heart-beat counter
+		// silence speaker if USB data out is stalled, as indicated by heart-beat counter
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
 				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
 					spk_buffer_0[i] = 0;
 					spk_buffer_1[i] = 0;
 				}
 		}
-		else {
-			// compute approx incoming USB playback data rate
-			#define NUM_INTERVAL 40
-			if (sampling_count >= NUM_INTERVAL){		// task intervals, curently at 5ms
-				sampling_rate = spk_usb_heart_beat - old_spk_usb_heart_beat;
-				if ((sampling_rate > 92*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
-						&& (sampling_rate < 100*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
-						&& (current_freq.frequency != 96000)) {
+		old_spk_usb_heart_beat = spk_usb_heart_beat;
+
+/*
+		// compute approx incoming USB playback data rate
+
+		if (sampling_count >= NUM_INTERVAL){		// fire at NUM_INTERVAL of task intervals
+			xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
+			sampling_rate = spk_usb_sample_counter - old_spk_usb_sample_counter;
+			xSemaphoreGive( mutexSpkUSB);
+			if ((sampling_rate > 92*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+					&& (old_sampling_rate > 92*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+					&& (sampling_rate < 100*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+					&& (old_sampling_rate < 100*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+					&& (current_freq.frequency != 96000)) {
 					current_freq.frequency = 96000;
-					freq_changed = 1;
-				} else if ((sampling_rate > 84*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
-						&& (sampling_rate < 92*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
-						&& (current_freq.frequency != 88200)) {
+					freq_changed = TRUE;
+			} else if ((sampling_rate > 84*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
+					&& (old_sampling_rate > 84*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
+					&& (sampling_rate < 92*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+					&& (old_sampling_rate < 92*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
+					&& (current_freq.frequency != 88200)) {
 					current_freq.frequency = 88200;
-					freq_changed = 1;
-				} else if ((sampling_rate > 172*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
-						&& (sampling_rate < 181*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL)
-						&& (current_freq.frequency != 176400)) {
-					current_freq.frequency = 176400;
-					freq_changed = 1;
-				} else if ((sampling_rate > 188*(UAC2_configTSK_AK5394A_PERIOD/10)*NUM_INTERVAL) 
-						&& (current_freq.frequency != 192000)) {
-					current_freq.frequency = 192000;
-					freq_changed = 1;
-				}
-
-				old_spk_usb_heart_beat = spk_usb_heart_beat;
-				sampling_count = 0;
+					freq_changed = TRUE;
 			}
-			sampling_count++;
+			xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
+			old_spk_usb_sample_counter = spk_usb_sample_counter = 0;
+			xSemaphoreGive( mutexSpkUSB);
+			old_sampling_rate = sampling_rate;
+			sampling_count = 0;
 		}
-
-
+		sampling_count++;
+*/
 
 		if (freq_changed) {
 
@@ -149,12 +153,12 @@ void uac2_AK5394A_task(void *pvParameters) {
 				spk_buffer_1[i] = 0;
 			}
 
-
+/*
 			poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
 			FB_rate_int = current_freq.frequency / poolingFreq;
 			FB_rate_frac = current_freq.frequency % poolingFreq;
 			FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
-
+*/
 			if (current_freq.frequency == 96000) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -177,8 +181,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				//if (Is_usb_full_speed_mode()) FB_rate = 96 << 14;
-				//else FB_rate = (96) << 13;
+				FB_rate = (96) << 14;
 
 			}
 
@@ -204,8 +207,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				//if (Is_usb_full_speed_mode()) FB_rate = (88 << 14) + (1<<13)/5;
-				//	else FB_rate = (88 << 14) + (1<<13)/5;
+				FB_rate = (88 << 14) + (1<<14)/5;
 
 				}
 
@@ -230,8 +232,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 	    								  0);                 // GCLK1 = 12.288Mhz
 	    			pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-	    			//if (Is_usb_full_speed_mode()) FB_rate = (176 << 14) + ((1<<13) * 4)/ 10;
-	    			//	else FB_rate = (176 << 14) + ((1<<13)*4) / 10;
+	    			FB_rate = (176 << 14) + ((1<<14)*4) / 10;
 
 	        	}
 
@@ -257,8 +258,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // GCLK1 = 12.288Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				//if (Is_usb_full_speed_mode()) FB_rate = 192 << 14;
-				//else FB_rate = (192) << 13;
+				FB_rate = (192) << 14;
 
 			} else if (current_freq.frequency == 48000) {
 				// if there are two XO, PX16 sets the 48x
@@ -284,8 +284,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				//if (Is_usb_full_speed_mode()) FB_rate = 48 << 14;
-				//else FB_rate = (48) << 13;
+				FB_rate = (48) << 14;
 
 			}
 
@@ -313,8 +312,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				//if (Is_usb_full_speed_mode()) FB_rate = (44 << 14) + (1 << 13)/10 ;
-				//else FB_rate = (44 << 13) + (1 << 13)/10;
+				FB_rate = (44 << 14) + (1 << 14)/10;
 
 			}
 
