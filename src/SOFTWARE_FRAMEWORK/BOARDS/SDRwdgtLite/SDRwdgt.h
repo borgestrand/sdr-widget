@@ -153,7 +153,7 @@
 //! @}
 
 
-/*! \name AK5493 24 bit hi-performance ADC
+/*! \name AK5394A 24 bit hi-performance ADC
  */
 //! @{
 #define AK5394_DFS0                      AVR32_PIN_PB00		// pulled up sampling speed sense (or control)
@@ -273,6 +273,8 @@
 #define PTT_1				 AVR32_PIN_PX45
 #define PTT_2				 AVR32_PIN_PX42
 #define PTT_3				 AVR32_PIN_PX22
+
+#define GPIO_PCM5102_FILTER	 AVR32_PIN_PX56	 // 0=FIR 1=IIR
 //! @}
 
 // Inhale list of required modules

@@ -32,6 +32,7 @@ typedef enum {
   feature_dac_index,			// dac identifier
   feature_lcd_index,			// lcd display type
   feature_log_index,			// startup log display timing
+  feature_filter_index,			// setting of filter
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -45,6 +46,7 @@ typedef enum {
 		"dac",										\
 		"lcd",										\
 		"log",										\
+		"filter",									\
 		"end"
 
 //
@@ -69,9 +71,7 @@ typedef enum {
 	feature_board_widget,
 	feature_board_usbi2s,
 	feature_board_usbdac,
-	feature_board_test,
 	feature_end_board,
-	feature_image_flashyblinky,	// image selection
 	feature_image_uac1_audio,
 	feature_image_uac1_dg8saq,
 	feature_image_uac2_audio,
@@ -102,17 +102,18 @@ typedef enum {
 	feature_log_1sec,
 	feature_log_2sec,
 	feature_end_log,
+	feature_filter_fir,			// filter select
+	feature_filter_iir,
+	feature_end_filter,
 	feature_end_values			// end
 } feature_values_t;
 
 #define FEATURE_VALUE_NAMES \
-	"none",																\
+		"none",															\
 		"widget",														\
 		"usbi2s",														\
 		"usbdac",														\
-		"test",															\
 		"end",															\
-		"flashyblinky",													\
 		"uac1_audio",													\
 		"uac1_dg8saq",													\
 		"uac2_audio",													\
@@ -143,6 +144,9 @@ typedef enum {
 		"1sec",															\
 		"2sec",															\
 		"end",															\
+		"fir",															\
+		"iir",															\
+		"end",															\
 		"end"
 	
 typedef uint8_t features_t[feature_end_index];
@@ -167,9 +171,7 @@ extern const features_t features_default;
 #define FEATURE_BOARD_WIDGET			(features[feature_board_index] == (uint8_t)feature_board_widget)
 #define FEATURE_BOARD_USBI2S			(features[feature_board_index] == (uint8_t)feature_board_usbi2s)
 #define FEATURE_BOARD_USBDAC			(features[feature_board_index] == (uint8_t)feature_board_usbdac)
-#define FEATURE_BOARD_TEST				(features[feature_board_index] == (uint8_t)feature_board_test)
 
-#define FEATURE_IMAGE_FLASHYBLINKY		(features[feature_image_index] == (uint8_t)feature_image_flashyblinky)
 #define FEATURE_IMAGE_UAC1_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac1_audio)
 #define FEATURE_IMAGE_UAC1_DG8SAQ		(features[feature_image_index] == (uint8_t)feature_image_uac1_dg8saq)
 #define FEATURE_IMAGE_UAC2_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac2_audio)
@@ -200,6 +202,8 @@ extern const features_t features_default;
 #define FEATURE_LOG_1SEC				(features[feature_log_index] == (uint8_t)feature_log_1sec)
 #define FEATURE_LOG_2SEC				(features[feature_log_index] == (uint8_t)feature_log_2sec)
 
+#define FEATURE_FILTER_FIR				(features[feature_filter_index] == (uint8_t)feature_filter_fir)
+#define FEATURE_FILTER_IIR				(features[feature_filter_index] == (uint8_t)feature_filter_iir)
 //
 // the version in the features specifies
 // the number of feature indexes and the number of feature values
@@ -245,6 +249,9 @@ extern const features_t features_default;
 #ifndef FEATURE_LOG_DEFAULT
 #define FEATURE_LOG_DEFAULT				feature_log_500ms
 #endif
+#ifndef FEATURE_FILTER_DEFAULT
+#define FEATURE_FILTER_DEFAULT			feature_filter_fir
+#endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
 		FEATURE_MINOR_DEFAULT,						\
@@ -255,7 +262,8 @@ extern const features_t features_default;
 		FEATURE_ADC_DEFAULT,						\
 		FEATURE_DAC_DEFAULT,						\
 		FEATURE_LCD_DEFAULT,						\
-		FEATURE_LOG_DEFAULT
+		FEATURE_LOG_DEFAULT,						\
+		FEATURE_FILTER_DEFAULT
 
 extern const char * const feature_value_names[];
 extern const char * const feature_index_names[];

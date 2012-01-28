@@ -73,11 +73,11 @@ class Launcher(model.Background):
         # Default values for a number of of items, some of which may not be supported,
         # depending on the firmware.
  
-        self.imageSelection = 10
-        self.inSelection = 14
-        self.outSelection = 17
-        self.adcSelection = 20
-        self.dacSelection = 24
+        self.imageSelection = 5
+        self.inSelection = 12
+        self.outSelection = 15
+        self.adcSelection = 19
+        self.dacSelection = 22
         
         # Enumerate the USB
         self.OnUSB(-1)
@@ -297,7 +297,13 @@ class Launcher(model.Background):
 
        self.on_Refresh_command(-1)		# Refresh
 
+    def on_ComboBoxFilter_textUpdate(self, event):
+       self.FilterSelection = self.feature_value_lookup_dict['8'+event.target.stringSelection]
+       self.handle.claimInterface(interfacenum) # Open the USB device for traffic
+       output = self.devicetohost(0x71, 3, (10 + (self.FilterSelection * 256)))
+       self.handle.releaseInterface()           # Release the USB device
 
+       self.on_Refresh_command(-1)		# Refresh
     #####################################
     #  Read firmware features
     #####################################
@@ -362,6 +368,15 @@ class Launcher(model.Background):
         except:
             pass
 
+        try:
+            # Get Filter Type
+            self.handle.claimInterface(interfacenum)# Open the USB device for traffic
+            output = self.devicetohost(0x71, 4, 10)
+            self.handle.releaseInterface()          # Release the USB device
+            FilterType = self.feature_value_dict[output[0]]
+            self.components.FilterType.text = FilterType
+        except:
+            pass
 
         try:
            # Get Board Type

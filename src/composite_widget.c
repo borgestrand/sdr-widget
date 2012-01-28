@@ -289,6 +289,9 @@ int main(void)
 
 	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
+	if (FEATURE_FILTER_FIR) gpio_clr_gpio_pin(GPIO_PCM5102_FILTER);
+	else gpio_set_gpio_pin(GPIO_PCM5102_FILTER);
+
 	// Initialize interrupt controller
 	INTC_init_interrupts();
 
