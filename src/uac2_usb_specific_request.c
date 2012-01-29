@@ -384,7 +384,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 						// give total # of bytes requested
 						for (i = 0; i < min(wLength, sizeof(Speedx_1)); i++){
-							//if (FEATURE_DAC_ES9022)
+							//if (FEATURE_DAC_ES9023)
 								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 							}
@@ -432,7 +432,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 						// give total # of bytes requested
 						for (i = 0; i < min(wLength, sizeof(Speedx_1)); i++){
-							//if (FEATURE_DAC_ES9022)
+							//if (FEATURE_DAC_ES9023)
 								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
 							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 						}
