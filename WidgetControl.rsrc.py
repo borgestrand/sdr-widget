@@ -139,7 +139,7 @@
     'position':(271, 154), 
     'size':(100, -1), 
     'items':[u'none', u'hd44780', u'ks0073'], 
-    'text':u'LCD Type', 
+    'text':u'LCD Type:', 
     },
 
 {'type':'StaticText', 
@@ -157,7 +157,7 @@
     'size':(100, -1), 
     'items':[u'none', u'500ms', u'1sec', u'2sec'], 
     'stringSelection':u'none', 
-    'text':u'none', 
+    'text':u'Log Type:', 
     },
 
 {'type':'StaticBox', 
