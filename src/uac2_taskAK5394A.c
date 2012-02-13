@@ -181,7 +181,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				FB_rate = (96) << 15;
+				FB_rate = (96) << 14;
 
 			}
 
@@ -207,7 +207,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				FB_rate = (88 << 15) + (1<<15)/5;
+				FB_rate = (88 << 14) + (1<<14)/5;
 
 				}
 
