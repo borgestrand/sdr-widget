@@ -49,7 +49,7 @@
  *
  * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
  *
- * Copyright (C) Alex Lee
+ * Copyright (C) 2010 Alex Lee
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -72,7 +72,7 @@
  * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
  * Audio (USB Audio Class V2)
  *
- * For SDR-Widget and SDR-Widget-lite, custom boards based on the AT32UC3A3256
+ * For sdr-widget and audio-widget, custom boards based on the AT32UC3A3256
  *
  * See http://code.google.com/p/sdr-widget/
  *
