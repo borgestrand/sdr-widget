@@ -184,11 +184,12 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-#ifdef _LINUX_QUIRK
+
+				#ifdef _LINUX_QUIRK
 				FB_rate = (96) << 15;
-#else
+				#else
 				FB_rate = (96) << 14;
-#endif
+				#endif
 
 			}
 
@@ -213,11 +214,13 @@ void uac2_AK5394A_task(void *pvParameters) {
 								  1,                  // diven - enabled
 								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
-#ifdef _LINUX_QUIRK
+
+				#ifdef _LINUX_QUIRK
 				FB_rate = (88 << 15) + (1<<15)/5;
-#else
+				#else
 				FB_rate = (88 << 14) + (1<<14)/5;
-#endif
+				#endif
+
 				}
 
 	       	else if (current_freq.frequency == 176400)
