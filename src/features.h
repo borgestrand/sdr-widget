@@ -215,42 +215,32 @@ extern const features_t features_default;
 #define FEATURE_MINOR_DEFAULT			feature_end_values
 
 //
-// conditionally set the defaults for this build
+// Check the defaults for this build
 //
+// BSB 20120409 edited after Roger's mail
 #ifndef FEATURE_BOARD_DEFAULT
-#define FEATURE_BOARD_DEFAULT			feature_board_widget
+#warning "FEATURE_BOARD_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
-#if FEATURE_BOARD_DEFAULT == feature_board_widget
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_dg8saq
-#else
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
-#endif
+#warning "FEATURE_IMAGE_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_IN_DEFAULT
-#define FEATURE_IN_DEFAULT				feature_in_normal
+#warning "FEATURE_IN_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_OUT_DEFAULT
-#define FEATURE_OUT_DEFAULT				feature_out_normal
-#endif
-#ifndef FEATURE_ADC_DEFAULT
-#if FEATURE_BOARD_DEFAULT == feature_board_widget
-#define FEATURE_ADC_DEFAULT				feature_adc_ak5394a
-#else
-#define FEATURE_ADC_DEFAULT				feature_adc_none
-#endif
+#warning "FEATURE_OUT_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_DAC_DEFAULT
-#define FEATURE_DAC_DEFAULT				feature_dac_pcm5102
+#warning "FEATURE_DAC_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_LCD_DEFAULT
-#define FEATURE_LCD_DEFAULT				feature_lcd_hd44780
+#warning "FEATURE_LCD_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_LOG_DEFAULT
-#define FEATURE_LOG_DEFAULT				feature_log_500ms
+#warning "FEATURE_LOG_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_FILTER_DEFAULT
-#define FEATURE_FILTER_DEFAULT			feature_filter_fir
+#warning "FEATURE_FILTER_DEFAULT must be defined by the Makefile"
 #endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
