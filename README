@@ -29,6 +29,12 @@ Interested would be developers please contact us.
 The master branch is for the sdr-widget, and the audio-widget branch is 
 for the audio-widget.
 
+To build under Cygwin or Linux, first download Atmel AVR32 tools from
+http://www.atmel.no/beta_ware/
+Then edit the make-widget script to match your tools installation. 
+
+Build commands are "make audio-widget" and "make sdr-widget".
+
 For descriptions and photos of the hardware, see:
 
 http://sites.google.com/site/lofturj/sdr_widget. And:

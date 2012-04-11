@@ -219,28 +219,28 @@ extern const features_t features_default;
 //
 // BSB 20120409 edited after Roger's mail
 #ifndef FEATURE_BOARD_DEFAULT
-#warning "FEATURE_BOARD_DEFAULT must be defined by the Makefile"
+#error "FEATURE_BOARD_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
-#warning "FEATURE_IMAGE_DEFAULT must be defined by the Makefile"
+#error "FEATURE_IMAGE_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_IN_DEFAULT
-#warning "FEATURE_IN_DEFAULT must be defined by the Makefile"
+#error "FEATURE_IN_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_OUT_DEFAULT
-#warning "FEATURE_OUT_DEFAULT must be defined by the Makefile"
+#error "FEATURE_OUT_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_DAC_DEFAULT
-#warning "FEATURE_DAC_DEFAULT must be defined by the Makefile"
+#error "FEATURE_DAC_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_LCD_DEFAULT
-#warning "FEATURE_LCD_DEFAULT must be defined by the Makefile"
+#error "FEATURE_LCD_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_LOG_DEFAULT
-#warning "FEATURE_LOG_DEFAULT must be defined by the Makefile"
+#error "FEATURE_LOG_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_FILTER_DEFAULT
-#warning "FEATURE_FILTER_DEFAULT must be defined by the Makefile"
+#error "FEATURE_FILTER_DEFAULT must be defined by the Makefile"
 #endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
