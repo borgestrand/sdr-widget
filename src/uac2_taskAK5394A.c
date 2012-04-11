@@ -76,6 +76,10 @@ void uac2_AK5394A_task(void*);
 void uac2_AK5394A_task_init(void) {
 	current_freq.frequency = 96000;
 	AK5394A_task_init(FALSE);
+
+	gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+	gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
+
 	xTaskCreate(uac2_AK5394A_task,
 				configTSK_AK5394A_NAME,
 				configTSK_AK5394A_STACK_SIZE,
@@ -191,6 +195,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 				FB_rate = (96) << 14;
 				#endif
 
+				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
 			}
 
 		   	else if (current_freq.frequency == 88200){
@@ -221,6 +227,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 				FB_rate = (88 << 14) + (1<<14)/5;
 				#endif
 
+				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
 				}
 
 	       	else if (current_freq.frequency == 176400)
@@ -246,6 +254,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 	    			FB_rate = (176 << 14) + ((1<<14)*4) / 10;
 
+	    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+	    			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
 	        	}
 
 			else if (current_freq.frequency == 192000) {
@@ -271,6 +281,9 @@ void uac2_AK5394A_task(void *pvParameters) {
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 				FB_rate = (192) << 14;
+
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+    			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
 
 			} else if (current_freq.frequency == 48000) {
 				// if there are two XO, PX16 sets the 48x
@@ -298,6 +311,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 				FB_rate = (48) << 14;
 
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			}
 
 			else if (current_freq.frequency == 44100) {
@@ -326,6 +341,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 				FB_rate = (44 << 14) + (1 << 14)/10;
 
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			}
 
 			if (FEATURE_ADC_AK5394A) {
