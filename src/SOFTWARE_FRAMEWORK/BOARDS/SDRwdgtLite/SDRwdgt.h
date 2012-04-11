@@ -275,6 +275,14 @@
 #define PTT_3				 AVR32_PIN_PX22
 //! @}
 
+/*! \name GPIO Connections of the sample freq
+ */
+//! @{
+#define SAMPLEFREQ_VAL0                    AVR32_PIN_PC00
+#define SAMPLEFREQ_VAL1                    AVR32_PIN_PC01
+//! @}
+
+
 // Inhale list of required modules
 #include "SDR-Widget.h"
 
