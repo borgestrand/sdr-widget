@@ -121,7 +121,7 @@
     'name':'ComboBoxDac',
     'position':(148, 154), 
     'size':(100, -1), 
-    'items':[u'none', u'cs4344', u'es9023', u'pcm5102'], 
+    'items':[u'none', u'cs4344', u'generic'], 
     'text':u'DAC Type',
     },
 

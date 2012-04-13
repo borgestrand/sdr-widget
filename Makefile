@@ -15,17 +15,19 @@ SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_DAC_DEFAULT=feature_dac_cs4344 \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
-	-DFEATURE_FILTER_DEFAULT=feature_filter_fir
+	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
+    -DFEATURE_LQUIRK_DEFAULT=feature_lquirk_off
 
 AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac1_audio \
 	-DFEATURE_IN_DEFAULT=feature_in_normal \
 	-DFEATURE_OUT_DEFAULT=feature_out_normal \
 	-DFEATURE_ADC_DEFAULT=feature_adc_none \
-	-DFEATURE_DAC_DEFAULT=feature_dac_es9023 \
+	-DFEATURE_DAC_DEFAULT=feature_dac_generic \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
-	-DFEATURE_FILTER_DEFAULT=feature_filter_fir
+	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
+    -DFEATURE_LQUIRK_DEFAULT=feature_lquirk_off
 
 all:: Release/widget.elf widget-control
 

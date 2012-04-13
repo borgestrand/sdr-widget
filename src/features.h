@@ -19,6 +19,9 @@
 // 2) insert the feature index name string into the FEATURE_INDEX_NAMES define;
 // 3) insert the feature end marker value into the feature_values_t enumeration;
 // 4) insert the feature end marker name into the FEATURE_VALUE_NAMES define.
+// 5) insert macros to test the feature
+// 6) insert test for default being set by Makefile
+// 7) insert the feature in all configurations in Makefile at project root
 //
 
 typedef enum {
@@ -33,6 +36,7 @@ typedef enum {
   feature_lcd_index,			// lcd display type
   feature_log_index,			// startup log display timing
   feature_filter_index,			// setting of filter
+  feature_lquirk_index,			// setting of Linux_quirk
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -47,6 +51,7 @@ typedef enum {
 		"lcd",										\
 		"log",										\
 		"filter",									\
+		"lquirk",									\
 		"end"
 
 //
@@ -90,8 +95,7 @@ typedef enum {
 	feature_end_adc,
 	feature_dac_none,			// dac
 	feature_dac_cs4344,
-	feature_dac_es9023,
-	feature_dac_pcm5102,
+	feature_dac_generic,
 	feature_end_dac,
 	feature_lcd_none,			// lcd
 	feature_lcd_hd44780,		/* normal hd44780 lcd controller */
@@ -105,6 +109,9 @@ typedef enum {
 	feature_filter_fir,			// filter select
 	feature_filter_iir,
 	feature_end_filter,
+	feature_lquirk_on,			// Linux_quirk select
+	feature_lquirk_off,
+	feature_end_lquirk,
 	feature_end_values			// end
 } feature_values_t;
 
@@ -132,8 +139,7 @@ typedef enum {
 		"end",															\
 		"none",															\
 		"cs4344",														\
-		"es9023",														\
-		"pcm5102",														\
+		"generic",														\
 		"end",															\
 		"none",															\
 		"hd44780",														\
@@ -146,6 +152,9 @@ typedef enum {
 		"end",															\
 		"fir",															\
 		"iir",															\
+		"end",															\
+		"lquirk_on",														\
+		"lquirk_off",														\
 		"end",															\
 		"end"
 	
@@ -190,8 +199,7 @@ extern const features_t features_default;
 
 #define FEATURE_DAC_NONE				(features[feature_dac_index] == (uint8_t)feature_dac_none)
 #define FEATURE_DAC_CS4344				(features[feature_dac_index] == (uint8_t)feature_dac_cs4344)
-#define FEATURE_DAC_ES9023				(features[feature_dac_index] == (uint8_t)feature_dac_es9023)
-#define FEATURE_DAC_PCM5102				(features[feature_dac_index] == (uint8_t)feature_dac_pcm5102)
+#define FEATURE_DAC_GENERIC				(features[feature_dac_index] == (uint8_t)feature_dac_generic)
 
 #define FEATURE_LCD_NONE				(features[feature_lcd_index] == (uint8_t)feature_lcd_none)
 #define FEATURE_LCD_HD44780				(features[feature_lcd_index] == (uint8_t)feature_lcd_hd44780)
@@ -204,6 +212,9 @@ extern const features_t features_default;
 
 #define FEATURE_FILTER_FIR				(features[feature_filter_index] == (uint8_t)feature_filter_fir)
 #define FEATURE_FILTER_IIR				(features[feature_filter_index] == (uint8_t)feature_filter_iir)
+
+#define FEATURE_LQUIRK_ON				(features[feature_lquirk_index] == (uint8_t)feature_lquirk_on)
+#define FEATURE_LQUIRK_OFF				(features[feature_lquirk_index] == (uint8_t)feature_lquirk_off)
 //
 // the version in the features specifies
 // the number of feature indexes and the number of feature values
@@ -241,6 +252,9 @@ extern const features_t features_default;
 #endif
 #ifndef FEATURE_FILTER_DEFAULT
 #error "FEATURE_FILTER_DEFAULT must be defined by the Makefile"
+#endif
+#ifndef FEATURE_LQUIRK_DEFAULT
+#error "FEATURE_LQUIRK_DEFAULT must be defined by the Makefile"
 #endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
