@@ -25,8 +25,7 @@
  */
 
 // #define LINUX_QUIRK
-// replaced by FEATURE_LQUIRK_ON() BSB 20120413
-
+// replaced by FEATURE_LINUX_QUIRK_ON() BSB 20120413/20
 
 //_____  I N C L U D E S ___________________________________________________
 
@@ -188,12 +187,12 @@ void uac2_AK5394A_task(void *pvParameters) {
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (FEATURE_LQUIRK_ON)
+				if (FEATURE_LINUX_QUIRK_ON)
 					FB_rate = (96) << 15;
 				else
 					FB_rate = (96) << 14;
 
-/*				Replaced by if(FEATURE_LQUIRK_ON) BSB 20120413
+/*				Replaced by if(FEATURE_LINUX_QUIRK_ON) BSB 20120413/20
 				#ifdef _LINUX_QUIRK
 				FB_rate = (96) << 15;
 				#else
@@ -227,12 +226,12 @@ void uac2_AK5394A_task(void *pvParameters) {
 								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-				if (FEATURE_LQUIRK_ON)
+				if (FEATURE_LINUX_QUIRK_ON)
 					FB_rate = (88 << 15) + (1<<15)/5;
 				else
 					FB_rate = (88 << 14) + (1<<14)/5;
 
-/*				Replaced by if(FEATURE_LQUIRK_ON) BSB 20120413
+/*				Replaced by if(FEATURE_LINUX_QUIRK_ON) BSB 20120419
 				#ifdef _LINUX_QUIRK
 				FB_rate = (88 << 15) + (1<<15)/5;
 				#else

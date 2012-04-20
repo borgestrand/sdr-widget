@@ -36,7 +36,7 @@ typedef enum {
   feature_lcd_index,			// lcd display type
   feature_log_index,			// startup log display timing
   feature_filter_index,			// setting of filter
-  feature_lquirk_index,			// setting of Linux_quirk
+  feature_quirk_index,			// setting of various quirks
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -51,7 +51,7 @@ typedef enum {
 		"lcd",										\
 		"log",										\
 		"filter",									\
-		"lquirk",									\
+		"quirk",									\
 		"end"
 
 //
@@ -109,8 +109,9 @@ typedef enum {
 	feature_filter_fir,			// filter select
 	feature_filter_iir,
 	feature_end_filter,
-	feature_lquirk_on,			// Linux_quirk select
-	feature_lquirk_off,
+	feature_quirk_linux,		// Linux_quirk select
+	feature_quirk_ptest,		// Production test quirk
+	feature_quirk_none,			// No quirks, normal operation
 	feature_end_lquirk,
 	feature_end_values			// end
 } feature_values_t;
@@ -153,8 +154,9 @@ typedef enum {
 		"fir",															\
 		"iir",															\
 		"end",															\
-		"lquirk_on",														\
-		"lquirk_off",														\
+		"quirk_linux",													\
+		"quirk_ptest",													\
+		"quirk_none",													\
 		"end",															\
 		"end"
 	
@@ -213,8 +215,12 @@ extern const features_t features_default;
 #define FEATURE_FILTER_FIR				(features[feature_filter_index] == (uint8_t)feature_filter_fir)
 #define FEATURE_FILTER_IIR				(features[feature_filter_index] == (uint8_t)feature_filter_iir)
 
-#define FEATURE_LQUIRK_ON				(features[feature_lquirk_index] == (uint8_t)feature_lquirk_on)
-#define FEATURE_LQUIRK_OFF				(features[feature_lquirk_index] == (uint8_t)feature_lquirk_off)
+#define FEATURE_LINUX_QUIRK_ON			(features[feature_quirk_index] == (uint8_t)feature_quirk_linux)
+#define FEATURE_LINUX_QUIRK_OFF			(features[feature_quirk_index] != (uint8_t)feature_quirk_linux)
+#define FEATURE_PROD_TEST_ON			(features[feature_quirk_index] == (uint8_t)feature_quirk_ptest)
+#define FEATURE_PROD_TEST_OFF			(features[feature_quirk_index] != (uint8_t)feature_quirk_ptest)
+
+
 //
 // the version in the features specifies
 // the number of feature indexes and the number of feature values
@@ -253,8 +259,8 @@ extern const features_t features_default;
 #ifndef FEATURE_FILTER_DEFAULT
 #error "FEATURE_FILTER_DEFAULT must be defined by the Makefile"
 #endif
-#ifndef FEATURE_LQUIRK_DEFAULT
-#error "FEATURE_LQUIRK_DEFAULT must be defined by the Makefile"
+#ifndef FEATURE_QUIRK_DEFAULT
+#error "FEATURE_QUIRK_DEFAULT must be defined by the Makefile"
 #endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
@@ -267,7 +273,8 @@ extern const features_t features_default;
 		FEATURE_DAC_DEFAULT,						\
 		FEATURE_LCD_DEFAULT,						\
 		FEATURE_LOG_DEFAULT,						\
-		FEATURE_FILTER_DEFAULT
+		FEATURE_FILTER_DEFAULT,						\
+		FEATURE_QUIRK_DEFAULT
 
 extern const char * const feature_value_names[];
 extern const char * const feature_index_names[];

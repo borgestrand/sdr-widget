@@ -7,6 +7,7 @@
 ## IMPORTANT: run "make clean" if you change compilation defaults or 
 ## targets!
 
+## See featurs.h #define FEATURE_VALUE_NAMES for available defaults. 
 SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_dg8saq \
 	-DFEATURE_IN_DEFAULT=feature_in_normal \
@@ -16,7 +17,7 @@ SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
-    -DFEATURE_LQUIRK_DEFAULT=feature_lquirk_off
+    -DFEATURE_QUIRK_DEFAULT=feature_quirk_none
 
 AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac1_audio \
@@ -27,7 +28,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
-    -DFEATURE_LQUIRK_DEFAULT=feature_lquirk_off
+    -DFEATURE_QUIRK_DEFAULT=feature_quirk_none
 
 all:: Release/widget.elf widget-control
 
