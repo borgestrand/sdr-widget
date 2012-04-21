@@ -209,8 +209,9 @@ int main(void)
 	gpio_set_gpio_pin(AVR32_PIN_PX51);	// Enables power to XO and DAC in USBI2C AB-1 board
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);
 
-
-
+	//clear samplerate indication
+	gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+	gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 
 	// Set initial status of LEDs on the front of AB-1.1. BSB 20110903, 20111016
 	// Overriden by #if LED_STATUS == LED_STATUS_AB in SDRwdgt.h
