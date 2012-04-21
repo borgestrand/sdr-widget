@@ -39,6 +39,16 @@
 <option id="gnu.c.compiler.option.optimization.flags.1950111562" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fdata-sections" valueType="string"/>
 <option id="gnu.c.compiler.option.preprocessor.def.symbols.630148765" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="BOARD=SDRwdgtLite"/>
+<listOptionValue builtIn="false" value="FEATURE_BOARD_DEFAULT=feature_board_usbdac"/>
+<listOptionValue builtIn="false" value="FEATURE_IMAGE_DEFAULT=feature_image_uac1_audio"/>
+<listOptionValue builtIn="false" value="FEATURE_IN_DEFAULT=feature_in_normal"/>
+<listOptionValue builtIn="false" value="FEATURE_OUT_DEFAULT=feature_out_normal"/>
+<listOptionValue builtIn="false" value="FEATURE_ADC_DEFAULT=feature_adc_none"/>
+<listOptionValue builtIn="false" value="FEATURE_DAC_DEFAULT=feature_dac_generic"/>
+<listOptionValue builtIn="false" value="FEATURE_LCD_DEFAULT=feature_lcd_none"/>
+<listOptionValue builtIn="false" value="FEATURE_LOG_DEFAULT=feature_log_none"/>
+<listOptionValue builtIn="false" value="FEATURE_FILTER_DEFAULT=feature_filter_fir"/>
+<listOptionValue builtIn="false" value="FEATURE_QUIRK_DEFAULT=feature_quirk_none"/>
 <listOptionValue builtIn="false" value="FREERTOS_USED"/>
 </option>
 <option id="gnu.c.compiler.option.include.paths.479058624" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
@@ -705,6 +715,16 @@
 <option id="gnu.c.compiler.option.optimization.flags.2040413959" name="Other optimization flags" superClass="gnu.c.compiler.option.optimization.flags" value="-fdata-sections" valueType="string"/>
 <option id="gnu.c.compiler.option.preprocessor.def.symbols.1914135374" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" valueType="definedSymbols">
 <listOptionValue builtIn="false" value="BOARD=SDRwdgtLite"/>
+<listOptionValue builtIn="false" value="FEATURE_BOARD_DEFAULT=feature_board_usbdac"/>
+<listOptionValue builtIn="false" value="FEATURE_IMAGE_DEFAULT=feature_image_uac1_audio"/>
+<listOptionValue builtIn="false" value="FEATURE_IN_DEFAULT=feature_in_normal"/>
+<listOptionValue builtIn="false" value="FEATURE_OUT_DEFAULT=feature_out_normal"/>
+<listOptionValue builtIn="false" value="FEATURE_ADC_DEFAULT=feature_adc_none"/>
+<listOptionValue builtIn="false" value="FEATURE_DAC_DEFAULT=feature_dac_generic"/>
+<listOptionValue builtIn="false" value="FEATURE_LCD_DEFAULT=feature_lcd_none"/>
+<listOptionValue builtIn="false" value="FEATURE_LOG_DEFAULT=feature_log_none"/>
+<listOptionValue builtIn="false" value="FEATURE_FILTER_DEFAULT=feature_filter_fir"/>
+<listOptionValue builtIn="false" value="FEATURE_QUIRK_DEFAULT=feature_quirk_none"/>
 <listOptionValue builtIn="false" value="FREERTOS_USED"/>
 </option>
 <option id="gnu.c.compiler.option.include.paths.914969582" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
