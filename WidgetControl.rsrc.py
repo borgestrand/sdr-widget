@@ -8,6 +8,24 @@
 
          'components': [
 
+# BSB 20120426
+{'type':'ComboBox', 
+    'name':'ComboBoxQuirk', 
+    'position':(155, 226), 
+    'size':(112, -1), 
+    'items':[u'quirk_linux', u'quirk_ptest', u'quirk_none'], 
+    'text':u'Quirk Type', 
+    },
+
+# BSB 20120426
+{'type':'StaticText', 
+    'name':'QuirkType', 
+    'position':(155, 204), 
+    'backgroundColor':(240, 235, 226, 255), 
+    'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
+    'text':u'Quirk:', 
+    },
+
 {'type':'ComboBox', 
     'name':'ComboBoxFilter', 
     'position':(14, 226), 
@@ -19,7 +37,8 @@
 {'type':'StaticText', 
     'name':'FilterType', 
     'position':(23, 204), 
-    'backgroundColor':(237, 236, 235, 255), 
+    'backgroundColor':(240, 235, 226, 255), 
+    'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
     'text':u'Filter Type:', 
     },
 

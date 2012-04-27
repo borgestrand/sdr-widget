@@ -45,8 +45,9 @@ sdr-widget::
 	CFLAGS="$(SDR_WIDGET_DEFAULTS)" ./make-widget
 
 widget-control: widget-control.c src/features.h
-	gcc -o widget-control widget-control.c -lusb-1.0
+	gcc $(AUDIO_WIDGET_DEFAULTS) -o widget-control widget-control.c -lusb-1.0
 
 clean::
+	rm -f widget-control widget-control.exe
 	cd Release && make clean
 	rm -f widget-control

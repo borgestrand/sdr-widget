@@ -117,6 +117,7 @@ int find_feature_value(int index, char *value) {
 #define DG8SAQ_PRODUCT_ID     0x05dc
 #define AUDIO_VENDOR_ID		  0x16c0		//!  Internal Lab use
 #define AUDIO_PRODUCT_ID      0x03e8
+#define AUDIO_PRODUCT_ID_UAC1 0x03e9        // BSB 20120426
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
 #define HPSDR_PRODUCT_ID      0x0007
 
@@ -174,6 +175,7 @@ libusb_device_handle *find_device(int list_all) {
 		}
 		if ((desc.idVendor == DG8SAQ_VENDOR_ID && desc.idProduct == DG8SAQ_PRODUCT_ID) ||
 			(desc.idVendor == AUDIO_VENDOR_ID && desc.idProduct == AUDIO_PRODUCT_ID) ||
+			(desc.idVendor == AUDIO_VENDOR_ID && desc.idProduct == AUDIO_PRODUCT_ID_UAC1) || // BSB 20120426
 			(desc.idVendor == HPSDR_VENDOR_ID && desc.idProduct == HPSDR_PRODUCT_ID)) {
 			libusb_device_handle *h;
 			int status;

@@ -34,6 +34,7 @@ vendorid2    = 0xfffe
 productid1   = 0x05dc
 productid2   = 0x03e8
 productid3   = 0x0007
+productid4   = 0x03e9
 confignum   = 1
 interfacenum= 0
 timeout     = 1500
@@ -151,6 +152,10 @@ class Launcher(model.Background):
                     foundbus = bus
                     break
                 if (dev.idVendor == vendorid2) & (dev.idProduct == productid3):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid2) & (dev.idProduct == productid4):
                     founddev = dev
                     foundbus = bus
                     break
@@ -304,6 +309,15 @@ class Launcher(model.Background):
        self.handle.releaseInterface()           # Release the USB device
 
        self.on_Refresh_command(-1)		# Refresh
+
+    def on_ComboBoxQuirk_textUpdate(self, event): # BSB 20120426
+       self.QuirkSelection = self.feature_value_lookup_dict['9'+event.target.stringSelection]
+       self.handle.claimInterface(interfacenum) # Open the USB device for traffic
+       output = self.devicetohost(0x71, 3, (11 + (self.QuirkSelection * 256)))
+       self.handle.releaseInterface()           # Release the USB device
+
+       self.on_Refresh_command(-1)		# Refresh
+
     #####################################
     #  Read firmware features
     #####################################
@@ -375,6 +389,16 @@ class Launcher(model.Background):
             self.handle.releaseInterface()          # Release the USB device
             FilterType = self.feature_value_dict[output[0]]
             self.components.FilterType.text = FilterType
+        except:
+            pass
+
+        try:
+            # Get Quirk Type # BSB 20120426
+            self.handle.claimInterface(interfacenum)# Open the USB device for traffic
+            output = self.devicetohost(0x71, 4, 11)
+            self.handle.releaseInterface()          # Release the USB device
+            QuirkType = self.feature_value_dict[output[0]]
+            self.components.QuirkType.text = QuirkType
         except:
             pass
 
