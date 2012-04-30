@@ -11,7 +11,7 @@
 #include "I2C.h"
 
 uint16_t	ad7991_adc[4];						// Last measured values read from the AD7991 ADC
-												// all values adjusted for a full scale 16 bit unsigned int
+									// all values adjusted for a full scale 16 bit unsigned int
 
 // Looks like this is not needed.
 /*! \brief Setup AD7991 to do interesting stuff

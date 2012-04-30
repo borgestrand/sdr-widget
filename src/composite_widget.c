@@ -203,8 +203,16 @@ pm_freq_param_t   pm_freq_param=
  */
 int main(void)
 {
+int i;
+
 	// Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
 	wdt_disable();
+
+	// The reason this is put as early as possible in the code
+	// is that AK5394A has to be put in reset when the clocks are not
+	// fully set up.  Otherwise the chip will overheat
+	for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up
+															// time for various voltages (eg to the XO) to stablize
 
 	gpio_set_gpio_pin(AVR32_PIN_PX51);	// Enables power to XO and DAC in USBI2C AB-1 board
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);
@@ -262,12 +270,10 @@ int main(void)
 	// Initialize widget management
 	widget_init();
 
-	// The reason this is put as early as possible in the code
-	// is that AK5394A has to be put in reset when the clocks are not
-	// fully set up.  Otherwise the chip will overheat
-	if ( FEATURE_BOARD_WIDGET ) {
-		gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
-	}
+
+//	if ( FEATURE_BOARD_WIDGET ) {
+//		gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
+//	}
 
 	if (FEATURE_ADC_AK5394A){
 		int counter;
