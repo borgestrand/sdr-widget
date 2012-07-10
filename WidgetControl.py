@@ -33,8 +33,8 @@ vendorid1    = 0x16c0
 vendorid2    = 0xfffe
 productid1   = 0x05dc
 productid2   = 0x03e8
-productid3   = 0x0007
-productid4   = 0x03e9
+productid3   = 0x03e9
+productid4   = 0x0007
 confignum   = 1
 interfacenum= 0
 timeout     = 1500
@@ -151,7 +151,7 @@ class Launcher(model.Background):
                     founddev = dev
                     foundbus = bus
                     break
-                if (dev.idVendor == vendorid2) & (dev.idProduct == productid3):
+                if (dev.idVendor == vendorid1) & (dev.idProduct == productid3):
                     founddev = dev
                     foundbus = bus
                     break
