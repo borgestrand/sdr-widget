@@ -229,18 +229,19 @@ const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 };
 */
 
-// BSB 20120711: Changed according to BasicAudioDevice-10.pdf table 8-4
 // usb_hid_report_descriptor
+// BSB 20120711: Changed according to BasicAudioDevice-10.pdf table 8-4
 const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 {
-	  	0x05, 0x0C, // Usage page (Consumer Devices)
+		0x05, 0x0C, // Usage page (Consumer Devices) // still holding in there
 	  	0x09, 0x01, // Usage ID (Consumer Remote Control)
 	  	0xA1, 0x01, // Collection (Application)
 	  	0x85, 0x01, // Report ID (0x01) - Byte 0 in report - Match or coincidence??
-		0x15, 0x00, // LOGICAL_MINIMUM (0)
-		0x25, 0x01, // LOGICAL_MAXIMUM (1)
-		0x75, 0x01, // REPORT_SIZE (1 bit)
-		0x95, 0x01, // REPORT_COUNT (1)
+        0x15, 0x00, // Logical Minimum (0)
+        0x25, 0x01,	// Logical Maximum (255)
+        0x75, 0x01, // Report Size (8 bits) 08 works, 01 in document
+        0x95, 0x01, // Report Count (2 fields) 02 works, 01 in document
+
 		0x09, 0xE9, // USAGE (Volume Up) - LSB of Byte 1 in report
 		0x81, 0x02, // INPUT (Data, Var, Abs)
 		0x09, 0xEA, // USAGE (Volume Down)
@@ -266,7 +267,8 @@ const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 		0x81, 0x06, // INPUT (Data, Var, Rel)
 		0x95, 0x05, // REPORT_COUNT (5) - Assumption: With the remaining 5 bits DO:
 		0x81, 0x01, // INPUT (Cnst) (Pad report to 8 bits) - zero-pad
-		0x0C		// END_COLLECTION
+
+		0xC0	// end collection
 };
 
 // BSB 20120711: This is supposed to mesh with BasicAudioDevice-10.pdf

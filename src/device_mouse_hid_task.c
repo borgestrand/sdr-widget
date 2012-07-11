@@ -217,8 +217,10 @@ void device_mouse_hid_task(void)
 
     // Wait until PROG is pushed in
     while (gpio_get_pin_value(PRG_BUTTON) != 0) {}
+	gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+	gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
 
-    ReportByte1 = 0b01000000; // Encode Fast Forward according to usb_hid_report_descriptor[USB_HID_REPORT_DESC]
+    ReportByte1 = 0b00000001; // Encode volup according to usb_hid_report_descriptor[USB_HID_REPORT_DESC]
 
     if ( Is_usb_in_ready(EP_HID_TX) )
     {
@@ -232,6 +234,8 @@ void device_mouse_hid_task(void)
 
     // Wait until PROG is released
     while (gpio_get_pin_value(PRG_BUTTON) == 0) {}
+	gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
+	gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
 
     ReportByte1 = 0b00000000; // Encode NO buttons according to usb_hid_report_descriptor[USB_HID_REPORT_DESC]
 
