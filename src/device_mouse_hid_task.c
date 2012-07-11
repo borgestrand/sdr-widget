@@ -153,6 +153,9 @@ void device_mouse_hid_task(void)
     if (!Is_device_enumerated()) return;
 #endif  // FREERTOS_USED
 
+
+// BSB 20120711: Debugging HID
+/*
        switch (usb_state){
 
        case 'r':
@@ -202,6 +205,49 @@ void device_mouse_hid_task(void)
        }
        break;
        }
+*/
+
+    // BSB 20120711: Debugging HID start
+
+    // Transmitting HID codes...
+
+    const U8 ReportByte0 = 0x01;	// Report ID doesn't change
+    U8 ReportByte1;
+    const U8 ReportByte2 = 0x00; 	// Telephone buttons don't change
+
+    // Wait until PROG is pushed in
+    while (gpio_get_pin_value(PRG_BUTTON) != 0) {}
+
+    ReportByte1 = 0b01000000; // Encode Fast Forward according to usb_hid_report_descriptor[USB_HID_REPORT_DESC]
+
+    if ( Is_usb_in_ready(EP_HID_TX) )
+    {
+       Usb_reset_endpoint_fifo_access(EP_HID_TX);
+       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte0);
+       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte1);
+       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte2);
+       Usb_ack_in_ready_send(EP_HID_TX);
+       // usb_state = 'r'; // May we ignore usb_state for HID TX ??
+    }
+
+    // Wait until PROG is released
+    while (gpio_get_pin_value(PRG_BUTTON) == 0) {}
+
+    ReportByte1 = 0b00000000; // Encode NO buttons according to usb_hid_report_descriptor[USB_HID_REPORT_DESC]
+
+    if ( Is_usb_in_ready(EP_HID_TX) )
+    {
+       Usb_reset_endpoint_fifo_access(EP_HID_TX);
+       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte0);
+       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte1);
+       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte2);
+       Usb_ack_in_ready_send(EP_HID_TX);
+       // usb_state = 'r'; // May we ignore usb_state for HID TX ??
+    }
+
+
+    // BSB 20120711: Debugging HID end
+
 
 #ifdef FREERTOS_USED
   }

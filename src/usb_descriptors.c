@@ -192,6 +192,7 @@ const S_usb_aia usb_user_aia =
 	USB_AIA
 };
 
+/*
 // usb_hid_report_descriptor
 const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 {
@@ -226,5 +227,52 @@ const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 	  	0xC0	// end collection
 
 };
+*/
+
+// BSB 20120711: Changed according to BasicAudioDevice-10.pdf table 8-4
+// usb_hid_report_descriptor
+const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
+{
+	  	0x05, 0x0C, // Usage page (Consumer Devices)
+	  	0x09, 0x01, // Usage ID (Consumer Remote Control)
+	  	0xA1, 0x01, // Collection (Application)
+	  	0x85, 0x01, // Report ID (0x01) - Byte 0 in report - Match or coincidence??
+		0x15, 0x00, // LOGICAL_MINIMUM (0)
+		0x25, 0x01, // LOGICAL_MAXIMUM (1)
+		0x75, 0x01, // REPORT_SIZE (1 bit)
+		0x95, 0x01, // REPORT_COUNT (1)
+		0x09, 0xE9, // USAGE (Volume Up) - LSB of Byte 1 in report
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0xEA, // USAGE (Volume Down)
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0xCD, // USAGE (Play/Pause)
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0xB5, // USAGE (Scan Next Track)
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0xB6, // USAGE (Scan Previous Track)
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0xB7, // USAGE (Stop)
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0xB3, // USAGE (Fast Forward)
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0xB4, // USAGE (Rewind) - MSB of Byte 1 in report
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x05, 0x0B, // USAGE_PAGE (Telephony Devices) - Start of byte 2 in report ??
+		0x09, 0x24, // USAGE (Redail) - LSB of Byte 2 in report
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0x20, // USAGE (Hook Switch)
+		0x81, 0x02, // INPUT (Data, Var, Abs)
+		0x09, 0x2F, // USAGE (Microphone Mute) - Bit 2 of Byte 2 in report
+		0x81, 0x06, // INPUT (Data, Var, Rel)
+		0x95, 0x05, // REPORT_COUNT (5) - Assumption: With the remaining 5 bits DO:
+		0x81, 0x01, // INPUT (Cnst) (Pad report to 8 bits) - zero-pad
+		0x0C		// END_COLLECTION
+};
+
+// BSB 20120711: This is supposed to mesh with BasicAudioDevice-10.pdf
+// table 8-3 HID Report
+// Byte 0 Report ID 0x01
+// Byte 1 7:0 Rewind FForward Stop ScanPrevious ScanNext Play VolumeDn VolumeUp
+// Byte 2 7:0 Reserved Reserved Reserved Reserved Reserved MicMute HookSwitch Redial
 
 #endif  // USB_DEVICE_FEATURE == ENABLED

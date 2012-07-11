@@ -670,6 +670,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 		time = 	rtc_get_value(&AVR32_RTC);
 
 		// Prog button poll stuff BSB 20110903
+		// BSB 20120711 Prog button stuff disabled for HID debug
+
+/*
+ *
 		//-------------------------------------------
    		// Routines accessed every 0.5s on 115kHz timer
    		//-------------------------------------------
@@ -787,6 +791,9 @@ static void vtaskMoboCtrl( void * pcParameters )
     		}
    		} // if (btn_poll_Timerval != btn_poll_lastIteration)	// Once every 1second, do stuff
 		// End Prog button poll stuff BSB 20110903
+
+
+		*/
 
 
    		//-----------------------------
