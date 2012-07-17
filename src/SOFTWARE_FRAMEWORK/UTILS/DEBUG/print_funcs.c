@@ -42,6 +42,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) 2012 Borge Strand-Bergesen
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * Modified by Alex Lee 20 Feb 2010
+ * To enumerate as a USB composite device with 4 interfaces:
+ * CDC
+ * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
+ * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
+ * Audio (USB Audio Class V2)
+ *
+ * For sdr-widget and audio-widget, custom boards based on the AT32UC3A3256
+ *
+ * See http://code.google.com/p/sdr-widget/
+ *
  */
 
 #include "compiler.h"
@@ -52,6 +81,69 @@
 
 //! ASCII representation of hexadecimal digits.
 static const char HEX_DIGITS[16] = "0123456789ABCDEF";
+
+/////////////////////////////////////////////
+// BSB 20110127-20120717 Added read functions
+/////////////////////////////////////////////
+
+char read_dbg_char(char echo, char checksum_mode)
+{
+	volatile static char dbg_checksum = 0; // should be uint8_t??
+	char read_data; // should be uint8_t??
+
+	// dbg_checksum is a crude checksum mechanism compatible by other debug code by BSB.
+
+	if (checksum_mode==DBG_CHECKSUM_NORMAL)
+	{
+		// Redirection to the debug USART.
+	  	read_data = usart_getchar(DBG_USART); // returns int
+	  	if (echo==DBG_ECHO)
+	  		usart_putchar(DBG_USART, read_data);
+		dbg_checksum += read_data;	// Checksum function is addition...
+		dbg_checksum &= 0xFF;		// ... of which we save 8 lsbs. Redundant code line?
+		return read_data;
+	}
+	else if (checksum_mode==DBG_CHECKSUM_RESET)
+		dbg_checksum = 0;
+	// Last alternative, DBG_CHECKSUM_READOUT, not tested
+	return dbg_checksum;
+}
+
+char read_dbg_char_hex(char echo)
+{
+	char temp;
+	char hexbyte=0;
+	char counter=2;	// We're receiving 2 nibbles at a time
+
+	while (counter > 0) {
+		counter --;										// Assume valid character
+		temp = read_dbg_char(echo, DBG_CHECKSUM_NORMAL);	// Get character with local echo, no checksum reporting
+		if ( (temp >= 0x30) && (temp <= 0x39) )		// 0x30 encodes '0', 0x39 encodes '9'
+			hexbyte += temp - 0x30;
+		else if ( (temp >= 0x41) && (temp <= 0x46) )	// 0x41 encodes 'A', 0x46 encodes 'F'
+			hexbyte += temp - 0x41 + 0x0A;
+		else if ( (temp >= 0x61) && (temp <= 0x66) )	// 0x61 encodes 'a', 0x66 encodes 'f'
+			hexbyte += temp - 0x61 + 0x0A;
+		else {
+			counter ++;									// Disqualify non-hex character
+			temp = 0;
+		}
+		if ( (counter == 1) && (temp != 0) )			// If we just got the 1st nibble and its valid,
+			hexbyte <<= 4;								// Shift high nibble
+	}
+	return hexbyte;
+}
+
+void print_dbg_char_char(int c)
+{
+	// Redirection to the debug USART.
+	usart_putchar(DBG_USART, c);
+}
+
+/////////////////////////////////////////////
+// BSB 20110127-20120717 End of insertions
+/////////////////////////////////////////////
+
 
 
 void init_dbg_rs232(long pba_hz)
