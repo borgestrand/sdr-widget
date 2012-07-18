@@ -93,11 +93,11 @@ char read_dbg_char(char echo, char checksum_mode)
 
 	// dbg_checksum is a crude checksum mechanism compatible by other debug code by BSB.
 
-	if (checksum_mode==DBG_CHECKSUM_NORMAL)
+	if (checksum_mode == DBG_CHECKSUM_NORMAL)
 	{
 		// Redirection to the debug USART.
 	  	read_data = usart_getchar(DBG_USART); // returns int
-	  	if (echo==DBG_ECHO)
+	  	if (echo == DBG_ECHO)
 	  		usart_putchar(DBG_USART, read_data);
 		dbg_checksum += read_data;	// Checksum function is addition...
 		dbg_checksum &= 0xFF;		// ... of which we save 8 lsbs. Redundant code line?

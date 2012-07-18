@@ -242,7 +242,7 @@ const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
         0x75, 0x01, // Report Size (8 bits) 08 works, 01 in document
         0x95, 0x01, // Report Count (2 fields) 02 works, 01 in document
 
-		0x09, 0xE9, // USAGE (Volume Up) - LSB of Byte 1 in report
+		0x09, 0xE9, // USAGE (Volume Up) - LSB of ReportByte1 (XX in uart HID protocol)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
 		0x09, 0xEA, // USAGE (Volume Down)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
@@ -256,18 +256,17 @@ const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 		0x81, 0x02, // INPUT (Data, Var, Abs)
 		0x09, 0xB3, // USAGE (Fast Forward)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
-		0x09, 0xB4, // USAGE (Rewind) - MSB of Byte 1 in report
+		0x09, 0xB4, // USAGE (Rewind) - MSB of ReportByte1 (XX in uart HID protocol)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
 		0x05, 0x0B, // USAGE_PAGE (Telephony Devices) - Start of byte 2 in report ??
-		0x09, 0x24, // USAGE (Redail) - LSB of Byte 2 in report
+		0x09, 0x24, // USAGE (Redail) - LSB of ReportByte2 (YY in uart HID protocol)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
 		0x09, 0x20, // USAGE (Hook Switch)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
-		0x09, 0x2F, // USAGE (Microphone Mute) - Bit 2 of Byte 2 in report
+		0x09, 0x2F, // USAGE (Microphone Mute) - ReportByte2 (YY in uart HID protocol)
 		0x81, 0x06, // INPUT (Data, Var, Rel)
 		0x95, 0x05, // REPORT_COUNT (5) - Assumption: With the remaining 5 bits DO:
 		0x81, 0x01, // INPUT (Cnst) (Pad report to 8 bits) - zero-pad
-
 		0xC0	// end collection
 };
 
