@@ -146,6 +146,13 @@ void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
 	// Added BSB 20120718
 	print_dbg("\nHID ready\n"); // usart is ready to receive HID commands!
 
+	// Added BSB 20120719
+#define HID2LCD					// Use LCD to debug incoming HID commands from uart
+
+#ifdef HID2LCD
+//	lcd_q_init();
+//	lcd_q_clear();
+#endif
 
 }
 
@@ -160,7 +167,7 @@ void device_mouse_hid_task(void *pvParameters)
 void device_mouse_hid_task(void)
 #endif
 {
-  U8 data_length;
+//  U8 data_length; // BSB 20120718 unused variable, sane?
 //  const U8 EP_HID_RX = ep_hid_rx; // BSB 20120718 unused variable, sane?
   const U8 EP_HID_TX = ep_hid_tx;
 #ifdef FREERTOS_USED
@@ -297,6 +304,14 @@ void device_mouse_hid_task(void)
     ReportByte1 = 0b10000000; // Encode Rewind to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works in JRiver, not VLC
 */
 
+#ifdef HID2LCD
+    lcd_q_goto(0,0);
+	lcd_q_putc('h');
+	lcd_q_puth(ReportByte1);
+	lcd_q_puth(ReportByte2);
+#endif
+
+
 	// Send the HID report over USB
 
     if ( Is_usb_in_ready(EP_HID_TX) )
@@ -308,11 +323,17 @@ void device_mouse_hid_task(void)
        Usb_ack_in_ready_send(EP_HID_TX);
        print_dbg_char_char('H');					// Confirm HID command forwarded to HOST
        print_dbg_char_char('\n');					// Confirm HID command forwarded to HOST
+       #ifdef HID2LCD
+         lcd_q_putc('H');
+       #endif
        // usb_state = 'r'; // May we ignore usb_state for HID TX ??
     }
     else { // Failure, untested!
         print_dbg_char_char('-');					// NO HID command forwarded to HOST
         print_dbg_char_char('\n');					// NO HID command forwarded to HOST
+        #ifdef HID2LCD
+          lcd_q_putc('-');
+        #endif
     }
 
 
