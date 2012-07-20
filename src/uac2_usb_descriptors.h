@@ -79,10 +79,10 @@
 #define DSC_INTERFACE_DG8SAQ		INTERFACE_NB0
 
 // BSB 20120719 HID insertion begin
-// NB1 -> NB4, NB2 -> NB5
+// In most cases: translation from uac1 code follows pattern of NB1 -> NB4, NB2 -> NB5
 
 // USB HID Interface descriptor
-#define INTERFACE_NB4			    4
+#define INTERFACE_NB4			    3 // 4 // BSB 20120720 4 causes interface number to be incremented by >1
 #define ALTERNATE_NB4	            0                  //! The alt setting nb of this interface
 #define NB_ENDPOINT4			    2                  //! The number of endpoints this interface has
 #define INTERFACE_CLASS4		    HID_CLASS          //! HID Class

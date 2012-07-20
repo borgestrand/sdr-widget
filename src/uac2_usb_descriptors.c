@@ -82,7 +82,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     sizeof(S_usb_configuration_descriptor),
     CONFIGURATION_DESCRIPTOR,
     Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor)),
-    3, //NB_INTERFACE,
+//    3, //NB_INTERFACE, // BSB 20120720 commented
+    NB_INTERFACE,		// BSB 20120720 enabled
     CONF_NB,
     CONF_INDEX,
     CONF_ATTRIBUTES,
@@ -437,7 +438,8 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     sizeof(S_usb_configuration_descriptor),
     CONFIGURATION_DESCRIPTOR,
     Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor)),
-    3, //NB_INTERFACE,
+    //    3, //NB_INTERFACE, // BSB 20120720 commented
+    NB_INTERFACE,		// BSB 20120720 enabled
     CONF_NB,
     CONF_INDEX,
     CONF_ATTRIBUTES,
