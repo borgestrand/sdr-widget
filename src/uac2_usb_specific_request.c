@@ -189,10 +189,18 @@ void uac2_user_endpoint_init(U8 conf_nb)
 		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_FS, DOUBLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, DOUBLE_BANK, 0);
 		//(void)Usb_configure_endpoint(UAC2_EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, DOUBLE_BANK, 0);
+		// BSB 20120720 HID insert attempt begin
+		(void)Usb_configure_endpoint(UAC2_EP_HID_TX, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_FS, SINGLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC2_EP_HID_RX, EP_ATTRIBUTES_5, DIRECTION_OUT, EP_SIZE_5_FS, SINGLE_BANK, 0);
+		// BSB 20120720 HID insert attempt end
 	} else {
 		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_HS, DOUBLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, DOUBLE_BANK, 0);
 		//(void)Usb_configure_endpoint(UAC2_EP_AUDIO_IN, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, DOUBLE_BANK, 0);
+		// BSB 20120720 HID insert attempt begin
+		(void)Usb_configure_endpoint(UAC2_EP_HID_TX, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_FS, SINGLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC2_EP_HID_RX, EP_ATTRIBUTES_5, DIRECTION_OUT, EP_SIZE_5_FS, SINGLE_BANK, 0);
+		// BSB 20120720 HID insert attempt end
 	}
 }
 
@@ -212,6 +220,151 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 
 }
 
+// BSB 20120720 copy from uac1_usb_specific_request.c insert
+
+static Bool uac2_user_get_interface_descriptor() {
+	Bool    zlp;
+	U16     wLength;
+	U16		wIndex;
+	U8      descriptor_type;
+	U8      string_type;
+	U16		wInterface;
+
+	zlp             = FALSE;                                  /* no zero length packet */
+	string_type     = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read LSB of wValue    */
+	descriptor_type = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read MSB of wValue    */
+	wInterface = usb_format_usb_to_mcu_data(16,Usb_read_endpoint_data(EP_CONTROL, 16));
+	switch( descriptor_type ) {
+	case HID_DESCRIPTOR:
+		if (wInterface == DSC_INTERFACE_HID) {
+#if (USB_HIGH_SPEED_SUPPORT==DISABLED)
+// BSB 20120720 Removed from copy list from uac1
+//			if (FEATURE_BOARD_WIDGET) {
+//				data_to_transfer = sizeof(uac2_usb_conf_desc_fs_widget.hid);
+//				pbuffer          = (const U8*)&uac2_usb_conf_desc_fs_widget.hid;
+//			} else {
+				data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
+				pbuffer          = (const U8*)&uac2_usb_conf_desc_fs.hid;
+//			}
+#else
+// BSB 20120720 Removed from copy list from uac1
+//			if (FEATURE_BOARD_WIDGET) {
+//				if( Is_usb_full_speed_mode() ) {
+//					data_to_transfer = sizeof(uac2_usb_conf_desc_fs_widget.hid);
+//					pbuffer          = (const U8*)&uac2_usb_conf_desc_fs_widget.hid;
+//				} else {
+//					data_to_transfer = sizeof(uac2_usb_conf_desc_hs_widget.hid);
+//					pbuffer          = (const U8*)&uac2_usb_conf_desc_hs_widget.hid;
+//				}
+//			} else {
+				if( Is_usb_full_speed_mode() ) {
+					data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
+					pbuffer          = (const U8*)&uac2_usb_conf_desc_fs.hid;
+				} else {
+					data_to_transfer = sizeof(uac2_usb_conf_desc_hs.hid);
+					pbuffer          = (const U8*)&uac2_usb_conf_desc_hs.hid;
+				}
+//			}
+			break;
+#endif
+		}
+		return FALSE;
+	case HID_REPORT_DESCRIPTOR:
+		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
+		data_to_transfer = sizeof(usb_hid_report_descriptor);
+		pbuffer          = usb_hid_report_descriptor;
+		break;
+	case HID_PHYSICAL_DESCRIPTOR:
+		// TODO
+		return FALSE;
+		break;
+	default:
+		return FALSE;
+	}
+
+	wIndex = Usb_read_endpoint_data(EP_CONTROL, 16);
+	wIndex = usb_format_usb_to_mcu_data(16, wIndex);
+	wLength = Usb_read_endpoint_data(EP_CONTROL, 16);
+	wLength = usb_format_usb_to_mcu_data(16, wLength);
+	Usb_ack_setup_received_free();                          //!< clear the setup received flag
+
+	if (wLength > data_to_transfer)
+		{
+			zlp = !(data_to_transfer % EP_CONTROL_LENGTH);  //!< zero length packet condition
+		}
+	else
+		{
+			data_to_transfer = wLength; //!< send only requested number of data bytes
+		}
+
+	Usb_ack_nak_out(EP_CONTROL);
+
+	while (data_to_transfer && (!Is_usb_nak_out(EP_CONTROL)))
+		{
+			while( !Is_usb_control_in_ready() && !Is_usb_nak_out(EP_CONTROL) );
+
+			if( Is_usb_nak_out(EP_CONTROL) )
+				break;    // don't clear the flag now, it will be cleared after
+
+			Usb_reset_endpoint_fifo_access(EP_CONTROL);
+			data_to_transfer = usb_write_ep_txpacket(EP_CONTROL, pbuffer,
+													 data_to_transfer, &pbuffer);
+			if( Is_usb_nak_out(EP_CONTROL) )
+				break;
+			else
+				Usb_ack_control_in_ready_send();  //!< Send data until necessary
+		}
+
+	if ( zlp && (!Is_usb_nak_out(EP_CONTROL)) )
+		{
+			while (!Is_usb_control_in_ready());
+			Usb_ack_control_in_ready_send();
+		}
+
+	while (!(Is_usb_nak_out(EP_CONTROL)));
+	Usb_ack_nak_out(EP_CONTROL);
+	while (!Is_usb_control_out_received());
+	Usb_ack_control_out_received_free();
+	return TRUE;
+}
+
+//! @brief This function manages hid set idle request.
+//!
+//! @param Duration     When the upper byte of wValue is 0 (zero), the duration is indefinite else from 0.004 to 1.020 seconds
+//! @param Report ID    0 the idle rate applies to all input reports, else only applies to the Report ID
+//!
+void uac2_usb_hid_set_idle (U8 u8_report_id, U8 u8_duration ) // BSB 20120710 prefix "uac2_" added
+{
+   Usb_ack_setup_received_free();
+
+   if( wIndex == DSC_INTERFACE_HID )
+     g_u8_report_rate = u8_duration;
+
+   Usb_ack_control_in_ready_send();
+   while (!Is_usb_control_in_ready());
+}
+
+
+//! @brief This function manages hid get idle request.
+//!
+//! @param Report ID    0 the idle rate applies to all input reports, else only applies to the Report ID
+//!
+void uac2_usb_hid_get_idle (U8 u8_report_id)  // BSB 20120710 prefix "uac2_" added
+{
+	Usb_ack_setup_received_free();
+
+   if( (wLength != 0) && (wIndex == DSC_INTERFACE_HID) )
+   {
+      Usb_write_endpoint_data(EP_CONTROL, 8, g_u8_report_rate);
+      Usb_ack_control_in_ready_send();
+   }
+
+   while (!Is_usb_control_out_received());
+   Usb_ack_control_out_received_free();
+}
+
+// BSB 20120720 copy from uac2_usb_specific_request.c end
+
 //! This function is called by the standard USB read request function when
 //! the USB request is not supported. This function returns TRUE when the
 //! request is processed. This function returns FALSE if the request is not
@@ -221,12 +374,121 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 Bool uac2_user_read_request(U8 type, U8 request)
 {   int i;
 
+	// BSB 20120720 added
+	// this should vector to specified interface handler
+	if (type == IN_INTERFACE && request == GET_DESCRIPTOR) return uac2_user_get_interface_descriptor();
+
+
 	// Read wValue
 	// why are these file statics?
 	wValue_lsb = Usb_read_endpoint_data(EP_CONTROL, 8);
 	wValue_msb = Usb_read_endpoint_data(EP_CONTROL, 8);
 	wIndex = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 	wLength = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
+
+	// BSB 20120720 copy from uac1_usb_specific_request begin
+
+	//** Specific request from Class HID
+	// this should vector to specified interface handler
+	if( wIndex == DSC_INTERFACE_HID )   // Interface number of HID
+		{
+
+			if( type == OUT_CL_INTERFACE ) // USB_SETUP_SET_CLASS_INTER
+				{
+					switch( request )
+						{
+
+						case HID_SET_REPORT:
+							// The MSB wValue field specifies the Report Type
+							// The LSB wValue field specifies the Report ID
+							switch (wValue_msb)
+								{
+								case HID_REPORT_INPUT:
+									// TODO
+									break;
+
+								case HID_REPORT_OUTPUT:
+									Usb_ack_setup_received_free();
+									while (!Is_usb_control_out_received());
+									Usb_reset_endpoint_fifo_access(EP_CONTROL);
+									usb_report[0] = Usb_read_endpoint_data(EP_CONTROL, 8);
+									usb_report[1] = Usb_read_endpoint_data(EP_CONTROL, 8);
+									Usb_ack_control_out_received_free();
+									Usb_ack_control_in_ready_send();
+									while (!Is_usb_control_in_ready());
+									return TRUE;
+
+								case HID_REPORT_FEATURE:
+									Usb_ack_setup_received_free();
+									while (!Is_usb_control_out_received());
+									Usb_reset_endpoint_fifo_access(EP_CONTROL);
+									usb_feature_report[0] = Usb_read_endpoint_data(EP_CONTROL, 8);
+									usb_feature_report[1] = Usb_read_endpoint_data(EP_CONTROL, 8);
+									Usb_ack_control_out_received_free();
+									Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
+									while (!Is_usb_control_in_ready()); //!< waits for status phase done
+									return TRUE;
+
+								}
+							break;
+
+						case HID_SET_IDLE:
+							uac2_usb_hid_set_idle(wValue_lsb, wValue_msb); // BSB 20120710 prefix "uac2_" added
+							return TRUE;
+
+						case HID_SET_PROTOCOL:
+							// TODO
+							break;
+						}
+				}
+			if( type == IN_CL_INTERFACE) // USB_SETUP_GET_CLASS_INTER
+				{
+					switch( request )
+						{
+						case HID_GET_REPORT:
+							switch (wValue_msb)
+								{
+								case HID_REPORT_INPUT:
+									Usb_ack_setup_received_free();
+
+									Usb_reset_endpoint_fifo_access(EP_CONTROL);
+									Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[0]);
+									Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[1]);
+									Usb_ack_control_in_ready_send();
+
+									while (!Is_usb_control_out_received());
+									Usb_ack_control_out_received_free();
+									return TRUE;
+
+								case HID_REPORT_OUTPUT:
+									break;
+
+								case HID_REPORT_FEATURE:
+									Usb_ack_setup_received_free();
+
+									Usb_reset_endpoint_fifo_access(EP_CONTROL);
+									Usb_write_endpoint_data(EP_CONTROL, 8, usb_feature_report[0]);
+									Usb_write_endpoint_data(EP_CONTROL, 8, usb_feature_report[1]);
+									Usb_ack_control_in_ready_send();
+
+									while (!Is_usb_control_out_received());
+									Usb_ack_control_out_received_free();
+									return TRUE;
+								}
+							break;
+						case HID_GET_IDLE:
+							uac2_usb_hid_get_idle(wValue_lsb); // BSB 20120710 prefix "uac2_" added
+							return TRUE;
+						case HID_GET_PROTOCOL:
+							// TODO
+							break;
+						}
+				}
+		}  // if wIndex ==  HID Interface
+
+	// BSB 20120720 copy from uac1_usb_specific_request end
+
+
 
 	if (type == IN_CL_INTERFACE || type == OUT_CL_INTERFACE){    // process Class Specific Interface
 

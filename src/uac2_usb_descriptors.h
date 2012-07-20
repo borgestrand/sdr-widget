@@ -45,12 +45,14 @@
 
 #include "usb_standard_request.h"
 #include "usb_task.h"
+#include "hid.h" // Added BSB 20120719
 
 //_____ U S B    D E F I N E S _____________________________________________
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   4	//!  DG8SAQ, Audio (3)
+//#define NB_INTERFACE	   4	//!  DG8SAQ, Audio (3)
+#define NB_INTERFACE	   5	//!  DG8SAQ, Audio (3), HID // Changed BSB 20120719
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
@@ -75,6 +77,45 @@
 #define INTERFACE_INDEX0       		0
 
 #define DSC_INTERFACE_DG8SAQ		INTERFACE_NB0
+
+// BSB 20120719 HID insertion begin
+// NB1 -> NB4, NB2 -> NB5
+
+// USB HID Interface descriptor
+#define INTERFACE_NB4			    4
+#define ALTERNATE_NB4	            0                  //! The alt setting nb of this interface
+#define NB_ENDPOINT4			    2                  //! The number of endpoints this interface has
+#define INTERFACE_CLASS4		    HID_CLASS          //! HID Class
+#define INTERFACE_SUB_CLASS4        NO_SUBCLASS        //! No Subclass
+#define INTERFACE_PROTOCOL4    		NO_PROTOCOL		   //! No Protocol
+#define INTERFACE_INDEX4       		0
+
+#define DSC_INTERFACE_HID			INTERFACE_NB4
+
+// HID descriptor
+#define HID_VERSION                 0x0111  //! HID Class Specification release number
+#define HID_COUNTRY_CODE            0x00    //! Hardware target country
+#define HID_NUM_DESCRIPTORS			0x01    //! Number of HID class descriptors to follow
+
+// USB Endpoint 4 descriptor
+#define ENDPOINT_NB_4           (UAC2_EP_HID_TX| MSK_EP_DIR)
+#define EP_ATTRIBUTES_4         TYPE_INTERRUPT
+#define EP_IN_LENGTH_4_FS       8
+#define EP_SIZE_4_FS            EP_IN_LENGTH_4_FS
+#define EP_IN_LENGTH_4_HS       8
+#define EP_SIZE_4_HS            EP_IN_LENGTH_4_HS
+#define EP_INTERVAL_4           5               //! Interrupt polling interval from host
+
+// USB Endpoint 5 descriptor
+#define ENDPOINT_NB_5           (UAC2_EP_HID_RX)
+#define EP_ATTRIBUTES_5         TYPE_INTERRUPT
+#define EP_OUT_LENGTH_5_FS      8
+#define EP_SIZE_5_FS            EP_OUT_LENGTH_5_FS
+#define EP_OUT_LENGTH_5_HS      8
+#define EP_SIZE_5_HS            EP_OUT_LENGTH_5_HS
+#define EP_INTERVAL_5           5               //! Interrupt polling interval from host
+
+// BSB 20120719 HID insertion end
 
 
 // Audio Class V2.0 descriptor values
@@ -294,6 +335,14 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_descriptor_2 		ep2;
 	S_usb_endpoint_audio_specific_2			ep2_s;
 	S_usb_endpoint_audio_descriptor_2 		ep3;
+
+	// BSB 20120720 Added
+	S_usb_interface_descriptor		ifc4;
+	S_usb_hid_descriptor           	hid;
+	S_usb_endpoint_descriptor      	ep4;
+	S_usb_endpoint_descriptor	   	ep5;
+
+
 /*
 	S_usb_as_interface_descriptor	 		mic_as_alt0;
 	S_usb_as_interface_descriptor	 		mic_as_alt1;

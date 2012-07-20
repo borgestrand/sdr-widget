@@ -149,7 +149,7 @@ void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
 	// Added BSB 20120719
 #define HID2LCD					// Use LCD to debug incoming HID commands from uart
 
-#ifdef HID2LCD
+#ifdef HID2LCD					// Needed here? Including these lines seems to break functionality
 //	lcd_q_init();
 //	lcd_q_clear();
 #endif
@@ -304,12 +304,12 @@ void device_mouse_hid_task(void)
     ReportByte1 = 0b10000000; // Encode Rewind to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works in JRiver, not VLC
 */
 
-#ifdef HID2LCD
-    lcd_q_goto(0,0);
-	lcd_q_putc('h');
-	lcd_q_puth(ReportByte1);
-	lcd_q_puth(ReportByte2);
-#endif
+	#ifdef HID2LCD
+		lcd_q_goto(0,0);
+		lcd_q_putc('h');
+		lcd_q_puth(ReportByte1);
+		lcd_q_puth(ReportByte2);
+	#endif
 
 
 	// Send the HID report over USB

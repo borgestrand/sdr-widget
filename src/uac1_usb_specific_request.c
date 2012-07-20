@@ -271,7 +271,7 @@ static Bool uac1_user_get_interface_descriptor() {
 //! @param Duration     When the upper byte of wValue is 0 (zero), the duration is indefinite else from 0.004 to 1.020 seconds
 //! @param Report ID    0 the idle rate applies to all input reports, else only applies to the Report ID
 //!
-void usb_hid_set_idle (U8 u8_report_id, U8 u8_duration )
+void uac1_usb_hid_set_idle (U8 u8_report_id, U8 u8_duration ) // BSB 20120710 prefix "uac1_" added
 {
    Usb_ack_setup_received_free();
   
@@ -287,7 +287,7 @@ void usb_hid_set_idle (U8 u8_report_id, U8 u8_duration )
 //!
 //! @param Report ID    0 the idle rate applies to all input reports, else only applies to the Report ID
 //!
-void usb_hid_get_idle (U8 u8_report_id)
+void uac1_usb_hid_get_idle (U8 u8_report_id) // BSB 20120710 prefix "uac1_" added
 {
 	Usb_ack_setup_received_free();
    
@@ -682,7 +682,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 							break;
 
 						case HID_SET_IDLE:
-							usb_hid_set_idle(wValue_lsb, wValue_msb);
+							uac1_usb_hid_set_idle(wValue_lsb, wValue_msb);  // BSB 20120710 prefix "uac1_" added
 							return TRUE;
    
 						case HID_SET_PROTOCOL:
@@ -726,7 +726,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 								}
 							break;
 						case HID_GET_IDLE:
-							usb_hid_get_idle(wValue_lsb);
+							uac1_usb_hid_get_idle(wValue_lsb); // BSB 20120710 prefix "uac1_" added
 							return TRUE;
 						case HID_GET_PROTOCOL:
 							// TODO
