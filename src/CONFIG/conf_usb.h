@@ -134,7 +134,7 @@
 #define UAC1_EP_HID_RX			2
 #define UAC1_EP_AUDIO_OUT		4
 #define UAC1_EP_AUDIO_IN		5
-#define UAC1_EP_AUDIO_OUT_FB	3 // meaning no feedbacko
+#define UAC1_EP_AUDIO_OUT_FB	3
 
 // UAC2 endpoints
 #define UAC2_EP_AUDIO_IN		3
