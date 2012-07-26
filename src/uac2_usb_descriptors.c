@@ -82,8 +82,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     sizeof(S_usb_configuration_descriptor),
     CONFIGURATION_DESCRIPTOR,
     Usb_format_mcu_to_usb_data(16, sizeof(S_usb_user_configuration_descriptor)),
-//    3, //NB_INTERFACE, // BSB 20120720 commented
-    NB_INTERFACE,		// BSB 20120720 enabled
+    NB_INTERFACE,
     CONF_NB,
     CONF_INDEX,
     CONF_ATTRIBUTES,
@@ -106,7 +105,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 	{ sizeof(S_usb_interface_association_descriptor)
 	,  DESCRIPTOR_IAD
 	,  FIRST_INTERFACE1					// bFirstInterface
-	,2 //  INTERFACE_COUNT1 				// bInterfaceCount
+	,  INTERFACE_COUNT1 				// bInterfaceCount
 	,  INTERFACE_CLASS1
 	,  INTERFACE_SUB_CLASS1
 	,  INTERFACE_PROTOCOL1
@@ -328,13 +327,13 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   {
   	sizeof(S_usb_interface_descriptor),
   	INTERFACE_DESCRIPTOR,
-  	INTERFACE_NB4,
-  	ALTERNATE_NB4,
-  	NB_ENDPOINT4,
-  	INTERFACE_CLASS4,
-  	INTERFACE_SUB_CLASS4,
-  	INTERFACE_PROTOCOL4,
-  	INTERFACE_INDEX4
+  	INTERFACE_NB3,
+  	ALTERNATE_NB3,
+  	NB_ENDPOINT3,
+  	INTERFACE_CLASS3,
+  	INTERFACE_SUB_CLASS3,
+  	INTERFACE_PROTOCOL3,
+  	INTERFACE_INDEX3
   }
   ,
   {
@@ -465,7 +464,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	{ sizeof(S_usb_interface_association_descriptor) // 4.6
 	,  DESCRIPTOR_IAD
 	,  FIRST_INTERFACE1					// bFirstInterface
-	,2 //,  INTERFACE_COUNT1 				// bInterfaceCount
+	,  INTERFACE_COUNT1 				// bInterfaceCount
 	,  FUNCTION_CLASS
 	,  FUNCTION_SUB_CLASS
 	,  FUNCTION_PROTOCOL
@@ -688,13 +687,13 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   {
   	sizeof(S_usb_interface_descriptor),
   	INTERFACE_DESCRIPTOR,
-  	INTERFACE_NB4,
-  	ALTERNATE_NB4,
-  	NB_ENDPOINT4,
-  	INTERFACE_CLASS4,
-  	INTERFACE_SUB_CLASS4,
-  	INTERFACE_PROTOCOL4,
-  	INTERFACE_INDEX4
+  	INTERFACE_NB3,
+  	ALTERNATE_NB3,
+  	NB_ENDPOINT3,
+  	INTERFACE_CLASS3,
+  	INTERFACE_SUB_CLASS3,
+  	INTERFACE_PROTOCOL3,
+  	INTERFACE_INDEX3
   }
   ,
   {

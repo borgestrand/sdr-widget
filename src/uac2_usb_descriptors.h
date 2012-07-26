@@ -51,8 +51,7 @@
 
 
 // CONFIGURATION
-//#define NB_INTERFACE	   4	//!  DG8SAQ, Audio (3)
-#define NB_INTERFACE	   5	//!  DG8SAQ, Audio (3), HID // Changed BSB 20120719
+#define NB_INTERFACE	   4	//!  DG8SAQ, Audio (2), HID
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
@@ -60,7 +59,7 @@
 
 // IAD for Audio
 #define FIRST_INTERFACE1	1
-#define INTERFACE_COUNT1	3						//!  Audio Control, Audio In, Audio Out
+#define INTERFACE_COUNT1	2						//!  Audio Control, Audio Out
 #define FUNCTION_CLASS		AUDIO_CLASS
 #define FUNCTION_SUB_CLASS  0
 #define FUNCTION_PROTOCOL	IP_VERSION_02_00
@@ -82,15 +81,15 @@
 // In most cases: translation from uac1 code follows pattern of NB1 -> NB4, NB2 -> NB5
 
 // USB HID Interface descriptor
-#define INTERFACE_NB4			    4
-#define ALTERNATE_NB4	            0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT4			    2                  //! The number of endpoints this interface has
-#define INTERFACE_CLASS4		    HID_CLASS          //! HID Class
-#define INTERFACE_SUB_CLASS4        NO_SUBCLASS        //! No Subclass
-#define INTERFACE_PROTOCOL4    		NO_PROTOCOL		   //! No Protocol
-#define INTERFACE_INDEX4       		0
+#define INTERFACE_NB3			    3
+#define ALTERNATE_NB3	            0                  //! The alt setting nb of this interface
+#define NB_ENDPOINT3			    2                  //! The number of endpoints this interface has
+#define INTERFACE_CLASS3		    HID_CLASS          //! HID Class
+#define INTERFACE_SUB_CLASS3        NO_SUBCLASS        //! No Subclass
+#define INTERFACE_PROTOCOL3    		NO_PROTOCOL		   //! No Protocol
+#define INTERFACE_INDEX3       		0
 
-#define DSC_INTERFACE_HID			INTERFACE_NB4
+#define DSC_INTERFACE_HID			INTERFACE_NB3
 
 // HID descriptor
 #define HID_VERSION                 0x0111  //! HID Class Specification release number
@@ -242,7 +241,7 @@
 #define SPK_OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
-#define STD_AS_INTERFACE_IN				0x03   // Index of Std AS Interface for Audio In
+//#define STD_AS_INTERFACE_IN				0x03   // Index of Std AS Interface for Audio In
 #define STD_AS_INTERFACE_OUT			0x02   // Index of Std AS Interface for Audio Out
 
 #define DSC_INTERFACE_AS				STD_AS_INTERFACE_IN
@@ -337,7 +336,7 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_descriptor_2 		ep3;
 
 	// BSB 20120720 Added
-	S_usb_interface_descriptor		ifc4;
+	S_usb_interface_descriptor		ifc3;
 	S_usb_hid_descriptor           	hid;
 	S_usb_endpoint_descriptor      	ep4;
 	S_usb_endpoint_descriptor	   	ep5;

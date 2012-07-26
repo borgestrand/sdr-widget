@@ -99,15 +99,6 @@
 
 //_____ P R I V A T E   D E C L A R A T I O N S ____________________________
 
-// U8 usb_feature_report[3];
-// U8 usb_report[3];
-
-// U8 g_u8_report_rate=0;
-
-// S_line_coding   line_coding;
-
-// S_freq current_freq;
-// Bool freq_changed = FALSE;
 
 static U8    wValue_msb;
 static U8    wValue_lsb;
@@ -210,10 +201,11 @@ void uac2_user_endpoint_init(U8 conf_nb)
 void uac2_user_set_interface(U8 wIndex, U8 wValue) {
    //* Check whether it is the audio streaming interface and Alternate Setting that is being set
    usb_interface_nb = wIndex;
-   if (usb_interface_nb == STD_AS_INTERFACE_IN) {
-	   usb_alternate_setting = wValue;
-	   usb_alternate_setting_changed = TRUE;
-   } else if (usb_interface_nb == STD_AS_INTERFACE_OUT){
+//   if (usb_interface_nb == STD_AS_INTERFACE_IN) {
+//	   usb_alternate_setting = wValue;
+//	   usb_alternate_setting_changed = TRUE;
+//   } else if (usb_interface_nb == STD_AS_INTERFACE_OUT){
+	if (usb_interface_nb == STD_AS_INTERFACE_OUT){
 	   usb_alternate_setting_out = wValue;
 	   usb_alternate_setting_out_changed = TRUE;
    }
@@ -495,6 +487,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 		//  request for AUDIO interfaces
 
+/*
 		if (wIndex == DSC_INTERFACE_AS){				// Audio Streaming Interface
 			if (type == IN_CL_INTERFACE){			// get controls
 
@@ -548,7 +541,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				}
 			} // end OUT_CL_INTERFACE
 		} // end DSC_INTERFACE_AS
-
+*/
 		if (wIndex == DSC_INTERFACE_AS_OUT){				// Playback Audio Streaming Interface
 			if (type == IN_CL_INTERFACE){			// get controls
 
