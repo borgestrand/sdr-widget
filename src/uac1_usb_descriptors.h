@@ -56,7 +56,7 @@
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   4	//!  DG8SAQ, HID, Audio (2)
+#define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
@@ -68,7 +68,7 @@
 
 // IAD for Audio
 #define FIRST_INTERFACE1	2
-#define INTERFACE_COUNT1	2
+#define INTERFACE_COUNT1	3
 
 
 // USB DG8SAQ Interface descriptor
@@ -144,7 +144,7 @@
 
 // USB Endpoint 4 descriptor
 #define ENDPOINT_NB_4       ( UAC1_EP_AUDIO_IN | MSK_EP_DIR )
-#define EP_ATTRIBUTES_4     0b00100101      // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
+#define EP_ATTRIBUTES_4     0b00100101      // ISOCHRONOUS ASYNCHRONOUS IMPLICIT FEEDBACK
 #define EP_IN_LENGTH_4_HS   294				// 3 bytes * 48 khz * stereo + 6 bytes for add sample
 #define EP_IN_LENGTH_4_FS	294
 #define EP_SIZE_4_FS		EP_IN_LENGTH_4_FS
