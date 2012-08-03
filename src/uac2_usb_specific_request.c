@@ -222,18 +222,29 @@ static Bool uac2_user_get_interface_descriptor() {
 	U8      string_type;
 	U16		wInterface;
 
+	print_dbg_char_char('a'); // BSB debug 20120803
+
 	zlp             = FALSE;                                  /* no zero length packet */
 	string_type     = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read LSB of wValue    */
 	descriptor_type = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read MSB of wValue    */
 	wInterface = usb_format_usb_to_mcu_data(16,Usb_read_endpoint_data(EP_CONTROL, 16));
 	switch( descriptor_type ) {
 	case HID_DESCRIPTOR:
+
+		print_dbg_char_char('b'); // BSB debug 20120803
+
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
+
+			print_dbg_char_char('c'); // BSB debug 20120803
+
 			data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
 			pbuffer          = (const U8*)&uac2_usb_conf_desc_fs.hid;
 			break;
 #else
+
+			print_dbg_char_char('d'); // BSB debug 20120803
+
 			if( Is_usb_full_speed_mode() ) {
 				data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
 				pbuffer          = (const U8*)&uac2_usb_conf_desc_fs.hid;
@@ -246,14 +257,23 @@ static Bool uac2_user_get_interface_descriptor() {
 		}
 		return FALSE;
 	case HID_REPORT_DESCRIPTOR:
+
+		print_dbg_char_char('e'); // BSB debug 20120803
+
 		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
 		data_to_transfer = sizeof(usb_hid_report_descriptor);
 		pbuffer          = usb_hid_report_descriptor;
 		break;
 	case HID_PHYSICAL_DESCRIPTOR:
+
+		print_dbg_char_char('f'); // BSB debug 20120803
+
 		// TODO
 		return FALSE;
 	default:
+
+		print_dbg_char_char('g'); // BSB debug 20120803
+
 		return FALSE;
 	}
 
@@ -300,6 +320,9 @@ static Bool uac2_user_get_interface_descriptor() {
 	Usb_ack_nak_out(EP_CONTROL);
 	while (!Is_usb_control_out_received());
 	Usb_ack_control_out_received_free();
+
+	print_dbg_char_char('h'); // BSB debug 20120803
+
 	return TRUE;
 }
 
