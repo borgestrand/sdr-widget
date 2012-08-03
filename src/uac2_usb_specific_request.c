@@ -230,33 +230,17 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_DESCRIPTOR:
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
-// BSB 20120720 Removed from copy list from uac1
-//			if (FEATURE_BOARD_WIDGET) {
-//				data_to_transfer = sizeof(uac2_usb_conf_desc_fs_widget.hid);
-//				pbuffer          = (const U8*)&uac2_usb_conf_desc_fs_widget.hid;
-//			} else {
+			data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
+			pbuffer          = (const U8*)&uac2_usb_conf_desc_fs.hid;
+			break;
+#else
+			if( Is_usb_full_speed_mode() ) {
 				data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
 				pbuffer          = (const U8*)&uac2_usb_conf_desc_fs.hid;
-//			}
-#else
-// BSB 20120720 Removed from copy list from uac1
-//			if (FEATURE_BOARD_WIDGET) {
-//				if( Is_usb_full_speed_mode() ) {
-//					data_to_transfer = sizeof(uac2_usb_conf_desc_fs_widget.hid);
-//					pbuffer          = (const U8*)&uac2_usb_conf_desc_fs_widget.hid;
-//				} else {
-//					data_to_transfer = sizeof(uac2_usb_conf_desc_hs_widget.hid);
-//					pbuffer          = (const U8*)&uac2_usb_conf_desc_hs_widget.hid;
-//				}
-//			} else {
-				if( Is_usb_full_speed_mode() ) {
-					data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
-					pbuffer          = (const U8*)&uac2_usb_conf_desc_fs.hid;
-				} else {
-					data_to_transfer = sizeof(uac2_usb_conf_desc_hs.hid);
-					pbuffer          = (const U8*)&uac2_usb_conf_desc_hs.hid;
-				}
-//			}
+			} else {
+				data_to_transfer = sizeof(uac2_usb_conf_desc_hs.hid);
+				pbuffer          = (const U8*)&uac2_usb_conf_desc_hs.hid;
+			}
 			break;
 #endif
 		}
@@ -269,7 +253,6 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_PHYSICAL_DESCRIPTOR:
 		// TODO
 		return FALSE;
-		break;
 	default:
 		return FALSE;
 	}

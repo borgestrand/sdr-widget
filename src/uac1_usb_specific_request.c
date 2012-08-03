@@ -185,6 +185,7 @@ static Bool uac1_user_get_interface_descriptor() {
 				data_to_transfer = sizeof(uac1_usb_conf_desc_fs.hid);
 				pbuffer          = (const U8*)&uac1_usb_conf_desc_fs.hid;
 			}
+			break;
 #else
 			if (FEATURE_BOARD_WIDGET) {
 				if( Is_usb_full_speed_mode() ) {
@@ -215,7 +216,6 @@ static Bool uac1_user_get_interface_descriptor() {
 	case HID_PHYSICAL_DESCRIPTOR:
 		// TODO
 		return FALSE;
-		break;
 	default:
 		return FALSE;
 	}
