@@ -651,6 +651,8 @@ Bool uac1_user_read_request(U8 type, U8 request)
 
 	usb_type = type;
 
+	print_dbg_char_char('z'); // BSB debug 20120803
+
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR) return uac1_user_get_interface_descriptor();
 	// Read wValue

@@ -372,10 +372,11 @@ void uac2_usb_hid_get_idle (U8 u8_report_id)  // BSB 20120710 prefix "uac2_" add
 Bool uac2_user_read_request(U8 type, U8 request)
 {   int i;
 
+	print_dbg_char_char('z'); // BSB debug 20120803
+
 	// BSB 20120720 added
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR) return uac2_user_get_interface_descriptor();
-
 
 	// Read wValue
 	// why are these file statics?
