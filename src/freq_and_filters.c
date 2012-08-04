@@ -188,6 +188,8 @@ void SetFilter(uint32_t freq)
 			j = band_sel.b1<<3;							// leftshift x 3 for bits 3 - 5
 			selectedFilters[1] = i;						// Used for LCD Print indication
 			#endif
+
+/*
 			// Manipulate 3 bit binary output to set the 8 LPF
 			if (j & 0b00000001)
 				gpio_set_gpio_pin(PTT_1);
@@ -201,6 +203,8 @@ void SetFilter(uint32_t freq)
 				gpio_set_gpio_pin(PTT_3);
 			else
 				gpio_clr_gpio_pin(PTT_3);
+
+*/
 		}
 		// PTT_1/PTT_2/PTT_3 outputs not available, used for RX/TX and BPF control
 	else selectedFilters[1] = 0x0f;				// Error indication
