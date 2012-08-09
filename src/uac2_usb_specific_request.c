@@ -209,12 +209,13 @@ void uac2_freq_change_handler(){
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-
+/*
 				if (FEATURE_LINUX_QUIRK_ON)
 					FB_rate = (96) << 15;
 				else
-
-					FB_rate = (96) << 14;
+*/
+					//FB_rate = (96) << 14;
+					FB_rate = (99) << 14;
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
@@ -242,12 +243,13 @@ void uac2_freq_change_handler(){
 								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-
+/*
 				if (FEATURE_LINUX_QUIRK_ON)
 					FB_rate = (88 << 15) + (1<<15)/5;
 				else
-
-					FB_rate = (88 << 14) + (1<<14)/5;
+*/
+					//FB_rate = (88 << 14) + (1<<14)/5;
+					FB_rate = (99 << 14);
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);

@@ -296,7 +296,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 		if (usb_alternate_setting_out == 1){
 
-			if (!freq_changed){
 			  if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 
@@ -320,6 +319,11 @@ void uac2_device_audio_task(void *pvParameters)
 					{
 						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
 							LED_Toggle(LED0);
+
+							if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
+								((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (5 << 14)/10))))
+								FB_rate -= FB_RATE_DELTA * 256;
+
 							FB_rate -= FB_RATE_DELTA;
 							old_gap = gap;
 						} else
@@ -338,13 +342,18 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
 				} else {
 					// HS mode
-					// FB rate is 4 bytes in 12.14 format
+					// FB rate is 4 bytes in 16.16 format
 
 					//feedback calculate only in playing mode
 					if(playerStarted)
 					{
 						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 							LED_Toggle(LED0);
+
+							if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
+								((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (5 << 14)/10))))
+								FB_rate -= FB_RATE_DELTA * 256;
+
 							FB_rate -= FB_RATE_DELTA;
 							old_gap = gap;
 						} else
@@ -366,7 +375,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 				Usb_send_in(EP_AUDIO_OUT_FB);
 			  } // end sub_in_ready
-			}  // end if (!freq_changed)
 
 		if (Is_usb_out_received(EP_AUDIO_OUT)){
 
