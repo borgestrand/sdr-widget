@@ -3,7 +3,8 @@ README
 
 Version 20120807 BSB initial
         20120808 BSB old HW additions
-
+        20120809 BSB Windows listening
+        
 Read this file if you are curious about the Audio Widget project. Most of it
 also applies to the SDR Widget project.
 
@@ -93,6 +94,23 @@ might believe 24/96 is the UAC1 limit, but that is not the case with the Atmel
 AVR32 MCU the project is built on. UAC1 uses USB 1.1 (Full Speed).
 
 UAC1 uses asynchronous USB audio with the DAC as the timing reference.
+
+On Windows 7 make sure you're sampling at 44.1 (or 48ksps) depending on your 
+music. 44.1kHz is the sampling frequency of CDs and the most likely sampling 
+rate used. That way you bypass the OS's built-in sample rate converter which 
+would add artefacts to the sound. Some players may take exclusive control, but
+don't count on it.
+
+- Left-click the little speaker icon in the bottom-right corner
+- Left-click the icon on top of the volume control
+- The Output Properties window should appear.
+- Click Advanced
+- Choose Default Format = 44100 from the pull-down menu
+- Tick all Allow exclusive options
+- Click Apply
+- Click Enhancements
+- Disable all sound effects
+- Click Apply and close the window
 
 
 
