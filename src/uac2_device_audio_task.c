@@ -296,7 +296,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 		if (usb_alternate_setting_out == 1){
 
-			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
+			if (!freq_changed){
+			  if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
@@ -364,7 +365,8 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 
 				Usb_send_in(EP_AUDIO_OUT_FB);
-			} // end sub_in_ready
+			  } // end sub_in_ready
+			}  // end if (!freq_changed)
 
 		if (Is_usb_out_received(EP_AUDIO_OUT)){
 

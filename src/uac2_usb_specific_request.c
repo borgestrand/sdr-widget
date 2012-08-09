@@ -209,9 +209,11 @@ void uac2_freq_change_handler(){
 							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
+
 				if (FEATURE_LINUX_QUIRK_ON)
 					FB_rate = (96) << 15;
 				else
+
 					FB_rate = (96) << 14;
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
@@ -240,9 +242,11 @@ void uac2_freq_change_handler(){
 								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
+
 				if (FEATURE_LINUX_QUIRK_ON)
 					FB_rate = (88 << 15) + (1<<15)/5;
 				else
+
 					FB_rate = (88 << 14) + (1<<14)/5;
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
@@ -1039,6 +1043,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				case CSD_ID_1:							// set CUR freq of Mic
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
+						freq_changed = TRUE;
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1051,11 +1056,8 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Mic_freq.freq_bytes[2]=current_freq.freq_bytes[2];
 						Mic_freq.freq_bytes[1]=current_freq.freq_bytes[1];
 						Mic_freq.freq_bytes[0]=current_freq.freq_bytes[0];
-
-						freq_changed = TRUE;
 						uac2_freq_change_handler();
 						Mic_freq_valid = TRUE;
-
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
@@ -1066,6 +1068,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				case CSD_ID_2:							// set CUR freq
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
+						freq_changed = TRUE;
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1073,7 +1076,6 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						current_freq.freq_bytes[2]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
-						freq_changed = TRUE;
 						uac2_freq_change_handler();
 
 						// some freq only applies to playback
