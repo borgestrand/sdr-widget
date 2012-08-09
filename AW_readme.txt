@@ -195,12 +195,25 @@ in the makefile. Defaults written to MCU flash memory can be modified with
 WidgetControl. 
 
 A word of notice: "Save" only writes the new parameter to MCU flash. You will 
-need to reset the SDRWidget as well. Clicking "Reset" in a WidgetControl
-implementation will take 5-8 seconds to take effect.
+need to reset the Widget as well. Clicking "Reset" in a WidgetControl
+implementation will take 5-8 seconds to take effect. Clicking the actual Reset
+button will be faster.
 
 Linux implementations of WidgetControl are:
 .py implementation and prerequisites... which will also work on Widows...
 .c implementation...
+
+For the AudioWidget you should use the following settings:
+- Board Type = usbi2s
+- ADC Type = none
+- Filter Type = fir (This setting controls a single GPIO pin for PCM5102)
+- Image Type = uac1_audio (or uac2_audio, see Listening to audio UAC2 above)
+- DAC Type = generic
+- Quirks = quirk_none for Windows and Mac, quirk_linux for Linux
+- IN Type = normal
+- LCD Type = hd44780
+- OUT Type = normal
+- Log Type = none
 
 
 
