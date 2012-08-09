@@ -119,7 +119,7 @@ Listening to audio UAC2
 
 USB Audio Class 2 supports sample rates up to 32/192. This is limited by the 
 serial interfaces of the Atmel MCU, not USB. UAC2 is supported by the operating
-system on Linux (kernel > 2.x.x) and Mac. UAC2 uses USB 2.0 (High speed).
+system on Linux (kernel > 2.6.38) and Mac. UAC2 uses USB 2.0 (High speed).
 
 On Windows you will need a separate driver. Commercial drivers for all Windows
 programs have been tested but are not included in the project. For certain (but
