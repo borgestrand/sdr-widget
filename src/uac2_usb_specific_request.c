@@ -171,6 +171,225 @@ const U8 Speedx_2[38] = {
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
+void uac2_freq_change_handler(){
+		int i;
+
+		if (freq_changed){
+			spk_mute = TRUE;						// mute speaker while changing frequency and oscillator
+			for (i = 0; i < SPK_BUFFER_SIZE; i++) {	// clears speaker buffer
+				spk_buffer_0[i] = 0;
+				spk_buffer_1[i] = 0;
+			}
+
+/*
+			poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
+			FB_rate_int = current_freq.frequency / poolingFreq;
+			FB_rate_frac = current_freq.frequency % poolingFreq;
+			FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
+*/
+			if (current_freq.frequency == 96000) {
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+				if (FEATURE_BOARD_USBI2S)
+					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+				else if (FEATURE_BOARD_USBDAC)
+					gpio_set_gpio_pin(AVR32_PIN_PX51);
+
+				if ( FEATURE_ADC_AK5394A ) {
+					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
+					gpio_clr_gpio_pin(AK5394_DFS1);
+				}
+
+				pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
+				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+				if (FEATURE_LINUX_QUIRK_ON)
+					FB_rate = (96) << 15;
+				else
+					FB_rate = (96) << 14;
+
+				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
+			}
+
+		   	else if (current_freq.frequency == 88200){
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+				if (FEATURE_BOARD_USBI2S)
+					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+				else if (FEATURE_BOARD_USBDAC)
+					gpio_clr_gpio_pin(AVR32_PIN_PX51);
+
+				if ( FEATURE_ADC_AK5394A ) {
+					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
+					gpio_clr_gpio_pin(AK5394_DFS1);
+				}
+
+				pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+								  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+								  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+								  1,                  // diven - enabled
+								  0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
+				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+				if (FEATURE_LINUX_QUIRK_ON)
+					FB_rate = (88 << 15) + (1<<15)/5;
+				else
+					FB_rate = (88 << 14) + (1<<14)/5;
+
+				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
+				}
+
+	       	else if (current_freq.frequency == 176400)
+	        	{
+	    			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	    			pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+					if (FEATURE_BOARD_USBI2S)
+						gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+					else if (FEATURE_BOARD_USBDAC)
+						gpio_clr_gpio_pin(AVR32_PIN_PX51);
+
+	    			gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
+	    			gpio_set_gpio_pin(AK5394_DFS1);
+
+	    			pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+	    			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+	    								  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+	    								  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+	    								  0,                  // diven - disabled
+	    								  0);                 // GCLK1 = 12.288Mhz
+	    			pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+	    			FB_rate = (176 << 14) + ((1<<14)*4) / 10;
+
+	    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+	    			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
+	        	}
+
+			else if (current_freq.frequency == 192000) {
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+				if (FEATURE_BOARD_USBI2S)
+					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+				else if (FEATURE_BOARD_USBDAC)
+					gpio_set_gpio_pin(AVR32_PIN_PX51);
+
+				if ( FEATURE_ADC_AK5394A ) {
+					gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
+					gpio_set_gpio_pin(AK5394_DFS1);
+				}
+
+				pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							0,                  // diven - disabled
+							0);                 // GCLK1 = 12.288Mhz
+				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+				FB_rate = (192) << 14;
+
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+    			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
+
+			} else if (current_freq.frequency == 48000) {
+				// if there are two XO, PX16 sets the 48x
+				// gpio_set_gpio_pin(AVR32_PIN_PX16);
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+				if (FEATURE_BOARD_USBI2S)
+					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+				else if (FEATURE_BOARD_USBDAC)
+					gpio_set_gpio_pin(AVR32_PIN_PX51);
+
+				if ( FEATURE_ADC_AK5394A ) {
+					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
+					gpio_clr_gpio_pin(AK5394_DFS1);
+				}
+
+				pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
+				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+				FB_rate = (48) << 14;
+
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+			}
+
+			else if (current_freq.frequency == 44100) {
+				// if there are two XO, PX16 set --> 48x. clr -->44.1x
+				// gpio_clr_gpio_pin(AVR32_PIN_PX16);
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+				if (FEATURE_BOARD_USBI2S)
+					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+				else if (FEATURE_BOARD_USBDAC)
+					gpio_clr_gpio_pin(AVR32_PIN_PX51);
+
+				if ( FEATURE_ADC_AK5394A ) {
+					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
+					gpio_clr_gpio_pin(AK5394_DFS1);
+				}
+
+				pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
+				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+				FB_rate = (44 << 14) + (1 << 14)/10;
+
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+			}
+
+			if (FEATURE_ADC_AK5394A) {
+				// re-sync SSC to LRCK
+				// Wait for the next frame synchronization event
+				// to avoid channel inversion.  Start with left channel - FS goes low
+				// However, the channels are reversed at 192khz
+
+				if (current_freq.frequency == 192000) {
+					while (gpio_get_pin_value(AK5394_LRCK));
+					while (!gpio_get_pin_value(AK5394_LRCK));	// exit when FS goes high
+				} else {
+					while (!gpio_get_pin_value(AK5394_LRCK));
+					while (gpio_get_pin_value(AK5394_LRCK));	// exit when FS goes low
+				}
+				// Enable now the transfer.
+				pdca_enable(PDCA_CHANNEL_SSC_RX);
+
+				// Init PDCA channel with the pdca_options.
+				AK5394A_pdca_enable();
+			}
+
+			spk_mute = FALSE;
+			// reset freq_changed flag
+			freq_changed = FALSE;
+		}
+}
+
+
 //! @brief This function configures the endpoints of the device application.
 //! This function is called when the set configuration request has been received.
 //!
@@ -823,25 +1042,20 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-/*
-						Mic_freq.freq_bytes[3]=Usb_read_endpoint_data(EP_CONTROL, 8);		// read 4 bytes freq to set
-						Mic_freq.freq_bytes[2]=Usb_read_endpoint_data(EP_CONTROL, 8);
-						Mic_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
-						Mic_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
-*/
+
 						current_freq.freq_bytes[3]=Usb_read_endpoint_data(EP_CONTROL, 8);		// read 4 bytes freq to set
 						current_freq.freq_bytes[2]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
-						Mic_freq.freq_bytes[3]=current_freq.freq_bytes[3];		// read 4 bytes freq to set
+						Mic_freq.freq_bytes[3]=current_freq.freq_bytes[3];
 						Mic_freq.freq_bytes[2]=current_freq.freq_bytes[2];
 						Mic_freq.freq_bytes[1]=current_freq.freq_bytes[1];
 						Mic_freq.freq_bytes[0]=current_freq.freq_bytes[0];
 
 						freq_changed = TRUE;
+						uac2_freq_change_handler();
+						Mic_freq_valid = TRUE;
 
-						if (current_freq.frequency == Mic_freq.frequency) 								Mic_freq_valid = TRUE;
-						else Mic_freq_valid = FALSE;
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
@@ -860,8 +1074,11 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						current_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						freq_changed = TRUE;
+						uac2_freq_change_handler();
 
-						if (current_freq.frequency == Mic_freq.frequency) 								Mic_freq_valid = TRUE;
+						// some freq only applies to playback
+						// may need better checking algorithm
+						if (current_freq.frequency == Mic_freq.frequency) 	Mic_freq_valid = TRUE;
 						else Mic_freq_valid = FALSE;
 
 						Usb_ack_control_out_received_free();
