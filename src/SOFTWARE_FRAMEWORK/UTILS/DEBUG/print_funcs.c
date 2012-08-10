@@ -79,12 +79,25 @@
 #include "print_funcs.h"
 //#include "uart_usb_lib.h"
 
+#include "FreeRTOS.h" // BSB 20120810 added
+#include "task.h" // BSB 20120810 added
+
 //! ASCII representation of hexadecimal digits.
 static const char HEX_DIGITS[16] = "0123456789ABCDEF";
 
 /////////////////////////////////////////////
 // BSB 20110127-20120717 Added read functions
 /////////////////////////////////////////////
+
+
+// BSB 20120810: Added Pascal-style readkey() for polling UART
+char readkey(void) {
+	if (usart_test_hit(DBG_USART))	// A character is waiting in RX buffer
+		return 1;
+
+	else
+		return 0;					// Report no character waiting
+}
 
 // BSB 20120810: Added rtos_delay
 char read_dbg_char(char echo, char rtos_delay, char checksum_mode)

@@ -240,11 +240,19 @@
 #define RTOS_WAIT				1 // Generously give a few ms to RTOS for each polling loop
 #define RTOS_NOWAIT				0 // Run continuous polling loops interrupted by task switcher
 
+
+/*! \brief Pascal-style readkey() for polling DBG_UART
+ *
+ */
+// BSB 20120810: Added Pascal-style readkey() for polling UART
+extern char readkey(void);
+
 /*! \brief Reads a character from DBG_USART.
  *
  * \param echo DBG_ECHO for local echo, DBG_NO_ECHO for no echo
  * \param checksum_mode DBG_CHECKSUM_NORMAL for local checksum increase by read character, 8 bits
  * \param checksum_mode DBG_CHECKSUM_RESET to return checksum and reset it to 0
+ * \param rtos_delay is RTOS_WAIT or RTOS_NOWAIT
  */
 // BSB 20120810: Added rtos_delay
 extern char read_dbg_char(char echo, char rtos_delay, char checksum_mode); // char or extern char? Both give working code.
@@ -252,8 +260,8 @@ extern char read_dbg_char(char echo, char rtos_delay, char checksum_mode); // ch
 /*! \brief Reads an 8-bit hex number from DBG_USART
  *
  * \param echo DBG_ECHO for local echo, DBG_NO_ECHO for no echo
+ * \param rtos_delay is RTOS_WAIT or RTOS_NOWAIT
  */
-
 // BSB 20120810: Added rtos_delay
 extern char read_dbg_char_hex(char echo, char rtos_delay); // char or int? extern?
 
