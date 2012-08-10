@@ -1,26 +1,28 @@
-README
-======
+Audio Widget README
+===================
+
+Read this file if you are curious about the Audio Widget project. Most of it
+also applies to the SDR Widget project. This document focuses on using and 
+modifying the Audio Widget. It does not (yet) focus on percieved audio quality.
 
 Version 20120807 BSB initial
         20120808 BSB old HW additions
         20120809 BSB Windows listening
-        
-Read this file if you are curious about the Audio Widget project. Most of it
-also applies to the SDR Widget project.
-
-Early revisions are quite AB-1.2 and Windows centric. That is not the purpose of
-this file! Please suggest additions or changes and send them to me.
+        20120810 BSB Various minor edits
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
-topics will be introduced as you read on. If you wish to only modify the 
-hardware you may skip the sections on drivers, firmware and software.
+topics will be introduced as you read on. If you wish to modify the hardware 
+and not the software you may skip the sections on WidgetControl and firmware.
+
+Early revisions are quite AB-1.2 and Windows centric. That is not the purpose of
+this file! Please suggest additions or changes and send them to me.
 
 Some sections are split into Linux and Windows. The Windows text is developed on
 a Windows 7 system. Compatibility with Windows XP may be there, but is not
 prioritized. 
 
-The increasingly complex topics of this text are:
+The increasingly more complex topics of this text are:
 - Project introduction and history
 - Listening to audio UAC1
 - Listening to audio UAC2
@@ -91,9 +93,23 @@ Listening to audio UAC1
 USB Audio Class 1 is the default operating mode of the AB-1.2. It is plug-and-
 play on Windows, Linux and Mac. UAC1 supports sample rates up to 24/48. One 
 might believe 24/96 is the UAC1 limit, but that is not the case with the Atmel
-AVR32 MCU the project is built on. UAC1 uses USB 1.1 (Full Speed).
+AVR32 MCU the project is built on. Their chip has endpoint buffer size limited
+to 512 bytes. 1kbyte would allow 24/96 on UAC1. UAC1 uses USB 1.1 (Full Speed).
 
 UAC1 uses asynchronous USB audio with the DAC as the timing reference.
+
+
+
+Listening to audio UAC1 - Linux
+===============================
+
+Which distribution is recommended, which player is good, how to set up player
+sample rates according to music and not fixed....
+
+
+
+Listening to audio UAC1 - Windows
+=================================
 
 On Windows 7 make sure you're sampling at 44.1 (or 48ksps) depending on your 
 music. 44.1kHz is the sampling frequency of CDs and the most likely sampling 
