@@ -127,8 +127,8 @@
 #define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
 #define AUDIO_VENDOR_ID		  0x16c0		//!  Internal Lab use
-#define AUDIO_PRODUCT_ID      0x03e8
-#define AUDIO_PRODUCT_ID1     0x03e9
+#define AUDIO_PRODUCT_ID      0x03e8 		// UAC2
+#define AUDIO_PRODUCT_ID1     0x03e9		// UAC1
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
 #define HPSDR_PRODUCT_ID      0x0007
 #define RELEASE_NUMBER        0x1000
