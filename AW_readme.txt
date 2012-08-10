@@ -106,10 +106,22 @@ Listening to audio UAC1 - Linux
 Which distribution is recommended, which player is good, how to set up player
 sample rates according to music and not fixed....
 
+How to select playback hardware....
+
 
 
 Listening to audio UAC1 - Windows
 =================================
+
+Usually, your newly plugged in audio device will become the new default 
+device. But that is not necessarily always the case. To make sure the Audio-
+Widget is the default playback (and / or communication) device, do as follows:
+
+- Right-click the little speaker icon in the bottom-right corner
+- Left-click Playback devices
+- Right-click DG8SAQ-I2C / Audio Widget
+- Left-click Set as Default Device
+- To use with Skype etc. left-click Set as Default Communication Device 
 
 On Windows 7 make sure you're sampling at 44.1 (or 48ksps) depending on your 
 music. 44.1kHz is the sampling frequency of CDs and the most likely sampling 
