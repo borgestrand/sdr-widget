@@ -247,7 +247,7 @@
  * \param checksum_mode DBG_CHECKSUM_RESET to return checksum and reset it to 0
  */
 // BSB 20120810: Added rtos_delay
-extern char read_dbg_char(char echo, portLONG rtos_delay, char checksum_mode); // char or extern char? Both give working code.
+extern char read_dbg_char(char echo, char rtos_delay, char checksum_mode); // char or extern char? Both give working code.
 
 /*! \brief Reads an 8-bit hex number from DBG_USART
  *
@@ -255,7 +255,7 @@ extern char read_dbg_char(char echo, portLONG rtos_delay, char checksum_mode); /
  */
 
 // BSB 20120810: Added rtos_delay
-extern char read_dbg_char_hex(char echo, portLONG rtos_delay); // char or int? extern?
+extern char read_dbg_char_hex(char echo, char rtos_delay); // char or int? extern?
 
 /*! \brief Writes a character (not passed as pointer) to DBG_USART
  *

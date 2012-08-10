@@ -70,6 +70,8 @@
 
 //_____  I N C L U D E S ___________________________________________________
 
+#include "FreeRTOS.h" // BSB 20120810 added
+
 #include "conf_usb.h"
 #if BOARD != EVK1104 && BOARD != SDRwdgtLite
 #include "joystick.h"
