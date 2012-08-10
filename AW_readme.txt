@@ -272,7 +272,9 @@ and manual steps you have to go through.
      http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3886
      This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.5"
 
-4  - Copy files from Add_to_flip345_bin.zip to folder 
+4  - Copy files from Add_to_flip345_bin.zip from
+     http://code.google.com/p/sdr-widget/downloads/detail?name=Add_to_flip345_bin.zip
+     to folder 
      "C:\Program Files (x86)\Atmel\Flip 3.4.5\bin"
 
 5  - Download the latest firmware from 
