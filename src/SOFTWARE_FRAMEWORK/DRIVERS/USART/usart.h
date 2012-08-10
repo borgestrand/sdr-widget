@@ -53,7 +53,6 @@
 
 #include <avr32/io.h>
 #include "compiler.h"
-#include "portmacro.h" // BSB 20120810 for RTOS delay in uart polling
 
 
 /*! \name Return Values
@@ -833,16 +832,6 @@ extern int usart_read_char(volatile avr32_usart_t *usart, int *c);
  * \return The received character, or \ref USART_FAILURE upon error.
  */
 extern int usart_getchar(volatile avr32_usart_t *usart);
-
-/*! \brief Waits until a character is received, and returns it.
- *
- * \param usart   Base address of the USART instance.
- * \param rtos_delay   Forward to vTaskDelay()
- *
- * \return The received character, or \ref USART_FAILURE upon error.
- */
-extern int usart_getchar_rtos(volatile avr32_usart_t *usart, portLONG rtos_delay);
-
 
 /*! \brief Writes one character string to the USART.
  *

@@ -79,7 +79,6 @@
 
 #include "compiler.h"
 #include "usart.h"
-#include "print_funcs.h" // BSB 20120810 for RTOS delay in uart polling
 
 
 //------------------------------------------------------------------------------
@@ -900,24 +899,6 @@ int usart_getchar(volatile avr32_usart_t *usart)
 
   return c;
 }
-
-int usart_getchar_rtos(volatile avr32_usart_t *usart, portLONG rtos_delay)
-{
-  int c, ret;
-
-  // BSB 20120810 rewritten from while() ;
-  while ((ret = usart_read_char(usart, &c)) == USART_RX_EMPTY)
-  {
-	  if (rtos_delay != RTOS_NOWAIT)		// If we're going to let the RTOS wait,
-		  vTaskDelay(rtos_delay);
-  }
-
-  if (ret == USART_RX_ERROR)
-    return USART_FAILURE;
-
-  return c;
-}
-
 
 void usart_write_line(volatile avr32_usart_t *usart, const char *string)
 {

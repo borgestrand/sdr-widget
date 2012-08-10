@@ -87,7 +87,7 @@ static const char HEX_DIGITS[16] = "0123456789ABCDEF";
 /////////////////////////////////////////////
 
 // BSB 20120810: Added rtos_delay
-char read_dbg_char(char echo, portLONG rtos_delay, char checksum_mode)
+char read_dbg_char(char echo, char rtos_delay, char checksum_mode)
 {
 	volatile static char dbg_checksum = 0; // should be uint8_t??
 	char read_data; // should be uint8_t??
@@ -97,7 +97,13 @@ char read_dbg_char(char echo, portLONG rtos_delay, char checksum_mode)
 	if (checksum_mode == DBG_CHECKSUM_NORMAL)
 	{
 		// Redirection to the debug USART.
-	  	read_data = usart_getchar_rtos(DBG_USART, rtos_delay); // returns int
+
+		if (rtos_delay == RTOS_WAIT) {			// Wait for uart RX register to fill.
+			while (!usart_test_hit(DBG_USART))
+				  vTaskDelay(120);				// Giving 12ms to RTOS all the while
+		}
+
+		read_data = usart_getchar(DBG_USART); // returns int
 	  	if (echo == DBG_ECHO)
 	  		usart_putchar(DBG_USART, read_data);
 		dbg_checksum += read_data;	// Checksum function is addition...
@@ -111,7 +117,7 @@ char read_dbg_char(char echo, portLONG rtos_delay, char checksum_mode)
 }
 
 // BSB 20120810: Added rtos_delay
-char read_dbg_char_hex(char echo, portLONG rtos_delay)
+char read_dbg_char_hex(char echo, char rtos_delay)
 {
 	char temp;
 	char hexbyte=0;

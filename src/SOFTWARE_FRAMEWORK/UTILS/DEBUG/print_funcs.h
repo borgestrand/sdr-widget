@@ -79,7 +79,6 @@
 #include <avr32/io.h>
 #include "board.h"
 
-#include "portmacro.h" // BSB 20120810 for RTOS delay in uart polling
 
 /*! \name USART Settings for the Debug Module
  */
@@ -238,7 +237,7 @@
 #define DBG_CHECKSUM_READOUT	2
 #define DBG_ECHO 				1
 #define DBG_NO_ECHO 			0
-#define RTOS_WAIT				120	// Generously give 12ms to RTOS for each polling loop
+#define RTOS_WAIT				1 // Generously give a few ms to RTOS for each polling loop
 #define RTOS_NOWAIT				0 // Run continuous polling loops interrupted by task switcher
 
 /*! \brief Reads a character from DBG_USART.
