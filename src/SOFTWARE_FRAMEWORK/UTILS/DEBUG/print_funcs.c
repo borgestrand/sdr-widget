@@ -86,7 +86,8 @@ static const char HEX_DIGITS[16] = "0123456789ABCDEF";
 // BSB 20110127-20120717 Added read functions
 /////////////////////////////////////////////
 
-char read_dbg_char(char echo, char checksum_mode)
+// BSB 20120810: Added rtos_delay
+char read_dbg_char(char echo, portLONG rtos_delay, char checksum_mode)
 {
 	volatile static char dbg_checksum = 0; // should be uint8_t??
 	char read_data; // should be uint8_t??
@@ -96,7 +97,7 @@ char read_dbg_char(char echo, char checksum_mode)
 	if (checksum_mode == DBG_CHECKSUM_NORMAL)
 	{
 		// Redirection to the debug USART.
-	  	read_data = usart_getchar(DBG_USART); // returns int
+	  	read_data = usart_getchar_rtos(DBG_USART, rtos_delay); // returns int
 	  	if (echo == DBG_ECHO)
 	  		usart_putchar(DBG_USART, read_data);
 		dbg_checksum += read_data;	// Checksum function is addition...
@@ -109,7 +110,8 @@ char read_dbg_char(char echo, char checksum_mode)
 	return dbg_checksum;
 }
 
-char read_dbg_char_hex(char echo)
+// BSB 20120810: Added rtos_delay
+char read_dbg_char_hex(char echo, portLONG rtos_delay)
 {
 	char temp;
 	char hexbyte=0;
@@ -117,7 +119,7 @@ char read_dbg_char_hex(char echo)
 
 	while (counter > 0) {
 		counter --;										// Assume valid character
-		temp = read_dbg_char(echo, DBG_CHECKSUM_NORMAL);	// Get character with local echo, no checksum reporting
+		temp = read_dbg_char(echo, rtos_delay, DBG_CHECKSUM_NORMAL);	// Get character with local echo, no checksum reporting
 		if ( (temp >= 0x30) && (temp <= 0x39) )		// 0x30 encodes '0', 0x39 encodes '9'
 			hexbyte += temp - 0x30;
 		else if ( (temp >= 0x41) && (temp <= 0x46) )	// 0x41 encodes 'A', 0x46 encodes 'F'

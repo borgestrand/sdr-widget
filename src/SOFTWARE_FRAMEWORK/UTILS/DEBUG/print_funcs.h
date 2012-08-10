@@ -79,6 +79,7 @@
 #include <avr32/io.h>
 #include "board.h"
 
+#include "portmacro.h" // BSB 20120810 for RTOS delay in uart polling
 
 /*! \name USART Settings for the Debug Module
  */
@@ -237,6 +238,8 @@
 #define DBG_CHECKSUM_READOUT	2
 #define DBG_ECHO 				1
 #define DBG_NO_ECHO 			0
+#define RTOS_WAIT				120	// Generously give 12ms to RTOS for each polling loop
+#define RTOS_NOWAIT				0 // Run continuous polling loops interrupted by task switcher
 
 /*! \brief Reads a character from DBG_USART.
  *
@@ -244,13 +247,16 @@
  * \param checksum_mode DBG_CHECKSUM_NORMAL for local checksum increase by read character, 8 bits
  * \param checksum_mode DBG_CHECKSUM_RESET to return checksum and reset it to 0
  */
-extern char read_dbg_char(char echo, char checksum_mode); // char og extern char? Both give working code.
+// BSB 20120810: Added rtos_delay
+extern char read_dbg_char(char echo, portLONG rtos_delay, char checksum_mode); // char or extern char? Both give working code.
 
 /*! \brief Reads an 8-bit hex number from DBG_USART
  *
  * \param echo DBG_ECHO for local echo, DBG_NO_ECHO for no echo
  */
-extern char read_dbg_char_hex(char echo); // char or int? extern?
+
+// BSB 20120810: Added rtos_delay
+extern char read_dbg_char_hex(char echo, portLONG rtos_delay); // char or int? extern?
 
 /*! \brief Writes a character (not passed as pointer) to DBG_USART
  *

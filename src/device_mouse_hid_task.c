@@ -281,12 +281,12 @@ void device_mouse_hid_task(void)
     // To rather wait for uart activity _or_ uart activity, consider the code in usart_getchar() in usart.c
     // Insert handle here for other uart command handles.
     do {
-        a = read_dbg_char(DBG_ECHO, DBG_CHECKSUM_NORMAL);
+        a = read_dbg_char(DBG_ECHO, RTOS_WAIT, DBG_CHECKSUM_NORMAL);
         // Get a single ASCII character with echo. Checksum scheme compatible with BSB's other projects, please ignore
     } while (a != 'h');
 
-    ReportByte1 = read_dbg_char_hex(DBG_ECHO);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
-    ReportByte2 = read_dbg_char_hex(DBG_ECHO);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
+    ReportByte1 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
+    ReportByte2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
 
 /*	// Initial attempt based on Prog button
     // Wait until PROG is pushed in
