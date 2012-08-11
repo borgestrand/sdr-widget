@@ -414,7 +414,7 @@ and manual steps you have to go through.
      signed. Start, Run, hdwwiz.exe, Next, Install the hardware ... manually, 
      Next, Show All, Next, Have Disk, Browse to 
      "C:\Program Files (x86)\Atmel\Flip 3.4.5\usb", Choose "atmel_usb_dfu.inf",
-     Open, OK, Select "AT32U3A3", Next, Next, Finish
+     Open, OK, Select "AT32UC3A3", Next, Next, Finish
 
 7  - Reboot (may or may not be necessary)
 
