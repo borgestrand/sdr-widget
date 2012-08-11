@@ -365,7 +365,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				if (playerStarted){
 					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
-						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (5 << 14)/10))))
+						((current_freq.frequency == 96000) && (FB_rate > (97 << 14))))
 						FB_rate -= FB_RATE_DELTA * 128;
 				}
 
