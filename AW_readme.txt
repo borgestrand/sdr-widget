@@ -168,8 +168,9 @@ USB-I2S module.
 Installing drivers - Windows
 ============================
 
-Driver installation is only needed on Windows. You will need to download and
-install AWSetup.zip from:
+Driver installation is only needed on Windows. 
+
+You will need to download and install AWSetup.zip from:
   https://sites.google.com/site/nikkov/home/microcontrollers/audio-widget/
 
 This package contains Windows ASIO drivers, drivers and Windows implementation
@@ -183,6 +184,16 @@ It is possible to use the Audio Widget with commercial UAC2 drivers. However,
 nobody is currently offering these drivers for sale with a convenient single-
 user licence. A group buy may happen. If you are interested, please contact the
 audio-widget mailing list.
+
+If you have never used an UAC2 or Audio Widget / SDR Widget driver, you may 
+probably skip the rest of this section.  If you are upgrading to new drivers it
+is highly recommended that you clean up any old drivers which may have been in
+use by the OS. Follow this text and delete existing libusbK and audio drivers.
+  http://www.tech-recipes.com/rx/504/how-to-uninstall-hidden-devices-drivers-and-services/
+
+Windows is also notorious for trying to "help" you locate the driver it 
+believes you need. Here is a link to a text on modifying this "help":
+  http://www.addictivetips.com/windows-tips/how-to-disable-automatic-driver-installation-in-windows-vista/
 
 
 
@@ -261,7 +272,111 @@ anymore...
 
 Installing new firmware - Linux
 ===============================
-...
+
+These unstructions are for programming in Linux Ubuntu 10.04 and later.
+
+NOTE: the stock dfu-programmer currently does NOT support "User Page" 
+programming. User Page is used in the sdr-widget firmware to store radio 
+control parameters such as filter crossover points and calibration data (like 
+EEPROM).
+
+1 -  I have a hacked version of dfu-programmer which skips the "User Page" 
+     flashing without exiting in Address Error.  This hacked dfu-programmer 
+     has been tested to be able to flash all the existing firmware that I have
+     tested. You install this hacked version instead of the one from Ubuntu. It
+     can be downloaded from:
+       http://code.google.com/p/sdr-widget/downloads/list
+
+2 -  Next, install the ELF to HEX conversion utility:
+     sudo apt-get install binutils-avr
+
+3 -  You create a script called, say, program-widget:
+
+#!/bin/bash
+##
+## program the sdr-widget under linux as of Sun May 1, 2011
+## accepts either a widget.elf file or a widget.hex file
+##
+echo program-widget with $1
+[[ -z $1 ]] && echo "no file specified to program-widget" && exit 1
+[[ ! -f $1 ]] && echo "no such file '$1'" && exit 1
+case $1 in
+  *.elf)
+  hex=/tmp/`basename $1 .elf`.hex
+  objcopy -O ihex $1 $hex && \
+    dfu-programmer at32uc3a3256 erase --debug 6  && \
+    dfu-programmer at32uc3a3256 flash --suppress-bootloader-mem $hex --debug 6 && \
+    dfu-programmer at32uc3a3256 reset --debug 4 && \
+    rm $hex && \
+    exit 0
+  ;;
+  *.hex)
+  dfu-programmer at32uc3a3256 erase --debug 6  && \
+    dfu-programmer at32uc3a3256 flash --suppress-bootloader-mem $1 --debug 6 && \
+    dfu-programmer at32uc3a3256 reset --debug 4 && \
+    exit 0
+  ;;
+  *)
+  echo unrecognized file format for programming: $1
+  exit 1
+esac
+
+5 -  Create (or modify an existing) 99-avrtools.rules in /ect/udev/rules.d
+
+# ICE50:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2101", MODE:="0666"
+
+# JTAGICE mkII:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2103", MODE:="0666"
+
+# AVRISP mkII:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2104", MODE:="0666"
+
+# AVRONE:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2105", MODE:="0666"
+
+# STK600:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2106", MODE:="0666"
+
+# AVR Dragon:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2107", MODE:="0666"
+
+# RzUsbStick:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="210a", MODE:="0666"
+
+# QT600:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2114", MODE:="0666"
+
+# QT600P:
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2116", MODE:="0666"
+
+# Add support AT32UC3A0128 AT32UC3A0256 AT32UC3A0512 
+# AT32UC3A1128 AT32UC3A1256 AT32UC3A1512
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2ff8", MODE:="0666"
+
+# Add support AT32UC3A3256
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2ff1", MODE:="0666"
+
+# Add support  AT32UC3B0128 AT32UC3B0256 AT32UC3B064 
+# AT32UC3B1128 AT32UC3B1256 AT32UC3B164
+SUBSYSTEM=="usb", ENV{DEVTYPE}=="usb", ATTRS{idVendor}=="03eb",
+ATTRS{idProduct}=="2ff6", MODE:="0666"
+
+6 -  Reboot for this udev rule to take effect.
+
+7 -  To program:
+       >  ./program-widget widget.elf
 
 
 
