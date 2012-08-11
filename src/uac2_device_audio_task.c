@@ -319,20 +319,11 @@ void uac2_device_audio_task(void *pvParameters)
 					{
 						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
 							LED_Toggle(LED0);
-
-							if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
-								((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (5 << 14)/10))))
-								FB_rate -= FB_RATE_DELTA * 128;
-
 							FB_rate -= FB_RATE_DELTA;
 							old_gap = gap;
 						} else
 							if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 							LED_Toggle(LED1);
-
-							if ((current_freq.frequency == 88200) && (FB_rate > ((92 << 14) + (2 << 14)/10)))
-								FB_rate -= FB_RATE_DELTA * 256;
-
 							FB_rate += FB_RATE_DELTA;
 							old_gap = gap;
 						}
@@ -353,20 +344,11 @@ void uac2_device_audio_task(void *pvParameters)
 					{
 						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
 							LED_Toggle(LED0);
-
-							if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
-								((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (5 << 14)/10))))
-								FB_rate -= FB_RATE_DELTA * 128;
-
 							FB_rate -= FB_RATE_DELTA;
 							old_gap = gap;
 						} else
 							if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 							LED_Toggle(LED1);
-
-							if ((current_freq.frequency == 88200) && (FB_rate > ((92 << 14) + (2 << 14)/10)))
-								FB_rate -= FB_RATE_DELTA * 256;
-
 							FB_rate += FB_RATE_DELTA;
 							old_gap = gap;
 							}
@@ -381,8 +363,14 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_HSB);
 				}
 
+				if (playerStarted){
+					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
+						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (5 << 14)/10))))
+						FB_rate -= FB_RATE_DELTA * 128;
+				}
+
 				Usb_send_in(EP_AUDIO_OUT_FB);
-			  } // end sub_in_ready
+			  } // end usb_in_ready
 
 		if (Is_usb_out_received(EP_AUDIO_OUT)){
 
