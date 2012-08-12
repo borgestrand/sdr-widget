@@ -9,6 +9,7 @@ Version 20120807 BSB initial
         20120808 BSB old HW additions
         20120809 BSB Windows listening
         20120810 BSB Various minor edits
+        20120812 BSB Atmel batchisp/Flip debugging
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -384,7 +385,8 @@ Installing new firmware - Windows
 =================================
 
 New firmware (.elf file) is installed by means of the batchisp program from 
-Atmel. It is part of their Flip package.
+Atmel. It is part of their Flip package. For batchisp debugging see the end of 
+this section.
 
 First of all, Atmel Flip is not easy to install. There are several prerequisites
 and manual steps you have to go through. 
@@ -462,6 +464,30 @@ Summary:  Total 11   Passed 11   Failed 0
 
 C:\Program Files (x86)\Atmel\Flip 3.4.5\bin>
 --------------------------------------------------------------------------------
+
+Debugging Atmel Flip and batchisp. Unfortunately, batchisp isn't always 100% 
+stable. If you are encountering problems with it, please try one or more of the
+following methods:
+
+0 -  Make notes and screenshots of all the steps you apply in order to install 
+     the firmware. You will need this log if you need to contact other Audio 
+     Widget owners or Atmel support.
+
+1 -  Instead of prog.bat, try prog_noerase.bat from the Add_to_flip345_bin.zip
+     file. prog_noerase.bat comes without the "erase f" part of the command. You
+     may also try omitting other parts of the command in prog.bat. 
+     
+2 -  Try the Linux method for firmware installation. See Installing new firmware 
+     - Linux above.
+     
+3 -  Instead of pressing Prog, clicking Reset and releasing Prog to enter the
+     programming bootloader (DFU), try the following: Unplug all cables leading
+     to the Audio Widget. Wait. (10s-30min, waiting time isn't yet determined.)
+     Press Prog while reconnecting the USB cable. Finally, release Prog and 
+     execute prog.bat or prog_noerase.bat
+     
+4 -  If all of this fails, contact the Audio Widget mailing list and/or Atmel
+     support with your detailed notes.
 
 
 
