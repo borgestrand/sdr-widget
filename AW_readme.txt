@@ -10,6 +10,7 @@ Version 20120807 BSB initial
         20120809 BSB Windows listening
         20120810 BSB Various minor edits
         20120812 BSB Atmel batchisp/Flip debugging
+        20120815 Alex's .mpdconf file copied in
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -108,6 +109,18 @@ Which distribution is recommended, which player is good, how to set up player
 sample rates according to music and not fixed....
 
 How to select playback hardware....
+
+This is a recommended .mpdconf file for mpd. Note last line for no automatic
+resampling. 
+
+music_directory "~/Music"
+playlist_directory "~/.mpd/playlists" db_file "~/.mpd/mpd.db"
+log_file "~/.mpd/mpd.log" audio_output {
+    type "alsa"
+    name "My ALSA Device"
+    device "hw:1,0"
+    auto_resample "no"
+}
 
 
 
