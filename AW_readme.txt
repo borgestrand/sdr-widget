@@ -114,11 +114,15 @@ This is a recommended .mpdconf file for mpd. Note last line for no automatic
 resampling. 
 
 music_directory "~/Music"
-playlist_directory "~/.mpd/playlists" db_file "~/.mpd/mpd.db"
-log_file "~/.mpd/mpd.log" audio_output {
+playlist_directory "~/.mpd/playlists" 
+db_file "~/.mpd/mpd.db"
+log_file "~/.mpd/mpd.log" 
+audio_output {
     type "alsa"
     name "My ALSA Device"
-    device "hw:1,0"
+    device "hw:1,0"	# your device may be hw:0,0 or hw:1,0 or hw:2,0 etc
+			# check with
+			# $ aplay -l
     auto_resample "no"
 }
 
