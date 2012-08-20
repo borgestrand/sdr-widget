@@ -524,8 +524,10 @@ branch is for - you guessed it - code which hasn't made it to the stable branch
 yet.
 
 Firmware source code is written in C. Feel free to open it in your favourite 
-editor. The project is not bound to a particular editing environment. it is 
-built from the command line. 
+editor. The project is not bound to a particular editing environment. It is 
+built from the command line. Some people prefer Atmel's AVR32Studio tools. The
+old 2.6 version can be downloaded from:
+  http://www.atmel.com/tools/STUDIOARCHIVE.aspx 
 
 To build in Windows you need to download and install Cygwin. Your Cygwin 
 installation must include packages like make, gcc, git and ssh...
