@@ -538,7 +538,7 @@ need the Atmel AVR32 toolchain. The AVR32 toolchain may be installed stand-alone
 or as part of some kind of AVR(32) Studio package. 
 
 Beware that Atmel's AVR32 toolchain and tools are frequently updated and 
-replaced. When you download it, make sure you keep your instal files. Upgrading
+replaced. When you download it, make sure you keep your install files. Upgrading
 to a new AVR32 toolchain can be a bit risky, and you should take care when 
 installing or changing it. For both Linux and Windows (Cygwin) the project root
 Makefile will call the script make-widget. make-widget will look at known 
@@ -546,6 +546,10 @@ locations for the AVR32BIN directory which is part of the AVR32 toolchain. At
 the time of writing,the AVR32 toolchain can be downloaded from (search for 
 "toolchain"):
   http://www.atmel.com/products/microcontrollers/avr/default.aspx?tab=tools
+
+With the default installation, the following text was appended to make-widget
+search list:
+  "/cygdrive/c/Program Files (x86)\Atmel\AVR Tools\AVR Toolchain\bin" \
 
 The project root Makefile includes compile-time defaults. 
 
