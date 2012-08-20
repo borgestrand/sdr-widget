@@ -610,7 +610,12 @@ Modding Windows drivers
 =======================
 
 Generic Windows drivers are high on the wishlist of the project. Any help to 
-reach this goal is greatly appreciated.
+reach this goal is greatly appreciated. To help debug the driver do as follows:
+- Rename asiouac2.dll to asiouac2release.dll
+- Rename asiouac2debug.dll to asiouac2.dll
+- Download and run DebugView from
+  http://technet.microsoft.com/en-us/sysinternals/bb896647.aspx
+- Play on any player through ASIO and view driver message on DebugView window
 
 The Windows ASIO driver source code is found at:
   https://github.com/nikkov/Win-Widget
