@@ -11,6 +11,7 @@ Version 20120807 BSB initial
         20120810 BSB Various minor edits
         20120812 BSB Atmel batchisp/Flip debugging
         20120815 Alex's .mpdconf file copied in
+        20120825 Alex's feedback text copied in, UAC2 on Windows edits
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -36,6 +37,7 @@ The increasingly more complex topics of this text are:
 - Modding the hardware
 - Modding Windows drivers
 - Appendix 1 - git primer
+- Appendix 2 - UAC2 Feedback Mechanism
 
 
 
@@ -131,8 +133,11 @@ audio_output {
 Listening to audio UAC1 - Windows
 =================================
 
+The Audio Widget should show up in Device Manager under "Sound, video and game
+controllers". 
+
 Usually, your newly plugged in audio device will become the new default 
-device. But that is not necessarily always the case. To make sure the Audio-
+device. But that is not necessarily always the case. To make sure the Audio
 Widget is the default playback (and / or communication) device, do as follows:
 
 - Right-click the little speaker icon in the bottom-right corner
@@ -163,6 +168,8 @@ don't count on it.
 Listening to audio UAC2
 =======================
 
+Please refer to the below sections on installing drivers and players.
+
 USB Audio Class 2 supports sample rates up to 32/192. This is limited by the 
 serial interfaces of the Atmel MCU, not USB. UAC2 is supported by the operating
 system on Linux (kernel > 2.6.38) and Mac. UAC2 uses USB 2.0 (High speed).
@@ -171,6 +178,12 @@ On Windows you will need a separate driver. Commercial drivers for all Windows
 programs have been tested but are not included in the project. For certain (but
 not all) Windows programs the ASIO protocol can be used with UAC2. An open 
 source UAC2 ASIO driver is part of the project. (See Installing drivers below.)
+
+NB: On Widows, the Audio Widget wil NOT show up in Device Manager under "Sound,
+video and game controllers". This is the case when you first plug it in, and it
+is the case when the open source UAC2 ASIO driver is used. (Commercial drivers
+will make it appear in Device Manager, but as stated above and in the next
+section, they are not part of the project.)
 
 If you only plan to use Linux, Mac and ASIO enabled players on Windows, use 
 UAC2. If you want to use generic Windows programs, use UAC1. 
@@ -227,7 +240,7 @@ Installing players - Windows
 ============================
 
 Any Windows audio software should work with the Audio Widget in UAC1 mode. In 
-UAC2 two players are recommened; foobar2000 and J-River media center. Only the 
+UAC2 two players are recommened; foobar2000 and J-River Media Center. Only the 
 former comes free of charge. For foobar2000 you need to install the ASIO 
 protocol separately. Links:
   http://www.foobar2000.org/
@@ -237,6 +250,11 @@ protocol separately. Links:
 For both players you will have to set up ASIO as the output device. For 
 foobar2000 you will need to look up and follow instructions to add ASIO as a
 component.
+
+We are currently (August 2012) experiencing noise in foobar2000 some times when 
+the time bar is pulled back and forth. This is being debugged. We are not 
+experiencing noise in J-River Media Center. If you experience any kind of noise,
+do not hesitate to contact the Audio Widget mailing list.
 
 
 
@@ -779,4 +797,63 @@ remaining is to update the central repository with your changes.
 If this went well, your changes are in the central repository. And other users 
 can pull them from there. For good measure, go back to your local-branch so that
 any changes you do will end up there. 
+
+
+
+Appendix 2 - UAC2 Feedback Mechanism
+====================================
+
+The audio-widget (and sister project sdr-widget) has demonstrated that the 
+AT32UC3A3 can support:
+
+1 -  Asynchronous playback with rate feedback under uac1 and uac2;
+
+2 -  The limitation of EP's having different numbers (not allowing two EP's with
+     the same EP number, one IN and one OUT) is not an issue when specifying the 
+     playback explicit EP. Under uac1 you actually specify the feedback EP by 
+     EP_BSYNC_ADDRESS field. Under uac2, as long as the feedback EP follows the 
+     OUT EP immediately in the descriptors they will be associated (by OSX, 
+     Linux, and Win uac2 drivers):
+
+     S_usb_as_interface_descriptor	spk_as_alt1;
+     S_usb_as_g_interface_descriptor_2	spk_g_as;
+     S_usb_format_type_2	spk_format_type;
+     S_usb_endpoint_audio_descriptor_2 ep2;  // this is the OUT EP
+     S_usb_endpoint_audio_specific_2	ep2_s;
+     S_usb_endpoint_audio_descriptor_2 ep3;  // this is the explicit feedback EP
+
+3 -  Simultaneous stereo capture and playback can be supported by the SSC.
+
+I have found that it is very useful to refer to the source code of the Linux 
+uac2 driver and Apple's USBAudio driver when there are doubts about how the 
+uac2 specs is interpreted. There are areas where the specs are not entirely 
+clear and you have to experiment with the actual drivers to find out what works
+and what doesn't.
+
+For example, under Windows uac1, you have to provide rate feedback values that
+the driver expects. The delta between one feedback rate and the next feedback 
+rate has to exceed a certain minimum - otherwise it will be ignored completely.
+Under Linux uac2, it has automatic rate feedback format detection and the way it
+changes sampling rate is different from OSX:
+
+The difference is just that OSX does:
+1 -  SetAltInterface(0)
+2 -  SET_CUR freq
+3 -  SetAltInterface(1)
+4 -  Start streaming
+and between 1 and 4, there's a time gap of ~740ms.
+
+Linux does:
+1 -  SetAltInterface(0)
+2 -  SetAltInterface(1)
+3 -  SET_CUR freq
+4 -  Start streaming
+and between 1 and 4, there's a time gap of only ~11ms.
+
+Note that Linux sets the alt interface to 1 first before changing the freq, and
+starts streaming within a very short time. This caused trouble at the firmware
+as the rate feedback is still based on the OLD sampling rate before things
+settle down to the new sampling rate. The OSX way of doing things is more
+gentlemanly :-) However, the Linux developer thinks his way is the correct way
+so we have to deal with this quirk :-)
 
