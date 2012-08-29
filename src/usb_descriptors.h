@@ -159,6 +159,24 @@
 #define USB_MN_LENGTH         12
 #define USB_MANUFACTURER_NAME \
 {\
+  Usb_unicode('L'),\
+  Usb_unicode('a'),\
+  Usb_unicode('b'),\
+  Usb_unicode(' '),\
+  Usb_unicode('U'),\
+  Usb_unicode('s'),\
+  Usb_unicode('e'),\
+  Usb_unicode(' '),\
+  Usb_unicode('O'),\
+  Usb_unicode('n'),\
+  Usb_unicode('l'),\
+  Usb_unicode('y') \
+}
+
+/*
+#define USB_MN_LENGTH         12
+#define USB_MANUFACTURER_NAME \
+{\
   Usb_unicode('w'),\
   Usb_unicode('w'),\
   Usb_unicode('w'),\
@@ -172,7 +190,44 @@
   Usb_unicode('a'),\
   Usb_unicode('t') \
 }
+*/
 
+#ifdef FEATURE_PRODUCT_NAME_audio_widget
+#define USB_PN_LENGTH         12
+#define USB_PRODUCT_NAME \
+{\
+  Usb_unicode('A'),\
+  Usb_unicode('u'),\
+  Usb_unicode('d'),\
+  Usb_unicode('i'),\
+  Usb_unicode('o'),\
+  Usb_unicode('-'),\
+  Usb_unicode('W'),\
+  Usb_unicode('i'),\
+  Usb_unicode('d'),\
+  Usb_unicode('g'),\
+  Usb_unicode('e'),\
+  Usb_unicode('t') \
+}
+#endif
+#ifdef FEATURE_PRODUCT_NAME_sdr_widget
+#define USB_PN_LENGTH         10
+#define USB_PRODUCT_NAME \
+{\
+  Usb_unicode('S'),\
+  Usb_unicode('D'),\
+  Usb_unicode('R'),\
+  Usb_unicode('-'),\
+  Usb_unicode('W'),\
+  Usb_unicode('i'),\
+  Usb_unicode('d'),\
+  Usb_unicode('g'),\
+  Usb_unicode('e'),\
+  Usb_unicode('t') \
+}
+#endif
+
+/*
 #define USB_PN_LENGTH         10
 #define USB_PRODUCT_NAME \
 {\
@@ -187,7 +242,7 @@
   Usb_unicode('2'),\
   Usb_unicode('C') \
 }
-
+*/
 
 #define HPSDR_USB_PN_LENGTH         9
 #define HPSDR_USB_PRODUCT_NAME \
@@ -202,6 +257,20 @@
   Usb_unicode('N'),\
   Usb_unicode('E')\
 }
+
+/*
+#define USB_SN_LENGTH         7
+#define USB_SERIAL_NUMBER \
+{\
+  Usb_unicode('FEATURE_SERIAL_0'),\
+  Usb_unicode('.'),\
+  Usb_unicode('FEATURE_SERIAL_1'),\
+  Usb_unicode('.'),\
+  Usb_unicode('FEATURE_SERIAL_2'),\
+  Usb_unicode('.'),\
+  Usb_unicode('FEATURE_SERIAL_3')\
+}
+*/
 
 #define USB_SN_LENGTH         13
 #define USB_SERIAL_NUMBER \

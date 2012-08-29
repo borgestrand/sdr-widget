@@ -17,7 +17,12 @@ SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
-	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none
+	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
+	-DFEATURE_PRODUCT_NAME_sdr_widget \
+	-DFEATURE_SERIAL_0=1 \
+	-DFEATURE_SERIAL_1=2 \
+	-DFEATURE_SERIAL_2=3 \
+	-DFEATURE_SERIAL_3=4
 
 # These defaults are compiled into code, not necessarily forced
 # into flash. To force them into flash, reboot with 
@@ -32,8 +37,13 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
-	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none
-    
+	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
+	-DFEATURE_PRODUCT_NAME_audio_widget \
+	-DFEATURE_SERIAL_0=2 \
+	-DFEATURE_SERIAL_1=3 \
+	-DFEATURE_SERIAL_2=4 \
+	-DFEATURE_SERIAL_3=5
+
 ## Boot up with this code, reboot with feature_quirk_ptest set
 ## in flash (for good measure). That will execute the production 
 ## test with these defaults. Then reboot with feature_quirk_none
@@ -48,7 +58,12 @@ PROD_TEST_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
-	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest
+	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest \
+	-DFEATURE_PRODUCT_NAME_audio_widget \
+	-DFEATURE_SERIAL_0=1 \
+	-DFEATURE_SERIAL_1=0 \
+	-DFEATURE_SERIAL_2=0 \
+	-DFEATURE_SERIAL_3=0
 
 all:: Release/widget.elf widget-control
 
