@@ -299,7 +299,8 @@ void device_mouse_hid_task(void)
     	}
 
     	else { 											   	// GPIO pin _changes_ are sent to Host
-			if ( (gpio_get_pin_value(PRG_BUTTON) == 0) ) {	// Check if Prog button is pushed down
+/*
+    		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) ) {	// Check if Prog button is pushed down
 				ReportByte1 = 0x04;							// Encode the Play/Pause HID command
 				ReportByte2 = 0x00;							// This command is 0x00 until HID becomes more refined...
 			}
@@ -308,6 +309,7 @@ void device_mouse_hid_task(void)
 				ReportByte1 = 0x00;							// Encode the buttion release HID command
 				ReportByte2 = 0x00;							// This command is 0x00 until HID becomes more refined...
 			}
+*/
 
 			// Add more pins to poll here!
 

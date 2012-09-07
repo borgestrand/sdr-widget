@@ -374,6 +374,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 		if (Is_usb_out_received(EP_AUDIO_OUT)){
 
+			// BSB 20120907 Indicate packet receive start below
+
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 8;
 				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
@@ -403,6 +405,12 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						if (i == 0) {
+							sample_HSB = 0xFF;
+							sample_LSB = 0xFF;
+							sample_SB = 0xFF; // BSB 20120907: Packet start indicated by constant left sample
+							sample_MSB = 0x70;
+						}
 					};
 
 					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
@@ -415,12 +423,14 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_LSB = 0;
 						sample_SB = 0;
 						sample_MSB = 0;
-					} else {
+					}
+					else {
 						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					};
+
 					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 					//sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 					if (spk_buffer_in == 0) spk_buffer_0[spk_index+OUT_RIGHT] = sample;

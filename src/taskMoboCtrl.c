@@ -670,6 +670,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Poll Real Time Clock, used for 100ms and 10s timing below
 		time = 	rtc_get_value(&AVR32_RTC);
 
+/*
 		// Prog button poll stuff BSB 20110903
 
 		//-------------------------------------------
@@ -791,7 +792,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 		// End Prog button poll stuff BSB 20110903
 
-
+*/
 
    		//-----------------------------
    		// Routines accessed every 10ms
