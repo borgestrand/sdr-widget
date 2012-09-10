@@ -140,6 +140,8 @@ void uac2_device_audio_task(void *pvParameters)
 	int i;
 	U16 num_samples, num_remaining, gap;
 
+	U16 countdown = 1000; // BSB 20120910 debug
+
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
@@ -376,6 +378,14 @@ void uac2_device_audio_task(void *pvParameters)
 
 			// BSB 20120907 Indicate packet receive start below
 
+			// BSB 20120910 debug
+			// Toggle PX56 = TP50 = GPIO_04
+			if (gpio_get_pin_value(AVR32_PIN_PX56) == 0)
+				gpio_set_gpio_pin(AVR32_PIN_PX56);
+			else
+				gpio_clr_gpio_pin(AVR32_PIN_PX56);
+
+
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 8;
 				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
@@ -384,14 +394,28 @@ void uac2_device_audio_task(void *pvParameters)
 				xSemaphoreGive(mutexSpkUSB);
 				if(!playerStarted)
 				{
-					playerStarted = TRUE;
-					num_remaining = spk_pdca_channel->tcr;
-					if (spk_buffer_in != spk_buffer_out)
-						spk_buffer_in = 1 - spk_buffer_in;
-					spk_index = SPK_BUFFER_SIZE - num_remaining;
+					// BSB 20120910 debug
+					// Toggle PX55 = TP51 = GPIO_03
+					if (gpio_get_pin_value(AVR32_PIN_PX55) == 0)
+						gpio_set_gpio_pin(AVR32_PIN_PX55);
+					else
+						gpio_clr_gpio_pin(AVR32_PIN_PX55);
 
-					LED_Off(LED0);
-					LED_Off(LED1);
+					if (countdown != 0) // BSB20120910 debug
+					{
+						countdown --;
+					}
+					else
+					{
+						playerStarted = TRUE;
+						num_remaining = spk_pdca_channel->tcr;
+						if (spk_buffer_in != spk_buffer_out)
+							spk_buffer_in = 1 - spk_buffer_in;
+						spk_index = SPK_BUFFER_SIZE - num_remaining;
+
+						LED_Off(LED0);
+						LED_Off(LED1);
+					}
 				}
 
 				for (i = 0; i < num_samples; i++) {
@@ -405,12 +429,13 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						if (i == 0) {
+/*						if (i == 0) {
 							sample_HSB = 0xFF;
 							sample_LSB = 0xFF;
 							sample_SB = 0xFF; // BSB 20120907: Packet start indicated by constant left sample
 							sample_MSB = 0x70;
 						}
+*/
 					};
 
 					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
@@ -448,6 +473,7 @@ void uac2_device_audio_task(void *pvParameters)
 		else
 		{
 			playerStarted=FALSE;
+			countdown = 150; // BSB 20120910 debug
 			old_gap = SPK_BUFFER_SIZE;
 		}
 	} // end while vTask

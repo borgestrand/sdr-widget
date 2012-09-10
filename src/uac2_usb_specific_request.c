@@ -597,7 +597,6 @@ void uac2_usb_hid_get_idle (U8 u8_report_id)  // BSB 20120710 prefix "uac2_" add
 Bool uac2_user_read_request(U8 type, U8 request)
 {   int i;
 
-	// print_dbg_char_char('z'); // BSB debug 20120803
 
 	// BSB 20120720 added
 	// this should vector to specified interface handler
@@ -716,7 +715,6 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 	if (type == IN_CL_INTERFACE || type == OUT_CL_INTERFACE){    // process Class Specific Interface
 
-
 		//  request for AUDIO interfaces
 
 /*
@@ -774,8 +772,18 @@ Bool uac2_user_read_request(U8 type, U8 request)
 			} // end OUT_CL_INTERFACE
 		} // end DSC_INTERFACE_AS
 */
+
+		// BSB 20120910 debug
+		// Toggle PX55 = TP51 = GPIO_03
+/*		if (gpio_get_pin_value(AVR32_PIN_PX55) == 0)
+			gpio_set_gpio_pin(AVR32_PIN_PX55);
+		else
+			gpio_clr_gpio_pin(AVR32_PIN_PX55);
+*/
+
+
 		if (wIndex == DSC_INTERFACE_AS_OUT){				// Playback Audio Streaming Interface
-			if (type == IN_CL_INTERFACE){			// get controls
+			 if (type == IN_CL_INTERFACE){			// get controls
 
 				if (wValue_msb == AUDIO_AS_VAL_ALT_SETTINGS && wValue_lsb == 0
 					&& request == AUDIO_CS_REQUEST_CUR){
@@ -886,6 +894,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				case CSD_ID_2:
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
+
+						print_dbg_char_char('h'); // BSB debug 20120910
+
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[3]); // 0x0000bb80 is 48khz
@@ -899,6 +910,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 					}
 					else if (wValue_msb == AUDIO_CS_CONTROL_CLOCK_VALID //&& wValue_lsb == 0
 							 && request == AUDIO_CS_REQUEST_CUR){
+
+						print_dbg_char_char('i'); // BSB debug 20120910
+
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 						Usb_write_endpoint_data(EP_CONTROL, 8, TRUE);	// always valid
@@ -913,6 +927,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 					}
 					else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							 && request == AUDIO_CS_REQUEST_RANGE){
+
+						print_dbg_char_char('j'); // BSB debug 20120910
+
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1068,6 +1085,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 					}
 					else return FALSE;
 				case CSD_ID_2:							// set CUR freq
+
+					print_dbg_char_char('o'); // BSB debug 20120910
+
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR){
 						freq_changed = TRUE;
