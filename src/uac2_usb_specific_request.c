@@ -773,14 +773,6 @@ Bool uac2_user_read_request(U8 type, U8 request)
 		} // end DSC_INTERFACE_AS
 */
 
-		// BSB 20120910 debug
-		// Toggle PX55 = TP51 = GPIO_03
-/*		if (gpio_get_pin_value(AVR32_PIN_PX55) == 0)
-			gpio_set_gpio_pin(AVR32_PIN_PX55);
-		else
-			gpio_clr_gpio_pin(AVR32_PIN_PX55);
-*/
-
 
 		if (wIndex == DSC_INTERFACE_AS_OUT){				// Playback Audio Streaming Interface
 			 if (type == IN_CL_INTERFACE){			// get controls
