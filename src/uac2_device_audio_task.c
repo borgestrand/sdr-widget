@@ -404,22 +404,25 @@ void uac2_device_audio_task(void *pvParameters)
 				if(!playerStarted) {
 
 					gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB debug 20120911, positive edge marks playerStarted FALSE->TRUE
-					print_dbg_char_char('Y'); // BSB debug 20120911
+//					print_dbg_char_char('Y'); // BSB debug 20120911
 
 					playerStarted = TRUE;
 					num_remaining = spk_pdca_channel->tcr;
 //					if (spk_buffer_in != spk_buffer_out) {
 //						spk_buffer_in = 1 - spk_buffer_in;
-////						print_dbg_char_char('Z'); // BSB debug 20120911
 //					}
-
-					spk_buffer_in = spk_buffer_out; // Skip the if-test above
+					spk_buffer_in = spk_buffer_out; // Replaces the if-test above
 					if (spk_buffer_in == 1)
 						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 					else
 						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
+
+					if (spk_index & (U32)1)
+						print_dbg_char_char('s'); // BSB debug 20120912
+					spk_index = spk_index & ~((U32)1); // Clear LSB
+
 
 					LED_Off(LED0);
 					LED_Off(LED1);

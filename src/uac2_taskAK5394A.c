@@ -112,10 +112,10 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 		// silence speaker if USB data out is stalled, as indicated by heart-beat counter
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
-				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
-					spk_buffer_0[i] = 0;
-					spk_buffer_1[i] = 0;
-				}
+			for (i = 0; i < SPK_BUFFER_SIZE; i++) {
+				spk_buffer_0[i] = 0;
+				spk_buffer_1[i] = 0;
+			}
 		}
 		old_spk_usb_heart_beat = spk_usb_heart_beat;
 
