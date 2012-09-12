@@ -237,7 +237,12 @@ is istalled, it identifies itself and its .dll file at certains places in the
 Windows registry. ASIO enabled players will search these places and find the 
 installed ASIO drivers, let the user choose one of then, and then start calling
 functions in its .dll file. In the case of the Audio Widget, the driver is 
-compiled into asiouac2.dll.
+compiled into asiouac2.dll. This file is _typically_ installed into 
+C:\Program Files\Audio-Widget or C:\Program Files (x86)\Audio-Widget. 
+
+If you want to try out an experimental asiouac2.dll, just stop all ASIO 
+players, make a backup of asiouac2.dll and copy the new one into the location
+mentioned above. Then start playing again.
 
 This file contains compiled UAC2 logic. The USB interface itself is handled by
 libusbK. The Audio Widget hardware and firmware in UAC2mode are supported 
