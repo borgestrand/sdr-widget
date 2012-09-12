@@ -226,6 +226,32 @@ Windows is also notorious for trying to "help" you locate the driver it
 believes you need. Here is a link to a text on modifying this "help":
   http://www.addictivetips.com/windows-tips/how-to-disable-automatic-driver-installation-in-windows-vista/
 
+For the curious, here is an introduction about how the ASIO driver works. You 
+may skip the rest of this section if you are not curious. Normally, Windows 
+drivers run in Kernel mode, and are recognized as audio devices in the Control
+Panel. See http://msdn.microsoft.com/en-us/library/windows/desktop/dd316780%28v=vs.85%29.aspx
+
+The ASIO driver, on the other hand, represents a protocol which runs entirely 
+in User mode. An ASIO driver is compiled into a .dll file. When the ASIO driver 
+is istalled, it identifies itself and its .dll file at certains places in the 
+Windows registry. ASIO enabled players will search these places and find the 
+installed ASIO drivers, let the user choose one of then, and then start calling
+functions in its .dll file. In the case of the Audio Widget, the driver is 
+compiled into asiouac2.dll.
+
+This file contains compiled UAC2 logic. The USB interface itself is handled by
+libusbK. The Audio Widget hardware and firmware in UAC2mode are supported 
+through a generic driver in Kernel mode, not a specialized audio driver. This
+generic driver is in libusbK.sys. Its functions are accessed through User mode
+libraries in libusbK.dll and libusb0.dll. These files exist in different 
+versions for 32 and 64 bit Windows versions. asiouac2.dll uses these User mode
+libraries and the generic Kernel mode driver in order to access the actual USB
+hardware.
+
+When the Audio Widget hardware is installed with a driver, the driver's .inf
+file is a modified generic libusbK file. That way it is accessed through the 
+three libusbK files described above. It is only through asiouac2.dll that it 
+plays back audio.
 
 
 Installing players - Linux
