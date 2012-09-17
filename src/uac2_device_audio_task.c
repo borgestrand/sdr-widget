@@ -338,6 +338,7 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
+								print_dbg_char_char('-');
 							}
 
 							else if (gap < (gapLimit1 + gapLimit0)) { // gap < inner lower bound => 1*FB_RATE_DELTA
@@ -357,6 +358,7 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_Toggle(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
+								print_dbg_char_char('+');
 							}
 						}
 					} // end if(playerStarted)
@@ -379,6 +381,7 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
+								print_dbg_char_char('/');
 							}
 
 							else if (gap < (gapLimit1 + gapLimit0)) { // gap < inner lower bound => 1*FB_RATE_DELTA
@@ -398,6 +401,7 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_Toggle(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
+								print_dbg_char_char('*');
 							}
 						}
 					} // end if(playerStarted)
@@ -433,7 +437,13 @@ void uac2_device_audio_task(void *pvParameters)
 //					gpio_clr_gpio_pin(AVR32_PIN_PX56);
 
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 8;
+
+				// BSB debug 20120913
+				num_samples = Usb_byte_count(EP_AUDIO_OUT);
+				if ( (num_samples & (U16)7) != 0)
+					print_dbg_char_char('7');
+				num_samples = num_samples / 8;
+
 				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
 				spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
 				spk_usb_sample_counter += num_samples; 	// track the num of samples received
