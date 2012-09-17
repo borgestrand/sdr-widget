@@ -12,6 +12,7 @@ Version 20120807 BSB initial
         20120812 BSB Atmel batchisp/Flip debugging
         20120815 Alex's .mpdconf file copied in
         20120825 Alex's feedback text copied in, UAC2 on Windows edits
+        20120917 Christian's input on Linux dfu programming
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -259,6 +260,7 @@ three libusbK files described above. It is only through asiouac2.dll that it
 plays back audio.
 
 
+
 Installing players - Linux
 ==========================
 
@@ -354,6 +356,11 @@ EEPROM).
      can be downloaded from:
        http://code.google.com/p/sdr-widget/downloads/list
 
+     Note: (advanced) If you need to compile the dfu-programmer source code to 
+     your machine (e.g. if you need 32bit), you may have issues linking against 
+     libusb. The bug is in the build script and you can fix this by running the 
+     linking command yourself and move -lusb to the end of the command.
+
 2 -  Next, install the ELF to HEX conversion utility:
      sudo apt-get install binutils-avr
 
@@ -443,7 +450,12 @@ ATTRS{idProduct}=="2ff6", MODE:="0666"
 6 -  Reboot for this udev rule to take effect.
 
 7 -  To program:
+       Hold Prog, click and release Rest, release Prog
        >  ./program-widget widget.elf
+
+Note: Steps 5-6 ensure that all users get the correct permissions to program 
+the device, but udev rules do not work correctly, you can try executing the 
+command as root (sudo). 
 
 
 
