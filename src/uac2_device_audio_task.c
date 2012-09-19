@@ -338,18 +338,18 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
-								print_dbg_char_char('-');
+//								print_dbg_char_char('-');
 							}
 
 							else if (gap < (gapLimit1 + gapLimit0)) { // gap < inner lower bound => 1*FB_RATE_DELTA
-								LED_Toggle(LED0);
+//								LED_Toggle(LED0); // Only toggle LEDs outside outer bonds
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
 							}
 						}
 						else if (gap > old_gap) {
 							if (gap > (SPK_BUFFER_SIZE + (gapLimit0))) { // gap > inner upper bound => 1*FB_RATE_DELTA
-								LED_Toggle(LED1);
+//								LED_Toggle(LED1); // Only toggle LEDs outside outer bonds
 								FB_rate += FB_RATE_DELTA;
 								old_gap = gap;
 							}
@@ -358,7 +358,7 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_Toggle(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
-								print_dbg_char_char('+');
+//								print_dbg_char_char('+');
 							}
 						}
 					} // end if(playerStarted)
@@ -381,18 +381,18 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
-								print_dbg_char_char('/');
+//								print_dbg_char_char('/');
 							}
 
 							else if (gap < (gapLimit1 + gapLimit0)) { // gap < inner lower bound => 1*FB_RATE_DELTA
-								LED_Toggle(LED0);
+//								LED_Toggle(LED0); // Only toggle LED when going outside outer bonds
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
 							}
 						}
 						else if (gap > old_gap) {
 							if (gap > (SPK_BUFFER_SIZE + (gapLimit0))) { // gap > inner upper bound => 1*FB_RATE_DELTA
-								LED_Toggle(LED1);
+//								LED_Toggle(LED1);	// Only toggle LED when going outside outer bonds
 								FB_rate += FB_RATE_DELTA;
 								old_gap = gap;
 							}
@@ -401,7 +401,7 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_Toggle(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
-								print_dbg_char_char('*');
+//								print_dbg_char_char('*');
 							}
 						}
 					} // end if(playerStarted)
@@ -440,8 +440,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 				// BSB debug 20120913
 				num_samples = Usb_byte_count(EP_AUDIO_OUT);
-				if ( (num_samples & (U16)7) != 0)
-					print_dbg_char_char('7');
+//				if ( (num_samples & (U16)7) != 0)
+//					print_dbg_char_char('7');
 				num_samples = num_samples / 8;
 
 				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
@@ -450,7 +450,7 @@ void uac2_device_audio_task(void *pvParameters)
 				xSemaphoreGive(mutexSpkUSB);
 				if(!playerStarted) {
 
-					gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB debug 20120911, positive edge marks playerStarted FALSE->TRUE
+//					gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB debug 20120911, positive edge marks playerStarted FALSE->TRUE
 //					print_dbg_char_char('Y'); // BSB debug 20120911
 
 					playerStarted = TRUE;
@@ -459,16 +459,17 @@ void uac2_device_audio_task(void *pvParameters)
 //						spk_buffer_in = 1 - spk_buffer_in;
 //					}
 					spk_buffer_in = spk_buffer_out; // Replaces the if-test above
-					if (spk_buffer_in == 1)
-						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-					else
-						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+
+//					if (spk_buffer_in == 1)
+//						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+//					else
+//						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
 
 					// BSB added 20120912 after UAC2 time bar pull noise analysis
 					if (spk_index & (U32)1)
-						print_dbg_char_char('s'); // BSB debug 20120912
+//						print_dbg_char_char('s'); // BSB debug 20120912
 					spk_index = spk_index & ~((U32)1); // Clear LSB
 
 
@@ -526,10 +527,10 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_index = 0;
 						spk_buffer_in = 1 - spk_buffer_in;
 
-						if (spk_buffer_in == 1)
-							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-						else
-							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+//						if (spk_buffer_in == 1)
+//							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+//						else
+//							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 
 					}
 				} // end for
@@ -538,7 +539,7 @@ void uac2_device_audio_task(void *pvParameters)
 		} // end if (usb_alternate_setting_out == 1)
 		else {
 			playerStarted=FALSE;
-			gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug
+//			gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug
 			old_gap = SPK_BUFFER_SIZE;
 		}
 	} // end while vTask

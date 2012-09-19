@@ -887,7 +887,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR) {
 
-						print_dbg_char_char('h'); // BSB debug 20120910
+//						print_dbg_char_char('h'); // BSB debug 20120910
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
