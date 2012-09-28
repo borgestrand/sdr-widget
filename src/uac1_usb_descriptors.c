@@ -67,7 +67,7 @@ const S_usb_device_descriptor uac1_audio_usb_dev_desc =
 	DEVICE_PROTOCOL,
 	EP_CONTROL_LENGTH,
 	Usb_format_mcu_to_usb_data(16, AUDIO_VENDOR_ID),
-	Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID),
+	Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_1),
 	Usb_format_mcu_to_usb_data(16, RELEASE_NUMBER),
 	MAN_INDEX,
 	PROD_INDEX,

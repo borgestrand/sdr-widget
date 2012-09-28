@@ -31,9 +31,12 @@ import wx.lib.mixins.listctrl as listmix
 #############################################################
 vendorid1    = 0x16c0
 vendorid2    = 0xfffe
+vendorid3    = 0x16d0
 productid1   = 0x05dc
 productid2   = 0x03e8
 productid3   = 0x0007
+productid4   = 0x0761
+productid5   = 0x0762
 confignum   = 1
 interfacenum= 0
 timeout     = 1500
@@ -151,6 +154,14 @@ class Launcher(model.Background):
                     foundbus = bus
                     break
                 if (dev.idVendor == vendorid2) & (dev.idProduct == productid3):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid4):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid5):
                     founddev = dev
                     foundbus = bus
                     break
