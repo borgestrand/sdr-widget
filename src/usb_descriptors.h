@@ -122,8 +122,9 @@
 #define EP_CONTROL_LENGTH     64
 #define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
-#define AUDIO_VENDOR_ID		  0x16c0		//!  Internal Lab use
-#define AUDIO_PRODUCT_ID      0x03e8
+#define AUDIO_VENDOR_ID		  0x16d0		//!  Audio device
+#define AUDIO_PRODUCT_ID_1	  0x0761		//!  UAC1 PID
+#define AUDIO_PRODUCT_ID_2    0x0762		//!  UAC2 PID
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
 #define HPSDR_PRODUCT_ID      0x0007
 #define RELEASE_NUMBER        0x1000
