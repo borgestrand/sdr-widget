@@ -7,6 +7,15 @@
 ## IMPORTANT: run "make clean" if you change compilation defaults or 
 ## targets!
 
+## Hardware variety selects USB VID/PID and signature fields only
+## Available defines:
+## -DFEATURE_PRODUCT_SDR_WIDGET uses AUDIO_PRODUCT_ID_1 and _2
+## -DFEATURE_PRODUCT_USB9023 uses AUDIO_PRODUCT_ID_3 and _4
+## -DFEATURE_PRODUCT_USB5102 uses AUDIO_PRODUCT_ID_5 and _6
+## -DFEATURE_PRODUCT_USB8741 uses AUDIO_PRODUCT_ID_7 and _8
+## -DFEATURE_PRODUCT_AB1x  uses AUDIO_PRODUCT_ID_9 and _10
+
+
 ## See featurs.h #define FEATURE_VALUE_NAMES for available defaults. 
 SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_dg8saq \
@@ -18,11 +27,7 @@ SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
-	-DFEATURE_PRODUCT_NAME_sdr_widget \
-	-DFEATURE_SERIAL_0=1 \
-	-DFEATURE_SERIAL_1=2 \
-	-DFEATURE_SERIAL_2=3 \
-	-DFEATURE_SERIAL_3=4
+	-DFEATURE_PRODUCT_SDR_WIDGET 
 
 # These defaults are compiled into code, not necessarily forced
 # into flash. To force them into flash, reboot with 
@@ -38,11 +43,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
-	-DFEATURE_PRODUCT_NAME_audio_widget \
-	-DFEATURE_SERIAL_0=2 \
-	-DFEATURE_SERIAL_1=3 \
-	-DFEATURE_SERIAL_2=4 \
-	-DFEATURE_SERIAL_3=5
+	-DFEATURE_PRODUCT_AB1x 
 
 ## Boot up with this code, reboot with feature_quirk_ptest set
 ## in flash (for good measure). That will execute the production 
@@ -59,11 +60,7 @@ PROD_TEST_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest \
-	-DFEATURE_PRODUCT_NAME_audio_widget \
-	-DFEATURE_SERIAL_0=1 \
-	-DFEATURE_SERIAL_1=0 \
-	-DFEATURE_SERIAL_2=0 \
-	-DFEATURE_SERIAL_3=0
+	-DFEATURE_PRODUCT_AB1x 
 
 all:: Release/widget.elf widget-control
 

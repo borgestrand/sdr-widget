@@ -71,7 +71,22 @@ const S_usb_device_descriptor uac1_audio_usb_dev_desc =
 	DEVICE_PROTOCOL,
 	EP_CONTROL_LENGTH,
 	Usb_format_mcu_to_usb_data(16, AUDIO_VENDOR_ID),
-	Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID1),
+
+	// BSB 20120928 new VID/PID system
+	#if defined (FEATURE_PRODUCT_SDR_WIDGET) // AUDIO_PRODUCT_ID_1 and _2
+	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_1),
+	#elif defined (FEATURE_PRODUCT_USB9023) // AUDIO_PRODUCT_ID_3 and _4
+	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_3),
+	#elif defined (FEATURE_PRODUCT_USB5102) // AUDIO_PRODUCT_ID_5 and _6
+	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_5),
+	#elif defined (FEATURE_PRODUCT_USB8741) // AUDIO_PRODUCT_ID_7 and _8
+	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_7),
+	#elif defined (FEATURE_PRODUCT_AB1x)  // AUDIO_PRODUCT_ID_9 and _10
+	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_9),
+	#else
+	#error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
+	#endif
+
 	Usb_format_mcu_to_usb_data(16, RELEASE_NUMBER),
 	MAN_INDEX,
 	PROD_INDEX,
