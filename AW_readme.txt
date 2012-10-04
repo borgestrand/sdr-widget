@@ -13,6 +13,7 @@ Version 20120807 BSB initial
         20120815 Alex's .mpdconf file copied in
         20120825 Alex's feedback text copied in, UAC2 on Windows edits
         20120917 Christian's input on Linux dfu programming
+		20121004 Added Nikolay's recipe on firmware builds
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -218,10 +219,34 @@ user licence. A group buy may happen. If you are interested, please contact the
 audio-widget mailing list.
 
 If you have never used an UAC2 or Audio Widget / SDR Widget driver, you may 
-probably skip the rest of this section.  If you are upgrading to new drivers it
+probably skip the rest of this section. If you are upgrading to new drivers it
 is highly recommended that you clean up any old drivers which may have been in
-use by the OS. Follow this text and delete existing libusbK and audio drivers.
+use by the OS. The below link has a good recipe. Below is a copy of it.
   http://www.tech-recipes.com/rx/504/how-to-uninstall-hidden-devices-drivers-and-services/
+
+To get rid of unwanted drivers, devices, or services, use the following steps:
+
+1 -  Open the Start menu and choose Run.
+
+2 -  Type in cmd and click OK.
+
+3 -  At the command prompt, type in "set devmgr_show_nonpresent_devices=1" 
+     and press Enter. (Note that nothing seems to happen. This is expected. 
+	 You are actually setting an environment variable which is going to help you
+	 to see hidden devices.)
+
+4 -  On the next command prompt line, type devmgmt.msc and press Enter. This 
+     will launch the Windows Device Manager Console.
+	 
+5 -  In the Device Manager Console, from the View menu, select Show Hidden 
+     Devices.
+
+6 -  Search under tabs for "libusbK devices" and "Sound, video..."
+     Delete and uninstall anything which rings of:
+     Audio-Widget
+	 SDR-Widget
+	 DG8SAQ
+
 
 Windows is also notorious for trying to "help" you locate the driver it 
 believes you need. Here is a link to a text on modifying this "help":
@@ -698,6 +723,39 @@ members have signed the Steinberg developer's agreement. Go to:
 The Windows ASIO drivers use libusbK. Like the ASIO files the source code only
 contains a place holder for libusbK. You will have to download and install it 
 yourself.
+
+The Windows drivers are bundled into an install package. Here is how to compile
+such a package. 
+
+1 -  Download and install 7Zip from: 
+     http://www.7-zip.org/
+
+2 -  Add the 7Zip binary folder to the Path variable. 
+     Most likely: C:\Program Files (x86)\7-Zip\
+     Control Panel -> Search:"Environment Variables"
+
+3 -  You may have to reboot for good measure
+
+4 -  Go to DriverPackages folder and copy your updated Audio-Widget.inf here.
+     Run "unix2dos re-pack-files.cmd" in Cygwin. Alternative line ends may crash
+	 the .cmd file. Touch InstallDriver.exe. Run "re-pack-files.cmd" in cmd. 
+     This should generate InstallDriver.exe
+
+5 -  Go to the Installer folder. Copy the following files into it:
+     asiouac2.dll,
+     asiouac2debug.dll (renamed "Release with Trace" version of asiouac2.dll)
+     InstallDriver.exe
+     WidgetControl.exe
+     WidgetTest.exe
+     libusbK.dll (copy of libusbK-dev-kit\bin\dll\x86\libusbK.dll)
+
+6 -  Copy the following files from DriverPackages to Installer/usb_driver: 
+     folderss amd64 and x86 with their contents
+     Audio-Widget.inf
+
+7 -  Open audiowidget.iss in Inno Setup Compiler and build it.
+
+8 -  Add a date stamp to the generated output
 
 
 
