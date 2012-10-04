@@ -221,10 +221,12 @@ audio-widget mailing list.
 If you have never used an UAC2 or Audio Widget / SDR Widget driver, you may 
 probably skip the rest of this section. If you are upgrading to new drivers it
 is highly recommended that you clean up any old drivers which may have been in
-use by the OS. The below link has a good recipe. Below is a copy of it.
+use by the OS. The below link has a good recipe. The text below contains a copy
+of it:
   http://www.tech-recipes.com/rx/504/how-to-uninstall-hidden-devices-drivers-and-services/
 
-To get rid of unwanted drivers, devices, or services, use the following steps:
+
+0 -  Uninstall AudioWidget in Start menu or C:\Program Files (x86)\Audio-Widget
 
 1 -  Open the Start menu and choose Run.
 
@@ -241,12 +243,14 @@ To get rid of unwanted drivers, devices, or services, use the following steps:
 5 -  In the Device Manager Console, from the View menu, select Show Hidden 
      Devices.
 
-6 -  Search under tabs for "libusbK devices" and "Sound, video..."
-     Delete and uninstall anything which rings of:
+6 -  Search under tabs for 
+     "libusbK devices"
+	 "Sound, video..."
+	 "Audio-Widget Devices"
+     There, delete and uninstall anything which rings of:
      Audio-Widget
 	 SDR-Widget
 	 DG8SAQ
-
 
 Windows is also notorious for trying to "help" you locate the driver it 
 believes you need. Here is a link to a text on modifying this "help":
