@@ -43,7 +43,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
-	-DFEATURE_PRODUCT_AB1x 
+	-DFEATURE_PRODUCT_AB1x
 
 ## Boot up with this code, reboot with feature_quirk_ptest set
 ## in flash (for good measure). That will execute the production 
