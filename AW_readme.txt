@@ -225,7 +225,6 @@ use by the OS. The below link has a good recipe. The text below contains a copy
 of it:
   http://www.tech-recipes.com/rx/504/how-to-uninstall-hidden-devices-drivers-and-services/
 
-
 0 -  Uninstall AudioWidget in Start menu or C:\Program Files (x86)\Audio-Widget
 
 1 -  Open the Start menu and choose Run.
