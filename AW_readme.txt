@@ -5,6 +5,11 @@ Read this file if you are curious about the Audio Widget project. Most of it
 also applies to the SDR Widget project. This document focuses on using and 
 modifying the Audio Widget. It does not (yet) focus on percieved audio quality.
 
+Please note that implementations of the Audio Widget and its drivers come under
+many names. Depending on your firmware version it may appear under names
+containing "QNKTC", "Yoyodyne", "Audio Widget", "SDR Widget", "ASIO UAC2", 
+"DG8SAQ". 
+
 Version 20120807 BSB initial
         20120808 BSB old HW additions
         20120809 BSB Windows listening
@@ -144,7 +149,7 @@ Widget is the default playback (and / or communication) device, do as follows:
 
 - Right-click the little speaker icon in the bottom-right corner
 - Left-click Playback devices
-- Right-click DG8SAQ-I2C / Audio Widget
+- Right-click DG8SAQ-I2C / Audio Widget / QNKTC... / Yoyodyne...
 - Left-click Set as Default Device
 - To use with Skype etc. left-click Set as Default Communication Device 
 
@@ -243,13 +248,15 @@ of it:
      Devices.
 
 6 -  Search under tabs for 
-     "libusbK devices"
+     "libusbK USB Devices"
 	 "Sound, video..."
 	 "Audio-Widget Devices"
      There, delete and uninstall anything which rings of:
-     Audio-Widget
-	 SDR-Widget
-	 DG8SAQ
+     "Audio-Widget"
+	 "SDR-Widget"
+	 "DG8SAQ"
+	 "QNKTC"
+	 "Yoyodyne"
 
 Windows is also notorious for trying to "help" you locate the driver it 
 believes you need. Here is a link to a text on modifying this "help":
@@ -315,7 +322,9 @@ component.
 We are currently (August 2012) experiencing noise in foobar2000 some times when 
 the time bar is pulled back and forth. This is being debugged. We are not 
 experiencing noise in J-River Media Center. If you experience any kind of noise,
-do not hesitate to contact the Audio Widget mailing list.
+do not hesitate to contact the Audio Widget mailing list. UPDATE: As of October,
+2012 firmware updates seem to have reduced noise. Still, if you hear unexpected
+signals, let the developers know!
 
 
 
