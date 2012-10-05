@@ -225,11 +225,11 @@ use by the OS. The below link has a good recipe. The text below contains a copy
 of it:
   http://www.tech-recipes.com/rx/504/how-to-uninstall-hidden-devices-drivers-and-services/
 
-0 -  Uninstall AudioWidget in Start menu or C:\Program Files (x86)\Audio-Widget
+0 -  Unplug Audio Widget from your computer.
 
-1 -  Open the Start menu and choose Run.
+1 -  Uninstall AudioWidget in Start menu or C:\Program Files (x86)\Audio-Widget
 
-2 -  Type in cmd and click OK.
+2 -  Open the Start menu and choose Run. Type in cmd and click OK.
 
 3 -  At the command prompt, type in "set devmgr_show_nonpresent_devices=1" 
      and press Enter. (Note that nothing seems to happen. This is expected. 
