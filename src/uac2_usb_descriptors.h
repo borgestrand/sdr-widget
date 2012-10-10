@@ -134,10 +134,10 @@
 // USB Endpoint 1 descriptor
 #define ENDPOINT_NB_1       ( UAC2_EP_AUDIO_IN | MSK_EP_DIR )
 #define EP_ATTRIBUTES_1		0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
-//#define EP_IN_LENGTH_1_FS	294				// 3 bytes * 49 samples * stereo
-//#define EP_IN_LENGTH_1_HS	294
-#define EP_IN_LENGTH_1_FS	392				// 4 bytes * 49 samples * stereo
-#define EP_IN_LENGTH_1_HS	392
+#define EP_IN_LENGTH_1_FS	294				// 3 bytes * 49 samples * stereo
+#define EP_IN_LENGTH_1_HS	294
+//#define EP_IN_LENGTH_1_FS	392				// 4 bytes * 49 samples * stereo
+//#define EP_IN_LENGTH_1_HS	392
 #define EP_SIZE_1_FS		EP_IN_LENGTH_1_FS
 #define EP_SIZE_1_HS        EP_IN_LENGTH_1_HS
 #define EP_INTERVAL_1_FS	0x01			 // one packet per uframe, each uF 1ms, so only 48khz
@@ -147,10 +147,10 @@
 // USB Endpoint 2 descriptor
 #define ENDPOINT_NB_2       ( UAC2_EP_AUDIO_OUT )
 #define EP_ATTRIBUTES_2     0b00000101			// ISOCHRONOUS ASYNC
-//#define EP_OUT_LENGTH_2_HS  294				// 3 bytes * 49 samples * stereo
-//#define EP_OUT_LENGTH_2_FS	294
-#define EP_OUT_LENGTH_2_HS  392				// 4 bytes * 49 samples * stereo
-#define EP_OUT_LENGTH_2_FS	392
+#define EP_OUT_LENGTH_2_HS  294				// 3 bytes * 49 samples * stereo
+#define EP_OUT_LENGTH_2_FS	294
+//#define EP_OUT_LENGTH_2_HS  392				// 4 bytes * 49 samples * stereo
+//#define EP_OUT_LENGTH_2_FS	392
 #define EP_SIZE_2_FS		EP_OUT_LENGTH_2_FS
 #define EP_SIZE_2_HS        EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2_FS	0x01			 // one packet per uframe
@@ -160,8 +160,8 @@
 // USB Endpoint 3 descriptor
 #define ENDPOINT_NB_3       ( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x83
 #define EP_ATTRIBUTES_3     0b00010001      // ISOCHRONOUS FEEDBACK
-#define EP_IN_LENGTH_3_FS   4 //64				//
-#define EP_IN_LENGTH_3_HS	4 //64				//
+#define EP_IN_LENGTH_3_FS   3
+#define EP_IN_LENGTH_3_HS	4
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01
@@ -283,8 +283,8 @@
 
 // Format type for ALT1
 #define FORMAT_TYPE_1						0x01	// Format TypeI
-#define FORMAT_SUBSLOT_SIZE_1				0x04	// Number of bytes per subslot
-#define FORMAT_BIT_RESOLUTION_1				0x20	// 32 bits per sample
+#define FORMAT_SUBSLOT_SIZE_1				0x03	// Number of bytes per subslot
+#define FORMAT_BIT_RESOLUTION_1				0x18	// 24 bits per sample
 
 //Audio endpoint specific descriptor field
 #define AUDIO_EP_ATRIBUTES				0b00000000	 	// No sampling freq, no pitch, no pading
