@@ -426,11 +426,10 @@ void uac2_user_endpoint_init(U8 conf_nb)
 void uac2_user_set_interface(U8 wIndex, U8 wValue) {
    //* Check whether it is the audio streaming interface and Alternate Setting that is being set
    usb_interface_nb = wIndex;
-//   if (usb_interface_nb == STD_AS_INTERFACE_IN) {
-//	   usb_alternate_setting = wValue;
-//	   usb_alternate_setting_changed = TRUE;
-//   } else if (usb_interface_nb == STD_AS_INTERFACE_OUT) {
-	if (usb_interface_nb == STD_AS_INTERFACE_OUT) {
+   if (usb_interface_nb == STD_AS_INTERFACE_IN) {
+	   usb_alternate_setting = wValue;
+	   usb_alternate_setting_changed = TRUE;
+   } else if (usb_interface_nb == STD_AS_INTERFACE_OUT) {
 	   usb_alternate_setting_out = wValue;
 	   usb_alternate_setting_out_changed = TRUE;
    }
