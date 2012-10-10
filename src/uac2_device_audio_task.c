@@ -442,7 +442,7 @@ void uac2_device_audio_task(void *pvParameters)
 				num_samples = Usb_byte_count(EP_AUDIO_OUT);
 //				if ( (num_samples & (U16)7) != 0)
 //					print_dbg_char_char('7');
-				num_samples = num_samples / 8;
+				num_samples = num_samples / 6;			// 3 bytes or 24 bits per sample
 
 				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
 				spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
