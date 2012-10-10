@@ -868,10 +868,8 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < min(wLength, sizeof(Speedx_1)); i++) {
-							//if (FEATURE_DAC_GENERIC)
+						for (i = 0; i < min(wLength, sizeof(Speedx_2)); i++) {
 								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
-							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 							}
 						Usb_ack_control_in_ready_send();
 
@@ -922,10 +920,8 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < min(wLength, sizeof(Speedx_1)); i++) {
-							//if (FEATURE_DAC_GENERIC)
-								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
-							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+						for (i = 0; i < min(wLength, sizeof(Speedx_2)); i++) {
+								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 						}
 						Usb_ack_control_in_ready_send();
 
