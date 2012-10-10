@@ -160,8 +160,8 @@
 // USB Endpoint 3 descriptor
 #define ENDPOINT_NB_3       ( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x83
 #define EP_ATTRIBUTES_3     0b00010001      // ISOCHRONOUS FEEDBACK
-#define EP_IN_LENGTH_3_FS   3
-#define EP_IN_LENGTH_3_HS	4
+#define EP_IN_LENGTH_3_FS   64
+#define EP_IN_LENGTH_3_HS	64
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01
