@@ -716,7 +716,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 		//  request for AUDIO interfaces
 
-/*
+
 		if (wIndex == DSC_INTERFACE_AS) {				// Audio Streaming Interface
 			if (type == IN_CL_INTERFACE) {			// get controls
 
@@ -770,7 +770,6 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				}
 			} // end OUT_CL_INTERFACE
 		} // end DSC_INTERFACE_AS
-*/
 
 
 		if (wIndex == DSC_INTERFACE_AS_OUT) {				// Playback Audio Streaming Interface
