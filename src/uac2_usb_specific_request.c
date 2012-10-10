@@ -1055,6 +1055,8 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				} // end switch EntityID
 			} else if (type == OUT_CL_INTERFACE) {		// set controls
 				switch (wIndex /256) {
+/*
+				// CSD_ID_1 not used
 				case CSD_ID_1:							// set CUR freq of Mic
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR) {
@@ -1082,6 +1084,8 @@ Bool uac2_user_read_request(U8 type, U8 request)
 					else
 						return FALSE;
 
+*/
+
 				case CSD_ID_2:							// set CUR freq
 //					print_dbg_char_char('o'); // BSB debug 20120910
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
@@ -1090,16 +1094,16 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						current_freq.freq_bytes[3]=Usb_read_endpoint_data(EP_CONTROL, 8);		// read 4 bytes freq to set
+						current_freq.freq_bytes[3]=Usb_read_endpoint_data(EP_CONTROL, 8);	// read 4 bytes freq to set
 						current_freq.freq_bytes[2]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[1]=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[0]=Usb_read_endpoint_data(EP_CONTROL, 8);
+						Mic_freq.freq_bytes[3]=current_freq.freq_bytes[3];
+						Mic_freq.freq_bytes[2]=current_freq.freq_bytes[2];
+						Mic_freq.freq_bytes[1]=current_freq.freq_bytes[1];
+						Mic_freq.freq_bytes[0]=current_freq.freq_bytes[0];
+						Mic_freq_valid = TRUE;
 						uac2_freq_change_handler();
-
-						// some freq only applies to playback
-						// may need better checking algorithm
-						if (current_freq.frequency == Mic_freq.frequency) 	Mic_freq_valid = TRUE;
-						else Mic_freq_valid = FALSE;
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
