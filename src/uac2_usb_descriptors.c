@@ -162,20 +162,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
      ,  INPUT_TERMINAL_ID
      ,  0x00
      }
-/*
-  ,
 
-  {  sizeof (S_usb_clock_selector_descriptor)
-    ,  CS_INTERFACE
-    ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR
-    ,  CSX_ID
-    ,  CSX_INPUT_PINS
-    ,  CSX_SOURCE_1
-    ,  CSX_SOURCE_2
-    ,  CSX_CONTROL
-    ,  0x00
-    }
-*/
   ,
     {  sizeof(S_usb_in_ter_descriptor_2)
     ,  CS_INTERFACE
@@ -444,13 +431,13 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	{
 	sizeof(S_usb_interface_descriptor),
 	INTERFACE_DESCRIPTOR,
-  INTERFACE_NB0,
-  ALTERNATE_NB0,
-  NB_ENDPOINT0,
-  INTERFACE_CLASS0,
-  INTERFACE_SUB_CLASS0,
-  INTERFACE_PROTOCOL0,
-  INTERFACE_INDEX0
+  	INTERFACE_NB0,
+  	ALTERNATE_NB0,
+  	NB_ENDPOINT0,
+  	INTERFACE_CLASS0,
+  	INTERFACE_SUB_CLASS0,
+  	INTERFACE_PROTOCOL0,
+  	INTERFACE_INDEX0
 }
 
  ,
@@ -648,24 +635,24 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,
       {  sizeof(S_usb_as_interface_descriptor)
       ,  INTERFACE_DESCRIPTOR
-  ,  STD_AS_INTERFACE_IN
+  	  ,  STD_AS_INTERFACE_IN
       ,  ALT0_AS_INTERFACE_INDEX
       ,  ALT0_AS_NB_ENDPOINT
       ,  ALT0_AS_INTERFACE_CLASS
       ,  ALT0_AS_INTERFACE_SUB_CLASS
       ,  ALT0_AS_INTERFACE_PROTOCOL
-  , AIN_INDEX
+  	  , AIN_INDEX
       }
    ,
       {  sizeof(S_usb_as_interface_descriptor)
       ,  INTERFACE_DESCRIPTOR
-  ,  STD_AS_INTERFACE_IN
+  	  ,  STD_AS_INTERFACE_IN
       ,  ALT1_AS_INTERFACE_INDEX
       ,  ALT1_AS_NB_ENDPOINT
       ,  ALT1_AS_INTERFACE_CLASS
       ,  ALT1_AS_INTERFACE_SUB_CLASS
       ,  ALT1_AS_INTERFACE_PROTOCOL
-  , AIA_INDEX
+      , AIA_INDEX
       }
    ,
       {  sizeof(S_usb_as_g_interface_descriptor_2)
