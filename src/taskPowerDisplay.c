@@ -59,8 +59,7 @@ char lcd_bar2[21];
 
 // normalize an audio sample
 static int normalize_sample(unsigned sample) {
-	//return abs((((int)sample) << 8) >> 8);
-	return abs((int)sample);
+	return abs((((int)sample) << 8) >> 8);
 }
 
 //
