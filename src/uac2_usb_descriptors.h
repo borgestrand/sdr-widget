@@ -235,13 +235,13 @@
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID				0x13
-#define SPK_OUTPUT_TERMINAL_TYPE		0x0302	// Headphones
+#define SPK_OUTPUT_TERMINAL_TYPE			0x0302	// Headphones
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
 #define SPK_OUTPUT_TERMINAL_SOURCE_ID		SPK_FEATURE_UNIT_ID
 #define SPK_OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
-//#define STD_AS_INTERFACE_IN				0x03   // Index of Std AS Interface for Audio In
+#define STD_AS_INTERFACE_IN				0x03   // Index of Std AS Interface for Audio In
 #define STD_AS_INTERFACE_OUT			0x02   // Index of Std AS Interface for Audio Out
 
 #define DSC_INTERFACE_AS				STD_AS_INTERFACE_IN
@@ -284,7 +284,7 @@
 // Format type for ALT1
 #define FORMAT_TYPE_1						0x01	// Format TypeI
 #define FORMAT_SUBSLOT_SIZE_1				0x04	// Number of bytes per subslot
-#define FORMAT_BIT_RESOLUTION_1				0x18	// 24 bits per sample
+#define FORMAT_BIT_RESOLUTION_1				0x20	// 32 bits per sample
 
 //Audio endpoint specific descriptor field
 #define AUDIO_EP_ATRIBUTES				0b00000000	 	// No sampling freq, no pitch, no pading

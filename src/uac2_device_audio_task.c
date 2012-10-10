@@ -257,31 +257,37 @@ void uac2_device_audio_task(void *pvParameters)
 									sample_LSB = audio_buffer_0[index+IN_LEFT];
 									sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
 									sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
+									sample_HSB = audio_buffer_0[index+IN_LEFT] >> 24;
 								}
 								else {
 									sample_LSB = audio_buffer_1[index+IN_LEFT];
 									sample_SB = audio_buffer_1[index+IN_LEFT] >> 8;
 									sample_MSB = audio_buffer_1[index+IN_LEFT] >> 16;
+									sample_HSB = audio_buffer_1[index+IN_LEFT] >> 24;
 								}
 
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_HSB);
 
 								if (audio_buffer_out == 0) {
 									sample_LSB = audio_buffer_0[index+IN_RIGHT];
 									sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
 									sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
+									sample_HSB = audio_buffer_0[index+IN_RIGHT] >> 24;
 								}
 								else {
 									sample_LSB = audio_buffer_1[index+IN_RIGHT];
 									sample_SB = audio_buffer_1[index+IN_RIGHT] >> 8;
 									sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 16;
+									sample_HSB = audio_buffer_1[index+IN_RIGHT] >> 24;
 								}
 
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_HSB);
 
 								index += 2;
 								if (index >= AUDIO_BUFFER_SIZE) {
@@ -290,6 +296,8 @@ void uac2_device_audio_task(void *pvParameters)
 								}
 							}
 							else {
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
