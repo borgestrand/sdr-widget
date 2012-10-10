@@ -170,7 +170,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  INPUT_TERMINAL_ID
     ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_TYPE)
     ,  INPUT_TERMINAL_ASSOCIATION
-	,  CSD_ID_1
+	,  CSD_ID_2
     ,  INPUT_TERMINAL_NB_CHANNELS
     ,  Usb_format_mcu_to_usb_data(32, INPUT_TERMINAL_CHANNEL_CONF)
     ,  INPUT_TERMINAL_CH_NAME_ID
@@ -196,7 +196,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  Usb_format_mcu_to_usb_data(16, OUTPUT_TERMINAL_TYPE)
     ,  OUTPUT_TERMINAL_ASSOCIATION
     ,  OUTPUT_TERMINAL_SOURCE_ID
-	,  CSD_ID_1
+	,  CSD_ID_2
     ,  Usb_format_mcu_to_usb_data(16,OUTPUT_TERMINAL_CONTROLS)
     ,  0x00
     }
@@ -498,7 +498,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  INPUT_TERMINAL_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_TYPE)
   ,  INPUT_TERMINAL_ASSOCIATION
-  ,  CSD_ID_1
+  ,  CSD_ID_2
   ,  INPUT_TERMINAL_NB_CHANNELS
   ,  Usb_format_mcu_to_usb_data(32, INPUT_TERMINAL_CHANNEL_CONF)
   ,  INPUT_TERMINAL_CH_NAME_ID
@@ -524,7 +524,7 @@ const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  Usb_format_mcu_to_usb_data(16, OUTPUT_TERMINAL_TYPE)
     ,  OUTPUT_TERMINAL_ASSOCIATION
     ,  OUTPUT_TERMINAL_SOURCE_ID
-  	,  CSD_ID_1
+  	,  CSD_ID_2
     ,  Usb_format_mcu_to_usb_data(16, OUTPUT_TERMINAL_CONTROLS)
     , AOT_INDEX
     }
