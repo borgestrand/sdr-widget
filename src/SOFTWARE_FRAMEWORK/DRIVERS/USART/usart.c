@@ -46,6 +46,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+  * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) 2012 Borge Strand-Bergesen
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * Modified by Alex Lee 20 Feb 2010
+ * To enumerate as a USB composite device with 4 interfaces:
+ * CDC
+ * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
+ * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
+ * Audio (USB Audio Class V2)
+ *
+ * For sdr-widget and audio-widget, custom boards based on the AT32UC3A3256
+ *
+ * See http://code.google.com/p/sdr-widget/
+ *
  */
 
 #include "compiler.h"
@@ -859,19 +888,17 @@ int usart_read_char(volatile avr32_usart_t *usart, int *c)
     return USART_RX_EMPTY;
 }
 
-
 int usart_getchar(volatile avr32_usart_t *usart)
 {
   int c, ret;
 
-  while ((ret = usart_read_char(usart, &c)) == USART_RX_EMPTY);
+  while ((ret = usart_read_char(usart, &c)) == USART_RX_EMPTY) ;
 
   if (ret == USART_RX_ERROR)
     return USART_FAILURE;
 
   return c;
 }
-
 
 void usart_write_line(volatile avr32_usart_t *usart, const char *string)
 {

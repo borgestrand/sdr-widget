@@ -1,9 +1,41 @@
 #!/bin/sh
-##
-## this makes the widget if the AVR32BIN environment variable
-## is pointing to the directory containing avr32-gcc
-##
-PATH=${AVR32BIN:=/home/alex/as4e-ide/plugins/com.atmel.avr.toolchains.linux.x86_64_3.0.0.201009140852/os/linux/x86_64/bin}:$PATH
-#PATH=${AVR32BIN:=/home/alex/as4e-ide/plugins/com.atmel.avr.toolchains.linux.x86_64_3.1.0.201012011657/os/linux/x86_64/bin}:$PATH
-export PATH
-cd Release && make all
+# This file is to be called from Makefile (at project root). Calling
+# it manually means compilation default features are not set. You 
+# must edit Makefile (at project root) to set compilation defaults.
+#
+# This file tries to set AVR32BIN to a directory containing avr32-gcc.
+# it then includes it in the path and runs make in the Release folder.
+#
+# You must edit this file if your AVR32 tools are installed but not 
+# found. If you have not installed AVR32 tools, fetch them at 
+# http://www.atmel.no/beta_ware/
+
+for d in \
+	"/cygdrive/c/Program Files (x86)\Atmel\AVR Tools\AVR Toolchain\bin" \
+	"/cygdrive/c/Program Files (x86)/Atmel/AVR Tools/AVR32 Studio/plugins/com.atmel.avr.toolchains.win32.x86_3.1.0.201012011657/os/win32/x86/bin" \
+    "/cygdrive/c/Program Files (x86)/Atmel/AVR32Studio_2.7/plugins/com.atmel.avr.toolchains.win32.x86_3.1.0.201012011657/os/win32/x86/bin" \
+    "/cygdrive/c/Programs/Atmel/AVR32Studio_2.7/AVR32 Studio/plugins/com.atmel.avr.toolchains.win32.x86_3.1.0.201012011657/os/win32/x86/bin" \
+    "/home/alex/as4e-ide/plugins/com.atmel.avr.toolchains.linux.x86_64_3.1.0.201012011657/os/linux/x86_64/bin" \
+    "/home/alex/as4e-ide/plugins/com.atmel.avr.toolchains.linux.x86_64_3.0.0.201009140852/os/linux/x86_64/bin"\
+    "/cygdrive/c/Program Files/Atmel/AVR Tools/AVR32 Studio/plugins/com.atmel.avr.toolchains.win32.x86_3.1.0.201012011657/os/win32/x86/bin" \
+    "/usr/local/eclipse/plugins/com.atmel.avr.toolchains.linux.x86_64_3.1.0.201012011657/os/linux/x86_64/bin" \
+    "/opt/avr32-gnu-toolchain-linux_x86_64/bin" \
+    ;do
+	if [ -d "$d" ]
+	then
+        echo "Found AVR32BIN directory in"
+        echo "$d"
+        export AVR32BIN="$d"
+	    break
+	fi
+done
+
+if [ -d "$d" ]
+then
+    PATH=${AVR32BIN}:$PATH
+    export PATH
+    cd Release && make all
+else
+    echo "Could not find AVR32BIN directory"
+fi
+

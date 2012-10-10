@@ -106,7 +106,7 @@
 //! Is_usb_event(x)
 //! Usb_clear_all_event()
 volatile U16 g_usb_event = 0;
-#if (USB_HOST_FEATURE == ENABLED) && (USB_DEVICE_FEATURE == ENABLED) && (USB_HIGH_SPEED_SUPPORT==ENABLED)
+#if ((USB_HOST_FEATURE == ENABLED) || (USB_DEVICE_FEATURE == ENABLED)) && (USB_HIGH_SPEED_SUPPORT==ENABLED)
 static U8 private_sof_counter_HS = 0;  // Full speed SOF = 1ms , High speed µSOF = 125µs
 #endif
 

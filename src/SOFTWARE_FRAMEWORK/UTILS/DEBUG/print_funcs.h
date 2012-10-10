@@ -42,6 +42,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
+ * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
+ *
+ * Copyright (C) 2012 Borge Strand-Bergesen
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ *
+ * Modified by Alex Lee 20 Feb 2010
+ * To enumerate as a USB composite device with 4 interfaces:
+ * CDC
+ * HID (generic HID interface, compatible with Jan Axelson's generichid.exe test programs
+ * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
+ * Audio (USB Audio Class V2)
+ *
+ * For sdr-widget and audio-widget, custom boards based on the AT32UC3A3256
+ *
+ * See http://code.google.com/p/sdr-widget/
+ *
  */
 
 #ifndef _PRINT_FUNCS_H_
@@ -77,10 +106,20 @@
 #  define DBG_USART_BAUDRATE      57600
 #elif BOARD == EVK1104 || BOARD == SDRwdgtLite
 #  define DBG_USART               (&AVR32_USART1)
+
+// BSB 20120716 re-implementing according to mail to Alex 20110126
+/*
 #  define DBG_USART_RX_PIN        AVR32_USART1_RXD_0_0_PIN
 #  define DBG_USART_RX_FUNCTION   AVR32_USART1_RXD_0_0_FUNCTION
 #  define DBG_USART_TX_PIN        AVR32_USART1_TXD_0_0_PIN
 #  define DBG_USART_TX_FUNCTION   AVR32_USART1_TXD_0_0_FUNCTION
+*/
+
+#  define DBG_USART_RX_PIN        AVR32_USART1_RXD_0_2_PIN
+#  define DBG_USART_RX_FUNCTION   AVR32_USART1_RXD_0_2_FUNCTION
+#  define DBG_USART_TX_PIN        AVR32_USART1_TXD_0_2_PIN
+#  define DBG_USART_TX_FUNCTION   AVR32_USART1_TXD_0_2_FUNCTION
+
 #  define DBG_USART_BAUDRATE      57600
 #elif BOARD == EVK1105
 #  define DBG_USART               (&AVR32_USART0)
@@ -187,6 +226,54 @@
 #define CL_LIGHTCYAN      "\033[01;36m"       //!< Light cyan.
 #define CL_WHITE          "\033[01;37m"       //!< White.
 //! @}
+
+
+/////////////////////////////////////////////////////
+// BSB 20110128-20120717 Added read functionality
+/////////////////////////////////////////////////////
+
+#define DBG_CHECKSUM_NORMAL 	0
+#define DBG_CHECKSUM_RESET 		1
+#define DBG_CHECKSUM_READOUT	2
+#define DBG_ECHO 				1
+#define DBG_NO_ECHO 			0
+#define RTOS_WAIT				1 // Generously give a few ms to RTOS for each polling loop
+#define RTOS_NOWAIT				0 // Run continuous polling loops interrupted by task switcher
+
+
+/*! \brief Pascal-style readkey() for polling DBG_UART
+ *
+ */
+// BSB 20120810: Added Pascal-style readkey() for polling UART
+extern char readkey(void);
+
+/*! \brief Reads a character from DBG_USART.
+ *
+ * \param echo DBG_ECHO for local echo, DBG_NO_ECHO for no echo
+ * \param checksum_mode DBG_CHECKSUM_NORMAL for local checksum increase by read character, 8 bits
+ * \param checksum_mode DBG_CHECKSUM_RESET to return checksum and reset it to 0
+ * \param rtos_delay is RTOS_WAIT or RTOS_NOWAIT
+ */
+// BSB 20120810: Added rtos_delay
+extern char read_dbg_char(char echo, char rtos_delay, char checksum_mode); // char or extern char? Both give working code.
+
+/*! \brief Reads an 8-bit hex number from DBG_USART
+ *
+ * \param echo DBG_ECHO for local echo, DBG_NO_ECHO for no echo
+ * \param rtos_delay is RTOS_WAIT or RTOS_NOWAIT
+ */
+// BSB 20120810: Added rtos_delay
+extern char read_dbg_char_hex(char echo, char rtos_delay); // char or int? extern?
+
+/*! \brief Writes a character (not passed as pointer) to DBG_USART
+ *
+ * \param c is an int
+ */
+void print_dbg_char_char(int c);
+
+/////////////////////////////////////////////////////
+// BSB 20110128-20120717 End of insertion
+/////////////////////////////////////////////////////
 
 
 /*! \brief Sets up DBG_USART with 8N1 at DBG_USART_BAUDRATE.

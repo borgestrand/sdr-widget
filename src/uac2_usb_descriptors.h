@@ -51,7 +51,7 @@
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   4	//!  DG8SAQ, Audio (2), HID
+#define NB_INTERFACE	   5	//!  DG8SAQ, Audio (3), HID
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
@@ -59,7 +59,7 @@
 
 // IAD for Audio
 #define FIRST_INTERFACE1	1
-#define INTERFACE_COUNT1	2						//!  Audio Control, Audio Out
+#define INTERFACE_COUNT1	3						//!  Audio Control, Audio Out, Audio In
 #define FUNCTION_CLASS		AUDIO_CLASS
 #define FUNCTION_SUB_CLASS  0
 #define FUNCTION_PROTOCOL	IP_VERSION_02_00
@@ -81,15 +81,15 @@
 // In most cases: translation from uac1 code follows pattern of NB1 -> NB4, NB2 -> NB5
 
 // USB HID Interface descriptor
-#define INTERFACE_NB3			    3
-#define ALTERNATE_NB3	            0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT3			    2                  //! The number of endpoints this interface has
-#define INTERFACE_CLASS3		    HID_CLASS          //! HID Class
-#define INTERFACE_SUB_CLASS3        NO_SUBCLASS        //! No Subclass
-#define INTERFACE_PROTOCOL3    		NO_PROTOCOL		   //! No Protocol
-#define INTERFACE_INDEX3       		0
+#define INTERFACE_NB4			    4
+#define ALTERNATE_NB4	            0                  //! The alt setting nb of this interface
+#define NB_ENDPOINT4			    2                  //! The number of endpoints this interface has
+#define INTERFACE_CLASS4		    HID_CLASS          //! HID Class
+#define INTERFACE_SUB_CLASS4        NO_SUBCLASS        //! No Subclass
+#define INTERFACE_PROTOCOL4    		NO_PROTOCOL		   //! No Protocol
+#define INTERFACE_INDEX4       		0
 
-#define DSC_INTERFACE_HID			INTERFACE_NB3
+#define DSC_INTERFACE_HID			INTERFACE_NB4
 
 // HID descriptor
 #define HID_VERSION                 0x0111  //! HID Class Specification release number
@@ -315,15 +315,10 @@ __attribute__((__packed__))
 	S_usb_interface_association_descriptor	iad1;
 	S_usb_interface_descriptor				ifc1;
 	S_usb_ac_interface_descriptor_2			audioac;
-//	S_usb_clock_source_descriptor			audio_cs1;
 	S_usb_clock_source_descriptor			audio_cs2;
-//	S_usb_clock_selector_descriptor			audio_csel;
-	//			S_usb_clock_multiplier_descriptor		audio_cmul;
-/*
 	S_usb_in_ter_descriptor_2 				mic_in_ter;
 	S_usb_feature_unit_descriptor_2			mic_fea_unit;
 	S_usb_out_ter_descriptor_2				mic_out_ter;
-*/
 	S_usb_in_ter_descriptor_2				spk_in_ter;
 	S_usb_feature_unit_descriptor_2			spk_fea_unit;
 	S_usb_out_ter_descriptor_2				spk_out_ter;
@@ -334,22 +329,20 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_descriptor_2 		ep2;
 	S_usb_endpoint_audio_specific_2			ep2_s;
 	S_usb_endpoint_audio_descriptor_2 		ep3;
-
-	// BSB 20120720 Added
-	S_usb_interface_descriptor		ifc3;
-	S_usb_hid_descriptor           	hid;
-	S_usb_endpoint_descriptor      	ep4;
-	S_usb_endpoint_descriptor	   	ep5;
-
-
-/*
 	S_usb_as_interface_descriptor	 		mic_as_alt0;
 	S_usb_as_interface_descriptor	 		mic_as_alt1;
 	S_usb_as_g_interface_descriptor_2		mic_g_as;
 	S_usb_format_type_2						mic_format_type;
 	S_usb_endpoint_audio_descriptor_2 		ep1;
 	S_usb_endpoint_audio_specific_2			ep1_s;
-*/
+
+	// BSB 20120720 Added
+	S_usb_interface_descriptor		ifc4;
+	S_usb_hid_descriptor           	hid;
+	S_usb_endpoint_descriptor      	ep4;
+	S_usb_endpoint_descriptor	   	ep5;
+
+
 }
 #if (defined __ICCAVR32__)
 #pragma pack()
