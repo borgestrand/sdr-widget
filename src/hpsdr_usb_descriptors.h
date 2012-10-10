@@ -125,8 +125,10 @@ S_usb_user_configuration_descriptor;
 
 extern const S_usb_device_descriptor hpsdr_usb_dev_desc;
 extern const S_usb_user_configuration_descriptor hpsdr_usb_conf_desc_fs;
+#if (USB_HIGH_SPEED_SUPPORT==ENABLED)
 extern const S_usb_user_configuration_descriptor hpsdr_usb_conf_desc_hs;
 extern const S_usb_device_qualifier_descriptor hpsdr_usb_qualifier_desc;
+#endif
 extern const S_usb_product_string_descriptor hpsdr_usb_user_product_string_descriptor;
 
 #endif  // _HPSDR_USB_DESCRIPTORS_H_

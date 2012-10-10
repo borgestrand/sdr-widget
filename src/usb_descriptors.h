@@ -49,7 +49,7 @@
  *
  * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
  *
- * Copyright (C) Alex Lee
+ * Copyright (C) 2010 Alex Lee
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -72,7 +72,7 @@
  * DG8SAQ (libusb API compatible interface for implementing DG8SAQ EP0 type of interface)
  * Audio (USB Audio Class V2)
  *
- * For SDR-Widget and SDR-Widget-lite, custom boards based on the AT32UC3A3256
+ * For sdr-widget and audio-widget, custom boards based on the AT32UC3A3256
  *
  * See http://code.google.com/p/sdr-widget/
  *
@@ -115,6 +115,10 @@
 //_____ U S B    D E F I N E S _____________________________________________
 
 // USB Device descriptor
+
+// BSB Added 20110901 according to mail from Roger
+#define USB_1_1_SPECIFICATION     0x0101
+
 #define USB_SPECIFICATION     0x0200
 #define DEVICE_CLASS          0xef          //!
 #define DEVICE_SUB_CLASS      0x02          //!
@@ -123,8 +127,18 @@
 #define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
 #define AUDIO_VENDOR_ID		  0x16d0		//!  Audio device
-#define AUDIO_PRODUCT_ID_1	  0x0761		//!  UAC1 PID
-#define AUDIO_PRODUCT_ID_2    0x0762		//!  UAC2 PID
+#define AUDIO_PRODUCT_ID_1    0x0761		//!  SDR-WIDGET UAC1 PID
+#define AUDIO_PRODUCT_ID_2    0x0762		//!  SDR-WIDGET UAC2 PID
+#define AUDIO_PRODUCT_ID_3	  0x0763		//!  USB9023    UAC1 PID
+#define AUDIO_PRODUCT_ID_4    0x0764		//!  USB9023    UAC2 PID
+#define AUDIO_PRODUCT_ID_5	  0x0765		//!  USB5102    UAC1 PID
+#define AUDIO_PRODUCT_ID_6    0x0766		//!  USB5102    UAC2 PID
+#define AUDIO_PRODUCT_ID_7	  0x0767		//!  USB8741    UAC1 PID
+#define AUDIO_PRODUCT_ID_8    0x0768		//!  USB8741    UAC2 PID
+#define AUDIO_PRODUCT_ID_9	  0x075C		//!  AB-1.x     UAC1 PID
+#define AUDIO_PRODUCT_ID_10   0x075D		//!  AB-1.x     UAC2 PID
+#define AUDIO_PRODUCT_ID_11	  0x075E		//!  QNKTC future use UAC1 PID
+#define AUDIO_PRODUCT_ID_12   0x075F		//!  QNKTC future use UAC2 PID
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
 #define HPSDR_PRODUCT_ID      0x0007
 #define RELEASE_NUMBER        0x1000
@@ -152,39 +166,83 @@
 
 #define LANG_ID               0x00
 
-#define USB_MN_LENGTH         14
-#define USB_MANUFACTURER_NAME \
-{\
-  Usb_unicode('w'),\
-  Usb_unicode('i'),\
-  Usb_unicode('d'),\
-  Usb_unicode('g'),\
-  Usb_unicode('e'),\
-  Usb_unicode('t'),\
-  Usb_unicode('-'),\
-  Usb_unicode('f'),\
-  Usb_unicode('a'),\
-  Usb_unicode('c'),\
-  Usb_unicode('t'),\
-  Usb_unicode('o'), \
-  Usb_unicode('r'),\
-  Usb_unicode('y') \
+// BSB 20120928 new VID/PID system
+#if defined (FEATURE_PRODUCT_SDR_WIDGET) // AUDIO_PRODUCT_ID_1 and _2
+#define USB_MN_LENGTH         10
+#define USB_MANUFACTURER_NAME {\
+  Usb_unicode('S'), Usb_unicode('D'), Usb_unicode('R'), Usb_unicode('-'), Usb_unicode('W'),\
+  Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
 }
+#elif defined (FEATURE_PRODUCT_USB9023) // AUDIO_PRODUCT_ID_3 and _4
+#define USB_MN_LENGTH         12
+#define USB_MANUFACTURER_NAME {\
+  Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
+  Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
+}
+#elif defined (FEATURE_PRODUCT_USB5102) // AUDIO_PRODUCT_ID_5 and _6
+#define USB_MN_LENGTH         12
+#define USB_MANUFACTURER_NAME {\
+  Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
+  Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
+}
+#elif defined (FEATURE_PRODUCT_USB8741) // AUDIO_PRODUCT_ID_7 and _8
+#define USB_MN_LENGTH         12
+#define USB_MANUFACTURER_NAME {\
+  Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
+  Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
+}
+#elif defined (FEATURE_PRODUCT_AB1x)  // AUDIO_PRODUCT_ID_9 and _10
+#define USB_MN_LENGTH         12
+#define USB_MANUFACTURER_NAME {\
+  Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
+  Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
+}
+#else
+#error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
+#endif
 
-#define USB_PN_LENGTH         10
-#define USB_PRODUCT_NAME \
-{\
-  Usb_unicode('s'),\
-  Usb_unicode('d'),\
-  Usb_unicode('r'),\
-  Usb_unicode('-'),\
-  Usb_unicode('w'),\
-  Usb_unicode('i'),\
-  Usb_unicode('d'),\
-  Usb_unicode('g'),\
-  Usb_unicode('e'),\
-  Usb_unicode('t'),\
+
+// BSB 20120928 new VID/PID system
+#if defined (FEATURE_PRODUCT_SDR_WIDGET) // AUDIO_PRODUCT_ID_1 and _2
+#define USB_PN_LENGTH         19
+#define USB_PRODUCT_NAME {\
+  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), \
+  Usb_unicode('S'), Usb_unicode('D'), Usb_unicode('R'), Usb_unicode('-'), Usb_unicode('W'),\
+  Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
 }
+#elif defined (FEATURE_PRODUCT_USB9023) // AUDIO_PRODUCT_ID_3 and _4
+#define USB_PN_LENGTH         16
+#define USB_PRODUCT_NAME {\
+  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
+  Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('9'), Usb_unicode('0'), Usb_unicode('2'), Usb_unicode('3')\
+}
+#elif defined (FEATURE_PRODUCT_USB5102) // AUDIO_PRODUCT_ID_5 and _6
+#define USB_PN_LENGTH         16
+#define USB_PRODUCT_NAME {\
+  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
+  Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('5'), Usb_unicode('1'), Usb_unicode('0'), Usb_unicode('2')\
+}
+#elif defined (FEATURE_PRODUCT_USB8741) // AUDIO_PRODUCT_ID_7 and _8
+#define USB_PN_LENGTH         16
+#define USB_PRODUCT_NAME {\
+  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
+  Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('8'), Usb_unicode('7'), Usb_unicode('4'), Usb_unicode('1')\
+}
+#elif defined (FEATURE_PRODUCT_AB1x)  // AUDIO_PRODUCT_ID_9 and _10
+#define USB_PN_LENGTH         20
+#define USB_PRODUCT_NAME {\
+  Usb_unicode('Q'), Usb_unicode('N'), Usb_unicode('K'), Usb_unicode('T'), Usb_unicode('C'), Usb_unicode(' '), \
+  Usb_unicode('U'), Usb_unicode('S'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('D'), Usb_unicode('A'), \
+  Usb_unicode('C'), Usb_unicode(' '), Usb_unicode('A'), Usb_unicode('B'), Usb_unicode('-'), Usb_unicode('1'), \
+  Usb_unicode('.'), Usb_unicode('2')\
+}
+#else
+#error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
+#endif
 
 
 #define HPSDR_USB_PN_LENGTH         9
@@ -216,7 +274,7 @@
   Usb_unicode('.'),\
   Usb_unicode('0'),\
   Usb_unicode('.'),\
-  Usb_unicode('0') \
+  Usb_unicode('A') \
 }
 
 #define USB_CS1_LENGTH         7
@@ -283,13 +341,13 @@
   Usb_unicode('d'),\
   Usb_unicode('i'),\
   Usb_unicode('o'),\
-  Usb_unicode(' '),\
-  Usb_unicode('I'),\
-  Usb_unicode('n'),\
-  Usb_unicode(' '),\
-  Usb_unicode('T'),\
-  Usb_unicode('r'),\
-  Usb_unicode('m')\
+  Usb_unicode('-'),\
+  Usb_unicode('w'),\
+  Usb_unicode('i'),\
+  Usb_unicode('d'),\
+  Usb_unicode('g'),\
+  Usb_unicode('e'),\
+  Usb_unicode('t')\
 }
 #define USB_AOT_LENGTH         13
 #define USB_AOT \
@@ -1051,27 +1109,6 @@ __attribute__((__packed__))
 	U8		bMsbyteiSamFreq_2;
 } S_usb_format_type_1;
 
-//! Audio Format Type descriptor
-typedef
-#if (defined __ICCAVR32__)
-#pragma pack(1)
-#endif
-struct
-#if (defined __GNUC__)
-__attribute__((__packed__))
-#endif
-{
-	U8		bLenght;
-	U8 	bDescriptorType;
-	U8 	bDescriptorSubType;
-	U8		bFormatType;
-	U8		bNrChannels;
-	U8		bSubFrameSize;
-	U8		bBitResolution;
-	U8		bSampleFreqType;
-	U16	wLsbyteiSamFreq_1;
-	U8		bMsbyteiSamFreq_1;
-} S_usb_format_type_1_one_freq;
 
 //! Endpoint AUDIO Specific descriptor
 typedef
@@ -1438,7 +1475,8 @@ extern const S_usb_aot usb_user_aot;
 extern const S_usb_ain usb_user_ain;
 extern const S_usb_aia usb_user_aia;
 
-#define USB_HID_REPORT_DESC 47
+// #define USB_HID_REPORT_DESC 47
+#define USB_HID_REPORT_DESC 67 // BSB 20120711: Changed according to BasicAudioDevice-10.pdf table 8-2
 extern const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC];
 
 extern U16 configTSK_USB_DEV_PERIOD;

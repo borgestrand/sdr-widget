@@ -35,8 +35,18 @@ vendorid3    = 0x16d0
 productid1   = 0x05dc
 productid2   = 0x03e8
 productid3   = 0x0007
-productid4   = 0x0761
-productid5   = 0x0762
+productid4   = 0x0761 # vendorid3 SDR-Widget UAC1
+productid5   = 0x0762 # vendorid3 SDR-Widget UAC2
+productid6   = 0x0763 # vendorid3 USB9023 UAC1
+productid7   = 0x0764 # vendorid3 USB9023 UAC2
+productid8   = 0x0765 # vendorid3 USB5102 UAC1
+productid9   = 0x0766 # vendorid3 USB5102 UAC2
+productid10   = 0x0767 # vendorid3 USB8741 UAC1
+productid11   = 0x0768 # vendorid3 USB8741 UAC2
+productid12   = 0x075C # vendorid3 AB-1.x UAC1
+productid13   = 0x075D # vendorid3 AB-1.x UAC2
+productid14   = 0x075E # vendorid3 QNKTC future use UAC1
+productid15   = 0x075F # vendorid3 QNKTC future use UAC2
 confignum   = 1
 interfacenum= 0
 timeout     = 1500
@@ -162,6 +172,46 @@ class Launcher(model.Background):
                     foundbus = bus
                     break
                 if (dev.idVendor == vendorid3) & (dev.idProduct == productid5):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid6):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid7):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid8):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid9):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid10):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid11):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid12):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid13):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid14):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid15):
                     founddev = dev
                     foundbus = bus
                     break

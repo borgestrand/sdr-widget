@@ -46,7 +46,14 @@ void features_init() {
   // Enforce "Factory default settings" when a mismatch is detected between the
   // checksum in the memory copy and the matching number in the NVRAM storage.
   // This can be the result of either a fresh firmware upload, or cmd 0x41 with data 0xff
-  if( FEATURE_MAJOR != FEATURE_MAJOR_NVRAM || FEATURE_MINOR != FEATURE_MINOR_NVRAM ) {
+
+  // BSB: Also force factory default settings when quirk_ptest is set in flash. That
+  // means quirk_ptest is overwritten by whatever was was compiled in as defaults
+
+// BSB 20120430 force defaults into flash during PROD_TEST. May need to program quirk_ptest into flash manually, after flashing
+// Code line used to be: if( FEATURE_MAJOR != FEATURE_MAJOR_NVRAM || FEATURE_MINOR != FEATURE_MINOR_NVRAM ) {
+// BUMMER: that's looking in the defaults! Must look in nvram if( (FEATURE_PROD_TEST_ON) || (FEATURE_MAJOR != FEATURE_MAJOR_NVRAM) || (FEATURE_MINOR != FEATURE_MINOR_NVRAM) ) {
+  if( (feature_get_nvram(feature_quirk_index) == feature_quirk_ptest) || (FEATURE_MAJOR != FEATURE_MAJOR_NVRAM) || (FEATURE_MINOR != FEATURE_MINOR_NVRAM) ) {
 	  widget_startup_log_line("reset feature nvram");
 	  flashc_memcpy((void *)&features_nvram, &features, sizeof(features), TRUE);
   } else {

@@ -19,6 +19,9 @@
 // 2) insert the feature index name string into the FEATURE_INDEX_NAMES define;
 // 3) insert the feature end marker value into the feature_values_t enumeration;
 // 4) insert the feature end marker name into the FEATURE_VALUE_NAMES define.
+// 5) insert macros to test the feature
+// 6) insert test for default being set by Makefile
+// 7) insert the feature in all configurations in Makefile at project root
 //
 
 typedef enum {
@@ -32,6 +35,8 @@ typedef enum {
   feature_dac_index,			// dac identifier
   feature_lcd_index,			// lcd display type
   feature_log_index,			// startup log display timing
+  feature_filter_index,			// setting of filter
+  feature_quirk_index,			// setting of various quirks
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -45,6 +50,8 @@ typedef enum {
 		"dac",										\
 		"lcd",										\
 		"log",										\
+		"filter",									\
+		"quirk",									\
 		"end"
 
 //
@@ -69,9 +76,7 @@ typedef enum {
 	feature_board_widget,
 	feature_board_usbi2s,
 	feature_board_usbdac,
-	feature_board_test,
 	feature_end_board,
-	feature_image_flashyblinky,	// image selection
 	feature_image_uac1_audio,
 	feature_image_uac1_dg8saq,
 	feature_image_uac2_audio,
@@ -90,29 +95,33 @@ typedef enum {
 	feature_end_adc,
 	feature_dac_none,			// dac
 	feature_dac_cs4344,
-	feature_dac_es9022,
+	feature_dac_generic,
 	feature_end_dac,
 	feature_lcd_none,			// lcd
 	feature_lcd_hd44780,		/* normal hd44780 lcd controller */
 	feature_lcd_ks0073,			/* ks0073 almost hd44780 compatible */
 	feature_end_lcd,
 	feature_log_none,			// log
-	feature_log_250ms,
 	feature_log_500ms,
 	feature_log_1sec,
 	feature_log_2sec,
 	feature_end_log,
+	feature_filter_fir,			// filter select
+	feature_filter_iir,
+	feature_end_filter,
+	feature_quirk_linux,		// Linux_quirk select
+	feature_quirk_ptest,		// Production test quirk
+	feature_quirk_none,			// No quirks, normal operation
+	feature_end_lquirk,
 	feature_end_values			// end
 } feature_values_t;
 
 #define FEATURE_VALUE_NAMES \
-	"none",																\
+		"none",															\
 		"widget",														\
 		"usbi2s",														\
 		"usbdac",														\
-		"test",															\
 		"end",															\
-		"flashyblinky",													\
 		"uac1_audio",													\
 		"uac1_dg8saq",													\
 		"uac2_audio",													\
@@ -131,17 +140,23 @@ typedef enum {
 		"end",															\
 		"none",															\
 		"cs4344",														\
-		"es9022",														\
+		"generic",														\
 		"end",															\
 		"none",															\
 		"hd44780",														\
 		"ks0073",														\
 		"end",															\
 		"none",															\
-		"250ms",														\
 		"500ms",														\
 		"1sec",															\
 		"2sec",															\
+		"end",															\
+		"fir",															\
+		"iir",															\
+		"end",															\
+		"quirk_linux",													\
+		"quirk_ptest",													\
+		"quirk_none",													\
 		"end",															\
 		"end"
 	
@@ -167,9 +182,7 @@ extern const features_t features_default;
 #define FEATURE_BOARD_WIDGET			(features[feature_board_index] == (uint8_t)feature_board_widget)
 #define FEATURE_BOARD_USBI2S			(features[feature_board_index] == (uint8_t)feature_board_usbi2s)
 #define FEATURE_BOARD_USBDAC			(features[feature_board_index] == (uint8_t)feature_board_usbdac)
-#define FEATURE_BOARD_TEST				(features[feature_board_index] == (uint8_t)feature_board_test)
 
-#define FEATURE_IMAGE_FLASHYBLINKY		(features[feature_image_index] == (uint8_t)feature_image_flashyblinky)
 #define FEATURE_IMAGE_UAC1_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac1_audio)
 #define FEATURE_IMAGE_UAC1_DG8SAQ		(features[feature_image_index] == (uint8_t)feature_image_uac1_dg8saq)
 #define FEATURE_IMAGE_UAC2_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac2_audio)
@@ -188,17 +201,25 @@ extern const features_t features_default;
 
 #define FEATURE_DAC_NONE				(features[feature_dac_index] == (uint8_t)feature_dac_none)
 #define FEATURE_DAC_CS4344				(features[feature_dac_index] == (uint8_t)feature_dac_cs4344)
-#define FEATURE_DAC_ES9022				(features[feature_dac_index] == (uint8_t)feature_dac_es9022)
+#define FEATURE_DAC_GENERIC				(features[feature_dac_index] == (uint8_t)feature_dac_generic)
 
 #define FEATURE_LCD_NONE				(features[feature_lcd_index] == (uint8_t)feature_lcd_none)
 #define FEATURE_LCD_HD44780				(features[feature_lcd_index] == (uint8_t)feature_lcd_hd44780)
 #define FEATURE_LCD_KS0073				(features[feature_lcd_index] == (uint8_t)feature_lcd_ks0073)
 
 #define FEATURE_LOG_NONE				(features[feature_log_index] == (uint8_t)feature_log_none)
-#define FEATURE_LOG_250MS				(features[feature_log_index] == (uint8_t)feature_log_250ms)
 #define FEATURE_LOG_500MS				(features[feature_log_index] == (uint8_t)feature_log_500ms)
 #define FEATURE_LOG_1SEC				(features[feature_log_index] == (uint8_t)feature_log_1sec)
 #define FEATURE_LOG_2SEC				(features[feature_log_index] == (uint8_t)feature_log_2sec)
+
+#define FEATURE_FILTER_FIR				(features[feature_filter_index] == (uint8_t)feature_filter_fir)
+#define FEATURE_FILTER_IIR				(features[feature_filter_index] == (uint8_t)feature_filter_iir)
+
+#define FEATURE_LINUX_QUIRK_ON			(features[feature_quirk_index] == (uint8_t)feature_quirk_linux)
+#define FEATURE_LINUX_QUIRK_OFF			(features[feature_quirk_index] != (uint8_t)feature_quirk_linux)
+#define FEATURE_PROD_TEST_ON			(features[feature_quirk_index] == (uint8_t)feature_quirk_ptest)
+#define FEATURE_PROD_TEST_OFF			(features[feature_quirk_index] != (uint8_t)feature_quirk_ptest)
+
 
 //
 // the version in the features specifies
@@ -211,39 +232,35 @@ extern const features_t features_default;
 #define FEATURE_MINOR_DEFAULT			feature_end_values
 
 //
-// conditionally set the defaults for this build
+// Check the defaults for this build
 //
+// BSB 20120409 edited after Roger's mail
 #ifndef FEATURE_BOARD_DEFAULT
-#define FEATURE_BOARD_DEFAULT			feature_board_widget
+#error "FEATURE_BOARD_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_IMAGE_DEFAULT
-#if FEATURE_BOARD_DEFAULT == feature_board_widget
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_dg8saq
-#else
-#define FEATURE_IMAGE_DEFAULT			feature_image_uac1_audio
-#endif
+#error "FEATURE_IMAGE_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_IN_DEFAULT
-#define FEATURE_IN_DEFAULT				feature_in_normal
+#error "FEATURE_IN_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_OUT_DEFAULT
-#define FEATURE_OUT_DEFAULT				feature_out_normal
-#endif
-#ifndef FEATURE_ADC_DEFAULT
-#if FEATURE_BOARD_DEFAULT == feature_board_widget
-#define FEATURE_ADC_DEFAULT				feature_adc_ak5394a
-#else
-#define FEATURE_ADC_DEFAULT				feature_adc_none
-#endif
+#error "FEATURE_OUT_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_DAC_DEFAULT
-#define FEATURE_DAC_DEFAULT				feature_dac_cs4344
+#error "FEATURE_DAC_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_LCD_DEFAULT
-#define FEATURE_LCD_DEFAULT				feature_lcd_hd44780
+#error "FEATURE_LCD_DEFAULT must be defined by the Makefile"
 #endif
 #ifndef FEATURE_LOG_DEFAULT
-#define FEATURE_LOG_DEFAULT				feature_log_500ms
+#error "FEATURE_LOG_DEFAULT must be defined by the Makefile"
+#endif
+#ifndef FEATURE_FILTER_DEFAULT
+#error "FEATURE_FILTER_DEFAULT must be defined by the Makefile"
+#endif
+#ifndef FEATURE_QUIRK_DEFAULT
+#error "FEATURE_QUIRK_DEFAULT must be defined by the Makefile"
 #endif
 
 #define FEATURES_DEFAULT FEATURE_MAJOR_DEFAULT,		\
@@ -255,7 +272,9 @@ extern const features_t features_default;
 		FEATURE_ADC_DEFAULT,						\
 		FEATURE_DAC_DEFAULT,						\
 		FEATURE_LCD_DEFAULT,						\
-		FEATURE_LOG_DEFAULT
+		FEATURE_LOG_DEFAULT,						\
+		FEATURE_FILTER_DEFAULT,						\
+		FEATURE_QUIRK_DEFAULT
 
 extern const char * const feature_value_names[];
 extern const char * const feature_index_names[];

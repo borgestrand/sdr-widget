@@ -8,21 +8,55 @@
 
          'components': [
 
+# BSB 20120426
+{'type':'ComboBox', 
+    'name':'ComboBoxQuirk', 
+    'position':(155, 226), 
+    'size':(112, -1), 
+    'items':[u'quirk_linux', u'quirk_ptest', u'quirk_none'], 
+    'text':u'Quirk Type', 
+    },
+
+# BSB 20120426
+{'type':'StaticText', 
+    'name':'QuirkType', 
+    'position':(155, 204), 
+    'backgroundColor':(240, 235, 226, 255), 
+    'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
+    'text':u'Quirk:', 
+    },
+
+{'type':'ComboBox', 
+    'name':'ComboBoxFilter', 
+    'position':(14, 226), 
+    'size':(112, -1), 
+    'items':[u'fir', u'iir'], 
+    'text':u'Filter Type', 
+    },
+
+{'type':'StaticText', 
+    'name':'FilterType', 
+    'position':(23, 204), 
+    'backgroundColor':(240, 235, 226, 255), 
+    'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
+    'text':u'Filter Type:', 
+    },
+
 {'type':'StaticText', 
     'name':'BoardType', 
-    'position':(15, 21), 
+    'position':(15, 20), 
     'size':(175, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
-    'text':'Board Type:', 
+    'text':u'Board Type:', 
     },
 
 {'type':'ComboBox', 
     'name':'ComboBoxBoard', 
     'position':(10, 55), 
     'size':(100, -1), 
-    'items':[u'none', u'widget', u'usbi2s', u'usbdac', u'test'], 
-    'text':'board', 
+    'items':[u'none', u'widget', u'usbi2s', u'usbdac'], 
+    'text':u'board', 
     },
 
 {'type':'StaticText', 
@@ -31,15 +65,15 @@
     'size':(175, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
-    'text':'Image Type:', 
+    'text':u'Image Type:', 
     },
 
 {'type':'ComboBox', 
     'name':'ComboBoxImage', 
     'position':(132, 55), 
     'size':(135, -1), 
-    'items':[u'flashyblinky', u'uac1_audio', u'uac1_dg8saq', u'uac2_audio', u'uac2_dg8saq', u'hpsdr', u'test'], 
-    'text':'Image', 
+    'items':[u'uac1_audio', u'uac1_dg8saq', u'uac2_audio', u'uac2_dg8saq', u'hpsdr', u'test'], 
+    'text':u'Image', 
     },
 
 {'type':'StaticText', 
@@ -48,7 +82,7 @@
     'size':(175, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
-    'text':'IN Type:', 
+    'text':u'IN Type:', 
     },
 
 {'type':'ComboBox', 
@@ -56,7 +90,7 @@
     'position':(287, 55), 
     'size':(100, -1), 
     'items':[u'normal', u'swapped'], 
-    'text':'IN Type', 
+    'text':u'IN Type', 
     },
 
 {'type':'StaticText', 
@@ -65,7 +99,7 @@
     'size':(175, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
-    'text':'OUT Type:', 
+    'text':u'OUT Type:', 
     },
 
 {'type':'ComboBox', 
@@ -73,7 +107,7 @@
     'position':(416, 55), 
     'size':(100, -1), 
     'items':[u'normal', u'swapped'], 
-    'text':'OUT Type', 
+    'text':u'OUT Type', 
     },
 
 {'type':'StaticText', 
@@ -82,7 +116,7 @@
     'size':(175, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
-    'text':'ADC Type:', 
+    'text':u'ADC Type:', 
     },
 
 {'type':'ComboBox', 
@@ -90,7 +124,7 @@
     'position':(12, 154), 
     'size':(100, -1), 
     'items':[u'none', u'ak5394a'], 
-    'text':'ADC Type', 
+    'text':u'ADC Type', 
     },
 
 {'type':'StaticText', 
@@ -99,15 +133,15 @@
     'size':(175, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
-    'text':'DAC Type:', 
+    'text':u'DAC Type:', 
     },
 
 {'type':'ComboBox', 
-    'name':'ComboBoxDac', 
+    'name':'ComboBoxDac',
     'position':(148, 154), 
     'size':(100, -1), 
-    'items':[u'none', u'cs4344', u'es9022'], 
-    'text':'DAC Type', 
+    'items':[u'none', u'cs4344', u'generic'], 
+    'text':u'DAC Type',
     },
 
 {'type':'StaticText', 
@@ -116,7 +150,7 @@
     'size':(175, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
-    'text':'LCD Type:', 
+    'text':u'LCD Type:', 
     },
 
 {'type':'ComboBox', 
@@ -124,7 +158,7 @@
     'position':(271, 154), 
     'size':(100, -1), 
     'items':[u'none', u'hd44780', u'ks0073'], 
-    'text':'LCD Type', 
+    'text':u'LCD Type:', 
     },
 
 {'type':'StaticText', 
@@ -133,15 +167,16 @@
     'size':(175, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 12}, 
-    'text':'Log Type:', 
+    'text':u'Log Type:', 
     },
 
 {'type':'ComboBox', 
     'name':'ComboBoxLog', 
     'position':(413, 154), 
     'size':(100, -1), 
-    'items':[u'none', u'125ms', u'250ms', u'500ms', u'1sec', u'2sec', u'4sec'], 
-    'text':'log', 
+    'items':[u'none', u'500ms', u'1sec', u'2sec'], 
+    'stringSelection':u'none', 
+    'text':u'Log Type:', 
     },
 
 {'type':'StaticBox', 
@@ -150,7 +185,7 @@
     'size':(175, 43), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'label':'Read From Firmware', 
+    'label':u'Read From Firmware', 
     },
 
 {'type':'StaticText', 
@@ -160,7 +195,7 @@
     'alignment':'center', 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'style': 'bold', 'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 16}, 
-    'text':'Control Widget', 
+    'text':u'Control Widget', 
     },
 
 {'type':'StaticBox', 
@@ -169,7 +204,7 @@
     'size':(175, 86), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'label':'Firmware Control', 
+    'label':u'Firmware Control', 
     },
 
 {'type':'StaticText', 
@@ -178,7 +213,7 @@
     'size':(87, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'text':'FirmwareSdisplay', 
+    'text':u'FirmwareSdisplay', 
     },
 
 {'type':'StaticText', 
@@ -186,7 +221,7 @@
     'position':(734, 199), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'text':'Serial Number:', 
+    'text':u'Serial Number:', 
     },
 
 {'type':'StaticText', 
@@ -195,7 +230,7 @@
     'size':(87, -1), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'text':'FirmwareVdisplay', 
+    'text':u'FirmwareVdisplay', 
     },
 
 {'type':'StaticText', 
@@ -203,7 +238,7 @@
     'position':(735, 216), 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'text':'Version........:', 
+    'text':u'Version........:', 
     },
 
 {'type':'StaticLine', 
@@ -225,11 +260,11 @@
 {'type':'StaticText', 
     'name':'stAuthor', 
     'position':(546, 92), 
-    'size':(82, 22), 
+    'size':(160, 22), 
     'alignment':'center', 
     'backgroundColor':(240, 235, 226, 255), 
     'font':{'faceName': u'Arial', 'family': 'sansSerif', 'size': 6}, 
-    'text':'V 001 2011-03-11 9V1AL', 
+    'text':u'V 001 2011-03-11 9V1AL', 
     },
 
 {'type':'Image', 
@@ -246,7 +281,7 @@
     'size':(86, 25), 
     'command':'btnReset', 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'label':'Reset', 
+    'label':u'Reset', 
     },
 
 {'type':'Button', 
@@ -255,7 +290,7 @@
     'size':(86, 25), 
     'command':'btnFactoryReset', 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'label':'Factory Reset', 
+    'label':u'Factory Reset', 
     },
 
 {'type':'Button', 
@@ -264,7 +299,7 @@
     'size':(75, 25), 
     'command':'USB', 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'label':'Start USB', 
+    'label':u'Start USB', 
     },
 
 {'type':'Button', 
@@ -274,7 +309,7 @@
     'command':'Refresh', 
     'default':1, 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'label':'Read', 
+    'label':u'Read', 
     },
 
 {'type':'Button', 
@@ -283,7 +318,7 @@
     'size':(75, 25), 
     'command':'Exit', 
     'font':{'faceName': u'FreeSans', 'family': 'sansSerif', 'size': 8}, 
-    'label':'Quit', 
+    'label':u'Quit', 
     },
 
 ] # end components
