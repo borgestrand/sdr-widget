@@ -192,7 +192,7 @@ void uac2_device_audio_task(void *pvParameters)
 				audio_buffer_in = 0;
 				audio_buffer_out = 0;
 				spk_buffer_in = 0;
-//				spk_buffer_out = 0; // Only place outside taskAK53984A.c where spk_buffer_out is written!
+				spk_buffer_out = 0;
 				index = 0;
 
 				if (!FEATURE_ADC_NONE){
@@ -427,51 +427,22 @@ void uac2_device_audio_task(void *pvParameters)
 
 			if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
-				// BSB 20120907 Indicate packet receive start below
-
-				// BSB 20120910 debug
-				// Toggle PX56 = TP50 = GPIO_04
-//				if (gpio_get_pin_value(AVR32_PIN_PX56) == 0)
-//					gpio_set_gpio_pin(AVR32_PIN_PX56);
-//				else
-//					gpio_clr_gpio_pin(AVR32_PIN_PX56);
-
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-
-				// BSB debug 20120913
-				num_samples = Usb_byte_count(EP_AUDIO_OUT);
-//				if ( (num_samples & (U16)7) != 0)
-//					print_dbg_char_char('7');
-				num_samples = num_samples / 6;			// 3 bytes or 24 bits per sample
+				num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;  // 3 bytes or 24 bits per sample x stereo
 
 				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
 				spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
 				spk_usb_sample_counter += num_samples; 	// track the num of samples received
 				xSemaphoreGive(mutexSpkUSB);
 				if(!playerStarted) {
-
-//					gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB debug 20120911, positive edge marks playerStarted FALSE->TRUE
-//					print_dbg_char_char('Y'); // BSB debug 20120911
-
 					playerStarted = TRUE;
 					num_remaining = spk_pdca_channel->tcr;
-//					if (spk_buffer_in != spk_buffer_out) {
-//						spk_buffer_in = 1 - spk_buffer_in;
-//					}
 					spk_buffer_in = spk_buffer_out; // Replaces the if-test above
-
-//					if (spk_buffer_in == 1)
-//						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-//					else
-//						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
 
 					// BSB added 20120912 after UAC2 time bar pull noise analysis
 					if (spk_index & (U32)1)
-//						print_dbg_char_char('s'); // BSB debug 20120912
-					spk_index = spk_index & ~((U32)1); // Clear LSB
-
+						spk_index = spk_index & ~((U32)1); // Clear LSB
 
 					LED_Off(LED0);
 					LED_Off(LED1);
@@ -521,11 +492,6 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_index = 0;
 						spk_buffer_in = 1 - spk_buffer_in;
 
-//						if (spk_buffer_in == 1)
-//							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-//						else
-//							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-
 					}
 				} // end for
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
@@ -533,7 +499,6 @@ void uac2_device_audio_task(void *pvParameters)
 		} // end if (usb_alternate_setting_out == 1)
 		else {
 			playerStarted=FALSE;
-//			gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug
 			old_gap = SPK_BUFFER_SIZE;
 		}
 	} // end while vTask

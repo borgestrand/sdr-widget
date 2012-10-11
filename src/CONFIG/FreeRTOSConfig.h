@@ -184,8 +184,8 @@ to exclude the API function. */
 #define UAC1_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 2)// Was 1
 #define UAC2_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 3)// Was +1, then +2
 #define HPSDR_configTSK_AK5394A_PRIORITY		(tskIDLE_PRIORITY + 2)
-#define UAC1_configTSK_AK5394A_PERIOD			50
-#define UAC2_configTSK_AK5394A_PERIOD			50
+#define UAC1_configTSK_AK5394A_PERIOD			200
+#define UAC2_configTSK_AK5394A_PERIOD			200
 #define HPSDR_configTSK_AK5394A_PERIOD			100
 
 /* USB host Audio HID task definitions. */
