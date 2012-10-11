@@ -405,6 +405,11 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_buffer_in = 1 - spk_buffer_in;
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
 
+					// BSB added 20120912 after UAC2 time bar pull noise analysis
+					if (spk_index & (U32)1)
+//						print_dbg_char_char('s'); // BSB debug 20120912
+					spk_index = spk_index & ~((U32)1); // Clear LSB
+
 					LED_Off(LED0);
 					LED_Off(LED1);
 				}
