@@ -234,7 +234,9 @@ of it:
 
 1 -  Uninstall AudioWidget in Start menu or C:\Program Files (x86)\Audio-Widget
 
-2 -  Open the Start menu and choose Run. Type in cmd and click OK.
+2 -  Open the Start menu and choose Run. Type in "cmd". On the icon on top, 
+     right-click and choose "Run as Administrator". Click "OK" in the User 
+	 Account Control window.
 
 3 -  At the command prompt, type in "set devmgr_show_nonpresent_devices=1" 
      and press Enter. (Note that nothing seems to happen. This is expected. 
@@ -250,13 +252,15 @@ of it:
 6 -  Search under tabs for 
      "libusbK USB Devices"
 	 "Sound, video..."
-	 "Audio-Widget Devices"
+	 "Audio-Widget..."
      There, delete and uninstall anything which rings of:
      "Audio-Widget"
 	 "SDR-Widget"
 	 "DG8SAQ"
 	 "QNKTC"
 	 "Yoyodyne"
+
+7 -  You should now be ready to install the new fresh version of the drivers!	 
 
 Windows is also notorious for trying to "help" you locate the driver it 
 believes you need. Here is a link to a text on modifying this "help":
