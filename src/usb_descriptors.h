@@ -152,38 +152,27 @@
 
 #define LANG_ID               0x00
 
-#define USB_MN_LENGTH         14
+#define USB_MN_LENGTH         10
 #define USB_MANUFACTURER_NAME \
 {\
-  Usb_unicode('w'),\
+  Usb_unicode('S'),\
+  Usb_unicode('D'),\
+  Usb_unicode('R'),\
+  Usb_unicode('-'),\
+  Usb_unicode('W'),\
   Usb_unicode('i'),\
   Usb_unicode('d'),\
   Usb_unicode('g'),\
   Usb_unicode('e'),\
   Usb_unicode('t'),\
-  Usb_unicode('-'),\
-  Usb_unicode('f'),\
-  Usb_unicode('a'),\
-  Usb_unicode('c'),\
-  Usb_unicode('t'),\
-  Usb_unicode('o'), \
-  Usb_unicode('r'),\
-  Usb_unicode('y') \
 }
 
-#define USB_PN_LENGTH         10
-#define USB_PRODUCT_NAME \
-{\
-  Usb_unicode('s'),\
-  Usb_unicode('d'),\
-  Usb_unicode('r'),\
-  Usb_unicode('-'),\
-  Usb_unicode('w'),\
-  Usb_unicode('i'),\
-  Usb_unicode('d'),\
-  Usb_unicode('g'),\
-  Usb_unicode('e'),\
-  Usb_unicode('t'),\
+#define USB_PN_LENGTH         19
+#define USB_PRODUCT_NAME {\
+  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), \
+  Usb_unicode('S'), Usb_unicode('D'), Usb_unicode('R'), Usb_unicode('-'), Usb_unicode('W'),\
+  Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
 }
 
 

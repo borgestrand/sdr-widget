@@ -312,19 +312,36 @@ void uac2_device_audio_task(void *pvParameters)
 				//feedback calculate only in playing mode
 				if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 
-					if(playerStarted)
-					{
-						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-							LED_Toggle(LED0);
-							FB_rate -= FB_RATE_DELTA;
-							old_gap = gap;
-						} else
-							if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-							LED_Toggle(LED1);
-							FB_rate += FB_RATE_DELTA;
-							old_gap = gap;
+				// BSB 20120912 UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
+#define gapLimit0 SPK_BUFFER_SIZE/4
+#define gapLimit1 SPK_BUFFER_SIZE/2
+
+					if(playerStarted) {
+						if (gap < old_gap) {
+							if (gap < (gapLimit1)) {
+								LED_Toggle(LED0);
+								FB_rate -= 2*FB_RATE_DELTA;
+								old_gap = gap;
+							}
+
+							else if (gap < (gapLimit1 + gapLimit0)) {
+								FB_rate -= FB_RATE_DELTA;
+								old_gap = gap;
+							}
 						}
-					}
+						else if (gap > old_gap) {
+							if (gap > (SPK_BUFFER_SIZE + (gapLimit0))) {
+								FB_rate += FB_RATE_DELTA;
+								old_gap = gap;
+							}
+
+							else if (gap > (SPK_BUFFER_SIZE + (gapLimit1))) {
+								LED_Toggle(LED1);
+								FB_rate += 2*FB_RATE_DELTA;
+								old_gap = gap;
+							}
+						}
+					} // end if(playerStarted)
 
 					sample_LSB = FB_rate;
 					sample_SB = FB_rate >> 8;
@@ -337,19 +354,31 @@ void uac2_device_audio_task(void *pvParameters)
 					// FB rate is 4 bytes in 12.14 format
 
 					//feedback calculate only in playing mode
-					if(playerStarted)
-					{
-						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)){
-							LED_Toggle(LED0);
-							FB_rate -= FB_RATE_DELTA;
-							old_gap = gap;
-						} else
-							if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-							LED_Toggle(LED1);
-							FB_rate += FB_RATE_DELTA;
-							old_gap = gap;
+					if(playerStarted) {
+						if (gap < old_gap) {
+							if (gap < (gapLimit1)) {
+								LED_Toggle(LED0);
+								FB_rate -= 2*FB_RATE_DELTA;
+								old_gap = gap;
 							}
-					}
+							else if (gap < (gapLimit1 + gapLimit0)) {
+								FB_rate -= FB_RATE_DELTA;
+								old_gap = gap;
+							}
+						}
+						else if (gap > old_gap) {
+							if (gap > (SPK_BUFFER_SIZE + (gapLimit0))) {
+								FB_rate += FB_RATE_DELTA;
+								old_gap = gap;
+							}
+
+							else if (gap > (SPK_BUFFER_SIZE + (gapLimit1))) {
+								LED_Toggle(LED1);
+								FB_rate += 2*FB_RATE_DELTA;
+								old_gap = gap;
+							}
+						}
+					} // end if(playerStarted)
 					sample_LSB = FB_rate;
 					sample_SB = FB_rate >> 8;
 					sample_MSB = FB_rate >> 16;
