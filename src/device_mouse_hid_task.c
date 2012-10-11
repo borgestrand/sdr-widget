@@ -46,30 +46,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
  *
- * Additions and Modifications to ATMEL AVR32-SoftwareFramework-AT32UC3 are:
- *
- * Copyright (C) 2012 Borge Strand-Bergesen
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- *
- * Modified by Alex Lee and sdr-widget team since Feb 2010.  Copyright General Purpose Licence v2.
- * Please refer to http://code.google.com/p/sdr-widget/
  */
 
 //_____  I N C L U D E S ___________________________________________________
-
 
 #include "conf_usb.h"
 #if BOARD != EVK1104 && BOARD != SDRwdgtLite
@@ -109,9 +88,9 @@
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
-// static U8 usb_state = 'r'; // BSB 20120718 unused variable, sane?
-// static U8 ep_hid_rx; // BSB 20120718 unused variable, sane?
-   static U8 ep_hid_tx;
+static U8 usb_state = 'r';
+static U8 ep_hid_rx;
+static U8 ep_hid_tx;
 //!
 //! @brief This function initializes the hardware/software resources
 //! required for device HID task.
@@ -123,7 +102,7 @@ void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
 	// Initialize accelerometer driver
 	acc_init();
 #endif
-//	ep_hid_rx = ep_rx; // BSB 20120718 unused variable, sane?
+	ep_hid_rx = ep_rx;
 	ep_hid_tx = ep_tx;
 #ifndef FREERTOS_USED
 #if USB_HOST_FEATURE == ENABLED
@@ -143,18 +122,6 @@ void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
 				configTSK_USB_DHID_MOUSE_PRIORITY,
 				NULL);
 #endif  // FREERTOS_USED
-
-	// Added BSB 20120718
-	print_dbg("\nHID ready\n"); // usart is ready to receive HID commands!
-
-	// Added BSB 20120719
-#define HID2LCD					// Use LCD to debug incoming HID commands from uart
-
-#ifdef HID2LCD					// Needed here? Including these lines seems to break functionality
-//	lcd_q_init();
-//	lcd_q_clear();
-#endif
-
 }
 
 
@@ -168,19 +135,9 @@ void device_mouse_hid_task(void *pvParameters)
 void device_mouse_hid_task(void)
 #endif
 {
-//  U8 data_length; // BSB 20120718 unused variable, sane?
-//  const U8 EP_HID_RX = ep_hid_rx; // BSB 20120718 unused variable, sane?
+  U8 data_length;
+  const U8 EP_HID_RX = ep_hid_rx;
   const U8 EP_HID_TX = ep_hid_tx;
-
-  // BSB 20120810 HID variables moved up
-  const U8 ReportByte0 = 0x01;	// Report ID doesn't change
-  U8 ReportByte1 = 0;				// 1st variable byte of HID report
-  U8 ReportByte2 = 0; 			// 2nd variable byte of HID report
-  U8 ReportByte1_prev = 0;		// Previous ReportByte1
-  char a = 0;						// ASCII character as part of HID protocol over uart
-  char gotcmd = 0;				// Initially, no user command was recorded
-
-
 #ifdef FREERTOS_USED
   portTickType xLastWakeTime;
 
@@ -195,12 +152,6 @@ void device_mouse_hid_task(void)
     // First, check the device enumeration state
     if (!Is_device_enumerated()) return;
 #endif  // FREERTOS_USED
-
-
-// BSB 20120711: Debugging HID
-/*
-
-// Original code from Atmel commented out
 
        switch (usb_state){
 
@@ -251,122 +202,6 @@ void device_mouse_hid_task(void)
        }
        break;
        }
-*/
-
-
-    // BSB 20120711: HID using uart
-
-/*
- * HID protocol using uart
- *
- * baud rate = 57600 (to be lowered to accommodate bit-banging hardware)
- * data bits = 8, stop bits = 1 (probably, haven't messed with defaults in TeraTerm...)
- *
- * At reboot usb-i2s module reports "\nHID ready\n"
- *
- * MCU sends usb-i2s module the ASCII command "hXXYY" where 'h' is the letter 'h',
- * XX is ASCII encoded ReportByte1, YY is ASCII encoded ReportByte2. usb-i2s module
- * echos transmission. A USB HID report of 0x01, XX, YY is sent to HOST. After sending it,
- * usb-i2s module sends 'H' '\n' to the MCU over uart. If USB HID report fails, '-' '\n'
- * is sent to the MCU.
- *
- * Both key press ( (XX != 0) || (YY != 0) ) and key release (XX == YY == 0) must be sent
- * separately by the MCU. The HOST decodes this into short, long and double key presses
- *
- * See usb_descriptors.c: usb_hid_report_descriptor[USB_HID_REPORT_DESC] on how XX and YY
- * encode user buttons.
- *
- * See BasicAudioDevice-10.pdf for more info
- * See "12 Consumer" of http://stuff.mit.edu/afs/sipb/project/freebsd/head/share/misc/usb_hid_usages
- *
- * Bugs: At present it only works with YY == 00. Reworking HID report has not been successful.
- *
- */
-
-    gotcmd = 0;												// No HID button change recorded yet
-
-    while (gotcmd == 0) {
-    	if (readkey()) {									// Check for an UART character command
-            a = read_dbg_char(DBG_ECHO, RTOS_WAIT, DBG_CHECKSUM_NORMAL);	// UART character arrived, get it
-            if (a == 'h') {									// Wait until 'h' is entered to indicate HID activity
-                ReportByte1 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
-                ReportByte2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
-            	gotcmd = 1;									// HID received on UART gets sent regardless
-            }
-            else {
-                // If you need the UART for something other than HID, this is where you interpret it!
-            }
-    	}
-
-    	else { 											   	// GPIO pin _changes_ are sent to Host
-/*
-    		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) ) {	// Check if Prog button is pushed down
-				ReportByte1 = 0x04;							// Encode the Play/Pause HID command
-				ReportByte2 = 0x00;							// This command is 0x00 until HID becomes more refined...
-			}
-
-			else if ( (gpio_get_pin_value(PRG_BUTTON) != 0) ) {	// Check if Prog button is released
-				ReportByte1 = 0x00;							// Encode the buttion release HID command
-				ReportByte2 = 0x00;							// This command is 0x00 until HID becomes more refined...
-			}
-*/
-
-			// Add more pins to poll here!
-
-			if (ReportByte1 != ReportByte1_prev) {			// Did we record a button change to send to Host?
-				gotcmd = 1;
-				ReportByte1_prev = ReportByte1;
-			}
-    	}
-
-    	if (gotcmd == 0)									// Nothing recorded:
-			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS
-    }
-
-//  Tested ReportByte1 content with JRiver and VLC on Win7-32
-//  ReportByte1 = 0b00000001; // Encode volup according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works!
-//  ReportByte1 = 0b00000010; // Encode voldn according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works!
-//  ReportByte1 = 0b00000100; // Encode PlayPause according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works!
-//  ReportByte1 = 0b00001000; // Encode ScanNextTrack according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works! Holding key in VLC causes skips, not scanning forward within track
-//  ReportByte1 = 0b00010000; // Encode ScanPrevTrack according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works like above! But VLC isn't all that graceful about skipping to the track before the first one..
-//  ReportByte1 = 0b00100000; // Encode Stop according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works!
-//  ReportByte1 = 0b01000000; // Encode FastForward to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works in JRiver, not VLC
-//  ReportByte1 = 0b10000000; // Encode Rewind to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works in JRiver, not VLC
-
-	#ifdef HID2LCD
-		lcd_q_goto(0,0);
-		lcd_q_putc('h');
-		lcd_q_puth(ReportByte1);
-		lcd_q_puth(ReportByte2);
-	#endif
-
-
-	// Send the HID report over USB
-
-    if ( Is_usb_in_ready(EP_HID_TX) )
-    {
-       Usb_reset_endpoint_fifo_access(EP_HID_TX);
-       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte0);
-       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte1);
-       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte2);
-       Usb_ack_in_ready_send(EP_HID_TX);
-       print_dbg_char_char('H');					// Confirm HID command forwarded to HOST
-       print_dbg_char_char('\n');					// Confirm HID command forwarded to HOST
-       #ifdef HID2LCD
-         lcd_q_putc('H');
-       #endif
-       // usb_state = 'r'; // May we ignore usb_state for HID TX ??
-    }
-    else { // Failure
-        print_dbg_char_char('-');					// NO HID command forwarded to HOST
-        print_dbg_char_char('\n');					// NO HID command forwarded to HOST
-        #ifdef HID2LCD
-          lcd_q_putc('-');
-        #endif
-    }
-
-    // BSB 20120711: Debugging HID end
-
 
 #ifdef FREERTOS_USED
   }

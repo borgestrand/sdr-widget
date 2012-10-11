@@ -130,7 +130,6 @@ void uac1_AK5394A_task(void *pvParameters) {
 			usb_alternate_setting_changed = FALSE;
 		}
 
-/*
 		if (usb_alternate_setting_out_changed){
 			if (usb_alternate_setting_out != 1){
 				spk_mute = TRUE;
@@ -142,16 +141,6 @@ void uac1_AK5394A_task(void *pvParameters) {
 			}
 			usb_alternate_setting_out_changed = FALSE;
 		}
-*/
-
-// silence speaker if USB data out is stalled, as indicated by heart-beat counter
-		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
-				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
-					spk_buffer_0[i] = 0;
-					spk_buffer_1[i] = 0;
-				}
-		}
-		old_spk_usb_heart_beat = spk_usb_heart_beat;
 
 		if (FEATURE_IMAGE_UAC1_DG8SAQ) {
 			spk_mute = TX_state ? FALSE : TRUE;

@@ -37,7 +37,6 @@ static uint8_t *x_image_get_conf_desc_fs_pointer(void) {
 static uint16_t x_image_get_conf_desc_fs_length(void) {
 	return 0;
 }
-#if USB_HIGH_SPEED_SUPPORT==ENABLED
 static uint8_t *x_image_get_conf_desc_hs_pointer(void) {
 	return 0;
 }
@@ -50,7 +49,7 @@ static uint8_t *x_image_get_qualifier_desc_pointer(void) {
 static uint16_t x_image_get_qualifier_desc_length(void) {
 	return 0;
 }
-#endif
+
 // specific request handlers
 static void x_image_user_endpoint_init(uint8_t conf_nb) {
 }
@@ -71,17 +70,10 @@ const image_t flashyblinky_image = {
 	x_image_get_conf_desc_length,
 	x_image_get_conf_desc_fs_pointer,
 	x_image_get_conf_desc_fs_length,
-#if USB_HIGH_SPEED_SUPPORT==ENABLED
 	x_image_get_conf_desc_hs_pointer,
 	x_image_get_conf_desc_hs_length,
 	x_image_get_qualifier_desc_pointer,
 	x_image_get_qualifier_desc_length,
-#else
-	x_image_get_conf_desc_fs_pointer,
-	x_image_get_conf_desc_fs_length,
-	NULL,
-	NULL,
-#endif
 	x_image_user_endpoint_init,
 	x_image_user_read_request,
 	x_image_user_set_interface

@@ -82,12 +82,10 @@
 #include "usb_specific_request.h"
 #include "usart.h"
 #include "pm.h"
-#include "pdca.h"
 #include "Mobo_config.h"
 #include "usb_audio.h"
 #include "device_audio_task.h"
 #include "uac1_device_audio_task.h"
-#include "taskAK5394A.h"
 
 
 //_____ M A C R O S ________________________________________________________
@@ -133,17 +131,17 @@ extern          U16   data_to_transfer;
 void uac1_user_endpoint_init(U8 conf_nb)
 {
 	if (Is_usb_full_speed_mode()){
-		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, SINGLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, SINGLE_BANK, 0);
+//		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, SINGLE_BANK, 0);
+//		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, SINGLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_FS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_FS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_FS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_FS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_FS, DOUBLE_BANK, 0);
 	} else {
-		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, SINGLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, SINGLE_BANK, 0);
+//		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, SINGLE_BANK, 0);
+//		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, SINGLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_HS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_HS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_HS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_HS, DOUBLE_BANK, 0);
+		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_HS, DOUBLE_BANK, 0);
 	}
 }
 
@@ -160,6 +158,7 @@ void uac1_user_set_interface(U8 wIndex, U8 wValue) {
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
 	}
+
 }
 
 static Bool uac1_user_get_interface_descriptor() {
@@ -170,22 +169,16 @@ static Bool uac1_user_get_interface_descriptor() {
 	U8      string_type;
 	U16		wInterface;
 
-	// print_dbg_char_char('a'); // BSB debug 20120803
-
 	zlp             = FALSE;                                  /* no zero length packet */
 	string_type     = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read LSB of wValue    */
 	descriptor_type = Usb_read_endpoint_data(EP_CONTROL, 8);  /* read MSB of wValue    */
 	wInterface = usb_format_usb_to_mcu_data(16,Usb_read_endpoint_data(EP_CONTROL, 16));
 	switch( descriptor_type ) {
+
+/*
 	case HID_DESCRIPTOR:
-
-		// print_dbg_char_char('b'); // BSB debug 20120803
-
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
-
-			// print_dbg_char_char('c'); // BSB debug 20120803
-
 			if (FEATURE_BOARD_WIDGET) {
 				data_to_transfer = sizeof(uac1_usb_conf_desc_fs_widget.hid);
 				pbuffer          = (const U8*)&uac1_usb_conf_desc_fs_widget.hid;
@@ -193,11 +186,7 @@ static Bool uac1_user_get_interface_descriptor() {
 				data_to_transfer = sizeof(uac1_usb_conf_desc_fs.hid);
 				pbuffer          = (const U8*)&uac1_usb_conf_desc_fs.hid;
 			}
-			break;
 #else
-
-			// print_dbg_char_char('d'); // BSB debug 20120803
-
 			if (FEATURE_BOARD_WIDGET) {
 				if( Is_usb_full_speed_mode() ) {
 					data_to_transfer = sizeof(uac1_usb_conf_desc_fs_widget.hid);
@@ -216,27 +205,21 @@ static Bool uac1_user_get_interface_descriptor() {
 				}
 			}
 			break;
-#endif
 		}
 		return FALSE;
+#endif
 	case HID_REPORT_DESCRIPTOR:
-
-		// print_dbg_char_char('e'); // BSB debug 20120803
-
 		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
 		data_to_transfer = sizeof(usb_hid_report_descriptor);
 		pbuffer          = usb_hid_report_descriptor;
 		break;
 	case HID_PHYSICAL_DESCRIPTOR:
-
-		// print_dbg_char_char('f'); // BSB debug 20120803
-
 		// TODO
 		return FALSE;
+		break;
+
+*/
 	default:
-
-		// print_dbg_char_char('g'); // BSB debug 20120803
-
 		return FALSE;
 	}
 
@@ -283,9 +266,6 @@ static Bool uac1_user_get_interface_descriptor() {
 	Usb_ack_nak_out(EP_CONTROL);
 	while (!Is_usb_control_out_received());
 	Usb_ack_control_out_received_free();
-
-	// print_dbg_char_char('h'); // BSB debug 20120803
-
 	return TRUE;
 }
 
@@ -294,13 +274,13 @@ static Bool uac1_user_get_interface_descriptor() {
 //! @param Duration     When the upper byte of wValue is 0 (zero), the duration is indefinite else from 0.004 to 1.020 seconds
 //! @param Report ID    0 the idle rate applies to all input reports, else only applies to the Report ID
 //!
-void uac1_usb_hid_set_idle (U8 u8_report_id, U8 u8_duration ) // BSB 20120710 prefix "uac1_" added
+void usb_hid_set_idle (U8 u8_report_id, U8 u8_duration )
 {
    Usb_ack_setup_received_free();
-  
+/*  
    if( wIndex == DSC_INTERFACE_HID )
      g_u8_report_rate = u8_duration;
-   
+*/ 
    Usb_ack_control_in_ready_send();
    while (!Is_usb_control_in_ready());
 }
@@ -310,16 +290,17 @@ void uac1_usb_hid_set_idle (U8 u8_report_id, U8 u8_duration ) // BSB 20120710 pr
 //!
 //! @param Report ID    0 the idle rate applies to all input reports, else only applies to the Report ID
 //!
-void uac1_usb_hid_get_idle (U8 u8_report_id) // BSB 20120710 prefix "uac1_" added
+void usb_hid_get_idle (U8 u8_report_id)
 {
 	Usb_ack_setup_received_free();
-   
+  
+/* 
    if( (wLength != 0) && (wIndex == DSC_INTERFACE_HID) )
    {
       Usb_write_endpoint_data(EP_CONTROL, 8, g_u8_report_rate);
       Usb_ack_control_in_ready_send();
    }
-   
+*/   
    while (!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
 }
@@ -651,8 +632,6 @@ Bool uac1_user_read_request(U8 type, U8 request)
 
 	usb_type = type;
 
-	// print_dbg_char_char('z'); // BSB debug 20120803
-
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR) return uac1_user_get_interface_descriptor();
 	// Read wValue
@@ -662,7 +641,8 @@ Bool uac1_user_read_request(U8 type, U8 request)
 	wIndex = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 	wLength = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
-	//** Specific request from Class HID
+/*
+	// Specific request from Class HID
 	// this should vector to specified interface handler
 	if( wIndex == DSC_INTERFACE_HID )   // Interface number of HID
 		{
@@ -707,7 +687,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 							break;
 
 						case HID_SET_IDLE:
-							uac1_usb_hid_set_idle(wValue_lsb, wValue_msb);  // BSB 20120710 prefix "uac1_" added
+							usb_hid_set_idle(wValue_lsb, wValue_msb);
 							return TRUE;
    
 						case HID_SET_PROTOCOL:
@@ -751,7 +731,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 								}
 							break;
 						case HID_GET_IDLE:
-							uac1_usb_hid_get_idle(wValue_lsb); // BSB 20120710 prefix "uac1_" added
+							usb_hid_get_idle(wValue_lsb);
 							return TRUE;
 						case HID_GET_PROTOCOL:
 							// TODO
@@ -759,7 +739,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 						}
 				}
 		}  // if wIndex ==  HID Interface
-
+*/
 
 	//  assume all other requests are for AUDIO interface
 

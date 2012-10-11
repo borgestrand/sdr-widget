@@ -26,10 +26,6 @@
 #ifndef TASKAK5394A_H_
 #define TASKAK5394A_H_
 
-#include "FreeRTOS.h"
-#include "task.h"
-#include "queue.h"
-#include "semphr.h"
 
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
@@ -47,9 +43,6 @@ extern volatile U32 spk_buffer_1[SPK_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
 extern volatile int audio_buffer_in;
 extern volatile int spk_buffer_out;
-extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
-extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;
-extern xSemaphoreHandle mutexSpkUSB;
 
 void AK5394A_pdca_disable(void);
 void AK5394A_pdca_enable(void);

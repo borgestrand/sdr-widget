@@ -39,7 +39,6 @@
 #include "DG8SAQ_cmd.h"
 #include "freq_and_filters.h"
 
-
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
 #include "LCD_bargraphs.h"
@@ -506,7 +505,6 @@ static void mobo_ctrl_factory_reset_handler(void) {
  */
 static void vtaskMoboCtrl( void * pcParameters )
 {
-
 	uint32_t time, ten_s_counter=0;					// Time management
 	uint32_t lastIteration=0, Timerval;				// Counters to keep track of time
 
@@ -660,141 +658,12 @@ static void vtaskMoboCtrl( void * pcParameters )
 	//----------------------------------------------------
 	// Mobo Functions Loop *******************************
 	//----------------------------------------------------
-
-	// Prog button poll stuff BSB 20110903
-	gpio_enable_pin_glitch_filter(PRG_BUTTON);
-
-
 	while( 1 )
     {
 		// Poll Real Time Clock, used for 100ms and 10s timing below
 		time = 	rtc_get_value(&AVR32_RTC);
 
-
-		// Prog button poll stuff BSB 20110903
-
-		//-------------------------------------------
-   		// Routines accessed every 0.5s on 115kHz timer
-   		//-------------------------------------------
-		static uint8_t btn_poll_temp=0;
-		static uint32_t btn_poll_lastIteration=0, btn_poll_Timerval; // Counters to keep track of time
-		btn_poll_Timerval = time/57000; // RTC on 115kHz, divide by 57000 for about 0.5s poll time
-
-		if (btn_poll_Timerval != btn_poll_lastIteration)			// Once every 1second, do stuff
-   		{
-    		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
-
-    		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
-    		{
-    			// At first detection of Prog pin change AB-1.1 front LEDs for contrast:
-    			// PINK->GREEN / RED->GREEN / GREEN->RED depending on LED_AB_FRONT
-    			if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-    			{											// With UAC1:
-    				#if LED_AB_FRONT_UAC1 == LED_AB_RED
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    				#endif
-    				#if LED_AB_FRONT_UAC1 == LED_AB_GREEN
-						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-    				#endif
-    				#if LED_AB_FRONT_UAC1 == LED_AB_PINK
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    				#endif
-    			}
-    			else
-    			{											// With UAC != 1
-    				#if LED_AB_FRONT == LED_AB_RED
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    				#endif
-    				#if LED_AB_FRONT == LED_AB_GREEN
-						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-    				#endif
-    				#if LED_AB_FRONT == LED_AB_PINK
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    				#endif
-    			}
-
-				if (btn_poll_temp > 2)  // If button pressed during at least 2 consecutive 2Hz polls...
-    			{
-					// Perform feature swap between UAC1 audio and UAC2 audio
-					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-					{
-						feature_set_nvram(feature_image_index, feature_image_uac2_audio);
-						if (feature_get_nvram(feature_image_index) == feature_image_uac2_audio)
-							btn_poll_temp = 100;	// Ready reset after change and Prog release
-					}
-					else if (feature_get_nvram(feature_image_index) == feature_image_uac2_audio)
-					{
-						feature_set_nvram(feature_image_index, feature_image_uac1_audio);
-						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-							btn_poll_temp = 100;	// Ready reset after change and Prog release
-					}
-
-					if (btn_poll_temp == 100)
-					{
-						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// GREEN OFF after performed change in nvram
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// RED OFF after performed change in nvram
-					}
-    			}
-    			else
-    				btn_poll_temp++;
-    		} // if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
-    		else if ( (gpio_get_pin_value(PRG_BUTTON) != 0) && (btn_poll_temp > 0) ) // If Prog button released..
-    		{
-//    			if (btn_poll_temp == 100)		// Only reset after Prog button is released and successfull nvram change.
-//					widget_reset();		 		// If Prog were still pressed, device would go to bootloader
-					// Doesn't seem to reset Audio Widget.....
-
-				// Modified BSB 20111016
-    			if (btn_poll_temp != 100)		// Prog released without nvram change -> default front LED color
-    			{								// Keep front LEDs dark after nvram change
-    				// Set initial status of LEDs on the front of AB-1.1. BSB 20110903, 20111016
-    				// Overriden by #if LED_STATUS == LED_STATUS_AB in SDRwdgt.h
-    				if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-    				{											// With UAC1:
-    					#if LED_AB_FRONT_UAC1 == LED_AB_RED
-    						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-    						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-    					#endif
-    					#if LED_AB_FRONT_UAC1 == LED_AB_GREEN
-    						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-    						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    					#endif
-    					#if LED_AB_FRONT_UAC1 == LED_AB_PINK
-    						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-    						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
-    					#endif
-    				}
-    				else
-    				{											// With UAC != 1
-    					#if LED_AB_FRONT == LED_AB_RED
-    						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-    						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-    					#endif
-    					#if LED_AB_FRONT == LED_AB_GREEN
-    						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-    						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    					#endif
-    					#if LED_AB_FRONT == LED_AB_PINK
-    						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-    						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
-    					#endif
-    				}
-    			}
-    			btn_poll_temp = 0;
-    		}
-   		} // if (btn_poll_Timerval != btn_poll_lastIteration)	// Once every 1second, do stuff
-
-		// End Prog button poll stuff BSB 20110903
-
-
-
-   		//-----------------------------
+  		//-----------------------------
    		// Routines accessed every 10ms
    		//-----------------------------
 

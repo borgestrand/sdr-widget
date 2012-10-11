@@ -83,34 +83,11 @@
 //! Number of LEDs.
 #define LED_COUNT   4
 
-
 /*! \name GPIO Connections of LEDs
  */
 //! @{
-
-// Use #defines for LED functionality BSB 20110903 Move somewhere else??
-#define LED_STATUS_MOD 	0 // LED0 and LED1 are on USB-I2S module, compatibility mode
-#define LED_STATUS_AB 	1 // LED0 and LED1 are on the front of AB-1.1, override initial in main()
-#define LED_STATUS		LED_STATUS_MOD
-
-#define LED_AB_RED		0 // LED on the front of AB-1.1 is initially RED
-#define LED_AB_GREEN	1 // LED on the front of AB-1.1 is initially GREEN
-#define LED_AB_PINK		2 // LED on the front of AB-1.1 is initially PINK (looks of it with both LEDs on)
-#define LED_AB_FRONT 	LED_AB_RED
-#define LED_AB_FRONT_UAC1 	LED_AB_GREEN
-
-
-
-#if LED_STATUS == LED_STATUS_MOD
-	#define LED0_GPIO   AVR32_PIN_PX20 // Red on module and other boards
-	#define LED1_GPIO   AVR32_PIN_PX46 // Green on module and other boards
-#endif
-
-#if LED_STATUS == LED_STATUS_AB
-	#define LED0_GPIO   AVR32_PIN_PX29 // Red on AB-1.1
-	#define LED1_GPIO   AVR32_PIN_PX32 // Green on AB-1.1
-#endif
-
+#define LED0_GPIO   AVR32_PIN_PX20
+#define LED1_GPIO   AVR32_PIN_PX46
 #define LED2_GPIO   AVR32_PIN_PX50
 #define LED3_GPIO   AVR32_PIN_PX57
 //! @}
@@ -153,7 +130,7 @@
 //! @}
 
 
-/*! \name AK5394A 24 bit hi-performance ADC
+/*! \name AK5493 24 bit hi-performance ADC
  */
 //! @{
 #define AK5394_DFS0                      AVR32_PIN_PB00		// pulled up sampling speed sense (or control)
@@ -273,17 +250,7 @@
 #define PTT_1				 AVR32_PIN_PX45
 #define PTT_2				 AVR32_PIN_PX42
 #define PTT_3				 AVR32_PIN_PX22
-
-#define GPIO_PCM5102_FILTER	 AVR32_PIN_PX56	 // 0=FIR 1=IIR
 //! @}
-
-/*! \name GPIO Connections of the sample freq
- */
-//! @{
-#define SAMPLEFREQ_VAL0                    AVR32_PIN_PC00
-#define SAMPLEFREQ_VAL1                    AVR32_PIN_PC01
-//! @}
-
 
 // Inhale list of required modules
 #include "SDR-Widget.h"
