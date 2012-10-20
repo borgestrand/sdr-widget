@@ -324,7 +324,7 @@ void uac1_device_audio_task(void *pvParameters)
 					if (playerStarted){
 						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
 						if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
-							LED_On(LED0);
+							LED_Toggle(LED0);
 							FB_rate -= FB_RATE_DELTA;
 							delta_num--;
 							//old_gap = gap;
@@ -332,15 +332,10 @@ void uac1_device_audio_task(void *pvParameters)
 						else
 							//if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 							if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
-								LED_On(LED1);
+								LED_Toggle(LED1);
 								FB_rate += FB_RATE_DELTA;
 								delta_num++;
 								//old_gap = gap;
-							}
-							else
-							{
-								LED_Off(LED0);
-								LED_Off(LED1);
 							}
 					}
 
@@ -377,9 +372,12 @@ void uac1_device_audio_task(void *pvParameters)
 					{
 						playerStarted = TRUE;
 						num_remaining = spk_pdca_channel->tcr;
-						if (spk_buffer_in != spk_buffer_out)
-							spk_buffer_in = 1 - spk_buffer_in;
+						spk_buffer_in = spk_buffer_out;
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
+						// BSB added 20120912 after UAC2 time bar pull noise analysis
+//						if (spk_index & (U32)1)
+//							print_dbg_char_char('s'); // BSB debug 20120912
+						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
 						delta_num = 0;
 					}
 
