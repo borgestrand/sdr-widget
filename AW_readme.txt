@@ -18,7 +18,7 @@ Version 20120807 BSB initial
         20120815 Alex's .mpdconf file copied in
         20120825 Alex's feedback text copied in, UAC2 on Windows edits
         20120917 Christian's input on Linux dfu programming
-		20121004 Added Nikolay's recipe on firmware builds
+        20121004 Added Nikolay's recipe on firmware builds
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -129,9 +129,9 @@ log_file "~/.mpd/mpd.log"
 audio_output {
     type "alsa"
     name "My ALSA Device"
-    device "hw:1,0"	# your device may be hw:0,0 or hw:1,0 or hw:2,0 etc
-			# check with
-			# $ aplay -l
+    device "hw:1,0"    # your device may be hw:0,0 or hw:1,0 or hw:2,0 etc
+            # check with
+            # $ aplay -l
     auto_resample "no"
 }
 
@@ -175,7 +175,10 @@ don't count on it.
 Listening to audio UAC2
 =======================
 
-Please refer to the below sections on installing drivers and players.
+Please refer to the below sections on installing drivers and players. Simple
+step-by-step for Windows users can be found at:
+  http://www.qnktc.com/Win_cleanup.pdf
+  http://www.qnktc.com/Win_install.pdf
 
 USB Audio Class 2 supports sample rates up to 32/192. This is limited by the 
 serial interfaces of the Atmel MCU, not USB. UAC2 is supported by the operating
@@ -236,31 +239,31 @@ of it:
 
 2 -  Open the Start menu and choose Run. Type in "cmd". On the icon on top, 
      right-click and choose "Run as Administrator". Click "OK" in the User 
-	 Account Control window.
+     Account Control window.
 
 3 -  At the command prompt, type in "set devmgr_show_nonpresent_devices=1" 
      and press Enter. (Note that nothing seems to happen. This is expected. 
-	 You are actually setting an environment variable which is going to help you
-	 to see hidden devices.)
+     You are actually setting an environment variable which is going to help you
+     to see hidden devices.)
 
 4 -  On the next command prompt line, type devmgmt.msc and press Enter. This 
      will launch the Windows Device Manager Console.
-	 
+     
 5 -  In the Device Manager Console, from the View menu, select Show Hidden 
      Devices.
 
 6 -  Search under tabs for 
      "libusbK USB Devices"
-	 "Sound, video..."
-	 "Audio-Widget..."
+     "Sound, video..."
+     "Audio-Widget..."
      There, delete and uninstall anything which rings of:
      "Audio-Widget"
-	 "SDR-Widget"
-	 "DG8SAQ"
-	 "QNKTC"
-	 "Yoyodyne"
+     "SDR-Widget"
+     "DG8SAQ"
+     "QNKTC"
+     "Yoyodyne"
 
-7 -  You should now be ready to install the new fresh version of the drivers!	 
+7 -  You should now be ready to install the new fresh version of the drivers!     
 
 Windows is also notorious for trying to "help" you locate the driver it 
 believes you need. Here is a link to a text on modifying this "help":
@@ -731,14 +734,16 @@ The Windows ASIO driver source code is found at:
 In order to build it you will need the 2008 vintage of Microsoft's Visual C# and
 C++ Express tools. 
 
-In order to use the code you must download closed-source ASIO libraries from 
-Steinberg and copy them manually into the code hierarchy. Several project 
-members have signed the Steinberg developer's agreement. Go to:
+In order to use the ASIO parts of code you must download closed-source ASIO 
+libraries from Steinberg and copy them manually into the code hierarchy. Several
+project members have signed the Steinberg developer's agreement. Go to:
   http://www.steinberg.net/nc/en/company/developer/sdk_download_portal.html
 
 The Windows ASIO drivers use libusbK. Like the ASIO files the source code only
 contains a place holder for libusbK. You will have to download and install it 
-yourself.
+yourself. Relevant libusbK sites are:
+  http://sourceforge.net/projects/libusbk/
+  http://libusbk.sourceforge.net/UsbK3/index.html
 
 The Windows drivers are bundled into an install package. Here is how to compile
 such a package. 
@@ -754,7 +759,7 @@ such a package.
 
 4 -  Go to DriverPackages folder and copy your updated Audio-Widget.inf here.
      Run "unix2dos re-pack-files.cmd" in Cygwin. Alternative line ends may crash
-	 the .cmd file. Touch InstallDriver.exe. Run "re-pack-files.cmd" in cmd. 
+     the .cmd file. Touch InstallDriver.exe. Run "re-pack-files.cmd" in cmd. 
      This should generate InstallDriver.exe
 
 5 -  Go to the Installer folder. Copy the following files into it:
@@ -932,11 +937,11 @@ AT32UC3A3 can support:
      OUT EP immediately in the descriptors they will be associated (by OSX, 
      Linux, and Win uac2 drivers):
 
-     S_usb_as_interface_descriptor	spk_as_alt1;
-     S_usb_as_g_interface_descriptor_2	spk_g_as;
-     S_usb_format_type_2	spk_format_type;
+     S_usb_as_interface_descriptor    spk_as_alt1;
+     S_usb_as_g_interface_descriptor_2    spk_g_as;
+     S_usb_format_type_2    spk_format_type;
      S_usb_endpoint_audio_descriptor_2 ep2;  // this is the OUT EP
-     S_usb_endpoint_audio_specific_2	ep2_s;
+     S_usb_endpoint_audio_specific_2    ep2_s;
      S_usb_endpoint_audio_descriptor_2 ep3;  // this is the explicit feedback EP
 
 3 -  Simultaneous stereo capture and playback can be supported by the SSC.
