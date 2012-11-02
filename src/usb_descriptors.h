@@ -127,6 +127,7 @@
 #define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
 #define AUDIO_VENDOR_ID		  0x16d0		//!  Audio device
+//#define AUDIO_VENDOR_ID     0x16c0		//!  AB-1.x Special driver testing UAC1
 #define AUDIO_PRODUCT_ID_1    0x0761		//!  SDR-WIDGET UAC1 PID
 #define AUDIO_PRODUCT_ID_2    0x0762		//!  SDR-WIDGET UAC2 PID
 #define AUDIO_PRODUCT_ID_3	  0x0763		//!  USB9023    UAC1 PID
@@ -135,8 +136,10 @@
 #define AUDIO_PRODUCT_ID_6    0x0766		//!  USB5102    UAC2 PID
 #define AUDIO_PRODUCT_ID_7	  0x0767		//!  USB8741    UAC1 PID
 #define AUDIO_PRODUCT_ID_8    0x0768		//!  USB8741    UAC2 PID
-#define AUDIO_PRODUCT_ID_9	  0x075C		//!  AB-1.x     UAC1 PID
+#define AUDIO_PRODUCT_ID_9    0x075C		//!  AB-1.x     UAC1 PID
 #define AUDIO_PRODUCT_ID_10   0x075D		//!  AB-1.x     UAC2 PID
+//#define AUDIO_PRODUCT_ID_9  0x03ED		//!  AB-1.x Special driver testing UAC1
+//#define AUDIO_PRODUCT_ID_10 0x03EE		//!  AB-1.x Special driver testing UAC2
 #define AUDIO_PRODUCT_ID_11	  0x075E		//!  QNKTC future use UAC1 PID
 #define AUDIO_PRODUCT_ID_12   0x075F		//!  QNKTC future use UAC2 PID
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
