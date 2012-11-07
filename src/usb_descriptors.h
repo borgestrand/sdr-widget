@@ -116,6 +116,8 @@
 
 // USB Device descriptor
 
+// #define COMPILING_FOR_DRIVER_DEVELOPMENT	// BSB 20121107 Special USB signatures for driver development
+
 // BSB Added 20110901 according to mail from Roger
 #define USB_1_1_SPECIFICATION     0x0101
 
@@ -126,8 +128,13 @@
 #define EP_CONTROL_LENGTH     64
 #define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
-#define AUDIO_VENDOR_ID		  0x16d0		//!  Audio device
-//#define AUDIO_VENDOR_ID     0x16c0		//!  AB-1.x Special driver testing UAC1
+
+#ifdef COMPILING_FOR_DRIVER_DEVELOPMENT
+  #define AUDIO_VENDOR_ID     0x16c0		//!  AB-1.x Special driver testing UAC1
+#else
+  #define AUDIO_VENDOR_ID     0x16d0		//!  Audio device
+#endif
+
 #define AUDIO_PRODUCT_ID_1    0x0761		//!  SDR-WIDGET UAC1 PID
 #define AUDIO_PRODUCT_ID_2    0x0762		//!  SDR-WIDGET UAC2 PID
 #define AUDIO_PRODUCT_ID_3	  0x0763		//!  USB9023    UAC1 PID
@@ -136,10 +143,15 @@
 #define AUDIO_PRODUCT_ID_6    0x0766		//!  USB5102    UAC2 PID
 #define AUDIO_PRODUCT_ID_7	  0x0767		//!  USB8741    UAC1 PID
 #define AUDIO_PRODUCT_ID_8    0x0768		//!  USB8741    UAC2 PID
-#define AUDIO_PRODUCT_ID_9    0x075C		//!  AB-1.x     UAC1 PID
-#define AUDIO_PRODUCT_ID_10   0x075D		//!  AB-1.x     UAC2 PID
-//#define AUDIO_PRODUCT_ID_9  0x03ED		//!  AB-1.x Special driver testing UAC1
-//#define AUDIO_PRODUCT_ID_10 0x03EE		//!  AB-1.x Special driver testing UAC2
+
+#ifdef COMPILING_FOR_DRIVER_DEVELOPMENT
+  #define AUDIO_PRODUCT_ID_9  0x03ED		//!  AB-1.x Special driver testing UAC1
+  #define AUDIO_PRODUCT_ID_10 0x03EE		//!  AB-1.x Special driver testing UAC2
+#else
+  #define AUDIO_PRODUCT_ID_9    0x075C		//!  AB-1.x     UAC1 PID
+  #define AUDIO_PRODUCT_ID_10   0x075D		//!  AB-1.x     UAC2 PID
+#endif
+
 #define AUDIO_PRODUCT_ID_11	  0x075E		//!  QNKTC future use UAC1 PID
 #define AUDIO_PRODUCT_ID_12   0x075F		//!  QNKTC future use UAC2 PID
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
@@ -207,42 +219,52 @@
 
 // BSB 20120928 new VID/PID system
 #if defined (FEATURE_PRODUCT_SDR_WIDGET) // AUDIO_PRODUCT_ID_1 and _2
-#define USB_PN_LENGTH         19
-#define USB_PRODUCT_NAME {\
-  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
-  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), \
-  Usb_unicode('S'), Usb_unicode('D'), Usb_unicode('R'), Usb_unicode('-'), Usb_unicode('W'),\
-  Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
-}
+  #define USB_PN_LENGTH         19
+  #define USB_PRODUCT_NAME {\
+    Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+    Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), \
+    Usb_unicode('S'), Usb_unicode('D'), Usb_unicode('R'), Usb_unicode('-'), Usb_unicode('W'),\
+    Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
+  }
 #elif defined (FEATURE_PRODUCT_USB9023) // AUDIO_PRODUCT_ID_3 and _4
-#define USB_PN_LENGTH         16
-#define USB_PRODUCT_NAME {\
-  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
-  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
-  Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('9'), Usb_unicode('0'), Usb_unicode('2'), Usb_unicode('3')\
-}
+  #define USB_PN_LENGTH         16
+  #define USB_PRODUCT_NAME {\
+    Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+    Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
+    Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('9'), Usb_unicode('0'), Usb_unicode('2'), Usb_unicode('3')\
+  }
 #elif defined (FEATURE_PRODUCT_USB5102) // AUDIO_PRODUCT_ID_5 and _6
-#define USB_PN_LENGTH         16
-#define USB_PRODUCT_NAME {\
-  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
-  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
-  Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('5'), Usb_unicode('1'), Usb_unicode('0'), Usb_unicode('2')\
-}
+  #define USB_PN_LENGTH         16
+  #define USB_PRODUCT_NAME {\
+    Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+    Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
+    Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('5'), Usb_unicode('1'), Usb_unicode('0'), Usb_unicode('2')\
+ }
 #elif defined (FEATURE_PRODUCT_USB8741) // AUDIO_PRODUCT_ID_7 and _8
-#define USB_PN_LENGTH         16
-#define USB_PRODUCT_NAME {\
-  Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
-  Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
-  Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('8'), Usb_unicode('7'), Usb_unicode('4'), Usb_unicode('1')\
-}
+  #define USB_PN_LENGTH         16
+  #define USB_PRODUCT_NAME {\
+    Usb_unicode('Y'), Usb_unicode('o'), Usb_unicode('y'), Usb_unicode('o'), Usb_unicode('d'),\
+    Usb_unicode('y'), Usb_unicode('n'), Usb_unicode('e'), Usb_unicode(' '), Usb_unicode('U'),\
+    Usb_unicode('S'), Usb_unicode('B'), Usb_unicode('8'), Usb_unicode('7'), Usb_unicode('4'), Usb_unicode('1')\
+  }
 #elif defined (FEATURE_PRODUCT_AB1x)  // AUDIO_PRODUCT_ID_9 and _10
-#define USB_PN_LENGTH         20
-#define USB_PRODUCT_NAME {\
-  Usb_unicode('Q'), Usb_unicode('N'), Usb_unicode('K'), Usb_unicode('T'), Usb_unicode('C'), Usb_unicode(' '), \
-  Usb_unicode('U'), Usb_unicode('S'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('D'), Usb_unicode('A'), \
-  Usb_unicode('C'), Usb_unicode(' '), Usb_unicode('A'), Usb_unicode('B'), Usb_unicode('-'), Usb_unicode('1'), \
-  Usb_unicode('.'), Usb_unicode('2')\
-}
+  #ifdef COMPILING_FOR_DRIVER_DEVELOPMENT
+    #define USB_PN_LENGTH         20
+    #define USB_PRODUCT_NAME {\
+      Usb_unicode('D'), Usb_unicode('r'), Usb_unicode('i'), Usb_unicode('v'), Usb_unicode('e'), Usb_unicode('r'), \
+      Usb_unicode(' '), Usb_unicode('D'), Usb_unicode('e'), Usb_unicode('v'), Usb_unicode('e'), Usb_unicode('l'), \
+      Usb_unicode('.'), Usb_unicode(' '), Usb_unicode('A'), Usb_unicode('B'), Usb_unicode('-'), Usb_unicode('1'), \
+      Usb_unicode('.'), Usb_unicode('2')\
+    }
+  #else
+    #define USB_PN_LENGTH         20
+    #define USB_PRODUCT_NAME {\
+      Usb_unicode('Q'), Usb_unicode('N'), Usb_unicode('K'), Usb_unicode('T'), Usb_unicode('C'), Usb_unicode(' '), \
+      Usb_unicode('U'), Usb_unicode('S'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('D'), Usb_unicode('A'), \
+      Usb_unicode('C'), Usb_unicode(' '), Usb_unicode('A'), Usb_unicode('B'), Usb_unicode('-'), Usb_unicode('1'), \
+      Usb_unicode('.'), Usb_unicode('2')\
+    }
+  #endif
 #else
 #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
 #endif
