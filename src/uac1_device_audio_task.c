@@ -100,7 +100,7 @@
 //? why are these defined as statics?
 
 static U32  index, spk_index;
-//static U16  old_gap = SPK_BUFFER_SIZE;
+static U16  old_gap = SPK_BUFFER_SIZE;
 static U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out to the USB
 static volatile U32 *audio_buffer_ptr;
 //static volatile U32 *spk_buffer_ptr;
@@ -325,19 +325,23 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 
 					if (playerStarted) {
-						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-						if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
+// BSB MAC UAC1 issue ??
+						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+						// if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
 							LED_Toggle(LED0); // Same LED action as UAC2
 							FB_rate -= FB_RATE_DELTA;
 							delta_num--;
-							//old_gap = gap;
+// BSB MAC UAC1 issue ??
+							old_gap = gap;
 						}
-//						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-						else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
+// BSB MAC UAC1 issue ??
+						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+						// else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
 							LED_Toggle(LED1); // Same LED action as UAC2 BSB 20120919
 							FB_rate += FB_RATE_DELTA;
 							delta_num++;
-							//old_gap = gap;
+// BSB MAC UAC1 issue ??
+							old_gap = gap;
 						}
 //						else {  // Same LED action as UAC2 BSB 20120919
 //							LED_Off(LED0);
@@ -396,6 +400,7 @@ void uac1_device_audio_task(void *pvParameters)
 						// BSB added 20120912 after UAC2 time bar pull noise analysis
 //						if (spk_index & (U32)1)
 //							print_dbg_char_char('s'); // BSB debug 20120912
+// BSB UAC1 MAC trouble????
 						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
 
 						delta_num = 0;
