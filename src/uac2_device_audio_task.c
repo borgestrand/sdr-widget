@@ -144,7 +144,8 @@ void uac2_device_audio_task(void *pvParameters)
 	U8 sample_SB;
 	U8 sample_LSB;
 	U8 sample_HSB;
-	U32 sample;
+	U32 sample_L, sample_R;				// BSB 20121206 added _L and _R for shorter code
+	U8 spk_x2 = 0;						// Is feedback system catching up at twice nominal rate? Don't do that for too long!
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
@@ -308,61 +309,70 @@ void uac2_device_audio_task(void *pvParameters)
 
 			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
-
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
+
 				// Sync DAC spk data stream by calculating gap and provide feedback
 				num_remaining = spk_pdca_channel->tcr;
-				if (spk_buffer_in != spk_buffer_out) {
-					// DAC and USB using same buffer
-					
+				if (spk_buffer_in != spk_buffer_out) {		// DAC and USB using same buffer
 					if ( spk_index < (SPK_BUFFER_SIZE - num_remaining))
 						gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
 					else
 						gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
 				}
-				else {
-					// usb and pdca working on different buffers
+				else {										// usb and pdca working on different buffers
 					gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 				}
 
-				//feedback calculate only in playing mode
-				if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
+				// BSB 20121206 improved UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
+				#define SPK_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
+				#define	SPK_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
+				#define SPK_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// Ideal distance is half the size of linear buffer
+				#define SPK_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // A quarter buffer down in distance => Slow down host a bit
+				#define SPK_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // A half buffer down in distance => Slow down host a lot
 
-				// BSB 20120912 UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
-#define gapLimit0 SPK_BUFFER_SIZE/4
-#define gapLimit1 SPK_BUFFER_SIZE/2
-
-					if(playerStarted) {
-						if (gap < old_gap) {
-							if (gap < (gapLimit1)) { // gap < outer lower bound => 2*FB_RATE_DELTA
-								LED_Toggle(LED0);
-								FB_rate -= 2*FB_RATE_DELTA;
-								old_gap = gap;
-//								print_dbg_char_char('-');
-							}
-
-							else if (gap < (gapLimit1 + gapLimit0)) { // gap < inner lower bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED0); // Only toggle LEDs outside outer bonds
-								FB_rate -= FB_RATE_DELTA;
-								old_gap = gap;
-							}
+				if ( playerStarted ) {						//feedback calculate only in playing mode
+					if ( gap < old_gap ) {
+						if ( gap < SPK_GAP_L2 ) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
+							LED_Toggle(LED0);
+							FB_rate -= 2*FB_RATE_DELTA;
+							spk_x2 = 1;
+							print_dbg_char_char('-');
 						}
-						else if (gap > old_gap) {
-							if (gap > (SPK_BUFFER_SIZE + (gapLimit0))) { // gap > inner upper bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED1); // Only toggle LEDs outside outer bonds
-								FB_rate += FB_RATE_DELTA;
-								old_gap = gap;
-							}
 
-							else if (gap > (SPK_BUFFER_SIZE + (gapLimit1))) { // gap > outer upper bound => 2*FB_RATE_DELTA
-								LED_Toggle(LED1);
-								FB_rate += 2*FB_RATE_DELTA;
-								old_gap = gap;
-//								print_dbg_char_char('+');
-							}
+						else if ( gap < SPK_GAP_L1 ) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
+							FB_rate -= FB_RATE_DELTA;
+							spk_x2 = 0;
 						}
-					} // end if(playerStarted)
 
+						else if ( ( gap < SPK_GAP_U1 ) && ( spk_x2 == 1 ) ) {
+							FB_rate -= FB_RATE_DELTA;
+							spk_x2 = 0;
+						}
+					}
+					else if ( gap > old_gap ) {
+						if ( gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
+							FB_rate += 2*FB_RATE_DELTA;
+							spk_x2 = 1;
+							print_dbg_char_char('+');
+						}
+
+						else if ( gap > SPK_GAP_U1 ) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
+							LED_Toggle(LED1);
+							FB_rate += FB_RATE_DELTA;
+							spk_x2 = 0;
+						}
+
+						else if ( ( gap > SPK_GAP_L1 ) && ( spk_x2 == 1 ) ) {
+							FB_rate += FB_RATE_DELTA;
+							spk_x2 = 0;
+						}
+					}
+					old_gap = gap;
+				} // end if(playerStarted)
+
+				// BSB 20121206 Restructured code
+				if (Is_usb_full_speed_mode()) {
+					// FS mode, FB rate is 3 bytes in 10.14 format
 					sample_LSB = FB_rate;
 					sample_SB = FB_rate >> 8;
 					sample_MSB = FB_rate >> 16;
@@ -371,41 +381,7 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
 				} // end if (Is_usb_full_speed_mode())
 				else {
-					// HS mode
-					// FB rate is 4 bytes in 16.16 format
-
-					//feedback calculate only in playing mode
-					if(playerStarted) {
-						if (gap < old_gap) {
-							if (gap < (gapLimit1)) { // gap < outer lower bound => 2*FB_RATE_DELTA
-								LED_Toggle(LED0);
-								FB_rate -= 2*FB_RATE_DELTA;
-								old_gap = gap;
-//								print_dbg_char_char('/');
-							}
-
-							else if (gap < (gapLimit1 + gapLimit0)) { // gap < inner lower bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED0); // Only toggle LED when going outside outer bonds
-								FB_rate -= FB_RATE_DELTA;
-								old_gap = gap;
-							}
-						}
-						else if (gap > old_gap) {
-							if (gap > (SPK_BUFFER_SIZE + (gapLimit0))) { // gap > inner upper bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED1);	// Only toggle LED when going outside outer bonds
-								FB_rate += FB_RATE_DELTA;
-								old_gap = gap;
-							}
-
-							else if (gap > (SPK_BUFFER_SIZE + (gapLimit1))) { // gap > outer upper bound => 2*FB_RATE_DELTA
-								LED_Toggle(LED1);
-								FB_rate += 2*FB_RATE_DELTA;
-								old_gap = gap;
-//								print_dbg_char_char('*');
-							}
-						}
-					} // end if(playerStarted)
-
+					// HS mode, FB rate is 4 bytes in 16.16 format
 					sample_LSB = FB_rate;
 					sample_SB = FB_rate >> 8;
 					sample_MSB = FB_rate >> 16;
@@ -426,22 +402,12 @@ void uac2_device_audio_task(void *pvParameters)
 			} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
 			if (Is_usb_out_received(EP_AUDIO_OUT)) {
-
-				// BSB 20120907 Indicate packet receive start below
-
-				// BSB 20120910 debug
-				// Toggle PX56 = TP50 = GPIO_04
-//				if (gpio_get_pin_value(AVR32_PIN_PX56) == 0)
-//					gpio_set_gpio_pin(AVR32_PIN_PX56);
-//				else
-//					gpio_clr_gpio_pin(AVR32_PIN_PX56);
-
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
 				// BSB debug 20120913
 				num_samples = Usb_byte_count(EP_AUDIO_OUT);
-//				if ( (num_samples & (U16)7) != 0)
-//					print_dbg_char_char('7');
+				if ( (num_samples & (U16)7) != 0)
+					print_dbg_char_char('7');
 				num_samples = num_samples / 8;
 
 				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
@@ -449,79 +415,50 @@ void uac2_device_audio_task(void *pvParameters)
 				spk_usb_sample_counter += num_samples; 	// track the num of samples received
 				xSemaphoreGive(mutexSpkUSB);
 				if(!playerStarted) {
-
-//					gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB debug 20120911, positive edge marks playerStarted FALSE->TRUE
-//					print_dbg_char_char('Y'); // BSB debug 20120911
-
 					playerStarted = TRUE;
-					num_remaining = spk_pdca_channel->tcr;
-//					if (spk_buffer_in != spk_buffer_out) {
-//						spk_buffer_in = 1 - spk_buffer_in;
-//					}
-					spk_buffer_in = spk_buffer_out; // Replaces the if-test above
 
-//					if (spk_buffer_in == 1)
-//						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-//					else
-//						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-
+					Disable_global_interrupt();			// For atomic read operation of interrupt controlled PDCA variables
+						num_remaining = spk_pdca_channel->tcr;
+						spk_buffer_in = spk_buffer_out; // Replaces the if-test above BSB: is this really-really safe??
+					Enable_global_interrupt();			// End atomic read operation
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
-
-					// BSB added 20120912 after UAC2 time bar pull noise analysis
-					if (spk_index & (U32)1)
-//						print_dbg_char_char('s'); // BSB debug 20120912
-					spk_index = spk_index & ~((U32)1); // Clear LSB
-
+					spk_index = spk_index & ~((U32)1); 	// Clear LSB, must be done to prevent initial LR swapping and time bar pull noise
 
 					LED_Off(LED0);
 					LED_Off(LED1);
 				}
 
 				for (i = 0; i < num_samples; i++) {
+					// BSB 20121206 code simplification
+					// Collect L and R samples from USB, 8 bytes in total
 					if (spk_mute) {
-						sample_HSB = 0;
-						sample_LSB = 0;
-						sample_SB = 0;
-						sample_MSB = 0;
+						sample_L = 0;
+						sample_R = 0;
 					}
 					else {
 						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-					}
-
-					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
-					//sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-					if (spk_buffer_in == 0) {
-						spk_buffer_0[spk_index+OUT_LEFT] = sample;
-					}
-					else {
-						spk_buffer_1[spk_index+OUT_LEFT] = sample;
-					}
-
-					if (spk_mute) {
-						sample_HSB = 0;
-						sample_LSB = 0;
-						sample_SB = 0;
-						sample_MSB = 0;
-					}
-					else {
+						sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-					};
+						sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
+					}
 
-					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
-					//sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+					// Write L and R samples to buffer
 					if (spk_buffer_in == 0) {
-						spk_buffer_0[spk_index+OUT_RIGHT] = sample;
+						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 					}
 					else {
-						spk_buffer_1[spk_index+OUT_RIGHT] = sample;
+						spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
 					}
 
+					// Increase pointer
 					spk_index += 2;
 					if (spk_index >= SPK_BUFFER_SIZE) {
 						spk_index = 0;
@@ -539,8 +476,8 @@ void uac2_device_audio_task(void *pvParameters)
 		} // end if (usb_alternate_setting_out == 1)
 		else {
 			playerStarted=FALSE;
-//			gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug
 			old_gap = SPK_BUFFER_SIZE;
+			spk_x2 = 0;
 		}
 	} // end while vTask
 }

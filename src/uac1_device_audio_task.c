@@ -400,7 +400,6 @@ void uac1_device_audio_task(void *pvParameters)
 						// BSB added 20120912 after UAC2 time bar pull noise analysis
 //						if (spk_index & (U32)1)
 //							print_dbg_char_char('s'); // BSB debug 20120912
-// BSB UAC1 MAC trouble????
 						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
 
 						delta_num = 0;
