@@ -392,12 +392,13 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_HSB);
 				} // end !if (Is_usb_full_speed_mode())
 
-				if (playerStarted) {
+//BSB 20121207 Is this a MAC bug?
+/*				if (playerStarted) {
 					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
 						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
 						FB_rate -= FB_RATE_DELTA * 512;
 				}
-
+*/
 				Usb_send_in(EP_AUDIO_OUT_FB);
 			} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
