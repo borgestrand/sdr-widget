@@ -104,10 +104,10 @@ volatile int audio_buffer_in, spk_buffer_out;
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 	if (audio_buffer_in == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
-		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, AUDIO_BUFFER_SIZE); // was _1
+		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, AUDIO_BUFFER_SIZE);
 		audio_buffer_in = 1;
 	} else {
-		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, AUDIO_BUFFER_SIZE); // was _0
+		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, AUDIO_BUFFER_SIZE);
 		audio_buffer_in = 0;
 	}
 
