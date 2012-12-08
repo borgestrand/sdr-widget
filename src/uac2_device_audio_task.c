@@ -132,6 +132,9 @@ void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 //! @brief Entry point of the device Audio task management
 //!
 
+#define N_SPK_CODE0 // New buffer code is initialized
+#define N_SPK_CODE1 // New buffer code runs
+
 void uac2_device_audio_task(void *pvParameters)
 {
 	static U32  time=0;
@@ -146,6 +149,13 @@ void uac2_device_audio_task(void *pvParameters)
 	U8 sample_HSB;
 	U32 sample_L, sample_R;				// BSB 20121206 added _L and _R for shorter code
 	U8 spk_x2 = 0;						// Is feedback system catching up at twice nominal rate? Don't do that for too long!
+
+#ifdef N_SPK_CODE0
+	S16 n_spk_r = 0;
+	S16 n_spk_w = 0;
+	S16 n_spk_gap = 0;
+#endif
+
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
@@ -312,6 +322,20 @@ void uac2_device_audio_task(void *pvParameters)
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 
 				// Sync DAC spk data stream by calculating gap and provide feedback
+#ifdef N_SPK_CODE0
+				n_spk_r = SPK_BUFFER_SIZE - spk_pdca_channel->tcr;
+				if (spk_buffer_out == 1)
+					n_spk_r += SPK_BUFFER_SIZE;
+				n_spk_gap = n_spk_r - n_spk_w;
+				if (n_spk_gap >= SPK_BUFFER_SIZE)	// Range is << +- SPK_BUFFER_SIZE FIX:Sane?
+				    n_spk_gap = n_spk_gap - 2*SPK_BUFFER_SIZE;
+				if (n_spk_gap < 0)					// Wrap around
+				    n_spk_gap = n_spk_gap + 2*SPK_BUFFER_SIZE;
+#endif
+#ifdef N_SPK_CODE1
+				gap = n_spk_gap;
+//				gap = n_spk_gap + SPK_BUFFER_SIZE; // Emulate offset in old fw FIX??
+#else
 				num_remaining = spk_pdca_channel->tcr;
 				if (spk_buffer_in != spk_buffer_out) {		// DAC and USB using same buffer
 					if ( spk_index < (SPK_BUFFER_SIZE - num_remaining))
@@ -322,7 +346,7 @@ void uac2_device_audio_task(void *pvParameters)
 				else {										// usb and pdca working on different buffers
 					gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 				}
-
+#endif
 				// BSB 20121206 improved UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
 				#define SPK_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
 				#define	SPK_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
@@ -392,13 +416,14 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_HSB);
 				} // end !if (Is_usb_full_speed_mode())
 
-//BSB 20121207 Is this a MAC bug? Code is commented out in awx_20121207.elf
-/*				if (playerStarted) {
+// Linux quirk replacement, a radical feedback setting
+// BSB 20121207 Is this a MAC bug? Code is commented out in awx_20121207.elf
+				if (playerStarted) {
 					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
 						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
 						FB_rate -= FB_RATE_DELTA * 512;
 				}
-*/
+
 				Usb_send_in(EP_AUDIO_OUT_FB);
 			} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
@@ -418,13 +443,26 @@ void uac2_device_audio_task(void *pvParameters)
 				if(!playerStarted) {
 					playerStarted = TRUE;
 
+#ifdef N_SPK_CODE0
+					Disable_global_interrupt();			// For atomic read operation of interrupt controlled PDCA variables
+						n_spk_r = SPK_BUFFER_SIZE - spk_pdca_channel->tcr;
+						if ( spk_buffer_out == 1 )
+							n_spk_r += SPK_BUFFER_SIZE;
+					Enable_global_interrupt();			// End atomic read operation
+					n_spk_w = n_spk_r + SPK_GAP_NOM; 	// Start write head ahead of read head
+					if (n_spk_w >= 2*SPK_BUFFER_SIZE)	// Roll over at end of range 0:2*SPK_BUFFER_SIZE-1
+						n_spk_w = n_spk_w - 2*SPK_BUFFER_SIZE;
+					n_spk_w = n_spk_w & ~((S16)1);		// Clear LSB, must be done to prevent initial LR swapping and time bar pull noise
+#endif
+#ifdef N_SPK_CODE1
+#else
 					Disable_global_interrupt();			// For atomic read operation of interrupt controlled PDCA variables
 						num_remaining = spk_pdca_channel->tcr;
 						spk_buffer_in = spk_buffer_out; // Replaces the if-test above BSB: is this really-really safe??
 					Enable_global_interrupt();			// End atomic read operation
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
 					spk_index = spk_index & ~((U32)1); 	// Clear LSB, must be done to prevent initial LR swapping and time bar pull noise
-
+#endif
 					LED_Off(LED0);
 					LED_Off(LED1);
 				}
@@ -449,6 +487,18 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 					}
 
+#ifdef N_SPK_CODE1	// work back to two-buffer addressing
+					if (n_spk_w >= SPK_BUFFER_SIZE) {
+						spk_index = n_spk_w - SPK_BUFFER_SIZE;
+						spk_buffer_in = 1;
+					}
+					else {
+						spk_index = n_spk_w;
+						spk_buffer_in = 0;
+					}
+#endif
+
+
 					// Write L and R samples to buffer
 					if (spk_buffer_in == 0) {
 						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
@@ -460,24 +510,32 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 
 					// Increase pointer
+#ifdef N_SPK_CODE1	// work back to two-buffer addressing
+					n_spk_w += 2;
+					if (n_spk_w >= 2*SPK_BUFFER_SIZE)
+						n_spk_w = 0;
+#else
 					spk_index += 2;
 					if (spk_index >= SPK_BUFFER_SIZE) {
 						spk_index = 0;
 						spk_buffer_in = 1 - spk_buffer_in;
-
 //						if (spk_buffer_in == 1)
 //							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 //						else
 //							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-
 					}
+#endif
 				} // end for
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 			}	// end if (Is_usb_out_received(EP_AUDIO_OUT))
 		} // end if (usb_alternate_setting_out == 1)
 		else {
 			playerStarted=FALSE;
+#ifdef N_SPK_CODE1	// work back to two-buffer addressing
+			old_gap = SPK_GAP_NOM;
+#else
 			old_gap = SPK_BUFFER_SIZE;
+#endif
 			spk_x2 = 0;
 		}
 	} // end while vTask
