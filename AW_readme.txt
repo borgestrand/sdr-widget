@@ -19,7 +19,7 @@ Version 20120807 BSB initial
         20120825 Alex's feedback text copied in, UAC2 on Windows edits
         20120917 Christian's input on Linux dfu programming
         20121004 Added Nikolay's recipe on firmware builds
-		20121208 Updated Flip version
+        20121208 Updated Flip version
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -523,7 +523,7 @@ up if things are tricky the first time!
 
 3  - Install Atmel Flip 3.4.7 from http://www.atmel.com/tools/FLIP.aspx and 
      choose the version which requires Java Runtime Environment to be pre-
-	 installed. (You want your Java from Oracle, not from Atmel!)
+     installed. (You want your Java from Oracle, not from Atmel!)
      This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.7"
 
 4  - Copy files from Add_to_flip345_bin.zip from
@@ -558,7 +558,7 @@ up if things are tricky the first time!
 
 12 - To program the Audio Widget use the Flip installation and the 
      Add_to_flip345_bin.zip package. Things may take extra time and require up
-	 to five attempts the first time: Start, Run, cmd.exe, 
+     to five attempts the first time: Start, Run, cmd.exe, 
      cd "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin", "prog widget.elf" 
      Substitute "widget.elf" with the compiled firmware file you wish to to use
      in your Audio Widget. This is the file from step 5. (If you saved the .elf
