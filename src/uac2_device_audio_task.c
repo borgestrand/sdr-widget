@@ -392,7 +392,7 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_HSB);
 				} // end !if (Is_usb_full_speed_mode())
 
-//BSB 20121207 Is this a MAC bug?
+//BSB 20121207 Is this a MAC bug? Code is commented out in awx_20121207.elf
 /*				if (playerStarted) {
 					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
 						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
