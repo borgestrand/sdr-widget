@@ -116,10 +116,23 @@ int find_feature_value(int index, char *value) {
 #define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
 #define AUDIO_VENDOR_ID		  0x16c0		//!  Internal Lab use
+#define AUDIO_VENDOR_ID_3	  0x16d0
 #define AUDIO_PRODUCT_ID      0x03e8
 #define AUDIO_PRODUCT_ID_UAC1 0x03e9        // BSB 20120426
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
 #define HPSDR_PRODUCT_ID      0x0007
+#define AUDIO_PRODUCT_ID_4	  0x0761		//!vendorid3 SDR-Widget UAC1
+#define AUDIO_PRODUCT_ID_5	  0X0762		//!vendorid3 SDR-Widget UAC2
+#define AUDIO_PRODUCT_ID_6	  0x0763 		//!vendorid3 USB9023 UAC1
+#define AUDIO_PRODUCT_ID_7	  0x0764 		//!vendorid3 USB9023 UAC2
+#define AUDIO_PRODUCT_ID_8 	  0x0765 		//!vendorid3 USB5102 UAC1
+#define AUDIO_PRODUCT_ID_9	  0x0766 		//!vendorid3 USB5102 UAC2
+#define AUDIO_PRODUCT_ID_10	  0x0767 		//!vendorid3 USB8741 UAC1
+#define AUDIO_PRODUCT_ID_11   0x0768 		//!vendorid3 USB8741 UAC2
+#define AUDIO_PRODUCT_ID_12   0x075C 		//!vendorid3 AB-1.x UAC1
+#define AUDIO_PRODUCT_ID_13   0x075D 		//!vendorid3 AB-1.x UAC2
+#define AUDIO_PRODUCT_ID_14   0x075E 		//!vendorid3 QNKTC future use UAC1
+#define AUDIO_PRODUCT_ID_15   0x075F 		//!vendorid3 QNKTC future use UAC2
 
 char *usb_serial_id = NULL;
 libusb_device_handle *usb_handle;
@@ -176,6 +189,18 @@ libusb_device_handle *find_device(int list_all) {
 		if ((desc.idVendor == DG8SAQ_VENDOR_ID && desc.idProduct == DG8SAQ_PRODUCT_ID) ||
 			(desc.idVendor == AUDIO_VENDOR_ID && desc.idProduct == AUDIO_PRODUCT_ID) ||
 			(desc.idVendor == AUDIO_VENDOR_ID && desc.idProduct == AUDIO_PRODUCT_ID_UAC1) || // BSB 20120426
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_4) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_5) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_6) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_7) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_8) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_9) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_10) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_11) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_12) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_13) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_14) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_15) ||
 			(desc.idVendor == HPSDR_VENDOR_ID && desc.idProduct == HPSDR_PRODUCT_ID)) {
 			libusb_device_handle *h;
 			int status;
