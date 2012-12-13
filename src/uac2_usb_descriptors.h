@@ -165,9 +165,9 @@
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01
-#define EP_INTERVAL_3_HS    0x04
+#define EP_INTERVAL_3_HS    0x04 // BSB: Was 4 that gives 1ms. Set to 3 that gives 0.5ms
 #define EP_REFRESH_3_FS		0x05			 //  16ms
-#define EP_REFRESH_3_HS		0x08			 // 2^(8-1) = 128 uframe = 16ms
+#define EP_REFRESH_3_HS		0x06 // Was 8			 // 2^(8-1) = 128 uframe = 16ms
 
 // AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION_2          0x0200

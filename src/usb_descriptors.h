@@ -343,8 +343,11 @@
   Usb_unicode('k')\
 }
 
-
-#define USB_WL_LENGTH         10
+// BSB 20121212
+// Recycle Product name, as this shows up as product name on UAC2 Mac OS X
+#define USB_WL_LENGTH USB_PN_LENGTH
+#define USB_WL USB_PRODUCT_NAME
+/* #define USB_WL_LENGTH         10
 #define USB_WL \
 {\
   Usb_unicode('S'),\
@@ -358,6 +361,9 @@
   Usb_unicode('e'),\
   Usb_unicode('t')\
 }
+*/
+
+
 #define USB_AIT_LENGTH         12
 #define USB_AIT \
 {\

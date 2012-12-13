@@ -579,6 +579,8 @@ void audio_set_cur(void)
 
 		freq_changed = TRUE;
 		if (speed == 0){		// 44.1khz
+	   		print_dbg_char_char('1'); // BSB debug 20121212
+
 			current_freq.frequency = 44100;
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
@@ -586,7 +588,9 @@ void audio_set_cur(void)
 				gpio_clr_gpio_pin(AVR32_PIN_PX51);
 			}
 		else {					// 48khz
-			current_freq.frequency = 48000;
+	   		print_dbg_char_char('2'); // BSB debug 20121212
+
+	   		current_freq.frequency = 48000;
 			if (FEATURE_BOARD_USBI2S)
 				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
@@ -651,7 +655,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 
 	usb_type = type;
 
-	// print_dbg_char_char('z'); // BSB debug 20120803
+	print_dbg_char_char('z'); // BSB debug 20121212
 
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR) return uac1_user_get_interface_descriptor();

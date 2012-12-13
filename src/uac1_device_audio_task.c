@@ -326,8 +326,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 					if (playerStarted) {
 // BSB MAC UAC1 issue ??
-						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-						// if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
+//						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+						if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
 							LED_Toggle(LED0); // Same LED action as UAC2
 							FB_rate -= FB_RATE_DELTA;
 							delta_num--;
@@ -335,8 +335,8 @@ void uac1_device_audio_task(void *pvParameters)
 							old_gap = gap;
 						}
 // BSB MAC UAC1 issue ??
-						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-						// else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
+//						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+						else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
 							LED_Toggle(LED1); // Same LED action as UAC2 BSB 20120919
 							FB_rate += FB_RATE_DELTA;
 							delta_num++;
@@ -381,7 +381,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 					if(!playerStarted) {
 
-//						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB debug 20120912, positive edge marks playerStarted FALSE->TRUE
+				   		print_dbg_char_char('S'); // BSB debug 20121212
 
 						playerStarted = TRUE;
 						num_remaining = spk_pdca_channel->tcr;

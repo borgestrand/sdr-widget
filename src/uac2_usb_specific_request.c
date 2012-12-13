@@ -188,7 +188,9 @@ void uac2_freq_change_handler() {
 			FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
 */
 			if (current_freq.frequency == 96000) {
-				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		   		print_dbg_char_char('4'); // BSB debug 20121212
+
+		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				if (FEATURE_BOARD_USBI2S)
@@ -214,15 +216,17 @@ void uac2_freq_change_handler() {
 					FB_rate = (96) << 15;
 				else
 */
-					//FB_rate = (96) << 14;
-					FB_rate = (99) << 14;
+//					FB_rate = (96) << 14;
+					FB_rate = (99) << 14; // linux-quirk replacement
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
 			}
 
 		   	else if (current_freq.frequency == 88200) {
-				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		   		print_dbg_char_char('3'); // BSB debug 20121212
+
+		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				if (FEATURE_BOARD_USBI2S)
@@ -248,15 +252,16 @@ void uac2_freq_change_handler() {
 					FB_rate = (88 << 15) + (1<<15)/5;
 				else
 */
-					//FB_rate = (88 << 14) + (1<<14)/5;
-					FB_rate = (99 << 14);
+//					FB_rate = (88 << 14) + (1<<14)/5;
+					FB_rate = (99 << 14); // Linux-quirk replacement
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
 				}
 
-	       	else if (current_freq.frequency == 176400)
-	        	{
+	       	else if (current_freq.frequency == 176400) {
+					print_dbg_char_char('5'); // BSB debug 20121212
+
 	    			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	    			pdca_disable(PDCA_CHANNEL_SSC_RX);
 
@@ -283,7 +288,9 @@ void uac2_freq_change_handler() {
 	        	}
 
 			else if (current_freq.frequency == 192000) {
-				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		   		print_dbg_char_char('6'); // BSB debug 20121212
+
+		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				if (FEATURE_BOARD_USBI2S)
@@ -310,7 +317,9 @@ void uac2_freq_change_handler() {
     			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
 
 			} else if (current_freq.frequency == 48000) {
-				// if there are two XO, PX16 sets the 48x
+		   		print_dbg_char_char('2'); // BSB debug 20121212
+
+		   		// if there are two XO, PX16 sets the 48x
 				// gpio_set_gpio_pin(AVR32_PIN_PX16);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -340,7 +349,9 @@ void uac2_freq_change_handler() {
 			}
 
 			else if (current_freq.frequency == 44100) {
-				// if there are two XO, PX16 set --> 48x. clr -->44.1x
+		   		print_dbg_char_char('1'); // BSB debug 20121212
+
+		   		// if there are two XO, PX16 set --> 48x. clr -->44.1x
 				// gpio_clr_gpio_pin(AVR32_PIN_PX16);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -1058,6 +1069,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 			} else if (type == OUT_CL_INTERFACE) {		// set controls
 				switch (wIndex /256) {
 				case CSD_ID_1:							// set CUR freq of Mic
+					print_dbg_char_char('f'); // BSB debug 20121212
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
@@ -1085,7 +1097,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						return FALSE;
 
 				case CSD_ID_2:							// set CUR freq
-//					print_dbg_char_char('o'); // BSB debug 20120910
+					print_dbg_char_char('F'); // BSB debug 20121212
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
 						&& request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
