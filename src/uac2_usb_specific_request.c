@@ -446,6 +446,8 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	   usb_alternate_setting_out_changed = TRUE;
    }
 
+	// BSB debug this one and check when it occurs in various OSes! Correlate with Daniel Mack's message
+
 }
 
 // BSB 20120720 copy from uac1_usb_specific_request.c insert

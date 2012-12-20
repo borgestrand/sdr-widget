@@ -20,6 +20,7 @@ Version 20120807 BSB initial
         20120917 Christian's input on Linux dfu programming
         20121004 Added Nikolay's recipe on firmware builds
         20121208 Updated Flip version
+        20121215 Adding to UAC2 feedback
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -930,6 +931,37 @@ any changes you do will end up there.
 Appendix 2 - UAC2 Feedback Mechanism
 ====================================
 
+Important sources on USB Audio:
+-  http://www.usb.org/developers/docs/usb_20_110512.zip
+   Section 5.12.4.2 of usb_20.pdf
+-  http://developer.apple.com/library/mac/#technotes/tn2274/_index.html
+-  http://www.usb.org/developers/devclass_docs/Audio2.0_final.zip 
+   Section 3.16.2.2 of Audio20_final.pdf
+   Section 2.3.1.1 of Frmts20_final.pdf
+
+Linux driver implementation (source Daniel Mack):
+https://git.kernel.org/?p=linux/kern...usb/endpoint.c
+
+In particular, check the lower half of the function snd_usb_handle_sync_urb()
+which is called when a feedback packet is received. Apart from dealing with
+different format shifts, it sets ep->freqm to the value in the packet.
+
+This value is referred to in snd_usb_endpoint_next_packet_size() which also
+keeps around the unused lower 16 bits for the next iteration of the calculation
+to not loose precicion. The return value of this function is then taken as the
+size of the next packet so be sent out. 
+
+
+Windows ASIO driver implementation (source Nikolay)
+
+You may found how to calculate packets size in audiotask.cpp and .h files.
+
+void AudioFeedbackTask::ProcessBuffer(ISOBuffer* nextXfer) - recieve feedback
+value and
+int AudioDACTask::FillBuffer(ISOBuffer* nextXfer) - fill packets for sending to
+DAC
+
+
 The audio-widget (and sister project sdr-widget) has demonstrated that the 
 AT32UC3A3 can support:
 
@@ -983,4 +1015,3 @@ as the rate feedback is still based on the OLD sampling rate before things
 settle down to the new sampling rate. The OSX way of doing things is more
 gentlemanly :-) However, the Linux developer thinks his way is the correct way
 so we have to deal with this quirk :-)
-
