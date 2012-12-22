@@ -413,11 +413,26 @@ void uac2_device_audio_task(void *pvParameters)
 // Linux quirk replacement, a radical feedback setting. Why isn't this _before_ formatting the output?
 // BSB 20121207 Is this a MAC bug? Code is commented out in awx_20121207.elf
 				if (playerStarted) {
-					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
-						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10)))) {
-						FB_rate -= FB_RATE_DELTA * 512;
+					// Original Linux quirk replacement code
+//					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
+//						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10)))) {
+//						FB_rate -= FB_RATE_DELTA * 512;
 //						print_dbg_char_char('*');
+//					}
+
+//					Alternative Linux quirk replacement code, insert nominal FB_rate after a short interlude of requesting 99ksps (see uac2_usb_specific_request.c)
+//					if ( (current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10)) ) {
+					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
+						FB_rate = (88 << 14) + (1<<14)/5;
+						print_dbg_char_char('(');
 					}
+
+//					if ( (current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10)) ) {
+					if ( (current_freq.frequency == 96000) && (FB_rate > (98 << 14) ) ) {
+						FB_rate = (96) << 14;
+						print_dbg_char_char(')');
+					}
+
 				}
 
 				Usb_send_in(EP_AUDIO_OUT_FB);
