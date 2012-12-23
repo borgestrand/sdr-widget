@@ -346,9 +346,46 @@ void uac2_device_audio_task(void *pvParameters)
 				#define SPK_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
 				#define SPK_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
 
+				#define SPK_FB_ASAP	1<<11;					// 1<<14 = 1ms stored in internal 18.14 ms format
+				S8 spk_nudge = 0;							// Are we nudging or not?
+				S8 spk_dir = 0;								// Accumulate nudge direction
+				U32 spk_conv = 1<<8;						// 1<<10 = 0.0625ms in internal 18.14 ms format
+
 				if ( playerStarted ) {						//feedback calculate only in playing mode
 					if ( gap < old_gap ) {
-						if ( (gap < SPK_GAP_L2) && (spk_x2==0) ) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
+
+						// Nudge at L1, sledge hammer at L2
+						if ( ( (gap < SPK_GAP_L1) && (spk_nudge != -1) ) || (gap < SPK_GAP_L2) ) {
+							FB_rate -= SPK_FB_ASAP;
+							LED_On(LED0);
+
+							if (gap < SPK_GAP_L2)
+								spk_conv = 1<<8;
+
+							if (spk_dir > 0) {
+								if (spk_conv != 0)
+									spk_conv >>= 1; 		// Must use *2 and /2 to allow spk_conv to be 0x0001
+								spk_dir = -1;
+							}
+							else if (spk_dir > -120)
+								spk_dir --;
+
+							if ( (spk_dir < -7) && (spk_conv < 1<<12) )
+								spk_conv <<= 1;
+
+							FB_rate -= spk_conv;
+							spk_nudge = -1;
+						}
+
+						// Release feedback when reaching nominal gap
+						else if ( (gap < SPK_GAP_NOM) && (spk_nudge == 1) ) {
+							FB_rate -= SPK_FB_ASAP;
+							LED_Off(LED0);
+							LED_Off(LED1);
+							spk_nudge = 0;
+						}
+
+/*						if ( (gap < SPK_GAP_L2) && (spk_x2==0) ) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
 							LED_Toggle(LED0);
 							FB_rate -= 2*FB_RATE_DELTA;
 							spk_x2 = 1;
@@ -364,9 +401,44 @@ void uac2_device_audio_task(void *pvParameters)
 							spk_x2 = 0;
 //							print_dbg_char_char('.');
 						}
+*/
 					}
 					else if ( gap > old_gap ) {
-						if ( (gap > SPK_GAP_U2) && (spk_x2==0) ) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
+
+						// Nudge at U1, sledge hammer at U2
+						if ( ( (gap > SPK_GAP_U1) && (spk_nudge != 1) ) || (gap > SPK_GAP_U2) ) {
+							FB_rate += SPK_FB_ASAP;
+							LED_On(LED1);
+
+							if (gap > SPK_GAP_U2)
+								spk_conv = 1<<8;
+
+							if (spk_dir < 0) {
+								if (spk_conv != 0)
+									spk_conv >>= 1; 		// Must use *2 and /2 to allow spk_conv to be 0x0001
+								spk_dir = 1;
+							}
+							else if (spk_dir < 120)
+								spk_dir ++;
+
+							if ( (spk_dir > 7) && (spk_conv < 1<<12) )
+								spk_conv <<= 1;
+
+							FB_rate += spk_conv;
+							spk_nudge = 1;
+						}
+
+						// Release feedback when reaching nominal gap
+						else if ( (gap > SPK_GAP_NOM) && (spk_nudge == -1) ) {
+							FB_rate += SPK_FB_ASAP;
+							LED_Off(LED0);
+							LED_Off(LED1);
+							spk_nudge = 0;
+						}
+
+
+
+/*						if ( (gap > SPK_GAP_U2) && (spk_x2==0) ) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
  							FB_rate += 2*FB_RATE_DELTA;
 							spk_x2 = 1;
 //							print_dbg_char_char('+');
@@ -382,6 +454,7 @@ void uac2_device_audio_task(void *pvParameters)
 							spk_x2 = 0;
 //							print_dbg_char_char(',');
 						}
+*/
 					}
 					old_gap = gap;
 				} // end if(playerStarted)
