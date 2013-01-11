@@ -119,10 +119,6 @@ void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	ep_audio_out = ep_out;
 	ep_audio_out_fb = ep_out_fb;
 
-	LED_Off(LED0);
-	LED_Off(LED1);
-
-
 	xTaskCreate(uac2_device_audio_task,
 				configTSK_USB_DAUDIO_NAME,
 				configTSK_USB_DAUDIO_STACK_SIZE,
@@ -194,10 +190,6 @@ void uac2_device_audio_task(void *pvParameters)
 			{
 				startup=FALSE;
 
-				LED_Off(LED0);
-				LED_Off(LED1);
-
-
 				audio_buffer_in = 0;
 				audio_buffer_out = 0;
 				spk_buffer_in = 0;
@@ -219,8 +211,6 @@ void uac2_device_audio_task(void *pvParameters)
 		}
 
 		if ((usb_alternate_setting == 1)) {
-			LED_On(LED1); // Green
-
 			if(Mic_freq_valid) {
 				if (current_freq.frequency == 96000) num_samples = 24;
 				else if (current_freq.frequency == 48000) num_samples = 12;
@@ -316,9 +306,6 @@ void uac2_device_audio_task(void *pvParameters)
 		} // end alt setting 1
 
 		if (usb_alternate_setting_out == 1) {
-
-			LED_On(LED0); // Red
-
 			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 
@@ -352,7 +339,7 @@ void uac2_device_audio_task(void *pvParameters)
 					if(playerStarted) {
 						if (gap < old_gap) {
 							if (gap < SPK_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
-//								LED_Toggle(LED0);
+								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('-');
@@ -365,7 +352,7 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						else if (gap > old_gap) {
 							if (gap > SPK_GAP_U2) { 	// gap > outer upper bound => 2*FB_RATE_DELTA
-//								LED_Toggle(LED1);
+								LED_Toggle(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('+');
@@ -393,7 +380,7 @@ void uac2_device_audio_task(void *pvParameters)
 					if(playerStarted) {
 						if (gap < old_gap) {
 							if (gap < SPK_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
-//								LED_Toggle(LED0);
+								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('-');
@@ -406,7 +393,7 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						else if (gap > old_gap) {
 							if (gap > SPK_GAP_U2) { 	// gap > outer upper bound => 2*FB_RATE_DELTA
-//								LED_Toggle(LED1);
+								LED_Toggle(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('+');
