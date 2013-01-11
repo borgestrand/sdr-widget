@@ -388,10 +388,11 @@ void uac1_device_audio_task(void *pvParameters)
 //							spk_buffer_in = 1 - spk_buffer_in;
 //						}
 						spk_buffer_in = spk_buffer_out; // Replaces the if-test above
-//						if (spk_buffer_in == 1)
-//							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-//						else
-//							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+
+						if (spk_buffer_in == 1)
+							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+						else
+							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
 
@@ -442,10 +443,10 @@ void uac1_device_audio_task(void *pvParameters)
 							spk_buffer_in = 1 - spk_buffer_in;
 //							spk_buffer_ptr = spk_buffer_in ? spk_buffer_0 : spk_buffer_1;
 
-//							if (spk_buffer_in == 1)
-//								gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-//							else
-//								gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+							if (spk_buffer_in == 1)
+								gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+							else
+								gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 						}
 					}
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
