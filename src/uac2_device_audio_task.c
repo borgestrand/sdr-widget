@@ -193,6 +193,11 @@ void uac2_device_audio_task(void *pvParameters)
 			else if( time >= 9*STARTUP_LED_DELAY )
 			{
 				startup=FALSE;
+
+				LED_Off(LED0);
+				LED_Off(LED1);
+
+
 				audio_buffer_in = 0;
 				audio_buffer_out = 0;
 				spk_buffer_in = 0;
@@ -214,7 +219,7 @@ void uac2_device_audio_task(void *pvParameters)
 		}
 
 		if ((usb_alternate_setting == 1)) {
-			LED_On(LED1);
+			LED_On(LED1); // Green
 
 			if(Mic_freq_valid) {
 				if (current_freq.frequency == 96000) num_samples = 24;
@@ -312,7 +317,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		if (usb_alternate_setting_out == 1) {
 
-			LED_On(LED0);
+			LED_On(LED0); // Red
 
 			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
@@ -494,7 +499,6 @@ void uac2_device_audio_task(void *pvParameters)
 					if (spk_index & (U32)1)
 //						print_dbg_char_char('s'); // BSB debug 20120912
 					spk_index = spk_index & ~((U32)1); // Clear LSB
-
 
 					LED_Off(LED0);
 					LED_Off(LED1);
