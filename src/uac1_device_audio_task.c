@@ -326,21 +326,19 @@ void uac1_device_audio_task(void *pvParameters)
 
 					if (playerStarted) {
 // BSB MAC UAC1 issue ??
-//						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-						if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
+						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+//						if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
 							LED_Toggle(LED0); // Same LED action as UAC2
 							FB_rate -= FB_RATE_DELTA;
 							delta_num--;
-// BSB MAC UAC1 issue ??
 							old_gap = gap;
 						}
 // BSB MAC UAC1 issue ??
-//						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-						else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
+						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+//						else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
 							LED_Toggle(LED1); // Same LED action as UAC2 BSB 20120919
 							FB_rate += FB_RATE_DELTA;
 							delta_num++;
-// BSB MAC UAC1 issue ??
 							old_gap = gap;
 						}
 //						else {  // Same LED action as UAC2 BSB 20120919
