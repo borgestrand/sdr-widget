@@ -103,12 +103,17 @@ static U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used f
 
 static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 
+U8 usblog[41000];
+
 //!
 //! @brief This function initializes the hardware/software resources
 //! required for device Audio task.
 //!
 void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 {
+	usblog[0] = 0;
+	usblog[40999] = 0;
+
 	index     =0;
 	audio_buffer_out = 0;
 	spk_index = 0;
