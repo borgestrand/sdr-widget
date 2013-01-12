@@ -337,7 +337,6 @@ void uac2_device_audio_task(void *pvParameters)
 							if (gap < (gapLimit1)) { // gap < outer lower bound => 2*FB_RATE_DELTA
 								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
-
 								old_gap = gap;
 //								print_dbg_char_char('-');
 							}
@@ -461,10 +460,10 @@ void uac2_device_audio_task(void *pvParameters)
 //					}
 					spk_buffer_in = spk_buffer_out; // Replaces the if-test above
 
-//					if (spk_buffer_in == 1)
-//						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-//					else
-//						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+					if (spk_buffer_in == 1)
+						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+					else
+						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
 
@@ -528,10 +527,10 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_index = 0;
 						spk_buffer_in = 1 - spk_buffer_in;
 
-//						if (spk_buffer_in == 1)
-//							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-//						else
-//							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+						if (spk_buffer_in == 1)
+							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+						else
+							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 
 					}
 				} // end for
