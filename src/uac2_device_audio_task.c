@@ -406,10 +406,13 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 					} // end if(playerStarted)
 
-					sample_LSB = FB_rate;
-					sample_SB = FB_rate >> 8;
-					sample_MSB = FB_rate >> 16;
-					sample_HSB = FB_rate >> 24;
+					// HS mode, FB rate is 4 bytes in 16.16 format per 125탎.
+					// Internal format is 18.14 samples per 1탎 = 16.16 per 250탎
+					// i.e. must right-shift once for 16.16 per 125탎.
+					sample_LSB = FB_rate >> 1;	// was >> 0
+					sample_SB = FB_rate >> 9;	// was >> 8
+					sample_MSB = FB_rate >> 17;	// was >> 16
+					sample_HSB = FB_rate >> 25;	// was >> 24
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_LSB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_SB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
@@ -417,9 +420,19 @@ void uac2_device_audio_task(void *pvParameters)
 				} // end !if (Is_usb_full_speed_mode())
 
 				if (playerStarted) {
-					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
-						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
-						FB_rate -= FB_RATE_DELTA * 512;
+// 					Original Linux quirk replacement code
+//					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
+//						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
+//						FB_rate -= FB_RATE_DELTA * 512;
+
+
+//					Alternative Linux quirk replacement code, insert nominal FB_rate after a short interlude of requesting 99ksps (see uac2_usb_specific_request.c)
+					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
+						FB_rate = (88 << 14) + (1<<14)/5;
+					}
+					if ( (current_freq.frequency == 96000) && (FB_rate > (98 << 14) ) ) {
+						FB_rate = (96) << 14;
+					}
 				}
 
 				Usb_send_in(EP_AUDIO_OUT_FB);
