@@ -409,10 +409,10 @@ void uac2_device_audio_task(void *pvParameters)
 					// HS mode, FB rate is 4 bytes in 16.16 format per 125탎.
 					// Internal format is 18.14 samples per 1탎 = 16.16 per 250탎
 					// i.e. must right-shift once for 16.16 per 125탎.
-					sample_LSB = FB_rate >> 1;	// was >> 0
-					sample_SB = FB_rate >> 9;	// was >> 8
-					sample_MSB = FB_rate >> 17;	// was >> 16
-					sample_HSB = FB_rate >> 25;	// was >> 24
+					sample_LSB = FB_rate >> 0;	// was >> 0
+					sample_SB = FB_rate >> 8;	// was >> 8
+					sample_MSB = FB_rate >> 16;	// was >> 16
+					sample_HSB = FB_rate >> 24;	// was >> 24
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_LSB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_SB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
