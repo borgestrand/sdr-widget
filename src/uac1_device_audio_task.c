@@ -100,7 +100,7 @@
 //? why are these defined as statics?
 
 static U32  index, spk_index;
-//static U16  old_gap = SPK_BUFFER_SIZE;
+static U16  old_gap = SPK_BUFFER_SIZE;
 static U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out to the USB
 static volatile U32 *audio_buffer_ptr;
 //static volatile U32 *spk_buffer_ptr;
@@ -145,7 +145,7 @@ void uac1_device_audio_task(void *pvParameters)
 	static U32  time=0;
 	static Bool startup=TRUE;
 	int i;
-	int delta_num = 0;
+//	int delta_num = 0;
 	U16 num_samples, num_remaining, gap;
 	U8 sample_HSB;
 	U8 sample_MSB;
@@ -325,19 +325,19 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 
 					if (playerStarted) {
-						//if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-						if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
+						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
+						//if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
 							LED_Toggle(LED0); // Same LED action as UAC2
 							FB_rate -= FB_RATE_DELTA;
-							delta_num--;
-							//old_gap = gap;
+//							delta_num--;
+							old_gap = gap;
 						}
-//						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-						else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
+						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
+						//else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
 							LED_Toggle(LED1); // Same LED action as UAC2 BSB 20120919
 							FB_rate += FB_RATE_DELTA;
-							delta_num++;
-							//old_gap = gap;
+//							delta_num++;
+							old_gap = gap;
 						}
 //						else {  // Same LED action as UAC2 BSB 20120919
 //							LED_Off(LED0);
@@ -399,7 +399,7 @@ void uac1_device_audio_task(void *pvParameters)
 //							print_dbg_char_char('s'); // BSB debug 20120912
 						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
 
-						delta_num = 0;
+//						delta_num = 0;
 					}
 
 					for (i = 0; i < num_samples; i++) {
