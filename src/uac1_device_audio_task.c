@@ -215,7 +215,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 			num_samples = 48;
 
-			if (usb_alternate_setting == 1) {
+//			if (usb_alternate_setting == 1) {
+			if (usb_alternate_setting_out == 1) {
 
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint buffer free ?
 
@@ -303,8 +304,8 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 			} // end alt setting == 1
 
-			if (usb_alternate_setting_out == 1) {
-
+//			if (usb_alternate_setting_out == 1) {
+			if (0) {
 				if ( Is_usb_in_ready(EP_AUDIO_OUT_FB) )
 				{
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
