@@ -329,36 +329,37 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 
 				// BSB 20120912 UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
-#define gapLimit0 SPK_BUFFER_SIZE/4
-#define gapLimit1 SPK_BUFFER_SIZE/2
+#define SPK_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// 6 A half buffer up in distance	=> Speed up host a lot
+#define	SPK_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// 5 A quarter buffer up in distance => Speed up host a bit
+#define SPK_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
+#define SPK_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
+#define SPK_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
 
 					if(playerStarted) {
 						if (gap < old_gap) {
-							if (gap < (gapLimit1)) { // gap < outer lower bound => 2*FB_RATE_DELTA
+							if (gap < SPK_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
 								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('-');
 							}
-
-							else if (gap < (gapLimit1 + gapLimit0)) { // gap < inner lower bound => 1*FB_RATE_DELTA
+							else if (gap < SPK_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
 //								LED_Toggle(LED0); // Only toggle LEDs outside outer bonds
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
 							}
 						}
 						else if (gap > old_gap) {
-							if (gap > (SPK_BUFFER_SIZE + (gapLimit0))) { // gap > inner upper bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED1); // Only toggle LEDs outside outer bonds
-								FB_rate += FB_RATE_DELTA;
-								old_gap = gap;
-							}
-
-							else if (gap > (SPK_BUFFER_SIZE + (gapLimit1))) { // gap > outer upper bound => 2*FB_RATE_DELTA
+							if (gap > SPK_GAP_U2) { 	// gap > outer upper bound => 2*FB_RATE_DELTA
 								LED_Toggle(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('+');
+							}
+							else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
+//								LED_Toggle(LED1); // Only toggle LEDs outside outer bonds
+								FB_rate += FB_RATE_DELTA;
+								old_gap = gap;
 							}
 						}
 					} // end if(playerStarted)
@@ -377,31 +378,29 @@ void uac2_device_audio_task(void *pvParameters)
 					//feedback calculate only in playing mode
 					if(playerStarted) {
 						if (gap < old_gap) {
-							if (gap < (gapLimit1)) { // gap < outer lower bound => 2*FB_RATE_DELTA
+							if (gap < SPK_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
 								LED_Toggle(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
-//								print_dbg_char_char('/');
+//								print_dbg_char_char('-');
 							}
-
-							else if (gap < (gapLimit1 + gapLimit0)) { // gap < inner lower bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED0); // Only toggle LED when going outside outer bonds
+							else if (gap < SPK_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
+//								LED_Toggle(LED0); // Only toggle LEDs outside outer bonds
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
 							}
 						}
 						else if (gap > old_gap) {
-							if (gap > (SPK_BUFFER_SIZE + (gapLimit0))) { // gap > inner upper bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED1);	// Only toggle LED when going outside outer bonds
-								FB_rate += FB_RATE_DELTA;
-								old_gap = gap;
-							}
-
-							else if (gap > (SPK_BUFFER_SIZE + (gapLimit1))) { // gap > outer upper bound => 2*FB_RATE_DELTA
+							if (gap > SPK_GAP_U2) { 	// gap > outer upper bound => 2*FB_RATE_DELTA
 								LED_Toggle(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
-//								print_dbg_char_char('*');
+//								print_dbg_char_char('+');
+							}
+							else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
+//								LED_Toggle(LED1); // Only toggle LEDs outside outer bonds
+								FB_rate += FB_RATE_DELTA;
+								old_gap = gap;
 							}
 						}
 					} // end if(playerStarted)
@@ -409,10 +408,11 @@ void uac2_device_audio_task(void *pvParameters)
 					// HS mode, FB rate is 4 bytes in 16.16 format per 125탎.
 					// Internal format is 18.14 samples per 1탎 = 16.16 per 250탎
 					// i.e. must right-shift once for 16.16 per 125탎.
-					sample_LSB = FB_rate >> 0;	// was >> 0
-					sample_SB = FB_rate >> 8;	// was >> 8
-					sample_MSB = FB_rate >> 16;	// was >> 16
-					sample_HSB = FB_rate >> 24;	// was >> 24
+					// BUT: Mac doesn't seem to understand 16.16, it needs 15.17 with no additional shift
+					sample_LSB = FB_rate >> 0;
+					sample_SB = FB_rate >> 8;
+					sample_MSB = FB_rate >> 16;
+					sample_HSB = FB_rate >> 24;
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_LSB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_SB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
