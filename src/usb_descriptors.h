@@ -343,7 +343,10 @@
   Usb_unicode('k')\
 }
 
-
+// Revised for Mac UAC1 naming
+#define USB_WL_LENGTH USB_PN_LENGTH
+#define USB_WL USB_PRODUCT_NAME
+/*
 #define USB_WL_LENGTH         10
 #define USB_WL \
 {\
@@ -358,6 +361,9 @@
   Usb_unicode('e'),\
   Usb_unicode('t')\
 }
+*/
+
+
 #define USB_AIT_LENGTH         12
 #define USB_AIT \
 {\
