@@ -139,7 +139,6 @@ void uac2_device_audio_task(void *pvParameters)
 	Bool playerStarted = FALSE;
 	int i;
 	U16 num_samples, num_remaining, gap;
-
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
@@ -334,7 +333,6 @@ void uac2_device_audio_task(void *pvParameters)
 #define SPK_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
 #define SPK_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
 #define SPK_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
-
 
 					if(playerStarted) {
 						if (gap < old_gap) {
