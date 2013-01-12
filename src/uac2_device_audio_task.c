@@ -413,7 +413,6 @@ void uac2_device_audio_task(void *pvParameters)
 					sample_SB = FB_rate >> 8;	// was >> 8
 					sample_MSB = FB_rate >> 16;	// was >> 16
 					sample_HSB = FB_rate >> 24;	// was >> 24
-
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_LSB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_SB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
