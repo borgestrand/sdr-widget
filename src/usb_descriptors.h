@@ -116,7 +116,10 @@
 
 // USB Device descriptor
 
-// #define COMPILING_FOR_DRIVER_DEVELOPMENT	// BSB 20121107 Special USB signatures for driver development
+//#define COMPILING_FOR_DRIVER_DEVELOPMENT 1 	// BSB 20121107 Special USB signatures for driver development
+												// "1" for open source driver test winuac2
+												// "2" for special driver test
+												// Undefined for standard operation according to new USB PIDs
 
 // BSB Added 20110901 according to mail from Roger
 #define USB_1_1_SPECIFICATION     0x0101
@@ -144,9 +147,12 @@
 #define AUDIO_PRODUCT_ID_7	  0x0767		//!  USB8741    UAC1 PID
 #define AUDIO_PRODUCT_ID_8    0x0768		//!  USB8741    UAC2 PID
 
-#ifdef COMPILING_FOR_DRIVER_DEVELOPMENT
-  #define AUDIO_PRODUCT_ID_9  0x03ED		//!  AB-1.x Special driver testing UAC1
-  #define AUDIO_PRODUCT_ID_10 0x03EE		//!  AB-1.x Special driver testing UAC2
+#if COMPILING_FOR_DRIVER_DEVELOPMENT == 1
+  #define AUDIO_PRODUCT_ID_9  0x03ED		//!  AB-1.x driver testing UAC1 in winuac2 project
+  #define AUDIO_PRODUCT_ID_10 0x03EE		//!  AB-1.x driver testing UAC2
+#elif COMPILING_FOR_DRIVER_DEVELOPMENT == 2
+  #define AUDIO_PRODUCT_ID_9  0x03EF		//!  AB-1.x driver testing UAC1 for special drivers
+  #define AUDIO_PRODUCT_ID_10 0x03F0		//!  AB-1.x driver testing UAC2
 #else
   #define AUDIO_PRODUCT_ID_9    0x075C		//!  AB-1.x     UAC1 PID
   #define AUDIO_PRODUCT_ID_10   0x075D		//!  AB-1.x     UAC2 PID
