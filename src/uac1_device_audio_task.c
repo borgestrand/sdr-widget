@@ -329,6 +329,7 @@ void uac1_device_audio_task(void *pvParameters)
 							LED_On(LED0);
 							FB_rate -= FB_RATE_DELTA;
 //							delta_num--;
+							print_dbg_char_char('-');
 							old_gap = gap;
 						}
 						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
@@ -337,6 +338,7 @@ void uac1_device_audio_task(void *pvParameters)
 							FB_rate += FB_RATE_DELTA;
 //							delta_num++;
 							old_gap = gap;
+							print_dbg_char_char('+');
 						}
 						else {
 							LED_Off(LED0);
