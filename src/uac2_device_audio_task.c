@@ -338,29 +338,41 @@ void uac2_device_audio_task(void *pvParameters)
 					if(playerStarted) {
 						if (gap < old_gap) {
 							if (gap < SPK_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
-								LED_Toggle(LED0);
+								LED_On(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('-');
 							}
 							else if (gap < SPK_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED0); // Only toggle LEDs outside outer bonds
+								LED_On(LED0);
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
 							}
+							else {
+								LED_Off(LED0);
+								LED_Off(LED1);
+							}
 						}
 						else if (gap > old_gap) {
-							if (gap > SPK_GAP_U2) { 	// gap > outer upper bound => 2*FB_RATE_DELTA
-								LED_Toggle(LED1);
+							if (gap > SPK_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
+								LED_On(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('+');
 							}
-							else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED1); // Only toggle LEDs outside outer bonds
+							else if (gap > SPK_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
+								LED_On(LED1);
 								FB_rate += FB_RATE_DELTA;
 								old_gap = gap;
 							}
+							else {
+								LED_Off(LED0);
+								LED_Off(LED1);
+							}
+						}
+						else {
+							LED_Off(LED0);
+							LED_Off(LED1);
 						}
 					} // end if(playerStarted)
 
@@ -375,33 +387,44 @@ void uac2_device_audio_task(void *pvParameters)
 					// HS mode
 					// FB rate is 4 bytes in 16.16 format
 
-					//feedback calculate only in playing mode
 					if(playerStarted) {
 						if (gap < old_gap) {
 							if (gap < SPK_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
-								LED_Toggle(LED0);
+								LED_On(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('-');
 							}
 							else if (gap < SPK_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED0); // Only toggle LEDs outside outer bonds
+								LED_On(LED0);
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
 							}
+							else {
+								LED_Off(LED0);
+								LED_Off(LED1);
+							}
 						}
 						else if (gap > old_gap) {
-							if (gap > SPK_GAP_U2) { 	// gap > outer upper bound => 2*FB_RATE_DELTA
-								LED_Toggle(LED1);
+							if (gap > SPK_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
+								LED_On(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
 //								print_dbg_char_char('+');
 							}
-							else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
-//								LED_Toggle(LED1); // Only toggle LEDs outside outer bonds
+							else if (gap > SPK_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
+								LED_On(LED1);
 								FB_rate += FB_RATE_DELTA;
 								old_gap = gap;
 							}
+							else {
+								LED_Off(LED0);
+								LED_Off(LED1);
+							}
+						}
+						else {
+							LED_Off(LED0);
+							LED_Off(LED1);
 						}
 					} // end if(playerStarted)
 
