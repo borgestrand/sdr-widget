@@ -19,6 +19,8 @@ Version 20120807 BSB initial
         20120825 Alex's feedback text copied in, UAC2 on Windows edits
         20120917 Christian's input on Linux dfu programming
         20121004 Added Nikolay's recipe on firmware builds
+        20121208 Updated Flip version
+        20121215 Adding to UAC2 feedback
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -510,8 +512,9 @@ New firmware (.elf file) is installed by means of the batchisp program from
 Atmel. It is part of their Flip package. For batchisp debugging see the end of 
 this section.
 
-First of all, Atmel Flip is not easy to install. There are several prerequisites
-and manual steps you have to go through. 
+First of all, Atmel Flip is NOT easy to install and use. After the lengthy
+recipe below there is a section on debugging if things don't work. Don't give
+up if things are tricky the first time!
 
 1  - May be omitted depending on your setup: Install a Java Virtual Machine from
      http://java.com/en/download/index.jsp
@@ -519,42 +522,45 @@ and manual steps you have to go through.
 2  - May be omitted depending on your setup: Install C++ runtime from Microsoft:
      http://www.microsoft.com/en-us/download/details.aspx?id=5555
 
-3  - Install Atmel Flip 3.4.5 from 
-     http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3886
-     This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.5"
+3  - Install Atmel Flip 3.4.7 from http://www.atmel.com/tools/FLIP.aspx and 
+     choose the version which requires Java Runtime Environment to be pre-
+     installed. (You want your Java from Oracle, not from Atmel!)
+     This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.7"
 
 4  - Copy files from Add_to_flip345_bin.zip from
      http://code.google.com/p/sdr-widget/downloads/detail?name=Add_to_flip345_bin.zip
      to folder 
-     "C:\Program Files (x86)\Atmel\Flip 3.4.5\bin"
+     "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
 
 5  - Download the latest firmware from 
      http://code.google.com/p/sdr-widget/downloads/list
      or from the /Release folder of locally compiled firmware. Save it to 
      somewhere convenient, for example
-     "C:\Program Files (x86)\Atmel\Flip 3.4.5\bin"
+     "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
 
 6  - Do the following. Ignore and approve any messages about driver not being 
      signed. Start, Run, hdwwiz.exe, Next, Install the hardware ... manually, 
      Next, Show All, Next, Have Disk, Browse to 
-     "C:\Program Files (x86)\Atmel\Flip 3.4.5\usb", Choose "atmel_usb_dfu.inf",
+     "C:\Program Files (x86)\Atmel\Flip 3.4.7\usb", Choose "atmel_usb_dfu.inf",
      Open, OK, Select "AT32UC3A3", Next, Next, Finish
 
 7  - Reboot (may or may not be necessary)
 
 8  - Plug in Audio Widget USB Device. 
 
-9  - Hold Prog, click and release Rest, release Prog
+9  - Hold Prog, click and release Rest, release Prog. The first time you do this
+     Windows will do a fair bit of driver housekeeping.
 
 10 - You may or may not receive messages about lacking drivers for "DG8SAQ-I2C".
-     Please ignore them.
+     Please ignore them if they show up.
 
 11 - Windows should now be able to find the boot loader in the MCU. To verify:
      Start, Run, devmgmt.msc, look for Atmel USB Devices
 
 12 - To program the Audio Widget use the Flip installation and the 
-     Add_to_flip.. package: Start, Run, cmd.exe, 
-     cd "C:\Program Files (x86)\Atmel\Flip 3.4.5\bin", "prog widget.elf" 
+     Add_to_flip345_bin.zip package. Things may take extra time and require up
+     to five attempts the first time: Start, Run, cmd.exe, 
+     cd "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin", "prog widget.elf" 
      Substitute "widget.elf" with the compiled firmware file you wish to to use
      in your Audio Widget. This is the file from step 5. (If you saved the .elf
      file to C:\foo\widget.elf, use "prog C:\foo\widget.elf" instead.)
@@ -562,7 +568,7 @@ and manual steps you have to go through.
 13 - Expect an output like this in your cmd window:
 
 --------------------------------------------------------------------------------
-C:\Program Files (x86)\Atmel\Flip 3.4.5\bin>batchisp -device at32uc3a3256 -hardw
+C:\Program Files (x86)\Atmel\Flip 3.4.7\bin>batchisp -device at32uc3a3256 -hardw
 are usb -operation erase f memory flash blankcheck loadbuffer widget.elf program
  verify start reset 0
 Running batchisp 1.2.5 on Tue Jul 31 19:44:26 2012
@@ -584,7 +590,7 @@ Starting Application................... PASS    RESET   0
 
 Summary:  Total 11   Passed 11   Failed 0
 
-C:\Program Files (x86)\Atmel\Flip 3.4.5\bin>
+C:\Program Files (x86)\Atmel\Flip 3.4.7\bin>
 --------------------------------------------------------------------------------
 
 Debugging Atmel Flip and batchisp. Unfortunately, batchisp isn't always 100% 
@@ -925,6 +931,37 @@ any changes you do will end up there.
 Appendix 2 - UAC2 Feedback Mechanism
 ====================================
 
+Important sources on USB Audio:
+-  http://www.usb.org/developers/docs/usb_20_110512.zip
+   Section 5.12.4.2 of usb_20.pdf
+-  http://developer.apple.com/library/mac/#technotes/tn2274/_index.html
+-  http://www.usb.org/developers/devclass_docs/Audio2.0_final.zip 
+   Section 3.16.2.2 of Audio20_final.pdf
+   Section 2.3.1.1 of Frmts20_final.pdf
+
+Linux driver implementation (source Daniel Mack):
+https://git.kernel.org/?p=linux/kern...usb/endpoint.c
+
+In particular, check the lower half of the function snd_usb_handle_sync_urb()
+which is called when a feedback packet is received. Apart from dealing with
+different format shifts, it sets ep->freqm to the value in the packet.
+
+This value is referred to in snd_usb_endpoint_next_packet_size() which also
+keeps around the unused lower 16 bits for the next iteration of the calculation
+to not loose precicion. The return value of this function is then taken as the
+size of the next packet so be sent out. 
+
+
+Windows ASIO driver implementation (source Nikolay)
+
+You may found how to calculate packets size in audiotask.cpp and .h files.
+
+void AudioFeedbackTask::ProcessBuffer(ISOBuffer* nextXfer) - recieve feedback
+value and
+int AudioDACTask::FillBuffer(ISOBuffer* nextXfer) - fill packets for sending to
+DAC
+
+
 The audio-widget (and sister project sdr-widget) has demonstrated that the 
 AT32UC3A3 can support:
 
@@ -978,4 +1015,3 @@ as the rate feedback is still based on the OLD sampling rate before things
 settle down to the new sampling rate. The OSX way of doing things is more
 gentlemanly :-) However, the Linux developer thinks his way is the correct way
 so we have to deal with this quirk :-)
-
