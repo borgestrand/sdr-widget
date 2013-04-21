@@ -454,12 +454,15 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 //					Alternative Linux quirk replacement code, insert nominal FB_rate after a short interlude of requesting 99ksps (see uac2_usb_specific_request.c)
-					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
+
+/* Demian					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = (88 << 14) + (1<<14)/5;
 					}
 					if ( (current_freq.frequency == 96000) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = (96) << 14;
 					}
+
+*/
 				}
 
 				Usb_send_in(EP_AUDIO_OUT_FB);
@@ -500,10 +503,10 @@ void uac2_device_audio_task(void *pvParameters)
 //					}
 					spk_buffer_in = spk_buffer_out; // Replaces the if-test above
 
-					if (spk_buffer_in == 1)
-						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-					else
-						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+//					if (spk_buffer_in == 1)
+//						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+//					else
+//						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
 
@@ -567,10 +570,10 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_index = 0;
 						spk_buffer_in = 1 - spk_buffer_in;
 
-						if (spk_buffer_in == 1)
-							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-						else
-							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+//						if (spk_buffer_in == 1)
+//							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+//						else
+//							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 
 					}
 				} // end for
