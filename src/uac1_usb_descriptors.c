@@ -313,7 +313,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		,   EP_ATTRIBUTES_3
 		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
 		,   EP_INTERVAL_3_FS
-		,   0x05
+		,   EP_REFRESH_3_FS // BSB 20130530 added as define. Was 0x05
 		,   ENDPOINT_NB_5
 	}
 	,
@@ -617,7 +617,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		,   EP_ATTRIBUTES_3
 		,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
 		,   EP_INTERVAL_3_HS
-		,   0x05
+		,   EP_REFRESH_3_HS // BSB 20130530 added as define. Was 0x05
 		,   ENDPOINT_NB_5
     }
 	,

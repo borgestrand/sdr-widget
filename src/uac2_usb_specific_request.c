@@ -216,13 +216,9 @@ void uac2_freq_change_handler() {
 					FB_rate = (96) << 15;
 				else
 */
-<<<<<<< HEAD
-//					FB_rate = (96) << 14;
-					FB_rate = (99) << 14; // linux-quirk replacement
-=======
-					FB_rate = (96) << 14;
-					// Demian FB_rate = (99) << 14;
->>>>>>> audio-widget
+
+					FB_rate = (96) << 14; // Generic OS, supported by linux patch...
+//					FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
@@ -257,13 +253,9 @@ void uac2_freq_change_handler() {
 					FB_rate = (88 << 15) + (1<<15)/5;
 				else
 */
-<<<<<<< HEAD
-//					FB_rate = (88 << 14) + (1<<14)/5;
-					FB_rate = (99 << 14); // Linux-quirk replacement
-=======
-					FB_rate = (88 << 14) + (1<<14)/5;
-					// Demian FB_rate = (99 << 14);
->>>>>>> audio-widget
+
+				FB_rate = (88 << 14) + (1<<14)/5; // Generic code, supported by linux patch
+				FB_rate = (99 << 14); // Needed by Linux, Linux-quirk replacement
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);

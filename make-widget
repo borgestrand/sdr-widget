@@ -11,8 +11,11 @@
 # found. If you have not installed AVR32 tools, fetch them at 
 # http://www.atmel.no/beta_ware/
 
+# Toolchain 3.0.0 in AVR32studio 2.6 is probably not ideal. Toolchain 3.4.2.435 from AVRstudio 6.1 doesn't seem to work with makefile & Co.s
+
 for d in \
-	"/cygdrive/c/Program Files (x86)\Atmel\AVR Tools\AVR Toolchain\bin" \
+	"/cygdrive/c/Program Files (x86)/AVR32studio_2.6/plugins/com.atmel.avr.toolchains.win32.x86_3.0.0.201009140852/os/win32/x86/bin" \
+	"/cygdrive/c/Program Files (x86)/Atmel/AVR Tools/AVR Toolchain/bin" \
 	"/cygdrive/c/Program Files (x86)/Atmel/AVR Tools/AVR32 Studio/plugins/com.atmel.avr.toolchains.win32.x86_3.1.0.201012011657/os/win32/x86/bin" \
     "/cygdrive/c/Program Files (x86)/Atmel/AVR32Studio_2.7/plugins/com.atmel.avr.toolchains.win32.x86_3.1.0.201012011657/os/win32/x86/bin" \
     "/cygdrive/c/Programs/Atmel/AVR32Studio_2.7/AVR32 Studio/plugins/com.atmel.avr.toolchains.win32.x86_3.1.0.201012011657/os/win32/x86/bin" \
