@@ -138,8 +138,8 @@
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_3_HS    0x04			 // One packet per 8 uframe
-#define EP_REFRESH_3_FS		0x05 //0x00			 // BSB 20130520 should be 0? Added as #define See USB audio 1.0 specification, Table 4-20: Standard AS Isochronous Audio Data Endpoint.
-#define EP_REFRESH_3_HS		0x05 //0x00			 // BSB 20130520 should be 0? Added as #define
+#define EP_REFRESH_3_FS		0x00 //0x00	// was 0x05		 // BSB 20130520 should be 0? Added as #define See USB audio 1.0 specification, Table 4-20: Standard AS Isochronous Audio Data Endpoint.
+#define EP_REFRESH_3_HS		0x00 //0x00	// was 0x05		 // BSB 20130520 should be 0? Added as #define
 #define EP_BSYNC_ADDRESS_3	0x05			 // feedback EP is EP 5
 //#define EP_BSYNC_ADDRESS_3	0x04			 // feedback EP is EP 4 - using audio input pipe to sync
 //#define EP_BSYNC_ADDRESS_3	0x00
@@ -147,8 +147,7 @@
 // USB Endpoint 4 descriptor
 #define ENDPOINT_NB_4       ( UAC1_EP_AUDIO_IN | MSK_EP_DIR )
 // BSB 20130530 was: #define EP_ATTRIBUTES_4     0b00100101      // ISOCHRONOUS ASYNCHRONOUS IMPLICIT FEEDBACK
-//#define EP_ATTRIBUTES_4     0b00000101      // ISOCHRONOUS ASYNCHRONOUS DATA
-#define EP_ATTRIBUTES_4     0b00100101      // ISOCHRONOUS ASYNCHRONOUS DATA
+#define EP_ATTRIBUTES_4     0b00000101      // ISOCHRONOUS ASYNCHRONOUS DATA
 
 #define EP_IN_LENGTH_4_HS   294				// 3 bytes * 48 khz * stereo + 6 bytes for add sample
 #define EP_IN_LENGTH_4_FS	294
