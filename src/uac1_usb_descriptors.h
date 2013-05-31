@@ -138,8 +138,8 @@
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_3_HS    0x04			 // One packet per 8 uframe
-#define EP_REFRESH_3_FS		0x05; //0x00			 // BSB 20130520 should be 0? Added as #define See USB audio 1.0 specification, Table 4-20: Standard AS Isochronous Audio Data Endpoint.
-#define EP_REFRESH_3_HS		0x05; //0x00			 // BSB 20130520 should be 0? Added as #define
+#define EP_REFRESH_3_FS		0x05 //0x00			 // BSB 20130520 should be 0? Added as #define See USB audio 1.0 specification, Table 4-20: Standard AS Isochronous Audio Data Endpoint.
+#define EP_REFRESH_3_HS		0x05 //0x00			 // BSB 20130520 should be 0? Added as #define
 #define EP_BSYNC_ADDRESS_3	0x05			 // feedback EP is EP 5
 //#define EP_BSYNC_ADDRESS_3	0x04			 // feedback EP is EP 4 - using audio input pipe to sync
 //#define EP_BSYNC_ADDRESS_3	0x00
