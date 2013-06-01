@@ -455,14 +455,14 @@ void uac2_device_audio_task(void *pvParameters)
 
 //					Alternative Linux quirk replacement code, insert nominal FB_rate after a short interlude of requesting 99ksps (see uac2_usb_specific_request.c)
 
-/* Demian					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
+					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = (88 << 14) + (1<<14)/5;
 					}
 					if ( (current_freq.frequency == 96000) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = (96) << 14;
 					}
 
-*/
+
 				}
 
 				Usb_send_in(EP_AUDIO_OUT_FB);

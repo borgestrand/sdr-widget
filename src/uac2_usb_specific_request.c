@@ -217,8 +217,8 @@ void uac2_freq_change_handler() {
 				else
 */
 
-					FB_rate = (96) << 14; // Generic OS, supported by linux patch...
-//					FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement
+//					FB_rate = (96) << 14; // Generic OS, supported by linux patch...
+					FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
@@ -254,7 +254,7 @@ void uac2_freq_change_handler() {
 				else
 */
 
-				FB_rate = (88 << 14) + (1<<14)/5; // Generic code, supported by linux patch
+//				FB_rate = (88 << 14) + (1<<14)/5; // Generic code, supported by linux patch
 				FB_rate = (99 << 14); // Needed by Linux, Linux-quirk replacement
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
