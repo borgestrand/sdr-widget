@@ -308,6 +308,8 @@ void uac1_device_audio_task(void *pvParameters)
 				{
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 
+					gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 					// Sync CS4344 spk data stream by calculating gap and provide feedback
 					num_remaining = spk_pdca_channel->tcr;
@@ -368,6 +370,7 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 
 					Usb_send_in(EP_AUDIO_OUT_FB);
+					gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 				}
 
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
