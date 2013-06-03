@@ -91,7 +91,9 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 
-#define FB_RATE_DELTA (1<<12)
+// #define FB_RATE_DELTA (1<<12)
+#define FB_RATE_DELTA 64 // BSB 20130603 stability??
+
 #define FB_RATE_DELTA_NUM 2
 
 //_____ D E C L A R A T I O N S ____________________________________________
