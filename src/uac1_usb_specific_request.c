@@ -581,9 +581,14 @@ void audio_set_cur(void)
 		if (speed == 0){		// 44.1khz
 	   		print_dbg_char_char('1'); // BSB debug 20121212
 
+	   		// BSB 20130602: copied from uac1_device_audio_task
+			#define FB_RATE_DELTA (1<<12)
+
+
 			current_freq.frequency = 44100;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
 			FB_rate = (44 << 14) + (1 << 14)/10;
+			FB_rate += FB_RATE_DELTA; // Debug in order to speed up time to 1st correction
 
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
@@ -596,6 +601,7 @@ void audio_set_cur(void)
 	   		current_freq.frequency = 48000;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
 			FB_rate = 48 << 14;
+			FB_rate += FB_RATE_DELTA; // Debug in order to speed up time to 1st correction
 
 			if (FEATURE_BOARD_USBI2S)
 				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
