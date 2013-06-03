@@ -161,8 +161,9 @@ void uac1_device_audio_task(void *pvParameters)
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
-	if (current_freq.frequency == 48000) FB_rate = 48 << 14;
-	else FB_rate = (44 << 14) + (1 << 14)/10;
+	// BSB 20130602: code section moved to uac1_usb_specific_request.c
+	// if (current_freq.frequency == 48000) FB_rate = 48 << 14;
+	// else FB_rate = (44 << 14) + (1 << 14)/10;
 
 	// BSB debug 20130602
 	U8 s_counter = 0;

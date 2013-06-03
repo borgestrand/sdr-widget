@@ -582,6 +582,9 @@ void audio_set_cur(void)
 	   		print_dbg_char_char('1'); // BSB debug 20121212
 
 			current_freq.frequency = 44100;
+			// BSB 20130602: code section moved here from uac1_device_audio_task.c
+			FB_rate = (44 << 14) + (1 << 14)/10;
+
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
@@ -591,6 +594,9 @@ void audio_set_cur(void)
 	   		print_dbg_char_char('2'); // BSB debug 20121212
 
 	   		current_freq.frequency = 48000;
+			// BSB 20130602: code section moved here from uac1_device_audio_task.c
+			FB_rate = 48 << 14;
+
 			if (FEATURE_BOARD_USBI2S)
 				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
