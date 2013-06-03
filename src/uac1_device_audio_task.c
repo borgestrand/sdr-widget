@@ -336,7 +336,6 @@ void uart_puthex(uint8_t c) {
 				{
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 
-					gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 					// Sync CS4344 spk data stream by calculating gap and provide feedback
@@ -359,16 +358,20 @@ void uart_puthex(uint8_t c) {
 							LED_On(LED0);
 							FB_rate -= FB_RATE_DELTA;
 //							delta_num--;
-							print_dbg_char_char('-');
+//							print_dbg_char_char('-');
 							old_gap = gap;
+
+							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 						}
 						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 						//else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
 							LED_On(LED1);
 							FB_rate += FB_RATE_DELTA;
 //							delta_num++;
+//							print_dbg_char_char('+');
 							old_gap = gap;
-							print_dbg_char_char('+');
+
+							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 						}
 						else {
 							LED_Off(LED0);
