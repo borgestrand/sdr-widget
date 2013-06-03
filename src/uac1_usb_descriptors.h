@@ -166,8 +166,8 @@
 #define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
 #define EP_INTERVAL_5_FS	0x01
 #define EP_INTERVAL_5_HS    0x04
-#define EP_REFRESH_5_FS		0x05			 //  64ms
-#define EP_REFRESH_5_HS		0x05			 // 2^(10-1) = 512 uframe = 64ms
+#define EP_REFRESH_5_FS		0x02 // was: 0x05			 //  64ms, BSB 20130603: measured as 32ms
+#define EP_REFRESH_5_HS		0x02 // was: 0x05			 // 2^(10-1) = 512 uframe = 64ms
 
 
 // AC interface descriptor Audio specific
