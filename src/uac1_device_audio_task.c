@@ -164,6 +164,29 @@ void uac1_device_audio_task(void *pvParameters)
 	if (current_freq.frequency == 48000) FB_rate = 48 << 14;
 	else FB_rate = (44 << 14) + (1 << 14)/10;
 
+	// BSB debug 20130602
+	U8 s_counter = 0;
+	U8 s_HEX[10];
+/*
+ * // Write an 8-bit hex number to uart terminal
+void uart_puthex(uint8_t c) {
+    int8_t temp = c;
+
+    c >>=4;                                    			// Shift in most significant hex character
+    if (c < 10)                                			// 0-9 -> '0' - '9' (48 decimal is ascii for '0')
+        uart_putc(c + 48);
+    else                                        		// A-F -> 'A' - 'F' (65 decimal is ascii for 'A')
+        uart_putc(c - 0x0A + 65);
+
+    c = temp & 0x0F;                            		// Mask in least significant hex character
+    if (c < 10)                                  		// 0-9 -> '0' - '9'
+        uart_putc(c + 48);
+	else                                        		// A-F -> 'A' - 'F'
+        uart_putc(c - 0x0A + 65);
+}
+
+ *
+ */
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
@@ -220,6 +243,8 @@ void uac1_device_audio_task(void *pvParameters)
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint buffer free ?
 
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
+
+					gpio_clr_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
 
 					// Sync AK data stream with USB data stream
 					// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
@@ -300,6 +325,8 @@ void uac1_device_audio_task(void *pvParameters)
 						}
 					}
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
+
+					gpio_set_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
 				}
 			} // end alt setting == 1
 
@@ -369,7 +396,12 @@ void uac1_device_audio_task(void *pvParameters)
 						Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_HSB);
 					}
 
+					// BSB debug 20130602
+					if (s_counter == 0) {
+					}
+
 					Usb_send_in(EP_AUDIO_OUT_FB);
+
 					gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 				}
 

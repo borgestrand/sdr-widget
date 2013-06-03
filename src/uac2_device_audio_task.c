@@ -220,6 +220,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
+						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+
 						// Sync AK data stream with USB data stream
 						// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
 						// buffer 0 is set in the reload register of the pdca
@@ -466,6 +468,9 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 
 				Usb_send_in(EP_AUDIO_OUT_FB);
+
+				gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+
 			} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
 			if (Is_usb_out_received(EP_AUDIO_OUT)) {
