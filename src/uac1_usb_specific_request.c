@@ -583,7 +583,8 @@ void audio_set_cur(void)
 
 			current_freq.frequency = 44100;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
-			FB_rate = (44 << 14) + (1 << 14)/10;
+			// FB_rate = (44 << 14) + (1 << 14)/10;
+			FB_rate = (44 << 14) + (3 << 9); // BSB 20130604 44.09375, a number with 8 trailing zeros
 
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
