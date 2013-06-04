@@ -166,8 +166,8 @@
 #define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
 #define EP_INTERVAL_5_FS	0x01
 #define EP_INTERVAL_5_HS    0x04
-#define EP_REFRESH_5_FS		0x02 // was: 0x05			 //  64ms, BSB 20130603: 0x05 measured as 32ms, 0x02 measured as 2ms
-#define EP_REFRESH_5_HS		0x02 // was: 0x05			 // 2^(10-1) = 512 uframe = 64ms
+#define EP_REFRESH_5_FS		0x01 // was: 0x05			 //  64ms, BSB 20130603: 0x05 measured as 32ms, 0x02 measured as 2ms
+#define EP_REFRESH_5_HS		0x01 // was: 0x05			 // 2^(10-1) = 512 uframe = 64ms
 
 // UAC2 uses 1ms. Both 32 and 2ms give instabilities after 1st correction on 48. 2ms is noisy after 1st correction on 48.
 
