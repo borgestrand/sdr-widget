@@ -136,13 +136,13 @@ void uac1_user_endpoint_init(U8 conf_nb)
 		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_FS, SINGLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, SINGLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_FS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_FS, DOUBLE_BANK, 0);
+		// BSB 20130604 disabling UAC1 IN		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_FS, DOUBLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_FS, DOUBLE_BANK, 0);
 	} else {
 		(void)Usb_configure_endpoint(UAC1_EP_HID_TX, EP_ATTRIBUTES_1, DIRECTION_IN, EP_SIZE_1_HS, SINGLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_HID_RX, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, SINGLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT, EP_ATTRIBUTES_3, DIRECTION_OUT, EP_SIZE_3_HS, DOUBLE_BANK, 0);
-		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_HS, DOUBLE_BANK, 0);
+		// BSB 20130604 disabling UAC1 IN		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_IN, EP_ATTRIBUTES_4, DIRECTION_IN, EP_SIZE_4_HS, DOUBLE_BANK, 0);
 		(void)Usb_configure_endpoint(UAC1_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_5, DIRECTION_IN, EP_SIZE_5_HS, DOUBLE_BANK, 0);
 	}
 }
@@ -153,13 +153,16 @@ void uac1_user_endpoint_init(U8 conf_nb)
 void uac1_user_set_interface(U8 wIndex, U8 wValue) {
 	//* Check whether it is the audio streaming interface and Alternate Setting that is being set
 	usb_interface_nb = wIndex;
-	if (usb_interface_nb == STD_AS_INTERFACE_IN) {
-		usb_alternate_setting = wValue;
-		usb_alternate_setting_changed = TRUE;
-	} else if (usb_interface_nb == STD_AS_INTERFACE_OUT){
+	if (usb_interface_nb == STD_AS_INTERFACE_OUT){
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
 	}
+	// BSB 20130604 disabling UAC1 IN
+	/*
+	else if (usb_interface_nb == STD_AS_INTERFACE_IN) {
+		usb_alternate_setting = wValue;
+		usb_alternate_setting_changed = TRUE;
+	} */
 }
 
 static Bool uac1_user_get_interface_descriptor() {
@@ -334,24 +337,7 @@ void audio_get_min(void)
 
    Usb_ack_setup_received_free();
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-   if( i_unit==MIC_FEATURE_UNIT_ID )
-   {
-      switch (wValue_msb)
-      {
-      case CS_MUTE:
-         if( length==1 )
-         {
-            Usb_write_endpoint_data(EP_CONTROL, 8, mute);
-         }
-         break;
-      case CS_VOLUME:
-         if( length==2 )
-         {
-            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
-         }
-         break;
-      }
-    } else if ( i_unit == SPK_FEATURE_UNIT_ID)
+   if ( i_unit == SPK_FEATURE_UNIT_ID)
       {
          switch (wValue_msb)
          {
@@ -369,6 +355,27 @@ void audio_get_min(void)
             break;
          }
       }
+   // BSB 20130604 disabling UAC1 IN
+   /*
+   else if( i_unit==MIC_FEATURE_UNIT_ID )
+   {
+      switch (wValue_msb)
+      {
+      case CS_MUTE:
+         if( length==1 )
+         {
+            Usb_write_endpoint_data(EP_CONTROL, 8, mute);
+         }
+         break;
+      case CS_VOLUME:
+         if( length==2 )
+         {
+            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
+         }
+         break;
+      }
+    }
+    */
 
 /*
 		// 44.1khz min sampling freq
@@ -392,7 +399,26 @@ void audio_get_max(void)
    Usb_ack_setup_received_free();
 
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-   if( i_unit==MIC_FEATURE_UNIT_ID )
+   if ( i_unit == SPK_FEATURE_UNIT_ID){
+	     switch (wValue_msb)
+	      {
+	      case CS_MUTE:
+	         if( length==1 )
+	         {
+	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+	         }
+	         break;
+	      case CS_VOLUME:
+	         if( length==2 )
+	         {
+	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
+	         }
+	         break;
+	      }
+   }
+   // BSB 20130604 disabling UAC1 IN
+   /*
+   else if( i_unit==MIC_FEATURE_UNIT_ID )
    {
       switch (wValue_msb)
       {
@@ -410,23 +436,7 @@ void audio_get_max(void)
          break;
       }
    }
-   else if ( i_unit == SPK_FEATURE_UNIT_ID){
-	     switch (wValue_msb)
-	      {
-	      case CS_MUTE:
-	         if( length==1 )
-	         {
-	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
-	         }
-	         break;
-	      case CS_VOLUME:
-	         if( length==2 )
-	         {
-	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
-	         }
-	         break;
-	      }
-   }
+   */
 
 /*
 		// 48khz max sampling freq
@@ -450,24 +460,7 @@ void audio_get_res(void)
    Usb_ack_setup_received_free();
 
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-   if( i_unit==MIC_FEATURE_UNIT_ID )
-   {
-      switch (wValue_msb)
-      {
-      case CS_MUTE:
-         if( length==1 )
-         {
-            Usb_write_endpoint_data(EP_CONTROL, 8, mute);
-         }
-         break;
-      case CS_VOLUME:
-         if( length==2 )
-         {
-            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
-         }
-         break;
-      }
-   } else if ( i_unit==SPK_FEATURE_UNIT_ID)
+   if ( i_unit==SPK_FEATURE_UNIT_ID)
    {
 	     switch (wValue_msb)
 	      {
@@ -485,6 +478,27 @@ void audio_get_res(void)
 	         break;
 	      }
    }
+   // BSB 20130604 disabling UAC1 IN
+   /*
+   else if( i_unit==MIC_FEATURE_UNIT_ID )
+   {
+      switch (wValue_msb)
+      {
+      case CS_MUTE:
+         if( length==1 )
+         {
+            Usb_write_endpoint_data(EP_CONTROL, 8, mute);
+         }
+         break;
+      case CS_VOLUME:
+         if( length==2 )
+         {
+            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
+         }
+         break;
+      }
+   }
+   */
 
 /*
 	// 48000 - 44100 = 3900
@@ -521,6 +535,8 @@ void audio_get_cur(void)
 		}
     }
 
+   // BSB 20130604 disabling UAC1 IN
+   /*
    else if( i_unit==MIC_FEATURE_UNIT_ID )
    {
       switch (wValue_msb)
@@ -539,7 +555,10 @@ void audio_get_cur(void)
          break;
       }
 
-   } else if (i_unit==SPK_FEATURE_UNIT_ID){
+   }
+   */
+
+   else if (i_unit==SPK_FEATURE_UNIT_ID){
 	     switch (wValue_msb)
 	      {
 	      case CS_MUTE:
@@ -605,6 +624,8 @@ void audio_set_cur(void)
 		}
 	}
 
+   // BSB 20130604 disabling UAC1 IN
+   /*
    else if( i_unit==MIC_FEATURE_UNIT_ID )
    {
       switch (wValue_msb)
@@ -624,6 +645,8 @@ void audio_set_cur(void)
          break;
       }
    }
+   */
+
    else if (i_unit==SPK_FEATURE_UNIT_ID ){
 	   {
 	       switch (wValue_msb)

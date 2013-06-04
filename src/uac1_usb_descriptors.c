@@ -188,14 +188,21 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  CS_INTERFACE
 	   ,  HEADER_SUB_TYPE
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_CLASS_REVISION)
-	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
-									 2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
-	   ,  NB_OF_STREAMING_INTERFACE
+
+	   // BSB 20130604 disabling UAC1 IN
+//	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
+//		 2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
+	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+sizeof(S_usb_in_ter_descriptor_1)+
+		 sizeof(S_usb_feature_unit_descriptor_1)+sizeof(S_usb_out_ter_descriptor_1))
+
+
+       ,  NB_OF_STREAMING_INTERFACE
 	   ,  BELONGS_AUDIO_INTERFACE_OUT
-	   ,  BELONGS_AUDIO_INTERFACE_IN
+	   // BSB 20130604 disabling UAC1 IN 	   ,  BELONGS_AUDIO_INTERFACE_IN
     }
 	,
-    {  sizeof(S_usb_in_ter_descriptor_1)
+	// BSB 20130604 disabling UAC1 IN
+	/*{  sizeof(S_usb_in_ter_descriptor_1)
 	   ,  CS_INTERFACE
 	   ,  INPUT_TERMINAL_SUB_TYPE
 	   ,  INPUT_TERMINAL_ID
@@ -228,7 +235,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  OUTPUT_TERMINAL_SOURCE_ID
 	   ,  0x00
     }
-	,
+	,*/
 	{  sizeof(S_usb_in_ter_descriptor_1)
 	   ,  CS_INTERFACE
 	   ,  INPUT_TERMINAL_SUB_TYPE
@@ -334,8 +341,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
       ,   EP_REFRESH_5_FS
       ,   0x00
       }
-	,
-	{  sizeof(S_usb_as_interface_descriptor)
+//	,
+	// BSB 20130604 disabling UAC1 IN
+	/*{  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
 	   ,  STD_AS_INTERFACE_IN
 	   ,  ALT0_AS_INTERFACE_INDEX
@@ -379,7 +387,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
 	}
     ,
-	{   sizeof(S_usb_endpoint_audio_descriptor_1)
+    {   sizeof(S_usb_endpoint_audio_descriptor_1)
         ,   ENDPOINT_DESCRIPTOR
         ,   ENDPOINT_NB_4
         ,   EP_ATTRIBUTES_4
@@ -395,7 +403,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  AUDIO_EP_ATRIBUTES
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
-	}
+	}*/
 };
 
 
@@ -492,14 +500,19 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  CS_INTERFACE
 	   ,  HEADER_SUB_TYPE
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_CLASS_REVISION)
-	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
-									 2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
+// BSB 20130604 disabling UAC1 IN
+//	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
+//			 2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
+	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+sizeof(S_usb_in_ter_descriptor_1)+
+			 sizeof(S_usb_feature_unit_descriptor_1)+sizeof(S_usb_out_ter_descriptor_1))
+
 	   ,  NB_OF_STREAMING_INTERFACE
 	   ,  BELONGS_AUDIO_INTERFACE_OUT
-	   ,  BELONGS_AUDIO_INTERFACE_IN
+	   // BSB 20130604 disabling UAC1 IN	   ,  BELONGS_AUDIO_INTERFACE_IN
 	}
 	,
-	{  sizeof(S_usb_in_ter_descriptor_1)
+	// BSB 20130604 disabling UAC1 IN
+	/*{  sizeof(S_usb_in_ter_descriptor_1)
 	   ,  CS_INTERFACE
 	   ,  INPUT_TERMINAL_SUB_TYPE
 	   ,  INPUT_TERMINAL_ID
@@ -532,7 +545,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  OUTPUT_TERMINAL_SOURCE_ID
 	   ,  0x00
 	}
-	,
+	,*/
 	{  sizeof(S_usb_in_ter_descriptor_1)
 	   ,  CS_INTERFACE
 	   ,  INPUT_TERMINAL_SUB_TYPE
@@ -638,8 +651,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
       ,   EP_REFRESH_5_HS
       ,   0x00
       }
-	,
-    {  sizeof(S_usb_as_interface_descriptor)
+//	,
+	// BSB 20130604 disabling UAC1 IN
+	/*{  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
 	   ,  STD_AS_INTERFACE_IN
 	   ,  ALT0_AS_INTERFACE_INDEX
@@ -699,7 +713,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  AUDIO_EP_ATRIBUTES
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
-	}
+	}*/
 
 };
 
@@ -795,14 +809,18 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  CS_INTERFACE
 	   ,  HEADER_SUB_TYPE
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_CLASS_REVISION)
-	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
-									 2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
+// BSB 20130604 disabling UAC1 IN
+//	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
+//		2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
+       ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+sizeof(S_usb_in_ter_descriptor_1)+
+		sizeof(S_usb_feature_unit_descriptor_1)+sizeof(S_usb_out_ter_descriptor_1))
 	   ,  NB_OF_STREAMING_INTERFACE
 	   ,  BELONGS_AUDIO_INTERFACE_OUT
-	   ,  BELONGS_AUDIO_INTERFACE_IN
+	   // BSB 20130604 disabling UAC1 IN	   ,  BELONGS_AUDIO_INTERFACE_IN
 	}
 	,
-	{  sizeof(S_usb_in_ter_descriptor_1)
+	// BSB 20130604 disabling UAC1 IN
+	/*{  sizeof(S_usb_in_ter_descriptor_1)
 	   ,  CS_INTERFACE
 	   ,  INPUT_TERMINAL_SUB_TYPE
 	   ,  INPUT_TERMINAL_ID
@@ -835,7 +853,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  OUTPUT_TERMINAL_SOURCE_ID
 	   ,  0x00
 	}
-	,
+	,*/
 	{  sizeof(S_usb_in_ter_descriptor_1)
 	   ,  CS_INTERFACE
 	   ,  INPUT_TERMINAL_SUB_TYPE
@@ -941,8 +959,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
       ,   0x00
       }
 	
-	,
-    {  sizeof(S_usb_as_interface_descriptor)
+//	,
+	// BSB 20130604 disabling UAC1 IN
+	/*{  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
 	   ,  STD_AS_INTERFACE_IN
 	   ,  ALT0_AS_INTERFACE_INDEX
@@ -1000,7 +1019,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  AUDIO_EP_ATRIBUTES
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
-	}
+	}*/
 
 };
 #endif
@@ -1097,14 +1116,18 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  CS_INTERFACE
 	   ,  HEADER_SUB_TYPE
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_CLASS_REVISION)
-	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
-									 2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
+// BSB 20130604 disabling UAC1 IN
+//	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
+//		2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
+	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+sizeof(S_usb_in_ter_descriptor_1)+
+		sizeof(S_usb_feature_unit_descriptor_1)+sizeof(S_usb_out_ter_descriptor_1))
 	   ,  NB_OF_STREAMING_INTERFACE
 	   ,  BELONGS_AUDIO_INTERFACE_OUT
-	   ,  BELONGS_AUDIO_INTERFACE_IN
+	   // BSB 20130604 disabling UAC1 IN	   ,  BELONGS_AUDIO_INTERFACE_IN
     }
 	,
-    {  sizeof(S_usb_in_ter_descriptor_1)
+	// BSB 20130604 disabling UAC1 IN
+	/*{  sizeof(S_usb_in_ter_descriptor_1)
 	   ,  CS_INTERFACE
 	   ,  INPUT_TERMINAL_SUB_TYPE
 	   ,  INPUT_TERMINAL_ID
@@ -1137,7 +1160,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  OUTPUT_TERMINAL_SOURCE_ID
 	   ,  0x00
     }
-	,
+	,*/
 	{  sizeof(S_usb_in_ter_descriptor_1)
 	   ,  CS_INTERFACE
 	   ,  INPUT_TERMINAL_SUB_TYPE
@@ -1243,8 +1266,9 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
       ,   0x00
       }
 
-	,
-	{  sizeof(S_usb_as_interface_descriptor)
+//	,
+	// BSB 20130604 disabling UAC1 IN
+	/*{  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
 	   ,  STD_AS_INTERFACE_IN
 	   ,  ALT0_AS_INTERFACE_INDEX
@@ -1286,7 +1310,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
 	}
     ,
-	{   sizeof(S_usb_endpoint_audio_descriptor_1)
+    {   sizeof(S_usb_endpoint_audio_descriptor_1)
         ,   ENDPOINT_DESCRIPTOR
         ,   ENDPOINT_NB_4
         ,   EP_ATTRIBUTES_4
@@ -1302,7 +1326,7 @@ const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  AUDIO_EP_ATRIBUTES
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
-	}
+	}*/
 };
 
 

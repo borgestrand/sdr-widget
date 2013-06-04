@@ -1011,7 +1011,7 @@ __attribute__((__packed__))
   U16 wTotalLength;       	  /* Total size of class specific descriptor */
   U8  bInCollection;         /* Number of streaming interface */
   U8  baInterfaceNr0;		     /* Streaming interface number 0*/
-  U8  baInterfaceNr1;		// Streaming interface number 1
+  // BSB 20130604 disabling UAC1 IN   U8  baInterfaceNr1;		// Streaming interface number 1
 } S_usb_ac_interface_descriptor_1;
 
 //! USB INPUT Terminal Descriptor

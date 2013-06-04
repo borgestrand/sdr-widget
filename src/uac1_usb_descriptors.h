@@ -56,20 +56,21 @@
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
+// BSB 20130604 disabling UAC1 IN #define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
+#define NB_INTERFACE	   4	//!  DG8SAQ, HID, Audio (2)
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
 #define MAX_POWER          250    // 500 mA
 
 //Audio Streaming (AS) interface descriptor
-#define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
+// BSB 20130604 disabling UAC1 IN #define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
 #define STD_AS_INTERFACE_OUT			0x03
 
 // IAD for Audio
 #define FIRST_INTERFACE1	2
-#define INTERFACE_COUNT1	3
-
+// BSB 20130604 disabling UAC1 IN #define INTERFACE_COUNT1	3
+#define INTERFACE_COUNT1	2
 
 // USB DG8SAQ Interface descriptor
 #define INTERFACE_NB0			    0
@@ -140,11 +141,13 @@
 #define EP_INTERVAL_3_HS    0x04			 // One packet per 8 uframe
 #define EP_REFRESH_3_FS		0x00 //0x00	// was 0x05		 // BSB 20130530 should be 0? Added as #define See USB audio 1.0 specification, Table 4-20: Standard AS Isochronous Audio Data Endpoint.
 #define EP_REFRESH_3_HS		0x00 //0x00	// was 0x05		 // BSB 20130530 should be 0? Added as #define
+//**** BSB: Is this correct with 0x05?? How about UAC1_EP_AUDIO_OUT_FB ??
 #define EP_BSYNC_ADDRESS_3	0x05			 // feedback EP is EP 5
 //#define EP_BSYNC_ADDRESS_3	0x04			 // feedback EP is EP 4 - using audio input pipe to sync
 //#define EP_BSYNC_ADDRESS_3	0x00
 
-// USB Endpoint 4 descriptor
+// BSB 20130604 disabling UAC1 IN
+/*// USB Endpoint 4 descriptor
 #define ENDPOINT_NB_4       ( UAC1_EP_AUDIO_IN | MSK_EP_DIR )
 // BSB 20130530 was: #define EP_ATTRIBUTES_4     0b00100101      // ISOCHRONOUS ASYNCHRONOUS IMPLICIT FEEDBACK
 #define EP_ATTRIBUTES_4     0b00000101      // ISOCHRONOUS ASYNCHRONOUS DATA
@@ -155,6 +158,7 @@
 #define EP_SIZE_4_HS        EP_IN_LENGTH_4_HS
 #define EP_INTERVAL_4_FS	0x01			 // one packet per uframe
 #define EP_INTERVAL_4_HS    0x04			 // One packet per 8 uframe
+*/
 
 /* Note:  The EPs have to be re-arranged.  Feedback EP has to be immediately following the OUT EP
 // USB Endpoint 5 descriptor*/
@@ -166,19 +170,20 @@
 #define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
 #define EP_INTERVAL_5_FS	0x01
 #define EP_INTERVAL_5_HS    0x04
-#define EP_REFRESH_5_FS		0x04 // was: 0x05			 //  64ms, BSB 20130603: 0x05 measured as 32ms, 0x02 measured as 2ms
-#define EP_REFRESH_5_HS		0x04 // was: 0x05			 // 2^(10-1) = 512 uframe = 64ms
+#define EP_REFRESH_5_FS		0x02 // was: 0x05			 //  64ms, BSB 20130603: 0x05 measured as 32ms, 0x02 measured as 2ms
+#define EP_REFRESH_5_HS		0x02 // was: 0x05			 // 2^(10-1) = 512 uframe = 64ms
 
-// UAC2 uses 1ms. Both 32 and 2ms give instabilities after 1st correction on 48. 2ms is noisy after 1st correction on 48.
 
 
 // AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION			0x0100
-#define NB_OF_STREAMING_INTERFACE		0x02	// one for speaker out, one for mic in
+// BSB 20130604 disabling UAC1 IN #define NB_OF_STREAMING_INTERFACE		0x02	// one for speaker out, one for mic in
+#define NB_OF_STREAMING_INTERFACE		0x01	// one for speaker out, one for mic in
 #define BELONGS_AUDIO_INTERFACE_OUT		STD_AS_INTERFACE_OUT
-#define BELONGS_AUDIO_INTERFACE_IN		STD_AS_INTERFACE_IN
+// BSB 20130604 disabling UAC1 IN #define BELONGS_AUDIO_INTERFACE_IN		STD_AS_INTERFACE_IN
 
-// Input Terminal descriptor
+// BSB 20130604 disabling UAC1 IN
+/*// Input Terminal descriptor
 #define INPUT_TERMINAL_ID				0x01
 #define INPUT_TERMINAL_TYPE				0x0201 	// Terminal is microphone
 #define INPUT_TERMINAL_ASSOCIATION		0x00   	// No association
@@ -194,6 +199,7 @@
 #define MIC_BMA_CONTROLS_1			   0x0002	// Volume control on left channel
 #define MIC_BMA_CONTROLS_2			   0x0002	// Volume control on right channel
 #define MIC_FEATURE_UNIT_CH_NAME_ID		0x00
+*/
 
 // Output Terminal descriptor
 #define OUTPUT_TERMINAL_ID				0x03
@@ -285,9 +291,9 @@ __attribute__((__packed__))
 	  S_usb_interface_association_descriptor iad1;
 	  S_usb_interface_descriptor     	ifc2;
 	  S_usb_ac_interface_descriptor_1  	audioac;
-	  S_usb_in_ter_descriptor_1		 	mic_in_ter;
-	  S_usb_feature_unit_descriptor_1  	mic_fea_unit;
-	  S_usb_out_ter_descriptor_1	 	mic_out_ter;
+	  // BSB 20130604 disabling UAC1 IN	  S_usb_in_ter_descriptor_1		 	mic_in_ter;
+	  // BSB 20130604 disabling UAC1 IN   S_usb_feature_unit_descriptor_1  	mic_fea_unit;
+	  // BSB 20130604 disabling UAC1 IN   S_usb_out_ter_descriptor_1	 	mic_out_ter;
 	  S_usb_in_ter_descriptor_1			spk_in_ter;
 	  S_usb_feature_unit_descriptor_1	spk_fea_unit;
 	  S_usb_out_ter_descriptor_1		spk_out_ter;
@@ -298,12 +304,12 @@ __attribute__((__packed__))
 	  S_usb_endpoint_audio_descriptor_1	ep3;
 	  S_usb_endpoint_audio_specific_1 	ep3_s;
 	  S_usb_endpoint_audio_descriptor_1	ep5;
-	  S_usb_as_interface_descriptor 	mic_as_alt0;
-	  S_usb_as_interface_descriptor 	mic_as_alt1;
-	  S_usb_as_g_interface_descriptor_1	mic_g_as;
-	  S_usb_format_type_1				mic_format_type;
-	  S_usb_endpoint_audio_descriptor_1	ep4;
-	  S_usb_endpoint_audio_specific_1 	ep4_s;
+	  // BSB 20130604 disabling UAC1 IN   S_usb_as_interface_descriptor 	mic_as_alt0;
+	  // BSB 20130604 disabling UAC1 IN   S_usb_as_interface_descriptor 	mic_as_alt1;
+	  // BSB 20130604 disabling UAC1 IN   S_usb_as_g_interface_descriptor_1	mic_g_as;
+	  // BSB 20130604 disabling UAC1 IN   S_usb_format_type_1				mic_format_type;
+	  // BSB 20130604 disabling UAC1 IN   S_usb_endpoint_audio_descriptor_1	ep4;
+	  // BSB 20130604 disabling UAC1 IN   S_usb_endpoint_audio_specific_1 	ep4_s;
 }
 #if (defined __ICCAVR32__)
 #pragma pack()
