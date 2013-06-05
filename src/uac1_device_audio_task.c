@@ -358,6 +358,71 @@ void uart_puthex(uint8_t c) {
 						gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 					}
 
+// BSB 20130605 FB_rate calculation with 2 levels, imported from UAC2 code
+
+#define SPK1_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// 6 A half buffer up in distance	=> Speed up host a lot
+#define	SPK1_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// 5 A quarter buffer up in distance => Speed up host a bit
+#define SPK1_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
+#define SPK1_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
+#define SPK1_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
+
+					if(playerStarted) {
+						if (gap < old_gap) {
+							if (gap < SPK1_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
+								LED_On(LED0);
+								FB_rate -= 2*FB_RATE_DELTA;
+								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char_char('/');
+								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
+							}
+							else if (gap < SPK1_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
+								LED_On(LED0);
+								FB_rate -= FB_RATE_DELTA;
+								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char_char('-');
+								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
+							}
+							else {
+								LED_Off(LED0);
+								LED_Off(LED1);
+							}
+						}
+						else if (gap > old_gap) {
+							if (gap > SPK1_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
+								LED_On(LED1);
+								FB_rate += 2*FB_RATE_DELTA;
+								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char_char('*');
+								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
+							}
+							else if (gap > SPK1_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
+								LED_On(LED1);
+								FB_rate += FB_RATE_DELTA;
+								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char_char('+');
+								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
+							}
+							else {
+								LED_Off(LED0);
+								LED_Off(LED1);
+							}
+						}
+						else {
+							LED_Off(LED0);
+							LED_Off(LED1);
+						}
+					} // end if(playerStarted)
+
+
+/* BSB 20130605 original UAC1 code with debug
 					if (playerStarted) {
 						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
 						//if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
@@ -391,7 +456,8 @@ void uart_puthex(uint8_t c) {
 							LED_Off(LED0);
 							LED_Off(LED1);
 						}
-					}
+					} // end if(playerStarted)
+End of UAC1 original code */
 
 					if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 						sample_LSB = FB_rate;

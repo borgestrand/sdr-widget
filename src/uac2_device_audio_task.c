@@ -332,21 +332,21 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 
 				// BSB 20120912 UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
-#define SPK_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// 6 A half buffer up in distance	=> Speed up host a lot
-#define	SPK_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// 5 A quarter buffer up in distance => Speed up host a bit
-#define SPK_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
-#define SPK_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
-#define SPK_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
+#define SPK2_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// 6 A half buffer up in distance	=> Speed up host a lot
+#define	SPK2_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// 5 A quarter buffer up in distance => Speed up host a bit
+#define SPK2_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
+#define SPK2_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
+#define SPK2_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
 
 					if(playerStarted) {
 						if (gap < old_gap) {
-							if (gap < SPK_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
+							if (gap < SPK2_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
 								LED_On(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
 								print_dbg_char_char('/');
 							}
-							else if (gap < SPK_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
+							else if (gap < SPK2_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
 								LED_On(LED0);
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
@@ -358,13 +358,13 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 						}
 						else if (gap > old_gap) {
-							if (gap > SPK_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
+							if (gap > SPK2_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
 								LED_On(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
 								print_dbg_char_char('*');
 							}
-							else if (gap > SPK_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
+							else if (gap > SPK2_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
 								LED_On(LED1);
 								FB_rate += FB_RATE_DELTA;
 								old_gap = gap;
@@ -394,13 +394,13 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if(playerStarted) {
 						if (gap < old_gap) {
-							if (gap < SPK_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
+							if (gap < SPK2_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
 								LED_On(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
 								print_dbg_char_char('/');
 							}
-							else if (gap < SPK_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
+							else if (gap < SPK2_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
 								LED_On(LED0);
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
@@ -412,13 +412,13 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 						}
 						else if (gap > old_gap) {
-							if (gap > SPK_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
+							if (gap > SPK2_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
 								LED_On(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
 								print_dbg_char_char('*');
 							}
-							else if (gap > SPK_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
+							else if (gap > SPK2_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
 								LED_On(LED1);
 								FB_rate += FB_RATE_DELTA;
 								old_gap = gap;
