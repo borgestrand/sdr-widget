@@ -309,8 +309,9 @@ void uac2_device_audio_task(void *pvParameters)
 			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 
+#ifdef USB_STATE_MACHINE_DEBUG
 				gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
-
+#endif
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 				// Sync DAC spk data stream by calculating gap and provide feedback
 				num_remaining = spk_pdca_channel->tcr;
@@ -469,8 +470,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 				Usb_send_in(EP_AUDIO_OUT_FB);
 
+#ifdef USB_STATE_MACHINE_DEBUG
 				gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
-
+#endif
 			} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
 			if (Is_usb_out_received(EP_AUDIO_OUT)) {
@@ -508,11 +510,12 @@ void uac2_device_audio_task(void *pvParameters)
 //					}
 					spk_buffer_in = spk_buffer_out; // Replaces the if-test above
 
+#ifdef USB_STATE_MACHINE_DEBUG
 					if (spk_buffer_in == 1)
 						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 					else
 						gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
-
+#endif
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
 
 					// BSB added 20120912 after UAC2 time bar pull noise analysis
@@ -575,11 +578,12 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_index = 0;
 						spk_buffer_in = 1 - spk_buffer_in;
 
+#ifdef USB_STATE_MACHINE_DEBUG
 						if (spk_buffer_in == 1)
 							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-
+#endif
 					}
 				} // end for
 				Usb_ack_out_received_free(EP_AUDIO_OUT);

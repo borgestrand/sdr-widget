@@ -598,12 +598,14 @@ void audio_set_cur(void)
 
 		freq_changed = TRUE;
 		if (speed == 0){		// 44.1khz
-	   		print_dbg_char_char('1'); // BSB debug 20121212
+#ifdef USB_STATE_MACHINE_DEBUG
+			print_dbg_char_char('1'); // BSB debug 20121212
+#endif
 
 			current_freq.frequency = 44100;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
-			// FB_rate = (44 << 14) + (1 << 14)/10;
-			FB_rate = (44 << 14) + (3 << 9); // BSB 20130604 44.09375, a number with 8 trailing zeros
+			FB_rate = (44 << 14) + (1 << 14)/10;
+//			FB_rate = (44 << 14) + (3 << 9); // BSB 20130604 44.09375, a number with 8 trailing zeros
 
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
@@ -611,7 +613,9 @@ void audio_set_cur(void)
 				gpio_clr_gpio_pin(AVR32_PIN_PX51);
 			}
 		else {					// 48khz
-	   		print_dbg_char_char('2'); // BSB debug 20121212
+#ifdef USB_STATE_MACHINE_DEBUG
+			print_dbg_char_char('2'); // BSB debug 20121212
+#endif
 
 	   		current_freq.frequency = 48000;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
@@ -684,8 +688,9 @@ Bool uac1_user_read_request(U8 type, U8 request)
 {
 
 	usb_type = type;
-
+#ifdef USB_STATE_MACHINE_DEBUG
 	print_dbg_char_char('z'); // BSB debug 20121212
+#endif
 
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR) return uac1_user_get_interface_descriptor();

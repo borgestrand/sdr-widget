@@ -123,12 +123,16 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, SPK_BUFFER_SIZE);
 		spk_buffer_out = 1;
+#ifdef USB_STATE_MACHINE_DEBUG
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // BSB 20120911 debug on GPIO_04
+#endif
 	}
 	else {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, SPK_BUFFER_SIZE);
 		spk_buffer_out = 0;
+#ifdef USB_STATE_MACHINE_DEBUG
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // BSB 20120911 debug on GPIO_04
+#endif
 	}
 }
 

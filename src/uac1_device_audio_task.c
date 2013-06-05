@@ -167,11 +167,12 @@ void uac1_device_audio_task(void *pvParameters)
 	// if (current_freq.frequency == 48000) FB_rate = 48 << 14;
 	// else FB_rate = (44 << 14) + (1 << 14)/10;
 
-	// BSB debug 20130602
-	U8 s_counter = 0;
+/*  BSB debug 20130602
+ *  attempt to write one in 100-ish feedback packets to UART by spacing out ASCII'ified HEX characters
+ *  Unfinished code
+ 	U8 s_counter = 0;
 	U8 s_HEX[10];
-/*
- * // Write an 8-bit hex number to uart terminal
+
 void uart_puthex(uint8_t c) {
     int8_t temp = c;
 
@@ -187,9 +188,8 @@ void uart_puthex(uint8_t c) {
 	else                                        		// A-F -> 'A' - 'F'
         uart_putc(c - 0x0A + 65);
 }
-
- *
  */
+
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
@@ -247,7 +247,9 @@ void uart_puthex(uint8_t c) {
 
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
+#ifdef USB_STATE_MACHINE_DEBUG
 					gpio_clr_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
+#endif
 
 					// Sync AK data stream with USB data stream
 					// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
@@ -329,7 +331,9 @@ void uart_puthex(uint8_t c) {
 					}
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 
+#ifdef USB_STATE_MACHINE_DEBUG
 					gpio_set_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
+#endif
 				}
 			} // end alt setting == 1
 
@@ -363,7 +367,9 @@ void uart_puthex(uint8_t c) {
 //							print_dbg_char_char('-');
 							old_gap = gap;
 
+#ifdef USB_STATE_MACHINE_DEBUG
 							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
 						}
 						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
 						//else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
@@ -373,7 +379,9 @@ void uart_puthex(uint8_t c) {
 //							print_dbg_char_char('+');
 							old_gap = gap;
 
+#ifdef USB_STATE_MACHINE_DEBUG
 							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
 						}
 						else {
 							LED_Off(LED0);
@@ -402,13 +410,11 @@ void uart_puthex(uint8_t c) {
 						Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_HSB);
 					}
 
-					// BSB debug 20130602
-					if (s_counter == 0) {
-					}
-
 					Usb_send_in(EP_AUDIO_OUT_FB);
 
+#ifdef USB_STATE_MACHINE_DEBUG
 					gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
 				}
 
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
@@ -429,10 +435,12 @@ void uart_puthex(uint8_t c) {
 //						}
 						spk_buffer_in = spk_buffer_out; // Replaces the if-test above
 
+#ifdef USB_STATE_MACHINE_DEBUG
 						if (spk_buffer_in == 1)
 							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+#endif
 
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
 
@@ -483,10 +491,13 @@ void uart_puthex(uint8_t c) {
 							spk_buffer_in = 1 - spk_buffer_in;
 //							spk_buffer_ptr = spk_buffer_in ? spk_buffer_0 : spk_buffer_1;
 
+#ifdef USB_STATE_MACHINE_DEBUG
 							if (spk_buffer_in == 1)
 								gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 							else
 								gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+#endif
+
 						}
 					}
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
