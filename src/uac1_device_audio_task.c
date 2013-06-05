@@ -364,7 +364,9 @@ void uart_puthex(uint8_t c) {
 							LED_On(LED0);
 							FB_rate -= FB_RATE_DELTA;
 //							delta_num--;
-//							print_dbg_char_char('-');
+#ifdef USB_STATE_MACHINE_DEBUG
+							print_dbg_char_char('-');
+#endif
 							old_gap = gap;
 
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -376,7 +378,9 @@ void uart_puthex(uint8_t c) {
 							LED_On(LED1);
 							FB_rate += FB_RATE_DELTA;
 //							delta_num++;
-//							print_dbg_char_char('+');
+#ifdef USB_STATE_MACHINE_DEBUG
+							print_dbg_char_char('+');
+#endif
 							old_gap = gap;
 
 #ifdef USB_STATE_MACHINE_DEBUG
