@@ -122,7 +122,7 @@
 												// Undefined for standard operation according to new USB PIDs
 
 // BSB Added 20110901 according to mail from Roger
-#define USB_1_1_SPECIFICATION     0x0101
+#define USB_1_1_SPECIFICATION     0x0110 	// BSB 20130605 changed from 0x0101 to 0x0110 to happify USBlyzer
 
 #define USB_SPECIFICATION     0x0200
 #define DEVICE_CLASS          0xef          //!
