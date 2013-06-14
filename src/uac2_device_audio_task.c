@@ -308,11 +308,12 @@ void uac2_device_audio_task(void *pvParameters)
 
 			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
+				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 
 #ifdef USB_STATE_MACHINE_DEBUG
-				gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+				gpio_clr_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
 #endif
-				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
+
 				// Sync DAC spk data stream by calculating gap and provide feedback
 				num_remaining = spk_pdca_channel->tcr;
 				if (spk_buffer_in != spk_buffer_out) {
@@ -471,27 +472,14 @@ void uac2_device_audio_task(void *pvParameters)
 				Usb_send_in(EP_AUDIO_OUT_FB);
 
 #ifdef USB_STATE_MACHINE_DEBUG
-				gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+				gpio_set_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
 #endif
 			} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
 			if (Is_usb_out_received(EP_AUDIO_OUT)) {
-
-				// BSB 20120907 Indicate packet receive start below
-
-				// BSB 20120910 debug
-				// Toggle PX56 = TP50 = GPIO_04
-//				if (gpio_get_pin_value(AVR32_PIN_PX56) == 0)
-//					gpio_set_gpio_pin(AVR32_PIN_PX56);
-//				else
-//					gpio_clr_gpio_pin(AVR32_PIN_PX56);
-
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
-				// BSB debug 20120913
 				num_samples = Usb_byte_count(EP_AUDIO_OUT);
-//				if ( (num_samples & (U16)7) != 0)
-//					print_dbg_char_char('7');
 				num_samples = num_samples / 8;
 
 				xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
@@ -499,9 +487,6 @@ void uac2_device_audio_task(void *pvParameters)
 				spk_usb_sample_counter += num_samples; 	// track the num of samples received
 				xSemaphoreGive(mutexSpkUSB);
 				if(!playerStarted) {
-
-//					gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB debug 20120911, positive edge marks playerStarted FALSE->TRUE
-//					print_dbg_char_char('Y'); // BSB debug 20120911
 
 					playerStarted = TRUE;
 					num_remaining = spk_pdca_channel->tcr;

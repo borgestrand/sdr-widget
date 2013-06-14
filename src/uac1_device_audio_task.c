@@ -247,10 +247,6 @@ void uart_puthex(uint8_t c) {
 
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
-#ifdef USB_STATE_MACHINE_DEBUG
-					gpio_clr_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
-#endif
-
 					// Sync AK data stream with USB data stream
 					// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
 					// buffer 0 is set in the reload register of the pdca
@@ -330,10 +326,6 @@ void uart_puthex(uint8_t c) {
 						}
 					}
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
-
-#ifdef USB_STATE_MACHINE_DEBUG
-					gpio_set_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
-#endif
 				}
 			} // end alt setting == 1
 
@@ -341,9 +333,11 @@ void uart_puthex(uint8_t c) {
 				if ( Is_usb_in_ready(EP_AUDIO_OUT_FB) )
 				{
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
-
-
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
+
+#ifdef USB_STATE_MACHINE_DEBUG
+					gpio_clr_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
+#endif
 					// Sync CS4344 spk data stream by calculating gap and provide feedback
 					num_remaining = spk_pdca_channel->tcr;
 					if (spk_buffer_in != spk_buffer_out) {
@@ -483,7 +477,7 @@ End of UAC1 original code */
 					Usb_send_in(EP_AUDIO_OUT_FB);
 
 #ifdef USB_STATE_MACHINE_DEBUG
-					gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+					gpio_set_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
 #endif
 				}
 
