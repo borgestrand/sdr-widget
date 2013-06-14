@@ -188,8 +188,9 @@ void uac2_freq_change_handler() {
 			FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
 */
 			if (current_freq.frequency == 96000) {
+#ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char_char('4'); // BSB debug 20121212
-
+#endif
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
@@ -217,15 +218,17 @@ void uac2_freq_change_handler() {
 				else
 */
 
-//					FB_rate = (96) << 14; // Generic OS, supported by linux patch...
-					FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement
+//				FB_rate = (96) << 14; // Generic OS, supported by linux patch...
+				FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
 			}
 
 		   	else if (current_freq.frequency == 88200) {
+#ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char_char('3'); // BSB debug 20121212
+#endif
 
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -262,7 +265,9 @@ void uac2_freq_change_handler() {
 				}
 
 	       	else if (current_freq.frequency == 176400) {
+#ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char_char('5'); // BSB debug 20121212
+#endif
 
 	    			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	    			pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -290,8 +295,9 @@ void uac2_freq_change_handler() {
 	        	}
 
 			else if (current_freq.frequency == 192000) {
+#ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char_char('6'); // BSB debug 20121212
-
+#endif
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
@@ -319,7 +325,9 @@ void uac2_freq_change_handler() {
     			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
 
 			} else if (current_freq.frequency == 48000) {
+#ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char_char('2'); // BSB debug 20121212
+#endif
 
 		   		// if there are two XO, PX16 sets the 48x
 				// gpio_set_gpio_pin(AVR32_PIN_PX16);
@@ -351,8 +359,9 @@ void uac2_freq_change_handler() {
 			}
 
 			else if (current_freq.frequency == 44100) {
+#ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char_char('1'); // BSB debug 20121212
-
+#endif
 		   		// if there are two XO, PX16 set --> 48x. clr -->44.1x
 				// gpio_clr_gpio_pin(AVR32_PIN_PX16);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
