@@ -165,7 +165,7 @@
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01
-#define EP_INTERVAL_3_HS    0x08 // BSB: Was 4 that gives 1ms. Set to 3 that gives 0.5ms, set to 8 for 16ms
+#define EP_INTERVAL_3_HS    0x07 // BSB: Was 4 that gives 1ms. Set to 3 that gives 0.5ms, set to 8 for 16ms
 // BSB 20130614: define not used in code! #define EP_REFRESH_3_FS		0x05			 //  16ms
 // BSB 20130614: define not used in code! #define EP_REFRESH_3_HS		0x0A // Was 8, what about 6?  // 2^(8-1) = 128 uframe = 16ms // BSB 20130614 0x08 measured as 8ms
 
