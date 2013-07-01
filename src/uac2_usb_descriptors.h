@@ -165,7 +165,7 @@
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01
-#define EP_INTERVAL_3_HS    0x04 // BSB: Was 4 that gives 1ms. ASIO driver + JRiver won't tolerate >4
+#define EP_INTERVAL_3_HS    0x04 // BSB: Was 4 that gives 1ms. ASIO driver + JRiver won't tolerate >4 OS X is happy with 5 which gives 8ms
 // BSB 20130614: define not used in code! #define EP_REFRESH_3_FS		0x05			 //  16ms
 // BSB 20130614: define not used in code! #define EP_REFRESH_3_HS		0x0A // Was 8, what about 6?  // 2^(8-1) = 128 uframe = 16ms // BSB 20130614 0x08 measured as 8ms
 
