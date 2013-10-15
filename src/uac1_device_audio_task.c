@@ -368,7 +368,6 @@ void uart_puthex(uint8_t c) {
 								old_gap = gap;
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('/');
-								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 #endif
 							}
 							else if (gap < SPK1_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
@@ -377,7 +376,6 @@ void uart_puthex(uint8_t c) {
 								old_gap = gap;
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('-');
-								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 #endif
 							}
 							else {
@@ -392,7 +390,6 @@ void uart_puthex(uint8_t c) {
 								old_gap = gap;
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('*');
-								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 #endif
 							}
 							else if (gap > SPK1_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
@@ -401,7 +398,6 @@ void uart_puthex(uint8_t c) {
 								old_gap = gap;
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('+');
-								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
 #endif
 							}
 							else {

@@ -116,7 +116,7 @@
 
 // USB Device descriptor
 
-//#define COMPILING_FOR_DRIVER_DEVELOPMENT 1 	// BSB 20121107 Special USB signatures for driver development
+// #define COMPILING_FOR_DRIVER_DEVELOPMENT 1 	// BSB 20121107 Special USB signatures for driver development
 												// "1" for open source driver test winuac2
 												// "2" for special driver test
 												// Undefined for standard operation according to new USB PIDs

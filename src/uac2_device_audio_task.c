@@ -345,13 +345,17 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_On(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('/');
+#endif
 							}
 							else if (gap < SPK2_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
 								LED_On(LED0);
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('-');
+#endif
 							}
 							else {
 								LED_Off(LED0);
@@ -363,13 +367,17 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_On(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('*');
+#endif
 							}
 							else if (gap > SPK2_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
 								LED_On(LED1);
 								FB_rate += FB_RATE_DELTA;
 								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('+');
+#endif
 							}
 							else {
 								LED_Off(LED0);
@@ -399,13 +407,17 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_On(LED0);
 								FB_rate -= 2*FB_RATE_DELTA;
 								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('/');
+#endif
 							}
 							else if (gap < SPK2_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
 								LED_On(LED0);
 								FB_rate -= FB_RATE_DELTA;
 								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('-');
+#endif
 							}
 							else {
 								LED_Off(LED0);
@@ -417,13 +429,17 @@ void uac2_device_audio_task(void *pvParameters)
 								LED_On(LED1);
 								FB_rate += 2*FB_RATE_DELTA;
 								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('*');
+#endif
 							}
 							else if (gap > SPK2_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
 								LED_On(LED1);
 								FB_rate += FB_RATE_DELTA;
 								old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char_char('+');
+#endif
 							}
 							else {
 								LED_Off(LED0);
