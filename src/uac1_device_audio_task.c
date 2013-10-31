@@ -453,22 +453,22 @@ void uart_puthex(uint8_t c) {
 					if (time_to_calculate_gap != 0)
 						time_to_calculate_gap--;
 					else {
-						time_to_calculate_gap = SPK1_PACKETS_PER_GAP_CALCULATION;
+						time_to_calculate_gap = SPK1_PACKETS_PER_GAP_CALCULATION - 1;
+						if (usb_alternate_setting_out == 1) {		// Sync CS4344 spk data stream by calculating gap and provide feedback
 
-						if (usb_alternate_setting_out == 1) {
-							// Sync CS4344 spk data stream by calculating gap and provide feedback
+#ifdef USB_STATE_MACHINE_DEBUG
+							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
+
 							num_remaining = spk_pdca_channel->tcr;
-							if (spk_buffer_in != spk_buffer_out) {
-								// CS4344 and USB using same buffer
+							if (spk_buffer_in != spk_buffer_out) { 	// CS4344 and USB using same buffer
 								if ( spk_index < (SPK_BUFFER_SIZE - num_remaining))
 									gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
 								else
 									gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
 							}
-							else {
-								// usb and pdca working on different buffers
+							else // usb and pdca working on different buffers
 								gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
-							}
 
 							if(playerStarted) {
 								if (gap < old_gap) {
@@ -520,6 +520,11 @@ void uart_puthex(uint8_t c) {
 									LED_Off(LED1);
 								}
 							} // end if(playerStarted)
+
+
+#ifdef USB_STATE_MACHINE_DEBUG
+						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
 
 						} // end if (usb_alternate_setting_out == 1)
 
