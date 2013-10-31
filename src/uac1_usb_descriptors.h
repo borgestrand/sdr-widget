@@ -137,7 +137,7 @@
 #define EP_IN_LENGTH_3_FS	294
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
-#define EP_INTERVAL_3_FS	0x01			 // one packet per uframe
+#define EP_INTERVAL_3_FS	0x01			 // one packet per uframe must set to 1 for ms
 #define EP_INTERVAL_3_HS    0x04			 // One packet per 8 uframe
 #define EP_REFRESH_3_FS		0x00 //0x00	// was 0x05		 // BSB 20130530 should be 0? Added as #define See USB audio 1.0 specification, Table 4-20: Standard AS Isochronous Audio Data Endpoint.
 #define EP_REFRESH_3_HS		0x00 //0x00	// was 0x05		 // BSB 20130530 should be 0? Added as #define
@@ -163,12 +163,12 @@
 /* Note:  The EPs have to be re-arranged.  Feedback EP has to be immediately following the OUT EP
 // USB Endpoint 5 descriptor*/
 #define ENDPOINT_NB_5       ( UAC1_EP_AUDIO_OUT_FB | MSK_EP_DIR )
-#define EP_ATTRIBUTES_5     0b00010001      // ISOCHROUNOUS FEEDBACK
+#define EP_ATTRIBUTES_5     0b00010001      // ISOCHROUNOUS FEEDBACK // BSB 20131022 is this in correspondance with Table 4-22 of Audio10.PDF? Bit 6 reserved?
 #define EP_IN_LENGTH_5_FS   3				// 3 bytes
 #define EP_IN_LENGTH_5_HS	4				// 4 bytes
 #define EP_SIZE_5_FS		EP_IN_LENGTH_5_FS
 #define EP_SIZE_5_HS        EP_IN_LENGTH_5_HS
-#define EP_INTERVAL_5_FS	0x01
+#define EP_INTERVAL_5_FS	0x01  // BSB 20131022 Must set to 1 for ms
 #define EP_INTERVAL_5_HS    0x04
 #define EP_REFRESH_5_FS		0x05 // was: 0x05	 //  64ms, BSB 20130603: 0x05 measured as 32ms, 0x02 measured as 2ms but not always occuring
 #define EP_REFRESH_5_HS		0x05 // was: 0x05	 // 2^(10-1) = 512 uframe = 64ms

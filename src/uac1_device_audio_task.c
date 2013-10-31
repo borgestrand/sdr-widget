@@ -93,8 +93,16 @@
 
 // #define FB_RATE_DELTA (1<<12)
 #define FB_RATE_DELTA 64 // BSB 20130603 stability??
-
 #define FB_RATE_DELTA_NUM 2
+
+// BSB 20130605 FB_rate calculation with 2 levels, imported from UAC2 code
+#define SPK1_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// 6 A half buffer up in distance	=> Speed up host a lot
+#define	SPK1_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// 5 A quarter buffer up in distance => Speed up host a bit
+#define SPK1_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
+#define SPK1_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
+#define SPK1_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
+#define	SPK1_PACKETS_PER_GAP_CALCULATION 32		// This is UAC1 which counts in ms. Gap calculation every 32ms
+
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -148,7 +156,7 @@ void uac1_device_audio_task(void *pvParameters)
 	static Bool startup=TRUE;
 	int i;
 //	int delta_num = 0;
-	U16 num_samples, num_remaining, gap;
+	U16 num_samples, num_remaining, gap, time_to_calculate_gap;
 	U8 sample_HSB;
 	U8 sample_MSB;
 	U8 sample_SB;
@@ -244,7 +252,6 @@ void uart_puthex(uint8_t c) {
 			if (usb_alternate_setting == 1) {
 
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint buffer free ?
-
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 					// Sync AK data stream with USB data stream
@@ -338,116 +345,6 @@ void uart_puthex(uint8_t c) {
 #ifdef USB_STATE_MACHINE_DEBUG
 					gpio_clr_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
 #endif
-					// Sync CS4344 spk data stream by calculating gap and provide feedback
-					num_remaining = spk_pdca_channel->tcr;
-					if (spk_buffer_in != spk_buffer_out) {
-						// CS4344 and USB using same buffer						
-						if ( spk_index < (SPK_BUFFER_SIZE - num_remaining))
-							gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
-						else
-							gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
-					}
-					else {
-						// usb and pdca working on different buffers
-						gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
-					}
-
-// BSB 20130605 FB_rate calculation with 2 levels, imported from UAC2 code
-
-#define SPK1_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// 6 A half buffer up in distance	=> Speed up host a lot
-#define	SPK1_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// 5 A quarter buffer up in distance => Speed up host a bit
-#define SPK1_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
-#define SPK1_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
-#define SPK1_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
-
-					if(playerStarted) {
-						if (gap < old_gap) {
-							if (gap < SPK1_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
-								LED_On(LED0);
-								FB_rate -= 2*FB_RATE_DELTA;
-								old_gap = gap;
-#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char_char('/');
-#endif
-							}
-							else if (gap < SPK1_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
-								LED_On(LED0);
-								FB_rate -= FB_RATE_DELTA;
-								old_gap = gap;
-#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char_char('-');
-#endif
-							}
-							else {
-								LED_Off(LED0);
-								LED_Off(LED1);
-							}
-						}
-						else if (gap > old_gap) {
-							if (gap > SPK1_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
-								LED_On(LED1);
-								FB_rate += 2*FB_RATE_DELTA;
-								old_gap = gap;
-#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char_char('*');
-#endif
-							}
-							else if (gap > SPK1_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
-								LED_On(LED1);
-								FB_rate += FB_RATE_DELTA;
-								old_gap = gap;
-#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char_char('+');
-#endif
-							}
-							else {
-								LED_Off(LED0);
-								LED_Off(LED1);
-							}
-						}
-						else {
-							LED_Off(LED0);
-							LED_Off(LED1);
-						}
-					} // end if(playerStarted)
-
-
-/* BSB 20130605 original UAC1 code with debug
-					if (playerStarted) {
-						if ((gap < (SPK_BUFFER_SIZE/2)) && (gap < old_gap)) {
-						//if ((gap < SPK_BUFFER_SIZE - 10) && (delta_num > -FB_RATE_DELTA_NUM)) {
-							LED_On(LED0);
-							FB_rate -= FB_RATE_DELTA;
-//							delta_num--;
-#ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('-');
-#endif
-							old_gap = gap;
-
-#ifdef USB_STATE_MACHINE_DEBUG
-							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
-#endif
-						}
-						else if ( (gap > (SPK_BUFFER_SIZE + (SPK_BUFFER_SIZE/2))) && (gap > old_gap)) {
-						//else if ( (gap > SPK_BUFFER_SIZE + 10) && (delta_num < FB_RATE_DELTA_NUM)) {
-							LED_On(LED1);
-							FB_rate += FB_RATE_DELTA;
-//							delta_num++;
-#ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('+');
-#endif
-							old_gap = gap;
-
-#ifdef USB_STATE_MACHINE_DEBUG
-							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
-#endif
-						}
-						else {
-							LED_Off(LED0);
-							LED_Off(LED1);
-						}
-					} // end if(playerStarted)
-End of UAC1 original code */
 
 					if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 						sample_LSB = FB_rate;
@@ -484,16 +381,10 @@ End of UAC1 original code */
 					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
 
 					if(!playerStarted) {
-
-//						gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB debug 20120912, positive edge marks playerStarted FALSE->TRUE
-
+						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						playerStarted = TRUE;
 						num_remaining = spk_pdca_channel->tcr;
-
-//						if (spk_buffer_in != spk_buffer_out) {
-//							spk_buffer_in = 1 - spk_buffer_in;
-//						}
-						spk_buffer_in = spk_buffer_out; // Replaces the if-test above
+						spk_buffer_in = spk_buffer_out;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 						if (spk_buffer_in == 1)
@@ -504,12 +395,7 @@ End of UAC1 original code */
 
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
 
-						// BSB added 20120912 after UAC2 time bar pull noise analysis
-//						if (spk_index & (U32)1)
-//							print_dbg_char_char('s'); // BSB debug 20120912
 						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
-
-//						delta_num = 0;
 					}
 
 					for (i = 0; i < num_samples; i++) {
@@ -549,7 +435,6 @@ End of UAC1 original code */
 						if (spk_index >= SPK_BUFFER_SIZE) {
 							spk_index = 0;
 							spk_buffer_in = 1 - spk_buffer_in;
-//							spk_buffer_ptr = spk_buffer_in ? spk_buffer_0 : spk_buffer_1;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 							if (spk_buffer_in == 1)
@@ -561,6 +446,88 @@ End of UAC1 original code */
 						}
 					}
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
+
+
+/* BSB 20131031 New location of gap calculation code */
+
+					if (time_to_calculate_gap != 0)
+						time_to_calculate_gap--;
+					else {
+						time_to_calculate_gap = SPK1_PACKETS_PER_GAP_CALCULATION;
+
+						if (usb_alternate_setting_out == 1) {
+							// Sync CS4344 spk data stream by calculating gap and provide feedback
+							num_remaining = spk_pdca_channel->tcr;
+							if (spk_buffer_in != spk_buffer_out) {
+								// CS4344 and USB using same buffer
+								if ( spk_index < (SPK_BUFFER_SIZE - num_remaining))
+									gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
+								else
+									gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
+							}
+							else {
+								// usb and pdca working on different buffers
+								gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
+							}
+
+							if(playerStarted) {
+								if (gap < old_gap) {
+									if (gap < SPK1_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
+										LED_On(LED0);
+										FB_rate -= 2*FB_RATE_DELTA;
+										old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+										print_dbg_char_char('/');
+#endif
+									}
+									else if (gap < SPK1_GAP_L1) { 	// gap < inner lower bound => 1*FB_RATE_DELTA
+										LED_On(LED0);
+										FB_rate -= FB_RATE_DELTA;
+										old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+										print_dbg_char_char('-');
+#endif
+									}
+									else {
+										LED_Off(LED0);
+										LED_Off(LED1);
+									}
+								}
+								else if (gap > old_gap) {
+									if (gap > SPK1_GAP_U2) { 		// gap > outer upper bound => 2*FB_RATE_DELTA
+										LED_On(LED1);
+										FB_rate += 2*FB_RATE_DELTA;
+										old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+										print_dbg_char_char('*');
+#endif
+									}
+									else if (gap > SPK1_GAP_U1) { 	// gap > inner upper bound => 1*FB_RATE_DELTA
+										LED_On(LED1);
+										FB_rate += FB_RATE_DELTA;
+										old_gap = gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+										print_dbg_char_char('+');
+#endif
+									}
+									else {
+										LED_Off(LED0);
+										LED_Off(LED1);
+									}
+								}
+								else {
+									LED_Off(LED0);
+									LED_Off(LED1);
+								}
+							} // end if(playerStarted)
+
+						} // end if (usb_alternate_setting_out == 1)
+
+					} // end if time_to_calculate_gap == 0
+
+/* BSB 20131031 End of new location for gap calculation code */
+
+
 				}	// end usb_out_received
 			} // end usb_alternate_setting_out == 1
 			else

@@ -153,7 +153,7 @@
 #define EP_OUT_LENGTH_2_FS	392
 #define EP_SIZE_2_FS		EP_OUT_LENGTH_2_FS
 #define EP_SIZE_2_HS        EP_OUT_LENGTH_2_HS
-#define EP_INTERVAL_2_FS	0x01			 // one packet per uframe
+#define EP_INTERVAL_2_FS	0x01			 // one packet per frame
 #define EP_INTERVAL_2_HS    0x02			 // One packet per 2 uframe
 
 
