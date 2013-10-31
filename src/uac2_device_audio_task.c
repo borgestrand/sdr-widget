@@ -477,9 +477,12 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = (88 << 14) + (1<<14)/5;
+//						FB_rate = FB_rate_initial;			// BSB 20131031 Should be possible to restore initial after special Linux fix
+
 					}
 					else if ( (current_freq.frequency == 96000) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = (96) << 14;
+//						FB_rate = FB_rate_initial;			// BSB 20131031 Should be possible to restore initial after special Linux fix
 					}
 
 

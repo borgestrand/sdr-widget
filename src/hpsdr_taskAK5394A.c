@@ -107,6 +107,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 				FB_rate = 96 << 14;
+				FB_rate_initial = FB_rate;		// BSB 20131031 Record FB_rate as it was set by control system
 
 			} else if (current_freq.frequency == 192000) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -124,6 +125,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 				FB_rate = 192 << 14;
+				FB_rate_initial = FB_rate;		// BSB 20131031 Record FB_rate as it was set by control system
 
 			} else if (current_freq.frequency == 48000) {
 
@@ -142,6 +144,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 				FB_rate = 48 << 14;
+				FB_rate_initial = FB_rate;		// BSB 20131031 Record FB_rate as it was set by control system
 
 			}
 

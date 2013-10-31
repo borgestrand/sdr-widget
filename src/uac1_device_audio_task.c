@@ -102,7 +102,7 @@
 #define SPK1_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
 #define SPK1_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
 #define	SPK1_PACKETS_PER_GAP_CALCULATION 32		// This is UAC1 which counts in ms. Gap calculation every 32ms
-
+#define SPK1_FEEDBACK_TIMEOUT				100	// Number of USB frames since last poll of feedback endpoint
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -156,7 +156,7 @@ void uac1_device_audio_task(void *pvParameters)
 	static Bool startup=TRUE;
 	int i;
 //	int delta_num = 0;
-	U16 num_samples, num_remaining, gap, time_to_calculate_gap;
+	U16 num_samples, num_remaining, gap, time_to_calculate_gap, packets_since_feedback;
 	U8 sample_HSB;
 	U8 sample_MSB;
 	U8 sample_SB;
@@ -346,6 +346,7 @@ void uart_puthex(uint8_t c) {
 					gpio_clr_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
 #endif
 
+					packets_since_feedback = 0;
 					if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 						sample_LSB = FB_rate;
 						sample_SB = FB_rate >> 8;
@@ -382,6 +383,7 @@ void uart_puthex(uint8_t c) {
 
 					if(!playerStarted) {
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
+						packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
 						playerStarted = TRUE;
 						num_remaining = spk_pdca_channel->tcr;
 						spk_buffer_in = spk_buffer_out;
@@ -449,12 +451,19 @@ void uart_puthex(uint8_t c) {
 
 
 /* BSB 20131031 New location of gap calculation code */
+					if (packets_since_feedback >= SPK1_FEEDBACK_TIMEOUT) {
+						// Alarm!
+					}
+					else {
+						packets_since_feedback++;					// Is feedback system dead?
+					}
+
 
 					if (time_to_calculate_gap != 0)
 						time_to_calculate_gap--;
 					else {
 						time_to_calculate_gap = SPK1_PACKETS_PER_GAP_CALCULATION - 1;
-						if (usb_alternate_setting_out == 1) {		// Sync CS4344 spk data stream by calculating gap and provide feedback
+						if (usb_alternate_setting_out == 1) {	// Use explicit feedback and not ADC data
 
 #ifdef USB_STATE_MACHINE_DEBUG
 							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06

@@ -218,8 +218,9 @@ void uac2_freq_change_handler() {
 				else
 */
 
-//				FB_rate = (96) << 14; // Generic OS, supported by linux patch...
+//				FB_rate = (96) << 14; // Generic OS, supported by linux OS patch...
 				FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement
+				FB_rate_initial = (96) << 14;	// BSB 20131031 Record FB_rate as it was set by control system
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
@@ -257,8 +258,10 @@ void uac2_freq_change_handler() {
 				else
 */
 
-//				FB_rate = (88 << 14) + (1<<14)/5; // Generic code, supported by linux patch
+//				FB_rate = (88 << 14) + (1<<14)/5; // Generic code, supported by linux OS patch
 				FB_rate = (99 << 14); // Needed by Linux, Linux-quirk replacement
+				FB_rate_initial = (88 << 14) + (1<<14)/5;	// BSB 20131031 Record FB_rate as it was set by control system
+
 
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
@@ -282,13 +285,14 @@ void uac2_freq_change_handler() {
 
 	    			pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 	    			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-	    								  0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-	    								  1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-	    								  0,                  // diven - disabled
-	    								  0);                 // GCLK1 = 12.288Mhz
+	    								  0,        // osc_or_pll: use Osc (if 0) or PLL (if 1)
+	    								  1,        // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+	    								  0,        // diven - disabled
+	    								  0);   	// GCLK1 = 12.288Mhz
 	    			pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 	    			FB_rate = (176 << 14) + ((1<<14)*4) / 10;
+	    			FB_rate_initial = FB_rate;		// BSB 20131031 Record FB_rate as it was set by control system
 
 	    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
 	    			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
@@ -320,6 +324,7 @@ void uac2_freq_change_handler() {
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 				FB_rate = (192) << 14;
+				FB_rate_initial = FB_rate;		// BSB 20131031 Record FB_rate as it was set by control system
 
     			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
     			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
@@ -353,6 +358,7 @@ void uac2_freq_change_handler() {
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 				FB_rate = (48) << 14;
+				FB_rate_initial = FB_rate;		// BSB 20131031 Record FB_rate as it was set by control system
 
     			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
     			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
@@ -386,6 +392,7 @@ void uac2_freq_change_handler() {
 				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
 				FB_rate = (44 << 14) + (1 << 14)/10;
+				FB_rate_initial = FB_rate;		// BSB 20131031 Record FB_rate as it was set by control system
 
     			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
     			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);

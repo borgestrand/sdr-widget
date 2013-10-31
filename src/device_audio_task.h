@@ -68,7 +68,7 @@
 
 
 extern volatile Bool mute, spk_mute;
-extern volatile U32 FB_rate;
+extern volatile U32 FB_rate, FB_rate_initial; // BSB 20131031 FB_rate_initial added
 extern S16 volume, spk_volume;
 
 //_____ M A C R O S ________________________________________________________
