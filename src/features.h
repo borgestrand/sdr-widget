@@ -112,7 +112,10 @@ typedef enum {
 	feature_quirk_linux,		// Linux_quirk select
 	feature_quirk_ptest,		// Production test quirk
 	feature_quirk_none,			// No quirks, normal operation
-	feature_end_lquirk,
+	feature_quirk_fb_Hdead,		// BSB 20131101 emulate dead feedback system at Host
+	feature_quirk_fb_Hstupid,	// BSB 20131101 emaulate stupid feedback system at Host
+	feature_quirk_fb_noskip,	// BSB 20131101 disable (future) skip/insert system
+	feature_end_quirk,			// BSB 20131101 renamed "lquirk" to "quirk"
 	feature_end_values			// end
 } feature_values_t;
 
@@ -157,6 +160,9 @@ typedef enum {
 		"quirk_linux",													\
 		"quirk_ptest",													\
 		"quirk_none",													\
+		"quirk_fb_Hdead",												\
+		"quirk_fb_Hstupid",												\
+		"quirk_fb_noskip",												\
 		"end",															\
 		"end"
 	
@@ -219,6 +225,12 @@ extern const features_t features_default;
 #define FEATURE_LINUX_QUIRK_OFF			(features[feature_quirk_index] != (uint8_t)feature_quirk_linux)
 #define FEATURE_PROD_TEST_ON			(features[feature_quirk_index] == (uint8_t)feature_quirk_ptest)
 #define FEATURE_PROD_TEST_OFF			(features[feature_quirk_index] != (uint8_t)feature_quirk_ptest)
+#define FEATURE_HDEAD_ON				(features[feature_quirk_index] == (uint8_t)feature_quirk_fb_Hdead)
+#define FEATURE_HDEAD_OFF				(features[feature_quirk_index] != (uint8_t)feature_quirk_fb_Hdead)
+#define FEATURE_HSTUPID_ON				(features[feature_quirk_index] == (uint8_t)feature_quirk_fb_Hstupid)
+#define FEATURE_HSTUPID_OFF				(features[feature_quirk_index] != (uint8_t)feature_quirk_fb_Hstupid)
+#define FEATURE_NOSKIP_ON				(features[feature_quirk_index] == (uint8_t)feature_quirk_fb_noskip)
+#define FEATURE_NOSKIP_OFF				(features[feature_quirk_index] != (uint8_t)feature_quirk_fb_noskip)
 
 
 //
