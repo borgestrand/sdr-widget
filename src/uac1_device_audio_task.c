@@ -171,7 +171,7 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
-	U32 sample;
+	U32 sample_L, sample_R; // BSB 20131102 Expanded for skip/insert
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
@@ -471,7 +471,7 @@ void uart_puthex(uint8_t c) {
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						}
 
-						sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 						if (spk_buffer_in == 0)
 							spk_buffer_0[spk_index+OUT_LEFT] = sample;
 						else
@@ -487,7 +487,7 @@ void uart_puthex(uint8_t c) {
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						};
 
-						sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 						if (spk_buffer_in == 0)
 							spk_buffer_0[spk_index+OUT_RIGHT] = sample;
 						else
