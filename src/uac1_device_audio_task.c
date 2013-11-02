@@ -96,13 +96,19 @@
 #define FB_RATE_DELTA_NUM 2
 
 // BSB 20130605 FB_rate calculation with 2 levels, imported from UAC2 code
-#define SPK1_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// 6 A half buffer up in distance	=> Speed up host a lot
-#define	SPK1_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// 5 A quarter buffer up in distance => Speed up host a bit
-#define SPK1_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
-#define SPK1_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
-#define SPK1_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
+#define SPK1_GAP_USKIP SPK_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
+#define SPK1_GAP_U2    SPK_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
+#define	SPK1_GAP_U1    SPK_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
+#define SPK1_GAP_NOM   SPK_BUFFER_SIZE * 4 / 4	// Ideal distance is half the size of linear buffer
+#define SPK1_GAP_L1	   SPK_BUFFER_SIZE * 3 / 4  // A quarter buffer down in distance => Slow down host a bit
+#define SPK1_GAP_L2	   SPK_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
+#define SPK1_GAP_LSKIP SPK_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
 #define	SPK1_PACKETS_PER_GAP_CALCULATION 32		// This is UAC1 which counts in ms. Gap calculation every 32ms
 #define SPK1_FEEDBACK_TIMEOUT				100	// Number of USB frames since last poll of feedback endpoint
+#define SPK1_SKIP_EN_GAP 1                      // Enable skip/insert due to low gap
+#define SPK1_SKIP_EN_FB  2                      // Enable skip/insert due to feedback failure
+#define SPK1_SKIP_DISABLE 0
+#define SPK1_SKIP_LIMIT_14 3<<14 			    // 10.14 og 12.14 format. Accumulated error must be > 3 samples. Expect up to 1 sample in ordinary 44.1
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -156,7 +162,11 @@ void uac1_device_audio_task(void *pvParameters)
 	static Bool startup=TRUE;
 	int i;
 //	int delta_num = 0;
-	U16 num_samples, num_remaining, gap, time_to_calculate_gap, packets_since_feedback;
+	U16 num_samples, num_remaining, gap;
+	U16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
+	U16 packets_since_feedback = 0;
+	U16 skip_enable = 0;
+	S32 FB_error_acc;	// BSB 20131102 Accumulated error for skip/insert
 	U8 sample_HSB;
 	U8 sample_MSB;
 	U8 sample_SB;
@@ -410,11 +420,12 @@ void uart_puthex(uint8_t c) {
 					spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6;
+					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
 
 					if(!playerStarted) {
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
+						FB_error_acc = 0;					// BSB 20131102 reset feedback error
 						playerStarted = TRUE;
 						num_remaining = spk_pdca_channel->tcr;
 						spk_buffer_in = spk_buffer_out;
@@ -429,6 +440,24 @@ void uart_puthex(uint8_t c) {
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
 
 						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
+					}
+
+
+					// Received samples in 10.14 or 12.14 format
+					// Error increases when Host (in average) sends too much data compared to FB_rate
+					// A high error means we must skip.
+					if (skip_enable == 0)
+						FB_error_acc = 0;
+					else {
+						FB_error_acc += (num_samples * 1<<14) - (S32)FB_rate;
+						if (FB_error_acc > SPK1_SKIP_LIMIT_14) {	// Must skip
+							// Do some skippin'
+							FB_error_acc--;
+						}
+						else if (FB_error_acc < SPK1_SKIP_LIMIT_14) {	// Must insert
+							// Do some insertin'
+							FB_error_acc++;
+						}
 					}
 
 					for (i = 0; i < num_samples; i++) {
@@ -477,9 +506,9 @@ void uart_puthex(uint8_t c) {
 #endif
 
 						}
-					}
-					Usb_ack_out_received_free(EP_AUDIO_OUT);
+					} // end for num_samples
 
+					Usb_ack_out_received_free(EP_AUDIO_OUT);
 
 /* BSB 20131031 New location of gap calculation code */
 
@@ -487,9 +516,11 @@ void uart_puthex(uint8_t c) {
 						// Alarm! For now light both front LEDs. Later use this to enable skip/insert
 						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
 						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+						skip_enable |= SPK1_SKIP_EN_FB;		// Enable skip/insert due to failing feedback system
 					}
 					else {
-						packets_since_feedback++;					// Is feedback system dead?
+						packets_since_feedback++;			// Is feedback system dead?
+						skip_enable &= ~SPK1_SKIP_EN_FB;	// Remove skip enable due to failing feedback system
 					}
 
 					if (time_to_calculate_gap != 0)
@@ -513,6 +544,17 @@ void uart_puthex(uint8_t c) {
 								gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 
 							if(playerStarted) {
+
+								if (gap < SPK1_GAP_LSKIP) {
+									skip_enable |= SPK1_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+								}
+								else if (gap > SPK1_GAP_USKIP) {
+									skip_enable |= SPK1_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+								}
+								else {
+									skip_enable &= ~SPK1_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
+								}
+
 								if (gap < old_gap) {
 									if (gap < SPK1_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
 										LED_On(LED0);
