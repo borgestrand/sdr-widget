@@ -470,12 +470,7 @@ void uart_puthex(uint8_t c) {
 							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						}
-
 						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-						if (spk_buffer_in == 0)
-							spk_buffer_0[spk_index+OUT_LEFT] = sample;
-						else
-							spk_buffer_1[spk_index+OUT_LEFT] = sample;
 
 						if (spk_mute) {
 							sample_LSB = 0;
@@ -486,12 +481,17 @@ void uart_puthex(uint8_t c) {
 							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						};
-
 						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-						if (spk_buffer_in == 0)
-							spk_buffer_0[spk_index+OUT_RIGHT] = sample;
-						else
-							spk_buffer_1[spk_index+OUT_RIGHT] = sample;
+
+
+						if (spk_buffer_in == 0) {
+							spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+						}
+						else {
+							spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+						}
 
 						spk_index += 2;
 						if (spk_index >= SPK_BUFFER_SIZE) {
