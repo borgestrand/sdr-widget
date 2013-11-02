@@ -457,10 +457,18 @@ void uart_puthex(uint8_t c) {
 						if (FB_error_acc > SPK1_SKIP_LIMIT_14) {	// Must skip
 							samples_to_transfer_OUT = 0;			// Do some skippin'
 							FB_error_acc--;
+							LED_On(LED1);							// 1st skip lights RED/GREEN? module LED until skip_enable==0
+#ifdef USB_STATE_MACHINE_DEBUG
+							print_dbg_char_char('s');
+#endif
 						}
 						else if (FB_error_acc < SPK1_SKIP_LIMIT_14) {	// Must insert
 							samples_to_transfer_OUT = 2;			// Do some insertin'
 							FB_error_acc++;
+							LED_On(LED0);							// 1st skip lights GREEN/RED? module LED until skip_enable==0
+#ifdef USB_STATE_MACHINE_DEBUG
+							print_dbg_char_char('i');
+#endif
 						}
 					}
 
@@ -531,11 +539,12 @@ void uart_puthex(uint8_t c) {
 						skip_enable &= ~SPK1_SKIP_EN_FB;	// Remove skip enable due to failing feedback system
 					}
 
+					// Calculate gap after N packets, NOT each time feedback endpoint is polled
 					if (time_to_calculate_gap != 0)
 						time_to_calculate_gap--;
 					else {
 						time_to_calculate_gap = SPK1_PACKETS_PER_GAP_CALCULATION - 1;
-						if (usb_alternate_setting_out == 1) {	// Use explicit feedback and not ADC data
+						if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
 #ifdef USB_STATE_MACHINE_DEBUG
 							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
@@ -552,7 +561,6 @@ void uart_puthex(uint8_t c) {
 								gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 
 							if(playerStarted) {
-
 								if (gap < SPK1_GAP_LSKIP) {
 									skip_enable |= SPK1_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
 								}
@@ -602,12 +610,12 @@ void uart_puthex(uint8_t c) {
 										print_dbg_char_char('+');
 #endif
 									}
-									else {
+									else if (skip_enable == 0) {	// Skip/insert is indicated by both module LEDs being on
 										LED_Off(LED0);
 										LED_Off(LED1);
 									}
 								}
-								else {
+								else if (skip_enable == 0) {
 									LED_Off(LED0);
 									LED_Off(LED1);
 								}
