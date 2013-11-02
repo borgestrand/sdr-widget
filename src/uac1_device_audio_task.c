@@ -166,7 +166,8 @@ void uac1_device_audio_task(void *pvParameters)
 	U16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
 	U16 packets_since_feedback = 0;
 	U16 skip_enable = 0;
-	S32 FB_error_acc;	// BSB 20131102 Accumulated error for skip/insert
+	U16 samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
+	S32 FB_error_acc = 0;	// BSB 20131102 Accumulated error for skip/insert
 	U8 sample_HSB;
 	U8 sample_MSB;
 	U8 sample_SB;
@@ -443,19 +444,22 @@ void uart_puthex(uint8_t c) {
 					}
 
 
-					// Received samples in 10.14 or 12.14 format
+					// Received samples in 10.14 or 12.14 format is num_samples * 1<<14
 					// Error increases when Host (in average) sends too much data compared to FB_rate
 					// A high error means we must skip.
-					if (skip_enable == 0)
+
+					samples_to_transfer_OUT = 1; 	// Default:1 Skip:0 Insert:2 Only one skip or insert per USB package
+					if (skip_enable == 0) {			// .. prior to for(num_samples) Hence 1st sample in a package is skipped or inserted
 						FB_error_acc = 0;
+					}
 					else {
 						FB_error_acc += (num_samples * 1<<14) - (S32)FB_rate;
 						if (FB_error_acc > SPK1_SKIP_LIMIT_14) {	// Must skip
-							// Do some skippin'
+							samples_to_transfer_OUT = 0;			// Do some skippin'
 							FB_error_acc--;
 						}
 						else if (FB_error_acc < SPK1_SKIP_LIMIT_14) {	// Must insert
-							// Do some insertin'
+							samples_to_transfer_OUT = 2;			// Do some insertin'
 							FB_error_acc++;
 						}
 					}
@@ -483,29 +487,33 @@ void uart_puthex(uint8_t c) {
 						};
 						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 
+						while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2
+							if (spk_buffer_in == 0) {
+								spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+								spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+							}
+							else {
+								spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+								spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+							}
 
-						if (spk_buffer_in == 0) {
-							spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-							spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+							spk_index += 2;
+							if (spk_index >= SPK_BUFFER_SIZE) {
+								spk_index = 0;
+								spk_buffer_in = 1 - spk_buffer_in;
+
+	#ifdef USB_STATE_MACHINE_DEBUG
+								if (spk_buffer_in == 1)
+									gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+								else
+									gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+	#endif
+
+							}
 						}
-						else {
-							spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-							spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
-						}
+						samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 
-						spk_index += 2;
-						if (spk_index >= SPK_BUFFER_SIZE) {
-							spk_index = 0;
-							spk_buffer_in = 1 - spk_buffer_in;
 
-#ifdef USB_STATE_MACHINE_DEBUG
-							if (spk_buffer_in == 1)
-								gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-							else
-								gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-#endif
-
-						}
 					} // end for num_samples
 
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
