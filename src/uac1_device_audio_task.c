@@ -104,7 +104,7 @@
 #define SPK1_GAP_L2	   SPK_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
 #define SPK1_GAP_LSKIP SPK_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
 #define	SPK1_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32
-#define	SPK1_PACKETS_PER_GAP_SKIP 1				// After a skip/insert, recalculate gap immediately, then again after 2ms
+#define	SPK1_PACKETS_PER_GAP_SKIP 1				// After a skip/insert, recalculate gap immediately, then again after 1ms
 #define SPK1_FEEDBACK_TIMEOUT				100	// Number of USB frames since last poll of feedback endpoint
 #define SPK1_SKIP_EN_GAP 1                      // Enable skip/insert due to low gap
 #define SPK1_SKIP_LIMIT_14 1<<14 			    // 10.14 og 12.14 format. Accumulated error must be > 2 samples.
