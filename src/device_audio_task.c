@@ -8,5 +8,5 @@
 //! mute is set to FALSE otherwise
 //!/
 volatile Bool mute, spk_mute;
-volatile U32 FB_rate, FB_rate_initial; // BSB 20131031 FB_rate_initial added
+volatile S32 FB_rate, FB_rate_initial; // BSB 20131031 FB_rate_initial added, changed to S32
 S16 volume, spk_volume;

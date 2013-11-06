@@ -66,10 +66,10 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-#define FB_INITIAL_OFFSET -512					// BSB 20131101 Offset used to test provoked feedback system
+#define FB_INITIAL_OFFSET 0 // -512					// BSB 20131101 Offset used to test provoked feedback system
 
 extern volatile Bool mute, spk_mute;
-extern volatile U32 FB_rate, FB_rate_initial; // BSB 20131031 FB_rate_initial added
+extern volatile S32 FB_rate, FB_rate_initial; // BSB 20131031 FB_rate_initial added and changed to S32
 extern S16 volume, spk_volume;
 
 //_____ M A C R O S ________________________________________________________

@@ -93,8 +93,21 @@
 
 #define FB_RATE_DELTA 64
 
-//_____ D E C L A R A T I O N S ____________________________________________
+// BSB 20120912 UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
+#define SPK2_GAP_USKIP SPK_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
+#define SPK2_GAP_U2    SPK_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
+#define	SPK2_GAP_U1    SPK_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
+#define SPK2_GAP_NOM   SPK_BUFFER_SIZE * 4 / 4	// Ideal distance is half the size of linear buffer
+#define SPK2_GAP_L1	   SPK_BUFFER_SIZE * 3 / 4  // A quarter buffer down in distance => Slow down host a bit
+#define SPK2_GAP_L2	   SPK_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
+#define SPK2_GAP_LSKIP SPK_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
+#define	SPK2_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32
+#define	SPK2_PACKETS_PER_GAP_SKIP 1				// After a skip/insert, recalculate gap immediately, then again after 1ms
+#define SPK2_SKIP_EN_GAP 1                      // Enable skip/insert due to low gap
+#define SPK2_SKIP_LIMIT_14 1<<14 			    // 10.14 og 12.14 format for full speed. Samples per 1ms frame. Accumulated error must be > 1 samples.
+#define SPK2_SKIP_LIMIT_16 1<<14				// 16.16 format for high speed. Samples per 250µs frame.
 
+//_____ D E C L A R A T I O N S ____________________________________________
 
 static U32  index, spk_index;
 static U16  old_gap = SPK_BUFFER_SIZE;
@@ -139,12 +152,16 @@ void uac2_device_audio_task(void *pvParameters)
 	Bool playerStarted = FALSE;
 	int i;
 	U16 num_samples, num_remaining, gap;
-
+	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
+	U16 packets_since_feedback = 0;
+	U16 skip_enable = 0;
+	U16 samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
+	S32 FB_error_acc = 0;	// BSB 20131102 Accumulated error for skip/insert
+	U8 sample_HSB;
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
-	U8 sample_HSB;
-	U32 sample;
+	U32 sample_L, sample_R; // BSB 20131102 Expanded for skip/insert
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
@@ -332,13 +349,6 @@ void uac2_device_audio_task(void *pvParameters)
 				//feedback calculate only in playing mode
 				if (Is_usb_full_speed_mode()) {			// FB rate is 3 bytes in 10.14 format
 
-				// BSB 20120912 UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
-#define SPK2_GAP_U2	SPK_BUFFER_SIZE * 6 / 4	// 6 A half buffer up in distance	=> Speed up host a lot
-#define	SPK2_GAP_U1	SPK_BUFFER_SIZE * 5 / 4	// 5 A quarter buffer up in distance => Speed up host a bit
-#define SPK2_GAP_NOM	SPK_BUFFER_SIZE	* 4 / 4	// 4 Ideal distance is half the size of linear buffer
-#define SPK2_GAP_L1	SPK_BUFFER_SIZE * 3 / 4 // 3 A quarter buffer down in distance => Slow down host a bit
-#define SPK2_GAP_L2	SPK_BUFFER_SIZE * 2 / 4 // 2 A half buffer down in distance => Slow down host a lot
-
 					if(playerStarted) {
 						if (gap < old_gap) {
 							if (gap < SPK2_GAP_L2) { 		// gap < outer lower bound => 2*FB_RATE_DELTA
@@ -506,7 +516,9 @@ void uac2_device_audio_task(void *pvParameters)
 				spk_usb_sample_counter += num_samples; 	// track the num of samples received
 				xSemaphoreGive(mutexSpkUSB);
 				if(!playerStarted) {
-
+					time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
+					packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
+					FB_error_acc = 0;					// BSB 20131102 reset feedback error
 					playerStarted = TRUE;
 					num_remaining = spk_pdca_channel->tcr;
 //					if (spk_buffer_in != spk_buffer_out) {
@@ -545,15 +557,7 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					}
-
-					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
-					//sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-					if (spk_buffer_in == 0) {
-						spk_buffer_0[spk_index+OUT_LEFT] = sample;
-					}
-					else {
-						spk_buffer_1[spk_index+OUT_LEFT] = sample;
-					}
+					sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 
 					if (spk_mute) {
 						sample_HSB = 0;
@@ -567,29 +571,40 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					};
+					sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 
-					sample = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
-					//sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-					if (spk_buffer_in == 0) {
-						spk_buffer_0[spk_index+OUT_RIGHT] = sample;
-					}
-					else {
-						spk_buffer_1[spk_index+OUT_RIGHT] = sample;
-					}
 
-					spk_index += 2;
-					if (spk_index >= SPK_BUFFER_SIZE) {
-						spk_index = 0;
-						spk_buffer_in = 1 - spk_buffer_in;
+					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2
+						if (spk_buffer_in == 0) {
+							spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+						}
+						else {
+							spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+						}
+
+						spk_index += 2;
+						if (spk_index >= SPK_BUFFER_SIZE) {
+							spk_index = 0;
+							spk_buffer_in = 1 - spk_buffer_in;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						if (spk_buffer_in == 1)
-							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-						else
-							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+							if (spk_buffer_in == 1)
+								gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+							else
+								gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 #endif
+
+						}
 					}
-				} // end for
+					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
+				} // end for num_samples
+
+#ifdef USB_STATE_MACHINE_DEBUG							// Kill any skip/insert related GPIO blinking
+				gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20130602 debug on GPIO_06
+#endif
+
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 			}	// end if (Is_usb_out_received(EP_AUDIO_OUT))
 		} // end if (usb_alternate_setting_out == 1)

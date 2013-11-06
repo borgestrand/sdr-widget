@@ -105,9 +105,10 @@
 #define SPK1_GAP_LSKIP SPK_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
 #define	SPK1_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32
 #define	SPK1_PACKETS_PER_GAP_SKIP 1				// After a skip/insert, recalculate gap immediately, then again after 1ms
-#define SPK1_FEEDBACK_TIMEOUT				100	// Number of USB frames since last poll of feedback endpoint
+#define SPK1_HOST_FB_DEAD_AFTER 200				// How many audio packets may arrive without host polling feedback, before we declare FB dead?
 #define SPK1_SKIP_EN_GAP 1                      // Enable skip/insert due to low gap
-#define SPK1_SKIP_LIMIT_14 1<<14 			    // 10.14 og 12.14 format. Accumulated error must be > 2 samples.
+#define SPK1_SKIP_EN_DEAD 2						// Enable skip/insert due to dead host feedback system
+#define SPK1_SKIP_LIMIT_14 2<<14 			    // 10.14 og 12.14 format. |accumulated error| must be > 2 samples.
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -185,28 +186,6 @@ void uac1_device_audio_task(void *pvParameters)
 	// if (current_freq.frequency == 48000) FB_rate = 48 << 14;
 	// else FB_rate = (44 << 14) + (1 << 14)/10;
 
-/*  BSB debug 20130602
- *  attempt to write one in 100-ish feedback packets to UART by spacing out ASCII'ified HEX characters
- *  Unfinished code
- 	U8 s_counter = 0;
-	U8 s_HEX[10];
-
-void uart_puthex(uint8_t c) {
-    int8_t temp = c;
-
-    c >>=4;                                    			// Shift in most significant hex character
-    if (c < 10)                                			// 0-9 -> '0' - '9' (48 decimal is ascii for '0')
-        uart_putc(c + 48);
-    else                                        		// A-F -> 'A' - 'F' (65 decimal is ascii for 'A')
-        uart_putc(c - 0x0A + 65);
-
-    c = temp & 0x0F;                            		// Mask in least significant hex character
-    if (c < 10)                                  		// 0-9 -> '0' - '9'
-        uart_putc(c + 48);
-	else                                        		// A-F -> 'A' - 'F'
-        uart_putc(c - 0x0A + 65);
-}
- */
 
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
@@ -347,6 +326,8 @@ void uart_puthex(uint8_t c) {
 			} // end alt setting == 1
 
 			if (usb_alternate_setting_out == 1) {
+				// BSB 20131031 actual gap calculation moved to after OUT data processing
+
 				if ( Is_usb_in_ready(EP_AUDIO_OUT_FB) )
 				{
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
@@ -355,11 +336,17 @@ void uart_puthex(uint8_t c) {
 /* BSB 20131101
  * A "stupid" Host is able to read the feedback but does not consider it. Emulate that by resetting packets_since_feedback
  * and sending the Host the initial feedback value. Initial feedback is seeded with a hardcoded offset FB_INITIAL_OFFSET
+ *
+ * A "dead" Host is not reading the feedback. Emulate that by not resetting packets_since_feedbakc and sending the Host the
+ * initial feedback value.
  */
+
+					if (FEATURE_HDEAD_OFF)
+						packets_since_feedback = 0;
 
 					if (Is_usb_full_speed_mode()) {
 						// FB rate is 3 bytes in 10.14 format
-						if (FEATURE_HSTUPID_ON) {	// BSB 20131101 "stupid"
+						if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
 #ifdef USB_STATE_MACHINE_DEBUG
 							gpio_set_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07, normally used to indicate FB EP poll
 #endif
@@ -382,7 +369,7 @@ void uart_puthex(uint8_t c) {
 					else {
 						// HS mode - Not likely to ever be used in UAC1 - UNTESTED code!
 						// FB rate is 4 bytes in 12.14 format
-						if (FEATURE_HSTUPID_ON) {	// BSB 20131101 "stupid"
+						if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
 #ifdef USB_STATE_MACHINE_DEBUG
 							gpio_set_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07
 #endif
@@ -440,15 +427,23 @@ void uart_puthex(uint8_t c) {
 					// Error increases when Host (in average) sends too much data compared to FB_rate
 					// A high error means we must skip.
 
+					// Try to detect a dead Host feedback system
+					if (packets_since_feedback > SPK1_HOST_FB_DEAD_AFTER)
+						skip_enable |= SPK1_SKIP_EN_DEAD;	// Enable skip/insert due to dead host feedback system
+					else {
+						packets_since_feedback ++;
+						skip_enable &= ~SPK1_SKIP_EN_DEAD;
+					}
+
 					samples_to_transfer_OUT = 1; 	// Default:1 Skip:0 Insert:2 Only one skip or insert per USB package
 					if (skip_enable == 0) {			// .. prior to for(num_samples) Hence 1st sample in a package is skipped or inserted
 						FB_error_acc = 0;
 					}
 					else {
-						FB_error_acc += (num_samples * 1<<14) - (S32)FB_rate;
+						FB_error_acc = FB_error_acc + ((S32)num_samples * 1<<14) - FB_rate;
 						if (FB_error_acc > SPK1_SKIP_LIMIT_14) {	// Must skip
 							samples_to_transfer_OUT = 0;			// Do some skippin'
-							FB_error_acc -= (1<<14);
+							FB_error_acc = FB_error_acc - (1<<14);
 							time_to_calculate_gap = -1;				// Immediate gap re-calculation
 							gpio_set_gpio_pin(AVR32_PIN_PX29);		// Set both AB-1.1/1.2 front LEDs at first skip/insert
 							gpio_set_gpio_pin(AVR32_PIN_PX32);
@@ -459,9 +454,9 @@ void uart_puthex(uint8_t c) {
 #endif
 
 						}
-						else if (FB_error_acc < SPK1_SKIP_LIMIT_14) {	// Must insert
+						else if (FB_error_acc < -SPK1_SKIP_LIMIT_14) {	// Must insert
 							samples_to_transfer_OUT = 2;			// Do some insertin'
-							FB_error_acc += (1<<14);
+							FB_error_acc = FB_error_acc + (1<<14);
 							time_to_calculate_gap = -1;				// Immediate gap re-calculation
 							gpio_set_gpio_pin(AVR32_PIN_PX29);		// Set both AB-1.1/1.2 front LEDs at first skip/insert
 							gpio_set_gpio_pin(AVR32_PIN_PX32);
@@ -470,9 +465,21 @@ void uart_puthex(uint8_t c) {
 							gpio_clr_gpio_pin(AVR32_PIN_PX30); 		// BSB 20130602 debug on GPIO_06
 							print_dbg_char_char('i');
 #endif
-
 						}
 					}
+
+// BSB 20131106 some notes on using AB-1.1 analog output for debug
+//					sample_L = 0x007FFFFF; // posative 24-bit full scale for calibration AB-1.1: 2.744VDC NB!! ES9023 keep squares at least 3dB
+//					sample_R = 0xFF800001; // negitive 24-bit full scale for calibration AB-1.2: -2.745VDC     below full-scale!
+//					sample_L = (U32)num_samples << 16; // +127 is maximum. Expect 9 times 44 and once 45. Multimeter:945.4mVDC dead on!
+//					sample_R = (U32)FB_rate_initial << 2; // It was <<'ed by 14, expect 44.1 /  Multimeter: 948.6mVDC not quite dead on..
+//					sample_R = (U32)num_samples << 16; // +127 is maximum. Expect 9 times 44 and once 45. Multimeter: 948.0mVDC
+//					sample_L = (U32)FB_rate_initial << 2; // It was <<'ed by 14, expect 44.1 /  Multimeter: 946.1mVDC dead on!
+//					sample_L = (U32)FB_error_acc << 2;
+//					sample_R = (U32)num_samples << 16;
+
+					// ON this particular AB-1.2, the Left channel is more accurate at this particular measurement. We'll wait with further
+					// calibration. FB_rate_initial is verified. Value of 1<<16 = 21mV
 
 					for (i = 0; i < num_samples; i++) {
 						if (spk_mute) {
@@ -512,18 +519,16 @@ void uart_puthex(uint8_t c) {
 								spk_index = 0;
 								spk_buffer_in = 1 - spk_buffer_in;
 
-	#ifdef USB_STATE_MACHINE_DEBUG
+#ifdef USB_STATE_MACHINE_DEBUG
 								if (spk_buffer_in == 1)
 									gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 								else
 									gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
-	#endif
+#endif
 
 							}
 						}
 						samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
-
-
 					} // end for num_samples
 
 #ifdef USB_STATE_MACHINE_DEBUG							// Kill any skip/insert related GPIO blinking
@@ -554,6 +559,7 @@ void uart_puthex(uint8_t c) {
 								gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 
 							if(playerStarted) {
+
 								if (gap < SPK1_GAP_LSKIP) {
 									skip_enable |= SPK1_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
 								}
