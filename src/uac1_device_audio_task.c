@@ -427,16 +427,19 @@ void uac1_device_audio_task(void *pvParameters)
 					// Error increases when Host (in average) sends too much data compared to FB_rate
 					// A high error means we must skip.
 
-					// Try to detect a dead Host feedback system
+/*					// Try to detect a dead Host feedback system
 					if (packets_since_feedback > SPK1_HOST_FB_DEAD_AFTER)
 						skip_enable |= SPK1_SKIP_EN_DEAD;	// Enable skip/insert due to dead host feedback system
 					else {
 						packets_since_feedback ++;
-						skip_enable &= ~SPK1_SKIP_EN_DEAD;
+						skip_enable &= ~SPK1_SKIP_EN_DEAD;	// Disable skip/insert due to dead host feedback system
 					}
+*/
 
-					samples_to_transfer_OUT = 1; 	// Default:1 Skip:0 Insert:2 Only one skip or insert per USB package
-					if (skip_enable == 0) {			// .. prior to for(num_samples) Hence 1st sample in a package is skipped or inserted
+					// Default:1 Skip:0 Insert:2 Only one skip or insert per USB package
+					// .. prior to for(num_samples) Hence 1st sample in a package is skipped or inserted
+					samples_to_transfer_OUT = 1;
+					if (skip_enable == 0) {					// Respond to all skip enablers
 						FB_error_acc = 0;
 					}
 					else {
