@@ -411,6 +411,7 @@ void uac1_device_audio_task(void *pvParameters)
 						spk_buffer_in = spk_buffer_out;
 
 #ifdef USB_STATE_MACHINE_DEBUG
+						print_dbg_char_char('p');
 						if (spk_buffer_in == 1)
 							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
 						else
@@ -418,7 +419,6 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
-
 						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
 					}
 
