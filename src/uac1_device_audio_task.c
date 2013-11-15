@@ -413,6 +413,8 @@ void uac1_device_audio_task(void *pvParameters)
 						playerStarted = TRUE;
 						num_remaining = spk_pdca_channel->tcr;
 						spk_buffer_in = spk_buffer_out;
+						LED_Off(LED0);
+						LED_Off(LED1);
 
 #ifdef USB_STATE_MACHINE_DEBUG
 						print_dbg_char_char('p');

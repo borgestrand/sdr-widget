@@ -66,7 +66,7 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-#define FB_NOMINAL_OFFSET 512					// BSB 20131101 Offset used to test provoked feedback system
+#define FB_NOMINAL_OFFSET 0 //512					// BSB 20131101 Offset used to test provoked feedback system
 
 // FB_rate: state machine's feedback rate, communicated to Host over feedback EP
 // FB_rate_initial: The initial setting, including any special Linux settings, NOT offset. Used to re-init state machine
