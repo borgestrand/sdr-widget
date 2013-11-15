@@ -108,7 +108,7 @@
 #define SPK1_HOST_FB_DEAD_AFTER 200				// How many audio packets may arrive without host polling feedback, before we declare FB dead?
 #define SPK1_SKIP_EN_GAP 1                      // Enable skip/insert due to low gap
 #define SPK1_SKIP_EN_DEAD 2						// Enable skip/insert due to dead host feedback system
-#define SPK1_SKIP_LIMIT_14 2<<14 			    // 10.14 og 12.14 format. |accumulated error| must be > 2 samples.
+#define SPK1_SKIP_LIMIT_14 2<<14 			    // 10.14 and 12.14 format. |accumulated error| must be > 2 samples.
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -329,8 +329,7 @@ void uac1_device_audio_task(void *pvParameters)
 			if (usb_alternate_setting_out == 1) {
 				// BSB 20131031 actual gap calculation moved to after OUT data processing
 
-				if ( Is_usb_in_ready(EP_AUDIO_OUT_FB) )
-				{
+				if ( Is_usb_in_ready(EP_AUDIO_OUT_FB) )	{
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 
@@ -408,6 +407,7 @@ void uac1_device_audio_task(void *pvParameters)
 						packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
 						FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
+						old_gap = SPK_BUFFER_SIZE;			// BSB 20131115 moved here
 						skip_enable = 0;					// BSB 20131115 Not skipping yet...
 						skip_indicate = 0;
 						playerStarted = TRUE;
