@@ -606,7 +606,8 @@ void audio_set_cur(void)
 			current_freq.frequency = 44100;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
 			FB_rate = (44 << 14) + (1 << 14)/10;
-			FB_rate_initial = FB_rate + FB_INITIAL_OFFSET;		// BSB 20131031 Record FB_rate as it was set by control system
+			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
+			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); 	// BSB 20110301 MUX in 22.5792MHz/2 for AB-1
@@ -622,7 +623,8 @@ void audio_set_cur(void)
 	   		current_freq.frequency = 48000;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
 			FB_rate = 48 << 14;
-			FB_rate_initial = FB_rate + FB_INITIAL_OFFSET;		// BSB 20131031 Record FB_rate as it was set by control system
+			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
+			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 
 			if (FEATURE_BOARD_USBI2S)
 				gpio_set_gpio_pin(AVR32_PIN_PX16); 	// BSB 20110301 MUX in 24.576MHz/2 for AB-1
