@@ -36,6 +36,11 @@
 #define AUDIO_BUFFER_SIZE	(48*2*8) // 48 khz, stereo, 8 ms worth
 #define SPK_BUFFER_SIZE 	(48*2*16)
 
+// BSB 20131201 attempting improved playerstarted detection.
+#define USB_BUFFER_TOGGLE_LIM 2		// DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
+#define USB_BUFFER_TOGGLE_PARK 10	// The error is detected in sequential code
+
+
 //extern const gpio_map_t SSC_GPIO_MAP;
 //extern const pdca_channel_options_t PDCA_OPTIONS;
 //extern const pdca_channel_options_t SPK_PDCA_OPTIONS;
