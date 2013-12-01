@@ -212,7 +212,7 @@ void uac2_device_audio_task(void *pvParameters)
 				audio_buffer_in = 0;
 				audio_buffer_out = 0;
 				spk_buffer_in = 0;
-//				spk_buffer_out = 0; // Only place outside taskAK53984A.c where spk_buffer_out is written!
+				spk_buffer_out = 0; // Only place outside taskAK53984A.c where spk_buffer_out is written!
 				index = 0;
 
 				if (!FEATURE_ADC_NONE){
@@ -431,6 +431,7 @@ void uac2_device_audio_task(void *pvParameters)
 					old_gap = SPK_BUFFER_SIZE;			// BSB 20131115 moved here
 					skip_enable = 0;					// BSB 20131115 Not skipping yet...
 					skip_indicate = 0;
+					usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 					playerStarted = TRUE;
 					num_remaining = spk_pdca_channel->tcr;
 					spk_buffer_in = spk_buffer_out;
@@ -578,6 +579,10 @@ void uac2_device_audio_task(void *pvParameters)
 							else
 								gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
 #endif
+
+							// BSB 20131201 attempting improved playerstarted detection
+							usb_buffer_toggle--;					// Counter is increased by DMA, decreased by seq. code
+
 						}
 					}
 					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
@@ -690,8 +695,17 @@ void uac2_device_audio_task(void *pvParameters)
 			}	// end if (Is_usb_out_received(EP_AUDIO_OUT))
 		} // end if (usb_alternate_setting_out == 1)
 		else {
-			playerStarted=FALSE;
+			playerStarted = FALSE;
 		}
+
+
+		// BSB 20131201 attempting improved playerstarted detection
+		if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA, decreased by seq. code
+			usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
+			playerStarted = FALSE;
+		}
+
+
 	} // end while vTask
 }
 

@@ -111,7 +111,16 @@
     //! @brief DEFINE to activate audio feedback state machine debugging on GPIO and UART
     //!
     //! Possible values defined and commented out
-// #define USB_STATE_MACHINE_DEBUG
+#define USB_STATE_MACHINE_DEBUG
+
+
+// BSB 20131201 attempting improved playerstarted detection. This file is included in the right places, but there must be a better
+// place for this:
+
+#define USB_BUFFER_TOGGLE_LIM 2		// DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
+#define USB_BUFFER_TOGGLE_PARK 10	// The error is detected in sequential code
+
+
 
   //! @}
 

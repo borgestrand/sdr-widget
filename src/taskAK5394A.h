@@ -51,6 +51,10 @@ extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;
 extern xSemaphoreHandle mutexSpkUSB;
 
+// BSB 20131201 attempting improved playerstarted detection
+extern volatile S32 usb_buffer_toggle;
+
+
 void AK5394A_pdca_disable(void);
 void AK5394A_pdca_enable(void);
 void AK5394A_task_init(Bool uac2);

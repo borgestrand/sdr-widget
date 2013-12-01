@@ -220,7 +220,7 @@ void uac1_device_audio_task(void *pvParameters)
 				audio_buffer_in = 0;
 				audio_buffer_out = 0;
 				spk_buffer_in = 0;
-				spk_buffer_out = 0;
+				spk_buffer_out = 0; // Only place outside taskAK53984A.c where spk_buffer_out is written!
 				index = 0;
 
 				if (!FEATURE_ADC_NONE){

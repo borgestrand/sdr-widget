@@ -96,6 +96,9 @@ volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
 volatile int audio_buffer_in, spk_buffer_out;
 
+// BSB 20131201 attempting improved playerstarted detection
+volatile S32 usb_buffer_toggle;
+
 /*! \brief The PDCA interrupt handler.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
@@ -134,6 +137,10 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // BSB 20120911 debug on GPIO_04
 #endif
 	}
+
+	// BSB 20131201 attempting improved playerstarted detection
+	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
+		usb_buffer_toggle++;
 }
 
 /*! \brief Init interrupt controller and register pdca_int_handler interrupt.
