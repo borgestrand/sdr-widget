@@ -173,6 +173,7 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
+	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX32
 	U32 sample_L, sample_R; // BSB 20131102 Expanded for skip/insert
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
@@ -332,8 +333,15 @@ void uac1_device_audio_task(void *pvParameters)
 
 				if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 
-#ifdef USB_STATE_MACHINE_DEBUG
-					gpio_clr_gpio_pin(AVR32_PIN_PX31); // BSB 20131201 debug on GPIO_07 low to indicate FB EP poll
+#ifdef USB_STATE_MACHINE_DEBUG						// BSB 20131206 Toggle GPIO_07 to indicate FB EP poll
+					if (toggle_07 == 1) {
+						gpio_clr_gpio_pin(AVR32_PIN_PX31);
+						toggle_07 = 0;
+					}
+					else {
+						gpio_set_gpio_pin(AVR32_PIN_PX31);
+						toggle_07 = 1;
+					}
 #endif
 
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
@@ -388,10 +396,6 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 
 					Usb_send_in(EP_AUDIO_OUT_FB);
-
-#ifdef USB_STATE_MACHINE_DEBUG
-					gpio_set_gpio_pin(AVR32_PIN_PX31); // BSB 20130602 debug on GPIO_07 FB EP poll done
-#endif
 				} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
 
