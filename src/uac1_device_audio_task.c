@@ -173,7 +173,7 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
-	U8 toggle_07 = 0 ;	// BSB 20131206 keep track of GPIO_07 / PX32
+	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX32
 	U32 sample_L, sample_R; // BSB 20131102 Expanded for skip/insert
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;

@@ -85,6 +85,7 @@ void uac1_AK5394A_task(void *pvParameters) {
 	xLastWakeTime = xTaskGetTickCount();
 
 	int i;
+	volatile S32 usb_buffer_toggle;
 
 	while (TRUE) {
 		// All the hardwork is done by the pdca and the interrupt handler.
@@ -148,10 +149,15 @@ void uac1_AK5394A_task(void *pvParameters) {
 
 // silence speaker if USB data out is stalled, as indicated by heart-beat counter
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
-				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
-					spk_buffer_0[i] = 0;
-					spk_buffer_1[i] = 0;
-				}
+			for (i = 0; i < SPK_BUFFER_SIZE; i++) {
+				spk_buffer_0[i] = 0;
+				spk_buffer_1[i] = 0;
+			}
+
+			// BSB 20131209 attempting improved playerstarted detection
+			// Next iteration of uacX_device_audio_task will set playerStarted to FALSE
+			if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
+				usb_buffer_toggle = USB_BUFFER_TOGGLE_LIM;
 		}
 		old_spk_usb_heart_beat = spk_usb_heart_beat;
 

@@ -94,6 +94,8 @@ void uac2_AK5394A_task(void *pvParameters) {
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 	int i;
+	volatile S32 usb_buffer_toggle;
+
 /*
 	U32 poolingFreq;
 	U32 FB_rate_int;
@@ -116,6 +118,11 @@ void uac2_AK5394A_task(void *pvParameters) {
 				spk_buffer_0[i] = 0;
 				spk_buffer_1[i] = 0;
 			}
+
+			// BSB 20131209 attempting improved playerstarted detection
+			// Next iteration of uacX_device_audio_task will set playerStarted to FALSE
+			if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
+				usb_buffer_toggle = USB_BUFFER_TOGGLE_LIM;
 		}
 		old_spk_usb_heart_beat = spk_usb_heart_beat;
 

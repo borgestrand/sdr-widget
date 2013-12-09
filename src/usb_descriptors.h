@@ -116,10 +116,10 @@
 
 // USB Device descriptor
 
-// #define COMPILING_FOR_DRIVER_DEVELOPMENT 1 	// BSB 20121107 Special USB signatures for driver development
-												// "1" for open source driver test winuac2
-												// "2" for special driver test
-												// Undefined for standard operation according to new USB PIDs
+//#define DRIVER_DEVELOPMENT_PID 0x03ED 	// BSB 20131209 Leave undefined for ordinary operation.
+										// When defined VID = 16C0.
+										// Define UAC1 PID as 0x03ED and up. UAC2 PID is one above. Hence use
+										// increment of 2 if Host computer needs new PID to continue debugging
 
 // BSB Added 20110901 according to mail from Roger
 #define USB_1_1_SPECIFICATION     0x0110 	// BSB 20130605 changed from 0x0101 to 0x0110 to happify USBlyzer
@@ -132,8 +132,8 @@
 #define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
 
-#ifdef COMPILING_FOR_DRIVER_DEVELOPMENT
-  #define AUDIO_VENDOR_ID     0x16c0		//!  AB-1.x Special driver testing UAC1
+#ifdef DRIVER_DEVELOPMENT_PID
+  #define AUDIO_VENDOR_ID     0x16c0		//!  AB-1.x Special driver testing UAC1 & UAC2
 #else
   #define AUDIO_VENDOR_ID     0x16d0		//!  Audio device
 #endif
@@ -147,12 +147,9 @@
 #define AUDIO_PRODUCT_ID_7	  0x0767		//!  USB8741    UAC1 PID
 #define AUDIO_PRODUCT_ID_8    0x0768		//!  USB8741    UAC2 PID
 
-#if COMPILING_FOR_DRIVER_DEVELOPMENT == 1
-  #define AUDIO_PRODUCT_ID_9  0x03ED		//!  AB-1.x driver testing UAC1 in winuac2 project
-  #define AUDIO_PRODUCT_ID_10 0x03EE		//!  AB-1.x driver testing UAC2
-#elif COMPILING_FOR_DRIVER_DEVELOPMENT == 2
-  #define AUDIO_PRODUCT_ID_9  0x03EF		//!  AB-1.x driver testing UAC1 for special drivers
-  #define AUDIO_PRODUCT_ID_10 0x03F0		//!  AB-1.x driver testing UAC2
+#ifdef DRIVER_DEVELOPMENT_PID
+  #define AUDIO_PRODUCT_ID_9  DRIVER_DEVELOPMENT_PID		// UAC1 PID
+  #define AUDIO_PRODUCT_ID_10 DRIVER_DEVELOPMENT_PID + 1	// UAC2 PID
 #else
   #define AUDIO_PRODUCT_ID_9    0x075C		//!  AB-1.x     UAC1 PID
   #define AUDIO_PRODUCT_ID_10   0x075D		//!  AB-1.x     UAC2 PID
