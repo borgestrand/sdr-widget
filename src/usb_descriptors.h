@@ -116,7 +116,7 @@
 
 // USB Device descriptor
 
-//#define DRIVER_DEVELOPMENT_PID 0x03ED 	// BSB 20131209 Leave undefined for ordinary operation.
+#define DRIVER_DEVELOPMENT_PID 0x03FF 	// BSB 20131209 Leave undefined for ordinary operation.
 										// When defined VID = 16C0.
 										// Define UAC1 PID as 0x03ED and up. UAC2 PID is one above. Hence use
 										// increment of 2 if Host computer needs new PID to continue debugging
