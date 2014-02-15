@@ -290,19 +290,19 @@
 #define USB_SN_LENGTH         13
 #define USB_SERIAL_NUMBER \
 {\
+  Usb_unicode('2'),\
+  Usb_unicode('0'),\
   Usb_unicode('1'),\
-  Usb_unicode('.'),\
+  Usb_unicode('4'),\
   Usb_unicode('0'),\
-  Usb_unicode('.'),\
+  Usb_unicode('2'),\
+  Usb_unicode('1'),\
+  Usb_unicode('5'),\
   Usb_unicode('0'),\
-  Usb_unicode('.'),\
   Usb_unicode('0'),\
-  Usb_unicode('.'),\
-  Usb_unicode('0'),\
-  Usb_unicode('.'),\
-  Usb_unicode('0'),\
-  Usb_unicode('.'),\
-  Usb_unicode('A') \
+  Usb_unicode('B'),\
+  Usb_unicode('S'),\
+  Usb_unicode('B') \
 }
 
 #define USB_CS1_LENGTH         7
