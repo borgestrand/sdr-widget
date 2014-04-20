@@ -77,8 +77,10 @@ const S_usb_device_descriptor uac2_audio_usb_dev_desc =
     Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_6),
   #elif defined (FEATURE_PRODUCT_USB8741) // AUDIO_PRODUCT_ID_7 and _8
     Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_8),
-  #elif defined (FEATURE_PRODUCT_AB1x)  // AUDIO_PRODUCT_ID_9 and _10
+  #elif defined (FEATURE_PRODUCT_AB1x)    // AUDIO_PRODUCT_ID_9 and _10
     Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_10),
+  #elif defined (FEATURE_PRODUCT_AMB)     // AUDIO_PRODUCT_ID_13 and _14
+    Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_14),
   #else
   #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
   #endif

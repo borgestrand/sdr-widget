@@ -133,6 +133,8 @@ int find_feature_value(int index, char *value) {
 #define AUDIO_PRODUCT_ID_13   0x075D 		//!vendorid3 AB-1.x UAC2
 #define AUDIO_PRODUCT_ID_14   0x075E 		//!vendorid3 QNKTC future use UAC1
 #define AUDIO_PRODUCT_ID_15   0x075F 		//!vendorid3 QNKTC future use UAC2
+#define AUDIO_PRODUCT_ID_16   0x098B 		//!vendorid3 AMB UAC1
+#define AUDIO_PRODUCT_ID_17   0x098C 		//!vendorid3 AMB UAC2
 
 char *usb_serial_id = NULL;
 libusb_device_handle *usb_handle;
@@ -201,6 +203,8 @@ libusb_device_handle *find_device(int list_all) {
 			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_13) ||
 			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_14) ||
 			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_15) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_16) ||
+			(desc.idVendor == AUDIO_VENDOR_ID_3 && desc.idProduct == AUDIO_PRODUCT_ID_17) ||
 			(desc.idVendor == HPSDR_VENDOR_ID && desc.idProduct == HPSDR_PRODUCT_ID)) {
 			libusb_device_handle *h;
 			int status;
