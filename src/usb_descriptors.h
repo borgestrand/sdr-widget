@@ -116,11 +116,6 @@
 
 // USB Device descriptor
 
-#define DRIVER_DEVELOPMENT_PID 0x03ED 	// BSB 20131209 Leave undefined for ordinary operation.
-										// When defined VID = 16C0.
-										// Define UAC1 PID as 0x03ED and up. UAC2 PID is one above. Hence use
-										// increment of 2 if Host computer needs new PID to continue debugging
-
 // BSB Added 20110901 according to mail from Roger
 #define USB_1_1_SPECIFICATION     0x0110 	// BSB 20130605 changed from 0x0101 to 0x0110 to happify USBlyzer
 
@@ -129,34 +124,57 @@
 #define DEVICE_SUB_CLASS      0x02          //!
 #define DEVICE_PROTOCOL       0x01          //! IAD Device
 #define EP_CONTROL_LENGTH     64
-#define DG8SAQ_VENDOR_ID	  0x16c0		//!  DG8SAQ device
+#define DG8SAQ_VENDOR_ID      0x16c0        //!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc
 
-#ifdef DRIVER_DEVELOPMENT_PID
-  #define AUDIO_VENDOR_ID     0x16c0		//!  AB-1.x Special driver testing UAC1 & UAC2
+#ifdef COMPILING_FOR_DRIVER_DEVELOPMENT
+  // "internal lab use only" VID=0x16C0
+  // UAC1 PID=0x03ed, UAC2 PID is one above.
+  // Hence use increment of 2 if Host computer needs new PID
+  // to continue debugging
+
+  #ifndef FEATURE_PRODUCT_AB1x
+  #define FEATURE_PRODUCT_AB1x
+  #endif
+
+  #define AUDIO_VENDOR_ID		0x16c0
+  #define AUDIO_PRODUCT_ID_9		0x03ed			// UAC1 PID
+  #define AUDIO_PRODUCT_ID_10		AUDIO_PRODUCT_ID_9 + 1	// UAC2 PID
 #else
-  #define AUDIO_VENDOR_ID     0x16d0		//!  Audio device
-#endif
+  // Use product-specific VID/PIDs
+  #if defined(FEATURE_PRODUCT_SDR_WIDGET)
+    #define AUDIO_VENDOR_ID       0x16d0
+    #define AUDIO_PRODUCT_ID_1    0x0761	//!  SDR-WIDGET	UAC1 PID
+    #define AUDIO_PRODUCT_ID_2    0x0762	//!  SDR-WIDGET	UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_USB9023))
+    #define AUDIO_VENDOR_ID       0x16d0	//!  USB9023	VID
+    #define AUDIO_PRODUCT_ID_3    0x0763	//!  USB9023	UAC1 PID
+    #define AUDIO_PRODUCT_ID_4    0x0764	//!  USB9023	UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_USB5102))
+    #define AUDIO_VENDOR_ID       0x16d0	//!  USB5102	VID
+    #define AUDIO_PRODUCT_ID_5    0x0765	//!  USB5102	UAC1 PID
+    #define AUDIO_PRODUCT_ID_6    0x0766	//!  USB5102	UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_USB8741))
+    #define AUDIO_VENDOR_ID       0x16d0	//!  USB8741	VID
+    #define AUDIO_PRODUCT_ID_7	  0x0767	//!  USB8741	UAC1 PID
+    #define AUDIO_PRODUCT_ID_8    0x0768	//!  USB8741	UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_AB1x))
+    #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
+    #define AUDIO_PRODUCT_ID_9    0x075c	//!  AB-1.x	UAC1 PID
+    #define AUDIO_PRODUCT_ID_10   0x075d	//!  AB-1.x	UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_QNKTC_FUTURE))
+    #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
+    #define AUDIO_PRODUCT_ID_11   0x075e	//!  QNKTC future use UAC1 PID
+    #define AUDIO_PRODUCT_ID_12   0x075f	//!  QNKTC future use UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_AMB))
+    #define AUDIO_VENDOR_ID       0x16d0	//!  AMB	VID
+    #define AUDIO_PRODUCT_ID_13   0x098b	//!  AMB	UAC1 PID
+    #define AUDIO_PRODUCT_ID_14   0x098c	//!  AMB	UAC2 PID
+  #else
+    #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
+  #endif
+#endif	// DRIVER_DEVELOPMENT
 
-#define AUDIO_PRODUCT_ID_1    0x0761		//!  SDR-WIDGET UAC1 PID
-#define AUDIO_PRODUCT_ID_2    0x0762		//!  SDR-WIDGET UAC2 PID
-#define AUDIO_PRODUCT_ID_3	  0x0763		//!  USB9023    UAC1 PID
-#define AUDIO_PRODUCT_ID_4    0x0764		//!  USB9023    UAC2 PID
-#define AUDIO_PRODUCT_ID_5	  0x0765		//!  USB5102    UAC1 PID
-#define AUDIO_PRODUCT_ID_6    0x0766		//!  USB5102    UAC2 PID
-#define AUDIO_PRODUCT_ID_7	  0x0767		//!  USB8741    UAC1 PID
-#define AUDIO_PRODUCT_ID_8    0x0768		//!  USB8741    UAC2 PID
-
-#ifdef DRIVER_DEVELOPMENT_PID
-  #define AUDIO_PRODUCT_ID_9  DRIVER_DEVELOPMENT_PID		// UAC1 PID
-  #define AUDIO_PRODUCT_ID_10 DRIVER_DEVELOPMENT_PID + 1	// UAC2 PID
-#else
-  #define AUDIO_PRODUCT_ID_9    0x075C		//!  AB-1.x     UAC1 PID
-  #define AUDIO_PRODUCT_ID_10   0x075D		//!  AB-1.x     UAC2 PID
-#endif
-
-#define AUDIO_PRODUCT_ID_11	  0x075E		//!  QNKTC future use UAC1 PID
-#define AUDIO_PRODUCT_ID_12   0x075F		//!  QNKTC future use UAC2 PID
 #define HPSDR_VENDOR_ID       0xfffe		//! Ozy Device
 #define HPSDR_PRODUCT_ID      0x0007
 #define RELEASE_NUMBER        0x1000
@@ -215,6 +233,13 @@
   Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
   Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
 }
+#elif defined (FEATURE_PRODUCT_AMB)  // AUDIO_PRODUCT_ID_13 and _14
+#define USB_MN_LENGTH         16
+#define USB_MANUFACTURER_NAME {\
+  Usb_unicode('A'), Usb_unicode('M'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('L'), Usb_unicode('a'), \
+  Usb_unicode('b'), Usb_unicode('o'), Usb_unicode('r'), Usb_unicode('a'), Usb_unicode('t'), Usb_unicode('o'), \
+  Usb_unicode('r'), Usb_unicode('i'), Usb_unicode('e'), Usb_unicode('s')\
+}
 #else
 #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
 #endif
@@ -268,6 +293,14 @@
       Usb_unicode('.'), Usb_unicode('2')\
     }
   #endif
+#elif defined (FEATURE_PRODUCT_AMB)  // AUDIO_PRODUCT_ID_13 and _14
+    #define USB_PN_LENGTH         24
+    #define USB_PRODUCT_NAME {\
+      Usb_unicode('A'), Usb_unicode('M'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('U'), Usb_unicode('S'), \
+      Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('D'), Usb_unicode('A'), Usb_unicode('C'), Usb_unicode(' '), \
+      Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
+      Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t') \
+    }
 #else
 #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
 #endif
@@ -295,13 +328,13 @@
   Usb_unicode('1'),\
   Usb_unicode('4'),\
   Usb_unicode('0'),\
-  Usb_unicode('2'),\
+  Usb_unicode('4'),\
   Usb_unicode('1'),\
-  Usb_unicode('5'),\
+  Usb_unicode('8'),\
   Usb_unicode('0'),\
   Usb_unicode('0'),\
-  Usb_unicode('B'),\
-  Usb_unicode('S'),\
+  Usb_unicode('A'),\
+  Usb_unicode('M'),\
   Usb_unicode('B') \
 }
 
