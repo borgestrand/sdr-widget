@@ -1,5 +1,5 @@
 Audio Widget README
-================== =
+===================
 
 Read this file if you are curious about the Audio Widget project. Most of it
 also applies to the SDR Widget project. This document focuses on using and 
