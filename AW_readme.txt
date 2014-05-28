@@ -32,7 +32,7 @@ this file! Please suggest additions or changes and send them to me.
 
 Some sections are split into Linux and Windows. The Windows text is developed on
 a Windows 7 system. Compatibility with Windows XP may be there, but is not
-prioritized. 
+prioritized.
 
 The increasingly more complex topics of this text are:
 - Project introduction and history
@@ -624,7 +624,7 @@ Compiling new firmware
 
 The firmware source code is common for SDR Widget and Audio Widget. It is all
 stored in github:
-  https://github.com/amontefusco/sdr-widget
+  https://github.com/borgestrand/sdr-widget
 
 See Appendix 1 - git primer below for information about using git. Its text is
 taken from the SDR Widget wiki entry:
@@ -806,7 +806,7 @@ documentation starting at
   http://www.github.com
 
 The git repository is located at 
-  https://github.com/amontefusco/sdr-widget 
+  https://github.com/borgestrand/sdr-widget 
 You can view branches and their files from there. 
 
 Perhaps the most confusing thing about using git and github (the central 
@@ -855,7 +855,7 @@ In a shell the setup goes something like this:
   Hi your_github_username!....
 
 To copy the source code you clone it:
-  git clone git@github.com:amontefusco/sdr-widget.git
+  git clone git@github.com:borgestrand/sdr-widget.git
 
 This will set up local copies of what is stored in the central repository. By 
 now you should have a bit of a grasp about git's consept of branches. 

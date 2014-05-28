@@ -47,6 +47,8 @@ productid12   = 0x075C # vendorid3 AB-1.x UAC1
 productid13   = 0x075D # vendorid3 AB-1.x UAC2
 productid14   = 0x075E # vendorid3 QNKTC future use UAC1
 productid15   = 0x075F # vendorid3 QNKTC future use UAC2
+productid16   = 0x098B # vendorid3 AMB UAC1
+productid17   = 0x098C # vendorid3 AMB UAC2
 confignum   = 1
 interfacenum= 0
 timeout     = 1500
@@ -212,6 +214,14 @@ class Launcher(model.Background):
                     foundbus = bus
                     break
                 if (dev.idVendor == vendorid3) & (dev.idProduct == productid15):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid16):
+                    founddev = dev
+                    foundbus = bus
+                    break
+                if (dev.idVendor == vendorid3) & (dev.idProduct == productid17):
                     founddev = dev
                     foundbus = bus
                     break

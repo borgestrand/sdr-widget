@@ -9,12 +9,17 @@
 
 ## Hardware variety selects USB VID/PID and signature fields only
 ## Available defines:
+## -DCOMPILING_FOR_DRIVER_DEVELOPMENT uses "internal lab use only" VID/PID
 ## -DFEATURE_PRODUCT_SDR_WIDGET uses AUDIO_PRODUCT_ID_1 and _2
 ## -DFEATURE_PRODUCT_USB9023 uses AUDIO_PRODUCT_ID_3 and _4
 ## -DFEATURE_PRODUCT_USB5102 uses AUDIO_PRODUCT_ID_5 and _6
 ## -DFEATURE_PRODUCT_USB8741 uses AUDIO_PRODUCT_ID_7 and _8
-## -DFEATURE_PRODUCT_AB1x  uses AUDIO_PRODUCT_ID_9 and _10
-
+## -DFEATURE_PRODUCT_AB1x uses AUDIO_PRODUCT_ID_9 and _10
+## -DFEATURE_PRODUCT_AMB uses AUDIO_PRODUCT_ID_13 and _14
+##
+## Other defines:
+## -DUSB_STATE_MACHINE_DEBUG activate audio feedback state machine
+##                           debugging on GPIO and UART
 
 ## See featurs.h #define FEATURE_VALUE_NAMES for available defaults. 
 SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
@@ -43,7 +48,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
-	-DFEATURE_PRODUCT_AB1x
+	-DFEATURE_PRODUCT_AMB
 
 ## Boot up with this code, reboot with feature_quirk_ptest set
 ## in flash (for good measure). That will execute the production 
@@ -60,7 +65,7 @@ PROD_TEST_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest \
-	-DFEATURE_PRODUCT_AB1x 
+	-DFEATURE_PRODUCT_AMB
 
 all:: Release/widget.elf widget-control
 

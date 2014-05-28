@@ -1,0 +1,6 @@
+#
+# Change this to fit your local installation, so that the
+# cross compiler/assembler could find your header files.
+#
+CFLAGS+= -I/opt/atmel-headers
+ASFLAGS+= -I/opt/atmel-headers
