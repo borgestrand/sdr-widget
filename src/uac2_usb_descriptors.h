@@ -70,7 +70,7 @@
 #define INTERFACE_NB0			    0
 #define ALTERNATE_NB0	            0                  //! The alt setting nb of this interface
 #define NB_ENDPOINT0			    0                  //! The number of endpoints this interface has
-#define INTERFACE_CLASS0		    NO_CLASS          //! No Class
+#define INTERFACE_CLASS0		    NO_CLASS           //! No Class
 #define INTERFACE_SUB_CLASS0        NO_SUBCLASS        //! No Subclass
 #define INTERFACE_PROTOCOL0    		NO_PROTOCOL		   //! No Protocol
 #define INTERFACE_INDEX0       		0
@@ -123,7 +123,7 @@
 #define INTERFACE_NB1       1
 #define ALTERNATE_NB1       0
 #define NB_ENDPOINT1        0			     //! No endpoint for AC interface
-#define INTERFACE_CLASS1    AUDIO_CLASS  	//! Audio Class
+#define INTERFACE_CLASS1    AUDIO_CLASS  	 //! Audio Class
 #define INTERFACE_SUB_CLASS1 AUDIO_INTERFACE_SUBCLASS_AUDIOCONTROL
 #define INTERFACE_PROTOCOL1  IP_VERSION_02_00		     //! IP_VERSION_02_00 ie UAC V2
 #define INTERFACE_INDEX1     WL_INDEX
@@ -134,14 +134,14 @@
 // USB Endpoint 1 descriptor
 #define ENDPOINT_NB_1       ( UAC2_EP_AUDIO_IN | MSK_EP_DIR )
 #define EP_ATTRIBUTES_1		0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
-//#define EP_IN_LENGTH_1_FS	294				// 3 bytes * 49 samples * stereo
+//#define EP_IN_LENGTH_1_FS	294				   // 3 bytes * 49 samples * stereo
 //#define EP_IN_LENGTH_1_HS	294
-#define EP_IN_LENGTH_1_FS	392				// 4 bytes * 49 samples * stereo
+#define EP_IN_LENGTH_1_FS	392				   // 4 bytes * 49 samples * stereo
 #define EP_IN_LENGTH_1_HS	392
 #define EP_SIZE_1_FS		EP_IN_LENGTH_1_FS
 #define EP_SIZE_1_HS        EP_IN_LENGTH_1_HS
-#define EP_INTERVAL_1_FS	0x01			 // one packet per uframe, each uF 1ms, so only 48khz
-#define EP_INTERVAL_1_HS    0x02			 // One packet per 2 uframe, each uF 125us, so 192khz
+#define EP_INTERVAL_1_FS	0x01			   // one packet per uframe, each uF 1ms, so only 48khz
+#define EP_INTERVAL_1_HS    0x02			   // One packet per 2 uframe, each uF 125us, so 192khz
 
 
 // USB Endpoint 2 descriptor
@@ -149,7 +149,7 @@
 #define EP_ATTRIBUTES_2     0b00000101			// ISOCHRONOUS ASYNC
 //#define EP_OUT_LENGTH_2_HS  294				// 3 bytes * 49 samples * stereo
 //#define EP_OUT_LENGTH_2_FS	294
-#define EP_OUT_LENGTH_2_HS  392				// 4 bytes * 49 samples * stereo
+#define EP_OUT_LENGTH_2_HS  392				   // 4 bytes * 49 samples * stereo
 #define EP_OUT_LENGTH_2_FS	392
 #define EP_SIZE_2_FS		EP_OUT_LENGTH_2_FS
 #define EP_SIZE_2_HS        EP_OUT_LENGTH_2_HS

@@ -127,14 +127,14 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, SPK_BUFFER_SIZE);
 		spk_buffer_out = 1;
 #ifdef USB_STATE_MACHINE_DEBUG
-		gpio_set_gpio_pin(AVR32_PIN_PX56); // BSB 20120911 debug on GPIO_04
+		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 	}
 	else {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, SPK_BUFFER_SIZE);
 		spk_buffer_out = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
-		gpio_clr_gpio_pin(AVR32_PIN_PX56); // BSB 20120911 debug on GPIO_04
+		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 	}
 

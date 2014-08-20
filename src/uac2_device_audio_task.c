@@ -164,7 +164,7 @@ void uac2_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
-	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX32
+	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX31
 	U32 sample_L, sample_R; // BSB 20131102 Expanded for skip/insert
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
@@ -442,9 +442,9 @@ void uac2_device_audio_task(void *pvParameters)
 #ifdef USB_STATE_MACHINE_DEBUG
 						print_dbg_char_char('p');
 						if (spk_buffer_in == 1)
-							gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+							gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 						else
-							gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120911 debug on GPIO_03
+							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 #endif
 
 					spk_index = SPK_BUFFER_SIZE - num_remaining;
@@ -572,9 +572,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 #ifdef USB_STATE_MACHINE_DEBUG
 							if (spk_buffer_in == 1)
-								gpio_set_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+								gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 							else
-								gpio_clr_gpio_pin(AVR32_PIN_PX55); // BSB 20120912 debug on GPIO_03
+								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 #endif
 
 							// BSB 20131201 attempting improved playerstarted detection

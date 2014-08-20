@@ -285,13 +285,14 @@
       Usb_unicode('.'), Usb_unicode('2')\
     }
   #else
-    #define USB_PN_LENGTH         20
+    #define USB_PN_LENGTH         28
     #define USB_PRODUCT_NAME {\
-      Usb_unicode('Q'), Usb_unicode('N'), Usb_unicode('K'), Usb_unicode('T'), Usb_unicode('C'), Usb_unicode(' '), \
+      Usb_unicode('H'), Usb_unicode('e'), Usb_unicode('n'), Usb_unicode('r'), Usb_unicode('y'), Usb_unicode(' '), \
+      Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), \
       Usb_unicode('U'), Usb_unicode('S'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('D'), Usb_unicode('A'), \
-      Usb_unicode('C'), Usb_unicode(' '), Usb_unicode('A'), Usb_unicode('B'), Usb_unicode('-'), Usb_unicode('1'), \
-      Usb_unicode('.'), Usb_unicode('2')\
-    }
+      Usb_unicode('C'), Usb_unicode(' '), Usb_unicode('1'), Usb_unicode('2'), Usb_unicode('8'), Usb_unicode(' '), \
+      Usb_unicode(' '), Usb_unicode(' '), Usb_unicode(' '), Usb_unicode(' ') \
+}
   #endif
 #elif defined (FEATURE_PRODUCT_AMB)  // AUDIO_PRODUCT_ID_13 and _14
     #define USB_PN_LENGTH         24
@@ -320,7 +321,7 @@
   Usb_unicode('E')\
 }
 
-#define USB_SN_LENGTH         13
+#define USB_SN_LENGTH         13		// Encode the build date and user prefix
 #define USB_SERIAL_NUMBER \
 {\
   Usb_unicode('2'),\
@@ -328,13 +329,13 @@
   Usb_unicode('1'),\
   Usb_unicode('4'),\
   Usb_unicode('0'),\
-  Usb_unicode('4'),\
-  Usb_unicode('1'),\
   Usb_unicode('8'),\
+  Usb_unicode('2'),\
   Usb_unicode('0'),\
   Usb_unicode('0'),\
-  Usb_unicode('A'),\
-  Usb_unicode('M'),\
+  Usb_unicode('0'),\
+  Usb_unicode('B'),\
+  Usb_unicode('S'),\
   Usb_unicode('B') \
 }
 
