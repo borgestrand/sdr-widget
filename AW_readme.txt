@@ -737,8 +737,8 @@ reach this goal is greatly appreciated. To help debug the driver do as follows:
 The Windows ASIO driver source code is found at:
   https://github.com/nikkov/Win-Widget
 
-In order to build it you will need the 2008 vintage of Microsoft's Visual C# and
-C++ Express tools. 
+In order to build it you will need the 2008 and 2012 vintage of Microsoft's 
+Visual C# and C++ Express tools. 2012 is required for 64-bit builds.
 
 In order to use the ASIO parts of code you must download closed-source ASIO 
 libraries from Steinberg and copy them manually into the code hierarchy. Several
@@ -750,6 +750,18 @@ contains a place holder for libusbK. You will have to download and install it
 yourself. Relevant libusbK sites are:
   http://sourceforge.net/projects/libusbk/
   http://libusbk.sourceforge.net/UsbK3/index.html
+  
+Remember to update Audio-Widget.inf with libusbK version information!
+ 
+libusbK will likely install itself in c:\libusbK-dev-kit. From there you will 
+need the includes folder to complete a code build, and the bin folder to make
+the installer. NB: The bin folder doesn't install the all-important .sys files.
+
+Here's what to do to get the .sys files as well: Run libusbK-inf-wizard.exe 
+and select libusbK. Select a random USB component and generate a client 
+installer. Explore the folder. It will now contain all binary files under amd64
+and x86 folders. Copy those two to the DriverPackages folder. Watch out for 
+"_x86" file names in the x86 folder. They are supposed to be like like that.
 
 The Windows drivers are bundled into an install package. Here is how to compile
 such a package. 
@@ -769,15 +781,18 @@ such a package.
      This should generate InstallDriver.exe
 
 5 -  Go to the Installer folder. Copy the following files into it:
-     asiouac2.dll,
-     asiouac2debug.dll (renamed "Release with Trace" version of asiouac2.dll)
+     from bin: asiouac2.dll,
+     from bin: asiouac2debug.dll (renamed "Release with Trace" version of asiouac2.dll)
+     from bin64: asiouac264.dll
+     from bin64: asiouac264debug.dll (renamed "Release with Trace" version of asiouac264.dll"
      InstallDriver.exe
      WidgetControl.exe
      WidgetTest.exe
+     WidgetTest64.exe
      libusbK.dll (copy of libusbK-dev-kit\bin\dll\x86\libusbK.dll)
 
 6 -  Copy the following files from DriverPackages to Installer/usb_driver: 
-     folderss amd64 and x86 with their contents
+     folders amd64 and x86 with their contents
      Audio-Widget.inf
 
 7 -  Open audiowidget.iss in Inno Setup Compiler and build it.
