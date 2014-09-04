@@ -165,9 +165,7 @@
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01
-#define EP_INTERVAL_3_HS    0x08 // BSB: Was 4 that gives 1ms. ASIO driver + JRiver won't tolerate >4 OS X is happy with 5 which gives 8ms
-// BSB 20130614: define not used in code! #define EP_REFRESH_3_FS		0x05			 //  16ms
-// BSB 20130614: define not used in code! #define EP_REFRESH_3_HS		0x0A // Was 8, what about 6?  // 2^(8-1) = 128 uframe = 16ms // BSB 20130614 0x08 measured as 8ms
+#define EP_INTERVAL_3_HS    0x04 // Only 4 will work on both OS-X and Windows. Anything works on Linux
 
 // AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION_2          0x0200
@@ -235,7 +233,7 @@
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID				0x13
-#define SPK_OUTPUT_TERMINAL_TYPE			0x0302	// Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE			0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
 #define SPK_OUTPUT_TERMINAL_SOURCE_ID		SPK_FEATURE_UNIT_ID
 #define SPK_OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
