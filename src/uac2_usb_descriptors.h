@@ -165,7 +165,7 @@
 #define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS	0x01
-#define EP_INTERVAL_3_HS    0x04 // Only 4 will work on both OS-X and Windows. Anything works on Linux
+#define EP_INTERVAL_3_HS    0x04 // High number is good! /<= 4 works on Windows. Anything works on Linux. 4 OK on Mac
 
 // AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION_2          0x0200
