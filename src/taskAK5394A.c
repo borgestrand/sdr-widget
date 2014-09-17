@@ -99,6 +99,10 @@ volatile int audio_buffer_in, spk_buffer_out;
 // BSB 20131201 attempting improved playerstarted detection
 volatile S32 usb_buffer_toggle;
 
+// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+volatile U8 audio_OUT_alive;
+volatile U8 audio_OUT_must_sync;
+
 /*! \brief The PDCA interrupt handler.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
@@ -141,6 +145,11 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	// BSB 20131201 attempting improved playerstarted detection
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
 		usb_buffer_toggle++;
+
+	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+	if (!audio_OUT_alive)				// If no packet has been received since last DMA reset,
+		audio_OUT_must_sync = 1;		// indicate that next arriving packet must enter mid-buffer
+	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
 }
 
 /*! \brief Init interrupt controller and register pdca_int_handler interrupt.

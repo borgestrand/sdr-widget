@@ -59,6 +59,9 @@ extern xSemaphoreHandle mutexSpkUSB;
 // BSB 20131201 attempting improved playerstarted detection
 extern volatile S32 usb_buffer_toggle;
 
+// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+extern volatile U8 audio_OUT_alive;
+extern volatile U8 audio_OUT_must_sync;
 
 void AK5394A_pdca_disable(void);
 void AK5394A_pdca_enable(void);

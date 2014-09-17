@@ -406,7 +406,8 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
 
-					if(!playerStarted) {
+//					if(!playerStarted) {
+					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
@@ -416,6 +417,7 @@ void uac1_device_audio_task(void *pvParameters)
 						skip_indicate = 0;
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						playerStarted = TRUE;
+						audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						num_remaining = spk_pdca_channel->tcr;
 						spk_buffer_in = spk_buffer_out;
 						LED_Off(LED0);
@@ -431,7 +433,10 @@ void uac1_device_audio_task(void *pvParameters)
 
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
 						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
-					}
+					} // end if (!playerStarted) || (audio_OUT_must_sync)
+
+					// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+					audio_OUT_alive = 1;					// Indicate samples arriving on audio OUT endpoint. Do this after syncing
 
 
 					// Received samples in 10.14 or 12.14 format is num_samples * 1<<14
