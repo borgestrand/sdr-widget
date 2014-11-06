@@ -16,7 +16,14 @@
 ## -DFEATURE_PRODUCT_USB8741 uses AUDIO_PRODUCT_ID_7 and _8
 ## -DFEATURE_PRODUCT_AB1x uses AUDIO_PRODUCT_ID_9 and _10
 ## -DFEATURE_PRODUCT_AMB uses AUDIO_PRODUCT_ID_13 and _14
+<<<<<<< HEAD
 
+=======
+##
+## Other defines:
+## -DUSB_STATE_MACHINE_DEBUG activate audio feedback state machine
+##                           debugging on GPIO and UART
+>>>>>>> audio-widget
 
 ## See featurs.h #define FEATURE_VALUE_NAMES for available defaults. 
 SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
@@ -45,7 +52,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
-	-DFEATURE_PRODUCT_AB1x
+	-DFEATURE_PRODUCT_AMB
 
 ## Boot up with this code, reboot with feature_quirk_ptest set
 ## in flash (for good measure). That will execute the production 
@@ -62,7 +69,11 @@ PROD_TEST_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest \
+<<<<<<< HEAD
 	-DFEATURE_PRODUCT_AB1x
+=======
+	-DFEATURE_PRODUCT_AMB
+>>>>>>> audio-widget
 
 all:: Release/widget.elf widget-control
 

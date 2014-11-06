@@ -329,13 +329,19 @@
   Usb_unicode('1'),\
   Usb_unicode('4'),\
   Usb_unicode('0'),\
+<<<<<<< HEAD
   Usb_unicode('9'),\
   Usb_unicode('1'),\
   Usb_unicode('7'),\
+=======
+  Usb_unicode('4'),\
+  Usb_unicode('1'),\
+  Usb_unicode('8'),\
+>>>>>>> audio-widget
   Usb_unicode('0'),\
   Usb_unicode('0'),\
-  Usb_unicode('B'),\
-  Usb_unicode('S'),\
+  Usb_unicode('A'),\
+  Usb_unicode('M'),\
   Usb_unicode('B') \
 }
 
