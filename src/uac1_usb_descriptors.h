@@ -61,7 +61,7 @@
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
-#define MAX_POWER          250    // 500 mA
+#define MAX_POWER          50 // 250    // 500 mA
 
 //Audio Streaming (AS) interface descriptor
 // BSB 20130604 disabling UAC1 IN #define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
