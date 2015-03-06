@@ -12,10 +12,6 @@
  *  Created on: 2010-06-13
  *      Author: Loftur Jonasson, TF3LJ
  *
- * As of -DHW_GEN=ab1x/din10 this file also handles hardware control GPIO for
- * oscillators, LEDs, buttons etc.
- *      Author: Borge Strand-Bergesen, Henry Audio
- *
  */
 
 #include <stdint.h>
@@ -1037,7 +1033,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 			#endif
 				#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
 					gpio_clr_gpio_pin(PTT_1);
-				#endif
+			#endif
 
    	    	if (!MENU_mode)
    	    	{

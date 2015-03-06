@@ -423,12 +423,12 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	   usb_alternate_setting_out = wValue;
 	   usb_alternate_setting_out_changed = TRUE;
 
-	   // BSB 20121222 to debug sequence on various OSes
+/*	   // BSB 20121222 to debug sequence on various OSes
 	   if (usb_alternate_setting_out == 0)
 		   print_dbg_char_char('0');
 	   else if (usb_alternate_setting_out == 1)
 		   print_dbg_char_char('9');
-
+*/
 	}
 }
 

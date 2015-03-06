@@ -24,6 +24,12 @@ void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0) {
 	// red:1, green:2, blue:4
 	// fled2 is towards center of box, fled0 towards right-hand edge of front view
 
+	print_dbg_char('a');
+	print_dbg_char(fled2 + 0x30);
+	print_dbg_char(fled1 + 0x30);
+	print_dbg_char(fled0 + 0x30);
+	print_dbg_char('b');
+
 	if (fled0 & 1)
 		gpio_clr_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
 	else
@@ -37,28 +43,28 @@ void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0) {
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
 
-	if (fled0 & 1)
+	if (fled1 & 1)
 		gpio_clr_gpio_pin(AVR32_PIN_PA23); 	// FLED1_R
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PA23); 	// FLED1_R
-	if (fled0 & 1)
+	if (fled1 & 2)
 		gpio_clr_gpio_pin(AVR32_PIN_PC01); 	// FLED1_G
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PC01); 	// FLED1_G
-	if (fled0 & 4)
+	if (fled1 & 4)
 		gpio_clr_gpio_pin(AVR32_PIN_PA21); 	// FLED1_B
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PA21); 	// FLED1_B
 
-	if (fled0 & 1)
+	if (fled2 & 1)
 		gpio_clr_gpio_pin(AVR32_PIN_PX29); 	// FLED2_R
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PX29); 	// FLED2_R
-	if (fled0 & 2)
+	if (fled2 & 2)
 		gpio_clr_gpio_pin(AVR32_PIN_PX32); 	// FLED2_G
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PX32); 	// FLED2_G
-	if (fled0 & 4)
+	if (fled2 & 4)
 		gpio_clr_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
@@ -151,7 +157,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_UAC1)
 				mobo_led(0, 2, 2);				// UAC1 green 011
 			if (source == MOBO_SRC_UAC2)
-				mobo_led(0, 1, 2);				// UAC2 red 011
+				mobo_led(0, 1, 1);				// UAC2 red 011
 			if (source == MOBO_SRC_SPDIF)
 				mobo_led(0, 3, 3);				// SPDIF yellow 011
 			if (source == MOBO_SRC_TOSLINK)

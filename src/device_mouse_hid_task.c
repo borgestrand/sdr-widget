@@ -294,6 +294,11 @@ void device_mouse_hid_task(void)
             	gotcmd = 1;									// HID received on UART gets sent regardless
             }
             else {
+            	// Debugging LEDs on HW_GEN_DIN10
+            	if (a == 'l') {
+            		mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
+            	}
+
                 // If you need the UART for something other than HID, this is where you interpret it!
             }
     	}

@@ -76,8 +76,11 @@ void uac2_AK5394A_task_init(void) {
 	current_freq.frequency = 96000;
 	AK5394A_task_init(FALSE);
 
+//clear samplerate indication
+#if defined(HW_GEN_AB1X)
 	gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 	gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
+#endif
 
 	xTaskCreate(uac2_AK5394A_task,
 				configTSK_AK5394A_NAME,
