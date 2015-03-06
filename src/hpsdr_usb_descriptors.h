@@ -56,7 +56,7 @@
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
-#define MAX_POWER          50 // 250    // 500 mA
+#define MAX_POWER          5 // 250    // 500 mA
 
 
 // USB Interface descriptor for Ozy
