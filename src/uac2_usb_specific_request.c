@@ -181,6 +181,8 @@ void uac2_freq_change_handler() {
 				spk_buffer_1[i] = 0;
 			}
 
+			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO XO control and frequency indication
+
 /*
 			poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
 			FB_rate_int = current_freq.frequency / poolingFreq;
@@ -193,11 +195,6 @@ void uac2_freq_change_handler() {
 #endif
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
-
-				if (FEATURE_BOARD_USBI2S)
-					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
-				else if (FEATURE_BOARD_USBDAC)
-					gpio_set_gpio_pin(AVR32_PIN_PX51);
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
@@ -222,9 +219,6 @@ void uac2_freq_change_handler() {
 				FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement, in initial, not in nominal
 				FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
 				FB_rate_nominal = ((96) << 14) + FB_NOMINAL_OFFSET;	// BSB 20131115 Record FB_rate as it was set by control system
-
-				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
-				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
 			}
 
 		   	else if (current_freq.frequency == 88200) {
@@ -234,11 +228,6 @@ void uac2_freq_change_handler() {
 
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
-
-				if (FEATURE_BOARD_USBI2S)
-					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
-				else if (FEATURE_BOARD_USBDAC)
-					gpio_clr_gpio_pin(AVR32_PIN_PX51);
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
@@ -263,11 +252,7 @@ void uac2_freq_change_handler() {
 				FB_rate = (99 << 14); // Needed by Linux, Linux-quirk replacement, in initial, not in nominal
 				FB_rate_initial = FB_rate;				// BSB 20131031 Record FB_rate as it was set by control system
 				FB_rate_nominal = ((88 << 14) + (1<<14)/5) + FB_NOMINAL_OFFSET;	// BSB 20131115 Record FB_rate as it was set by control system
-
-
-				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
-				gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
-				}
+			}
 
 	       	else if (current_freq.frequency == 176400) {
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -276,11 +261,6 @@ void uac2_freq_change_handler() {
 
 	    			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	    			pdca_disable(PDCA_CHANNEL_SSC_RX);
-
-					if (FEATURE_BOARD_USBI2S)
-						gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
-					else if (FEATURE_BOARD_USBDAC)
-						gpio_clr_gpio_pin(AVR32_PIN_PX51);
 
 	    			gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
 	    			gpio_set_gpio_pin(AK5394_DFS1);
@@ -296,9 +276,6 @@ void uac2_freq_change_handler() {
 	    			FB_rate = (176 << 14) + ((1<<14)*4) / 10;
 	    			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
 	    			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
-
-	    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
-	    			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
 	        	}
 
 			else if (current_freq.frequency == 192000) {
@@ -307,11 +284,6 @@ void uac2_freq_change_handler() {
 #endif
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
-
-				if (FEATURE_BOARD_USBI2S)
-					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
-				else if (FEATURE_BOARD_USBDAC)
-					gpio_set_gpio_pin(AVR32_PIN_PX51);
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
@@ -329,11 +301,9 @@ void uac2_freq_change_handler() {
 				FB_rate = (192) << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
+			}
 
-    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
-    			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
-
-			} else if (current_freq.frequency == 48000) {
+		else if (current_freq.frequency == 48000) {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char_char('2'); // BSB debug 20121212
 #endif
@@ -342,11 +312,6 @@ void uac2_freq_change_handler() {
 				// gpio_set_gpio_pin(AVR32_PIN_PX16);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
-
-				if (FEATURE_BOARD_USBI2S)
-					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
-				else if (FEATURE_BOARD_USBDAC)
-					gpio_set_gpio_pin(AVR32_PIN_PX51);
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
@@ -364,9 +329,6 @@ void uac2_freq_change_handler() {
 				FB_rate = (48) << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
-
-    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
-    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			}
 
 			else if (current_freq.frequency == 44100) {
@@ -377,11 +339,6 @@ void uac2_freq_change_handler() {
 				// gpio_clr_gpio_pin(AVR32_PIN_PX16);
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
-
-				if (FEATURE_BOARD_USBI2S)
-					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
-				else if (FEATURE_BOARD_USBDAC)
-					gpio_clr_gpio_pin(AVR32_PIN_PX51);
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
@@ -399,9 +356,6 @@ void uac2_freq_change_handler() {
 				FB_rate = (44 << 14) + (1 << 14)/10;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
-
-    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
-    			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			}
 
 			if (FEATURE_ADC_AK5394A) {

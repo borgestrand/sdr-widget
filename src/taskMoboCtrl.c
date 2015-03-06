@@ -11,6 +11,11 @@
  *
  *  Created on: 2010-06-13
  *      Author: Loftur Jonasson, TF3LJ
+ *
+ * As of -DHW_GEN=ab1x/din10 this file also handles hardware control GPIO for
+ * oscillators, LEDs, buttons etc.
+ *      Author: Borge Strand-Bergesen, Henry Audio
+ *
  */
 
 #include <stdint.h>
@@ -77,6 +82,7 @@ uint8_t		biasInit = 0;							// Power Amplifier Bias initiate flag
 													// (0 = uninitiated => forces init, 1 = class AB, 2 = class A)
 
 uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
+
 
 /*! \brief Probe and report presence of individual I2C devices
  *
@@ -986,12 +992,16 @@ static void vtaskMoboCtrl( void * pcParameters )
 				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
 				{						// also present, then we can use Widget PTT_1
 										// for additional PTT control
-					gpio_set_gpio_pin(PTT_1);
+					#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+						gpio_set_gpio_pin(PTT_1);
+					#endif
 				}
    	    	}
 			else
 			#endif
-				gpio_set_gpio_pin(PTT_1);
+				#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+					gpio_set_gpio_pin(PTT_1);
+				#endif
 
 			#if LCD_DISPLAY				// Multi-line LCD display
 			#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
@@ -1018,12 +1028,16 @@ static void vtaskMoboCtrl( void * pcParameters )
 				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
 				{						// also present, then we can use Widget PTT_1
 										// for additional PTT control
-					gpio_clr_gpio_pin(PTT_1);
+					#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+						gpio_clr_gpio_pin(PTT_1);
+					#endif
 				}
    	    	}
 			else
 			#endif
-				gpio_clr_gpio_pin(PTT_1);
+				#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+					gpio_clr_gpio_pin(PTT_1);
+				#endif
 
    	    	if (!MENU_mode)
    	    	{

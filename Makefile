@@ -20,8 +20,14 @@
 ## Other defines:
 ## -DUSB_STATE_MACHINE_DEBUG activate audio feedback state machine
 ##                           debugging on GPIO and UART
+##
+## Hardware generation must be defined for Audio Widget, must define exactly one
+## -DHW_GEN_AB1X uses the feature set for 
+##   QNKTC AB-1.0, AB-1.1, AB-1.2, Henry Audio USB DAC 128 and USB DAC 128 mkII
+## -DHW_GEN_DIN10 uses version 1.0 of the feature set for digital inputs
 
-## See featurs.h #define FEATURE_VALUE_NAMES for available defaults. 
+
+## See features.h #define FEATURE_VALUE_NAMES for available defaults. 
 SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_dg8saq \
 	-DFEATURE_IN_DEFAULT=feature_in_normal \
@@ -48,6 +54,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
+	-DHW_GEN_AB1X \
 	-DFEATURE_PRODUCT_AB1x
 
 ## Boot up with this code, reboot with feature_quirk_ptest set
@@ -65,6 +72,7 @@ PROD_TEST_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest \
+	-DHW_GEN_AB1X \
 	-DFEATURE_PRODUCT_AB1x
 
 all:: Release/widget.elf widget-control

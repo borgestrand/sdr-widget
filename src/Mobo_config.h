@@ -19,6 +19,29 @@
 #include "TMP100.h"
 #include "rotary_encoder.h"
 
+// Hardware control functions
+
+// Audio Widget select oscillator
+void mobo_xo_select(U32 frequency, uint8_t source);
+
+// Sprcific HW_GEN_DIN10 hardware functions
+#if defined(HW_GEN_DIN10)
+
+// LED control
+void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0);
+
+#endif
+
+
+// Available digital audio sources, 3 and 4 only available in HW_GEN=din10
+#define MOBO_SRC_NONE		0
+#define MOBO_SRC_UAC1		1
+#define MOBO_SRC_UAC2		2
+#define MOBO_SRC_SPDIF		3
+#define MOBO_SRC_TOSLINK	4
+
+
+
 //
 //-----------------------------------------------------------------------------
 // Implementation dependent definitions (user tweak stuff)

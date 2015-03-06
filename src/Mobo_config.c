@@ -7,6 +7,7 @@
  */
 
 #include "Mobo_config.h"
+#include "features.h"
 
 /*
 #include "rotary_encoder.h"
@@ -16,6 +17,196 @@
 #include "PCF8574.h"
 #include "TMP100.h"
 */
+
+#if defined(HW_GEN_DIN10)
+// Audio Widget HW_GEN_DIN10 LED control
+void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0) {
+	// red:1, green:2, blue:4
+	// fled2 is towards center of box, fled0 towards right-hand edge of front view
+
+	if (fled0 & 1)
+		gpio_clr_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
+	if (fled0 & 2)
+		gpio_clr_gpio_pin(AVR32_PIN_PA24); 	// FLED0_G
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PA24); 	// FLED0_G
+	if (fled0 & 4)
+		gpio_clr_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
+
+	if (fled0 & 1)
+		gpio_clr_gpio_pin(AVR32_PIN_PA23); 	// FLED1_R
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PA23); 	// FLED1_R
+	if (fled0 & 1)
+		gpio_clr_gpio_pin(AVR32_PIN_PC01); 	// FLED1_G
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PC01); 	// FLED1_G
+	if (fled0 & 4)
+		gpio_clr_gpio_pin(AVR32_PIN_PA21); 	// FLED1_B
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PA21); 	// FLED1_B
+
+	if (fled0 & 1)
+		gpio_clr_gpio_pin(AVR32_PIN_PX29); 	// FLED2_R
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PX29); 	// FLED2_R
+	if (fled0 & 2)
+		gpio_clr_gpio_pin(AVR32_PIN_PX32); 	// FLED2_G
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PX32); 	// FLED2_G
+	if (fled0 & 4)
+		gpio_clr_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
+	else
+		gpio_set_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
+}
+#endif
+
+/*! \brief Audio Widget select oscillator
+ *
+ * \retval none
+ */
+void mobo_xo_select(U32 frequency, uint8_t source) {
+
+
+// XO control on ab1x hardware generation
+#if defined(HW_GEN_AB1X)
+	switch (frequency) {
+		case 44100:
+			if (FEATURE_BOARD_USBI2S)
+				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+			else if (FEATURE_BOARD_USBDAC)
+				gpio_clr_gpio_pin(AVR32_PIN_PX51);
+			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+		break;
+		case 48000:
+			if (FEATURE_BOARD_USBI2S)
+				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+			else if (FEATURE_BOARD_USBDAC)
+				gpio_set_gpio_pin(AVR32_PIN_PX51);
+			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+		break;
+		case 88200:
+			if (FEATURE_BOARD_USBI2S)
+				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+			else if (FEATURE_BOARD_USBDAC)
+				gpio_clr_gpio_pin(AVR32_PIN_PX51);
+			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+			gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
+		break;
+		case 96000:
+			if (FEATURE_BOARD_USBI2S)
+				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+			else if (FEATURE_BOARD_USBDAC)
+				gpio_set_gpio_pin(AVR32_PIN_PX51);
+			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+			gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
+		break;
+		case 176400:
+			if (FEATURE_BOARD_USBI2S)
+				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+			else if (FEATURE_BOARD_USBDAC)
+				gpio_clr_gpio_pin(AVR32_PIN_PX51);
+			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
+		break;
+		case 192000:
+			if (FEATURE_BOARD_USBI2S)
+				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+			else if (FEATURE_BOARD_USBDAC)
+				gpio_set_gpio_pin(AVR32_PIN_PX51);
+			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
+		break;
+	}
+
+#elif defined(HW_GEN_DIN10)
+	// FIX: correlate with mode currently selected by user or auto, that's a global variable!
+	if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) )
+		gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
+	else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOSLINK) )
+		gpio_set_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
+
+	switch (frequency) {
+		case 44100:
+			gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+			gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			if (source == MOBO_SRC_UAC1)
+				mobo_led(0, 2, 0);				// UAC1 green 010
+			if (source == MOBO_SRC_UAC2)
+				mobo_led(0, 1, 0);				// UAC2 red 010
+			if (source == MOBO_SRC_SPDIF)
+				mobo_led(0, 3, 0);				// SPDIF yellow 010
+			if (source == MOBO_SRC_TOSLINK)
+				mobo_led(0, 5, 0);				// TOSLINK purple 010
+		break;
+		case 48000:
+			gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+			gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			if (source == MOBO_SRC_UAC1)
+				mobo_led(0, 2, 2);				// UAC1 green 011
+			if (source == MOBO_SRC_UAC2)
+				mobo_led(0, 1, 2);				// UAC2 red 011
+			if (source == MOBO_SRC_SPDIF)
+				mobo_led(0, 3, 3);				// SPDIF yellow 011
+			if (source == MOBO_SRC_TOSLINK)
+				mobo_led(0, 5, 5);				// TOSLINK purple 011
+		break;
+		case 88200:
+			gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+			gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			if (source == MOBO_SRC_UAC2)
+				mobo_led(1, 0, 0);				// UAC2 red 100
+			if (source == MOBO_SRC_SPDIF)
+				mobo_led(3, 0, 0);				// SPDIF yellow 100
+			if (source == MOBO_SRC_TOSLINK)
+				mobo_led(5, 0, 0);				// TOSLINK purple 100
+		break;
+		case 96000:
+			gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+			gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			if (source == MOBO_SRC_UAC2)
+				mobo_led(1, 0, 1);				// UAC2 red 101
+			if (source == MOBO_SRC_SPDIF)
+				mobo_led(3, 0, 3);				// SPDIF yellow 101
+			if (source == MOBO_SRC_TOSLINK)
+				mobo_led(5, 0, 5);				// TOSLINK purple 101
+		break;
+		case 176400:
+			gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+			gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			if (source == MOBO_SRC_UAC2)
+				mobo_led(1, 1, 0);				// UAC2 red 110
+			if (source == MOBO_SRC_SPDIF)
+				mobo_led(3, 3, 0);				// SPDIF yellow 110
+			if (source == MOBO_SRC_TOSLINK)
+				mobo_led(5, 5, 0);				// TOSLINK purple 110
+		break;
+		case 192000:
+			gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+			gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			if (source == MOBO_SRC_UAC2)
+				mobo_led(1, 1, 1);				// UAC2 red 111
+			if (source == MOBO_SRC_SPDIF)
+				mobo_led(3, 3, 3);				// SPDIF yellow 111
+			if (source == MOBO_SRC_TOSLINK)
+				mobo_led(5, 5, 5);				// TOSLINK purple 111
+		break;
+	}
+#else
+#error undefined hardware
+#endif
+
+
+}
+
+
+
 
 
 //

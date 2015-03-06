@@ -608,7 +608,7 @@ void audio_set_cur(void)
 		else speed = 1;
 
 		freq_changed = TRUE;
-		if (speed == 0){		// 44.1khz
+		if (speed == 0) {		// 44.1khz
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char_char('1'); // BSB debug 20121212
@@ -619,12 +619,7 @@ void audio_set_cur(void)
 			FB_rate = (44 << 14) + (1 << 14)/10;
 			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
 			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
-
-			if (FEATURE_BOARD_USBI2S)
-				gpio_clr_gpio_pin(AVR32_PIN_PX16); 	// BSB 20110301 MUX in 22.5792MHz/2 for AB-1
-			else if (FEATURE_BOARD_USBDAC)
-				gpio_clr_gpio_pin(AVR32_PIN_PX51);
-			}
+		}
 		else {					// 48khz
 
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -636,12 +631,9 @@ void audio_set_cur(void)
 			FB_rate = 48 << 14;
 			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
 			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
-
-			if (FEATURE_BOARD_USBI2S)
-				gpio_set_gpio_pin(AVR32_PIN_PX16); 	// BSB 20110301 MUX in 24.576MHz/2 for AB-1
-			else if (FEATURE_BOARD_USBDAC)
-				gpio_set_gpio_pin(AVR32_PIN_PX51);
 		}
+		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// GPIO XO control and frequency indication
+
 	}
 
    // BSB 20130604 disabling UAC1 IN
