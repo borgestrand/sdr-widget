@@ -24,12 +24,6 @@ void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0) {
 	// red:1, green:2, blue:4
 	// fled2 is towards center of box, fled0 towards right-hand edge of front view
 
-	print_dbg_char('a');
-	print_dbg_char(fled2 + 0x30);
-	print_dbg_char(fled1 + 0x30);
-	print_dbg_char(fled0 + 0x30);
-	print_dbg_char('b');
-
 	if (fled0 & 1)
 		gpio_clr_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
 	else
