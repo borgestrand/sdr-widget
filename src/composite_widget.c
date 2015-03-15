@@ -221,6 +221,7 @@ int i;
 // Temporary startup code, get going from known default state.
 #if defined(HW_GEN_DIN10)
 	mobo_xo_select(44100, MOBO_SRC_UAC2);	// GPIO XO control and frequency indication
+	gpio_clr_gpio_pin(AVR32_PIN_PX10);		// Clear SPIO_05 = WM8807 active low reset
 #endif
 
 //clear samplerate indication
@@ -304,6 +305,11 @@ int i;
 
 	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
+#if defined(HW_GEN_DIN10)
+	gpio_set_gpio_pin(AVR32_PIN_PX10);		// Set SPIO_05 = WM8807 active low reset
+#endif
+
+
 	if (FEATURE_FILTER_FIR) gpio_clr_gpio_pin(GPIO_PCM5102_FILTER);
 	else gpio_set_gpio_pin(GPIO_PCM5102_FILTER);
 
@@ -324,6 +330,9 @@ int i;
 
 	// Start the image tasks
 	image_task_init();
+
+
+
 
 	// Start OS scheduler
 	vTaskStartScheduler();

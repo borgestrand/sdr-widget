@@ -93,6 +93,7 @@
 #include "usb_standard_request.h"
 #include "usb_specific_request.h"
 #include "device_mouse_hid_task.h"
+#include "Mobo_config.h"
 
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
@@ -285,22 +286,51 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
+    uint8_t dev_adr;										// Temporary debug variables
+    uint8_t dev_data[2];
+    uint8_t dev_status;
+
     while (gotcmd == 0) {
     	if (readkey()) {									// Check for an UART character command
             a = read_dbg_char(DBG_ECHO, RTOS_WAIT, DBG_CHECKSUM_NORMAL);	// UART character arrived, get it
+
+            // HID debug
             if (a == 'h') {									// Wait until 'h' is entered to indicate HID activity
                 ReportByte1 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
                 ReportByte2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
             	gotcmd = 1;									// HID received on UART gets sent regardless
             }
-            else {
-            	// Debugging LEDs on HW_GEN_DIN10
-            	if (a == 'l') {
-            		mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
-            	}
 
-                // If you need the UART for something other than HID, this is where you interpret it!
+            // Debugging LEDs on HW_GEN_DIN10
+            else if (a == 'l') {
+            	mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
             }
+
+            // Debugging WM8805 single write
+            else if (a == 'w') {
+            	dev_adr = 0x3A; // 0x3A with pin 9 patched to GND with 10k
+            	dev_data[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
+            	dev_data[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte
+
+            	dev_status = twi_write_out(dev_adr, dev_data, 2);
+            	print_dbg_char_hex(dev_status);
+            	print_dbg_char('\n');
+			}
+
+            // Debugging WM8805 single read
+            else if (a == 'r') {
+            	dev_adr = 0x3A; // 0x3A with pin 9 patched to GND with 10k
+            	dev_data[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
+
+            	twi_write_out(dev_adr, dev_data, 1);
+
+            	twi_read_in(dev_adr, dev_data, 1);
+            	print_dbg_char_hex(dev_data[0]);
+            	print_dbg_char_hex(dev_data[1]);
+            	print_dbg_char('\n');
+			}
+
+            // If you need the UART for something other than HID, this is where you interpret it!
     	}
 
     	else { 											   	// GPIO pin _changes_ are sent to Host
