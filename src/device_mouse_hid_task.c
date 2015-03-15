@@ -287,7 +287,7 @@ void device_mouse_hid_task(void)
     gotcmd = 0;												// No HID button change recorded yet
 
     uint8_t dev_adr;										// Temporary debug variables
-    uint8_t dev_data[2];
+    uint8_t dev_data[3];
     uint8_t dev_status;
 
     while (gotcmd == 0) {
@@ -304,15 +304,17 @@ void device_mouse_hid_task(void)
             // Debugging LEDs on HW_GEN_DIN10
             else if (a == 'l') {
             	mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
+            	print_dbg_char('\n');
             }
 
             // Debugging WM8805 single write
             else if (a == 'w') {
             	dev_adr = 0x3A; // 0x3A with pin 9 patched to GND with 10k
             	dev_data[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
-            	dev_data[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte
+            	dev_data[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte?
+            	dev_data[2] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte?
 
-            	dev_status = twi_write_out(dev_adr, dev_data, 2);
+            	dev_status = twi_write_out(dev_adr, dev_data, 3);
             	print_dbg_char_hex(dev_status);
             	print_dbg_char('\n');
 			}
