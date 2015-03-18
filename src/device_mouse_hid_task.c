@@ -318,7 +318,7 @@ void device_mouse_hid_task(void)
             	print_dbg_char('\n');
 			}
 
-            // Debugging WM8805 single read
+            // Debugging WM8805 single read, only valid for "read only" registers, and then with a twist...
             else if (a == 'r') {
             	dev_adr = 0x3A; // 0x3A with pin 9 patched to GND with 10k
             	dev_data[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
@@ -328,19 +328,6 @@ void device_mouse_hid_task(void)
             	twi_read_in(dev_adr, dev_data, 1);
             	print_dbg_char_hex(dev_data[0]);
             	print_dbg_char('\n');
-
-/*            	// For some reason multi-read fails...
-				int n;
-            	twi_read_in(dev_adr, dev_data, 34);
-            	print_dbg_char_hex(dev_data[0]);
-            	for (n=0; n<35; n++) {
-            		print_dbg_char('\n');
-            		print_dbg_char_hex(n);
-            		print_dbg_char_hex(dev_data[n]);
-            	}
-            	print_dbg_char('\n');
-*/
-
 			}
 
             // Start reset of WM8805
@@ -351,6 +338,13 @@ void device_mouse_hid_task(void)
             else if (a == 't')
             	gpio_set_gpio_pin(AVR32_PIN_PX10);			// Set SPIO_05 = WM8807 active low reset
 
+            // Change I2S source to WM8805, assume 44.1
+            else if (a == 'W')
+            	mobo_xo_select(44100, MOBO_SRC_TOSLINK);
+
+            // Change I2S source to USB, assume 44.1 UAC2
+            else if (a == 'U')
+            	mobo_xo_select(44100, MOBO_SRC_UAC2);
 
             // If you need the UART for something other than HID, this is where you interpret it!
     	}

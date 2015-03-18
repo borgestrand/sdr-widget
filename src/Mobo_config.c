@@ -127,15 +127,28 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 
 #elif defined(HW_GEN_DIN10)
 	// FIX: correlate with mode currently selected by user or auto, that's a global variable!
-	if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) )
+	if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
-	else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOSLINK) )
-		gpio_set_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
 
-	switch (frequency) {
-		case 44100:
+		// Clock source control
+		if ( (frequency == 44100) || (frequency == 88200) || (frequency == 176400) ) {
 			gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
 			gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+		}
+		else {
+			gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+			gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+		}
+	}
+	else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOSLINK) ) {
+		gpio_set_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0 defaults to USB
+		gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
+		gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
+	}
+
+	// LED control
+	switch (frequency) {
+		case 44100:
 			if (source == MOBO_SRC_UAC1)
 				mobo_led(0, 2, 0);				// UAC1 green 010
 			if (source == MOBO_SRC_UAC2)
@@ -146,8 +159,6 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				mobo_led(0, 5, 0);				// TOSLINK purple 010
 		break;
 		case 48000:
-			gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-			gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 			if (source == MOBO_SRC_UAC1)
 				mobo_led(0, 2, 2);				// UAC1 green 011
 			if (source == MOBO_SRC_UAC2)
@@ -158,8 +169,6 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				mobo_led(0, 5, 5);				// TOSLINK purple 011
 		break;
 		case 88200:
-			gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-			gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(1, 0, 0);				// UAC2 red 100
 			if (source == MOBO_SRC_SPDIF)
@@ -168,8 +177,6 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				mobo_led(5, 0, 0);				// TOSLINK purple 100
 		break;
 		case 96000:
-			gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-			gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(1, 0, 1);				// UAC2 red 101
 			if (source == MOBO_SRC_SPDIF)
@@ -178,8 +185,6 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				mobo_led(5, 0, 5);				// TOSLINK purple 101
 		break;
 		case 176400:
-			gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-			gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(1, 1, 0);				// UAC2 red 110
 			if (source == MOBO_SRC_SPDIF)
@@ -188,8 +193,6 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				mobo_led(5, 5, 0);				// TOSLINK purple 110
 		break;
 		case 192000:
-			gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-			gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(1, 1, 1);				// UAC2 red 111
 			if (source == MOBO_SRC_SPDIF)
