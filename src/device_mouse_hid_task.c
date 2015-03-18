@@ -287,7 +287,7 @@ void device_mouse_hid_task(void)
     gotcmd = 0;												// No HID button change recorded yet
 
     uint8_t dev_adr;										// Temporary debug variables
-    uint8_t dev_data[3];
+    uint8_t dev_data[35];
     uint8_t dev_status;
 
     while (gotcmd == 0) {
@@ -312,9 +312,8 @@ void device_mouse_hid_task(void)
             	dev_adr = 0x3A; // 0x3A with pin 9 patched to GND with 10k
             	dev_data[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
             	dev_data[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte?
-            	dev_data[2] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte?
 
-            	dev_status = twi_write_out(dev_adr, dev_data, 3);
+            	dev_status = twi_write_out(dev_adr, dev_data, 2);
             	print_dbg_char_hex(dev_status);
             	print_dbg_char('\n');
 			}
@@ -328,9 +327,30 @@ void device_mouse_hid_task(void)
 
             	twi_read_in(dev_adr, dev_data, 1);
             	print_dbg_char_hex(dev_data[0]);
-            	print_dbg_char_hex(dev_data[1]);
             	print_dbg_char('\n');
+
+/*            	// For some reason multi-read fails...
+				int n;
+            	twi_read_in(dev_adr, dev_data, 34);
+            	print_dbg_char_hex(dev_data[0]);
+            	for (n=0; n<35; n++) {
+            		print_dbg_char('\n');
+            		print_dbg_char_hex(n);
+            		print_dbg_char_hex(dev_data[n]);
+            	}
+            	print_dbg_char('\n');
+*/
+
 			}
+
+            // Start reset of WM8805
+            else if (a == 's')
+            	gpio_clr_gpio_pin(AVR32_PIN_PX10);			// Clear SPIO_05 = WM8807 active low reset
+
+            // End reset of WM8805
+            else if (a == 't')
+            	gpio_set_gpio_pin(AVR32_PIN_PX10);			// Set SPIO_05 = WM8807 active low reset
+
 
             // If you need the UART for something other than HID, this is where you interpret it!
     	}

@@ -84,6 +84,7 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
  *
  * \retval none
  */
+#if I2C
 static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
 {
 	uint8_t retval;
@@ -162,6 +163,7 @@ static void i2c_device_scan(void)
 	i2c.pcf0x3f = (twi_probe(MOBO_TWI,0x3f)== TWI_SUCCESS);
 	#endif
 }
+#endif
 
 
 /*! \brief Print stuff in the second line of the LCD
