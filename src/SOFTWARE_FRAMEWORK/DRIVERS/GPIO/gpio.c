@@ -260,8 +260,7 @@ void gpio_disable_pin_buskeeper(unsigned int pin)
 
 #endif
 
-// BSB 20150322 changed to static inline
-static inline int gpio_get_pin_value(unsigned int pin)
+int gpio_get_pin_value(unsigned int pin)
 {
   volatile avr32_gpio_port_t *gpio_port = &GPIO.port[pin >> 5];
   return (gpio_port->pvr >> (pin & 0x1F)) & 1;

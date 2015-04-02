@@ -9,6 +9,11 @@
 #include "Mobo_config.h"
 #include "features.h"
 
+// To compile sample rate detector we need low-level hardware access
+#include "gpio.h"
+#include <avr32/io.h>
+#include "compiler.h"
+
 /*
 #include "rotary_encoder.h"
 #include "AD7991.h"
@@ -19,6 +24,86 @@
 */
 
 #if defined(HW_GEN_DIN10)
+
+// Sample rate detection test
+int16_t mobo_srd(void) {
+	int timeout;
+
+	// see srd_test.c and srd_test.lst
+
+	// Determining speed at TP16 / DAC_0P / PA04 for now.
+
+	// Not immediately operational... Is IO pin really indexed correctly? Does it need to be init'ed?
+	/*
+	 * Maybe:
+	 * - Tested frequency is too low?
+	 * - IO isn't enabled, datasheet page 383-384, GPER
+	 * - 0x60 / 0d96 is the offset for PVR, pin value register, mapping to PA/PB/PX etc. is weird..
+	 *
+	 */
+
+	gpio_enable_gpio_pin(AVR32_PIN_PA04);	// Enable GPIO pin, not special IO (also for input). Needed?
+
+	asm volatile(
+		"ssrf	16				\n\t"	// Disable global interrupt
+		"mov	%0, 	8000	\n\t"	// Load timeout
+		"mov	r9,		-61440	\n\t"	// Immediate load, set up pointer to PA04, (0xFFFF1000) recompile C for other IO pin, do once
+
+		"L0:					\n\t"	// Loop while PA04 is 1
+		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	L0_done			\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	L0				\n\t"	// Not done counting down
+		"rjmp	COUNTD			\n\t"	// Countdown reached
+		"L0_done:				\n\t"
+
+		"L1:					\n\t"	// Loop while PA04 is 0
+		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	L1_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	L1				\n\t"	// Not done counting down
+		"rjmp	COUNTD			\n\t"	// Countdown reached
+		"L1_done:				\n\t"
+
+		"mov	%0, 	8000	\n\t"	// Restart countdon for actual timing of below half-cycles
+
+		"L3:					\n\t"	// Loop while PBA04 is 1
+		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	L3_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	L3				\n\t"	// Not done counting down
+		"rjmp	COUNTD			\n\t"	// Countdown reached
+		"L3_done:				\n\t"
+
+		"L4:					\n\t"	// Loop while PA04 is 0
+		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	L4_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	L4				\n\t"	// Not done counting down
+		"rjmp	COUNTD			\n\t"	// Countdown reached
+		"L4_done:				\n\t"
+		"rjmp	RETURN__		\n\t"
+
+		"COUNTD:				\n\t"	// Countdown reached, %0 is 0
+
+		"RETURN__:				\n\t"
+		"csrf	16				\n\t"	// Enable global interrupt
+		:	"=r" (timeout)				// One output register
+		:								// No input registers
+		:	"r8", "r9"					// Clobber registers, pushed/popped unless assigned by GCC as temps
+	);
+
+	return timeout;
+}
+
+
+
+
+
 // Audio Widget HW_GEN_DIN10 LED control
 void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0) {
 	// red:1, green:2, blue:4

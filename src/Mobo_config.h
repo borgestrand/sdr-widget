@@ -30,6 +30,9 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 // LED control
 void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0);
 
+// Sample rate detection test
+int16_t mobo_srd(void);
+
 #endif
 
 
