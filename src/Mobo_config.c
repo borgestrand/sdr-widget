@@ -105,6 +105,7 @@ int16_t mobo_srd(void) {
 	// 176.4 0x14-0x18
 	// 192.0 0x10-0x1A
 
+	// It looks like we have approx. With 66MHz CPU clock it looks like 15 ticks per detection loop.
 
 	return timeout;
 }
