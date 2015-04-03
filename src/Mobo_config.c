@@ -27,19 +27,17 @@
 
 // Sample rate detection test
 int16_t mobo_srd(void) {
-	int timeout;
+	int16_t timeout;
 
+	// Using #define TIMEOUT_LIM 8000 doesn't seem to work inside asm(), so hardcode constant 8000 everywhere!
 	// see srd_test.c and srd_test.lst
 
 	// Determining speed at TP16 / DAC_0P / PA04 for now.
 
-	// Not immediately operational... Is IO pin really indexed correctly? Does it need to be init'ed?
-	/*
-	 * Maybe:
-	 * - Tested frequency is too low?
-	 * - IO isn't enabled, datasheet page 383-384, GPER
-	 * - 0x60 / 0d96 is the offset for PVR, pin value register, mapping to PA/PB/PX etc. is weird..
-	 *
+	/* Todo:
+	 * - Time stuff with proper generator, +-2% frequencies
+	 * - Allocate correct GPIO pin and recompile
+	 * - Test ability to play USB music while SRD is going on
 	 */
 
 	gpio_enable_gpio_pin(AVR32_PIN_PA04);	// Enable GPIO pin, not special IO (also for input). Needed?
@@ -96,6 +94,17 @@ int16_t mobo_srd(void) {
 		:								// No input registers
 		:	"r8", "r9"					// Clobber registers, pushed/popped unless assigned by GCC as temps
 	);
+
+	timeout = 8000 - timeout;
+
+	// Results with Bitscope and two half-periods:
+	//  44.1 0x5B-0x61
+	//  48.0 0x53-0x58
+	//	88.2 0x2C-0x32
+	//  96.0 0x28-0x2E
+	// 176.4 0x14-0x18
+	// 192.0 0x10-0x1A
+
 
 	return timeout;
 }
