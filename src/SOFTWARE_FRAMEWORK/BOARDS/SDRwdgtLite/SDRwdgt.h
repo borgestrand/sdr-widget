@@ -93,13 +93,6 @@
 #define LED_STATUS_AB 	1 // LED0 and LED1 are on the front of AB-1.1, override initial in main()
 #define LED_STATUS		LED_STATUS_MOD
 
-#define LED_AB_RED		0 // LED on the front of AB-1.1 is initially RED
-#define LED_AB_GREEN	1 // LED on the front of AB-1.1 is initially GREEN
-#define LED_AB_PINK		2 // LED on the front of AB-1.1 is initially PINK (looks of it with both LEDs on)
-#define LED_AB_FRONT 	LED_AB_RED
-#define LED_AB_FRONT_UAC1 	LED_AB_GREEN
-
-
 
 #if LED_STATUS == LED_STATUS_MOD
 	#define LED0_GPIO   AVR32_PIN_PX20 // Red on module and other boards

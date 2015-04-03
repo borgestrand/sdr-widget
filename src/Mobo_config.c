@@ -25,6 +25,20 @@
 
 #if defined(HW_GEN_DIN10)
 
+
+
+/* Todo list for DIN10
+ * - Categorize sample rate detector with proper signal generator, +-2%, reduce timeout constant everywhere
+ * - Determine correct GPIO pin for SRD, recompile for asm constants
+ * - Test USB music playback with SRD running continuously
+ * - Test codebase with mkII hardware
+ * - Get hardware capable of generating all SPDIF sample rates
+ * - Make state machine for WM8805 sample rate detection
+ * - Make state machine for source selection
+ * - Figure out ADC interface
+ * - Make silence detector
+ */
+
 // Sample rate detection test
 int16_t mobo_srd(void) {
 	int16_t timeout;
@@ -33,12 +47,6 @@ int16_t mobo_srd(void) {
 	// see srd_test.c and srd_test.lst
 
 	// Determining speed at TP16 / DAC_0P / PA04 for now.
-
-	/* Todo:
-	 * - Time stuff with proper generator, +-2% frequencies
-	 * - Allocate correct GPIO pin and recompile
-	 * - Test ability to play USB music while SRD is going on
-	 */
 
 	gpio_enable_gpio_pin(AVR32_PIN_PA04);	// Enable GPIO pin, not special IO (also for input). Needed?
 
@@ -111,49 +119,46 @@ int16_t mobo_srd(void) {
 }
 
 
-
-
-
 // Audio Widget HW_GEN_DIN10 LED control
-void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0) {
+void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0) {
 	// red:1, green:2, blue:4
 	// fled2 is towards center of box, fled0 towards right-hand edge of front view
 
-	if (fled0 & 1)
+	if (fled0 & FLED_RED)
 		gpio_clr_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
-	if (fled0 & 2)
+	if (fled0 & FLED_GREEN)
 		gpio_clr_gpio_pin(AVR32_PIN_PA24); 	// FLED0_G
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PA24); 	// FLED0_G
-	if (fled0 & 4)
+	if (fled0 & FLED_BLUE)
 		gpio_clr_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
 
-	if (fled1 & 1)
+	if (fled1 & FLED_RED)
 		gpio_clr_gpio_pin(AVR32_PIN_PA23); 	// FLED1_R
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PA23); 	// FLED1_R
-	if (fled1 & 2)
+	if (fled1 & FLED_GREEN)
 		gpio_clr_gpio_pin(AVR32_PIN_PC01); 	// FLED1_G
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PC01); 	// FLED1_G
-	if (fled1 & 4)
+	if (fled1 & FLED_BLUE)
 		gpio_clr_gpio_pin(AVR32_PIN_PA21); 	// FLED1_B
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PA21); 	// FLED1_B
 
-	if (fled2 & 1)
+	if (fled2 & FLED_RED)
 		gpio_clr_gpio_pin(AVR32_PIN_PX29); 	// FLED2_R
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PX29); 	// FLED2_R
-	if (fled2 & 2)
+	if (fled2 & FLED_GREEN)
 		gpio_clr_gpio_pin(AVR32_PIN_PX32); 	// FLED2_G
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PX32); 	// FLED2_G
-	if (fled2 & 4)
+	if (fled2 & FLED_BLUE)
 		gpio_clr_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
@@ -165,7 +170,6 @@ void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0) {
  * \retval none
  */
 void mobo_xo_select(U32 frequency, uint8_t source) {
-
 
 // XO control on ab1x hardware generation
 #if defined(HW_GEN_AB1X)
@@ -245,55 +249,58 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 	switch (frequency) {
 		case 44100:
 			if (source == MOBO_SRC_UAC1)
-				mobo_led(0, 2, 0);				// UAC1 green 010
+				mobo_led(FLED_DARK, FLED_GREEN, FLED_DARK);		// UAC1 green 010
 			if (source == MOBO_SRC_UAC2)
-				mobo_led(0, 1, 0);				// UAC2 red 010
+				mobo_led(FLED_DARK, FLED_RED, FLED_DARK);		// UAC2 red 010
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(0, 3, 0);				// SPDIF yellow 010
+				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// SPDIF yellow 010
 			if (source == MOBO_SRC_TOSLINK)
-				mobo_led(0, 5, 0);				// TOSLINK purple 010
+				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);	// TOSLINK purple 010
 		break;
 		case 48000:
 			if (source == MOBO_SRC_UAC1)
-				mobo_led(0, 2, 2);				// UAC1 green 011
+				mobo_led(FLED_DARK, FLED_GREEN, FLED_GREEN);	// UAC1 green 011
 			if (source == MOBO_SRC_UAC2)
-				mobo_led(0, 1, 1);				// UAC2 red 011
+				mobo_led(FLED_DARK, FLED_RED, FLED_RED);		// UAC2 red 011
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(0, 3, 3);				// SPDIF yellow 011
+				mobo_led(FLED_DARK, FLED_YELLOW, FLED_YELLOW);	// SPDIF yellow 011
 			if (source == MOBO_SRC_TOSLINK)
-				mobo_led(0, 5, 5);				// TOSLINK purple 011
+				mobo_led(FLED_DARK, FLED_PURPLE, FLED_PURPLE);	// TOSLINK purple 011
 		break;
 		case 88200:
 			if (source == MOBO_SRC_UAC2)
-				mobo_led(1, 0, 0);				// UAC2 red 100
+				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 red 100
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(3, 0, 0);				// SPDIF yellow 100
+				mobo_led(FLED_YELLOW, FLED_DARK, FLED_DARK);	// SPDIF yellow 100
 			if (source == MOBO_SRC_TOSLINK)
-				mobo_led(5, 0, 0);				// TOSLINK purple 100
+				mobo_led(FLED_PURPLE, FLED_DARK, FLED_DARK);	// TOSLINK purple 100
 		break;
 		case 96000:
 			if (source == MOBO_SRC_UAC2)
-				mobo_led(1, 0, 1);				// UAC2 red 101
+				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 red 101
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(3, 0, 3);				// SPDIF yellow 101
+				mobo_led(FLED_YELLOW, FLED_DARK, FLED_YELLOW);	// SPDIF yellow 101
 			if (source == MOBO_SRC_TOSLINK)
-				mobo_led(5, 0, 5);				// TOSLINK purple 101
+				mobo_led(FLED_PURPLE, FLED_DARK, FLED_PURPLE);	// TOSLINK purple 101
 		break;
 		case 176400:
 			if (source == MOBO_SRC_UAC2)
-				mobo_led(1, 1, 0);				// UAC2 red 110
+				mobo_led(FLED_RED, FLED_RED, FLED_DARK);		// UAC2 red 110
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(3, 3, 0);				// SPDIF yellow 110
+				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_DARK);	// SPDIF yellow 110
 			if (source == MOBO_SRC_TOSLINK)
-				mobo_led(5, 5, 0);				// TOSLINK purple 110
+				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_DARK);	// TOSLINK purple 110
 		break;
 		case 192000:
 			if (source == MOBO_SRC_UAC2)
-				mobo_led(1, 1, 1);				// UAC2 red 111
+				mobo_led(FLED_RED, FLED_RED, FLED_RED);			// UAC2 red 111
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(3, 3, 3);				// SPDIF yellow 111
+				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_YELLOW);	// SPDIF yellow 111
 			if (source == MOBO_SRC_TOSLINK)
-				mobo_led(5, 5, 5);				// TOSLINK purple 111
+				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_PURPLE);	// TOSLINK purple 111
+		break;
+		default:
+			mobo_led(FLED_DARK, FLED_DARK, FLED_DARK);			// Invalid frequency: darkness
 		break;
 	}
 #else

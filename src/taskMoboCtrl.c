@@ -690,38 +690,28 @@ static void vtaskMoboCtrl( void * pcParameters )
 
     		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
     		{
-    			// At first detection of Prog pin change AB-1.1 front LEDs for contrast:
-    			// PINK->GREEN / RED->GREEN / GREEN->RED depending on LED_AB_FRONT
-    			if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-    			{											// With UAC1:
-    				#if LED_AB_FRONT_UAC1 == LED_AB_RED
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    				#endif
-    				#if LED_AB_FRONT_UAC1 == LED_AB_GREEN
+    			// At first detection of Prog pin change AB-1.x / USB DAC 128 mkI/II front LEDs for contrast:
+    			// RED->GREEN / GREEN->RED depending on LED_AB_FRONT
+    			// Historical note: Here used to be a pink definition and a bunch of defines. Removed 20150403
+				#if defined(HW_GEN_AB1X)
+					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+					{										// With UAC1:
 						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
 						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-    				#endif
-    				#if LED_AB_FRONT_UAC1 == LED_AB_PINK
+					}
+					else
+					{										// With UAC != 1
 						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
 						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    				#endif
-    			}
-    			else
-    			{											// With UAC != 1
-    				#if LED_AB_FRONT == LED_AB_RED
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    				#endif
-    				#if LED_AB_FRONT == LED_AB_GREEN
-						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-    				#endif
-    				#if LED_AB_FRONT == LED_AB_PINK
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    				#endif
-    			}
+					}
+				#elif defined(HW_GEN_DIN10)
+					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+						mobo_led(FLED_DARK, FLED_DARK, FLED_RED);	// With UAC1
+					else
+						mobo_led(FLED_DARK, FLED_DARK, FLED_GREEN);	// With UAC != 1
+				#else
+				#error undefined hardware
+				#endif
 
 				if (btn_poll_temp > 2)  // If button pressed during at least 2 consecutive 2Hz polls...
     			{
@@ -739,10 +729,16 @@ static void vtaskMoboCtrl( void * pcParameters )
 							btn_poll_temp = 100;	// Ready reset after change and Prog release
 					}
 
-					if (btn_poll_temp == 100)
-					{
-						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// GREEN OFF after performed change in nvram
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// RED OFF after performed change in nvram
+					if (btn_poll_temp == 100) {
+						#if defined(HW_GEN_AB1X)
+							gpio_clr_gpio_pin(AVR32_PIN_PX32);	// GREEN OFF after performed change in nvram
+							gpio_clr_gpio_pin(AVR32_PIN_PX29);	// RED OFF after performed change in nvram
+						#elif defined(HW_GEN_DIN10)
+							mobo_led(FLED_DARK, FLED_DARK, FLED_DARK); // Dark after performed change in nvram
+							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
+						#else
+						#error undefined hardware
+						#endif
 					}
     			}
     			else
@@ -754,41 +750,29 @@ static void vtaskMoboCtrl( void * pcParameters )
 //					widget_reset();		 		// If Prog were still pressed, device would go to bootloader
 					// Doesn't seem to reset Audio Widget.....
 
-				// Modified BSB 20111016
     			if (btn_poll_temp != 100)		// Prog released without nvram change -> default front LED color
     			{								// Keep front LEDs dark after nvram change
-    				// Set initial status of LEDs on the front of AB-1.1. BSB 20110903, 20111016
-    				// Overriden by #if LED_STATUS == LED_STATUS_AB in SDRwdgt.h
-    				if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-    				{											// With UAC1:
-    					#if LED_AB_FRONT_UAC1 == LED_AB_RED
-    						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-    						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-    					#endif
-    					#if LED_AB_FRONT_UAC1 == LED_AB_GREEN
-    						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-    						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    					#endif
-    					#if LED_AB_FRONT_UAC1 == LED_AB_PINK
-    						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-    						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
-    					#endif
-    				}
-    				else
-    				{											// With UAC != 1
-    					#if LED_AB_FRONT == LED_AB_RED
-    						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-    						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-    					#endif
-    					#if LED_AB_FRONT == LED_AB_GREEN
-    						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-    						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-    					#endif
-    					#if LED_AB_FRONT == LED_AB_PINK
-    						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-    						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
-    					#endif
-    				}
+
+					#if defined(HW_GEN_AB1X)
+						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+						{										// With UAC1:
+	   						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
+	   						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+						}
+						else
+						{										// With UAC != 1
+	   						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+	   						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+						}
+					#elif defined(HW_GEN_DIN10)
+						// FIX: Resort to defaults according to playback mode and source.
+						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+							mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// With UAC1:
+						else
+							mobo_led(FLED_DARK, FLED_DARK, FLED_PURPLE);	// With UAC != 1
+					#else
+					#error undefined hardware
+					#endif
     			}
     			btn_poll_temp = 0;
     		}

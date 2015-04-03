@@ -213,55 +213,43 @@ int i;
 	// fully set up.  Otherwise the chip will overheat
 	for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up
 															// time for various voltages (eg to the XO) to stablize
+															// Not used in QNKTC / Henry Audio hardware
 
-	gpio_set_gpio_pin(AVR32_PIN_PX51);	// Enables power to XO and DAC in USBI2C AB-1 board
-	gpio_clr_gpio_pin(AVR32_PIN_PX52);
+	gpio_set_gpio_pin(AVR32_PIN_PX51);						// Enables power to XO and DAC in USBI2C AB-1 board
+	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware
 
 
 // Temporary startup code, get going from known default state.
+// It is very important to enable some sort of MCLK to the CPU, USB MCLK is the most reliable
+// FIX: NVRAM should store preferred source and resort to it on boot-up!
 #if defined(HW_GEN_DIN10)
-	mobo_xo_select(44100, MOBO_SRC_UAC2);	// GPIO XO control and frequency indication
-	gpio_clr_gpio_pin(AVR32_PIN_PX10);		// Clear SPIO_05 = WM8807 active low reset
+
+	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+		mobo_xo_select(44100, MOBO_SRC_UAC1);				// Initial GPIO XO control and frequency _indication_
+	else
+		mobo_xo_select(44100, MOBO_SRC_UAC2);				// Initial GPIO XO control and frequency _indication_
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX10);						// Clear SPIO_05 = WM8807 active low reset
 #endif
 
 //clear samplerate indication
 #if defined(HW_GEN_AB1X)
 	gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
 	gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
-#endif
 
 	// Set initial status of LEDs on the front of AB-1.1. BSB 20110903, 20111016
 	// Overriden by #if LED_STATUS == LED_STATUS_AB in SDRwdgt.h
 	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-	{											// With UAC1:
-		#if LED_AB_FRONT_UAC1 == LED_AB_RED
-			gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-			gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-		#endif
-		#if LED_AB_FRONT_UAC1 == LED_AB_GREEN
-			gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-			gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-		#endif
-		#if LED_AB_FRONT_UAC1 == LED_AB_PINK
-			gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-			gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
-		#endif
+	{														// With UAC1:
+		gpio_clr_gpio_pin(AVR32_PIN_PX29);					// Clear RED light on external AB-1.1 LED
+		gpio_set_gpio_pin(AVR32_PIN_PX32);					// Set GREEN light on external AB-1.1 LED
 	}
 	else
-	{											// With UAC != 1
-		#if LED_AB_FRONT == LED_AB_RED
-			gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-			gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
-		#endif
-		#if LED_AB_FRONT == LED_AB_GREEN
-			gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-			gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-		#endif
-		#if LED_AB_FRONT == LED_AB_PINK
-			gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-			gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED Both -> PINK-ish!
-		#endif
+	{														// With UAC != 1
+		gpio_set_gpio_pin(AVR32_PIN_PX29);					// Set RED light on external AB-1.1 LED
+		gpio_clr_gpio_pin(AVR32_PIN_PX32);					// Clear GREEN light on external AB-1.1 LED
 	}
+#endif
 
 	// Initialize Real Time Counter
 	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz

@@ -28,13 +28,10 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 #if defined(HW_GEN_DIN10)
 
 // LED control
-void mobo_led (uint8_t fled2, uint8_t fled1, uint8_t fled0);
+void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
 
 // Sample rate detection test
 int16_t mobo_srd(void);
-
-#endif
-
 
 // Available digital audio sources, 3 and 4 only available in HW_GEN=din10
 #define MOBO_SRC_NONE		0
@@ -42,6 +39,16 @@ int16_t mobo_srd(void);
 #define MOBO_SRC_UAC2		2
 #define MOBO_SRC_SPDIF		3
 #define MOBO_SRC_TOSLINK	4
+
+// Front led colors
+#define FLED_RED			1
+#define FLED_GREEN			2
+#define FLED_BLUE			4
+#define FLED_YELLOW			3
+#define FLED_PURPLE			5
+#define FLED_DARK			0
+
+#endif
 
 
 
