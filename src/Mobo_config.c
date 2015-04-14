@@ -43,18 +43,25 @@
 int16_t mobo_srd(void) {
 	int16_t timeout;
 
-	// Using #define TIMEOUT_LIM 8000 doesn't seem to work inside asm(), so hardcode constant 8000 everywhere!
+	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
 	// see srd_test.c and srd_test.lst
 
-	// Determining speed at TP16 / DAC_0P / PA04 for now.
+	// Determining speed at TP16 / DAC_0P / PA04 for now. Recompile prototype c to change io pin!
+	// Test is done for up to 1 half period, then 2 full periods
 
 	gpio_enable_gpio_pin(AVR32_PIN_PA04);	// Enable GPIO pin, not special IO (also for input). Needed?
 
 	asm volatile(
 		"ssrf	16				\n\t"	// Disable global interrupt
-		"mov	%0, 	8000	\n\t"	// Load timeout
+		"mov	%0, 	150		\n\t"	// Load timeout
 		"mov	r9,		-61440	\n\t"	// Immediate load, set up pointer to PA04, (0xFFFF1000) recompile C for other IO pin, do once
 
+		// If bit is 0, branch to loop while 0. If bit was 1, continue to loop while 1
+		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	L3				\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+
+		// Wait while bit is 1, then count two half periods
 		"L0:					\n\t"	// Loop while PA04 is 1
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
@@ -63,6 +70,8 @@ int16_t mobo_srd(void) {
 		"brne	L0				\n\t"	// Not done counting down
 		"rjmp	COUNTD			\n\t"	// Countdown reached
 		"L0_done:				\n\t"
+
+		"mov	%0, 	150		\n\t"	// Restart countdon for actual timing of below half-cycles
 
 		"L1:					\n\t"	// Loop while PA04 is 0
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
@@ -73,26 +82,47 @@ int16_t mobo_srd(void) {
 		"rjmp	COUNTD			\n\t"	// Countdown reached
 		"L1_done:				\n\t"
 
-		"mov	%0, 	8000	\n\t"	// Restart countdon for actual timing of below half-cycles
-
-		"L3:					\n\t"	// Loop while PBA04 is 1
+		"L2:					\n\t"	// Loop while PBA04 is 1
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-		"brne	L3_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"brne	L2_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	L2				\n\t"	// Not done counting down
+		"rjmp	COUNTD			\n\t"	// Countdown reached
+		"L2_done:				\n\t"
+		"rjmp	RETURN__		\n\t"
+
+		// Wait while bit is 0, then count two half periods
+		"L3:					\n\t"	// Loop while PA04 is 0
+		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	L3_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L3				\n\t"	// Not done counting down
 		"rjmp	COUNTD			\n\t"	// Countdown reached
 		"L3_done:				\n\t"
 
-		"L4:					\n\t"	// Loop while PA04 is 0
+		"mov	%0, 	150		\n\t"	// Restart countdon for actual timing of below half-cycles
+
+		"L4:					\n\t"	// Loop while PBA04 is 1
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-		"breq	L4_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"brne	L4_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L4				\n\t"	// Not done counting down
 		"rjmp	COUNTD			\n\t"	// Countdown reached
 		"L4_done:				\n\t"
+
+		"L5:					\n\t"	// Loop while PA04 is 0
+		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	L5_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	L5				\n\t"	// Not done counting down
+		"rjmp	COUNTD			\n\t"	// Countdown reached
+		"L5_done:				\n\t"
 		"rjmp	RETURN__		\n\t"
+
 
 		"COUNTD:				\n\t"	// Countdown reached, %0 is 0
 
@@ -103,19 +133,57 @@ int16_t mobo_srd(void) {
 		:	"r8", "r9"					// Clobber registers, pushed/popped unless assigned by GCC as temps
 	);
 
-	timeout = 8000 - timeout;
-
-	// Results with Bitscope and two half-periods:
-	//  44.1 0x5B-0x61
-	//  48.0 0x53-0x58
-	//	88.2 0x2C-0x32
-	//  96.0 0x28-0x2E
-	// 176.4 0x14-0x18
-	// 192.0 0x10-0x1A
+	timeout = 150 - timeout;
 
 	// It looks like we have approx. With 66MHz CPU clock it looks like 15 ticks per detection loop.
+	// Results with Scope at +-1% and two half-periods:
+	//  32.0 0x81-0x84	// <= 132, this dictates the timeout at 150
+	//  44.1 0x5D-0x60
+	//  48.0 0x56-0x58
+	//	88.2 0x2E-0x2F
+	//  96.0 0x29-0x2B
+	// 176.4 0x16-0x17
+	// 192.0 0x14-0x15	// That's maybe a bit tight between 0x14, 0x15, 0x16 and 0x17... Equal probablility 15/16@184.2kHz..
 
-	return timeout;
+	#define FLIM_32_LOW		0x81
+	#define FLIM_32_HIGH	0x84
+	#define FLIM_44_LOW		0x5D
+	#define FLIM_44_HIGH	0x60
+	#define FLIM_48_LOW		0x56
+	#define FLIM_48_HIGH	0x58
+	#define FLIM_88_LOW		0x2E
+	#define FLIM_88_HIGH	0x2F
+	#define FLIM_96_LOW		0x29
+	#define FLIM_96_HIGH	0x2B
+	#define FLIM_176_LOW	0x16
+	#define FLIM_176_HIGH	0x17
+	#define FLIM_192_LOW	0x14
+	#define FLIM_192_HIGH	0x15
+	#define	FLIM_TIMEOUT	0x00
+	#define	FLIM_32			0x32
+	#define	FLIM_44			0x44
+	#define	FLIM_48			0x48
+	#define	FLIM_88			0x88
+	#define	FLIM_96			0x96
+	#define	FLIM_176		0x176
+	#define	FLIM_192		0x192
+
+	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) )
+		return FLIM_32;
+	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) )
+		return FLIM_44;
+	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) )
+		return FLIM_48;
+	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) )
+		return FLIM_88;
+	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) )
+		return FLIM_96;
+	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) )
+		return FLIM_176;
+	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) )
+		return FLIM_192;
+
+	return FLIM_TIMEOUT;	// Every uncertainty treated as timeout...
 }
 
 

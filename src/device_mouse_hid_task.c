@@ -381,14 +381,14 @@ void device_mouse_hid_task(void)
 				gotcmd = 1;
 				ReportByte1_prev = ReportByte1;
 			}
-/*
+
 			// Rolling sample rate detector
            	temp16 = mobo_srd();
            	print_dbg_char_hex( (uint8_t)(temp16>>8));
            	print_dbg_char_hex( (uint8_t)temp16);
            	print_dbg_char('\n');
             vTaskDelay(4000);
-*/
+
     	}
 
     	if (gotcmd == 0)									// Nothing recorded:
