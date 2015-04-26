@@ -286,9 +286,7 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
-    uint8_t dev_adr;										// Temporary debug variables
-    uint8_t dev_data[35];
-    uint8_t dev_status;
+    uint8_t temp1, temp2;
     uint16_t temp16;
 
     while (gotcmd == 0) {
@@ -313,34 +311,45 @@ void device_mouse_hid_task(void)
 
             // Debugging WM8805 single write
             else if (a == 'w') {
-            	dev_adr = 0x3A; // 0x3A with pin 9 patched to GND with 10k
-            	dev_data[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
-            	dev_data[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte?
+            	// For some strange reason the two are swapped inside wm8805_write_byte() if
+            	// parameters are entered as read_dbg_char_hex(). Very strange. The LED debugger is not yet tested for this..
+            	temp1 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
+            	temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte
 
-            	dev_status = twi_write_out(dev_adr, dev_data, 2);
-            	print_dbg_char_hex(dev_status);
+            	print_dbg_char_hex(wm8805_write_byte(temp1, temp2));
             	print_dbg_char('\n');
 			}
 
+            // Start up the WM8805
+            else if (a == 'z') {
+            	wm8805_init();
+				print_dbg_char('\n');
+            }
+
+            // Select WM8805 channel
+            else if (a == 'k') {
+            	wm8805_input(WM8805_TOSLINK);
+				print_dbg_char('\n');
+            }
+
+            else if (a == 'K') {
+            	wm8805_input(WM8805_TOSLINK_192);
+				print_dbg_char('\n');
+            }
+
             // Debugging WM8805 single read, only valid for "read only" registers, and then with a twist...
             else if (a == 'r') {
-            	dev_adr = 0x3A; // 0x3A with pin 9 patched to GND with 10k
-            	dev_data[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
-
-            	twi_write_out(dev_adr, dev_data, 1);
-
-            	twi_read_in(dev_adr, dev_data, 1);
-            	print_dbg_char_hex(dev_data[0]);
+            	print_dbg_char_hex( wm8805_read_byte(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT)) );
             	print_dbg_char('\n');
 			}
 
             // Start reset of WM8805
             else if (a == 's')
-            	gpio_clr_gpio_pin(AVR32_PIN_PX10);			// Clear SPIO_05 = WM8807 active low reset
+            	wm8805_reset(WM8805_RESET_START);
 
             // End reset of WM8805
             else if (a == 't')
-            	gpio_set_gpio_pin(AVR32_PIN_PX10);			// Set SPIO_05 = WM8807 active low reset
+            	wm8805_reset(WM8805_RESET_END);
 
             // Change I2S source to WM8805, assume 44.1
             else if (a == 'W')
@@ -355,6 +364,7 @@ void device_mouse_hid_task(void)
             	temp16 = mobo_srd();
             	print_dbg_char_hex( (uint8_t)(temp16>>8));
             	print_dbg_char_hex( (uint8_t)temp16);
+               	print_dbg_char('\n');
             }
 
 
@@ -382,13 +392,13 @@ void device_mouse_hid_task(void)
 				ReportByte1_prev = ReportByte1;
 			}
 
-			// Rolling sample rate detector
+/*			// Rolling sample rate detector
            	temp16 = mobo_srd();
            	print_dbg_char_hex( (uint8_t)(temp16>>8));
            	print_dbg_char_hex( (uint8_t)temp16);
            	print_dbg_char('\n');
             vTaskDelay(4000);
-
+*/
     	}
 
     	if (gotcmd == 0)									// Nothing recorded:

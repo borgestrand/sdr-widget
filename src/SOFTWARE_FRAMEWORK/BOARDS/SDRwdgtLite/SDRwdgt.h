@@ -166,6 +166,12 @@
 #define AK5394_SCLK                      AVR32_PIN_PX28		// trace on board to PX34  ??
 #define AK5394_AD_MCLK                   AVR32_PIN_PC04		// clock from A/D board
 
+/* Important note on PC04: This is the XIN1 pin of the AVR32. According to Atmel's doc32072.pdf page 12:
+ * The oscillators are not mapped to the normal GPIO functions and their muxings are controlled
+ * by registers in the Power Mananger (PM). Please refer to the PM chapter for more information
+ * about this.
+ */
+
 //! @}
 
 /*! \name 4 bit LCD display connections

@@ -25,18 +25,102 @@
 
 #if defined(HW_GEN_DIN10)
 
+// Various WM8805 functions are drafted here and later moved somewhere better.....
+// Using the WM8805 requires intimate knowledge of the chip and its datasheet. For this
+// reason we use a lot of raw hex rather than naming of its internal registers.
 
+// Hardware reset over GPIO pin. Consider the Power Up Configuration section of the datasheet!
+void wm8805_reset(uint8_t reset_type) {
+	if (reset_type == WM8805_RESET_START)
+		gpio_clr_gpio_pin(WM8805_RESET_PIN);			// Clear reset pin WM8807 active low reset
+	else
+		gpio_set_gpio_pin(WM8805_RESET_PIN);			// Set reset pin WM8807 active low reset
+}
+
+// Start up the WM8805
+void wm8805_init(void) {
+
+// Set up interrupts!
+
+	wm8805_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 RX0
+
+	wm8805_write_byte(0x1E, 0x06);	// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
+
+	wm8805_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ?
+
+	wm8805_write_byte(0x1D, 0xC0);	// Change 6:1, disable data truncation, run on 24 bit I2S
+}
+
+// Select input channel of the WM8805
+void wm8805_input(uint8_t input_sel) {
+/*
+ * Mute ???
+ * Disable RX, set up PLL, select channel, enable RX
+ * Wait for lock and report success/failure?
+ * Unmute ???
+ */
+
+	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
+
+	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
+	if ( (input_sel == WM8805_TOSLINK) || (input_sel == WM8805_SPDIF) ) {
+		wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
+		wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
+		wm8805_write_byte(0x05, 0x36);	// 7:0 6:0, 5-0:PLL_K[21:16] 36
+		wm8805_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
+	}
+
+	// Special PLL setup for 192
+	else if ( (input_sel == WM8805_TOSLINK_192) || (input_sel == WM8805_SPDIF_192) ) {
+		wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
+		wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
+		wm8805_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
+		wm8805_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
+	}
+
+	if ( (input_sel == WM8805_TOSLINK) || (input_sel == WM8805_TOSLINK_192) )
+		wm8805_write_byte(0x08, 0x74);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
+ 	else if ( (input_sel == WM8805_SPDIF) || (input_sel == WM8805_SPDIF_192) )
+		wm8805_write_byte(0x08, 0x75);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:5 RX5
+
+
+	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
+
+}
+
+
+// Write a single byte to WM8805
+uint8_t wm8805_write_byte(uint8_t int_adr, uint8_t int_data) {
+    uint8_t dev_data[2];
+    uint8_t status;
+
+	dev_data[0] = int_adr;
+	dev_data[1] = int_data;
+
+	status = twi_write_out(WM8805_DEV_ADR, dev_data, 2);
+	return status;
+}
+
+// Read a single byte from WM8805
+uint8_t wm8805_read_byte(uint8_t int_adr) {
+	uint8_t dev_data[1];
+
+	dev_data[0] = int_adr;
+	twi_write_out(WM8805_DEV_ADR, dev_data, 1);
+	twi_read_in(WM8805_DEV_ADR, dev_data, 1);
+	return dev_data[0];
+}
 
 /* Todo list for DIN10
- * - Categorize sample rate detector with proper signal generator, +-2%, reduce timeout constant everywhere
+ * + Categorize sample rate detector with proper signal generator, +-2%, reduce timeout constant everywhere
  * - Determine correct GPIO pin for SRD, recompile for asm constants
- * - Test USB music playback with SRD running continuously
+ * + Test USB music playback with SRD running continuously
  * - Test codebase with mkII hardware
- * - Get hardware capable of generating all SPDIF sample rates
+ * + Get hardware capable of generating all SPDIF sample rates
  * - Make state machine for WM8805 sample rate detection
  * - Make state machine for source selection
  * - Figure out ADC interface
- * - Make silence detector
+ * - Make silence detector (use 1024 silent block detector in WM?)
  */
 
 // Sample rate detection test

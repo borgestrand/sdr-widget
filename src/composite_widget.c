@@ -229,7 +229,7 @@ int i;
 	else
 		mobo_xo_select(44100, MOBO_SRC_UAC2);				// Initial GPIO XO control and frequency _indication_
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX10);						// Clear SPIO_05 = WM8807 active low reset
+	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 
 //clear samplerate indication
@@ -294,7 +294,7 @@ int i;
 	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
 #if defined(HW_GEN_DIN10)
-	gpio_set_gpio_pin(AVR32_PIN_PX10);		// Set SPIO_05 = WM8807 active low reset
+	wm8805_reset(WM8805_RESET_END);			// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 
 

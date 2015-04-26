@@ -27,6 +27,37 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 // Sprcific HW_GEN_DIN10 hardware functions
 #if defined(HW_GEN_DIN10)
 
+// Various WM8805 functions are drafted here and later moved somewhere better.....
+// Using the WM8805 requires intimate knowledge of the chip and its datasheet. For this
+// reason we use a lot of raw hex rather than naming of its internal registers.
+
+#define	WM8805_RESET_START	1
+#define WM8805_RESET_END	0
+#define WM8805_RESET_PIN	AVR32_PIN_PX10
+#define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k
+#define WM8805_INPUT_NONE	0					// No input selected
+#define WM8805_SPDIF		1					// Input is SPDIF in 32-96 and 176.4
+#define WM8805_SPDIF_192	2					// Input is SPDIF in 192
+#define WM8805_TOSLINK		3					// Input is TOSLINK in 32-96 and 176.4
+#define WM8805_TOSLINK_192	4					// Input is TOSLINK in 192
+
+// Reset the WM8805 via hardware pin
+void wm8805_reset(uint8_t reset_type);
+
+// Start up the WM8805
+void wm8805_init(void);
+
+// Select input channel of the WM8805
+void wm8805_input(uint8_t input_sel);
+
+// Write a single byte to WM8805
+uint8_t wm8805_write_byte(uint8_t int_adr, uint8_t data);
+
+// Read a single byte from WM8805
+uint8_t wm8805_read_byte(uint8_t int_adr);
+
+
+
 // LED control
 void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
 
