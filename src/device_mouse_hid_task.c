@@ -286,8 +286,9 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
-    uint8_t temp1, temp2;
-    uint16_t temp16;
+    uint8_t temp1, temp2, temp3;
+    uint16_t temp16 = 0;			// FIX: use same nomenclature as for USB frequencies
+    uint16_t wm_freq = 0;
 
     while (gotcmd == 0) {
 
@@ -328,12 +329,14 @@ void device_mouse_hid_task(void)
 
             // Select WM8805 channel
             else if (a == 'k') {
-            	wm8805_input(WM8805_TOSLINK);
+            	temp3 = WM8805_TOSLINK;
+            	wm8805_input(temp3);
 				print_dbg_char('\n');
             }
 
             else if (a == 'K') {
-            	wm8805_input(WM8805_TOSLINK_192);
+            	temp3 = WM8805_TOSLINK_192;
+            	wm8805_input(temp3);
 				print_dbg_char('\n');
             }
 
@@ -399,6 +402,77 @@ void device_mouse_hid_task(void)
            	print_dbg_char('\n');
             vTaskDelay(4000);
 */
+
+
+
+
+			// Rolling interrupt and zero flag monitor
+			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
+				temp1 = wm8805_read_byte(0x0B);					// Record interrupt and spdif status registers
+				temp2 = wm8805_read_byte(0x0C);
+				temp16 = mobo_srd();							// Record sample rate before trying to influence PLL
+
+
+				if ( (temp2 & 0x40) != 0 ) {					// Unlock
+					if (temp3 == WM8805_TOSLINK_192)			// Invert 192 status...
+						temp3 = WM8805_TOSLINK;
+					else
+						temp3 = WM8805_TOSLINK_192;
+
+                	wm8805_input(temp3);
+                	vTaskDelay(4000);
+				}
+
+
+
+//				if (temp1 & 0x80) {								// Is UPD_REC_FREQ set? Not to be trusted for 44-48 / 88-96 / 176-192 changes!
+
+				// Do some looping until receiver is locked? Does that work with 192 on/off?
+
+/*
+				if ( (temp2 & 0x40) == 0 ) 						// Only with lock do we bother with the current frequency
+					temp16 = mobo_srd();
+
+				if (temp16 != wm_freq) {						// New frequency detected
+	            	if (temp16 == FREQ_192) {					// Try to detect 192ksps and do something about it
+	                	wm8805_input(WM8805_TOSLINK_192);		// This is temporary code!
+	            	}
+	            	else {
+	                	wm8805_input(WM8805_TOSLINK);
+	            	}
+
+					wm_freq = temp16;							// Update frequency
+
+					print_dbg_char('*');						// Indicate sample rate change
+				}
+				else
+					print_dbg_char(' ');						// Indicate no sample rate change
+*/
+
+				print_dbg_char('I');							// Print recorded interrupt status
+				print_dbg_char('=');
+				print_dbg_char_hex(temp1);						// INTSTAT
+				print_dbg_char(' ');
+				print_dbg_char('S');
+				print_dbg_char('=');
+				print_dbg_char_hex(temp2);						// SPDSTAT
+				print_dbg_char(' ');
+				print_dbg_char('R');
+				print_dbg_char('=');
+				print_dbg_char_hex( (uint8_t)(temp16>>8));		// Sample rate, FIX: nomenclature!
+				print_dbg_char_hex( (uint8_t)temp16);
+            	print_dbg_char('\n');
+			}
+
+/*			if (gpio_get_pin_value(WM8805_ZEROFLAG_PIN) != 0) {
+				print_dbg_char('Z');
+				print_dbg_char('\n');
+			}
+*/
+//          vTaskDelay(4000);
+
+
+
     	}
 
     	if (gotcmd == 0)									// Nothing recorded:

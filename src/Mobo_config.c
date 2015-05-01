@@ -49,6 +49,10 @@ void wm8805_init(void) {
 	wm8805_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ?
 
 	wm8805_write_byte(0x1D, 0xC0);	// Change 6:1, disable data truncation, run on 24 bit I2S
+
+	wm8805_write_byte(0x17, 0x00);	// 7:4 GPO1=INT_N (=SPIO_00, PX54), 3:0 GPO0=INT_N, that pin has 10kpull-down
+
+	wm8805_write_byte(0x1A, 0xC0);	// 7:4 GPO7=ZEROFLAG (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
 }
 
 // Select input channel of the WM8805
@@ -243,31 +247,23 @@ int16_t mobo_srd(void) {
 	#define FLIM_176_HIGH	0x17
 	#define FLIM_192_LOW	0x14
 	#define FLIM_192_HIGH	0x15
-	#define	FLIM_TIMEOUT	0x00
-	#define	FLIM_32			0x32
-	#define	FLIM_44			0x44
-	#define	FLIM_48			0x48
-	#define	FLIM_88			0x88
-	#define	FLIM_96			0x96
-	#define	FLIM_176		0x176
-	#define	FLIM_192		0x192
 
 	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) )
-		return FLIM_32;
+		return FREQ_32;
 	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) )
-		return FLIM_44;
+		return FREQ_44;
 	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) )
-		return FLIM_48;
+		return FREQ_48;
 	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) )
-		return FLIM_88;
+		return FREQ_88;
 	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) )
-		return FLIM_96;
+		return FREQ_96;
 	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) )
-		return FLIM_176;
+		return FREQ_176;
 	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) )
-		return FLIM_192;
+		return FREQ_192;
 
-	return FLIM_TIMEOUT;	// Every uncertainty treated as timeout...
+	return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
 }
 
 

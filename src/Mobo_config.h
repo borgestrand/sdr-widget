@@ -19,6 +19,7 @@
 #include "TMP100.h"
 #include "rotary_encoder.h"
 
+
 // Hardware control functions
 
 // Audio Widget select oscillator
@@ -34,12 +35,24 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 #define	WM8805_RESET_START	1
 #define WM8805_RESET_END	0
 #define WM8805_RESET_PIN	AVR32_PIN_PX10
+#define WM8805_INT_N_PIN	AVR32_PIN_PX54
+#define WM8805_ZEROFLAG_PIN	AVR32_PIN_PX15
 #define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k
 #define WM8805_INPUT_NONE	0					// No input selected
 #define WM8805_SPDIF		1					// Input is SPDIF in 32-96 and 176.4
 #define WM8805_SPDIF_192	2					// Input is SPDIF in 192
 #define WM8805_TOSLINK		3					// Input is TOSLINK in 32-96 and 176.4
 #define WM8805_TOSLINK_192	4					// Input is TOSLINK in 192
+
+// Frequency definitions, move and change to make compatible with USB system!
+#define	FREQ_TIMEOUT		0x00
+#define	FREQ_32				0x32
+#define	FREQ_44				0x44
+#define	FREQ_48				0x48
+#define	FREQ_88				0x88
+#define	FREQ_96				0x96
+#define	FREQ_176			0x176
+#define	FREQ_192			0x192
 
 // Reset the WM8805 via hardware pin
 void wm8805_reset(uint8_t reset_type);
