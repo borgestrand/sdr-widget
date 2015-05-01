@@ -416,45 +416,31 @@ void device_mouse_hid_task(void)
 
 
 				if ( (temp2 & 0x40) != 0 ) {					// Unlock
-					if (temp3 == WM8805_PLL_NORMAL)				// Invert 192 status...
+					if (temp3 == WM8805_PLL_NORMAL)				// Invert 192 status and wait
 						temp3 = WM8805_PLL_192;
 					else
 						temp3 = WM8805_PLL_NORMAL;
 
-                	wm8805_pll(temp3);
+                	wm8805_pll(temp3);							// FIX: implement some silencing function while this takes place!
     				print_dbg_char('.');						// Indicate PLL tickling
 
                 	vTaskDelay(4000);
 				}
 				else {											// Lock!
 	            	mobo_led_select(temp32, input_select);		// Indicate sample rate on LEDs
+
+	            	// FIX: If we were just toggling PLL mode, unmute with lock re-established
 				}
 
-
-
-//				if (temp1 & 0x80) {								// Is UPD_REC_FREQ set? Not to be trusted for 44-48 / 88-96 / 176-192 changes!
-
-				// Do some looping until receiver is locked? Does that work with 192 on/off?
-
-/*
-				if ( (temp2 & 0x40) == 0 ) 						// Only with lock do we bother with the current frequency
-					temp16 = mobo_srd();
-
-				if (temp16 != wm_freq) {						// New frequency detected
-	            	if (temp16 == FREQ_192) {					// Try to detect 192ksps and do something about it
-	                	wm8805_input(WM8805_TOSLINK_192);		// This is temporary code!
-	            	}
-	            	else {
-	                	wm8805_input(WM8805_TOSLINK);
-	            	}
-
-					wm_freq = temp16;							// Update frequency
-
-					print_dbg_char('*');						// Indicate sample rate change
-				}
-				else
-					print_dbg_char(' ');						// Indicate no sample rate change
-*/
+				/* NEXT:
+				 * - Decide on which interrupts to enable
+				 * - Do some clever bits with silencing
+				 * - Prevent USB engine from going bonkers when playing on the WM (buffer zeros and send nominal sample rate...)
+				 * - Test code base on legacy hardware
+				 * - Check if WM is really 24 bits
+				 * - Test SPDIF
+				 * - Structure code away from mobo_config.c/h
+				 */
 
 				print_dbg_char('I');							// Print recorded interrupt status
 				print_dbg_char('=');
