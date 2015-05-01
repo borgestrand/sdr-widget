@@ -95,6 +95,9 @@
 #include "device_mouse_hid_task.h"
 #include "Mobo_config.h"
 
+// To access global input source variable
+#include "device_audio_task.h"
+
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
 #endif
@@ -287,8 +290,8 @@ void device_mouse_hid_task(void)
     gotcmd = 0;												// No HID button change recorded yet
 
     uint8_t temp1, temp2, temp3;
-    uint16_t temp16 = 0;			// FIX: use same nomenclature as for USB frequencies
-    uint16_t wm_freq = 0;
+    U32 temp32 = FREQ_TIMEOUT;								// Sample rate variables, no sample rate yet detected
+    U32 wm_freq = FREQ_TIMEOUT;
 
     while (gotcmd == 0) {
 
@@ -329,14 +332,22 @@ void device_mouse_hid_task(void)
 
             // Select WM8805 channel
             else if (a == 'k') {
-            	temp3 = WM8805_TOSLINK;
-            	wm8805_input(temp3);
+            	temp3 = WM8805_PLL_NORMAL;
+            	input_select = MOBO_SRC_TOSLINK;
+            	wm8805_input(input_select);
+            	wm8805_pll(temp3);
+            	mobo_xo_select(44100, input_select);
+            	mobo_led_select(44100, input_select);
 				print_dbg_char('\n');
             }
 
             else if (a == 'K') {
-            	temp3 = WM8805_TOSLINK_192;
-            	wm8805_input(temp3);
+            	temp3 = WM8805_PLL_192;
+            	input_select = MOBO_SRC_TOSLINK;
+            	wm8805_input(input_select);
+            	wm8805_pll(temp3);
+            	mobo_xo_select(192000, input_select);
+            	mobo_led_select(192000, input_select);
 				print_dbg_char('\n');
             }
 
@@ -354,20 +365,11 @@ void device_mouse_hid_task(void)
             else if (a == 't')
             	wm8805_reset(WM8805_RESET_END);
 
-            // Change I2S source to WM8805, assume 44.1
-            else if (a == 'W')
-            	mobo_xo_select(44100, MOBO_SRC_TOSLINK);
-
             // Change I2S source to USB, assume 44.1 UAC2
-            else if (a == 'U')
-            	mobo_xo_select(44100, MOBO_SRC_UAC2);
-
-            // Detect sample rate
-            else if (a == 'x') {
-            	temp16 = mobo_srd();
-            	print_dbg_char_hex( (uint8_t)(temp16>>8));
-            	print_dbg_char_hex( (uint8_t)temp16);
-               	print_dbg_char('\n');
+            else if (a == 'U') {
+            	input_select = MOBO_SRC_UAC2;
+            	mobo_xo_select(44100, input_select);
+            	mobo_led_select(44100, input_select);
             }
 
 
@@ -410,17 +412,22 @@ void device_mouse_hid_task(void)
 			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
 				temp1 = wm8805_read_byte(0x0B);					// Record interrupt and spdif status registers
 				temp2 = wm8805_read_byte(0x0C);
-				temp16 = mobo_srd();							// Record sample rate before trying to influence PLL
+				temp32 = mobo_srd();							// Record sample rate before trying to influence PLL
 
 
 				if ( (temp2 & 0x40) != 0 ) {					// Unlock
-					if (temp3 == WM8805_TOSLINK_192)			// Invert 192 status...
-						temp3 = WM8805_TOSLINK;
+					if (temp3 == WM8805_PLL_NORMAL)				// Invert 192 status...
+						temp3 = WM8805_PLL_192;
 					else
-						temp3 = WM8805_TOSLINK_192;
+						temp3 = WM8805_PLL_NORMAL;
 
-                	wm8805_input(temp3);
+                	wm8805_pll(temp3);
+    				print_dbg_char('.');						// Indicate PLL tickling
+
                 	vTaskDelay(4000);
+				}
+				else {											// Lock!
+	            	mobo_led_select(temp32, input_select);		// Indicate sample rate on LEDs
 				}
 
 
@@ -459,8 +466,35 @@ void device_mouse_hid_task(void)
 				print_dbg_char(' ');
 				print_dbg_char('R');
 				print_dbg_char('=');
-				print_dbg_char_hex( (uint8_t)(temp16>>8));		// Sample rate, FIX: nomenclature!
-				print_dbg_char_hex( (uint8_t)temp16);
+
+				switch (temp32) {								// Print detected sample rate
+					case FREQ_32:
+						print_dbg_char_hex(0x32);
+						break;
+					case FREQ_44:
+						print_dbg_char_hex(0x44);
+						break;
+					case FREQ_48:
+						print_dbg_char_hex(0x48);
+						break;
+					case FREQ_88:
+						print_dbg_char_hex(0x88);
+						break;
+					case FREQ_96:
+						print_dbg_char_hex(0x96);
+						break;
+					case FREQ_176:
+						print_dbg_char_hex(0x17);
+						break;
+					case FREQ_192:
+						print_dbg_char_hex(0x19);
+						break;
+				}
+
+//				print_dbg_char_hex( (uint8_t)(temp16>>8));		// Sample rate, FIX: nomenclature!
+//				print_dbg_char_hex( (uint8_t)temp16);
+
+
             	print_dbg_char('\n');
 			}
 

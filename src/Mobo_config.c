@@ -14,6 +14,9 @@
 #include <avr32/io.h>
 #include "compiler.h"
 
+// To access global input source variable
+#include "device_audio_task.h"
+
 /*
 #include "rotary_encoder.h"
 #include "AD7991.h"
@@ -59,7 +62,28 @@ void wm8805_init(void) {
 void wm8805_input(uint8_t input_sel) {
 /*
  * Mute ???
- * Disable RX, set up PLL, select channel, enable RX
+ * Disable RX, select channel, enable RX
+ * Wait for lock and report success/failure?
+ * Unmute ???
+ */
+
+// FIX: if input is USB, do some major shutting down, if it aint, reinit the WM8805!
+
+	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
+
+	if (input_sel == MOBO_SRC_TOSLINK)
+		wm8805_write_byte(0x08, 0x74);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
+ 	else if (input_sel == MOBO_SRC_SPDIF)
+		wm8805_write_byte(0x08, 0x75);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:5 RX5
+
+	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
+}
+
+// Select input channel of the WM8805
+void wm8805_pll(uint8_t pll_sel) {
+/*
+ * Mute ???
+ * Disable RX, set up PLL, enable RX
  * Wait for lock and report success/failure?
  * Unmute ???
  */
@@ -67,7 +91,7 @@ void wm8805_input(uint8_t input_sel) {
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
-	if ( (input_sel == WM8805_TOSLINK) || (input_sel == WM8805_SPDIF) ) {
+	if (pll_sel == WM8805_PLL_NORMAL) {
 		wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 		wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
 		wm8805_write_byte(0x05, 0x36);	// 7:0 6:0, 5-0:PLL_K[21:16] 36
@@ -75,21 +99,14 @@ void wm8805_input(uint8_t input_sel) {
 	}
 
 	// Special PLL setup for 192
-	else if ( (input_sel == WM8805_TOSLINK_192) || (input_sel == WM8805_SPDIF_192) ) {
+	else if (pll_sel == WM8805_PLL_192) {
 		wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
 		wm8805_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
 		wm8805_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
 	}
 
-	if ( (input_sel == WM8805_TOSLINK) || (input_sel == WM8805_TOSLINK_192) )
-		wm8805_write_byte(0x08, 0x74);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
- 	else if ( (input_sel == WM8805_SPDIF) || (input_sel == WM8805_SPDIF_192) )
-		wm8805_write_byte(0x08, 0x75);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:5 RX5
-
-
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
-
 }
 
 
@@ -128,7 +145,7 @@ uint8_t wm8805_read_byte(uint8_t int_adr) {
  */
 
 // Sample rate detection test
-int16_t mobo_srd(void) {
+U32 mobo_srd(void) {
 	int16_t timeout;
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
@@ -319,10 +336,10 @@ void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0) {
  */
 void mobo_xo_select(U32 frequency, uint8_t source) {
 
-// XO control on ab1x hardware generation
+// XO control and SPI muxing on ab1x hardware generation
 #if defined(HW_GEN_AB1X)
 	switch (frequency) {
-		case 44100:
+		case FREQ_44:
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
@@ -330,7 +347,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
 			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 		break;
-		case 48000:
+		case FREQ_48:
 			if (FEATURE_BOARD_USBI2S)
 				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
@@ -338,7 +355,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
 			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 		break;
-		case 88200:
+		case FREQ_88:
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
@@ -346,7 +363,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
 		break;
-		case 96000:
+		case FREQ_96:
 			if (FEATURE_BOARD_USBI2S)
 				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
@@ -354,7 +371,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
 		break;
-		case 176400:
+		case FREQ_176:
 			if (FEATURE_BOARD_USBI2S)
 				gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
@@ -362,7 +379,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
 			gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
 		break;
-		case 192000:
+		case FREQ_192:
 			if (FEATURE_BOARD_USBI2S)
 				gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 			else if (FEATURE_BOARD_USBDAC)
@@ -372,13 +389,14 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		break;
 	}
 
+// XO control and I2S muxing on Digital Input 1.0 generation
 #elif defined(HW_GEN_DIN10)
 	// FIX: correlate with mode currently selected by user or auto, that's a global variable!
 	if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
 
 		// Clock source control
-		if ( (frequency == 44100) || (frequency == 88200) || (frequency == 176400) ) {
+		if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
 			gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
 			gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 		}
@@ -392,10 +410,15 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
 		gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
 	}
+#else
+#error undefined hardware
+#endif
+}
 
-	// LED control
+// LED control
+void mobo_led_select(U32 frequency, uint8_t source) {
 	switch (frequency) {
-		case 44100:
+		case FREQ_44:
 			if (source == MOBO_SRC_UAC1)
 				mobo_led(FLED_DARK, FLED_GREEN, FLED_DARK);		// UAC1 green 010
 			if (source == MOBO_SRC_UAC2)
@@ -405,7 +428,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);	// TOSLINK purple 010
 		break;
-		case 48000:
+		case FREQ_48:
 			if (source == MOBO_SRC_UAC1)
 				mobo_led(FLED_DARK, FLED_GREEN, FLED_GREEN);	// UAC1 green 011
 			if (source == MOBO_SRC_UAC2)
@@ -415,7 +438,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_PURPLE);	// TOSLINK purple 011
 		break;
-		case 88200:
+		case FREQ_88:
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 red 100
 			if (source == MOBO_SRC_SPDIF)
@@ -423,7 +446,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_PURPLE, FLED_DARK, FLED_DARK);	// TOSLINK purple 100
 		break;
-		case 96000:
+		case FREQ_96:
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 red 101
 			if (source == MOBO_SRC_SPDIF)
@@ -431,7 +454,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_PURPLE, FLED_DARK, FLED_PURPLE);	// TOSLINK purple 101
 		break;
-		case 176400:
+		case FREQ_176:
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_RED, FLED_DARK);		// UAC2 red 110
 			if (source == MOBO_SRC_SPDIF)
@@ -439,7 +462,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_DARK);	// TOSLINK purple 110
 		break;
-		case 192000:
+		case FREQ_192:
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_RED, FLED_RED);			// UAC2 red 111
 			if (source == MOBO_SRC_SPDIF)
@@ -451,15 +474,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			mobo_led(FLED_DARK, FLED_DARK, FLED_DARK);			// Invalid frequency: darkness
 		break;
 	}
-#else
-#error undefined hardware
-#endif
-
-
 }
-
-
-
 
 
 //

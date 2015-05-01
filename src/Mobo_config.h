@@ -25,6 +25,9 @@
 // Audio Widget select oscillator
 void mobo_xo_select(U32 frequency, uint8_t source);
 
+// Audio Widget select led
+void mobo_led_select(U32 frequency, uint8_t source);
+
 // Sprcific HW_GEN_DIN10 hardware functions
 #if defined(HW_GEN_DIN10)
 
@@ -38,21 +41,18 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 #define WM8805_INT_N_PIN	AVR32_PIN_PX54
 #define WM8805_ZEROFLAG_PIN	AVR32_PIN_PX15
 #define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k
-#define WM8805_INPUT_NONE	0					// No input selected
-#define WM8805_SPDIF		1					// Input is SPDIF in 32-96 and 176.4
-#define WM8805_SPDIF_192	2					// Input is SPDIF in 192
-#define WM8805_TOSLINK		3					// Input is TOSLINK in 32-96 and 176.4
-#define WM8805_TOSLINK_192	4					// Input is TOSLINK in 192
+#define WM8805_PLL_NORMAL	0					// PLL mode is normal 32-96 and 176.4ksps
+#define WM8805_PLL_192		1					// PLL mode is for 192ksps
 
 // Frequency definitions, move and change to make compatible with USB system!
 #define	FREQ_TIMEOUT		0x00
-#define	FREQ_32				0x32
-#define	FREQ_44				0x44
-#define	FREQ_48				0x48
-#define	FREQ_88				0x88
-#define	FREQ_96				0x96
-#define	FREQ_176			0x176
-#define	FREQ_192			0x192
+#define	FREQ_32				32000
+#define	FREQ_44				44100
+#define	FREQ_48				48000
+#define	FREQ_88				88200
+#define	FREQ_96				96000
+#define	FREQ_176			176400
+#define	FREQ_192			192000
 
 // Reset the WM8805 via hardware pin
 void wm8805_reset(uint8_t reset_type);
@@ -62,6 +62,9 @@ void wm8805_init(void);
 
 // Select input channel of the WM8805
 void wm8805_input(uint8_t input_sel);
+
+// Select PLL setting for the WM8805
+void wm8805_pll(uint8_t pll_sel);
 
 // Write a single byte to WM8805
 uint8_t wm8805_write_byte(uint8_t int_adr, uint8_t data);
@@ -75,7 +78,7 @@ uint8_t wm8805_read_byte(uint8_t int_adr);
 void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
 
 // Sample rate detection test
-int16_t mobo_srd(void);
+U32 mobo_srd(void);
 
 // Available digital audio sources, 3 and 4 only available in HW_GEN=din10
 #define MOBO_SRC_NONE		0

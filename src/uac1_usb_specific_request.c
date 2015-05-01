@@ -632,7 +632,15 @@ void audio_set_cur(void)
 			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
 			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 		}
-		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// GPIO XO control and frequency indication
+
+#if defined(HW_GEN_DIN10)
+		if (input_select == MOBO_SRC_UAC1) {	// Only change I2S settings if appropriate
+#endif
+			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// GPIO XO control and frequency indication
+			mobo_led_select(current_freq.frequency, MOBO_SRC_UAC1);	// GPIO XO control and frequency indication
+#if defined(HW_GEN_DIN10)
+		}
+#endif
 
 	}
 

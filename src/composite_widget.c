@@ -177,10 +177,16 @@
 #include "image.h"
 #include "composite_widget.h"
 #include "Mobo_config.h"
+
 /*
  *  A few global variables.
  */
+
+// To access global input source variable
+#include "device_audio_task.h"
+
 xSemaphoreHandle mutexEP_IN;
+
 
 //_____ M A C R O S ________________________________________________________
 
@@ -225,9 +231,12 @@ int i;
 #if defined(HW_GEN_DIN10)
 
 	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-		mobo_xo_select(44100, MOBO_SRC_UAC1);				// Initial GPIO XO control and frequency _indication_
+		input_select = MOBO_SRC_UAC1;
 	else
-		mobo_xo_select(44100, MOBO_SRC_UAC2);				// Initial GPIO XO control and frequency _indication_
+		input_select = MOBO_SRC_UAC2;
+
+	mobo_xo_select(44100, input_select);					// Initial GPIO XO control and frequency _indication_
+	mobo_led_select(44100, input_select);
 
 	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
