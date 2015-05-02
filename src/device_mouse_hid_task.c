@@ -94,9 +94,13 @@
 #include "usb_specific_request.h"
 #include "device_mouse_hid_task.h"
 #include "Mobo_config.h"
+#include "features.h"
 
 // To access global input source variable
 #include "device_audio_task.h"
+
+// To access SPK_BUFFER_SIZE and clear audio buffer
+#include "taskAK5394A.h"
 
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
@@ -290,8 +294,9 @@ void device_mouse_hid_task(void)
     gotcmd = 0;												// No HID button change recorded yet
 
     uint8_t temp1, temp2, temp3;
-    U32 temp32 = FREQ_TIMEOUT;								// Sample rate variables, no sample rate yet detected
-    U32 wm_freq = FREQ_TIMEOUT;
+    int i;
+    uint8_t muted = 1;										// Assume I2S output is muted
+    U32 wm8805_freq = FREQ_TIMEOUT;								// Sample rate variables, no sample rate yet detected
 
     while (gotcmd == 0) {
 
@@ -334,20 +339,25 @@ void device_mouse_hid_task(void)
             else if (a == 'k') {
             	temp3 = WM8805_PLL_NORMAL;
             	input_select = MOBO_SRC_TOSLINK;
-            	wm8805_input(input_select);
-            	wm8805_pll(temp3);
-            	mobo_xo_select(44100, input_select);
-            	mobo_led_select(44100, input_select);
-				print_dbg_char('\n');
-            }
 
-            else if (a == 'K') {
-            	temp3 = WM8805_PLL_192;
-            	input_select = MOBO_SRC_TOSLINK;
+    			for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
+    				spk_buffer_0[i] = 0;
+    				spk_buffer_1[i] = 0;
+    			}
+
             	wm8805_input(input_select);
             	wm8805_pll(temp3);
-            	mobo_xo_select(192000, input_select);
-            	mobo_led_select(192000, input_select);
+				wm8805_freq = mobo_srd();
+
+				// Start muted. NB: only a Locked interrupt will unmute!
+            	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+	            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+            	else
+	            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+            	muted = 1;
+
+//            	mobo_xo_select(wm8805_freq, input_select);
+            	mobo_led_select(wm8805_freq, input_select);	// Regardless of muting, indicate present sample rate
 				print_dbg_char('\n');
             }
 
@@ -367,9 +377,13 @@ void device_mouse_hid_task(void)
 
             // Change I2S source to USB, assume 44.1 UAC2
             else if (a == 'U') {
-            	input_select = MOBO_SRC_UAC2;
-            	mobo_xo_select(44100, input_select);
-            	mobo_led_select(44100, input_select);
+            	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+            		input_select = MOBO_SRC_UAC1;
+            	else
+            		input_select = MOBO_SRC_UAC2;
+
+				mobo_xo_select(current_freq.frequency, input_select);
+				mobo_led_select(current_freq.frequency, input_select);
             }
 
 
@@ -385,7 +399,7 @@ void device_mouse_hid_task(void)
 			}
 
 			else if ( (gpio_get_pin_value(PRG_BUTTON) != 0) ) {	// Check if Prog button is released
-				ReportByte1 = 0x00;							// Encode the buttion release HID command
+				ReportByte1 = 0x00;							// Encode the button release HID command
 				ReportByte2 = 0x00;							// This command is 0x00 until HID becomes more refined...
 			}
 */
@@ -412,7 +426,7 @@ void device_mouse_hid_task(void)
 			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
 				temp1 = wm8805_read_byte(0x0B);					// Record interrupt and spdif status registers
 				temp2 = wm8805_read_byte(0x0C);
-				temp32 = mobo_srd();							// Record sample rate before trying to influence PLL
+				wm8805_freq = mobo_srd();						// Record sample rate before trying to influence PLL
 
 
 				if ( (temp2 & 0x40) != 0 ) {					// Unlock
@@ -420,16 +434,30 @@ void device_mouse_hid_task(void)
 						temp3 = WM8805_PLL_192;
 					else
 						temp3 = WM8805_PLL_NORMAL;
-
                 	wm8805_pll(temp3);							// FIX: implement some silencing function while this takes place!
-    				print_dbg_char('.');						// Indicate PLL tickling
 
-                	vTaskDelay(4000);
+        			for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
+        				spk_buffer_0[i] = 0;
+        				spk_buffer_1[i] = 0;
+        			}
+
+        			if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+		            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+	            	else
+		            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+	            	muted = 1;
+
+    				print_dbg_char('.');						// Indicate PLL tickling
+                	vTaskDelay(3000);							// Let WM8805 PLL settle for 30ms
 				}
 				else {											// Lock!
-	            	mobo_led_select(temp32, input_select);		// Indicate sample rate on LEDs
+	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs
+    				print_dbg_char('*');						// Indicate accepted sample rate
 
-	            	// FIX: If we were just toggling PLL mode, unmute with lock re-established
+    				if (muted) {
+						muted = 0;
+		            	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
+    				}
 				}
 
 				/* NEXT:
@@ -440,6 +468,7 @@ void device_mouse_hid_task(void)
 				 * - Check if WM is really 24 bits
 				 * - Test SPDIF
 				 * - Structure code away from mobo_config.c/h
+				 * - Think about some automatic silence detecting software!
 				 */
 
 				print_dbg_char('I');							// Print recorded interrupt status
@@ -453,7 +482,7 @@ void device_mouse_hid_task(void)
 				print_dbg_char('R');
 				print_dbg_char('=');
 
-				switch (temp32) {								// Print detected sample rate
+				switch (wm8805_freq) {								// Print detected sample rate
 					case FREQ_32:
 						print_dbg_char_hex(0x32);
 						break;
