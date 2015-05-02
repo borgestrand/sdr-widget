@@ -337,7 +337,6 @@ void device_mouse_hid_task(void)
 
             // Select WM8805 channel
             else if (a == 'k') {
-            	temp3 = WM8805_PLL_NORMAL;
             	input_select = MOBO_SRC_TOSLINK;
 
     			for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
@@ -345,19 +344,16 @@ void device_mouse_hid_task(void)
     				spk_buffer_1[i] = 0;
     			}
 
-            	wm8805_input(input_select);
-            	wm8805_pll(temp3);
-				wm8805_freq = mobo_srd();
-
-				// Start muted. NB: only a Locked interrupt will unmute!
+				// Start muted. NB: Locked will unmute
             	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 	            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
             	else
 	            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
             	muted = 1;
 
-//            	mobo_xo_select(wm8805_freq, input_select);
-            	mobo_led_select(wm8805_freq, input_select);	// Regardless of muting, indicate present sample rate
+            	wm8805_input(input_select);					// Is it good to do this late???
+            	wm8805_pll(WM8805_PLL_NORMAL);				// Is this a good assumption, or should we test its (not yet stable) freq?
+
 				print_dbg_char('\n');
             }
 
@@ -411,15 +407,18 @@ void device_mouse_hid_task(void)
 				ReportByte1_prev = ReportByte1;
 			}
 
-/*			// Rolling sample rate detector
-           	temp16 = mobo_srd();
-           	print_dbg_char_hex( (uint8_t)(temp16>>8));
-           	print_dbg_char_hex( (uint8_t)temp16);
-           	print_dbg_char('\n');
-            vTaskDelay(4000);
-*/
 
-
+			/* NEXT:
+			 * - Decide on which interrupts to enable
+			 * + Do some clever bits with silencing
+			 * + Prevent USB engine from going bonkers when playing on the WM (buffer zeros and send nominal sample rate...)
+			 * - Test code base on legacy hardware
+			 * - Check if WM is really 24 bits
+			 * - Test SPDIF
+			 * - Structure code away from mobo_config.c/h
+			 * - Think about some automatic silence detecting software!
+			 * - Long-term testing
+			 */
 
 
 			// Rolling interrupt and zero flag monitor
@@ -453,23 +452,7 @@ void device_mouse_hid_task(void)
 				else {											// Lock!
 	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs
     				print_dbg_char('*');						// Indicate accepted sample rate
-
-    				if (muted) {
-						muted = 0;
-		            	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
-    				}
 				}
-
-				/* NEXT:
-				 * - Decide on which interrupts to enable
-				 * - Do some clever bits with silencing
-				 * - Prevent USB engine from going bonkers when playing on the WM (buffer zeros and send nominal sample rate...)
-				 * - Test code base on legacy hardware
-				 * - Check if WM is really 24 bits
-				 * - Test SPDIF
-				 * - Structure code away from mobo_config.c/h
-				 * - Think about some automatic silence detecting software!
-				 */
 
 				print_dbg_char('I');							// Print recorded interrupt status
 				print_dbg_char('=');
@@ -511,9 +494,24 @@ void device_mouse_hid_task(void)
 
 
             	print_dbg_char('\n');
+			}	// Done handling interrupt
+
+
+			if (muted) {									// How fast can we unmute the WM8805?
+				temp2 = wm8805_read_byte(0x0C);
+				if ( (temp2 & 0x40) == 0 ) {				// Lock!
+					muted = 0;
+					wm8805_freq = mobo_srd();
+	            	mobo_led_select(wm8805_freq, input_select);	// Regardless of muting, indicate present sample rate
+					mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
+				}
+				else {
+                	vTaskDelay(3000);						// Let WM8805 PLL settle for 30ms
+				}
 			}
 
-/*			if (gpio_get_pin_value(WM8805_ZEROFLAG_PIN) != 0) {
+
+/*			if (gpio_get_pin_value(WM8805_ZEROFLAG_PIN) != 0) {	// Will be useful for automatic channel swap....
 				print_dbg_char('Z');
 				print_dbg_char('\n');
 			}
