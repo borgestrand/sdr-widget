@@ -573,6 +573,11 @@ static void vtaskMoboCtrl( void * pcParameters )
 	twi_init();
     // Probe for I2C devices present and report on LCD
 	i2c_device_scan();
+
+#if defined(HW_GEN_DIN10)
+	wm8805_init();							// Start up the WM8805 in a fairly dead mode
+#endif
+
 	#endif
 
 

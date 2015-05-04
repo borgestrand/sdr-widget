@@ -328,9 +328,6 @@ int i;
 	// Start the image tasks
 	image_task_init();
 
-
-
-
 	// Start OS scheduler
 	vTaskStartScheduler();
 	portDBG_TRACE("FreeRTOS returned.");

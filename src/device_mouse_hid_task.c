@@ -99,9 +99,6 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
-// To access SPK_BUFFER_SIZE and clear audio buffer
-#include "taskAK5394A.h"
-
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
 #endif
@@ -162,6 +159,12 @@ void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
 //	lcd_q_init();
 //	lcd_q_clear();
 #endif
+
+
+#if defined(HW_GEN_DIN10)
+//	wm8805_init();				// Start up the WM8805 in a fairly dead mode
+#endif
+
 
 }
 
@@ -294,7 +297,6 @@ void device_mouse_hid_task(void)
     gotcmd = 0;												// No HID button change recorded yet
 
     uint8_t temp1, temp2, temp3;
-    int i;
     uint8_t muted = 1;										// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;								// Sample rate variables, no sample rate yet detected
 
@@ -339,16 +341,7 @@ void device_mouse_hid_task(void)
             else if (a == 'k') {
             	input_select = MOBO_SRC_TOSLINK;
 
-    			for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-    				spk_buffer_0[i] = 0;
-    				spk_buffer_1[i] = 0;
-    			}
-
-				// Start muted. NB: Locked will unmute
-            	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-	            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-            	else
-	            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+            	wm8805_mute();
             	muted = 1;
 
             	wm8805_input(input_select);					// Is it good to do this late???
@@ -380,7 +373,11 @@ void device_mouse_hid_task(void)
 
 				mobo_xo_select(current_freq.frequency, input_select);
 				mobo_led_select(current_freq.frequency, input_select);
+				wm8805_sleep();
             }
+
+            else if (a == 'S')
+				wm8805_sleep();
 
 
             // If you need the UART for something other than HID, this is where you interpret it!
@@ -427,30 +424,22 @@ void device_mouse_hid_task(void)
 				temp2 = wm8805_read_byte(0x0C);
 				wm8805_freq = mobo_srd();						// Record sample rate before trying to influence PLL
 
+				if ( ((temp2 & 0x40) != 0) || ((temp1 & 0x04) != 0) ){	// Unlock or TRANS_ERR
+//				if ( (temp2 & 0x40) != 0 ) {					// Unlock
+                	wm8805_mute();
+	            	muted = 1;
 
-				if ( (temp2 & 0x40) != 0 ) {					// Unlock
-					if (temp3 == WM8805_PLL_NORMAL)				// Invert 192 status and wait
+	            	if (temp3 == WM8805_PLL_NORMAL)				// Invert 192 status and wait
 						temp3 = WM8805_PLL_192;
 					else
 						temp3 = WM8805_PLL_NORMAL;
                 	wm8805_pll(temp3);							// FIX: implement some silencing function while this takes place!
 
-        			for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-        				spk_buffer_0[i] = 0;
-        				spk_buffer_1[i] = 0;
-        			}
-
-        			if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-		            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-	            	else
-		            	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-	            	muted = 1;
-
     				print_dbg_char('.');						// Indicate PLL tickling
-                	vTaskDelay(3000);							// Let WM8805 PLL settle for 30ms
+                	vTaskDelay(4000);							// Let WM8805 PLL settle for 40ms
 				}
 				else {											// Lock!
-	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs
+	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs, unmute later
     				print_dbg_char('*');						// Indicate accepted sample rate
 				}
 
@@ -498,16 +487,33 @@ void device_mouse_hid_task(void)
 
 
 			if (muted) {									// How fast can we unmute the WM8805?
-				temp2 = wm8805_read_byte(0x0C);
-				if ( (temp2 & 0x40) == 0 ) {				// Lock!
-					muted = 0;
-					wm8805_freq = mobo_srd();
-	            	mobo_led_select(wm8805_freq, input_select);	// Regardless of muting, indicate present sample rate
-					mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
+				temp2 = wm8805_read_byte(0x0C);				// SPDSTAT
+				if ( (temp2 & 0x40) == 0 ) {				// Lock
+
+					wm8805_freq = mobo_srd();				// Does WM8805 indicated freq. match detected freq?
+					if (  ((temp2 & 0x30) == 0x00) && ( (wm8805_freq == FREQ_176) || (wm8805_freq == FREQ_192) )   ) {
+						muted = 0;
+						print_dbg_char('3');
+					}
+
+					if (  ((temp2 & 0x30) == 0x10) && ( (wm8805_freq == FREQ_88) || (wm8805_freq == FREQ_96) )   ) {
+						muted = 0;
+						print_dbg_char('2');
+					}
+
+					if (  ((temp2 & 0x30) == 0x20) && ( (wm8805_freq == FREQ_44) || (wm8805_freq == FREQ_48) )   ) {
+						muted = 0;
+						print_dbg_char('1');
+					}
+
+					if (muted == 0)							// We had a match! Go ahead and unmute
+						wm8805_unmute();
+					else
+	                	vTaskDelay(4000);					// Let WM8805 PLL settle for 40ms
+
 				}
-				else {
-                	vTaskDelay(3000);						// Let WM8805 PLL settle for 30ms
-				}
+				else
+                	vTaskDelay(4000);						// Let WM8805 PLL settle for 40ms
 			}
 
 

@@ -17,6 +17,10 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
+// To access SPK_BUFFER_SIZE and clear audio buffer
+#include "taskAK5394A.h"
+#include "usb_specific_request.h"
+
 /*
 #include "rotary_encoder.h"
 #include "AD7991.h"
@@ -43,11 +47,9 @@ void wm8805_reset(uint8_t reset_type) {
 // Start up the WM8805
 void wm8805_init(void) {
 
-// Set up interrupts!
+
 
 	wm8805_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 RX0
-
-	wm8805_write_byte(0x1E, 0x06);	// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
 	wm8805_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ?
 
@@ -56,6 +58,18 @@ void wm8805_init(void) {
 	wm8805_write_byte(0x17, 0x00);	// 7:4 GPO1=INT_N (=SPIO_00, PX54), 3:0 GPO0=INT_N, that pin has 10kpull-down
 
 	wm8805_write_byte(0x1A, 0xC0);	// 7:4 GPO7=ZEROFLAG (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
+
+	wm8805_write_byte(0x0A, 0b11100100);	// REC_FREQ:mask (broken in wm!), DEEMPH:ignored, CPY:ignored, NON_AUDIO:active
+											// TRANS_ERR:active, CSUD:ignored, INVALID:active, UNLOCK:active
+
+	wm8805_read_byte(0x0B);			// Clear interrupts
+
+	wm8805_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL,
+}
+
+// Turn off wm8805, why can't we just run init again?
+void wm8805_sleep(void) {
+	wm8805_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL,
 }
 
 // Select input channel of the WM8805
@@ -109,6 +123,28 @@ void wm8805_pll(uint8_t pll_sel) {
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
 }
 
+// Mute the WM8805 output by means of other hardware
+void wm8805_mute(void) {
+	int i;
+
+	for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
+		spk_buffer_0[i] = 0;
+		spk_buffer_1[i] = 0;
+	}
+
+	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+	else
+    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+}
+
+// Un-mute the WM8805 output by means of other hardware
+void wm8805_unmute(void) {
+	U32 wm8805_freq;
+	wm8805_freq = mobo_srd();
+	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
+	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
+}
 
 // Write a single byte to WM8805
 uint8_t wm8805_write_byte(uint8_t int_adr, uint8_t int_data) {

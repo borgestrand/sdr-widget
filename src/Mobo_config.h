@@ -60,11 +60,20 @@ void wm8805_reset(uint8_t reset_type);
 // Start up the WM8805
 void wm8805_init(void);
 
+// Turn off wm8805, why can't we just run init again?
+void wm8805_sleep(void);
+
 // Select input channel of the WM8805
 void wm8805_input(uint8_t input_sel);
 
 // Select PLL setting for the WM8805
 void wm8805_pll(uint8_t pll_sel);
+
+// Mute the WM8805 output by means of other hardware
+void wm8805_mute(void);
+
+// Un-mute the WM8805 output by means of other hardware
+void wm8805_unmute(void);
 
 // Write a single byte to WM8805
 uint8_t wm8805_write_byte(uint8_t int_adr, uint8_t data);
