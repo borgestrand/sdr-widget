@@ -430,7 +430,7 @@ void device_mouse_hid_task(void)
 	            	muted = 1;
 
 	            	if (temp3 == WM8805_PLL_NORMAL)				// Invert 192 status and wait
-						temp3 = WM8805_PLL_192;
+						temp3 = WM8805_PLL_192;			// FIX: We need to have a better reason for doing this!
 					else
 						temp3 = WM8805_PLL_NORMAL;
                 	wm8805_pll(temp3);							// FIX: implement some silencing function while this takes place!
