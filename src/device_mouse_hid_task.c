@@ -508,8 +508,8 @@ void device_mouse_hid_task(void)
 
 					if (muted == 0)							// We had a match! Go ahead and unmute
 						wm8805_unmute();
-					else
-	                	vTaskDelay(4000);					// Let WM8805 PLL settle for 40ms
+
+					vTaskDelay(3000);						// Let WM8805 settle for 30ms
 
 				}
 				else
