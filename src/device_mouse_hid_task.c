@@ -420,23 +420,42 @@ void device_mouse_hid_task(void)
 
 			// Rolling interrupt and zero flag monitor
 			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
-				temp1 = wm8805_read_byte(0x0B);					// Record interrupt and spdif status registers
-				temp2 = wm8805_read_byte(0x0C);
+				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status
+				temp2 = wm8805_read_byte(0x0C);					// Record spdif status
 				wm8805_freq = mobo_srd();						// Record sample rate before trying to influence PLL
 
-				if ( ((temp2 & 0x40) != 0) || ((temp1 & 0x04) != 0) ){	// Unlock or TRANS_ERR
+				if ( ((temp2 & 0x40) != 0) || ((temp1 & 0x04) != 0) ){	// Interrupt caused by Unlock or TRANS_ERR
 //				if ( (temp2 & 0x40) != 0 ) {					// Unlock
                 	wm8805_mute();
-	            	muted = 1;
+                	muted = 1;									// In any case, we're muted from now on.
+                	vTaskDelay(4000);							// Let WM8805 PLL try to settle for 40ms
 
-	            	if (temp3 == WM8805_PLL_NORMAL)				// Invert 192 status and wait
-						temp3 = WM8805_PLL_192;			// FIX: We need to have a better reason for doing this!
-					else
-						temp3 = WM8805_PLL_NORMAL;
-                	wm8805_pll(temp3);							// FIX: implement some silencing function while this takes place!
+                	// Q: How long does unlock last while changing sample rates (not 192)? 10-20ms perhaps.
 
-    				print_dbg_char('.');						// Indicate PLL tickling
-                	vTaskDelay(4000);							// Let WM8805 PLL settle for 40ms
+                	temp2 = wm8805_read_byte(0x0C);				// Record spdif status
+    				if ((temp2 & 0x40) != 0) {					// Still no lock!
+    	            	if (temp3 == WM8805_PLL_NORMAL) {		// Invert 192 status and wait
+    						temp3 = WM8805_PLL_192;
+            				print_dbg_char('+');				// Indicate attempt to sort out mistaken PLL
+    	            	}
+    					else {
+    						temp3 = WM8805_PLL_NORMAL;
+            				print_dbg_char('-');				// Indicate attempt to sort out mistaken PLL
+    					}
+    				}
+                	else {										// Lock!
+                		wm8805_freq = mobo_srd();				// Record sample rate before trying to influence PLL
+                		if (wm8805_freq == FREQ_192) {
+    						temp3 = WM8805_PLL_192;
+            				print_dbg_char('=');				// Indicate attempt to sort out presumably stable PLL
+                		}
+                		else {
+    						temp3 = WM8805_PLL_NORMAL;
+            				print_dbg_char('/');				// Indicate attempt to sort out presumably stable PLL
+                		}
+                	}
+                	wm8805_pll(temp3);
+                	vTaskDelay(4000);							// Let WM8805 PLL try to settle for 40ms
 				}
 				else {											// Lock!
 	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs, unmute later
