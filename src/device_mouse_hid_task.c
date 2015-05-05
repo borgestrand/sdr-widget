@@ -296,9 +296,10 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
-    uint8_t temp1, temp2, temp3;
+    uint8_t temp1, temp2;
+    uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t muted = 1;										// Assume I2S output is muted
-    U32 wm8805_freq = FREQ_TIMEOUT;								// Sample rate variables, no sample rate yet detected
+    U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
 
     while (gotcmd == 0) {
 
@@ -428,37 +429,41 @@ void device_mouse_hid_task(void)
 //				if ( (temp2 & 0x40) != 0 ) {					// Unlock
                 	wm8805_mute();
                 	muted = 1;									// In any case, we're muted from now on.
-                	vTaskDelay(4000);							// Let WM8805 PLL try to settle for 40ms
+                	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 30ms
 
                 	// Q: How long does unlock last while changing sample rates (not 192)? 10-20ms perhaps.
 
                 	temp2 = wm8805_read_byte(0x0C);				// Record spdif status
     				if ((temp2 & 0x40) != 0) {					// Still no lock!
-    	            	if (temp3 == WM8805_PLL_NORMAL) {		// Invert 192 status and wait
-    						temp3 = WM8805_PLL_192;
+    	            	if (wm8805_pllmode == WM8805_PLL_NORMAL) {		// Invert 192 status and wait
+    						wm8805_pllmode = WM8805_PLL_192;
             				print_dbg_char('+');				// Indicate attempt to sort out mistaken PLL
     	            	}
     					else {
-    						temp3 = WM8805_PLL_NORMAL;
+    						wm8805_pllmode = WM8805_PLL_NORMAL;
             				print_dbg_char('-');				// Indicate attempt to sort out mistaken PLL
     					}
-    				}
-                	else {										// Lock!
+                    	wm8805_pll(wm8805_pllmode);
+                    	vTaskDelay(3000);						// Let WM8805 PLL try to settle for 30ms
+    				} // Still no lock
+                	else {										// Lock! Read presumably valid frequency and set PLL accordingly
                 		wm8805_freq = mobo_srd();				// Record sample rate before trying to influence PLL
-                		if (wm8805_freq == FREQ_192) {
-    						temp3 = WM8805_PLL_192;
+                		if ( (wm8805_freq == FREQ_192) && (wm8805_pllmode != WM8805_PLL_192) ){
+    						wm8805_pllmode = WM8805_PLL_192;
+    	                	wm8805_pll(wm8805_pllmode);
+    	                	vTaskDelay(3000);					// Let WM8805 PLL try to settle for 30ms
             				print_dbg_char('=');				// Indicate attempt to sort out presumably stable PLL
                 		}
-                		else {
-    						temp3 = WM8805_PLL_NORMAL;
+                		else if ( (wm8805_freq != FREQ_192) && (wm8805_pllmode == WM8805_PLL_192) ){
+    						wm8805_pllmode = WM8805_PLL_NORMAL;
+    	                	wm8805_pll(wm8805_pllmode);
+    	                	vTaskDelay(3000);					// Let WM8805 PLL try to settle for 30ms
             				print_dbg_char('/');				// Indicate attempt to sort out presumably stable PLL
                 		}
-                	}
-                	wm8805_pll(temp3);
-                	vTaskDelay(4000);							// Let WM8805 PLL try to settle for 40ms
-				}
-				else {											// Lock!
-	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs, unmute later
+                	} // Lock
+				} // Interrupt caused by unlock or TRANS_ERR
+				else {											// Lock, interrupt caused by something else
+//	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs, unmute later
     				print_dbg_char('*');						// Indicate accepted sample rate
 				}
 
@@ -527,12 +532,9 @@ void device_mouse_hid_task(void)
 
 					if (muted == 0)							// We had a match! Go ahead and unmute
 						wm8805_unmute();
-
-					vTaskDelay(3000);						// Let WM8805 settle for 30ms
-
 				}
 				else
-                	vTaskDelay(4000);						// Let WM8805 PLL settle for 40ms
+                	vTaskDelay(3000);						// Let WM8805 PLL settle for 30ms
 			}
 
 
