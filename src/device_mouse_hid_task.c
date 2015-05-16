@@ -340,13 +340,14 @@ void device_mouse_hid_task(void)
 
             // Select WM8805 channel
             else if (a == 'k') {
-            	input_select = MOBO_SRC_TOSLINK;
-
-            	wm8805_mute();
+            	wm8805_mute();								// Unmute and LED select after code detects lock
             	muted = 1;
 
+            	input_select = MOBO_SRC_TOSLINK;
             	wm8805_input(input_select);					// Is it good to do this late???
-            	wm8805_pll(WM8805_PLL_NORMAL);				// Is this a good assumption, or should we test its (not yet stable) freq?
+
+				wm8805_pllmode = WM8805_PLL_NORMAL;
+				wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
 
 				print_dbg_char('\n');
             }
@@ -443,24 +444,20 @@ void device_mouse_hid_task(void)
     						wm8805_pllmode = WM8805_PLL_NORMAL;
             				print_dbg_char('-');				// Indicate attempt to sort out mistaken PLL
     					}
-                    	wm8805_pll(wm8805_pllmode);
-                    	vTaskDelay(3000);						// Let WM8805 PLL try to settle for 30ms
     				} // Still no lock
                 	else {										// Lock! Read presumably valid frequency and set PLL accordingly
                 		wm8805_freq = mobo_srd();				// Record sample rate before trying to influence PLL
-                		if ( (wm8805_freq == FREQ_192) && (wm8805_pllmode != WM8805_PLL_192) ){
+                		if (wm8805_freq == FREQ_192) {
     						wm8805_pllmode = WM8805_PLL_192;
-    	                	wm8805_pll(wm8805_pllmode);
-    	                	vTaskDelay(3000);					// Let WM8805 PLL try to settle for 30ms
-            				print_dbg_char('=');				// Indicate attempt to sort out presumably stable PLL
+            				print_dbg_char('=');				// Indicate attempt to reset presumably stable PLL
                 		}
-                		else if ( (wm8805_freq != FREQ_192) && (wm8805_pllmode == WM8805_PLL_192) ){
+                		else {
     						wm8805_pllmode = WM8805_PLL_NORMAL;
-    	                	wm8805_pll(wm8805_pllmode);
-    	                	vTaskDelay(3000);					// Let WM8805 PLL try to settle for 30ms
-            				print_dbg_char('/');				// Indicate attempt to sort out presumably stable PLL
+            				print_dbg_char('/');				// Indicate attempt to reset presumably stable PLL
                 		}
                 	} // Lock
+                	wm8805_pll(wm8805_pllmode);					// Update PLL settings
+                	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 30ms
 				} // Interrupt caused by unlock or TRANS_ERR
 				else {											// Lock, interrupt caused by something else
 //	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs, unmute later
@@ -520,18 +517,20 @@ void device_mouse_hid_task(void)
 						print_dbg_char('3');
 					}
 
-					if (  ((temp2 & 0x30) == 0x10) && ( (wm8805_freq == FREQ_88) || (wm8805_freq == FREQ_96) )   ) {
+					else if (  ((temp2 & 0x30) == 0x10) && ( (wm8805_freq == FREQ_88) || (wm8805_freq == FREQ_96) )   ) {
 						muted = 0;
 						print_dbg_char('2');
 					}
 
-					if (  ((temp2 & 0x30) == 0x20) && ( (wm8805_freq == FREQ_44) || (wm8805_freq == FREQ_48) )   ) {
+					else if (  ((temp2 & 0x30) == 0x20) && ( (wm8805_freq == FREQ_44) || (wm8805_freq == FREQ_48) )   ) {
 						muted = 0;
 						print_dbg_char('1');
 					}
 
-					if (muted == 0)							// We had a match! Go ahead and unmute
-						wm8805_unmute();
+					if (muted == 0)	{						// We had a match!
+						wm8805_clkdiv();					// Configure MCLK division
+						wm8805_unmute();					// Unmute
+					}
 				}
 				else
                 	vTaskDelay(3000);						// Let WM8805 PLL settle for 30ms

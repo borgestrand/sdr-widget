@@ -69,7 +69,10 @@ void wm8805_input(uint8_t input_sel);
 // Select PLL setting for the WM8805
 void wm8805_pll(uint8_t pll_sel);
 
-// Mute the WM8805 output by means of other hardware
+// Set up WM8805 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
+void wm8805_clkdiv(void);
+
+	// Mute the WM8805 output by means of other hardware
 void wm8805_mute(void);
 
 // Un-mute the WM8805 output by means of other hardware

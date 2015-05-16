@@ -109,7 +109,7 @@ void wm8805_pll(uint8_t pll_sel) {
 	if (pll_sel == WM8805_PLL_NORMAL) {
 		wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 		wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
-		wm8805_write_byte(0x05, 0x36);	// 7:0 6:0, 5-0:PLL_K[21:16] 36
+		wm8805_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
 		wm8805_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
 	}
 
@@ -122,6 +122,20 @@ void wm8805_pll(uint8_t pll_sel) {
 	}
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
+}
+
+// Set up WM8805 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
+void wm8805_clkdiv(void) {
+	uint8_t temp;
+	temp = wm8805_read_byte(0x0C);		// Read SPDSTAT
+	temp = temp & 0x30;					// Consider bits 5-4
+
+	if ( (temp == 0x20) || (temp == 0x30) )	// 44.1, 48, or 32
+		wm8805_write_byte(0x07, 0x0C);	// 7:0 , 6:0, 5-4:MCLK=512fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+	else if (temp == 0x10)				// 88.2 or 96
+		wm8805_write_byte(0x07, 0x1C);	// 7:0 , 6:0, 5-4:MCLK=256fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+	else								// 176.4 or 192
+		wm8805_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
 }
 
 // Mute the WM8805 output by means of other hardware
