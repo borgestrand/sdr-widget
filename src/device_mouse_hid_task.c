@@ -408,7 +408,7 @@ void device_mouse_hid_task(void)
 
 
 			/* NEXT:
-			 * - Decide on which interrupts to enable
+			 * + Decide on which interrupts to enable
 			 * + Do some clever bits with silencing
 			 * + Prevent USB engine from going bonkers when playing on the WM (buffer zeros and send nominal sample rate...)
 			 * - Test code base on legacy hardware
@@ -424,9 +424,8 @@ void device_mouse_hid_task(void)
 			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
 				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status
 				temp2 = wm8805_read_byte(0x0C);					// Record spdif status
-				wm8805_freq = mobo_srd();						// Record sample rate before trying to influence PLL
 
-				if ( ((temp2 & 0x40) != 0) || ((temp1 & 0x04) != 0) ){	// Interrupt caused by Unlock or TRANS_ERR
+				if ( ((temp2 & 0x40) != 0) || ((temp1 & 0x08) != 0) ){	// Interrupt caused by Unlock or TRANS_ERR
 //				if ( (temp2 & 0x40) != 0 ) {					// Unlock
                 	wm8805_mute();
                 	muted = 1;									// In any case, we're muted from now on.
@@ -456,7 +455,7 @@ void device_mouse_hid_task(void)
             				print_dbg_char('/');				// Indicate attempt to reset presumably stable PLL
                 		}
                 	} // Lock
-                	wm8805_pll(wm8805_pllmode);					// Update PLL settings
+                	wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
                 	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 30ms
 				} // Interrupt caused by unlock or TRANS_ERR
 				else {											// Lock, interrupt caused by something else
@@ -475,7 +474,8 @@ void device_mouse_hid_task(void)
 				print_dbg_char('R');
 				print_dbg_char('=');
 
-				switch (wm8805_freq) {								// Print detected sample rate
+				wm8805_freq = mobo_srd();						// Print detected sample rate
+				switch (wm8805_freq) {
 					case FREQ_32:
 						print_dbg_char_hex(0x32);
 						break;
@@ -509,29 +509,52 @@ void device_mouse_hid_task(void)
 
 			if (muted) {									// How fast can we unmute the WM8805?
 				temp2 = wm8805_read_byte(0x0C);				// SPDSTAT
+
 				if ( (temp2 & 0x40) == 0 ) {				// Lock
 
 					wm8805_freq = mobo_srd();				// Does WM8805 indicated freq. match detected freq?
-					if (  ((temp2 & 0x30) == 0x00) && ( (wm8805_freq == FREQ_176) || (wm8805_freq == FREQ_192) )   ) {
-						muted = 0;
-						print_dbg_char('3');
-					}
 
-					else if (  ((temp2 & 0x30) == 0x10) && ( (wm8805_freq == FREQ_88) || (wm8805_freq == FREQ_96) )   ) {
-						muted = 0;
-						print_dbg_char('2');
-					}
+					// If spdif frequency matches PLL setting and everything else lines up, go for unmute!
+					if (  ( (wm8805_pllmode == WM8805_PLL_192)    && (wm8805_freq == FREQ_192) )  ||
+						  ( (wm8805_pllmode == WM8805_PLL_NORMAL) && (wm8805_freq != FREQ_192) )  ) {
 
-					else if (  ((temp2 & 0x30) == 0x20) && ( (wm8805_freq == FREQ_44) || (wm8805_freq == FREQ_48) )   ) {
-						muted = 0;
-						print_dbg_char('1');
-					}
+						temp2 = temp2 & 0x30;				// We consider indicated frequency bits below
 
-					if (muted == 0)	{						// We had a match!
-						wm8805_clkdiv();					// Configure MCLK division
-						wm8805_unmute();					// Unmute
+						if (  (temp2 == 0x00) && ( (wm8805_freq == FREQ_176) || (wm8805_freq == FREQ_192) )   ) {
+							muted = 0;
+							print_dbg_char('3');
+						}
+
+						else if (  (temp2 == 0x10) && ( (wm8805_freq == FREQ_88) || (wm8805_freq == FREQ_96) )   ) {
+							muted = 0;
+							print_dbg_char('2');
+						}
+
+						else if (  (temp2 == 0x20) && ( (wm8805_freq == FREQ_44) || (wm8805_freq == FREQ_48) )   ) {
+							muted = 0;
+							print_dbg_char('1');
+						}
+
+						if (muted == 0)	{					// We had a match!
+							wm8805_clkdiv();				// Configure MCLK division
+							wm8805_unmute();				// Unmute
+						}
 					}
-				}
+					// Despite lock there is no match with PLL setting, have a hard talk with PLL and wait for new settling.
+					else {
+						if ( (wm8805_pllmode == WM8805_PLL_192)    && (wm8805_freq != FREQ_192) ) {
+							wm8805_pllmode = WM8805_PLL_NORMAL;
+							print_dbg_char('b');			// Indicate attempt to override previous PLL logic
+							wm8805_pll(wm8805_pllmode);		// Update PLL settings at any sample rate change!
+						}
+						else if ( (wm8805_pllmode == WM8805_PLL_NORMAL)    && (wm8805_freq == FREQ_192) ) {
+							wm8805_pllmode = WM8805_PLL_192;
+							print_dbg_char('v');			// Indicate attempt to override previous PLL logic
+							wm8805_pll(wm8805_pllmode);		// Update PLL settings at any sample rate change!
+						}
+	                	vTaskDelay(3000);					// Let WM8805 PLL settle for 30ms
+					} // Lock but unmatched PLL
+				} // Lock
 				else
                 	vTaskDelay(3000);						// Let WM8805 PLL settle for 30ms
 			}
