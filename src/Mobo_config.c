@@ -159,6 +159,7 @@ void wm8805_unmute(void) {
 	wm8805_freq = mobo_srd();
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
+	print_dbg_char('L');						// Loud!
 }
 
 // Write a single byte to WM8805
