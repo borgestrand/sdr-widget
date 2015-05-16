@@ -161,7 +161,7 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 
 void uac1_device_audio_task(void *pvParameters)
 {
-	Bool playerStarted = FALSE;
+//	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	static U32  time=0;
 	static Bool startup=TRUE;
 	int i;

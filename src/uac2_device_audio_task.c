@@ -155,7 +155,7 @@ void uac2_device_audio_task(void *pvParameters)
 {
 	static U32  time=0;
 	static Bool startup=TRUE;
-	Bool playerStarted = FALSE;
+//	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i;
 	U16 num_samples, num_remaining, gap;
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert

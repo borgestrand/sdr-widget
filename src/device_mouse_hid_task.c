@@ -419,6 +419,34 @@ void device_mouse_hid_task(void)
 			 * - Long-term testing
 			 */
 
+			// FIX: a very crude audio-select between USB and TOSLINK
+			if ( (!playerStarted) && (input_select != MOBO_SRC_TOSLINK) ) {	// Consider SPDIF!
+            	wm8805_mute();								// Unmute and LED select after code detects lock
+            	muted = 1;
+
+            	input_select = MOBO_SRC_TOSLINK;
+            	wm8805_input(input_select);					// Is it good to do this late???
+
+				wm8805_pllmode = WM8805_PLL_NORMAL;
+				wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
+
+				print_dbg_char('k');
+				print_dbg_char('\n');
+            }
+			else if ( (playerStarted) && (input_select == MOBO_SRC_TOSLINK) ) {	// Consider SPDIF!
+            	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+            		input_select = MOBO_SRC_UAC1;
+            	else
+            		input_select = MOBO_SRC_UAC2;
+
+				mobo_xo_select(current_freq.frequency, input_select);
+				mobo_led_select(current_freq.frequency, input_select);
+				wm8805_sleep();
+
+				print_dbg_char('U');
+				print_dbg_char('\n');
+			}
+
 
 			// Rolling interrupt and zero flag monitor
 			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
