@@ -296,7 +296,7 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
-    uint8_t temp1, temp2, temp3;
+    uint8_t temp1, temp2;
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t muted = 1;										// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
@@ -505,23 +505,7 @@ void device_mouse_hid_task(void)
 			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
 				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
 
-				temp3 = 255;
-				while (temp3) {
-					temp2 = (wm8805_read_byte(0x0C) & 0x40) ;	// Record UNLOCK (1) or lock (0)
-					if (temp2 != 0)								// ONE detection of UNLOCK==1 is enough,
-						temp3 = 0;								// but detection of UNLOCK==0 takes many polls to be
-					else										// reasonably sure we really have lock
-						temp3--;
-				}
-				if (temp2 == 0) {								// Qualified lock
-					wm8805_clkdiv();							// Configure MCLK division
-					if (muted) {
-						wm8805_unmute();
-						muted = 0;
-					}
-					print_dbg_char('+');
-				}
-				else {											// Unlock
+				if (wm8805_unlocked()) {						// Unlock
 					if (!muted) {
 						wm8805_mute();
 						muted = 1;								// In any case, we're muted from now on.
@@ -627,6 +611,17 @@ void device_mouse_hid_task(void)
 
             	print_dbg_char('\n');
 			}	// Done handling interrupt
+
+
+			if (muted) {										// Try to unmute with qualified UNLOCK
+				if (!wm8805_unlocked()) {						// Qualified lock
+					wm8805_clkdiv();							// Configure MCLK division
+					wm8805_unmute();
+					muted = 0;
+					print_dbg_char('!');
+				}
+			}
+
 
 /*
 			if (muted) {									// How fast can we unmute the WM8805?

@@ -147,6 +147,22 @@ void wm8805_clkdiv(void) {
 		wm8805_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
 }
 
+// Is WM8805 out of lock?
+uint8_t wm8805_unlocked(void) {
+	uint8_t temp2;						// Record SPDIF RX status
+	uint8_t temp3 = 255;				// Counter used to qualify lock
+
+	while (temp3) {
+		temp2 = (wm8805_read_byte(0x0C) & 0x40) ;	// Record UNLOCK (1) or lock (0)
+		if (temp2 != 0)					// ONE detection of UNLOCK==1 is enough,
+			return 1;					// UNLOCKED
+		else							// reasonably sure we really have lock
+			temp3--;
+	}
+	return 0;							// Not unlocked, i.e. LOCKED!
+}
+
+
 // Mute the WM8805 output by means of other hardware
 void wm8805_mute(void) {
 	int i;
