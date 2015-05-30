@@ -536,7 +536,7 @@ void device_mouse_hid_task(void)
 						wm8805_pllmode = WM8805_PLL_NORMAL;
 					}
                 	wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-                	vTaskDelay(1000);							// Let WM8805 PLL try to settle for 30ms
+                	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 30ms
 				}
 
 
@@ -582,6 +582,7 @@ void device_mouse_hid_task(void)
 				}
 
 */
+				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
 				temp2 = wm8805_read_byte(0x0C);					// Record spdif status
 				wm8805_freq = mobo_srd();						// Print detected sample rate
 
