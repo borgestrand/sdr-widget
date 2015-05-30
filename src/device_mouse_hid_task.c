@@ -296,7 +296,7 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
-    uint8_t temp1, temp2;
+    uint8_t temp1, temp2, temp3;
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t muted = 1;										// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
@@ -332,15 +332,21 @@ void device_mouse_hid_task(void)
             	print_dbg_char('\n');
 			}
 
+            // Debugging WM8805 single read, only valid for "read only" registers, and then with a twist...
+            else if (a == 'r') {
+            	print_dbg_char_hex( wm8805_read_byte(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT)) );
+            	print_dbg_char('\n');
+			}
+
             // Start up the WM8805
             else if (a == 'z') {
             	wm8805_init();
 				print_dbg_char('\n');
             }
 
-            // Select WM8805 channel
-            else if (a == 'k') {
-            	wm8805_mute();								// Unmute and LED select after code detects lock
+            // Select WM8805 as I2S source, for now use only TOSLINK
+            else if (a == 'W') {
+            	wm8805_mute();								// Unmute and LED select will come after code detects lock
             	muted = 1;
 
             	input_select = MOBO_SRC_TOSLINK;
@@ -352,17 +358,11 @@ void device_mouse_hid_task(void)
 				print_dbg_char('\n');
             }
 
-            // Debugging WM8805 single read, only valid for "read only" registers, and then with a twist...
-            else if (a == 'r') {
-            	print_dbg_char_hex( wm8805_read_byte(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT)) );
-            	print_dbg_char('\n');
-			}
-
-            // Start reset of WM8805
+            // Start hardware reset of WM8805
             else if (a == 's')
             	wm8805_reset(WM8805_RESET_START);
 
-            // End reset of WM8805
+            // End hardware reset of WM8805
             else if (a == 't')
             	wm8805_reset(WM8805_RESET_END);
 
@@ -381,6 +381,59 @@ void device_mouse_hid_task(void)
             else if (a == 'S')
 				wm8805_sleep();
 
+            else if (a == 'x') {
+				wm8805_freq = mobo_srd();						// Print detected sample rate
+				switch (wm8805_freq) {
+					case FREQ_32:
+						print_dbg_char_hex(0x32);
+						break;
+					case FREQ_44:
+						print_dbg_char_hex(0x44);
+						break;
+					case FREQ_48:
+						print_dbg_char_hex(0x48);
+						break;
+					case FREQ_88:
+						print_dbg_char_hex(0x88);
+						break;
+					case FREQ_96:
+						print_dbg_char_hex(0x96);
+						break;
+					case FREQ_176:
+						print_dbg_char_hex(0x17);
+						break;
+					case FREQ_192:
+						print_dbg_char_hex(0x19);
+						break;
+					default:
+						print_dbg_char_hex(0x00);
+						break;
+				}
+				wm8805_clkdiv();				// Configure MCLK division
+				print_dbg_char('\n');
+            }
+
+            else if (a == 'm') {
+				wm8805_unmute();
+				print_dbg_char('\n');
+            }
+
+            else if (a == 'M') {
+				wm8805_mute();
+				print_dbg_char('\n');
+            }
+
+            else if (a == 'p') {
+				wm8805_pllmode = WM8805_PLL_NORMAL;
+				wm8805_pll(wm8805_pllmode);
+				print_dbg_char('\n');
+            }
+
+            else if (a == 'P') {
+				wm8805_pllmode = WM8805_PLL_192;
+				wm8805_pll(wm8805_pllmode);
+				print_dbg_char('\n');
+            }
 
             // If you need the UART for something other than HID, this is where you interpret it!
 
@@ -430,7 +483,7 @@ void device_mouse_hid_task(void)
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 				wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
 
-				print_dbg_char('k');
+				print_dbg_char('W');
 				print_dbg_char('\n');
             }
 			else if ( (playerStarted) && (input_select == MOBO_SRC_TOSLINK) ) {	// Consider SPDIF!
@@ -450,9 +503,46 @@ void device_mouse_hid_task(void)
 
 			// Rolling interrupt and zero flag monitor
 			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
-				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status
-				temp2 = wm8805_read_byte(0x0C);					// Record spdif status
+				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
 
+				temp3 = 255;
+				while (temp3) {
+					temp2 = (wm8805_read_byte(0x0C) & 0x40) ;	// Record UNLOCK (1) or lock (0)
+					if (temp2 != 0)								// ONE detection of UNLOCK==1 is enough,
+						temp3 = 0;								// but detection of UNLOCK==0 takes many polls to be
+					else										// reasonably sure we really have lock
+						temp3--;
+				}
+				if (temp2 == 0) {								// Qualified lock
+					wm8805_clkdiv();							// Configure MCLK division
+					if (muted) {
+						wm8805_unmute();
+						muted = 0;
+					}
+					print_dbg_char('+');
+				}
+				else {											// Unlock
+					if (!muted) {
+						wm8805_mute();
+						muted = 1;								// In any case, we're muted from now on.
+					}
+
+                	if (mobo_srd() == FREQ_192) {
+						print_dbg_char('P');
+						wm8805_pllmode = WM8805_PLL_192;
+					}
+					else {
+						print_dbg_char('p');
+						wm8805_pllmode = WM8805_PLL_NORMAL;
+					}
+                	wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+                	vTaskDelay(1000);							// Let WM8805 PLL try to settle for 30ms
+				}
+
+
+
+
+/*
 				if ( ((temp2 & 0x40) != 0) || ((temp1 & 0x08) != 0) ){	// Interrupt caused by Unlock or TRANS_ERR
 //				if ( (temp2 & 0x40) != 0 ) {					// Unlock
                 	wm8805_mute();
@@ -491,18 +581,21 @@ void device_mouse_hid_task(void)
     				print_dbg_char('*');						// Indicate accepted sample rate
 				}
 
+*/
+				temp2 = wm8805_read_byte(0x0C);					// Record spdif status
+				wm8805_freq = mobo_srd();						// Print detected sample rate
+
 				print_dbg_char('I');							// Print recorded interrupt status
-				print_dbg_char('=');
-				print_dbg_char_hex(temp1);						// INTSTAT
+				print_dbg_char(':');
+				print_dbg_char_bin(temp1);						// INTSTAT
 				print_dbg_char(' ');
 				print_dbg_char('S');
-				print_dbg_char('=');
-				print_dbg_char_hex(temp2);						// SPDSTAT
+				print_dbg_char(':');
+				print_dbg_char_bin(temp2);						// SPDSTAT
 				print_dbg_char(' ');
-				print_dbg_char('R');
-				print_dbg_char('=');
+				print_dbg_char('x');
+				print_dbg_char(':');
 
-				wm8805_freq = mobo_srd();						// Print detected sample rate
 				switch (wm8805_freq) {
 					case FREQ_32:
 						print_dbg_char_hex(0x32);
@@ -534,7 +627,7 @@ void device_mouse_hid_task(void)
             	print_dbg_char('\n');
 			}	// Done handling interrupt
 
-
+/*
 			if (muted) {									// How fast can we unmute the WM8805?
 				temp2 = wm8805_read_byte(0x0C);				// SPDSTAT
 
@@ -586,6 +679,8 @@ void device_mouse_hid_task(void)
 				else
                 	vTaskDelay(3000);						// Let WM8805 PLL settle for 30ms
 			}
+*/
+
 
 
 /*			if (gpio_get_pin_value(WM8805_ZEROFLAG_PIN) != 0) {	// Will be useful for automatic channel swap....

@@ -271,6 +271,7 @@ extern char read_dbg_char_hex(char echo, char rtos_delay); // char or int? exter
  */
 void print_dbg_char_char(int c);
 
+
 /////////////////////////////////////////////////////
 // BSB 20110128-20120717 End of insertion
 /////////////////////////////////////////////////////
@@ -312,6 +313,12 @@ extern void print_dbg_ulong(unsigned long n);
  * \param n The char to print.
  */
 extern void print_dbg_char_hex(unsigned char n);
+
+/*! \brief Writes a character (not passed as pointer) as binary to DBG_USART
+ *
+ * \param c is an int
+ */
+extern void print_dbg_char_bin(unsigned char n);
 
 /*! \brief Prints a short integer to DBG_USART in an hexadecimal representation.
  *

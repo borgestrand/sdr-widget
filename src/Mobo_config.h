@@ -43,6 +43,7 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k
 #define WM8805_PLL_NORMAL	0					// PLL mode is normal 32-96 and 176.4ksps
 #define WM8805_PLL_192		1					// PLL mode is for 192ksps
+#define WM8805_PLL_EXP		2					// Experimental PLL mode
 
 // Frequency definitions, move and change to make compatible with USB system!
 #define	FREQ_TIMEOUT		0x00

@@ -58,7 +58,8 @@ void wm8805_init(void) {
 	wm8805_write_byte(0x17, 0x00);	// 7:4 GPO1=INT_N (=SPIO_00, PX54), 3:0 GPO0=INT_N, that pin has 10kpull-down
 
 //	wm8805_write_byte(0x1A, 0xC0);	// 7:4 GPO7=ZEROFLAG (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
-	wm8805_write_byte(0x1A, 0x70);	// 7:4 GPO7=UNLOCK (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
+//	wm8805_write_byte(0x1A, 0x70);	// 7:4 GPO7=UNLOCK (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
+	wm8805_write_byte(0x1A, 0x40);	// 7:4 GPO7=TRANS_ERR (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
 
 	wm8805_write_byte(0x0A, 0b11100100);	// REC_FREQ:mask (broken in wm!), DEEMPH:ignored, CPY:ignored, NON_AUDIO:active
 											// TRANS_ERR:active, CSUD:ignored, INVALID:active, UNLOCK:active
@@ -87,9 +88,9 @@ void wm8805_input(uint8_t input_sel) {
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
 	if (input_sel == MOBO_SRC_TOSLINK)
-		wm8805_write_byte(0x08, 0x74);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
+		wm8805_write_byte(0x08, 0x34);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
  	else if (input_sel == MOBO_SRC_SPDIF)
-		wm8805_write_byte(0x08, 0x75);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:5 RX5
+		wm8805_write_byte(0x08, 0x35);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:5 RX5
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
 }
@@ -114,13 +115,21 @@ void wm8805_pll(uint8_t pll_sel) {
 	}
 
 	// Special PLL setup for 192
-	else if (pll_sel == WM8805_PLL_192) {
+	else if (pll_sel == WM8805_PLL_192) {	// PLL setting 8.192
 		wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
 		wm8805_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
 		wm8805_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
 	}
 
+/* // Bad news: unified PLL setting doesn't work!
+	else if (pll_sel == WM8805_PLL_EXP) { 	// Experimental PLL setting 8.0247 failed 192, 8.1 failed 176 and 192. Forget it!
+		wm8805_write_byte(0x03, 0x66);	// PLL_K[7:0]
+		wm8805_write_byte(0x04, 0x66);	// PLL_K[15:8]
+		wm8805_write_byte(0x05, 0x06);	// 7:0,  6:0, 5-0:PLL_K[21:16]
+		wm8805_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
+	}
+*/
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
 }
 
@@ -151,6 +160,7 @@ void wm8805_mute(void) {
     	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 	else
     	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+	print_dbg_char('l');						// Not-loud!
 }
 
 // Un-mute the WM8805 output by means of other hardware

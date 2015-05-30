@@ -228,6 +228,17 @@ void print_dbg_char_hex(unsigned char n)
   print_char_hex(DBG_USART, n);
 }
 
+void print_dbg_char_bin(unsigned char n)
+{
+	unsigned char index = 0x80;
+	while (index) {
+		if (n & index)
+			print_char(DBG_USART, '1');
+		else
+			print_char(DBG_USART, '0');
+		index = index >> 1;
+	}
+}
 
 void print_dbg_short_hex(unsigned short n)
 {
