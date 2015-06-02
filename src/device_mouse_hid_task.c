@@ -300,6 +300,7 @@ void device_mouse_hid_task(void)
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t muted = 1;										// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
+    uint16_t zerotimer = 0;									// Countdown for silence
 
     while (gotcmd == 0) {
 
@@ -473,32 +474,61 @@ void device_mouse_hid_task(void)
 			 */
 
 			// FIX: a very crude audio-select between USB and TOSLINK
-			if ( (!playerStarted) && (input_select != MOBO_SRC_TOSLINK) ) {	// Consider SPDIF!
+//			if ( (!playerStarted) && (input_select != MOBO_SRC_TOSLINK) ) {	// Consider SPDIF!
+			if ( (!playerStarted) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
             	wm8805_mute();								// Unmute and LED select after code detects lock
             	muted = 1;
 
-            	input_select = MOBO_SRC_TOSLINK;
+            	input_select = MOBO_SRC_TOSLINK;			// TOSLINK is tried first if USB is dead.
             	wm8805_input(input_select);					// Is it good to do this late???
-
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 				wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
 
 				print_dbg_char('W');
 				print_dbg_char('\n');
             }
-			else if ( (playerStarted) && (input_select == MOBO_SRC_TOSLINK) ) {	// Consider SPDIF!
+			else if ( (playerStarted) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF) ) ) {
             	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
             		input_select = MOBO_SRC_UAC1;
             	else
             		input_select = MOBO_SRC_UAC2;
 
-				mobo_xo_select(current_freq.frequency, input_select);
+				mobo_xo_select(current_freq.frequency, input_select);	// Immediate indication, not as part of wm8805_unmute()
 				mobo_led_select(current_freq.frequency, input_select);
 				wm8805_sleep();
 
 				print_dbg_char('U');
 				print_dbg_char('\n');
 			}
+
+
+
+			if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
+				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
+					zerotimer += 1;								// The poll intervals are crap, need thorough adjustment!
+				else
+					zerotimer += 100;
+
+				if (zerotimer > 300) {							// Let's adjust this delay...
+					zerotimer = 0;
+					if (input_select == MOBO_SRC_TOSLINK) {		// Toggle WM8805 source. Later, unmute will provide indication
+						input_select = MOBO_SRC_SPDIF;
+						print_dbg_char('c');
+						print_dbg_char('\n');
+					}
+					else if (input_select == MOBO_SRC_SPDIF) {
+						input_select = MOBO_SRC_TOSLINK;
+						print_dbg_char('o');
+						print_dbg_char('\n');
+					}
+
+	            	wm8805_input(input_select);					// Is it good to do this late???
+					wm8805_pllmode = WM8805_PLL_NORMAL;
+					wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
+				}
+			}
+			else
+				zerotimer = 0;									// Not silent and in lock!
 
 
 			// Rolling interrupt and zero flag monitor
@@ -524,48 +554,7 @@ void device_mouse_hid_task(void)
 				}
 
 
-
-
-/*
-				if ( ((temp2 & 0x40) != 0) || ((temp1 & 0x08) != 0) ){	// Interrupt caused by Unlock or TRANS_ERR
-//				if ( (temp2 & 0x40) != 0 ) {					// Unlock
-                	wm8805_mute();
-                	muted = 1;									// In any case, we're muted from now on.
-                	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 30ms
-
-                	// Q: How long does unlock last while changing sample rates (not 192)? 10-20ms perhaps.
-
-                	temp2 = wm8805_read_byte(0x0C);				// Record spdif status
-    				if ((temp2 & 0x40) != 0) {					// Still no lock!
-    	            	if (wm8805_pllmode == WM8805_PLL_NORMAL) {		// Invert 192 status and wait
-    						wm8805_pllmode = WM8805_PLL_192;
-            				print_dbg_char('+');				// Indicate attempt to sort out mistaken PLL
-    	            	}
-    					else {
-    						wm8805_pllmode = WM8805_PLL_NORMAL;
-            				print_dbg_char('-');				// Indicate attempt to sort out mistaken PLL
-    					}
-    				} // Still no lock
-                	else {										// Lock! Read presumably valid frequency and set PLL accordingly
-                		wm8805_freq = mobo_srd();				// Record sample rate before trying to influence PLL
-                		if (wm8805_freq == FREQ_192) {
-    						wm8805_pllmode = WM8805_PLL_192;
-            				print_dbg_char('=');				// Indicate attempt to reset presumably stable PLL
-                		}
-                		else {
-    						wm8805_pllmode = WM8805_PLL_NORMAL;
-            				print_dbg_char('/');				// Indicate attempt to reset presumably stable PLL
-                		}
-                	} // Lock
-                	wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-                	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 30ms
-				} // Interrupt caused by unlock or TRANS_ERR
-				else {											// Lock, interrupt caused by something else
-//	            	mobo_led_select(wm8805_freq, input_select);	// Indicate sample rate on LEDs, unmute later
-    				print_dbg_char('*');						// Indicate accepted sample rate
-				}
-
-*/
+				// Interrupt reporting
 				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
 				temp2 = wm8805_read_byte(0x0C);					// Record spdif status
 				wm8805_freq = mobo_srd();						// Print detected sample rate
@@ -604,11 +593,6 @@ void device_mouse_hid_task(void)
 						print_dbg_char_hex(0x19);
 						break;
 				}
-
-//				print_dbg_char_hex( (uint8_t)(temp16>>8));		// Sample rate, FIX: nomenclature!
-//				print_dbg_char_hex( (uint8_t)temp16);
-
-
             	print_dbg_char('\n');
 			}	// Done handling interrupt
 

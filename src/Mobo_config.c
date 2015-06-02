@@ -57,9 +57,9 @@ void wm8805_init(void) {
 
 	wm8805_write_byte(0x17, 0x00);	// 7:4 GPO1=INT_N (=SPIO_00, PX54), 3:0 GPO0=INT_N, that pin has 10kpull-down
 
-//	wm8805_write_byte(0x1A, 0xC0);	// 7:4 GPO7=ZEROFLAG (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
+	wm8805_write_byte(0x1A, 0xC0);	// 7:4 GPO7=ZEROFLAG (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
 //	wm8805_write_byte(0x1A, 0x70);	// 7:4 GPO7=UNLOCK (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
-	wm8805_write_byte(0x1A, 0x40);	// 7:4 GPO7=TRANS_ERR (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
+//	wm8805_write_byte(0x1A, 0x40);	// 7:4 GPO7=TRANS_ERR (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
 
 	wm8805_write_byte(0x0A, 0b11100100);	// REC_FREQ:mask (broken in wm!), DEEMPH:ignored, CPY:ignored, NON_AUDIO:active
 											// TRANS_ERR:active, CSUD:ignored, INVALID:active, UNLOCK:active
@@ -216,7 +216,7 @@ uint8_t wm8805_read_byte(uint8_t int_adr) {
  * + Test USB music playback with SRD running continuously
  * - Test codebase with mkII hardware
  * + Get hardware capable of generating all SPDIF sample rates
- * - Make state machine for WM8805 sample rate detection
+ * + Make state machine for WM8805 sample rate detection
  * - Make state machine for source selection
  * - Figure out ADC interface
  * - Make silence detector (use 1024 silent block detector in WM?)
