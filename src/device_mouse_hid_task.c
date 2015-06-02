@@ -505,8 +505,8 @@ void device_mouse_hid_task(void)
 
 			if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
 				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
-					zerotimer += 1;								// The poll intervals are crap, need thorough adjustment!
-				else
+					zerotimer += 3;								// The poll intervals are crap, need thorough adjustment!
+				else							// 1: c is slow
 					zerotimer += 100;
 
 				if (zerotimer > 300) {							// Let's adjust this delay...
