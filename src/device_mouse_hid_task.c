@@ -297,6 +297,7 @@ void device_mouse_hid_task(void)
     gotcmd = 0;												// No HID button change recorded yet
 
     uint8_t temp1, temp2;
+    uint8_t input_select_wm8805_prev = MOBO_SRC_NONE;
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t muted = 1;										// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
@@ -479,16 +480,21 @@ void device_mouse_hid_task(void)
             	wm8805_mute();								// Unmute and LED select after code detects lock
             	muted = 1;
 
-            	input_select = MOBO_SRC_TOSLINK;			// TOSLINK is tried first if USB is dead.
-            	wm8805_input(input_select);					// Is it good to do this late???
+            	if (input_select_wm8805_prev == MOBO_SRC_NONE)	// initial condition
+                	input_select = MOBO_SRC_TOSLINK;			// TOSLINK is tried first if USB is dead.
+            	else
+            		input_select = input_select_wm8805_prev;	// Previously used digital input is tried first if USB is dead.
+            	wm8805_input(input_select);						// Is it good to do this late???
 				wm8805_pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
+				wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
 
 				print_dbg_char('W');
 				print_dbg_char('\n');
             }
 			else if ( (playerStarted) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF) ) ) {
-            	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+				input_select_wm8805_prev = input_select;		// Make backup for when USB is stopped again
+
+				if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
             		input_select = MOBO_SRC_UAC1;
             	else
             		input_select = MOBO_SRC_UAC2;
@@ -505,11 +511,11 @@ void device_mouse_hid_task(void)
 
 			if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
 				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
-					zerotimer += 3;								// The poll intervals are crap, need thorough adjustment!
-				else							// 1: c is slow
+					zerotimer += 10;								// The poll intervals are crap, need thorough adjustment!
+				else
 					zerotimer += 100;
 
-				if (zerotimer > 300) {							// Let's adjust this delay...
+				if (zerotimer > 1000) {							// Let's adjust this delay...
 					zerotimer = 0;
 					if (input_select == MOBO_SRC_TOSLINK) {		// Toggle WM8805 source. Later, unmute will provide indication
 						input_select = MOBO_SRC_SPDIF;
