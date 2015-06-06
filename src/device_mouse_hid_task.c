@@ -556,7 +556,7 @@ void device_mouse_hid_task(void)
 						wm8805_pllmode = WM8805_PLL_NORMAL;
 					}
                 	wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-                	vTaskDelay(1000);							// Let WM8805 PLL try to settle for 10ms
+                	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 10ms
 				}
 
 
