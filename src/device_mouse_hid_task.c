@@ -299,7 +299,7 @@ void device_mouse_hid_task(void)
     uint8_t temp1, temp2;
     uint8_t input_select_wm8805_prev = MOBO_SRC_NONE;
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
-    uint8_t muted = 1;										// Assume I2S output is muted
+    uint8_t wm8805_muted = 1;										// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
     uint16_t zerotimer = 0;									// Countdown for silence
 
@@ -349,7 +349,7 @@ void device_mouse_hid_task(void)
             // Select WM8805 as I2S source, for now use only TOSLINK
             else if (a == 'W') {
             	wm8805_mute();								// Unmute and LED select will come after code detects lock
-            	muted = 1;
+            	wm8805_muted = 1;
 
             	input_select = MOBO_SRC_TOSLINK;
             	wm8805_input(input_select);					// Is it good to do this late???
@@ -468,22 +468,24 @@ void device_mouse_hid_task(void)
 			 * + Prevent USB engine from going bonkers when playing on the WM (buffer zeros and send nominal sample rate...)
 			 * - Test code base on legacy hardware
 			 * - Check if WM is really 24 bits
-			 * - Test SPDIF
+			 * + Test SPDIF
 			 * - Structure code away from mobo_config.c/h
 			 * - Think about some automatic silence detecting software!
 			 * - Long-term testing
 			 */
 
 			// FIX: a very crude audio-select between USB and TOSLINK
-//			if ( (!playerStarted) && (input_select != MOBO_SRC_TOSLINK) ) {	// Consider SPDIF!
-			if ( (!playerStarted) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
-            	wm8805_mute();								// Unmute and LED select after code detects lock
-            	muted = 1;
+			// USB is halted, give control to WM8805 according to last used source. FIX: Consider USB silence!
+			if ( (playerStarted == PS_USB_OFF) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
+            	wm8805_mute();									// Unmute and LED select after code detects lock
+            	wm8805_muted = 1;
 
             	if (input_select_wm8805_prev == MOBO_SRC_NONE)	// initial condition
                 	input_select = MOBO_SRC_TOSLINK;			// TOSLINK is tried first if USB is dead.
             	else
             		input_select = input_select_wm8805_prev;	// Previously used digital input is tried first if USB is dead.
+
+            	wm8805_init();									// WM8805 was probably put to sleep before this. Hence re-init
             	wm8805_input(input_select);						// Is it good to do this late???
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 				wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
@@ -491,7 +493,8 @@ void device_mouse_hid_task(void)
 				print_dbg_char('W');
 				print_dbg_char('\n');
             }
-			else if ( (playerStarted) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF) ) ) {
+			// USB is starting up, give control to USB. FIX: consider USB silence!
+			else if ( (playerStarted == PS_USB_STARTING) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF) ) ) {
 				input_select_wm8805_prev = input_select;		// Make backup for when USB is stopped again
 
 				if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
@@ -502,16 +505,17 @@ void device_mouse_hid_task(void)
 				mobo_xo_select(current_freq.frequency, input_select);	// Immediate indication, not as part of wm8805_unmute()
 				mobo_led_select(current_freq.frequency, input_select);
 				wm8805_sleep();
+				playerStarted = PS_USB_ON;						// Give control to USB player
 
 				print_dbg_char('U');
 				print_dbg_char('\n');
 			}
 
 
-
+			// Monitor silent or disconnected WM8805 input
 			if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
 				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
-					zerotimer += 10;								// The poll intervals are crap, need thorough adjustment!
+					zerotimer += 10;							// The poll intervals are crap, need thorough adjustment!
 				else
 					zerotimer += 100;
 
@@ -537,14 +541,15 @@ void device_mouse_hid_task(void)
 				zerotimer = 0;									// Not silent and in lock!
 
 
-			// Rolling interrupt and zero flag monitor
-			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
+			// Polling interrupt monitor, only use when WM8805 is selected
+			if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF)  ) ) {
+//			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
 				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
 
 				if (wm8805_unlocked()) {						// Unlock
-					if (!muted) {
+					if (!wm8805_muted) {
 						wm8805_mute();
-						muted = 1;								// In any case, we're muted from now on.
+						wm8805_muted = 1;						// In any case, we're muted from now on.
 					}
 
                 	if (mobo_srd() == FREQ_192) {
@@ -603,80 +608,16 @@ void device_mouse_hid_task(void)
 			}	// Done handling interrupt
 
 
-			if (muted) {										// Try to unmute with qualified UNLOCK
+			// Check if WM8805 is able to lock and hence play music, only use when WM8805 is active
+			if ( (wm8805_muted) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF)  ) ) {
+//			if (wm8805_muted) {									// Try to unmute with qualified UNLOCK
 				if (!wm8805_unlocked()) {						// Qualified lock
 					wm8805_clkdiv();							// Configure MCLK division
 					wm8805_unmute();
-					muted = 0;
+					wm8805_muted = 0;
 					print_dbg_char('!');
 				}
 			}
-
-
-/*
-			if (muted) {									// How fast can we unmute the WM8805?
-				temp2 = wm8805_read_byte(0x0C);				// SPDSTAT
-
-				if ( (temp2 & 0x40) == 0 ) {				// Lock
-
-					wm8805_freq = mobo_srd();				// Does WM8805 indicated freq. match detected freq?
-
-					// If spdif frequency matches PLL setting and everything else lines up, go for unmute!
-					if (  ( (wm8805_pllmode == WM8805_PLL_192)    && (wm8805_freq == FREQ_192) )  ||
-						  ( (wm8805_pllmode == WM8805_PLL_NORMAL) && (wm8805_freq != FREQ_192) )  ) {
-
-						temp2 = temp2 & 0x30;				// We consider indicated frequency bits below
-
-						if (  (temp2 == 0x00) && ( (wm8805_freq == FREQ_176) || (wm8805_freq == FREQ_192) )   ) {
-							muted = 0;
-							print_dbg_char('3');
-						}
-
-						else if (  (temp2 == 0x10) && ( (wm8805_freq == FREQ_88) || (wm8805_freq == FREQ_96) )   ) {
-							muted = 0;
-							print_dbg_char('2');
-						}
-
-						else if (  (temp2 == 0x20) && ( (wm8805_freq == FREQ_44) || (wm8805_freq == FREQ_48) )   ) {
-							muted = 0;
-							print_dbg_char('1');
-						}
-
-						if (muted == 0)	{					// We had a match!
-							wm8805_clkdiv();				// Configure MCLK division
-							wm8805_unmute();				// Unmute
-						}
-					}
-					// Despite lock there is no match with PLL setting, have a hard talk with PLL and wait for new settling.
-					else {
-						if ( (wm8805_pllmode == WM8805_PLL_192)    && (wm8805_freq != FREQ_192) ) {
-							wm8805_pllmode = WM8805_PLL_NORMAL;
-							print_dbg_char('b');			// Indicate attempt to override previous PLL logic
-							wm8805_pll(wm8805_pllmode);		// Update PLL settings at any sample rate change!
-						}
-						else if ( (wm8805_pllmode == WM8805_PLL_NORMAL)    && (wm8805_freq == FREQ_192) ) {
-							wm8805_pllmode = WM8805_PLL_192;
-							print_dbg_char('v');			// Indicate attempt to override previous PLL logic
-							wm8805_pll(wm8805_pllmode);		// Update PLL settings at any sample rate change!
-						}
-	                	vTaskDelay(3000);					// Let WM8805 PLL settle for 30ms
-					} // Lock but unmatched PLL
-				} // Lock
-				else
-                	vTaskDelay(3000);						// Let WM8805 PLL settle for 30ms
-			}
-*/
-
-
-
-/*			if (gpio_get_pin_value(WM8805_ZEROFLAG_PIN) != 0) {	// Will be useful for automatic channel swap....
-				print_dbg_char('Z');
-				print_dbg_char('\n');
-			}
-*/
-//          vTaskDelay(4000);
-
-
 
     	}
 

@@ -3,6 +3,10 @@
 #include "device_audio_task.h"
 #include <stdint.h>
 
+// To include definition of PS_USB_OFF
+#include "Mobo_config.h"
+
+
 //!
 //! Public : (bit) mute
 //! mute is set to TRUE when ACTIVE
@@ -11,7 +15,7 @@
 volatile Bool mute, spk_mute;
 volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal; // BSB 20131031 FB_rate_initial and FB_rate_nominal added and changed to S32
 S16 volume, spk_volume;
-volatile Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
+volatile Bool playerStarted = PS_USB_OFF; // BSB 20150516: changed into global variable, 20150609 changed definition
 
 
 #if defined(HW_GEN_DIN10)		// BSB 20150501 global variable for input selector

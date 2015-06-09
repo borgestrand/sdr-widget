@@ -409,13 +409,15 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 
 
-				if (playerStarted) {
+				if (playerStarted == PS_USB_ON) {
 // 					Original Linux quirk replacement code
 //					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
 //						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
 //						FB_rate -= FB_RATE_DELTA * 512;
 
 //					Alternative Linux quirk replacement code, insert nominal FB_rate after a short interlude of requesting 99ksps (see uac2_usb_specific_request.c)
+
+					// FIX: Will Linux quirk work with WM8805 input??
 					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = FB_rate_nominal;			// BSB 20131115 restore saved nominal feedback rate
 					}
@@ -441,9 +443,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 //				if(!playerStarted) {
 #if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
-				if ( (input_select != MOBO_SRC_UAC2) || (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+				if ( (input_select != MOBO_SRC_UAC2) || (playerStarted != PS_USB_ON) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 #else
-				if ( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+				if ( (playerStarted != PS_USB_ON) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 #endif
 					time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 					packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
@@ -453,7 +455,12 @@ void uac2_device_audio_task(void *pvParameters)
 					skip_enable = 0;					// BSB 20131115 Not skipping yet...
 					skip_indicate = 0;
 					usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
-					playerStarted = TRUE;
+#if defined(HW_GEN_DIN10)								// Only start player when state machine monitoring inputs gives control to USB
+					if (input_select != MOBO_SRC_UAC2)
+						playerStarted = PS_USB_STARTING;
+#else
+					playerStarted = PS_USB_ON;
+#endif
 					audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 					num_remaining = spk_pdca_channel->tcr;
 					spk_buffer_in = spk_buffer_out;		// Keep resyncing until playerStarted becomes true
@@ -645,7 +652,7 @@ void uac2_device_audio_task(void *pvParameters)
 						else // usb and pdca working on different buffers
 							gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
 
-						if(playerStarted) {
+						if(playerStarted == PS_USB_ON) {
 
 							if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
 								if (gap < SPK2_GAP_LSKIP) {
@@ -722,13 +729,13 @@ void uac2_device_audio_task(void *pvParameters)
 		} // end if (usb_alternate_setting_out == 1)
 
 		else {
-			playerStarted = FALSE;
+			playerStarted = PS_USB_OFF;
 		}
 
 		// BSB 20131201 attempting improved playerstarted detection
 		if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA and uacX_taskAK5394A.c, decreased by seq. code
 			usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
-			playerStarted = FALSE;
+			playerStarted = PS_USB_OFF;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char_char('q');

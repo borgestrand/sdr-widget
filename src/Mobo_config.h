@@ -56,6 +56,12 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define	FREQ_176			176400
 #define	FREQ_192			192000
 
+// Values for global playerStarted variable
+#define PS_USB_OFF			0
+#define PS_USB_STARTING		1
+#define PS_USB_ON			2
+
+
 // Reset the WM8805 via hardware pin
 void wm8805_reset(uint8_t reset_type);
 
