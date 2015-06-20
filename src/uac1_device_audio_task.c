@@ -595,7 +595,7 @@ void uac1_device_audio_task(void *pvParameters)
 					// Detect USB silence. A muted USB output (i.e. input_select != MOBO_SRC_UAC1) will add to the zeros
 					if ( (sample_L == 0) && (sample_R == 0) ) {
 						if (silence_USB < SILENCE_USB_LIMIT)
-							silence_USB ++;			// Only considering 44.1 and 48 case
+							silence_USB += 4;			// Only considering 44.1 and 48 case
 					}
 					else
 						silence_USB = SILENCE_USB_INIT;

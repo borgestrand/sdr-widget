@@ -630,10 +630,10 @@ void uac2_device_audio_task(void *pvParameters)
 					if (silence_USB < SILENCE_USB_LIMIT) {
 						switch (current_freq.frequency) {
 						case FREQ_44:
-							silence_USB ++;
+							silence_USB += 4;
 							break;
 						case FREQ_48:
-							silence_USB ++;
+							silence_USB += 4;
 							break;
 						case FREQ_88:
 							silence_USB += 2;
@@ -642,10 +642,10 @@ void uac2_device_audio_task(void *pvParameters)
 							silence_USB += 2;
 							break;
 						case FREQ_176:
-							silence_USB += 4;
+							silence_USB ++;
 							break;
 						case FREQ_192:
-							silence_USB += 8;
+							silence_USB ++;
 							break;
 						}
 					}
