@@ -474,6 +474,12 @@ void device_mouse_hid_task(void)
 			 * - Long-term testing
 			 */
 
+
+			if (silence_USB >= SILENCE_USB_LIMIT)
+				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);
+			else
+				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);
+
 			// FIX: a very crude audio-select between USB and TOSLINK
 			// USB is halted, give control to WM8805 according to last used source. FIX: Consider USB silence!
 			if ( (playerStarted == PS_USB_OFF) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
@@ -494,6 +500,7 @@ void device_mouse_hid_task(void)
 				print_dbg_char('\n');
             }
 			// USB is starting up, give control to USB. FIX: consider USB silence!
+			// This takes too much time when WM8805 isn't playing and USB subsystem starts up!!
 			else if ( (playerStarted == PS_USB_STARTING) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF) ) ) {
 				input_select_wm8805_prev = input_select;		// Make backup for when USB is stopped again
 
@@ -519,7 +526,7 @@ void device_mouse_hid_task(void)
 				else
 					zerotimer += 100;
 
-				if (zerotimer > 1000) {							// Let's adjust this delay...
+				if (zerotimer > 1000) {							// Current WM8805 input is silent or unavailable
 					zerotimer = 0;
 					if (input_select == MOBO_SRC_TOSLINK) {		// Toggle WM8805 source. Later, unmute will provide indication
 						input_select = MOBO_SRC_SPDIF;

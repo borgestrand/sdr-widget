@@ -169,7 +169,8 @@ void uac2_device_audio_task(void *pvParameters)
 	U8 sample_SB;
 	U8 sample_LSB;
 	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX31
-	U32 sample_L, sample_R; // BSB 20131102 Expanded for skip/insert
+	U32 sample_L = 0;
+	U32 sample_R = 0; // BSB 20131102 Expanded for skip/insert
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
@@ -565,39 +566,35 @@ void uac2_device_audio_task(void *pvParameters)
 				} // end if skip_enable
 
 				for (i = 0; i < num_samples; i++) {
-#if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem stores only zeros
-					if ( (input_select != MOBO_SRC_UAC2) || (spk_mute) ) {
-#else
-					if (spk_mute) {
-#endif
-						sample_HSB = 0;
-						sample_LSB = 0;
-						sample_SB = 0;
-						sample_MSB = 0;
-					} else {
-						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-					}
-					sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
+					sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 
 #if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem stores only zeros
 					if ( (input_select != MOBO_SRC_UAC2) || (spk_mute) ) {
 #else
 					if (spk_mute) {
 #endif
-						sample_HSB = 0;
-						sample_LSB = 0;
-						sample_SB = 0;
-						sample_MSB = 0;
+						sample_L = 0;
 					} else {
-						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
+					}
+
+					sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+					sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+
+#if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem stores only zeros
+					if ( (input_select != MOBO_SRC_UAC2) || (spk_mute) ) {
+#else
+					if (spk_mute) {
+#endif
+						sample_R = 0;
+					} else {
+						sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 					};
-					sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 
 					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 						if (spk_buffer_in == 0) {
@@ -627,6 +624,34 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				} // end for num_samples
+
+				// Detect USB silence. A muted USB output (i.e. input_select != MOBO_SRC_UAC2) will add to the zeros
+				if ( (sample_L == 0) && (sample_R == 0) ) {
+					if (silence_USB < SILENCE_USB_LIMIT) {
+						switch (current_freq.frequency) {
+						case FREQ_44:
+							silence_USB ++;
+							break;
+						case FREQ_48:
+							silence_USB ++;
+							break;
+						case FREQ_88:
+							silence_USB += 2;
+							break;
+						case FREQ_96:
+							silence_USB += 2;
+							break;
+						case FREQ_176:
+							silence_USB += 4;
+							break;
+						case FREQ_192:
+							silence_USB += 8;
+							break;
+						}
+					}
+				}
+				else
+					silence_USB = SILENCE_USB_INIT;
 
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 

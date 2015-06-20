@@ -502,7 +502,8 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_DARK, FLED_RED, FLED_DARK);		// UAC2 red 010
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// SPDIF yellow 010
+//				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// SPDIF yellow 010
+				mobo_led(FLED_DARK, FLED_BLUE, FLED_DARK);		// SPDIF blue 010
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);	// TOSLINK purple 010
 		break;
@@ -512,7 +513,8 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_DARK, FLED_RED, FLED_RED);		// UAC2 red 011
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(FLED_DARK, FLED_YELLOW, FLED_YELLOW);	// SPDIF yellow 011
+//				mobo_led(FLED_DARK, FLED_YELLOW, FLED_YELLOW);	// SPDIF yellow 011
+				mobo_led(FLED_DARK, FLED_BLUE, FLED_BLUE);		// SPDIF blue 011
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_PURPLE);	// TOSLINK purple 011
 		break;
@@ -520,7 +522,8 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 red 100
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(FLED_YELLOW, FLED_DARK, FLED_DARK);	// SPDIF yellow 100
+//				mobo_led(FLED_YELLOW, FLED_DARK, FLED_DARK);	// SPDIF yellow 100
+				mobo_led(FLED_BLUE, FLED_DARK, FLED_DARK);		// SPDIF blue 100
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_PURPLE, FLED_DARK, FLED_DARK);	// TOSLINK purple 100
 		break;
@@ -528,7 +531,8 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 red 101
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(FLED_YELLOW, FLED_DARK, FLED_YELLOW);	// SPDIF yellow 101
+//				mobo_led(FLED_YELLOW, FLED_DARK, FLED_YELLOW);	// SPDIF yellow 101
+				mobo_led(FLED_BLUE, FLED_DARK, FLED_BLUE);		// SPDIF blue 101
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_PURPLE, FLED_DARK, FLED_PURPLE);	// TOSLINK purple 101
 		break;
@@ -536,7 +540,8 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_RED, FLED_DARK);		// UAC2 red 110
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_DARK);	// SPDIF yellow 110
+//				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_DARK);	// SPDIF yellow 110
+				mobo_led(FLED_BLUE, FLED_BLUE, FLED_DARK);		// SPDIF blue 110
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_DARK);	// TOSLINK purple 110
 		break;
@@ -544,7 +549,8 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_RED, FLED_RED);			// UAC2 red 111
 			if (source == MOBO_SRC_SPDIF)
-				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_YELLOW);	// SPDIF yellow 111
+//				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_YELLOW);	// SPDIF yellow 111
+				mobo_led(FLED_BLUE, FLED_BLUE, FLED_BLUE);			// SPDIF blue 111
 			if (source == MOBO_SRC_TOSLINK)
 				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_PURPLE);	// TOSLINK purple 111
 		break;

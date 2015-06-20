@@ -56,10 +56,14 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define	FREQ_176			176400
 #define	FREQ_192			192000
 
-// Values for global playerStarted variable
+// Values for global playerStarted variable (8-bit)
 #define PS_USB_OFF			0
 #define PS_USB_STARTING		1
 #define PS_USB_ON			2
+
+// Values for USB silence (32-bit)
+#define SILENCE_USB_LIMIT	80 * FREQ_192 / 1000	// 80ms at 192/96/48, 88-ish ms at 176.4, 88.2, 44.1
+#define SILENCE_USB_INIT	0
 
 
 // Reset the WM8805 via hardware pin
