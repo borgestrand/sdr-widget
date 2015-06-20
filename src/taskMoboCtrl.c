@@ -576,6 +576,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 #if defined(HW_GEN_DIN10)
 	wm8805_init();							// Start up the WM8805 in a fairly dead mode
+	wm8805_sleep();
 #endif
 
 	#endif
@@ -770,7 +771,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	   						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
 						}
 					#elif defined(HW_GEN_DIN10)
-						// FIX: Resort to defaults according to playback mode and source.
+						// FIX: Resort to defaults according to playback mode and source. That will require some global vars or other mess
 						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 							mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// With UAC1:
 						else

@@ -68,7 +68,7 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define SILENCE_WM_INIT		0
 #define SILENCE_WM_ZERO		10
 #define SILENCE_WM_UNLINK	100
-#define LOUD_WM_LIMIT		2					// Set above 1 to avoid blinking LED during channel search
+#define LOUD_WM_LIMIT		3					// Set above 1 to avoid blinking LED during channel search
 #define	LOUD_WM_INIT		0
 #define	LOUD_WM_INC			1
 

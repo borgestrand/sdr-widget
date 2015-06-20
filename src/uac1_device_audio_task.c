@@ -367,7 +367,7 @@ void uac1_device_audio_task(void *pvParameters)
 						// FB rate is 3 bytes in 10.14 format
 
 #if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
-						if ( (input_select != MOBO_SRC_UAC1) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
+						if ( (playerStarted != PS_USB_ON) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
 #else
 						if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
 #endif
@@ -422,11 +422,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 //					if(!playerStarted) {
 
-#if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
-					if ( (input_select != MOBO_SRC_UAC1) || (playerStarted != PS_USB_ON) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-#else
 					if ( (playerStarted != PS_USB_ON) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-#endif
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
@@ -435,11 +431,14 @@ void uac1_device_audio_task(void *pvParameters)
 						skip_enable = 0;					// BSB 20131115 Not skipping yet...
 						skip_indicate = 0;
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
-#if defined(HW_GEN_DIN10)									// Only start player when state machine monitoring inputs gives control to USB
-						if (input_select != MOBO_SRC_UAC1)
-							playerStarted = PS_USB_STARTING;
+#if defined(HW_GEN_DIN10)								// Only start player when state machine monitoring inputs gives control to USB
+						if (playerStarted == PS_USB_STARTING) {
+							playerStarted = PS_USB_ON;
+							mobo_led_select(current_freq.frequency, input_select);
+						}
 #else
 						playerStarted = PS_USB_ON;
+						mobo_led_select(current_freq.frequency, input_select);
 #endif
 						audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						num_remaining = spk_pdca_channel->tcr;
@@ -598,7 +597,7 @@ void uac1_device_audio_task(void *pvParameters)
 							silence_USB += 4;			// Only considering 44.1 and 48 case
 					}
 					else
-						silence_USB = SILENCE_USB_INIT;
+						silence_USB = SILENCE_USB_INIT;	// USB interface is not silent!
 
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
 

@@ -39,9 +39,9 @@
 // Hardware reset over GPIO pin. Consider the Power Up Configuration section of the datasheet!
 void wm8805_reset(uint8_t reset_type) {
 	if (reset_type == WM8805_RESET_START)
-		gpio_clr_gpio_pin(WM8805_RESET_PIN);			// Clear reset pin WM8807 active low reset
+		gpio_clr_gpio_pin(WM8805_RESET_PIN);			// Clear reset pin WM8805 active low reset
 	else
-		gpio_set_gpio_pin(WM8805_RESET_PIN);			// Set reset pin WM8807 active low reset
+		gpio_set_gpio_pin(WM8805_RESET_PIN);			// Set reset pin WM8805 active low reset
 }
 
 // Start up the WM8805
