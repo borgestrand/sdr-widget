@@ -388,7 +388,8 @@ void uac2_device_audio_task(void *pvParameters)
 					// So for 250us microframes it is same amount of shifting as 10.14 for 1ms frames
 
 #if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
-					if ( (input_select != MOBO_SRC_UAC2) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
+//					if ( (input_select != MOBO_SRC_UAC2) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
+					if ( (playerStarted != PS_USB_ON) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
 #else
 					if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
 #endif
@@ -653,7 +654,7 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 				}
 				else
-					silence_USB = SILENCE_USB_INIT;
+					silence_USB = SILENCE_USB_INIT;					// USB interface is not silent!
 
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 
