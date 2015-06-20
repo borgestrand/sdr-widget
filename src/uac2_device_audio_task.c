@@ -755,6 +755,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		else {
 			playerStarted = PS_USB_OFF;
+			silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 		}
 
 		// BSB 20131201 attempting improved playerstarted detection
