@@ -485,6 +485,7 @@ void device_mouse_hid_task(void)
 			if ( (USB_IS_SILENT()) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
             	wm8805_mute();									// Unmute and LED select after code detects lock
             	wm8805_muted = 1;
+            	playerStarted = PS_USB_OFF;						// Turn off USB audio
 
             	input_select = input_select_wm8805_next;		// Indicate to USB state machine to stay quiet if audio should arrive
             	if (input_select_wm8805_next == MOBO_SRC_TOSLINK) {	// Prepare to listen to other WM channel next time we're here
@@ -514,15 +515,15 @@ void device_mouse_hid_task(void)
 			// Current WM8805 input is silent or unavailable
 			if ( (WM_IS_SILENT()) && ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK)  ) ) {
 
-				mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
-				wm8805_sleep();
-
 				playerStarted = PS_USB_STARTING;				// Indicate that USB state machine may take control
 
 				if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
             		input_select = MOBO_SRC_UAC1;
             	else
             		input_select = MOBO_SRC_UAC2;
+
+				mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
+				wm8805_sleep();
 
 				print_dbg_char('U');
 				print_dbg_char('\n');
