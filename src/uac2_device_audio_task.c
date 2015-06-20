@@ -443,11 +443,11 @@ void uac2_device_audio_task(void *pvParameters)
 				xSemaphoreGive(mutexSpkUSB);
 
 //				if(!playerStarted) {
-#if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
-				if ( (input_select != MOBO_SRC_UAC2) || (playerStarted != PS_USB_ON) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-#else
+// #if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+// 				if ( (input_select != MOBO_SRC_UAC2) || (playerStarted != PS_USB_ON) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+// #else
 				if ( (playerStarted != PS_USB_ON) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-#endif
+// #endif
 					time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 					packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
 					FB_error_acc = 0;					// BSB 20131102 reset feedback error
@@ -457,16 +457,18 @@ void uac2_device_audio_task(void *pvParameters)
 					skip_indicate = 0;
 					usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 #if defined(HW_GEN_DIN10)								// Only start player when state machine monitoring inputs gives control to USB
-					if (input_select != MOBO_SRC_UAC2)
-						playerStarted = PS_USB_STARTING;
+					if (playerStarted == PS_USB_STARTING)
+						playerStarted = PS_USB_ON;
 #else
 					playerStarted = PS_USB_ON;
 #endif
+					mobo_led_select(current_freq.frequency, input_select);
 					audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 					num_remaining = spk_pdca_channel->tcr;
 					spk_buffer_in = spk_buffer_out;		// Keep resyncing until playerStarted becomes true
-					LED_Off(LED0);
+					LED_Off(LED0);						// The LEDs on the PCB near the MCU
 					LED_Off(LED1);
+
 
 #ifdef USB_STATE_MACHINE_DEBUG
 #if defined(HW_GEN_DIN10)	// With WM8805 input, don't report

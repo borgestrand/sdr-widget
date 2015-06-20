@@ -297,11 +297,12 @@ void device_mouse_hid_task(void)
     gotcmd = 0;												// No HID button change recorded yet
 
     uint8_t temp1, temp2;
-    uint8_t input_select_wm8805_prev = MOBO_SRC_NONE;
+    uint8_t input_select_wm8805_next = MOBO_SRC_SPDIF;		// Try SPDIF first
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
-    uint8_t wm8805_muted = 1;										// Assume I2S output is muted
+    uint8_t wm8805_muted = 1;								// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
-    uint16_t wm8805_zerotimer = 0;									// Countdown for silence
+    uint16_t wm8805_zerotimer = SILENCE_WM_LIMIT;			// Initially assume WM8805 is silent
+    uint16_t wm8805_loudtimer = LOUD_WM_INIT;				// Initially assume WM8805 is silent
 
     while (gotcmd == 0) {
 
@@ -439,7 +440,7 @@ void device_mouse_hid_task(void)
 
             // If you need the UART for something other than HID, this is where you interpret it!
 
-    	}
+    	} // if (readkey())
 
     	else { 											   	// GPIO pin _changes_ are sent to Host
 /*
@@ -475,77 +476,69 @@ void device_mouse_hid_task(void)
 			 */
 
 
-			if (USB_IS_SILENT())
+/*			if (WM_IS_LOUD())
 				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);
 			else
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);
-
-			// FIX: a very crude audio-select between USB and TOSLINK
-			// USB is halted, give control to WM8805 according to last used source. FIX: Consider USB silence!
-			if ( (playerStarted == PS_USB_OFF) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
+*/
+			// USB is halted, give control to WM8805 according to next source to be used
+			if ( (USB_IS_SILENT()) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
             	wm8805_mute();									// Unmute and LED select after code detects lock
             	wm8805_muted = 1;
 
-            	if (input_select_wm8805_prev == MOBO_SRC_NONE)	// initial condition
-                	input_select = MOBO_SRC_TOSLINK;			// TOSLINK is tried first if USB is dead.
-            	else
-            		input_select = input_select_wm8805_prev;	// Previously used digital input is tried first if USB is dead.
+            	input_select = input_select_wm8805_next;		// Indicate to USB state machine to stay quiet if audio should arrive
+            	if (input_select_wm8805_next == MOBO_SRC_TOSLINK) {	// Prepare to listen to other WM channel next time we're here
+					print_dbg_char('o');						// Debug must know which WM channel we're trying now
+            		input_select_wm8805_next = MOBO_SRC_SPDIF;
+            	}
+            	else {
+            		input_select_wm8805_next = MOBO_SRC_TOSLINK;
+					print_dbg_char('c');
+            	}
+				print_dbg_char('\n');
 
+
+				wm8805_zerotimer = SILENCE_WM_INIT;				// Assume it hasn't become silent yet at startup, give it time to figure out
+				wm8805_loudtimer = LOUD_WM_INIT;				// WM8805 won't be playing music right away
             	wm8805_init();									// WM8805 was probably put to sleep before this. Hence re-init
             	wm8805_input(input_select);						// Is it good to do this late???
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 				wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
 
+				// Now we wait for
+
 				print_dbg_char('W');
 				print_dbg_char('\n');
             }
-			// USB is starting up, give control to USB. FIX: consider USB silence!
-			// This takes too much time when WM8805 isn't playing and USB subsystem starts up!!
-			else if ( (playerStarted == PS_USB_STARTING) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF) ) ) {
-				input_select_wm8805_prev = input_select;		// Make backup for when USB is stopped again
+
+			// Current WM8805 input is silent or unavailable
+			if ( (WM_IS_SILENT()) && ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK)  ) ) {
+
+				mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
+				wm8805_sleep();
+
+				playerStarted = PS_USB_STARTING;				// Indicate that USB state machine may take control
 
 				if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
             		input_select = MOBO_SRC_UAC1;
             	else
             		input_select = MOBO_SRC_UAC2;
 
-				mobo_xo_select(current_freq.frequency, input_select);	// Immediate indication, not as part of wm8805_unmute()
-				mobo_led_select(current_freq.frequency, input_select);
-				wm8805_sleep();
-				playerStarted = PS_USB_ON;						// Give control to USB player
-
 				print_dbg_char('U');
 				print_dbg_char('\n');
 			}
 
 
-			// Monitor silent or disconnected WM8805 input
-			if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
-				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
-					wm8805_zerotimer += SILENCE_WM_ZERO;				// The poll intervals are crap, need thorough adjustment!
-				else
-					wm8805_zerotimer += SILENCE_WM_UNLINK;
-
-				if (WM_IS_SILENT()) {							// Current WM8805 input is silent or unavailable
-					wm8805_zerotimer = SILENCE_WM_ZERO;
-					if (input_select == MOBO_SRC_TOSLINK) {		// Toggle WM8805 source. Later, unmute will provide indication
-						input_select = MOBO_SRC_SPDIF;
-						print_dbg_char('c');
-						print_dbg_char('\n');
-					}
-					else if (input_select == MOBO_SRC_SPDIF) {
-						input_select = MOBO_SRC_TOSLINK;
-						print_dbg_char('o');
-						print_dbg_char('\n');
-					}
-
-	            	wm8805_input(input_select);					// Is it good to do this late???
-					wm8805_pllmode = WM8805_PLL_NORMAL;
-					wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
+			// Check if WM8805 is able to lock and hence play music, only use when WM8805 is active
+			if ( (wm8805_muted) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF)  ) ) {
+//			if (wm8805_muted) {									// Try to unmute with qualified UNLOCK
+				if ( (!wm8805_unlocked()) && (WM_IS_LOUD()) ) {	// Qualified lock with audio present
+					wm8805_clkdiv();							// Configure MCLK division
+					wm8805_unmute();							// Reconfigure I2S selection and LEDs
+					wm8805_muted = 0;
+					print_dbg_char('!');
 				}
 			}
-			else
-				wm8805_zerotimer = SILENCE_WM_INIT;				// Not silent and in lock!
 
 
 			// Polling interrupt monitor, only use when WM8805 is selected
@@ -615,16 +608,26 @@ void device_mouse_hid_task(void)
 			}	// Done handling interrupt
 
 
-			// Check if WM8805 is able to lock and hence play music, only use when WM8805 is active
-			if ( (wm8805_muted) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF)  ) ) {
-//			if (wm8805_muted) {									// Try to unmute with qualified UNLOCK
-				if (!wm8805_unlocked()) {						// Qualified lock
-					wm8805_clkdiv();							// Configure MCLK division
-					wm8805_unmute();
-					wm8805_muted = 0;
-					print_dbg_char('!');
+			// Monitor silent or disconnected WM8805 input
+			if (!WM_IS_SILENT()) {
+				if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
+					if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
+						wm8805_zerotimer += SILENCE_WM_ZERO;	// The poll intervals are crap, need thorough adjustment!
+					else
+						wm8805_zerotimer += SILENCE_WM_UNLINK;
 				}
+				else
+					wm8805_zerotimer = SILENCE_WM_INIT;			// Not silent and in lock!
 			}
+
+			// Monitor loud WM8805 to qualify that it's actually sending music
+			if (!WM_IS_LOUD()) {
+				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 0)
+					wm8805_loudtimer += LOUD_WM_INC;
+				else
+					wm8805_loudtimer = LOUD_WM_INIT;
+			}
+
 
     	}
 

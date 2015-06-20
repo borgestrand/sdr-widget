@@ -57,21 +57,26 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define	FREQ_192			192000
 
 // Values for global playerStarted variable (8-bit)
-#define PS_USB_OFF			0
-#define PS_USB_STARTING		1
-#define PS_USB_ON			2
+#define PS_USB_OFF			0					// USB state machine has no audio to send
+#define PS_USB_STARTING		1					// USB state machine may take control
+#define PS_USB_ON			2					// USB state machine is sending audio
 
 // Values for USB silence (32-bit)
 #define SILENCE_USB_LIMIT	80 * FREQ_192 / 1000	// 80ms at 192/96/48, 88-ish ms at 176.4, 88.2, 44.1
 #define SILENCE_USB_INIT	0
-#define SILENCE_WM_LIMIT	1000
+#define SILENCE_WM_LIMIT	700
 #define SILENCE_WM_INIT		0
 #define SILENCE_WM_ZERO		10
 #define SILENCE_WM_UNLINK	100
+#define LOUD_WM_LIMIT		2					// Set above 1 to avoid blinking LED during channel search
+#define	LOUD_WM_INIT		0
+#define	LOUD_WM_INC			1
+
 
 
 #define USB_IS_SILENT() (silence_USB >= SILENCE_USB_LIMIT)
 #define WM_IS_SILENT() (wm8805_zerotimer >= SILENCE_WM_LIMIT)
+#define WM_IS_LOUD() (wm8805_loudtimer >= LOUD_WM_LIMIT)
 
 
 // Reset the WM8805 via hardware pin
