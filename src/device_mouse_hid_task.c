@@ -471,7 +471,7 @@ void device_mouse_hid_task(void)
 			 * - Check if WM is really 24 bits
 			 * + Test SPDIF
 			 * - Structure code away from mobo_config.c/h
-			 * - Think about some automatic silence detecting software!
+			 * + Think about some automatic silence detecting software!
 			 * - Long-term testing
 			 */
 
@@ -489,14 +489,14 @@ void device_mouse_hid_task(void)
 
             	input_select = input_select_wm8805_next;		// Indicate to USB state machine to stay quiet if audio should arrive
             	if (input_select_wm8805_next == MOBO_SRC_TOSLINK) {	// Prepare to listen to other WM channel next time we're here
-					print_dbg_char('o');						// Debug must know which WM channel we're trying now
+//					print_dbg_char('o');						// Debug must know which WM channel we're trying now
             		input_select_wm8805_next = MOBO_SRC_SPDIF;
             	}
             	else {
             		input_select_wm8805_next = MOBO_SRC_TOSLINK;
-					print_dbg_char('c');
+//					print_dbg_char('c');
             	}
-				print_dbg_char('\n');
+//				print_dbg_char('\n');
 
 
 				wm8805_zerotimer = SILENCE_WM_INIT;				// Assume it hasn't become silent yet at startup, give it time to figure out
@@ -506,10 +506,8 @@ void device_mouse_hid_task(void)
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 				wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
 
-				// Now we wait for
-
-				print_dbg_char('W');
-				print_dbg_char('\n');
+//				print_dbg_char('W');
+//				print_dbg_char('\n');
             }
 
 			// Current WM8805 input is silent or unavailable
@@ -525,10 +523,9 @@ void device_mouse_hid_task(void)
 				mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
 				wm8805_sleep();
 
-				print_dbg_char('U');
-				print_dbg_char('\n');
+//				print_dbg_char('U');
+//				print_dbg_char('\n');
 			}
-
 
 			// Check if WM8805 is able to lock and hence play music, only use when WM8805 is active
 			if ( (wm8805_muted) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF)  ) ) {
@@ -537,10 +534,9 @@ void device_mouse_hid_task(void)
 					wm8805_clkdiv();							// Configure MCLK division
 					wm8805_unmute();							// Reconfigure I2S selection and LEDs
 					wm8805_muted = 0;
-					print_dbg_char('!');
+//					print_dbg_char('!');
 				}
 			}
-
 
 			// Polling interrupt monitor, only use when WM8805 is selected
 			if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF)  ) ) {
@@ -554,18 +550,17 @@ void device_mouse_hid_task(void)
 					}
 
                 	if (mobo_srd() == FREQ_192) {
-						print_dbg_char('P');
+//						print_dbg_char('P');
 						wm8805_pllmode = WM8805_PLL_192;
 					}
 					else {
-						print_dbg_char('p');
+//						print_dbg_char('p');
 						wm8805_pllmode = WM8805_PLL_NORMAL;
 					}
                 	wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
                 	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 10ms
 				}
-
-
+/*
 				// Interrupt reporting
 				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
 				temp2 = wm8805_read_byte(0x0C);					// Record spdif status
@@ -606,6 +601,8 @@ void device_mouse_hid_task(void)
 						break;
 				}
             	print_dbg_char('\n');
+
+*/
 			}	// Done handling interrupt
 
 
@@ -629,8 +626,7 @@ void device_mouse_hid_task(void)
 					wm8805_loudtimer = LOUD_WM_INIT;
 			}
 
-
-    	}
+    	} // else, !readkey
 
     	if (gotcmd == 0)									// Nothing recorded:
 			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS
