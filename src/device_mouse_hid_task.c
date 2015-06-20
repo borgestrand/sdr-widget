@@ -301,7 +301,7 @@ void device_mouse_hid_task(void)
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t wm8805_muted = 1;										// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
-    uint16_t zerotimer = 0;									// Countdown for silence
+    uint16_t wm8805_zerotimer = 0;									// Countdown for silence
 
     while (gotcmd == 0) {
 
@@ -475,7 +475,7 @@ void device_mouse_hid_task(void)
 			 */
 
 
-			if (silence_USB >= SILENCE_USB_LIMIT)
+			if (USB_IS_SILENT())
 				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);
 			else
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);
@@ -522,12 +522,12 @@ void device_mouse_hid_task(void)
 			// Monitor silent or disconnected WM8805 input
 			if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
 				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
-					zerotimer += 10;							// The poll intervals are crap, need thorough adjustment!
+					wm8805_zerotimer += SILENCE_WM_ZERO;				// The poll intervals are crap, need thorough adjustment!
 				else
-					zerotimer += 100;
+					wm8805_zerotimer += SILENCE_WM_UNLINK;
 
-				if (zerotimer > 1000) {							// Current WM8805 input is silent or unavailable
-					zerotimer = 0;
+				if (WM_IS_SILENT()) {							// Current WM8805 input is silent or unavailable
+					wm8805_zerotimer = SILENCE_WM_ZERO;
 					if (input_select == MOBO_SRC_TOSLINK) {		// Toggle WM8805 source. Later, unmute will provide indication
 						input_select = MOBO_SRC_SPDIF;
 						print_dbg_char('c');
@@ -545,7 +545,7 @@ void device_mouse_hid_task(void)
 				}
 			}
 			else
-				zerotimer = 0;									// Not silent and in lock!
+				wm8805_zerotimer = SILENCE_WM_INIT;				// Not silent and in lock!
 
 
 			// Polling interrupt monitor, only use when WM8805 is selected

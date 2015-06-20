@@ -627,7 +627,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				// Detect USB silence. A muted USB output (i.e. input_select != MOBO_SRC_UAC2) will add to the zeros
 				if ( (sample_L == 0) && (sample_R == 0) ) {
-					if (silence_USB < SILENCE_USB_LIMIT) {
+					if (!USB_IS_SILENT()) {
 						switch (current_freq.frequency) {
 						case FREQ_44:
 							silence_USB += 4;

@@ -64,6 +64,14 @@ void mobo_led_select(U32 frequency, uint8_t source);
 // Values for USB silence (32-bit)
 #define SILENCE_USB_LIMIT	80 * FREQ_192 / 1000	// 80ms at 192/96/48, 88-ish ms at 176.4, 88.2, 44.1
 #define SILENCE_USB_INIT	0
+#define SILENCE_WM_LIMIT	1000
+#define SILENCE_WM_INIT		0
+#define SILENCE_WM_ZERO		10
+#define SILENCE_WM_UNLINK	100
+
+
+#define USB_IS_SILENT() (silence_USB >= SILENCE_USB_LIMIT)
+#define WM_IS_SILENT() (wm8805_zerotimer >= SILENCE_WM_LIMIT)
 
 
 // Reset the WM8805 via hardware pin
