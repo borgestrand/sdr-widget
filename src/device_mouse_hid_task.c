@@ -301,8 +301,8 @@ void device_mouse_hid_task(void)
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t wm8805_muted = 1;								// Assume I2S output is muted
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
-    uint16_t wm8805_zerotimer = SILENCE_WM_LIMIT;			// Initially assume WM8805 is silent
-    uint16_t wm8805_loudtimer = LOUD_WM_INIT;				// Initially assume WM8805 is silent
+//    uint16_t wm8805_zerotimer = SILENCE_WM_LIMIT;			// Initially assume WM8805 is silent
+//    uint16_t wm8805_loudtimer = LOUD_WM_INIT;				// Initially assume WM8805 is silent
 
     while (gotcmd == 0) {
 
@@ -489,14 +489,18 @@ void device_mouse_hid_task(void)
 
             	input_select = input_select_wm8805_next;		// Indicate to USB state machine to stay quiet if audio should arrive
             	if (input_select_wm8805_next == MOBO_SRC_TOSLINK) {	// Prepare to listen to other WM channel next time we're here
-//					print_dbg_char('o');						// Debug must know which WM channel we're trying now
-            		input_select_wm8805_next = MOBO_SRC_SPDIF;
+					print_dbg_char('o');						// Debug must know which WM channel we're trying now
+					print_dbg_char_hex(playerStarted);
+					input_select_wm8805_next = MOBO_SRC_SPDIF;
             	}
             	else {
             		input_select_wm8805_next = MOBO_SRC_TOSLINK;
-//					print_dbg_char('c');
+					print_dbg_char('c');
+					print_dbg_char_hex(playerStarted);
             	}
-//				print_dbg_char('\n');
+				print_dbg_char('\n');
+
+            	// How about adding some sort of input_select = MOBO_SRC_WM8805_PENDING ??
 
 
 				wm8805_zerotimer = SILENCE_WM_INIT;				// Assume it hasn't become silent yet at startup, give it time to figure out
@@ -523,8 +527,9 @@ void device_mouse_hid_task(void)
 				mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
 				wm8805_sleep();
 
-//				print_dbg_char('U');
-//				print_dbg_char('\n');
+				print_dbg_char('U');
+				print_dbg_char_hex(playerStarted);
+				print_dbg_char('\n');
 			}
 
 			// Check if WM8805 is able to lock and hence play music, only use when WM8805 is active
@@ -534,7 +539,9 @@ void device_mouse_hid_task(void)
 					wm8805_clkdiv();							// Configure MCLK division
 					wm8805_unmute();							// Reconfigure I2S selection and LEDs
 					wm8805_muted = 0;
-//					print_dbg_char('!');
+					print_dbg_char('!');
+					print_dbg_char_hex(playerStarted);
+					print_dbg_char('\n');
 				}
 			}
 

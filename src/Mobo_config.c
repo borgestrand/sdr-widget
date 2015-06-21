@@ -176,7 +176,7 @@ void wm8805_mute(void) {
     	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 	else
     	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-	print_dbg_char('l');						// Not-loud!
+//	print_dbg_char('l');						// Not-loud!
 }
 
 // Un-mute the WM8805 output by means of other hardware
@@ -185,7 +185,7 @@ void wm8805_unmute(void) {
 	wm8805_freq = mobo_srd();
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
-	print_dbg_char('L');						// Loud!
+//	print_dbg_char('L');						// Loud!
 }
 
 // Write a single byte to WM8805
