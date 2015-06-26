@@ -75,9 +75,6 @@
 
 extern volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal;  // BSB 20131031 FB_rate_initial and FB_rate_nominal added and changed to S32
 extern volatile uint8_t playerStarted; // BSB 20150516: changed into global variable
-extern volatile uint32_t silence_USB;
-extern volatile uint16_t wm8805_zerotimer;
-extern volatile uint16_t wm8805_loudtimer;
 
 #if defined(HW_GEN_DIN10)		// BSB 20150501 global variable for input selector
 extern volatile uint8_t input_select;
@@ -87,6 +84,10 @@ extern volatile Bool mute, spk_mute;
 extern S16 volume, spk_volume;
 
 //_____ M A C R O S ________________________________________________________
+
+#define SILENCE_USB_LIMIT	80 * FREQ_192 / 1000	// 80ms at 192/96/48, 88-ish ms at 176.4, 88.2, 44.1
+#define SILENCE_USB_INIT	0
+#define USB_IS_SILENT() (silence_USB >= SILENCE_USB_LIMIT)
 
 
 //_____ D E C L A R A T I O N S ____________________________________________

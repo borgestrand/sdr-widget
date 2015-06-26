@@ -191,6 +191,10 @@ void device_mouse_hid_task(void)
   char a = 0;						// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
 
+  // Move to WM8805.c
+  uint16_t wm8805_zerotimer = SILENCE_WM_LIMIT;			// Initially assume WM8805 is silent
+  uint16_t wm8805_loudtimer = LOUD_WM_INIT;				// Initially assume WM8805 is silent
+
 
 #ifdef FREERTOS_USED
   portTickType xLastWakeTime;
@@ -482,8 +486,9 @@ void device_mouse_hid_task(void)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);
 */
 			// USB is halted, give control to WM8805 according to next source to be used
-			if ( (USB_IS_SILENT()) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
-            	wm8805_mute();									// Unmute and LED select after code detects lock
+//			if ( (USB_IS_SILENT()) && ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
+			if ( ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2)  ) ) {
+				wm8805_mute();									// Unmute and LED select after code detects lock
             	wm8805_muted = 1;
             	playerStarted = PS_USB_OFF;						// Turn off USB audio
 
