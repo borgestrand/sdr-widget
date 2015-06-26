@@ -60,6 +60,13 @@
 #include "conf_usb.h"
 #include <stdint.h>
 
+// To access semaphore
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "gpio.h"
+#include "semphr.h"
+
 #if USB_DEVICE_FEATURE == DISABLED
   #error device_audio_task.h is #included although USB_DEVICE_FEATURE is disabled
 #endif
@@ -78,6 +85,7 @@ extern volatile uint8_t playerStarted; // BSB 20150516: changed into global vari
 
 #if defined(HW_GEN_DIN10)		// BSB 20150501 global variable for input selector
 extern volatile uint8_t input_select;
+extern volatile xSemaphoreHandle input_select_access; // BSB 20150626 audio channel selection semaphore
 #endif
 
 extern volatile Bool mute, spk_mute;
