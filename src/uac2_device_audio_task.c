@@ -452,23 +452,25 @@ void uac2_device_audio_task(void *pvParameters)
 					skip_indicate = 0;
 					usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 #if defined(HW_GEN_DIN10)								// Only start player when state machine monitoring inputs gives control to USB
-//					if (playerStarted == PS_USB_STARTING) {
-					if (!(WM_IS_LOUD())) {
-
-
-	            		input_select = MOBO_SRC_UAC2;	// USB quickstart hi-jacks the output
-
-	            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
-	            		wm8805_sleep();
-
-	            		print_dbg_char('x');
-	            		print_dbg_char_hex(playerStarted);
-	            		print_dbg_char('\n');
-
-
+					if (playerStarted == PS_USB_STARTING) {
 						playerStarted = PS_USB_ON;
 						mobo_led_select(current_freq.frequency, input_select);
 					}
+
+
+/*					// Experimental code for USB quickstart
+					if (!(WM_IS_LOUD())) {
+	            		input_select = MOBO_SRC_UAC2;	// USB quickstart hi-jacks the output
+						silence_USB = SILENCE_USB_INIT;	// USB interface is not silent!
+	            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
+	            		wm8805_sleep();
+	            		print_dbg_char('x');
+	            		print_dbg_char_hex(playerStarted);
+	            		print_dbg_char('\n');
+						playerStarted = PS_USB_ON;
+						mobo_led_select(current_freq.frequency, input_select);
+					}
+*/
 #else
 					playerStarted = PS_USB_ON;
 					mobo_led_select(current_freq.frequency, input_select);
