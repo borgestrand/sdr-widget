@@ -20,6 +20,6 @@ volatile uint8_t playerStarted = PS_USB_OFF; // BSB 20150516: changed into globa
 
 #if defined(HW_GEN_DIN10)		// BSB 20150501 global variable for input selector
 volatile uint8_t input_select;
-volatile xSemaphoreHandle input_select_access = NULL; // BSB 20150626 audio channel selection semaphore
+volatile xSemaphoreHandle input_select_semphr = NULL; // BSB 20150626 audio channel selection semaphore
 #endif
 

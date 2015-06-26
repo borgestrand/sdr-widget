@@ -373,6 +373,33 @@ void device_mouse_hid_task(void)
             else if (a == 't')
             	wm8805_reset(WM8805_RESET_END);
 
+
+			// Init semaphore
+            else if (a == 'I') {
+            	input_select_semphr = xSemaphoreCreateMutex();
+            }
+
+            // Take semaphore
+            else if (a == 'T') {
+            	if( xSemaphoreTake(input_select_semphr, 0) == pdTRUE ) {
+    				print_dbg_char('+');
+            	}
+            	else
+    				print_dbg_char('-');
+				print_dbg_char('\n');
+            }
+
+            // Give semaphore
+            else if (a == 'G') {
+            	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+    				print_dbg_char('+');
+            	}
+            	else
+    				print_dbg_char('-');
+				print_dbg_char('\n');
+            }
+
+
             // Change I2S source to USB, assume 44.1 UAC2
             else if (a == 'U') {
             	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
