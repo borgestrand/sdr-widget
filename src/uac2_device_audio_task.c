@@ -453,25 +453,25 @@ void uac2_device_audio_task(void *pvParameters)
 					skip_indicate = 0;
 					usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 #if defined(HW_GEN_DIN10)								// Only start player when state machine monitoring inputs gives control to USB
-					if (playerStarted == PS_USB_STARTING) {
-						playerStarted = PS_USB_ON;
-						mobo_led_select(current_freq.frequency, input_select);
+
+					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
+						print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
+		            	if( xSemaphoreTake(input_select_semphr, 0) == pdTRUE ) {	// Re-take of taken semaphore returns false
+		    				print_dbg_char('+');
+		    				input_select = MOBO_SRC_UAC2;
+		            	}
+		            	else
+		    				print_dbg_char('-');
+						print_dbg_char('\n');
 					}
 
-
-/*					// Experimental code for USB quickstart
-					if (!(WM_IS_LOUD())) {
-	            		input_select = MOBO_SRC_UAC2;	// USB quickstart hi-jacks the output
+					// Do we own semaphore? If so, change I2S setting
+					if (input_select == MOBO_SRC_UAC2) {
+						playerStarted = PS_USB_ON;
 						silence_USB = SILENCE_USB_INIT;	// USB interface is not silent!
 	            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
-	            		wm8805_sleep();
-	            		print_dbg_char('x');
-	            		print_dbg_char_hex(playerStarted);
-	            		print_dbg_char('\n');
-						playerStarted = PS_USB_ON;
 						mobo_led_select(current_freq.frequency, input_select);
 					}
-*/
 #else
 					playerStarted = PS_USB_ON;
 					mobo_led_select(current_freq.frequency, input_select);
@@ -665,10 +665,23 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 					}
 				}
-				else
+				else // stereo sample is non-zero
 					silence_USB = SILENCE_USB_INIT;					// USB interface is not silent!
 
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
+
+				if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent!
+					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+					playerStarted = PS_USB_OFF;
+
+					print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
+	            	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+	    				print_dbg_char('+');
+	            	}
+	            	else
+	    				print_dbg_char('-');
+					print_dbg_char('\n');
+				}
 
 
 /* BSB 20131031 New location of gap calculation code */

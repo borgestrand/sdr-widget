@@ -46,6 +46,8 @@
 #include "LCD_bargraphs.h"
 #endif
 
+// To access global input source variables
+#include "device_audio_task.h"
 
 //#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
 
@@ -575,8 +577,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 	i2c_device_scan();
 
 #if defined(HW_GEN_DIN10)
+// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
 	wm8805_init();							// Start up the WM8805 in a fairly dead mode
 	wm8805_sleep();
+	input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
 #endif
 
 	#endif

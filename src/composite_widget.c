@@ -238,6 +238,8 @@ int i;
 	mobo_xo_select(44100, input_select);					// Initial GPIO XO control and frequency indication
 	mobo_led_select(44100, input_select);
 
+	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
+
 	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 
