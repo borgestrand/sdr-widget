@@ -196,7 +196,6 @@ void device_mouse_hid_task(void)
 
   // Move to WM8805.c
   uint16_t wm8805_zerotimer = SILENCE_WM_LIMIT;			// Initially assume WM8805 is silent
-  uint16_t wm8805_loudtimer = LOUD_WM_INIT;				// Initially assume WM8805 is silent
 
 
 #ifdef FREERTOS_USED
@@ -309,8 +308,6 @@ void device_mouse_hid_task(void)
     uint8_t wm8805_muted = 1;								// Assume I2S output is muted
 	uint8_t wm8805_power = 0;								// Starting up with wm8805 powered down
     U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
-//    uint16_t wm8805_zerotimer = SILENCE_WM_LIMIT;			// Initially assume WM8805 is silent
-//    uint16_t wm8805_loudtimer = LOUD_WM_INIT;				// Initially assume WM8805 is silent
 
     while (gotcmd == 0) {
 
@@ -511,11 +508,6 @@ void device_mouse_hid_task(void)
 			 */
 
 
-/*			if (WM_IS_LOUD())
-				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);
-			else
-				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);
-*/
 			// USB is giving away control,
 			if (input_select == MOBO_SRC_NONE) {
 				if (wm8805_power == 0) {
@@ -524,7 +516,6 @@ void device_mouse_hid_task(void)
 	            	wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
 					wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
 					wm8805_zerotimer = SILENCE_WM_INIT;			// Assume it hasn't become silent yet at startup, give it time to figure out
-					wm8805_loudtimer = LOUD_WM_INIT;			// WM8805 won't be playing music right away
 					wm8805_input(input_select_wm8805_next);		// Try next input source
 					wm8805_pllmode = WM8805_PLL_NORMAL;
 					wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
@@ -578,7 +569,6 @@ void device_mouse_hid_task(void)
 
 				wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
 				wm8805_zerotimer = SILENCE_WM_INIT;			// Assume it hasn't become silent yet at startup, give it time to figure out
-				wm8805_loudtimer = LOUD_WM_INIT;			// WM8805 won't be playing music right away
 				wm8805_input(input_select_wm8805_next);		// Try next input source
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 				wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
@@ -590,7 +580,6 @@ void device_mouse_hid_task(void)
 			if ( (wm8805_muted == 1) && (wm8805_power == 1) ) {
 
 			//			if (wm8805_muted) {									// Try to unmute with qualified UNLOCK
-//				if ( (!wm8805_unlocked()) && (WM_IS_LOUD()) ) {	// Qualified lock with audio present
 				if ( (!wm8805_unlocked()) && (gpio_get_pin_value(WM8805_ZERO_PIN) == 0) ) {	// Qualified lock with audio present
 
 					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
@@ -693,14 +682,6 @@ void device_mouse_hid_task(void)
 				}
 				else
 					wm8805_zerotimer = SILENCE_WM_INIT;			// Not silent and in lock!
-			}
-
-			// Monitor loud WM8805 to qualify that it's actually sending music
-			if ( !WM_IS_LOUD() && (wm8805_power == 1) ) {
-				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 0)
-					wm8805_loudtimer += LOUD_WM_INC;
-				else
-					wm8805_loudtimer = LOUD_WM_INIT;
 			}
 
     	} // else, !readkey
