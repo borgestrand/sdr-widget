@@ -666,15 +666,13 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 					}
 				}
-				else { // stereo sample is non-zero
-					print_dbg_char('0');
+				else // stereo sample is non-zero
 					silence_USB = SILENCE_USB_INIT;					// USB interface is not silent!
-				}
 
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 
-//				if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent!
-				if ( (USB_IS_SILENT()) ) {
+#if defined(HW_GEN_DIN10)	// With WM8805 input, don't report
+				if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent!
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 					playerStarted = PS_USB_OFF;
 
@@ -686,7 +684,7 @@ void uac2_device_audio_task(void *pvParameters)
 	    				print_dbg_char('-');
 					print_dbg_char('\n');
 				}
-
+#endif
 
 /* BSB 20131031 New location of gap calculation code */
 
@@ -785,9 +783,24 @@ void uac2_device_audio_task(void *pvParameters)
 			}	// end if (Is_usb_out_received(EP_AUDIO_OUT))
 		} // end if (usb_alternate_setting_out == 1)
 
-		else {
+		else { // usb_alternate_setting_out != 1
 			playerStarted = PS_USB_OFF;
 			silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
+
+#if defined(HW_GEN_DIN10)	// With WM8805 input, don't report
+			if (input_select == MOBO_SRC_UAC2) {
+				input_select = MOBO_SRC_NONE;				// Indicate WM may take over control
+				playerStarted = PS_USB_OFF;
+
+				print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
+            	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+    				print_dbg_char('+');
+            	}
+            	else
+    				print_dbg_char('-');
+				print_dbg_char('\n');
+			}
+#endif
 		}
 
 		// BSB 20131201 attempting improved playerstarted detection

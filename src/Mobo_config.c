@@ -71,31 +71,24 @@ void wm8805_init(void) {
 
 // Turn off wm8805, why can't we just run init again?
 void wm8805_sleep(void) {
-	wm8805_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL,
+	wm8805_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL,
 }
 
 // Select input channel of the WM8805
 void wm8805_input(uint8_t input_sel) {
-/*
- * Mute ???
- * Disable RX, select channel, enable RX
- * Wait for lock and report success/failure?
- * Unmute ???
- */
-
-// FIX: if input is USB, do some major shutting down, if it aint, reinit the WM8805!
-
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
-	if (input_sel == MOBO_SRC_TOSLINK)
+	if (input_sel == MOBO_SRC_TOSLINK) {
 		wm8805_write_byte(0x08, 0x34);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
- 	else if (input_sel == MOBO_SRC_SPDIF)
+	}
+ 	else if (input_sel == MOBO_SRC_SPDIF) {
 		wm8805_write_byte(0x08, 0x35);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:5 RX5
+ 	}
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
 }
 
-// Select input channel of the WM8805
+// Select PLL setting of the WM8805
 void wm8805_pll(uint8_t pll_sel) {
 /*
  * Mute ???
@@ -152,7 +145,7 @@ uint8_t wm8805_unlocked(void) {
 	uint8_t temp2;						// Record SPDIF RX status
 	uint8_t temp3 = 255;				// Counter used to qualify lock
 
-	while (temp3) {
+	while (temp3 != 0) {
 		temp2 = (wm8805_read_byte(0x0C) & 0x40) ;	// Record UNLOCK (1) or lock (0)
 		if (temp2 != 0)					// ONE detection of UNLOCK==1 is enough,
 			return 1;					// UNLOCKED
@@ -185,7 +178,6 @@ void wm8805_unmute(void) {
 	wm8805_freq = mobo_srd();
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
-//	print_dbg_char('L');						// Loud!
 }
 
 // Write a single byte to WM8805
