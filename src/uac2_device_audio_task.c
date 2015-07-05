@@ -641,6 +641,7 @@ void uac2_device_audio_task(void *pvParameters)
 				} // end for num_samples
 
 				// Detect USB silence. A muted USB output (i.e. input_select != MOBO_SRC_UAC2) will add to the zeros
+				// FIX: Mov into loop! This detects last stereo sample in each USB packet!
 				if ( (sample_L == 0) && (sample_R == 0) ) {
 					if (!USB_IS_SILENT()) {
 						switch (current_freq.frequency) {
@@ -665,12 +666,15 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 					}
 				}
-				else // stereo sample is non-zero
+				else { // stereo sample is non-zero
+					print_dbg_char('0');
 					silence_USB = SILENCE_USB_INIT;					// USB interface is not silent!
+				}
 
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 
-				if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent!
+//				if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent!
+				if ( (USB_IS_SILENT()) ) {
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 					playerStarted = PS_USB_OFF;
 
