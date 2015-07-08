@@ -62,7 +62,7 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define PS_USB_ON			2					// USB state machine is sending audio
 
 // Values for USB silence (32-bit), move to WM8805.h
-#define SILENCE_WM_LIMIT	1000
+#define SILENCE_WM_LIMIT	1700				// Works reasonably well with ~2s gap on Sony D-NE700
 #define SILENCE_WM_INIT		0
 #define SILENCE_WM_ZERO		10
 #define SILENCE_WM_UNLINK	100
