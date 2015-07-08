@@ -80,16 +80,14 @@
 // FB_rate_initial: The initial setting, including any special Linux settings, NOT offset. Used to re-init state machine
 // FB_rate_nominal: The best setting if Host and DAC are fully synced. Offset by FB_NOMINAL_OFFSET to simulate a stupid or dead Host feedback
 
-extern volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal;  // BSB 20131031 FB_rate_initial and FB_rate_nominal added and changed to S32
-extern volatile uint8_t playerStarted; // BSB 20150516: changed into global variable
+extern volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal; // BSB 20131031 FB_rate_initial and FB_rate_nominal added and changed to S32
+extern volatile Bool mute, spk_mute;
+extern S16 volume, spk_volume;
 
 #if defined(HW_GEN_DIN10)		// BSB 20150501 global variable for input selector
 extern volatile uint8_t input_select;
 extern volatile xSemaphoreHandle input_select_semphr; // BSB 20150626 audio channel selection semaphore
 #endif
-
-extern volatile Bool mute, spk_mute;
-extern S16 volume, spk_volume;
 
 //_____ M A C R O S ________________________________________________________
 
