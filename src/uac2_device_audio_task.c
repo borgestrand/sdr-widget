@@ -768,6 +768,12 @@ void uac2_device_audio_task(void *pvParameters)
 			playerStarted = FALSE;
 			silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
+			// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
+			for (i = 0; i < SPK_BUFFER_SIZE; i++) {
+				spk_buffer_0[i] = 0;
+				spk_buffer_1[i] = 0;
+			}
+
 #if defined(HW_GEN_DIN10)	// With WM8805 input, don't report
 			if (input_select == MOBO_SRC_UAC2) {
 				input_select = MOBO_SRC_NONE;				// Indicate WM may take over control
@@ -784,6 +790,7 @@ void uac2_device_audio_task(void *pvParameters)
 		}
 
 		// BSB 20131201 attempting improved playerstarted detection
+		// Check if this ever actually happens. Change "==" to ">="?
 		if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA and uacX_taskAK5394A.c, decreased by seq. code
 			usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
 			playerStarted = FALSE;

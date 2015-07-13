@@ -271,7 +271,7 @@ void device_mouse_hid_task(void)
 */
 
 
-    // BSB 20120711: HID using uart
+// BSB 20120711: HID using uart
 
 /*
  * HID protocol using uart
@@ -374,7 +374,6 @@ void device_mouse_hid_task(void)
             else if (a == 't')
             	wm8805_reset(WM8805_RESET_END);
 
-
 			// Init semaphore
             else if (a == 'I') {
             	input_select_semphr = xSemaphoreCreateMutex();				// May take semaphore after init
@@ -399,7 +398,6 @@ void device_mouse_hid_task(void)
     				print_dbg_char('-');
 				print_dbg_char('\n');
             }
-
 
             // Change I2S source to USB, assume 44.1 UAC2
             else if (a == 'U') {
@@ -499,10 +497,14 @@ void device_mouse_hid_task(void)
 			 * + Decide on which interrupts to enable
 			 * + Do some clever bits with silencing
 			 * + Prevent USB engine from going bonkers when playing on the WM (buffer zeros and send nominal sample rate...)
+			 * - Update USB silence detector timeouts
+			 * - Test UAC2 code and port to UAC1
+			 * - Tasks to be eliminated, particularly uacX_taskAK5394A.c?
 			 * - Test code base on legacy hardware
 			 * - Check if WM is really 24 bits
 			 * + Test SPDIF
-			 * - Structure code away from mobo_config.c/h
+			 * - Structure code away from mobo_config.c/h, device_mouse_hid_task.c etc.
+			 * - Is spk_mute ever used in uac2_d_a_t?
 			 * + Think about some automatic silence detecting software!
 			 * - Long-term testing
 			 */

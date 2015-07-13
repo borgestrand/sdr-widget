@@ -76,7 +76,7 @@ void uac2_AK5394A_task_init(void) {
 	current_freq.frequency = 96000;
 	AK5394A_task_init(FALSE);
 
-//clear samplerate indication
+//clear samplerate indication FIX: move to different _init() routine
 #if defined(HW_GEN_AB1X)
 	gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 	gpio_set_gpio_pin(SAMPLEFREQ_VAL0);
@@ -110,7 +110,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 	int sampling_count = 0;
 */
 	while (TRUE) {
-		// All the hardwork is done by the pdca and the interrupt handler.
+		// All the hard work is done by the pdca and the interrupt handler.
 		// This does some periodic checking such as whether USB data out is stalled
 
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_AK5394A_PERIOD);
