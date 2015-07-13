@@ -195,7 +195,7 @@ void device_mouse_hid_task(void)
   char gotcmd = 0;				// Initially, no user command was recorded
 
   // Move to WM8805.c
-  uint16_t wm8805_zerotimer = SILENCE_WM_LIMIT;			// Initially assume WM8805 is silent
+  uint16_t wm8805_zerotimer = SILENCE_WM_PAUSE;			// Initially assume WM8805 is silent
 
 
 #ifdef FREERTOS_USED
@@ -520,10 +520,6 @@ void device_mouse_hid_task(void)
 					wm8805_pllmode = WM8805_PLL_NORMAL;
 					wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
 				}
-
-
-//				print_dbg_char('W');
-//				print_dbg_char('\n');
             }
 			// USB has assumed control, power down WM8805 if it was on
 			else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
@@ -535,19 +531,21 @@ void device_mouse_hid_task(void)
 			}
 
 
-			// Current WM8805 input is silent or unavailable.
-			if ( (WM_IS_SILENT()) && (wm8805_power == 1) ) {
+			// Current WM8805 input is silent or unavailable. When WM is selected, wait for a long time (paused).
+			// When WM is not selected, scan WM inputs for a short time (unlinked)
+			if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
+//			if ( (WM_IS_SILENT()) && (wm8805_power == 1) ) {
 
 				// With this task's input_select values, assume semaphore is owned
 				if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK) ) {
-					input_select = MOBO_SRC_NONE;					// Indicate USB may take over control, but don't power down!
+					input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
 					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 				    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 					else
 				    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 
-					print_dbg_char('G');							// Debug semaphore, capital letters for WM8805 task
+					print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
 					if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 						print_dbg_char('+');
 					}
@@ -557,29 +555,23 @@ void device_mouse_hid_task(void)
 				}
 
 				// Try other WM8805 channel
-				if (input_select_wm8805_next == MOBO_SRC_TOSLINK) {	// Prepare to probe other WM channel next time we're here
-					print_dbg_char('c');					// Debug must know which WM channel we're trying now
+				if (input_select_wm8805_next == MOBO_SRC_TOSLINK)	// Prepare to probe other WM channel next time we're here
 					input_select_wm8805_next = MOBO_SRC_SPDIF;
-				}
-				else {
+				else
 					input_select_wm8805_next = MOBO_SRC_TOSLINK;
-					print_dbg_char('o');
-				}
-				print_dbg_char('\n');
 
-				wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
-				wm8805_zerotimer = SILENCE_WM_INIT;			// Assume it hasn't become silent yet at startup, give it time to figure out
-				wm8805_input(input_select_wm8805_next);		// Try next input source
+				wm8805_muted = 1;								// I2S is still controlled by USB which should have zeroed it.
+				wm8805_zerotimer = SILENCE_WM_INIT;				// Assume it hasn't become silent yet at startup, give it time to figure out
+				wm8805_input(input_select_wm8805_next);			// Try next input source
 				wm8805_pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
+				wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
 			}
-
 
 
 			// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
 			if ( (wm8805_muted == 1) && (wm8805_power == 1) ) {
 
-			//			if (wm8805_muted) {									// Try to unmute with qualified UNLOCK
+			//			if (wm8805_muted) {					// Try to unmute with qualified UNLOCK
 				if ( (!wm8805_unlocked()) && (gpio_get_pin_value(WM8805_ZERO_PIN) == 0) ) {	// Qualified lock with audio present
 
 					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
@@ -595,18 +587,17 @@ void device_mouse_hid_task(void)
 
 					// Do we own semaphore? If so, change I2S setting
 					if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK) ) {
-						wm8805_clkdiv();							// Configure MCLK division
-						wm8805_unmute();							// Reconfigure I2S selection and LEDs
+						wm8805_clkdiv();						// Configure MCLK division
+						wm8805_unmute();						// Reconfigure I2S selection and LEDs
 						wm8805_muted = 0;
 						print_dbg_char('!');
 					}
 				}
 			}
 
+
 			// Polling interrupt monitor, only use when WM8805 is on
 			if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_power == 1) ) {
-//			if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && ( (input_select == MOBO_SRC_TOSLINK) || (input_select == MOBO_SRC_SPDIF)  ) ) {
-//			if (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) {	// There is an active low interrupt going on!
 				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
 
 				if (wm8805_unlocked()) {						// Unlock
@@ -615,65 +606,18 @@ void device_mouse_hid_task(void)
 						wm8805_muted = 1;						// In any case, we're muted from now on.
 					}
 
-                	if (mobo_srd() == FREQ_192) {
-//						print_dbg_char('P');
+                	if (mobo_srd() == FREQ_192)
 						wm8805_pllmode = WM8805_PLL_192;
-					}
-					else {
-//						print_dbg_char('p');
+					else
 						wm8805_pllmode = WM8805_PLL_NORMAL;
-					}
                 	wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
                 	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 10ms
 				}
-/*
-				// Interrupt reporting
-				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
-				temp2 = wm8805_read_byte(0x0C);					// Record spdif status
-				wm8805_freq = mobo_srd();						// Print detected sample rate
-
-				print_dbg_char('I');							// Print recorded interrupt status
-				print_dbg_char(':');
-				print_dbg_char_bin(temp1);						// INTSTAT
-				print_dbg_char(' ');
-				print_dbg_char('S');
-				print_dbg_char(':');
-				print_dbg_char_bin(temp2);						// SPDSTAT
-				print_dbg_char(' ');
-				print_dbg_char('x');
-				print_dbg_char(':');
-
-				switch (wm8805_freq) {
-					case FREQ_32:
-						print_dbg_char_hex(0x32);
-						break;
-					case FREQ_44:
-						print_dbg_char_hex(0x44);
-						break;
-					case FREQ_48:
-						print_dbg_char_hex(0x48);
-						break;
-					case FREQ_88:
-						print_dbg_char_hex(0x88);
-						break;
-					case FREQ_96:
-						print_dbg_char_hex(0x96);
-						break;
-					case FREQ_176:
-						print_dbg_char_hex(0x17);
-						break;
-					case FREQ_192:
-						print_dbg_char_hex(0x19);
-						break;
-				}
-            	print_dbg_char('\n');
-
-*/
 			}	// Done handling interrupt
 
 
 			// Monitor silent or disconnected WM8805 input
-			if ( !WM_IS_SILENT() && (wm8805_power == 1) ) {
+			if ( !WM_IS_PAUSED() && (wm8805_power == 1) ) {
 				if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
 					if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
 						wm8805_zerotimer += SILENCE_WM_ZERO;	// The poll intervals are crap, need thorough adjustment!
@@ -686,8 +630,8 @@ void device_mouse_hid_task(void)
 
     	} // else, !readkey
 
-    	if (gotcmd == 0)									// Nothing recorded:
-			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS
+    	if (gotcmd == 0)										// Nothing recorded:
+			vTaskDelay(120);									// Polling cycle gives 12ms to RTOS
     }
 
 //  Tested ReportByte1 content with JRiver and VLC on Win7-32

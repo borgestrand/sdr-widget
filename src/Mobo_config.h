@@ -57,7 +57,8 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define	FREQ_192			192000
 
 // Values for USB silence (32-bit), move to WM8805.h
-#define SILENCE_WM_LIMIT	1700				// Works reasonably well with ~2s gap on Sony D-NE700
+#define SILENCE_WM_LINKUP	300					// Limit when probing other WM8805 channel i.e. music NOT playing
+#define SILENCE_WM_PAUSE	3000				// Limit when input_select is a WM8805 channel i.e. music pausing
 #define SILENCE_WM_INIT		0
 #define SILENCE_WM_ZERO		10
 #define SILENCE_WM_UNLINK	100
@@ -65,8 +66,8 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define	LOUD_WM_INIT		0
 #define	LOUD_WM_INC			1
 
-#define WM_IS_SILENT() (wm8805_zerotimer >= SILENCE_WM_LIMIT)
-#define WM_IS_LOUD() (wm8805_loudtimer >= LOUD_WM_LIMIT)
+#define WM_IS_UNLINKED() (wm8805_zerotimer >= SILENCE_WM_LINKUP)
+#define WM_IS_PAUSED() (wm8805_zerotimer >= SILENCE_WM_PAUSE)
 
 
 // Reset the WM8805 via hardware pin
