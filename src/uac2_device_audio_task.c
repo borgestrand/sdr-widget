@@ -574,11 +574,10 @@ void uac2_device_audio_task(void *pvParameters)
 					// Do we own semaphore? If so, change I2S setting
 					if (input_select == MOBO_SRC_UAC2) {
 						playerStarted = TRUE;
-						silence_USB = SILENCE_USB_INIT;	// USB interface is not silent!
+//						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
 	            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
 						mobo_led_select(current_freq.frequency, input_select);
 					}
-
 
 					// Semaphore not taken, or muted, output zeros
 					if ( (input_select != MOBO_SRC_UAC2) || (spk_mute) ) {
@@ -649,6 +648,7 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 				else // stereo sample is non-zero
 					silence_USB = SILENCE_USB_INIT;					// USB interface is not silent!
+
 
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 
@@ -768,11 +768,13 @@ void uac2_device_audio_task(void *pvParameters)
 			playerStarted = FALSE;
 			silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
+/*	// Wow, this loop made this process own a lot of time!
 			// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
 			for (i = 0; i < SPK_BUFFER_SIZE; i++) {
 				spk_buffer_0[i] = 0;
 				spk_buffer_1[i] = 0;
 			}
+*/
 
 #if defined(HW_GEN_DIN10)	// With WM8805 input, don't report
 			if (input_select == MOBO_SRC_UAC2) {
