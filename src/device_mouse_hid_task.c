@@ -188,10 +188,10 @@ void device_mouse_hid_task(void)
 
   // BSB 20120810 HID variables moved up
   const U8 ReportByte0 = 0x01;	// Report ID doesn't change
-  U8 ReportByte1 = 0;				// 1st variable byte of HID report
+  U8 ReportByte1 = 0;			// 1st variable byte of HID report
   U8 ReportByte2 = 0; 			// 2nd variable byte of HID report
   U8 ReportByte1_prev = 0;		// Previous ReportByte1
-  char a = 0;						// ASCII character as part of HID protocol over uart
+  char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
 
   // Move to WM8805.c
