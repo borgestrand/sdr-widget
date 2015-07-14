@@ -302,12 +302,11 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
-    uint8_t temp1, temp2;
+    uint8_t temp1;
     uint8_t input_select_wm8805_next = MOBO_SRC_TOSLINK;	// Try TOSLINK first
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t wm8805_muted = 1;								// Assume I2S output is muted
 	uint8_t wm8805_power = 0;								// Starting up with wm8805 powered down
-    U32 wm8805_freq = FREQ_TIMEOUT;							// Sample rate variables, no sample rate yet detected
 
     while (gotcmd == 0) {
 
@@ -321,151 +320,6 @@ void device_mouse_hid_task(void)
                 ReportByte1 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
                 ReportByte2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Get 8 bits of hex encoded by 2 ASCII characters, with echo
             	gotcmd = 1;									// HID received on UART gets sent regardless
-            }
-
-            // Debugging LEDs on HW_GEN_DIN10
-            else if (a == 'l') {
-            	mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
-            	print_dbg_char('\n');
-            }
-
-            // Debugging WM8805 single write
-            else if (a == 'w') {
-            	// For some strange reason the two are swapped inside wm8805_write_byte() if
-            	// parameters are entered as read_dbg_char_hex(). Very strange. The LED debugger is not yet tested for this..
-            	temp1 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Internal address
-            	temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Data byte
-
-            	print_dbg_char_hex(wm8805_write_byte(temp1, temp2));
-            	print_dbg_char('\n');
-			}
-
-            // Debugging WM8805 single read, only valid for "read only" registers, and then with a twist...
-            else if (a == 'r') {
-            	print_dbg_char_hex( wm8805_read_byte(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT)) );
-            	print_dbg_char('\n');
-			}
-
-            // Start up the WM8805
-            else if (a == 'z') {
-            	wm8805_init();
-				print_dbg_char('\n');
-            }
-
-            // Select WM8805 as I2S source, for now use only TOSLINK
-            else if (a == 'W') {
-            	wm8805_mute();								// Unmute and LED select will come after code detects lock
-            	wm8805_muted = 1;
-
-            	input_select = MOBO_SRC_TOSLINK;
-            	wm8805_input(input_select);					// Is it good to do this late???
-
-				wm8805_pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
-
-				print_dbg_char('\n');
-            }
-
-            // Start hardware reset of WM8805
-            else if (a == 's')
-            	wm8805_reset(WM8805_RESET_START);
-
-            // End hardware reset of WM8805
-            else if (a == 't')
-            	wm8805_reset(WM8805_RESET_END);
-
-			// Init semaphore
-            else if (a == 'I') {
-            	input_select_semphr = xSemaphoreCreateMutex();				// May take semaphore after init
-            }
-
-            // Take semaphore
-            else if (a == 'T') {
-            	if( xSemaphoreTake(input_select_semphr, 0) == pdTRUE ) {	// Re-take of taken semaphore returns false
-    				print_dbg_char('+');
-            	}
-            	else
-    				print_dbg_char('-');
-				print_dbg_char('\n');
-            }
-
-            // Give semaphore
-            else if (a == 'G') {
-            	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-    				print_dbg_char('+');
-            	}
-            	else
-    				print_dbg_char('-');
-				print_dbg_char('\n');
-            }
-
-            // Change I2S source to USB, assume 44.1 UAC2
-            else if (a == 'U') {
-            	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-            		input_select = MOBO_SRC_UAC1;
-            	else
-            		input_select = MOBO_SRC_UAC2;
-
-				mobo_xo_select(current_freq.frequency, input_select);
-				mobo_led_select(current_freq.frequency, input_select);
-				wm8805_sleep();
-            }
-
-            else if (a == 'S')
-				wm8805_sleep();
-
-            else if (a == 'x') {
-				wm8805_freq = mobo_srd();						// Print detected sample rate
-				switch (wm8805_freq) {
-					case FREQ_32:
-						print_dbg_char_hex(0x32);
-						break;
-					case FREQ_44:
-						print_dbg_char_hex(0x44);
-						break;
-					case FREQ_48:
-						print_dbg_char_hex(0x48);
-						break;
-					case FREQ_88:
-						print_dbg_char_hex(0x88);
-						break;
-					case FREQ_96:
-						print_dbg_char_hex(0x96);
-						break;
-					case FREQ_176:
-						print_dbg_char_hex(0x17);
-						break;
-					case FREQ_192:
-						print_dbg_char_hex(0x19);
-						break;
-					default:
-						print_dbg_char_hex(0x00);
-						break;
-				}
-				wm8805_clkdiv();				// Configure MCLK division
-				print_dbg_char('\n');
-            }
-
-            else if (a == 'm') {
-				wm8805_unmute();
-				print_dbg_char('\n');
-            }
-
-            else if (a == 'M') {
-				wm8805_mute();
-				print_dbg_char('\n');
-            }
-
-            else if (a == 'p') {
-				wm8805_pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_pllmode);
-				print_dbg_char('\n');
-            }
-
-            else if (a == 'P') {
-				wm8805_pllmode = WM8805_PLL_192;
-				wm8805_pll(wm8805_pllmode);
-				print_dbg_char('\n');
             }
 
             // If you need the UART for something other than HID, this is where you interpret it!
@@ -514,7 +368,7 @@ void device_mouse_hid_task(void)
 			if (input_select == MOBO_SRC_NONE) {
 				if (wm8805_power == 0) {
 	            	wm8805_power = 1;
-					print_dbg_char('U');
+//					print_dbg_char('U');
 	            	wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
 					wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
 					wm8805_zerotimer = SILENCE_WM_INIT;			// Assume it hasn't become silent yet at startup, give it time to figure out
@@ -527,7 +381,7 @@ void device_mouse_hid_task(void)
 			else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
 				if (wm8805_power == 1) {
 	            	wm8805_power = 0;
-					print_dbg_char('D');
+//					print_dbg_char('D');
 					wm8805_sleep();
 				}
 			}
@@ -536,7 +390,6 @@ void device_mouse_hid_task(void)
 			// Current WM8805 input is silent or unavailable. When WM is selected, wait for a long time (paused).
 			// When WM is not selected, scan WM inputs for a short time (unlinked)
 			if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
-//			if ( (WM_IS_SILENT()) && (wm8805_power == 1) ) {
 
 				// With this task's input_select values, assume semaphore is owned
 				if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK) ) {
@@ -547,13 +400,13 @@ void device_mouse_hid_task(void)
 					else
 				    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 
-					print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
+//					print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
 					if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-						print_dbg_char('+');
+//						print_dbg_char('+');
 					}
-					else
-						print_dbg_char('-');
-					print_dbg_char('\n');
+//					else
+//						print_dbg_char('-');
+//					print_dbg_char('\n');
 				}
 
 				// Try other WM8805 channel
@@ -577,14 +430,14 @@ void device_mouse_hid_task(void)
 				if ( (!wm8805_unlocked()) && (gpio_get_pin_value(WM8805_ZERO_PIN) == 0) ) {	// Qualified lock with audio present
 
 					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
-						print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
+//						print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
 		            	if( xSemaphoreTake(input_select_semphr, 0) == pdTRUE ) {	// Re-take of taken semaphore returns false
-		    				print_dbg_char('+');
+//		    				print_dbg_char('+');
 		    				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
 		            	}
-		            	else
-		    				print_dbg_char('-');
-						print_dbg_char('\n');
+//		            	else
+//		    				print_dbg_char('-');
+//						print_dbg_char('\n');
 					}
 
 					// Do we own semaphore? If so, change I2S setting
@@ -592,7 +445,7 @@ void device_mouse_hid_task(void)
 						wm8805_clkdiv();						// Configure MCLK division
 						wm8805_unmute();						// Reconfigure I2S selection and LEDs
 						wm8805_muted = 0;
-						print_dbg_char('!');
+//						print_dbg_char('!');
 					}
 				}
 			}
