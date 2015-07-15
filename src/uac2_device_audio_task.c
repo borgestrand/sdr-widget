@@ -561,14 +561,14 @@ void uac2_device_audio_task(void *pvParameters)
 // *** XYZ ***
 //					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
 					if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// Semaphore is untaken, and there is actual USB audio.
-//						print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
+						print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
 		            	if( xSemaphoreTake(input_select_semphr, 0) == pdTRUE ) {	// Re-take of taken semaphore returns false
-//		    				print_dbg_char('+');
+		    				print_dbg_char('+');
 		    				input_select = MOBO_SRC_UAC2;
 		            	}										// Hopefully, this code won't be called repeatedly. Would there be time??
-//		            	else
-//		    				print_dbg_char('-');
-//						print_dbg_char('\n');
+		            	else
+		    				print_dbg_char('-');
+						print_dbg_char('\n');
 					}
 
 					// Do we own semaphore? If so, change I2S setting and resync _once_
@@ -674,13 +674,19 @@ void uac2_device_audio_task(void *pvParameters)
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 					playerStarted = FALSE;
 
-//					print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
+					// Silence detection spans less than full buffer size? Clear buffers for good measure!
+					for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
+						spk_buffer_0[i] = 0;
+						spk_buffer_1[i] = 0;
+					}
+
+					print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
 	            	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-//	    				print_dbg_char('+');
+	    				print_dbg_char('+');
 	            	}
-//	            	else
-//	    				print_dbg_char('-');
-//					print_dbg_char('\n');
+	            	else
+	    				print_dbg_char('-');
+					print_dbg_char('\n');
 				}
 #endif
 
@@ -797,13 +803,13 @@ void uac2_device_audio_task(void *pvParameters)
 			if (input_select == MOBO_SRC_UAC2) {
 				input_select = MOBO_SRC_NONE;				// Indicate WM may take over control
 
-//				print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
+				print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
             	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-//    				print_dbg_char('+');
+    				print_dbg_char('+');
             	}
-//            	else
-//    				print_dbg_char('-');
-//				print_dbg_char('\n');
+            	else
+    				print_dbg_char('-');
+				print_dbg_char('\n');
 			}
 #endif
 		}

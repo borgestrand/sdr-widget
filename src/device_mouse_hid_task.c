@@ -400,13 +400,13 @@ void device_mouse_hid_task(void)
 					else
 				    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 
-//					print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
+					print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
 					if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-//						print_dbg_char('+');
+						print_dbg_char('+');
 					}
-//					else
-//						print_dbg_char('-');
-//					print_dbg_char('\n');
+					else
+						print_dbg_char('-');
+					print_dbg_char('\n');
 				}
 
 				// Try other WM8805 channel
@@ -430,14 +430,14 @@ void device_mouse_hid_task(void)
 				if ( (!wm8805_unlocked()) && (gpio_get_pin_value(WM8805_ZERO_PIN) == 0) ) {	// Qualified lock with audio present
 
 					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
-//						print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
+						print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
 		            	if( xSemaphoreTake(input_select_semphr, 0) == pdTRUE ) {	// Re-take of taken semaphore returns false
-//		    				print_dbg_char('+');
+		    				print_dbg_char('+');
 		    				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
 		            	}
-//		            	else
-//		    				print_dbg_char('-');
-//						print_dbg_char('\n');
+		            	else
+		    				print_dbg_char('-');
+						print_dbg_char('\n');
 					}
 
 					// Do we own semaphore? If so, change I2S setting
@@ -445,7 +445,7 @@ void device_mouse_hid_task(void)
 						wm8805_clkdiv();						// Configure MCLK division
 						wm8805_unmute();						// Reconfigure I2S selection and LEDs
 						wm8805_muted = 0;
-//						print_dbg_char('!');
+						print_dbg_char('!');
 					}
 				}
 			}
