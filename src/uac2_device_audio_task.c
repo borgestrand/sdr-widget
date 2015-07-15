@@ -571,12 +571,29 @@ void uac2_device_audio_task(void *pvParameters)
 //						print_dbg_char('\n');
 					}
 
-					// Do we own semaphore? If so, change I2S setting
-					if (input_select == MOBO_SRC_UAC2) {
+					// Do we own semaphore? If so, change I2S setting and resync _once_
+					if ( (!playerStarted) && (input_select == MOBO_SRC_UAC2) ) {
 						playerStarted = TRUE;
 //						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
 	            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
 						mobo_led_select(current_freq.frequency, input_select);
+
+					// Redoing all the buffer alignment
+						audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+						num_remaining = spk_pdca_channel->tcr;
+						spk_buffer_in = spk_buffer_out;		// Keep resyncing until playerStarted becomes true
+						LED_Off(LED0);						// The LEDs on the PCB near the MCU
+						LED_Off(LED1);
+
+						if (spk_buffer_in == 1)				// Debug message 'p' removed along with #ifdefs
+							gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						else
+							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+
+						spk_index = SPK_BUFFER_SIZE - num_remaining;
+						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
+					// Done aligning buffers
+
 					}
 
 					// Semaphore not taken, or muted, output zeros

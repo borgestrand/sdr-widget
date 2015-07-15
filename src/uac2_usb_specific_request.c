@@ -182,12 +182,13 @@ void uac2_freq_change_handler() {
 			}
 
 #if defined(HW_GEN_DIN10)
-			if (input_select == MOBO_SRC_UAC2) {	// Only change I2S settings if appropriate
-#endif
-				mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO XO control and frequency indication
-				mobo_led_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO XO control and frequency indication
-#if defined(HW_GEN_DIN10)
-			}
+			if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) // Only change I2S settings if appropriate
+				mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO XO control
+			if (input_select == MOBO_SRC_UAC2) 							// Only change I2S settings if appropriate
+				mobo_led_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO frequency indication
+#else
+			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO XO control and frequency indication
+			mobo_led_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO XO control and frequency indication
 #endif
 
 /*
