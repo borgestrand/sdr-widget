@@ -84,8 +84,9 @@ extern volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal; // BSB 20131031 F
 extern volatile Bool mute, spk_mute;
 extern S16 volume, spk_volume;
 
-#if defined(HW_GEN_DIN10)		// BSB 20150501 global variable for input selector
-extern volatile uint8_t input_select;
+extern volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
+
+#if defined(HW_GEN_DIN10)
 extern volatile xSemaphoreHandle input_select_semphr; // BSB 20150626 audio channel selection semaphore
 #endif
 

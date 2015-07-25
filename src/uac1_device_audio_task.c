@@ -434,7 +434,7 @@ void uac1_device_audio_task(void *pvParameters)
 						}
 #else
 						playerStarted = TRUE;
-						mobo_led_select(current_freq.frequency, input_select);
+//						mobo_led_select(current_freq.frequency, input_select);
 #endif
 						audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						num_remaining = spk_pdca_channel->tcr;

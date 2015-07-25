@@ -553,11 +553,11 @@ void uac2_device_audio_task(void *pvParameters)
 		            	else
 		    				print_dbg_char('-');
 						print_dbg_char('\n');
-	#else
+	#else // not debug
 						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 		    				input_select = MOBO_SRC_UAC2;
 	#endif
-#else															// No WM8805, take control
+#else // not HW_GEN_D10											// No WM8805, take control
 	    				input_select = MOBO_SRC_UAC2;
 #endif
 					}
@@ -566,8 +566,12 @@ void uac2_device_audio_task(void *pvParameters)
 					if ( (!playerStarted) && (input_select == MOBO_SRC_UAC2) ) {
 						playerStarted = TRUE;					// Arrival of nonzero sample is now indication of playerStarted
 //						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
-	            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
+
+	            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
+
+#if defined(HW_GEN_DIN10)										// With WM8805 subsystem set RGB front LED
 						mobo_led_select(current_freq.frequency, input_select);
+#endif
 
 						// Align buffers
 						audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
@@ -784,7 +788,6 @@ void uac2_device_audio_task(void *pvParameters)
 		}
 
 		// BSB 20131201 attempting improved playerstarted detection
-		// Check if this ever actually happens. Change "==" to ">="?
 		if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA and uacX_taskAK5394A.c, decreased by seq. code
 			usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
 			playerStarted = FALSE;

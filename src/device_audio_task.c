@@ -11,9 +11,9 @@ volatile Bool mute, spk_mute;
 volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal; // BSB 20131031 FB_rate_initial and FB_rate_nominal added and changed to S32
 S16 volume, spk_volume;
 
+volatile uint8_t input_select;							// BSB 20150501 global variable for input selector
 
-#if defined(HW_GEN_DIN10)		// BSB 20150501 global variable for input selector
-volatile uint8_t input_select;
+#if defined(HW_GEN_DIN10)
 volatile xSemaphoreHandle input_select_semphr = NULL; // BSB 20150626 audio channel selection semaphore
 #endif
 

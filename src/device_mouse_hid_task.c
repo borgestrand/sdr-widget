@@ -302,11 +302,13 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
-    uint8_t temp1;
+#if defined(HW_GEN_DIN10)
+    uint8_t wm8805_int = 0;									// WM8805 interrupt status
     uint8_t input_select_wm8805_next = MOBO_SRC_TOSLINK;	// Try TOSLINK first
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t wm8805_muted = 1;								// Assume I2S output is muted
 	uint8_t wm8805_power = 0;								// Starting up with wm8805 powered down
+#endif
 
     while (gotcmd == 0) {
 
@@ -347,6 +349,8 @@ void device_mouse_hid_task(void)
 			}
 
 
+#if defined(HW_GEN_DIN10)
+
 			/* NEXT:
 			 * + Decide on which interrupts to enable
 			 * + Do some clever bits with silencing
@@ -363,12 +367,11 @@ void device_mouse_hid_task(void)
 			 * - Long-term testing
 			 */
 
-
 			// USB is giving away control,
 			if (input_select == MOBO_SRC_NONE) {
 				if (wm8805_power == 0) {
 	            	wm8805_power = 1;
-//					print_dbg_char('U');
+//					print_dbg_char('U');						// WM8805 going Up
 	            	wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
 					wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
 					wm8805_zerotimer = SILENCE_WM_INIT;			// Assume it hasn't become silent yet at startup, give it time to figure out
@@ -381,7 +384,7 @@ void device_mouse_hid_task(void)
 			else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
 				if (wm8805_power == 1) {
 	            	wm8805_power = 0;
-//					print_dbg_char('D');
+//					print_dbg_char('D');						// WM8805 going Down
 					wm8805_sleep();
 				}
 			}
@@ -400,13 +403,17 @@ void device_mouse_hid_task(void)
 					else
 				    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 
+	#ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
-					if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 						print_dbg_char('+');
 					}
 					else
 						print_dbg_char('-');
 					print_dbg_char('\n');
+	#else
+					xSemaphoreGive(input_select_semphr);
+	#endif
 				}
 
 				// Try other WM8805 channel
@@ -429,15 +436,20 @@ void device_mouse_hid_task(void)
 			//			if (wm8805_muted) {					// Try to unmute with qualified UNLOCK
 				if ( (!wm8805_unlocked()) && (gpio_get_pin_value(WM8805_ZERO_PIN) == 0) ) {	// Qualified lock with audio present
 
+	#ifdef USB_STATE_MACHINE_DEBUG
 					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
 						print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
-		            	if( xSemaphoreTake(input_select_semphr, 0) == pdTRUE ) {	// Re-take of taken semaphore returns false
+		            	if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 		    				print_dbg_char('+');
 		    				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
 		            	}
 		            	else
 		    				print_dbg_char('-');
 						print_dbg_char('\n');
+	#else // not debug
+		            	if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) // Re-take of taken semaphore returns false
+		    				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
+	#endif
 					}
 
 					// Do we own semaphore? If so, change I2S setting
@@ -453,7 +465,7 @@ void device_mouse_hid_task(void)
 
 			// Polling interrupt monitor, only use when WM8805 is on
 			if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_power == 1) ) {
-				temp1 = wm8805_read_byte(0x0B);					// Record interrupt status and clear pin
+				wm8805_int = wm8805_read_byte(0x0B);			// Record interrupt status and clear pin
 
 				if (wm8805_unlocked()) {						// Unlock
 					if (wm8805_muted == 0) {
@@ -482,6 +494,9 @@ void device_mouse_hid_task(void)
 				else
 					wm8805_zerotimer = SILENCE_WM_INIT;			// Not silent and in lock!
 			}
+
+#endif // end of HW_GEN_DIN10 WM8805 poll code
+
 
     	} // else, !readkey
 

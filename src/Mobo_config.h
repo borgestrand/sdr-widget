@@ -20,31 +20,20 @@
 #include "rotary_encoder.h"
 
 
-// Hardware control functions
+// Available digital audio sources, 3 and 4 only available in HW_GEN=din10
+#define MOBO_SRC_NONE		0
+#define MOBO_SRC_UAC1		1
+#define MOBO_SRC_UAC2		2
+#define MOBO_SRC_SPDIF		3
+#define MOBO_SRC_TOSLINK	4
 
-// Audio Widget select oscillator
-void mobo_xo_select(U32 frequency, uint8_t source);
-
-// Audio Widget select led
-void mobo_led_select(U32 frequency, uint8_t source);
-
-// Sprcific HW_GEN_DIN10 hardware functions
-#if defined(HW_GEN_DIN10)
-
-// Various WM8805 functions are drafted here and later moved somewhere better.....
-// Using the WM8805 requires intimate knowledge of the chip and its datasheet. For this
-// reason we use a lot of raw hex rather than naming of its internal registers.
-
-#define	WM8805_RESET_START	1
-#define WM8805_RESET_END	0
-#define WM8805_RESET_PIN	AVR32_PIN_PX10
-#define WM8805_INT_N_PIN	AVR32_PIN_PX54
-#define WM8805_ZERO_PIN		AVR32_PIN_PX15
-#define WM8805_ZEROFLAG_PIN	AVR32_PIN_PX15
-#define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k
-#define WM8805_PLL_NORMAL	0					// PLL mode is normal 32-96 and 176.4ksps
-#define WM8805_PLL_192		1					// PLL mode is for 192ksps
-#define WM8805_PLL_EXP		2					// Experimental PLL mode
+// Front led colors for RGB LEDs
+#define FLED_RED			1
+#define FLED_GREEN			2
+#define FLED_BLUE			4
+#define FLED_YELLOW			3
+#define FLED_PURPLE			5
+#define FLED_DARK			0
 
 // Frequency definitions, move and change to make compatible with USB system!
 #define	FREQ_TIMEOUT		0x00
@@ -66,9 +55,38 @@ void mobo_led_select(U32 frequency, uint8_t source);
 #define	LOUD_WM_INIT		0
 #define	LOUD_WM_INC			1
 
+
+// Hardware control functions
+
+// Audio Widget select oscillator
+void mobo_xo_select(U32 frequency, uint8_t source);
+
+#if defined(HW_GEN_DIN10)
+
+// Front panel RGB LED control
+void mobo_led_select(U32 frequency, uint8_t source);
+
+// LED control
+void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
+
+
+// Various WM8805 functions are drafted here and later moved somewhere better.....
+// Using the WM8805 requires intimate knowledge of the chip and its datasheet. For this
+// reason we use a lot of raw hex rather than naming of its internal registers.
+
+#define	WM8805_RESET_START	1
+#define WM8805_RESET_END	0
+#define WM8805_RESET_PIN	AVR32_PIN_PX10
+#define WM8805_INT_N_PIN	AVR32_PIN_PX54
+#define WM8805_ZERO_PIN		AVR32_PIN_PX15
+#define WM8805_ZEROFLAG_PIN	AVR32_PIN_PX15
+#define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k
+#define WM8805_PLL_NORMAL	0					// PLL mode is normal 32-96 and 176.4ksps
+#define WM8805_PLL_192		1					// PLL mode is for 192ksps
+#define WM8805_PLL_EXP		2					// Experimental PLL mode
+
 #define WM_IS_UNLINKED() (wm8805_zerotimer >= SILENCE_WM_LINKUP)
 #define WM_IS_PAUSED() (wm8805_zerotimer >= SILENCE_WM_PAUSE)
-
 
 // Reset the WM8805 via hardware pin
 void wm8805_reset(uint8_t reset_type);
@@ -103,30 +121,10 @@ uint8_t wm8805_write_byte(uint8_t int_adr, uint8_t data);
 // Read a single byte from WM8805
 uint8_t wm8805_read_byte(uint8_t int_adr);
 
-
-
-// LED control
-void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
-
 // Sample rate detection test
 U32 mobo_srd(void);
 
-// Available digital audio sources, 3 and 4 only available in HW_GEN=din10
-#define MOBO_SRC_NONE		0
-#define MOBO_SRC_UAC1		1
-#define MOBO_SRC_UAC2		2
-#define MOBO_SRC_SPDIF		3
-#define MOBO_SRC_TOSLINK	4
-
-// Front led colors
-#define FLED_RED			1
-#define FLED_GREEN			2
-#define FLED_BLUE			4
-#define FLED_YELLOW			3
-#define FLED_PURPLE			5
-#define FLED_DARK			0
-
-#endif
+#endif // HW_GEN_DIN10
 
 
 
