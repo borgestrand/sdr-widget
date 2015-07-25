@@ -91,7 +91,7 @@ extern volatile xSemaphoreHandle input_select_semphr; // BSB 20150626 audio chan
 
 //_____ M A C R O S ________________________________________________________
 
-#define SILENCE_USB_LIMIT	100 // 80 * FREQ_192 / 1000	// Recalculate! 80ms at 192/96/48, 88-ish ms at 176.4, 88.2, 44.1
+#define SILENCE_USB_LIMIT	12000 // We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
 #define SILENCE_USB_INIT	0
 #define USB_IS_SILENT() (silence_USB >= SILENCE_USB_LIMIT)
 

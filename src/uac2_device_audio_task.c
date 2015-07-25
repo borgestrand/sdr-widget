@@ -444,27 +444,11 @@ void uac2_device_audio_task(void *pvParameters)
 					skip_enable = 0;					// BSB 20131115 Not skipping yet...
 					skip_indicate = 0;
 					usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
-#if defined(HW_GEN_DIN10)								// Only start player when state machine monitoring inputs gives control to USB
-					// Code moved to label *** XYZ ***
 
-#else
-					playerStarted = TRUE;
-					mobo_led_select(current_freq.frequency, input_select);
-#endif
-					audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-					num_remaining = spk_pdca_channel->tcr;
-					spk_buffer_in = spk_buffer_out;		// Keep resyncing until playerStarted becomes true
-					LED_Off(LED0);						// The LEDs on the PCB near the MCU
-					LED_Off(LED1);
-
-					if (spk_buffer_in == 1)				// Debug message 'p' removed along with #ifdefs
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-					else
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-
-					spk_index = SPK_BUFFER_SIZE - num_remaining;
-					spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
+					// BSB 20150725: Buffer alignment takes place as soon as 1st nonzero sample is received.
+					// FIX: Move above code as well?
 				} // end if (!playerStarted) || (audio_OUT_must_sync)
+
 
 				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 				audio_OUT_alive = 1;					// Indicate samples arriving on audio OUT endpoint. Do this after syncing
@@ -557,43 +541,48 @@ void uac2_device_audio_task(void *pvParameters)
 					sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 					silence_det |= sample_L;
 
-#if defined(HW_GEN_DIN10)	// With WM8805 input or no input, USB subsystem stores only zeros
-// *** XYZ ***
-//					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
-					if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// Semaphore is untaken, and there is actual USB audio.
+					// New site for setting playerStarted and aligning buffers
+					if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
+#if defined(HW_GEN_DIN10)										// With WM8805 subsystem, handle semaphore
+	#ifdef USB_STATE_MACHINE_DEBUG
 						print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
-		            	if( xSemaphoreTake(input_select_semphr, 0) == pdTRUE ) {	// Re-take of taken semaphore returns false
+		            	if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 		    				print_dbg_char('+');
 		    				input_select = MOBO_SRC_UAC2;
 		            	}										// Hopefully, this code won't be called repeatedly. Would there be time??
 		            	else
 		    				print_dbg_char('-');
 						print_dbg_char('\n');
+	#else
+						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
+		    				input_select = MOBO_SRC_UAC2;
+	#endif
+#else															// No WM8805, take control
+	    				input_select = MOBO_SRC_UAC2;
+#endif
 					}
 
-					// Do we own semaphore? If so, change I2S setting and resync _once_
+					// Do we own output (semaphore)? If so, change I2S setting and resync _once_
 					if ( (!playerStarted) && (input_select == MOBO_SRC_UAC2) ) {
-						playerStarted = TRUE;
+						playerStarted = TRUE;					// Arrival of nonzero sample is now indication of playerStarted
 //						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
 	            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control
 						mobo_led_select(current_freq.frequency, input_select);
 
-					// Redoing all the buffer alignment
-						audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+						// Align buffers
+						audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						num_remaining = spk_pdca_channel->tcr;
-						spk_buffer_in = spk_buffer_out;		// Keep resyncing until playerStarted becomes true
-						LED_Off(LED0);						// The LEDs on the PCB near the MCU
+						spk_buffer_in = spk_buffer_out;			// Keep resyncing until playerStarted becomes true
+						LED_Off(LED0);							// The LEDs on the PCB near the MCU
 						LED_Off(LED1);
 
-						if (spk_buffer_in == 1)				// Debug message 'p' removed along with #ifdefs
-							gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						if (spk_buffer_in == 1)					// Debug message 'p' removed along with #ifdefs
+							gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 						else
-							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+							gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 
 						spk_index = SPK_BUFFER_SIZE - num_remaining;
-						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
-					// Done aligning buffers
-
+						spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 					}
 
 					// Semaphore not taken, or muted, output zeros
@@ -601,12 +590,6 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_L = 0;
 						sample_R = 0;
 					}
-#else
-					if (spk_mute) {
-						sample_L = 0;
-						sample_R = 0;
-					}
-#endif
 
 					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 						if (spk_buffer_in == 0) {
@@ -631,55 +614,34 @@ void uac2_device_audio_task(void *pvParameters)
 #endif
 
 							// BSB 20131201 attempting improved playerstarted detection
-							usb_buffer_toggle--;					// Counter is increased by DMA, decreased by seq. code
+							usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
 						}
 					}
 					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				} // end for num_samples
 
-				// Detect USB silence. FIX: the values are completely off now that we're doing this once per package.
-				// Consider num_samples? Hook up a GPIO pin?
+				// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
 				if (silence_det == 0) {
-					if (!USB_IS_SILENT()) {
-						switch (current_freq.frequency) {
-						case FREQ_44:
-							silence_USB += 4;
-							break;
-						case FREQ_48:
-							silence_USB += 4;
-							break;
-						case FREQ_88:
-							silence_USB += 2;
-							break;
-						case FREQ_96:
-							silence_USB += 2;
-							break;
-						case FREQ_176:
-							silence_USB ++;
-							break;
-						case FREQ_192:
-							silence_USB ++;
-							break;
-						}
-					}
+					if (!USB_IS_SILENT())
+						silence_USB ++;
 				}
 				else // stereo sample is non-zero
-					silence_USB = SILENCE_USB_INIT;					// USB interface is not silent!
-
+					silence_USB = SILENCE_USB_INIT;			// USB interface is not silent!
 
 				Usb_ack_out_received_free(EP_AUDIO_OUT);
 
-#if defined(HW_GEN_DIN10)	// With WM8805 input, don't report
-				if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent!
+				if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 					playerStarted = FALSE;
 
-					// Silence detection spans less than full buffer size? Clear buffers for good measure!
+					// Clear buffers for good measure! That may offload uac2_AK5394A_task() and present a good mute to WM8805
 					for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
 						spk_buffer_0[i] = 0;
 						spk_buffer_1[i] = 0;
 					}
 
+#if defined(HW_GEN_DIN10)									// With WM8805 present, handle semaphores
+	#ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
 	            	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 	    				print_dbg_char('+');
@@ -687,8 +649,11 @@ void uac2_device_audio_task(void *pvParameters)
 	            	else
 	    				print_dbg_char('-');
 					print_dbg_char('\n');
-				}
+	#else
+	            	xSemaphoreGive(input_select_semphr);
+	#endif
 #endif
+				}
 
 /* BSB 20131031 New location of gap calculation code */
 
@@ -787,31 +752,35 @@ void uac2_device_audio_task(void *pvParameters)
 			}	// end if (Is_usb_out_received(EP_AUDIO_OUT))
 		} // end if (usb_alternate_setting_out == 1)
 
-		else { // usb_alternate_setting_out != 1
+		else { // usb_alternate_setting_out != 1			// USB connection was turned off
 			playerStarted = FALSE;
 			silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
-/*	// Wow, this loop made this process own a lot of time!
+
+			if (input_select == MOBO_SRC_UAC2) {			// Set from playing nonzero USB
+				input_select = MOBO_SRC_NONE;
+
 			// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
 			for (i = 0; i < SPK_BUFFER_SIZE; i++) {
 				spk_buffer_0[i] = 0;
 				spk_buffer_1[i] = 0;
 			}
-*/
 
-#if defined(HW_GEN_DIN10)	// With WM8805 input, don't report
-			if (input_select == MOBO_SRC_UAC2) {
-				input_select = MOBO_SRC_NONE;				// Indicate WM may take over control
-
+#if defined(HW_GEN_DIN10)									// With WM8805 present, handle semaphores
+	#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
-            	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+            	if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
     				print_dbg_char('+');
             	}
             	else
     				print_dbg_char('-');
 				print_dbg_char('\n');
-			}
+	#else
+				xSemaphoreGive(input_select_semphr);
+	#endif
 #endif
+
+			}
 		}
 
 		// BSB 20131201 attempting improved playerstarted detection
