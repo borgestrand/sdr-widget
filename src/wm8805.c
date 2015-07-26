@@ -63,6 +63,8 @@ and 192. In itself this isn't that bad, if it wasn't for the fact that 192ksps n
 different initial PLL setting from the other five. So there's basically no way to
 determine from the chip itself whether that setting is needed. The sample rate detector
 inside the WM8805 can't be trusted, and neither can its sample rate change interrupt.
+(Yes, I did try with an averaged one-size-fits-all PLL setting. That ended up not
+working for any sample rate...)
 
 Luckily, the WM8805 sends out an I2S word clock of the correct sample rate, even though
 the PLL isn't correctly set up. This means the external sample rate detector can be used
