@@ -20,42 +20,6 @@
 #include "rotary_encoder.h"
 
 
-// Available digital audio sources, 3 and 4 only available in HW_GEN=din10
-#define MOBO_SRC_NONE		0
-#define MOBO_SRC_UAC1		1
-#define MOBO_SRC_UAC2		2
-#define MOBO_SRC_SPDIF		3
-#define MOBO_SRC_TOSLINK	4
-
-// Front led colors for RGB LEDs
-#define FLED_RED			1
-#define FLED_GREEN			2
-#define FLED_BLUE			4
-#define FLED_YELLOW			3
-#define FLED_PURPLE			5
-#define FLED_DARK			0
-
-// Frequency definitions, move and change to make compatible with USB system!
-#define	FREQ_TIMEOUT		0x00
-#define	FREQ_32				32000
-#define	FREQ_44				44100
-#define	FREQ_48				48000
-#define	FREQ_88				88200
-#define	FREQ_96				96000
-#define	FREQ_176			176400
-#define	FREQ_192			192000
-
-// Values for USB silence (32-bit), move to WM8805.h
-#define SILENCE_WM_LINKUP	300					// Limit when probing other WM8805 channel i.e. music NOT playing
-#define SILENCE_WM_PAUSE	3000				// Limit when input_select is a WM8805 channel i.e. music pausing
-#define SILENCE_WM_INIT		0
-#define SILENCE_WM_ZERO		10
-#define SILENCE_WM_UNLINK	100
-#define LOUD_WM_LIMIT		3					// Set above 1 to avoid blinking LED during channel search
-#define	LOUD_WM_INIT		0
-#define	LOUD_WM_INC			1
-
-
 // Hardware control functions
 
 // Audio Widget select oscillator

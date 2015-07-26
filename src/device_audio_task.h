@@ -74,7 +74,7 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-#define FB_NOMINAL_OFFSET 0 //512					// BSB 20131101 Offset used to test provoked feedback system
+#define FB_NOMINAL_OFFSET 0 //512						// BSB 20131101 Offset used to test provoked feedback system
 
 // FB_rate: state machine's feedback rate, communicated to Host over feedback EP
 // FB_rate_initial: The initial setting, including any special Linux settings, NOT offset. Used to re-init state machine
@@ -84,17 +84,13 @@ extern volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal; // BSB 20131031 F
 extern volatile Bool mute, spk_mute;
 extern S16 volume, spk_volume;
 
-extern volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
+extern volatile uint8_t input_select;					// BSB 20150501 global variable for input selector
 
 #if defined(HW_GEN_DIN10)
-extern volatile xSemaphoreHandle input_select_semphr; // BSB 20150626 audio channel selection semaphore
+extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio channel selection semaphore
 #endif
 
 //_____ M A C R O S ________________________________________________________
-
-#define SILENCE_USB_LIMIT	12000 // We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
-#define SILENCE_USB_INIT	0
-#define USB_IS_SILENT() (silence_USB >= SILENCE_USB_LIMIT)
 
 
 //_____ D E C L A R A T I O N S ____________________________________________

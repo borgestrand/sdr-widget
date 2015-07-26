@@ -39,7 +39,7 @@
 #include "TMP100.h"
 #include "DG8SAQ_cmd.h"
 #include "freq_and_filters.h"
-
+#include "taskAK5394A.h"
 
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"

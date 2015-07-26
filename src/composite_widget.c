@@ -177,6 +177,7 @@
 #include "image.h"
 #include "composite_widget.h"
 #include "Mobo_config.h"
+#include "taskAK5394A.h"
 
 /*
  *  A few global variables.
