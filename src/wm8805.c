@@ -31,6 +31,9 @@ ask why I put this together. Basically, it was harder than the toughest suduko I
 ever solved, and it felt much more meaningful. I may put the technology into a product
 one day in the future, but until then it's a very nice addition to my design toolbox.
 
+The code can be found at:
+https://github.com/borgestrand/sdr-widget/blob/audio-widget-experimental/src/wm8805.c
+
 The WM8805 from Wolfson / Cirrus is a multi-port SPDIF receiver and SPDIF transmitter
 for consumer mode signaling. (I.e. no AES/EBU.) Its main feature is a digital fractional
 PLL for clock recovery. Most other SPDIF receivers use an analog PLL structure which
