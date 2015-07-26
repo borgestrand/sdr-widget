@@ -33,7 +33,6 @@
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
 #include "rotary_encoder.h"
-#include "I2C.h"
 #include "AD7991.h"
 #include "PCF8574.h"
 #include "TMP100.h"

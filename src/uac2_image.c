@@ -88,7 +88,7 @@ static void x_image_task_init(void) {
 #endif
 	vStartTaskMoboCtrl();
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
-	uac2_AK5394A_task_init();
+	uac2_AK5394A_task_init(); // Commented out BSB 20150726
 	device_mouse_hid_task_init(UAC2_EP_HID_RX, UAC2_EP_HID_TX); // Added BSB 20120719
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
 #endif
