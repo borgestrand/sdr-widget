@@ -539,7 +539,7 @@ void uac2_device_audio_task(void *pvParameters)
 					sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
-					silence_det |= sample_L;
+					silence_det |= sample_R;
 
 					// New site for setting playerStarted and aligning buffers
 					if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
