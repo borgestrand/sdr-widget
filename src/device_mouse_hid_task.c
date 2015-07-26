@@ -97,7 +97,11 @@
 #include "features.h"
 
 // To access global input source variables
-#include "device_audio_task.h"
+// #include "device_audio_task.h"
+
+#if defined(HW_GEN_DIN10)
+#include "wm8805.h"
+#endif
 
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
@@ -193,9 +197,6 @@ void device_mouse_hid_task(void)
   U8 ReportByte1_prev = 0;		// Previous ReportByte1
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
-
-  // Move to WM8805.c
-  uint16_t wm8805_zerotimer = SILENCE_WM_PAUSE;			// Initially assume WM8805 is silent
 
 
 #ifdef FREERTOS_USED
@@ -302,14 +303,6 @@ void device_mouse_hid_task(void)
 
     gotcmd = 0;												// No HID button change recorded yet
 
-#if defined(HW_GEN_DIN10)
-    uint8_t wm8805_int = 0;									// WM8805 interrupt status
-    uint8_t input_select_wm8805_next = MOBO_SRC_TOSLINK;	// Try TOSLINK first
-    uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
-    uint8_t wm8805_muted = 1;								// Assume I2S output is muted
-	uint8_t wm8805_power = 0;								// Starting up with wm8805 powered down
-#endif
-
     while (gotcmd == 0) {
 
     	// These are test sequences. Move automated stuff to taskMoboCtrl.c
@@ -350,158 +343,13 @@ void device_mouse_hid_task(void)
 
 
 #if defined(HW_GEN_DIN10)
-
-			/* NEXT:
-			 * + Decide on which interrupts to enable
-			 * + Do some clever bits with silencing
-			 * + Prevent USB engine from going bonkers when playing on the WM (buffer zeros and send nominal sample rate...)
-			 * - Update USB silence detector timeouts
-			 * - Test UAC2 code and port to UAC1
-			 * - Tasks to be eliminated, particularly uacX_taskAK5394A.c?
-			 * - Test code base on legacy hardware
-			 * - Check if WM is really 24 bits
-			 * + Test SPDIF
-			 * - Structure code away from mobo_config.c/h, device_mouse_hid_task.c etc.
-			 * - Is spk_mute ever used in uac2_d_a_t?
-			 * + Think about some automatic silence detecting software!
-			 * - Long-term testing
-			 */
-
-			// USB is giving away control,
-			if (input_select == MOBO_SRC_NONE) {
-				if (wm8805_power == 0) {
-	            	wm8805_power = 1;
-//					print_dbg_char('U');						// WM8805 going Up
-	            	wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
-					wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
-					wm8805_zerotimer = SILENCE_WM_INIT;			// Assume it hasn't become silent yet at startup, give it time to figure out
-					wm8805_input(input_select_wm8805_next);		// Try next input source
-					wm8805_pllmode = WM8805_PLL_NORMAL;
-					wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
-				}
-            }
-			// USB has assumed control, power down WM8805 if it was on
-			else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
-				if (wm8805_power == 1) {
-	            	wm8805_power = 0;
-//					print_dbg_char('D');						// WM8805 going Down
-					wm8805_sleep();
-				}
-			}
-
-
-			// Current WM8805 input is silent or unavailable. When WM is selected, wait for a long time (paused).
-			// When WM is not selected, scan WM inputs for a short time (unlinked)
-			if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
-
-				// With this task's input_select values, assume semaphore is owned
-				if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK) ) {
-					input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
-
-					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-				    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-					else
-				    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-
-	#ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
-					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-						print_dbg_char('+');
-					}
-					else
-						print_dbg_char('-');
-					print_dbg_char('\n');
-	#else
-					xSemaphoreGive(input_select_semphr);
-	#endif
-				}
-
-				// Try other WM8805 channel
-				if (input_select_wm8805_next == MOBO_SRC_TOSLINK)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8805_next = MOBO_SRC_SPDIF;
-				else
-					input_select_wm8805_next = MOBO_SRC_TOSLINK;
-
-				wm8805_muted = 1;								// I2S is still controlled by USB which should have zeroed it.
-				wm8805_zerotimer = SILENCE_WM_INIT;				// Assume it hasn't become silent yet at startup, give it time to figure out
-				wm8805_input(input_select_wm8805_next);			// Try next input source
-				wm8805_pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
-			}
-
-
-			// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
-			if ( (wm8805_muted == 1) && (wm8805_power == 1) ) {
-
-			//			if (wm8805_muted) {					// Try to unmute with qualified UNLOCK
-				if ( (!wm8805_unlocked()) && (gpio_get_pin_value(WM8805_ZERO_PIN) == 0) ) {	// Qualified lock with audio present
-
-	#ifdef USB_STATE_MACHINE_DEBUG
-					if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
-						print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
-		            	if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-		    				print_dbg_char('+');
-		    				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
-		            	}
-		            	else
-		    				print_dbg_char('-');
-						print_dbg_char('\n');
-	#else // not debug
-		            	if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) // Re-take of taken semaphore returns false
-		    				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
-	#endif
-					}
-
-					// Do we own semaphore? If so, change I2S setting
-					if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK) ) {
-						wm8805_clkdiv();						// Configure MCLK division
-						wm8805_unmute();						// Reconfigure I2S selection and LEDs
-						wm8805_muted = 0;
-						print_dbg_char('!');
-					}
-				}
-			}
-
-
-			// Polling interrupt monitor, only use when WM8805 is on
-			if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_power == 1) ) {
-				wm8805_int = wm8805_read_byte(0x0B);			// Record interrupt status and clear pin
-
-				if (wm8805_unlocked()) {						// Unlock
-					if (wm8805_muted == 0) {
-						wm8805_mute();
-						wm8805_muted = 1;						// In any case, we're muted from now on.
-					}
-
-                	if (mobo_srd() == FREQ_192)
-						wm8805_pllmode = WM8805_PLL_192;
-					else
-						wm8805_pllmode = WM8805_PLL_NORMAL;
-                	wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-                	vTaskDelay(3000);							// Let WM8805 PLL try to settle for 10ms
-				}
-			}	// Done handling interrupt
-
-
-			// Monitor silent or disconnected WM8805 input
-			if ( !WM_IS_PAUSED() && (wm8805_power == 1) ) {
-				if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
-					if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
-						wm8805_zerotimer += SILENCE_WM_ZERO;	// The poll intervals are crap, need thorough adjustment!
-					else
-						wm8805_zerotimer += SILENCE_WM_UNLINK;
-				}
-				else
-					wm8805_zerotimer = SILENCE_WM_INIT;			// Not silent and in lock!
-			}
-
-#endif // end of HW_GEN_DIN10 WM8805 poll code
-
+			wm8805_poll();									// Handle WM8805's various hardware needs
+#endif
 
     	} // else, !readkey
 
-    	if (gotcmd == 0)										// Nothing recorded:
-			vTaskDelay(120);									// Polling cycle gives 12ms to RTOS
+    	if (gotcmd == 0)									// Nothing recorded:
+			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS
     }
 
 //  Tested ReportByte1 content with JRiver and VLC on Win7-32

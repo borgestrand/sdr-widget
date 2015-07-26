@@ -185,6 +185,11 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
+#if defined(HW_GEN_DIN10)
+#include "wm8805.h"
+#endif
+
+
 xSemaphoreHandle mutexEP_IN;
 
 
@@ -225,10 +230,9 @@ int i;
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware
 
 
-// Temporary startup code, get going from known default state.
+// Get going from known default state.
 // It is very important to enable some sort of MCLK to the CPU, USB MCLK is the most reliable
 // FIX: NVRAM should store preferred source and resort to it on boot-up!
-#if defined(HW_GEN_DIN10)
 
 	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 		input_select = MOBO_SRC_UAC1;
@@ -236,12 +240,13 @@ int i;
 		input_select = MOBO_SRC_UAC2;
 
 	mobo_xo_select(44100, input_select);					// Initial GPIO XO control and frequency indication
-	mobo_led_select(44100, input_select);
 
-	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
-
+#if defined(HW_GEN_DIN10)
+	mobo_led_select(44100, input_select);					// Front RGB LED
 	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
+
+	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
 
 //clear samplerate indication
 #if defined(HW_GEN_AB1X)

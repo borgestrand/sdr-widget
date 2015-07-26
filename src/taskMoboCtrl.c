@@ -46,8 +46,11 @@
 #include "LCD_bargraphs.h"
 #endif
 
-// To access global input source variables
+
+#if defined(HW_GEN_DIN10)
+#include "wm8805.h"
 #include "device_audio_task.h"
+#endif
 
 //#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
 

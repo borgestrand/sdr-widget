@@ -47,7 +47,9 @@ C_SRCS += \
 ../src/uac2_usb_specific_request.c \
 ../src/usb_descriptors.c \
 ../src/usb_specific_request.c \
-../src/widget.c 
+../src/widget.c \
+../src/wm8805.c 
+
 
 OBJS += \
 ./src/AD5301.o \
@@ -93,7 +95,9 @@ OBJS += \
 ./src/uac2_usb_specific_request.o \
 ./src/usb_descriptors.o \
 ./src/usb_specific_request.o \
-./src/widget.o 
+./src/widget.o \
+./src/wm8805.o 
+
 
 
 C_DEPS += \
@@ -140,7 +144,9 @@ C_DEPS += \
 ./src/uac2_usb_specific_request.d \
 ./src/usb_descriptors.d \
 ./src/usb_specific_request.d \
-./src/widget.d 
+./src/widget.d \
+./src/wm8805.d
+
 
 
 # Each subdirectory must supply rules for building sources it contributes
