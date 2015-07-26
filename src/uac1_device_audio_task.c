@@ -418,7 +418,6 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
 
-//					if(!playerStarted) {
 					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
@@ -428,37 +427,9 @@ void uac1_device_audio_task(void *pvParameters)
 						skip_enable = 0;					// BSB 20131115 Not skipping yet...
 						skip_indicate = 0;
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
-#if defined(HW_GEN_DIN10)								// Only start player when state machine monitoring inputs gives control to USB
-						if (playerStarted == FALSE) { // FIX: Import working UAC2 code
-							playerStarted = TRUE;
-							mobo_led_select(current_freq.frequency, input_select);
-						}
-#else
-						playerStarted = TRUE;
-//						mobo_led_select(current_freq.frequency, input_select);
-#endif
-						audio_OUT_must_sync = 0;			// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-						num_remaining = spk_pdca_channel->tcr;
-						spk_buffer_in = spk_buffer_out;
-						LED_Off(LED0);
-						LED_Off(LED1);
 
-#ifdef USB_STATE_MACHINE_DEBUG
-#if defined(HW_GEN_DIN10)	// With WM8805 input, don't report
-					if (input_select == MOBO_SRC_UAC1) {
-#endif
-						print_dbg_char_char('p');
-						if (spk_buffer_in == 1)
-							gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-						else
-							gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-#if defined(HW_GEN_DIN10)	// With WM8805 input, don't report
-					}
-#endif
-#endif
-
-						spk_index = SPK_BUFFER_SIZE - num_remaining;
-						spk_index = spk_index & ~((U32)1); // Clear LSB in order to start with L sample
+						// BSB 20150725: Buffer alignment takes place as soon as 1st nonzero sample is received.
+						// FIX: Move above code as well?
 					} // end if (!playerStarted) || (audio_OUT_must_sync)
 
 					// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA

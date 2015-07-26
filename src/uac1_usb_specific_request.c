@@ -707,7 +707,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 
 	usb_type = type;
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char_char('z'); // BSB debug 20121212
+//	print_dbg_char_char('z'); // BSB debug 20121212
 #endif
 
 	// this should vector to specified interface handler
