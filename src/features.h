@@ -126,11 +126,7 @@ typedef enum {
 		"usbdac",														\
 		"end",															\
 		"uac1_audio",													\
-		"uac1_dg8saq",													\
 		"uac2_audio",													\
-		"uac2_dg8saq",													\
-		"hpsdr",														\
-		"test",															\
 		"end",															\
 		"normal",														\
 		"swapped",														\
