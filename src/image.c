@@ -19,10 +19,10 @@ static const image_t *image;
 // needs setting before initialization
 void image_boot(void) {
   if ( FEATURE_IMAGE_UAC1_AUDIO ) image = &uac1_audio_image;
-  else if ( FEATURE_IMAGE_UAC1_DG8SAQ ) image = &uac1_dg8saq_image;
+//  else if ( FEATURE_IMAGE_UAC1_DG8SAQ ) image = &uac1_dg8saq_image;
   else if ( FEATURE_IMAGE_UAC2_AUDIO ) image = &uac2_audio_image;
-  else if ( FEATURE_IMAGE_UAC2_DG8SAQ ) image = &uac2_dg8saq_image;
-  else if ( FEATURE_IMAGE_HPSDR) image = &hpsdr_image;
+  //else if ( FEATURE_IMAGE_UAC2_DG8SAQ ) image = &uac2_dg8saq_image;
+//  else if ( FEATURE_IMAGE_HPSDR) image = &hpsdr_image;
   else image = &uac1_audio_image;
   image->boot();
 }

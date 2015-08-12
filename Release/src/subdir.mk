@@ -18,11 +18,9 @@ C_SRCS += \
 ../src/device_mouse_hid_task.c \
 ../src/features.c \
 ../src/flashyBlinky.c \
-../src/flashyblinky_image.c \
 ../src/freq_and_filters.c \
 ../src/host_audio_task.c \
 ../src/hpsdr_device_audio_task.c \
-../src/hpsdr_image.c \
 ../src/hpsdr_taskAK5394A.c \
 ../src/hpsdr_usb_descriptors.c \
 ../src/hpsdr_usb_specific_request.c \
@@ -66,11 +64,9 @@ OBJS += \
 ./src/device_mouse_hid_task.o \
 ./src/features.o \
 ./src/flashyBlinky.o \
-./src/flashyblinky_image.o \
 ./src/freq_and_filters.o \
 ./src/host_audio_task.o \
 ./src/hpsdr_device_audio_task.o \
-./src/hpsdr_image.o \
 ./src/hpsdr_taskAK5394A.o \
 ./src/hpsdr_usb_descriptors.o \
 ./src/hpsdr_usb_specific_request.o \
@@ -115,11 +111,9 @@ C_DEPS += \
 ./src/device_mouse_hid_task.d \
 ./src/features.d \
 ./src/flashyBlinky.d \
-./src/flashyblinky_image.d \
 ./src/freq_and_filters.d \
 ./src/host_audio_task.d \
 ./src/hpsdr_device_audio_task.d \
-./src/hpsdr_image.d \
 ./src/hpsdr_taskAK5394A.d \
 ./src/hpsdr_usb_descriptors.d \
 ./src/hpsdr_usb_specific_request.d \
