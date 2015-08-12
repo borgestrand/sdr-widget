@@ -261,8 +261,8 @@ void wm8805_poll(void) {
 	//			if (wm8805_muted) {					// Try to unmute with qualified UNLOCK
 		if ( (!wm8805_unlocked()) && (gpio_get_pin_value(WM8805_ZERO_PIN) == 0) ) {	// Qualified lock with audio present
 
-#ifdef USB_STATE_MACHINE_DEBUG
 			if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
+#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
 				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 					print_dbg_char('+');
@@ -282,7 +282,9 @@ void wm8805_poll(void) {
 				wm8805_clkdiv();						// Configure MCLK division
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
 				wm8805_muted = 0;
+#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('!');
+#endif
 			}
 		}
 	}
