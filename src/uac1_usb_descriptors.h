@@ -60,7 +60,8 @@
 #define NB_INTERFACE	   4	//!  DG8SAQ, HID, Audio (2)
 #define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
-#define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED
+#define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED // UAC1 was set as selfpowered!
+//#define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
 #define MAX_POWER          5 // 250    // 500 mA
 
 //Audio Streaming (AS) interface descriptor
