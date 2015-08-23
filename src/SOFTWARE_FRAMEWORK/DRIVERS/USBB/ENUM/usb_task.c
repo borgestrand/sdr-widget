@@ -223,7 +223,11 @@ void usb_task(void *pvParameters)
   // Register the USB interrupt handler to the interrupt controller and enable
   // the USB interrupt.
   Disable_global_interrupt();
+
+  print_dbg_char('V');
   INTC_register_interrupt((__int_handler)&usb_general_interrupt, AVR32_USBB_IRQ, USB_INT_LEVEL);
+  print_dbg_char('W');
+
   Enable_global_interrupt();
 
 #ifdef FREERTOS_USED
@@ -320,6 +324,8 @@ static void usb_general_interrupt(void)
   portBASE_TYPE task_woken = pdFALSE;
 #endif
 
+// BSB debug 20150823
+print_dbg_char('*');
 
 // ---------- DEVICE events management -----------------------------------------
 #if USB_DEVICE_FEATURE == ENABLED
