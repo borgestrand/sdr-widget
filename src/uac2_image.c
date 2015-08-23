@@ -76,26 +76,50 @@ static void x_image_init(void) {
 
 static void x_image_task_init(void) {
 	// Initialize USB task
+
+
+	print_dbg_char('A');
+
 	usb_task_init();
+
+	print_dbg_char('B');
 
 #if USB_DEVICE_FEATURE == ENABLED
 	mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
-#if LCD_DISPLAY						// Multi-line LCD display
-	vStartTaskLCD();				// Disabling this task makes for no Prog and no Auido
-//	vStartTaskPowerDisplay();		// Disable OK for Prog and Audio
-//	vStartTaskPushButtonMenu();		// Disable OK for Prog and Audio
-#endif
+	print_dbg_char('C');
+
+	#if LCD_DISPLAY						// Multi-line LCD display
+		vStartTaskLCD();				// Disabling this task makes for no Prog and no Auido
+
+		print_dbg_char('D');
+
+	//	vStartTaskPowerDisplay();		// Disable OK for Prog and Audio
+	//	vStartTaskPushButtonMenu();		// Disable OK for Prog and Audio
+	#endif
 	vStartTaskMoboCtrl();
+
+	print_dbg_char('E');
+
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
-	uac2_AK5394A_task_init(); // Commented out BSB 20150726
+	uac2_AK5394A_task_init();
+
+	print_dbg_char('F');
+
 	device_mouse_hid_task_init(UAC2_EP_HID_RX, UAC2_EP_HID_TX); // Added BSB 20120719
+
+	print_dbg_char('G');
+
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
+
+	print_dbg_char('H');
 #endif
+
 #if LCD_DISPLAY						// Multi-line LCD display
 //	if ( ! FEATURE_LOG_NONE )		// Disable OK for Prog and Audio
 //		vStartTaskStartupLogDisplay();
 #endif
+
 }
 
 // descriptor accessors
