@@ -150,44 +150,7 @@ extern xTaskHandle usb_device_tsk;
 
 #endif
 
-
-#if USB_HOST_FEATURE == ENABLED
-
-static const char log_device_disconnected[] = "Device disconnected\n";
-
-//!
-//! Private: U8 private_sof_counter
-//! Incremented  by host SOF interrupt subroutime
-//! This counter is used to detect time-out in host requests.
-//! It must not be modified by the user applicative tasks.
-volatile U32 private_sof_counter;
-
-  #if USB_HOST_PIPE_INTERRUPT_TRANSFER == ENABLE
-extern volatile Bool g_sav_int_sof_enable;
-extern volatile S_pipe_int it_pipe_str[MAX_PEP_NB];
-  #endif
-
-  #ifdef FREERTOS_USED
-//! Handle to the USB Host task
-extern xTaskHandle usb_host_tsk;
-  #endif
-
-#endif
-
-
-#if USB_DEVICE_FEATURE == ENABLED && USB_HOST_FEATURE == ENABLED
-
-static const char log_pin_id_changed[]      = "Pin Id changed\n";
-
-//!
-//! Public: U8 g_usb_mode
-//! Used in dual-role application (both device/host) to store
-//! the current mode the USB controller is operating
-volatile U8 g_usb_mode = USB_MODE_UNDEFINED;
-static volatile U8 g_old_usb_mode;
-
-#endif
-
+// BSB 20150823: Removing a bunch of #if USB_HOST_FEATURE == ENABLED for improved readability in Audio Widget project.
 
 #ifdef FREERTOS_USED
 //! Handle to the USB task semaphore
@@ -270,54 +233,15 @@ void usb_task(void *pvParameters)
     while (!xSemaphoreTake(usb_tsk_semphr, portMAX_DELAY));
 
 #endif  // FREERTOS_USED
-// ---- DUAL-ROLE DEVICE/HOST USB MODE -----------------------------------------
-#if USB_DEVICE_FEATURE == ENABLED && USB_HOST_FEATURE == ENABLED
-  #ifdef FREERTOS_USED
-    if (usb_device_tsk) vTaskDelete(usb_device_tsk), usb_device_tsk = NULL;
-    if (usb_host_tsk) vTaskDelete(usb_host_tsk), usb_host_tsk = NULL;
-  #endif
-    Usb_input_id_pin();
-    Usb_enable_id_pin();
-    if (Is_usb_id_device())
-    {
-      g_usb_mode = USB_MODE_DEVICE;
-      usb_device_task_init();
-    }
-    else
-    {
-      private_sof_counter = 0;
-      g_usb_mode = USB_MODE_HOST;
-      usb_host_task_init();
-    }
-    g_old_usb_mode = g_usb_mode;  // Store current USB mode, for mode change detection
-    Usb_raise_id_transition();  // Check no ID transition has been missed during initialization
-    Usb_enable_id_interrupt();
-    Enable_global_interrupt();
-// -----------------------------------------------------------------------------
 
 // ---- DEVICE-ONLY USB MODE ---------------------------------------------------
-#elif USB_DEVICE_FEATURE == ENABLED
-  #ifdef FREERTOS_USED
-    if (usb_device_tsk) vTaskDelete(usb_device_tsk), usb_device_tsk = NULL;
-  #endif
-    Usb_force_device_mode();
-    usb_device_task_init();
-// -----------------------------------------------------------------------------
-
-// ---- REDUCED-HOST-ONLY USB MODE ---------------------------------------------
-#elif USB_HOST_FEATURE == ENABLED
-  #ifdef FREERTOS_USED
-    if (usb_host_tsk) vTaskDelete(usb_host_tsk), usb_host_tsk = NULL;
-  #endif
-    private_sof_counter = 0;
-    Usb_force_host_mode();
-    usb_host_task_init();
-// -----------------------------------------------------------------------------
-
-// ---- ERROR, NO MODE ENABLED -------------------------------------------------
-#else
-  #error At least one of USB_DEVICE_FEATURE and USB_HOST_FEATURE must be enabled
+#ifdef FREERTOS_USED
+  if (usb_device_tsk) vTaskDelete(usb_device_tsk), usb_device_tsk = NULL;
 #endif
+  Usb_force_device_mode();
+  usb_device_task_init();
+// -----------------------------------------------------------------------------
+
 // -----------------------------------------------------------------------------
 #ifdef FREERTOS_USED
   }
@@ -332,51 +256,8 @@ void usb_task(void *pvParameters)
 #ifndef FREERTOS_USED
 void usb_task(void)
 {
-// ---- DUAL-ROLE DEVICE/HOST USB MODE -----------------------------------------
-  #if USB_DEVICE_FEATURE == ENABLED && USB_HOST_FEATURE == ENABLED
-    if (g_old_usb_mode != g_usb_mode)
-    {
-      if (Is_usb_id_device())
-    {
-      usb_device_task_init();
-    }else{
-      private_sof_counter = 0;
-      usb_host_task_init();
-    }
-      g_old_usb_mode = g_usb_mode;  // Store current USB mode, for mode change detection
-      Usb_enable_id_interrupt();
-      Enable_global_interrupt();
-    }
-
-  // Depending on current USB mode, launch the correct USB task (device or host)
-  switch (g_old_usb_mode)
-  {
-  case USB_MODE_DEVICE:
-    usb_device_task();
-    break;
-  case USB_MODE_HOST:
-    usb_host_task();
-    break;
-  case USB_MODE_UNDEFINED:
-  default:
-    break;
-  }
-// -----------------------------------------------------------------------------
-
 // ---- DEVICE-ONLY USB MODE ---------------------------------------------------
-  #elif USB_DEVICE_FEATURE == ENABLED
   usb_device_task();
-// -----------------------------------------------------------------------------
-
-// ---- REDUCED-HOST-ONLY USB MODE ---------------------------------------------
-  #elif USB_HOST_FEATURE == ENABLED
-  usb_host_task();
-// -----------------------------------------------------------------------------
-
-// ---- ERROR, NO MODE ENABLED -------------------------------------------------
-  #else
-    #error At least one of USB_DEVICE_FEATURE and USB_HOST_FEATURE must be enabled
-  #endif
 // -----------------------------------------------------------------------------
 }
 #endif
@@ -438,68 +319,10 @@ static void usb_general_interrupt(void)
 #ifdef FREERTOS_USED
   portBASE_TYPE task_woken = pdFALSE;
 #endif
-#if USB_HOST_FEATURE == ENABLED && USB_HOST_PIPE_INTERRUPT_TRANSFER == ENABLE
-  U8 i;
-#endif
 
-// ---------- DEVICE/HOST events management ------------------------------------
-#if USB_DEVICE_FEATURE == ENABLED && USB_HOST_FEATURE == ENABLED
-  // ID pin change detection
-  if (Is_usb_id_transition() && Is_usb_id_interrupt_enabled())
-  {
-    g_usb_mode = (Is_usb_id_device()) ? USB_MODE_DEVICE : USB_MODE_HOST;
-    Usb_ack_id_transition();
-    if (g_usb_mode != g_old_usb_mode) // Basic debounce
-    {
-      // Previously in device mode, check if disconnection was detected
-      if (g_old_usb_mode == USB_MODE_DEVICE)
-      {
-        if (usb_connected)
-        {
-          // Device mode diconnection actions
-          usb_connected = FALSE;
-          usb_configuration_nb = 0;
-          Usb_vbus_off_action();
-        }
-      }
-      // Previously in host mode, check if disconnection was detected
-      else if (Is_host_attached())
-      {
-        // Host mode diconnection actions
-        device_state = DEVICE_UNATTACHED;
-        Host_device_disconnection_action();
-      }
-      LOG_STR(log_pin_id_changed);
-      Usb_send_event((Is_usb_device()) ? EVT_USB_DEVICE_FUNCTION :
-                                         EVT_USB_HOST_FUNCTION);
-      Usb_id_transition_action();
-      //! @todo ID pin hot state change!!!
-      // Preliminary management: HARDWARE RESET!!!
-  #if ID_PIN_CHANGE_GENERATE_RESET == ENABLE
-      // Hot ID transition generates CPU reset
-      Usb_disable();
-      Usb_disable_otg_pad();
-    #ifdef FREERTOS_USED
-      // Release the semaphore in order to start a new device/host task
-      taskENTER_CRITICAL();
-      xSemaphoreGiveFromISR(usb_tsk_semphr, &task_woken);
-      taskEXIT_CRITICAL();
-    #else
-//      Reset_CPU();
-    #endif
-  #endif
-    }
-  }
-#endif  // End DEVICE/HOST FEATURE MODE
 
 // ---------- DEVICE events management -----------------------------------------
 #if USB_DEVICE_FEATURE == ENABLED
-  #if USB_HOST_FEATURE == ENABLED
-  // If both device and host features are enabled, check if device mode is engaged
-  // (accessing the USB registers of a non-engaged mode, even with load operations,
-  // may corrupt USB FIFO data).
-  if (Is_usb_device())
-  #endif
   {
     // VBus state detection
     if (Is_usb_vbus_transition() && Is_usb_vbus_interrupt_enabled())
@@ -573,104 +396,6 @@ static void usb_general_interrupt(void)
   }
 #endif  // End DEVICE FEATURE MODE
 
-// ---------- HOST events management -------------------------------------------
-#if USB_HOST_FEATURE == ENABLED
-  #if USB_DEVICE_FEATURE == ENABLED
-  // If both device and host features are enabled, check if host mode is engaged
-  // (accessing the USB registers of a non-engaged mode, even with load operations,
-  // may corrupt USB FIFO data).
-  else
-  #endif
-  {
-    // The device has been disconnected
-    if (Is_host_device_disconnection() && Is_host_device_disconnection_interrupt_enabled())
-    {
-      host_disable_all_pipes();
-      Host_ack_device_disconnection();
-  #if USB_HOST_PIPE_INTERRUPT_TRANSFER == ENABLE
-      reset_it_pipe_str();
-  #endif
-      device_state = DEVICE_UNATTACHED;
-      LOG_STR(log_device_disconnected);
-      Usb_send_event(EVT_HOST_DISCONNECTION);
-      Host_device_disconnection_action();
-  #ifdef FREERTOS_USED
-      // Release the semaphore in order to start a new device/host task
-      taskENTER_CRITICAL();
-      xSemaphoreGiveFromISR(usb_tsk_semphr, &task_woken);
-      taskEXIT_CRITICAL();
-  #endif
-    }
-    // Device connection
-    if (Is_host_device_connection() && Is_host_device_connection_interrupt_enabled())
-    {
-      Host_ack_device_connection();
-      host_disable_all_pipes();
-      Host_device_connection_action();
-    }
-    // Host Start-of-Frame has been sent
-    if (Is_host_sof() && Is_host_sof_interrupt_enabled())
-    {
-      Host_ack_sof();
-      Usb_send_event(EVT_HOST_SOF);
-#if (USB_HIGH_SPEED_SUPPORT==ENABLED)
-      if( Is_usb_full_speed_mode() )
-      {
-         private_sof_counter++;
-      }else{
-         private_sof_counter_HS++;
-         if( 0 == (private_sof_counter_HS%8) )
-         {
-            private_sof_counter++;
-         }
-      }
-#else
-      private_sof_counter++;
-#endif      
-      // Delay time-out management for interrupt tranfer mode in host mode
-  #if USB_HOST_PIPE_INTERRUPT_TRANSFER == ENABLE && TIMEOUT_DELAY_ENABLE == ENABLE
-      if (private_sof_counter >= 250) // Count 250 ms (SOF @ 1 ms)
-      {
-        private_sof_counter = 0;
-        for (i = 0; i < MAX_PEP_NB; i++)
-        {
-          if (it_pipe_str[i].enable &&
-              ++it_pipe_str[i].timeout > TIMEOUT_DELAY && Host_get_pipe_type(i) != TYPE_INTERRUPT)
-          {
-            it_pipe_str[i].enable = FALSE;
-            it_pipe_str[i].status = PIPE_DELAY_TIMEOUT;
-            Host_reset_pipe(i);
-            if (!is_any_interrupt_pipe_active() && !g_sav_int_sof_enable) // If no more transfer is armed
-            {
-              Host_disable_sof_interrupt();
-            }
-            it_pipe_str[i].handler(PIPE_DELAY_TIMEOUT, it_pipe_str[i].nb_byte_processed);
-          }
-        }
-      }
-  #endif
-      Host_sof_action();
-    }
-    // Host Wake-up has been received
-    if (Is_host_hwup() && Is_host_hwup_interrupt_enabled())
-    {
-      // CAUTION: HWUP can be cleared only when USB clock is active (not frozen)!
-      //! @todo Implement this on the silicon version
-      //Pll_start_auto();               // First Restart the PLL for USB operation
-      //Wait_pll_ready();               // Make sure PLL is locked
-      Usb_unfreeze_clock();           // Enable clock on USB interface
-      (void)Is_usb_clock_frozen();    // Make sure USB interface clock is enabled
-      Host_disable_hwup_interrupt();  // Wake-up interrupt should be disabled as host is now awoken!
-      Host_ack_hwup();                // Clear HWUP interrupt flag
-      Usb_send_event(EVT_HOST_HWUP);  // Send software event
-      Host_hwup_action();             // Map custom action
-    }
-  #if USB_HOST_PIPE_INTERRUPT_TRANSFER == ENABLE
-    // Host pipe interrupts
-    while ((i = Host_get_interrupt_pipe_number()) < MAX_PEP_NB) usb_pipe_interrupt(i);
-  #endif
-  }
-#endif  // End HOST FEATURE MODE
 
 #ifdef FREERTOS_USED
   return task_woken;
@@ -689,17 +414,4 @@ void usb_suspend_action(void)
 #endif
 
 
-#if USB_HOST_FEATURE == ENABLED
-void host_suspend_action(void)
-{
-  Enable_global_interrupt();
-  //! @todo Implement this on the silicon version
-  //Enter_power_down_mode();  // For example...
-}
 
-U32  host_get_timeout( void )
-{
-  return private_sof_counter;
-}
-
-#endif
