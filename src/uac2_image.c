@@ -82,9 +82,9 @@ static void x_image_task_init(void) {
 	mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
 #if LCD_DISPLAY						// Multi-line LCD display
-	vStartTaskLCD();
-	vStartTaskPowerDisplay();
-	vStartTaskPushButtonMenu();
+	vStartTaskLCD();				// Disabling this task makes for no Prog and no Auido
+//	vStartTaskPowerDisplay();		// Disable OK for Prog and Audio
+//	vStartTaskPushButtonMenu();		// Disable OK for Prog and Audio
 #endif
 	vStartTaskMoboCtrl();
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
@@ -93,8 +93,8 @@ static void x_image_task_init(void) {
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
 #endif
 #if LCD_DISPLAY						// Multi-line LCD display
-	if ( ! FEATURE_LOG_NONE )
-		vStartTaskStartupLogDisplay();
+//	if ( ! FEATURE_LOG_NONE )		// Disable OK for Prog and Audio
+//		vStartTaskStartupLogDisplay();
 #endif
 }
 
