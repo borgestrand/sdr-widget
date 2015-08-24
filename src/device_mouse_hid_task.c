@@ -209,6 +209,14 @@ void device_mouse_hid_task(void)
   {
     vTaskDelayUntil(&xLastWakeTime, configTSK_USB_DHID_MOUSE_PERIOD);
 
+
+    // Is task alive?
+//    int balle = 100;
+//    if (balle-- == 0) {
+    	print_dbg_char('i');
+//    	balle = 100;
+//    }
+
     // First, check the device enumeration state
     if (!Is_device_enumerated()) continue;
 #else

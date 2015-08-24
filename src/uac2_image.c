@@ -77,6 +77,9 @@ static void x_image_init(void) {
 static void x_image_task_init(void) {
 	// Initialize USB task
 
+	print_dbg_char('X');
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX33); // Set GPIO_09/TP70 during usb interrupt handling
 
 	usb_task_init();
 
@@ -98,6 +101,8 @@ static void x_image_task_init(void) {
 //	if ( ! FEATURE_LOG_NONE )		// Disable OK for Prog and Audio
 //		vStartTaskStartupLogDisplay();
 #endif
+
+	print_dbg_char('Y');
 }
 
 // descriptor accessors

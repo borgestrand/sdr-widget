@@ -186,6 +186,7 @@ void uac2_device_audio_task(void *pvParameters)
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
+
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 

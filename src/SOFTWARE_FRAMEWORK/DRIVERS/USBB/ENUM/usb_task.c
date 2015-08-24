@@ -97,6 +97,8 @@
 #include "conf_usb.h"
 #include "usb_drv.h"
 #include "usb_task.h"
+#include "gpio.h"
+
 
 #if USB_DEVICE_FEATURE == ENABLED
 #include "usb_descriptors.h"
@@ -327,6 +329,7 @@ static void usb_general_interrupt(void)
 // BSB debug 20150823
 // print_dbg_char('*');
 
+
 // ---------- DEVICE events management -----------------------------------------
 #if USB_DEVICE_FEATURE == ENABLED
   {
@@ -401,6 +404,7 @@ static void usb_general_interrupt(void)
     }
   }
 #endif  // End DEVICE FEATURE MODE
+
 
 
 #ifdef FREERTOS_USED
