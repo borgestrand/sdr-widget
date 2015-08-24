@@ -224,9 +224,9 @@ void usb_task(void *pvParameters)
   // the USB interrupt.
   Disable_global_interrupt();
 
-  print_dbg_char('V');
+//  print_dbg_char('V');
   INTC_register_interrupt((__int_handler)&usb_general_interrupt, AVR32_USBB_IRQ, USB_INT_LEVEL);
-  print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '*' below is critical!!
+//  print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '*' below is critical!!
 
   Enable_global_interrupt();
 
@@ -325,7 +325,7 @@ static void usb_general_interrupt(void)
 #endif
 
 // BSB debug 20150823
-print_dbg_char('*');
+// print_dbg_char('*');
 
 // ---------- DEVICE events management -----------------------------------------
 #if USB_DEVICE_FEATURE == ENABLED
