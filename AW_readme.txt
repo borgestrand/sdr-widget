@@ -3,7 +3,7 @@ Audio Widget README
 
 Read this file if you are curious about the Audio Widget project. Most of it
 also applies to the SDR Widget project. This document focuses on using and 
-modifying the Audio Widget. It does not (yet) focus on percieved audio quality.
+modifying the Audio Widget. It does not (yet) focus on perceived audio quality.
 
 Please note that implementations of the Audio Widget and its drivers come under
 many names. Depending on your firmware version it may appear under names
