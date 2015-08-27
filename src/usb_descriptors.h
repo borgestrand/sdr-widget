@@ -295,12 +295,13 @@
 }
   #endif
 #elif defined (FEATURE_PRODUCT_AMB)  // AUDIO_PRODUCT_ID_13 and _14
-    #define USB_PN_LENGTH         24
+    #define USB_PN_LENGTH         30
     #define USB_PRODUCT_NAME {\
-      Usb_unicode('A'), Usb_unicode('M'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('U'), Usb_unicode('S'), \
-      Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('D'), Usb_unicode('A'), Usb_unicode('C'), Usb_unicode(' '), \
+      Usb_unicode('A'), Usb_unicode('M'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('z'), Usb_unicode('e'), \
+      Usb_unicode('t'), Usb_unicode('a'), Usb_unicode('1'), Usb_unicode(' '), Usb_unicode('U'), Usb_unicode('S'), \
+      Usb_unicode('B'), Usb_unicode('-'), Usb_unicode('I'), Usb_unicode('2'), Usb_unicode('S'), Usb_unicode(' '), \
       Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
-      Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t') \
+      Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
     }
 #else
 #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
@@ -321,23 +322,61 @@
   Usb_unicode('E')\
 }
 
+#if defined(FEATURE_PRODUCT_AMB)
 #define USB_SN_LENGTH         13		// Encode the build date and user prefix
 #define USB_SERIAL_NUMBER \
 {\
   Usb_unicode('2'),\
   Usb_unicode('0'),\
   Usb_unicode('1'),\
-  Usb_unicode('4'),\
+  Usb_unicode('5'),\
   Usb_unicode('0'),\
-  Usb_unicode('9'),\
-  Usb_unicode('1'),\
   Usb_unicode('8'),\
+  Usb_unicode('2'),\
+  Usb_unicode('6'),\
+  Usb_unicode('0'),\
+  Usb_unicode('0'),\
+  Usb_unicode('A'),\
+  Usb_unicode('M'),\
+  Usb_unicode('B') \
+}
+#elif defined(FEATURE_PRODUCT_AB1x)
+#define USB_SN_LENGTH         13		// Encode the build date and user prefix
+#define USB_SERIAL_NUMBER \
+{\
+  Usb_unicode('2'),\
+  Usb_unicode('0'),\
+  Usb_unicode('1'),\
+  Usb_unicode('5'),\
+  Usb_unicode('0'),\
+  Usb_unicode('8'),\
+  Usb_unicode('2'),\
+  Usb_unicode('6'),\
   Usb_unicode('0'),\
   Usb_unicode('0'),\
   Usb_unicode('B'),\
   Usb_unicode('S'),\
   Usb_unicode('B') \
 }
+#else
+#define USB_SN_LENGTH         13		// Encode the build date and user prefix
+#define USB_SERIAL_NUMBER \
+{\
+  Usb_unicode('2'),\
+  Usb_unicode('0'),\
+  Usb_unicode('1'),\
+  Usb_unicode('5'),\
+  Usb_unicode('0'),\
+  Usb_unicode('8'),\
+  Usb_unicode('2'),\
+  Usb_unicode('6'),\
+  Usb_unicode('0'),\
+  Usb_unicode('0'),\
+  Usb_unicode('A'),\
+  Usb_unicode('W'),\
+  Usb_unicode('X') \
+}
+#endif
 
 #define USB_CS1_LENGTH         7
 #define USB_CLOCK_SOURCE_1 \

@@ -25,6 +25,12 @@
 ## -DHW_GEN_AB1X uses the feature set for 
 ##   QNKTC AB-1.0, AB-1.1, AB-1.2, Henry Audio USB DAC 128 and USB DAC 128 mkII
 ## -DHW_GEN_DIN10 uses version 1.0 of the features for digital inputs and WM8805
+##
+## -DVDD_SENSE to enable bus-powered/self-powered configuration:
+## - When AVR32_PIN_PA19 is 0, configure as bus-powered with 500mA max power
+## - When AVR32_PIN_PA19 is 1, configure as self-powered with 10mA max power
+## This data is sent to the host in the USB configuration descriptors.
+## 
 
 
 ## See features.h #define FEATURE_VALUE_NAMES for available defaults. 
@@ -55,7 +61,8 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
 	-DHW_GEN_AB1X \
-	-DFEATURE_PRODUCT_AB1x
+	-DVDD_SENSE \
+	-DFEATURE_PRODUCT_AMB
 
 # changed above from 
 #	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
@@ -77,7 +84,8 @@ PROD_TEST_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest \
 	-DHW_GEN_AB1X \
-	-DFEATURE_PRODUCT_AB1x
+	-DVDD_SENSE \
+	-DFEATURE_PRODUCT_AMB
 
 all:: Release/widget.elf widget-control
 

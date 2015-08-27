@@ -177,7 +177,9 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
+#ifdef USB_STATE_MACHINE_DEBUG
 	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX31
+#endif
 	U32 sample_L = 0;
 	U32 sample_R = 0; // BSB 20131102 Expanded for skip/insert
 	const U8 EP_AUDIO_IN = ep_audio_in;
