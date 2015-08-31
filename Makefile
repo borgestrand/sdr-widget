@@ -62,7 +62,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
 	-DHW_GEN_AB1X \
 	-DVDD_SENSE \
-	-DFEATURE_PRODUCT_AMB
+	-DFEATURE_PRODUCT_AB1x
 
 # changed above from 
 #	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
