@@ -700,6 +700,9 @@ static void vtaskMoboCtrl( void * pcParameters )
    		{
     		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
 
+        	// Is the task switcher running???
+        	print_dbg_char_char(',');
+
     		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
     		{
     			// At first detection of Prog pin change AB-1.x / USB DAC 128 mkI/II front LEDs for contrast:
