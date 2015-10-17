@@ -29,7 +29,7 @@
 /*! \name Peripherals to include at compile time. */
 //! @{
 #define I2C                 1	// I2C driver
-#define LCD_DISPLAY         1   // 20x4 Liquid Crystal Display (LCD)
+//#define LCD_DISPLAY         1   // 20x4 Liquid Crystal Display (LCD)
 //#define SHAFT_ENCODER       1   // Shaft Encoder VFO function
 #define Si570               1   // Si570 VXO control funcs (needs I2C driver)
 #define AK5394              1   // 24-bit ADC

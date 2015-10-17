@@ -92,7 +92,9 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
 static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
 {
 	uint8_t retval;
-	char	report[20];
+	#if LCD_DISPLAY				// Multi-line LCD display
+		char	report[20];
+	#endif
 
 	retval = (twi_probe(MOBO_TWI,addr)== TWI_SUCCESS);
 	#if LCD_DISPLAY				// Multi-line LCD display

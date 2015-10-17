@@ -100,8 +100,10 @@ void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
 // ditto and delay after each line of text is displayed
 //
 static unsigned char display_grabbed = 0;
-static unsigned char display_row = 0;
-static char display_contents[4][21];
+#if LCD_DISPLAY
+	static unsigned char display_row = 0;
+	static char display_contents[4][21];
+#endif
 
 void widget_display_grab(void) {
 	if ( ! display_grabbed) {
