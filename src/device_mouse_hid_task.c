@@ -351,12 +351,7 @@ void device_mouse_hid_task(void)
     	} // else, !readkey
 
     	if (gotcmd == 0)									// Nothing recorded:
-			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS
-
-
-    	// Is the task switcher running???
-    	print_dbg_char_char('.');
-    	vTaskDelay(4000);
+			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS. WM8805 needs that, HID doesn't
     }
 
 //  Tested ReportByte1 content with JRiver and VLC on Win7-32
