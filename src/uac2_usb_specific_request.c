@@ -199,7 +199,7 @@ void uac2_freq_change_handler() {
 */
 			if (current_freq.frequency == 96000) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char_char('4'); // BSB debug 20121212
+		   		print_dbg_char('4'); // BSB debug 20121212
 #endif
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -231,7 +231,7 @@ void uac2_freq_change_handler() {
 
 		   	else if (current_freq.frequency == 88200) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char_char('3'); // BSB debug 20121212
+		   		print_dbg_char('3'); // BSB debug 20121212
 #endif
 
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -264,7 +264,7 @@ void uac2_freq_change_handler() {
 
 	       	else if (current_freq.frequency == 176400) {
 #ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char_char('5'); // BSB debug 20121212
+					print_dbg_char('5'); // BSB debug 20121212
 #endif
 
 	    			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -288,7 +288,7 @@ void uac2_freq_change_handler() {
 
 			else if (current_freq.frequency == 192000) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char_char('6'); // BSB debug 20121212
+		   		print_dbg_char('6'); // BSB debug 20121212
 #endif
 		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -313,7 +313,7 @@ void uac2_freq_change_handler() {
 
 		else if (current_freq.frequency == 48000) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char_char('2'); // BSB debug 20121212
+		   		print_dbg_char('2'); // BSB debug 20121212
 #endif
 
 		   		// if there are two XO, PX16 sets the 48x
@@ -341,7 +341,7 @@ void uac2_freq_change_handler() {
 
 			else if (current_freq.frequency == 44100) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char_char('1'); // BSB debug 20121212
+		   		print_dbg_char('1'); // BSB debug 20121212
 #endif
 		   		// if there are two XO, PX16 set --> 48x. clr -->44.1x
 				// gpio_clr_gpio_pin(AVR32_PIN_PX16);
@@ -433,9 +433,9 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 
 /*	   // BSB 20121222 to debug sequence on various OSes
 	   if (usb_alternate_setting_out == 0)
-		   print_dbg_char_char('0');
+		   print_dbg_char('0');
 	   else if (usb_alternate_setting_out == 1)
-		   print_dbg_char_char('9');
+		   print_dbg_char('9');
 */
 	}
 }
@@ -451,7 +451,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	U16		wInterface;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char_char('a'); // BSB debug 20120803
+	print_dbg_char('a'); // BSB debug 20120803
 #endif
 
 	zlp             = FALSE;                                  /* no zero length packet */
@@ -462,14 +462,14 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char_char('b'); // BSB debug 20120803
+		print_dbg_char('b'); // BSB debug 20120803
 #endif
 
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char_char('c'); // BSB debug 20120803
+			print_dbg_char('c'); // BSB debug 20120803
 #endif
 
 			data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
@@ -478,7 +478,7 @@ static Bool uac2_user_get_interface_descriptor() {
 #else
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char_char('d'); // BSB debug 20120803
+			print_dbg_char('d'); // BSB debug 20120803
 #endif
 
 			if( Is_usb_full_speed_mode() ) {
@@ -495,7 +495,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_REPORT_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char_char('e'); // BSB debug 20120803
+		print_dbg_char('e'); // BSB debug 20120803
 #endif
 
 		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
@@ -505,14 +505,14 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_PHYSICAL_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char_char('f'); // BSB debug 20120803
+		print_dbg_char('f'); // BSB debug 20120803
 #endif
 		// TODO
 		return FALSE;
 	default:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char_char('g'); // BSB debug 20120803
+		print_dbg_char('g'); // BSB debug 20120803
 #endif
 
 		return FALSE;
@@ -563,7 +563,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	Usb_ack_control_out_received_free();
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char_char('h'); // BSB debug 20120803
+	print_dbg_char('h'); // BSB debug 20120803
 #endif
 
 	return TRUE;
@@ -906,7 +906,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						&& request == AUDIO_CS_REQUEST_CUR) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char_char('h'); // BSB debug 20120910
+						print_dbg_char('h'); // BSB debug 20120910
 #endif
 
 						Usb_ack_setup_received_free();
@@ -924,7 +924,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 							 && request == AUDIO_CS_REQUEST_CUR) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char_char('i'); // BSB debug 20120910
+						print_dbg_char('i'); // BSB debug 20120910
 #endif
 
 						Usb_ack_setup_received_free();
@@ -943,7 +943,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 							 && request == AUDIO_CS_REQUEST_RANGE) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char_char('j'); // BSB debug 20120910
+						print_dbg_char('j'); // BSB debug 20120910
 #endif
 
 						Usb_ack_setup_received_free();
@@ -1085,7 +1085,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				switch (wIndex /256) {
 				case CSD_ID_1:							// set CUR freq of Mic
 #ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char_char('f'); // BSB debug 20121212
+					print_dbg_char('f'); // BSB debug 20121212
 #endif
 
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0
@@ -1116,7 +1116,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 
 				case CSD_ID_2:							// set CUR freq
 #ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char_char('F'); // BSB debug 20121212
+					print_dbg_char('F'); // BSB debug 20121212
 #endif
 
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0

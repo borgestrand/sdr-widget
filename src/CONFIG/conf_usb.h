@@ -167,14 +167,14 @@
 //! @{
 // Write here the action to associate with each USB event.
 // Be careful not to waste time in order not to disturb the functions.
-#define Usb_sof_action()
-#define Usb_wake_up_action()
-#define Usb_resume_action()
-#define Usb_suspend_action()
-#define Usb_reset_action()
-#define Usb_vbus_on_action()
-#define Usb_vbus_off_action()
-#define Usb_set_configuration_action()
+#define Usb_sof_action()				print_dbg_char('A');
+#define Usb_wake_up_action()			print_dbg_char('B');
+#define Usb_resume_action()				print_dbg_char('C');
+#define Usb_suspend_action()			print_dbg_char('D');
+#define Usb_reset_action()				print_dbg_char('E');
+#define Usb_vbus_on_action()			print_dbg_char('F');
+#define Usb_vbus_off_action()			print_dbg_char('G');
+#define Usb_set_configuration_action()	print_dbg_char('H');
 //! @}
 
 #endif  // USB_DEVICE_FEATURE == ENABLED

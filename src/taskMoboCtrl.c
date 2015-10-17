@@ -92,7 +92,9 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
 static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
 {
 	uint8_t retval;
-	char	report[20];
+	#if LCD_DISPLAY				// Multi-line LCD display
+		char	report[20];
+	#endif
 
 	retval = (twi_probe(MOBO_TWI,addr)== TWI_SUCCESS);
 	#if LCD_DISPLAY				// Multi-line LCD display
@@ -699,6 +701,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 		if (btn_poll_Timerval != btn_poll_lastIteration)			// Once every 1second, do stuff
    		{
     		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
+
+        	// Is the task switcher running???
+        	print_dbg_char(',');
 
     		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
     		{

@@ -94,26 +94,30 @@ static void x_image_init(void) {
 
 static void x_image_task_init(void) {
 	// Initialize USB task
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX33); // Set GPIO_09/TP70 during usb interrupt handling
+
 	usb_task_init();
 
 #if USB_DEVICE_FEATURE == ENABLED
 	mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
 #if LCD_DISPLAY						// Multi-line LCD display
-	vStartTaskLCD();
-	vStartTaskPowerDisplay();
-	vStartTaskPushButtonMenu();
+	vStartTaskLCD();				// Disabling this task makes for no Prog and no Auido
+//	vStartTaskPowerDisplay();		// Disable OK for Prog and Audio
+//	vStartTaskPushButtonMenu();		// Disable OK for Prog and Audio
 #endif
 	vStartTaskMoboCtrl();
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
-	uac2_AK5394A_task_init(); // Commented out BSB 20150726
+	uac2_AK5394A_task_init();
 	device_mouse_hid_task_init(UAC2_EP_HID_RX, UAC2_EP_HID_TX); // Added BSB 20120719
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
 #endif
 #if LCD_DISPLAY						// Multi-line LCD display
-	if ( ! FEATURE_LOG_NONE )
-		vStartTaskStartupLogDisplay();
+//	if ( ! FEATURE_LOG_NONE )		// Disable OK for Prog and Audio
+//		vStartTaskStartupLogDisplay();
 #endif
+
 }
 
 // descriptor accessors
