@@ -98,14 +98,8 @@
 #include "gpio.h"
 
 
-#if USB_DEVICE_FEATURE == ENABLED
 #include "usb_descriptors.h"
 #include "usb_device_task.h"
-#endif
-
-#if USB_HOST_FEATURE == ENABLED
-#include "usb_host_task.h"
-#endif
 
 #if UC3C
 #include "pm_uc3c.h"
@@ -134,8 +128,6 @@ static U8 private_sof_counter_HS = 0;  // Full speed SOF = 1ms , High speed µSOF
 #endif
 
 
-#if USB_DEVICE_FEATURE == ENABLED
-
 //!
 //! Public: Bool usb_connected
 //! usb_connected is set to TRUE when VBus has been detected
@@ -145,8 +137,6 @@ extern volatile Bool usb_connected;
 
 //! Handle to the USB Device task
 extern xTaskHandle usb_device_tsk;
-
-#endif
 
 // BSB 20150823: Removing a bunch of #if USB_HOST_FEATURE == ENABLED for improved readability in Audio Widget project.
 
@@ -242,19 +232,6 @@ print_dbg_char('Y');
 }
 
 
-//! @brief Entry point of the USB mamnagement
-//!
-//! Depending on the USB mode supported (HOST/DEVICE/DUAL_ROLE) the function
-//! calls the coresponding USB management function.
-#ifndef FREERTOS_USED
-void usb_task(void)
-{
-// ---- DEVICE-ONLY USB MODE ---------------------------------------------------
-  usb_device_task();
-// -----------------------------------------------------------------------------
-}
-#endif
-
 
 //! @brief USB interrupt routine
 //!
@@ -289,37 +266,21 @@ void usb_task(void)
 //!
 //! @return Nothing in the standalone configuration; a boolean indicating
 //!         whether a task switch is required in the FreeRTOS configuration
-#ifdef FREERTOS_USED
 
 #if (defined __GNUC__)
 __attribute__((__noinline__))
 #elif (defined __ICCAVR32__)
 #pragma optimize = no_inline
 #endif
-static portBASE_TYPE usb_general_interrupt_non_naked(void)
 
-#else
-
-#if (defined __GNUC__)
-__attribute__((__interrupt__))
-#elif (defined __ICCAVR32__)
-__interrupt
-#endif
-static void usb_general_interrupt(void)
-
-#endif
-{
-#ifdef FREERTOS_USED
-  portBASE_TYPE task_woken = pdFALSE;
-#endif
+static portBASE_TYPE usb_general_interrupt_non_naked(void) {
+	portBASE_TYPE task_woken = pdFALSE;
 
 // BSB debug 20150823
 // print_dbg_char('!');
 
 
 // ---------- DEVICE events management -----------------------------------------
-#if USB_DEVICE_FEATURE == ENABLED
-  {
     // VBus state detection
     if (Is_usb_vbus_transition() && Is_usb_vbus_interrupt_enabled())
     {
@@ -338,12 +299,10 @@ static void usb_general_interrupt(void)
         usb_configuration_nb = 0;
         Usb_send_event(EVT_USB_UNPOWERED);
         Usb_vbus_off_action();
-  #ifdef FREERTOS_USED
         // Release the semaphore in order to start a new device/host task
         taskENTER_CRITICAL();
         xSemaphoreGiveFromISR(usb_tsk_semphr, &task_woken);
         taskEXIT_CRITICAL();
-  #endif
       }
     }
     // Device Start-of-Frame received
@@ -389,18 +348,11 @@ static void usb_general_interrupt(void)
       Usb_reset_action();
       Usb_send_event(EVT_USB_RESET);
     }
-  }
-#endif  // End DEVICE FEATURE MODE
 
-
-
-#ifdef FREERTOS_USED
   return task_woken;
-#endif
 }
 
 
-#if USB_DEVICE_FEATURE == ENABLED
 void usb_suspend_action(void)
 {
    print_dbg_char('S');
@@ -409,7 +361,6 @@ void usb_suspend_action(void)
    SLEEP(AVR32_PM_SMODE_STATIC);
    pm->AWEN.usb_waken = 0;
 }
-#endif
 
 
 
