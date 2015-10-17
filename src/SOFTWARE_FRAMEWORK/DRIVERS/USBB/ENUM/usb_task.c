@@ -224,12 +224,12 @@ void usb_task(void *pvParameters)
 #endif  // FREERTOS_USED
   // Register the USB interrupt handler to the interrupt controller and enable
   // the USB interrupt.
-	  print_dbg_char('V');
+  print_dbg_char('V');
 
   Disable_global_interrupt();
 
   INTC_register_interrupt((__int_handler)&usb_general_interrupt, AVR32_USBB_IRQ, USB_INT_LEVEL);
-  print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '*' below is critical!!
+  print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '!' below is critical!!
 
 /* uint32_t i = 100;
  int a = 0;
@@ -348,7 +348,7 @@ static void usb_general_interrupt(void)
 #endif
 
 // BSB debug 20150823
-// print_dbg_char('*');
+// print_dbg_char('!');
 
 
 // ---------- DEVICE events management -----------------------------------------
@@ -437,6 +437,7 @@ static void usb_general_interrupt(void)
 #if USB_DEVICE_FEATURE == ENABLED
 void usb_suspend_action(void)
 {
+   print_dbg_char('S');
    volatile avr32_pm_t *pm = &AVR32_PM;
    pm->AWEN.usb_waken = 1;
    SLEEP(AVR32_PM_SMODE_STATIC);
