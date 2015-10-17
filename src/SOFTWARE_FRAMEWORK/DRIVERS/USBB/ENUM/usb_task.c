@@ -89,11 +89,9 @@
 
 #include "compiler.h"
 #include "intc.h"
-#ifdef FREERTOS_USED
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
-#endif
 #include "conf_usb.h"
 #include "usb_drv.h"
 #include "usb_task.h"
@@ -145,28 +143,24 @@ static U8 private_sof_counter_HS = 0;  // Full speed SOF = 1ms , High speed µSOF
 //! Used with USB_DEVICE_FEATURE == ENABLED only
 extern volatile Bool usb_connected;
 
-  #ifdef FREERTOS_USED
 //! Handle to the USB Device task
 extern xTaskHandle usb_device_tsk;
-  #endif
 
 #endif
 
 // BSB 20150823: Removing a bunch of #if USB_HOST_FEATURE == ENABLED for improved readability in Audio Widget project.
 
-#ifdef FREERTOS_USED
 //! Handle to the USB task semaphore
 static xSemaphoreHandle usb_tsk_semphr = NULL;
-#endif
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
-#ifdef FREERTOS_USED
 
 #if (defined __GNUC__)
-__attribute__((__noinline__))
+	__attribute__((__noinline__))
 #endif
+
 static portBASE_TYPE usb_general_interrupt_non_naked(void);
 
 
@@ -177,27 +171,17 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void);
 //! in order to have no stack frame. usb_general_interrupt_non_naked is
 //! therefore used for the required stack frame of the interrupt routine.
 #if (defined __GNUC__)
-__attribute__((__naked__))
+	__attribute__((__naked__))
 #elif __ICCAVR32__
-#pragma shadow_registers = full
+	#pragma shadow_registers = full
 #endif
+
 static void usb_general_interrupt(void)
 {
   portENTER_SWITCHING_ISR();
   usb_general_interrupt_non_naked();
   portEXIT_SWITCHING_ISR();
 }
-
-#else
-
-#if (defined __GNUC__)
-__attribute__((__interrupt__))
-#elif (defined __ICCAVR32__)
-__interrupt
-#endif
-static void usb_general_interrupt(void);
-
-#endif  // FREERTOS_USED
 
 
 //! @brief This function initializes the USB process.
@@ -206,7 +190,6 @@ static void usb_general_interrupt(void);
 //! calls the coresponding USB mode initialization function
 void usb_task_init(void)
 {
-#ifdef FREERTOS_USED
   // Create the semaphore
   vSemaphoreCreateBinary(usb_tsk_semphr);
 
@@ -221,7 +204,6 @@ void usb_task_init(void)
 
 void usb_task(void *pvParameters)
 {
-#endif  // FREERTOS_USED
   // Register the USB interrupt handler to the interrupt controller and enable
   // the USB interrupt.
   print_dbg_char('V');
@@ -231,31 +213,20 @@ void usb_task(void *pvParameters)
   INTC_register_interrupt((__int_handler)&usb_general_interrupt, AVR32_USBB_IRQ, USB_INT_LEVEL);
   print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '!' below is critical!!
 
-/* uint32_t i = 100;
- int a = 0;
- while (i-- > 0)
-	 a = a+1;
- print_dbg_char(a & 0x3F);
-*/
-
   Enable_global_interrupt();
 
   print_dbg_char('X');
 
-#ifdef FREERTOS_USED
   while (TRUE)
   {
     // Wait for the semaphore
     while (!xSemaphoreTake(usb_tsk_semphr, portMAX_DELAY));
 
-#endif  // FREERTOS_USED
 
 print_dbg_char('Y');
 
 // ---- DEVICE-ONLY USB MODE ---------------------------------------------------
-#ifdef FREERTOS_USED
   if (usb_device_tsk) vTaskDelete(usb_device_tsk), usb_device_tsk = NULL;
-#endif
 
 // print_dbg_char('Z');
 
@@ -267,12 +238,7 @@ print_dbg_char('Y');
 
 //  print_dbg_char('w'); // UP Runs to here with both pluged and unplugged mode
 
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-#ifdef FREERTOS_USED
   }
-#endif
 }
 
 
