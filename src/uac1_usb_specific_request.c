@@ -174,7 +174,7 @@ static Bool uac1_user_get_interface_descriptor() {
 	U16		wInterface;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char_char('a'); // BSB debug 20120803
+	print_dbg_char('a'); // BSB debug 20120803
 #endif
 
 	zlp             = FALSE;                                  /* no zero length packet */
@@ -184,13 +184,13 @@ static Bool uac1_user_get_interface_descriptor() {
 	switch( descriptor_type ) {
 	case HID_DESCRIPTOR:
 
-		// print_dbg_char_char('b'); // BSB debug 20120803
+		// print_dbg_char('b'); // BSB debug 20120803
 
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char_char('c'); // BSB debug 20120803
+			print_dbg_char('c'); // BSB debug 20120803
 #endif
 
 			if (FEATURE_BOARD_WIDGET) {
@@ -204,7 +204,7 @@ static Bool uac1_user_get_interface_descriptor() {
 #else
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			 print_dbg_char_char('d'); // BSB debug 20120803
+			 print_dbg_char('d'); // BSB debug 20120803
 #endif
 
 			if (FEATURE_BOARD_WIDGET) {
@@ -231,7 +231,7 @@ static Bool uac1_user_get_interface_descriptor() {
 	case HID_REPORT_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char_char('e'); // BSB debug 20120803
+		print_dbg_char('e'); // BSB debug 20120803
 #endif
 		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
 		data_to_transfer = sizeof(usb_hid_report_descriptor);
@@ -240,14 +240,14 @@ static Bool uac1_user_get_interface_descriptor() {
 	case HID_PHYSICAL_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char_char('f'); // BSB debug 20120803
+		print_dbg_char('f'); // BSB debug 20120803
 #endif
 		// TODO
 		return FALSE;
 	default:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char_char('g'); // BSB debug 20120803
+		print_dbg_char('g'); // BSB debug 20120803
 #endif
 		return FALSE;
 	}
@@ -297,7 +297,7 @@ static Bool uac1_user_get_interface_descriptor() {
 	Usb_ack_control_out_received_free();
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char_char('h'); // BSB debug 20120803
+	print_dbg_char('h'); // BSB debug 20120803
 #endif
 
 	return TRUE;
@@ -611,7 +611,7 @@ void audio_set_cur(void)
 		if (speed == 0) {		// 44.1khz
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char_char('1'); // BSB debug 20121212
+			print_dbg_char('1'); // BSB debug 20121212
 #endif
 
 			current_freq.frequency = 44100;
@@ -623,7 +623,7 @@ void audio_set_cur(void)
 		else {					// 48khz
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char_char('2'); // BSB debug 20121212
+			print_dbg_char('2'); // BSB debug 20121212
 #endif
 
 	   		current_freq.frequency = 48000;
@@ -707,7 +707,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 
 	usb_type = type;
 #ifdef USB_STATE_MACHINE_DEBUG
-//	print_dbg_char_char('z'); // BSB debug 20121212
+//	print_dbg_char('z'); // BSB debug 20121212
 #endif
 
 	// this should vector to specified interface handler

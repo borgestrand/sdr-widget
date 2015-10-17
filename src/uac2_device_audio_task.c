@@ -485,7 +485,7 @@ void uac2_device_audio_task(void *pvParameters)
 							skip_indicate = 1;
 							LED_On(LED0);							// Indicate skipping on module LED
 #ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('s');
+							print_dbg_char('s');
 #endif
 						}
 						else if (FB_error_acc < -SPK2_SKIP_LIMIT_14) {	// Must insert
@@ -495,7 +495,7 @@ void uac2_device_audio_task(void *pvParameters)
 							skip_indicate = 1;
 							LED_On(LED1);							// Indicate skipping on module LED
 #ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('i');
+							print_dbg_char('i');
 #endif
 						}
 					} // end if usb_full_speeed
@@ -508,7 +508,7 @@ void uac2_device_audio_task(void *pvParameters)
 							skip_indicate = 1;
 							LED_On(LED0);							// Indicate skipping on module LED
 #ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('s');
+							print_dbg_char('s');
 #endif
 						}
 						else if (FB_error_acc < -SPK2_SKIP_LIMIT_16) {	// Must insert
@@ -518,7 +518,7 @@ void uac2_device_audio_task(void *pvParameters)
 							skip_indicate = 1;
 							LED_On(LED1);							// Indicate skipping on module LED
 #ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('i');
+							print_dbg_char('i');
 #endif
 						}
 					} // end if usb_high_speed
@@ -701,7 +701,7 @@ void uac2_device_audio_task(void *pvParameters)
 									skip_indicate = 0;				// Feedback system is running again!
 									LED_On(LED0);
 #ifdef USB_STATE_MACHINE_DEBUG
-									print_dbg_char_char('/');
+									print_dbg_char('/');
 #endif
 								}
 								else if (gap < SPK2_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
@@ -710,7 +710,7 @@ void uac2_device_audio_task(void *pvParameters)
 									skip_indicate = 0;				// Feedback system is running again!
 									LED_On(LED0);
 #ifdef USB_STATE_MACHINE_DEBUG
-									print_dbg_char_char('-');
+									print_dbg_char('-');
 #endif
 								}
 								else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
@@ -725,7 +725,7 @@ void uac2_device_audio_task(void *pvParameters)
 									skip_indicate = 0;				// Feedback system is running again!
 									LED_On(LED1);
 #ifdef USB_STATE_MACHINE_DEBUG
-									print_dbg_char_char('*');
+									print_dbg_char('*');
 #endif
 								}
 								else if (gap > SPK2_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
@@ -734,7 +734,7 @@ void uac2_device_audio_task(void *pvParameters)
 									skip_indicate = 0;				// Feedback system is running again!
 									LED_On(LED1);
 #ifdef USB_STATE_MACHINE_DEBUG
-									print_dbg_char_char('+');
+									print_dbg_char('+');
 #endif
 								}
 								else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
@@ -793,7 +793,7 @@ void uac2_device_audio_task(void *pvParameters)
 			playerStarted = FALSE;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char_char('q');
+			print_dbg_char('q');
 #endif
 		}
 

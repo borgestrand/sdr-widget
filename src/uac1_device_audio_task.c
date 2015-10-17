@@ -467,7 +467,7 @@ void uac1_device_audio_task(void *pvParameters)
 							LED_On(LED0);							// Indicate skipping on module LED
 
 #ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('s');
+							print_dbg_char('s');
 #endif
 
 						}
@@ -479,7 +479,7 @@ void uac1_device_audio_task(void *pvParameters)
 							LED_On(LED1);							// Indicate skipping on module LED
 
 #ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('i');
+							print_dbg_char('i');
 #endif
 						}
 					}
@@ -671,7 +671,7 @@ void uac1_device_audio_task(void *pvParameters)
 										skip_indicate = 0;				// Feedback system is running again!
 										LED_On(LED0);
 #ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char_char('/');
+										print_dbg_char('/');
 #endif
 									}
 									else if (gap < SPK1_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
@@ -680,7 +680,7 @@ void uac1_device_audio_task(void *pvParameters)
 										skip_indicate = 0;				// Feedback system is running again!
 										LED_On(LED0);
 #ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char_char('-');
+										print_dbg_char('-');
 #endif
 									}
 									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
@@ -695,7 +695,7 @@ void uac1_device_audio_task(void *pvParameters)
 										skip_indicate = 0;				// Feedback system is running again!
 										LED_On(LED1);
 #ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char_char('*');
+										print_dbg_char('*');
 #endif
 									}
 									else if (gap > SPK1_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
@@ -704,7 +704,7 @@ void uac1_device_audio_task(void *pvParameters)
 										skip_indicate = 0;				// Feedback system is running again!
 										LED_On(LED1);
 #ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char_char('+');
+										print_dbg_char('+');
 #endif
 									}
 									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
@@ -763,7 +763,7 @@ void uac1_device_audio_task(void *pvParameters)
 				playerStarted = FALSE;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char_char('q');
+				print_dbg_char('q');
 #endif
 			}
 

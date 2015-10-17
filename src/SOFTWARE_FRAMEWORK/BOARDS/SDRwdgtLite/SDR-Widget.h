@@ -29,15 +29,15 @@
 /*! \name Peripherals to include at compile time. */
 //! @{
 #define I2C                 1	// I2C driver
-//#define LCD_DISPLAY         1   // 20x4 Liquid Crystal Display (LCD)
-//#define SHAFT_ENCODER       1   // Shaft Encoder VFO function
-#define Si570               1   // Si570 VXO control funcs (needs I2C driver)
-#define AK5394              1   // 24-bit ADC
+#define LCD_DISPLAY         0   // 20x4 Liquid Crystal Display (LCD)
+#define SHAFT_ENCODER       0   // Shaft Encoder VFO function
+#define Si570               0   // Si570 VXO control funcs (needs I2C driver)
+#define AK5394              1   // 24-bit ADC, too much hinges on this one!
 #define AK4382A             0   // 24-bit DAC
-#define TMP100              1   // Temperature measurement device  (needs I2C driver)
-#define AD7991              1   //  (needs I2C driver)
-#define AD5301              1   //  (needs I2C driver)
-#define PCF8574             1   // port expander control of TX/RX and Band Pass filters  (needs I2C driver)
+#define TMP100              0   // Temperature measurement device  (needs I2C driver)
+#define AD7991              0   //  (needs I2C driver)
+#define AD5301              0   //  (needs I2C driver)
+#define PCF8574             0   // port expander control of TX/RX and Band Pass filters  (needs I2C driver)
 
 #define DEBUG232            1   // Use the UART debug port
 #define USB                 1   // Although it may look odd there may be a free standing mode.

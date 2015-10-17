@@ -381,16 +381,16 @@ void device_mouse_hid_task(void)
        Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte1);
        Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte2);
        Usb_ack_in_ready_send(EP_HID_TX);
-       print_dbg_char_char('H');					// Confirm HID command forwarded to HOST
-       print_dbg_char_char('\n');					// Confirm HID command forwarded to HOST
+       print_dbg_char('H');					// Confirm HID command forwarded to HOST
+       print_dbg_char('\n');					// Confirm HID command forwarded to HOST
        #ifdef HID2LCD
          lcd_q_putc('H');
        #endif
        // usb_state = 'r'; // May we ignore usb_state for HID TX ??
     }
     else { // Failure
-        print_dbg_char_char('-');					// NO HID command forwarded to HOST
-        print_dbg_char_char('\n');					// NO HID command forwarded to HOST
+        print_dbg_char('-');					// NO HID command forwarded to HOST
+        print_dbg_char('\n');					// NO HID command forwarded to HOST
         #ifdef HID2LCD
           lcd_q_putc('-');
         #endif
