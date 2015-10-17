@@ -354,9 +354,9 @@ void device_mouse_hid_task(void)
 			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS
 
 
-    	// Is the task switcher runnign??? UP
-//    	print_dbg_char_char('.');
- //   	vTaskDelay(4000);
+    	// Is the task switcher runnign???
+    	print_dbg_char_char('.');
+    	vTaskDelay(4000);
     }
 
 //  Tested ReportByte1 content with JRiver and VLC on Win7-32

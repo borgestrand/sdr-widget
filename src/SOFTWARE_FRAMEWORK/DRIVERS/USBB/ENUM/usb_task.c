@@ -224,11 +224,12 @@ void usb_task(void *pvParameters)
 #endif  // FREERTOS_USED
   // Register the USB interrupt handler to the interrupt controller and enable
   // the USB interrupt.
+	  print_dbg_char('V');
+
   Disable_global_interrupt();
 
-  //print_dbg_char('V');
   INTC_register_interrupt((__int_handler)&usb_general_interrupt, AVR32_USBB_IRQ, USB_INT_LEVEL);
-  //print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '*' below is critical!!
+  print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '*' below is critical!!
 
 /* uint32_t i = 100;
  int a = 0;
@@ -239,7 +240,7 @@ void usb_task(void *pvParameters)
 
   Enable_global_interrupt();
 
-//  print_dbg_char('X');
+  print_dbg_char('X');
 
 #ifdef FREERTOS_USED
   while (TRUE)
@@ -249,22 +250,22 @@ void usb_task(void *pvParameters)
 
 #endif  // FREERTOS_USED
 
-//print_dbg_char('Y');
+print_dbg_char('Y');
 
 // ---- DEVICE-ONLY USB MODE ---------------------------------------------------
 #ifdef FREERTOS_USED
   if (usb_device_tsk) vTaskDelete(usb_device_tsk), usb_device_tsk = NULL;
 #endif
 
-//print_dbg_char('Z');
+print_dbg_char('Z');
 
   Usb_force_device_mode();
 
-//print_dbg_char('v');
+print_dbg_char('v');
 
   usb_device_task_init();
 
-//  print_dbg_char('w'); // UP Runs to here with both pluged and unplugged mode
+  print_dbg_char('w'); // UP Runs to here with both pluged and unplugged mode
 
 // -----------------------------------------------------------------------------
 
