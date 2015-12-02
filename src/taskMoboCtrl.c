@@ -703,7 +703,9 @@ static void vtaskMoboCtrl( void * pcParameters )
     		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
 
         	// Is the task switcher running???
+#ifdef USB_STATE_MACHINE_DEBUG
         	print_dbg_char_char(',');
+#endif
 
     		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
     		{
@@ -800,7 +802,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 
    		//-----------------------------
-   		// Routines accessed every 10ms
+   		// Routines accessed every 10ms Now probably every 12ms due to vTaskDelay(120) below...
    		//-----------------------------
 
 		// The below is only applicable if I2C bus is available
@@ -1066,7 +1068,13 @@ static void vtaskMoboCtrl( void * pcParameters )
 		#endif
 
         LED_Toggle(LED2);
-        vTaskDelay(100 );
+		
+#if defined(HW_GEN_DIN10)
+			wm8805_poll();									// Handle WM8805's various hardware needs
+#endif
+
+		
+        vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
     }
 }
 
