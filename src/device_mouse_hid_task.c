@@ -96,13 +96,6 @@
 #include "Mobo_config.h"
 #include "features.h"
 
-// To access global input source variables
-// #include "device_audio_task.h"
-
-#if defined(HW_GEN_DIN10)
-#include "wm8805.h"
-#endif
-
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
 #endif
@@ -165,15 +158,6 @@ void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
 //	lcd_q_init();
 //	lcd_q_clear();
 #endif
-
-
-#if defined(HW_GEN_DIN10)
-// FIX: Why must this code be in taskMoboCtrl.c:vtaskMoboCtrl and not here?
-//	wm8805_init();							// Start up the WM8805 in a fairly dead mode
-//	wm8805_sleep();
-//	input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
-#endif
-
 
 }
 
@@ -343,10 +327,11 @@ void device_mouse_hid_task(void)
 				ReportByte1_prev = ReportByte1;
 			}
 
-
+/* Moved to taskMoboCtrl.c
 #if defined(HW_GEN_DIN10)
 			wm8805_poll();									// Handle WM8805's various hardware needs
 #endif
+*/
 
     	} // else, !readkey
 

@@ -203,6 +203,14 @@ void usb_task(void *pvParameters)
   INTC_register_interrupt((__int_handler)&usb_general_interrupt, AVR32_USBB_IRQ, USB_INT_LEVEL);
   print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '!' below is critical!!
 
+// Try to move 'W' out of the interrupt lock-out, then implement with some delay. Check if freertos delay will work or hang. 
+// Do we know the scheduler has started up properly when this function is called? Could the hang point be while waiting for the semaphore?
+// With external power applied, try all 4 combinations of:
+// Startup with USB signal present / not present
+// VBUS logical level from external / usb cable
+// All four must lead to clean boot and live indication in taskMoboCtrl
+
+
   Enable_global_interrupt();
 
   print_dbg_char('X');
