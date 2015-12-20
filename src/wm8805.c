@@ -239,6 +239,7 @@ void wm8805_poll(void) {
 #else
 			xSemaphoreGive(input_select_semphr);
 #endif
+			mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// Indicate silence detected by wm8805 subsystem
 		}
 
 		// Try other WM8805 channel
@@ -532,6 +533,8 @@ uint32_t wm8805_srd(void) {
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
 	// see srd_test.c and srd_test.lst
+
+	// New board: Will move to PX09, pin 49
 
 	// Determining speed at TP16 / DAC_0P / PA04 for now. Recompile prototype c to change io pin!
 	// Test is done for up to 1 half period, then 2 full periods
