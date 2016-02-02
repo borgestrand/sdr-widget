@@ -50,9 +50,11 @@
 // Front led colors for RGB LEDs
 #define FLED_RED			1
 #define FLED_GREEN			2
-#define FLED_BLUE			4
 #define FLED_YELLOW			3
+#define FLED_BLUE			4
 #define FLED_PURPLE			5
+#define FLED_CYAN			6
+#define FLED_WHITE			7
 #define FLED_DARK			0
 
 // Frequency definitions, move and change to make compatible with USB system!
