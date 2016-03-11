@@ -114,6 +114,11 @@
 // #define USB_STATE_MACHINE_DEBUG // Depreciated here, moved to Makefile
 
 
+// BSB 20160311 demoing metallic noise
+#define USB_METALLIC_NOISE_SIM // Only used for demo purposes
+
+
+
 
   //! @}
 

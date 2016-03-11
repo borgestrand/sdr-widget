@@ -550,10 +550,12 @@ void uac1_device_audio_task(void *pvParameters)
 							LED_Off(LED0);							// The LEDs on the PCB near the MCU
 							LED_Off(LED1);
 
+#ifdef USB_STATE_MACHINE_DEBUG
 							if (spk_buffer_in == 1)					// Debug message 'p' removed along with #ifdefs
 								gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 							else
 								gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+#endif
 
 							spk_index = SPK_BUFFER_SIZE - num_remaining;
 							spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample

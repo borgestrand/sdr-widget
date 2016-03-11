@@ -96,6 +96,10 @@
 #include "Mobo_config.h"
 #include "features.h"
 
+#ifdef USB_METALLIC_NOISE_SIM
+#include "device_audio_task.h"	// To modify FB_rate_nominal
+#endif
+
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
 #endif
@@ -304,6 +308,21 @@ void device_mouse_hid_task(void)
             }
 
             // If you need the UART for something other than HID, this is where you interpret it!
+
+
+#ifdef USB_METALLIC_NOISE_SIM
+            else if (a == 'u') {
+            	FB_rate_nominal += 64;
+            	FB_rate_nominal |= 1; // Use LSB as mask for FB rate being messed up
+            }
+            else if (a == 'd') {
+            	FB_rate_nominal -= 64;
+            	FB_rate_nominal |= 1; // Use LSB as mask for FB rate being messed up
+            }
+            else if (a == 'x') {
+            	FB_rate_nominal = FB_rate_initial; // Use LSB as mask for FB rate being messed up
+            }
+#endif
 
     	} // if (readkey())
 
