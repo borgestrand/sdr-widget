@@ -324,6 +324,14 @@ void device_mouse_hid_task(void)
             }
 #endif
 
+            else if (a == 'c') {							// Lowercase c
+            	gpio_clr_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 22.5792MHz/2 for AB-1
+            }
+
+            else if (a == 'C') {							// Uppercase C
+            	gpio_set_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 24.576MHz/2 for AB-1
+            }
+
     	} // if (readkey())
 
     	else { 											   	// GPIO pin _changes_ are sent to Host

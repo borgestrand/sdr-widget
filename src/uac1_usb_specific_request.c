@@ -184,8 +184,6 @@ static Bool uac1_user_get_interface_descriptor() {
 	switch( descriptor_type ) {
 	case HID_DESCRIPTOR:
 
-		// print_dbg_char('b'); // BSB debug 20120803
-
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
 
@@ -826,12 +824,35 @@ Bool uac1_user_read_request(U8 type, U8 request)
 			audio_set_cur();
 			return TRUE;
 			// No need to break here !
-
+/*
 		case BR_REQUEST_SET_MIN:     //! Set MIN,MAX and RES not supported
 		case BR_REQUEST_SET_MAX:
 		case BR_REQUEST_SET_RES:
 			return FALSE;
 			// No need to break here !
+*/
+
+		case BR_REQUEST_SET_MIN:
+			print_dbg_char('m');
+			print_dbg_char_hex(wValue_lsb);
+			print_dbg_char_hex(wValue_msb);
+			print_dbg_char('\n');
+			return TRUE;
+
+		case BR_REQUEST_SET_MAX:
+			print_dbg_char('M');
+			print_dbg_char_hex(wValue_lsb);
+			print_dbg_char_hex(wValue_msb);
+			print_dbg_char('\n');
+			return TRUE;
+
+		case BR_REQUEST_SET_RES:
+			print_dbg_char('r');
+			print_dbg_char_hex(wValue_lsb);
+			print_dbg_char_hex(wValue_msb);
+			print_dbg_char('\n');
+			return TRUE;
+
 
 		case BR_REQUEST_GET_CUR:
 			audio_get_cur();

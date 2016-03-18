@@ -115,7 +115,8 @@
 
 
 // BSB 20160311 demoing metallic noise
-#define USB_METALLIC_NOISE_SIM // Only used for demo purposes
+// One historical bug on line 610 of uac2_dat.c
+// #define USB_METALLIC_NOISE_SIM // Only used for demo purposes
 
 
 
