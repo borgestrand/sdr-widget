@@ -340,11 +340,7 @@ void audio_get_min(void)
 {
    U16 i_unit;  // in wIndex
    U16 length;  // in wLength
-
-//   i_unit = wIndex % 256;			// wIndex high byte is interface number
    i_unit = (wIndex >> 8);			// wIndex high byte is interface number
-
-
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -352,16 +348,6 @@ void audio_get_min(void)
 
 
    print_dbg_char('n');
-
-   print_dbg_char_hex(((wIndex >> 8) & 0xff));
-   print_dbg_char_hex(((wIndex >> 0) & 0xff));
-   print_dbg_char(' ');
-   print_dbg_char_hex((((wIndex % 256)>> 8) & 0xff));
-   print_dbg_char_hex((((wIndex % 256)>> 0) & 0xff));
-   print_dbg_char(' ');
-
-
-// we don't have i_unit == SPK_... when this executes..
    if ( i_unit == SPK_FEATURE_UNIT_ID) {
 
          switch (wValue_msb)
@@ -427,17 +413,13 @@ void audio_get_max(void)
 {
    U16 i_unit;
    U16 length;
-//   i_unit = wIndex % 256;
    i_unit = (wIndex >> 8);			// wIndex high byte is interface number
-
    length = wLength;
 
    Usb_ack_setup_received_free();
-
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
    print_dbg_char('N');
-
    if ( i_unit == SPK_FEATURE_UNIT_ID) {
 	     switch (wValue_msb)
 	      {
@@ -503,17 +485,13 @@ void audio_get_res(void)
 {
    U16 i_unit;
    U16 length;
-//   i_unit = wIndex % 256;
    i_unit = (wIndex >> 8);			// wIndex high byte is interface number
-
    length = wLength;
 
    Usb_ack_setup_received_free();
-
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
    print_dbg_char('r');
-
    if ( i_unit==SPK_FEATURE_UNIT_ID) { // FIX: Something is seriously wrong with the value of i_unit
 	     switch (wValue_msb)
 	      {
@@ -578,9 +556,7 @@ void audio_get_cur(void)
 {
    U16 i_unit;
    U16 length;
-//   i_unit = wIndex % 256;
    i_unit = (wIndex >> 8);			// wIndex high byte is interface number
-
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -623,7 +599,6 @@ void audio_get_cur(void)
    */
 
    else if (i_unit==SPK_FEATURE_UNIT_ID) {
-//   else if (usb_type == USB_SETUP_GET_CLASS_INTER) {
 	     print_dbg_char('c');
 
 	     switch (wValue_msb)
@@ -648,7 +623,6 @@ void audio_get_cur(void)
 	         break;
 	      }
 	     print_dbg_char('\n');
-
    }
 
    Usb_ack_control_in_ready_send();
@@ -660,9 +634,7 @@ void audio_set_cur(void)
 {
    U16 i_unit;
    U16 length;
-//   i_unit = wIndex % 256;
    i_unit = (wIndex >> 8);			// wIndex high byte is interface number
-
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -715,10 +687,6 @@ void audio_set_cur(void)
    }
 
    // BSB 20160318 experimenting with mute and playback volume control
-
-   // The code doesn't seem to respond very well to i_unit !
-
-//   if (usb_type == USB_SETUP_SET_CLASS_INTER) {
    else if (i_unit==SPK_FEATURE_UNIT_ID ) {
 	   uint8_t temp1, temp2;
 
@@ -745,6 +713,28 @@ void audio_set_cur(void)
 	   }
    }
 
+/*
+   else if (i_unit==SPK_FEATURE_UNIT_ID ) {
+	   {
+	       switch (wValue_msb)
+	       {
+	       case CS_MUTE:
+	          if( length==1 )
+	          {
+	             spk_mute=Usb_read_endpoint_data(EP_CONTROL, 8);
+	          }
+	          break;
+	       case CS_VOLUME:
+	          if( length==2 )
+	          {
+	             LSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
+	             MSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
+	          }
+	          break;
+	       }
+	    }
+   }
+   */
 
    // BSB 20130604 disabling UAC1 IN
    /*
@@ -767,29 +757,6 @@ void audio_set_cur(void)
          break;
       }
    }
-   */
-/*
-   else if (i_unit==SPK_FEATURE_UNIT_ID ) {
-	   {
-	       switch (wValue_msb)
-	       {
-	       case CS_MUTE:
-	          if( length==1 )
-	          {
-	             spk_mute=Usb_read_endpoint_data(EP_CONTROL, 8);
-	          }
-	          break;
-	       case CS_VOLUME:
-	          if( length==2 )
-	          {
-	             LSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
-	             MSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
-	          }
-	          break;
-	       }
-	    }
-   }
-
    */
 
 
