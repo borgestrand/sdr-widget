@@ -95,10 +95,30 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-#define VOL_MIN      (S16)0x8000
-#define VOL_MAX      (S16)0x7FFF
+/* Maximum limits permitted by UAC1 standard
+#define VOL_MIN      (S16)0x8000 // only allowed for CUR
+#define VOL_MAX      (S16)0x7Fff
 #define VOL_RES      0x000A
+*/
 
+// Redefined BSB 20160320
+#define VOL_MIN      (S16)0xC400	// -60dB
+#define VOL_MAX      (S16)0x0000	// 0dB
+#define VOL_RES      (S16)0x0080	// 0.5dB steps. Don't expect Windows to heed this.
+
+
+//0000 c400 00a0 W sends 8000
+//c400 0000 00a0 W sends 0000
+//c400 1000 00a0 W sends 0000
+//c400 c400 00a0 W sends c400
+//c400 c500 00a0 W sends c500
+//c500 c400 00a0 W sends 8000
+//8001 c420 00a0 W sends c420
+//c400 0000 0100 W sends 0000
+
+// if (min > max) send 8000
+// elseif (max > 0000) send 0000
+// else send max
 
 //_____ P R I V A T E   D E C L A R A T I O N S ____________________________
 
@@ -707,6 +727,7 @@ void audio_set_cur(void)
 
 		   print_dbg_char('v');
 		   print_dbg_char('=');
+	       print_dbg_char_hex(wValue_lsb);
 	       print_dbg_char_hex(temp2);
 	       print_dbg_char_hex(temp1);
 		   print_dbg_char('\n');
