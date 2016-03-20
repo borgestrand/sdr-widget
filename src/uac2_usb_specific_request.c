@@ -612,8 +612,10 @@ void uac2_usb_hid_get_idle (U8 u8_report_id)  // BSB 20120710 prefix "uac2_" add
 //! supported. In this case, a STALL handshake will be automatically
 //! sent by the standard USB read request function.
 //!
-Bool uac2_user_read_request(U8 type, U8 request)
-{   int i;
+Bool uac2_user_read_request(U8 type, U8 request) {
+	int i;
+
+	uint8_t temp1, temp2;
 
 
 	// BSB 20120720 added
@@ -983,8 +985,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						return FALSE;
 
 				case MIC_FEATURE_UNIT_ID:
-					if (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE
-						&& request == AUDIO_CS_REQUEST_CUR) {
+					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request == AUDIO_CS_REQUEST_CUR) ) {
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
@@ -1002,8 +1003,12 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						return FALSE;
 
 				case SPK_FEATURE_UNIT_ID:
-					if (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE
-						&& request == AUDIO_CS_REQUEST_CUR) {
+					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request == AUDIO_CS_REQUEST_CUR) ) {
+						print_dbg_char('r');
+						print_dbg_char('m');
+						print_dbg_char('\n');
+
+
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
@@ -1017,6 +1022,27 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						Usb_ack_control_out_received_free();
 						return TRUE;
 					}
+
+					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
+						print_dbg_char('r');
+						print_dbg_char('v');
+						print_dbg_char('\n');
+
+
+						Usb_ack_setup_received_free();
+						Usb_reset_endpoint_fifo_access(EP_CONTROL);
+
+						Usb_write_endpoint_data(EP_CONTROL, 8, 0xD2);
+						Usb_write_endpoint_data(EP_CONTROL, 8, 0x34);
+
+						Usb_ack_control_in_ready_send();
+						while (!Is_usb_control_out_received());
+						Usb_ack_control_out_received_free();
+						return TRUE;
+					}
+
+
+
 					else
 						return FALSE;
 
@@ -1145,8 +1171,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						return FALSE;
 
 				case CSX_ID:
-					if (wValue_msb == AUDIO_CX_CLOCK_SELECTOR && wValue_lsb == 0
-						&& request == AUDIO_CS_REQUEST_CUR) {
+					if ( (wValue_msb == AUDIO_CX_CLOCK_SELECTOR) && (wValue_lsb == 0) && (request == AUDIO_CS_REQUEST_CUR) ) {
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1163,8 +1188,7 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						return FALSE;
 
 				case MIC_FEATURE_UNIT_ID:
-					if (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE
-						&& request == AUDIO_CS_REQUEST_CUR) {
+					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request == AUDIO_CS_REQUEST_CUR) ) {
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1178,20 +1202,53 @@ Bool uac2_user_read_request(U8 type, U8 request)
 						return FALSE;
 
 				case SPK_FEATURE_UNIT_ID:
-					if (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE
-						&& request == AUDIO_CS_REQUEST_CUR) {
+					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request == AUDIO_CS_REQUEST_CUR) ) {
 
 						print_dbg_char('m');
 
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						spk_mute = Usb_read_endpoint_data(EP_CONTROL, 8);
+						temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
+						spk_mute = temp1;
+
+						print_dbg_char_hex(wValue_lsb);
+						print_dbg_char_hex(temp1);
+						print_dbg_char('\n');
+
+
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready()); //!< waits for status phase done
 						return TRUE;
 					}
+					else if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
+
+						print_dbg_char('m');
+
+						Usb_ack_setup_received_free();
+						while (!Is_usb_control_out_received());
+						Usb_reset_endpoint_fifo_access(EP_CONTROL);
+						temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
+						temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
+
+//						LSB(spk_volume_LR) = temp1;
+//						MSB(spk_volume_LR) = temp2;
+
+						print_dbg_char_hex(wValue_lsb);
+						print_dbg_char_hex(temp1);
+						print_dbg_char_hex(temp2);
+						print_dbg_char('\n');
+
+						Usb_ack_control_out_received_free();
+						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
+						while (!Is_usb_control_in_ready()); //!< waits for status phase done
+						return TRUE;
+					}
+
+
+
+
 					else
 						return FALSE;
 
