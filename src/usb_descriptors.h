@@ -120,9 +120,12 @@
 #define USB_1_1_SPECIFICATION     0x0110 	// BSB 20130605 changed from 0x0101 to 0x0110 to happify USBlyzer
 
 #define USB_SPECIFICATION     0x0200
-#define DEVICE_CLASS          0xef          //!
-#define DEVICE_SUB_CLASS      0x02          //!
-#define DEVICE_PROTOCOL       0x01          //! IAD Device
+#define DEVICE_CLASS_UAC2     0xef          //!	BSB 20160320 unchanged in UAC2, set to 0 in UAC1
+#define DEVICE_SUB_CLASS_UAC2 0x02          //!
+#define DEVICE_PROTOCOL_UAC2  0x01          //! IAD Device
+#define DEVICE_CLASS_UAC1     0
+#define DEVICE_SUB_CLASS_UAC1 0
+#define DEVICE_PROTOCOL_UAC1  0
 #define EP_CONTROL_LENGTH     64
 #define DG8SAQ_VENDOR_ID      0x16c0        //!  DG8SAQ device
 #define DG8SAQ_PRODUCT_ID     0x05dc

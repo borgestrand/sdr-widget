@@ -141,11 +141,10 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 //	spk_buffer_ptr = spk_buffer_0;
 	mute = FALSE;
 	spk_mute = FALSE;
-//	volume = 0x5000;
-	//	spk_volume = 0x5000;
 
 	volume = 0x0000;
-	spk_volume = 0xD000; // within range from uac1_usb_specific_request
+	spk_volume_L = 0xD000; 	// within range from uac1_usb_specific_request
+	spk_volume_R = 0xD000; 	// within range from uac1_usb_specific_request
 
 	ep_audio_in = ep_in;
 	ep_audio_out = ep_out;

@@ -102,23 +102,12 @@
 */
 
 // Redefined BSB 20160320
-#define VOL_MIN      (S16)0xC400	// -60dB
-#define VOL_MAX      (S16)0x0000	// 0dB
-#define VOL_RES      (S16)0x0080	// 0.5dB steps. Don't expect Windows to heed this.
+#define VOL_MIN      	(S16)0xC400	// -60dB
+#define VOL_MAX      	(S16)0x0000	// 0dB
+#define VOL_RES      	(S16)0x0080	// 0.5dB steps. Don't expect Windows to heed this.
+#define CH_LEFT			0x01		// Master:0 Left:1 Right:1
+#define CH_RIGHT		0x02
 
-
-//0000 c400 00a0 W sends 8000
-//c400 0000 00a0 W sends 0000
-//c400 1000 00a0 W sends 0000
-//c400 c400 00a0 W sends c400
-//c400 c500 00a0 W sends c500
-//c500 c400 00a0 W sends 8000
-//8001 c420 00a0 W sends c420
-//c400 0000 0100 W sends 0000
-
-// if (min > max) send 8000
-// elseif (max > 0000) send 0000
-// else send max
 
 //_____ P R I V A T E   D E C L A R A T I O N S ____________________________
 
@@ -366,33 +355,21 @@ void audio_get_min(void)
    Usb_ack_setup_received_free();
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-
-   print_dbg_char('n');
    if ( i_unit == SPK_FEATURE_UNIT_ID) {
 
-         switch (wValue_msb)
-         {
+         switch (wValue_msb) {
          case CS_MUTE:
-            if( length==1 )
-            {
+            if( length==1 ) {
                Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
-               print_dbg_char('q');
-               print_dbg_char_hex(spk_mute);
             }
             break;
          case CS_VOLUME:
-            if( length==2 )
-            {
+            if( length==2 ) {
                Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
-               print_dbg_char('v');
-	   	        print_dbg_char_hex(((VOL_MIN >> 8) & 0xff));
-	   	        print_dbg_char_hex(((VOL_MIN >> 0) & 0xff));
             }
             break;
          }
       }
-
-   print_dbg_char('\n');
 
 
    // BSB 20130604 disabling UAC1 IN
@@ -429,8 +406,7 @@ void audio_get_min(void)
    Usb_ack_control_out_received_free();
 }
 
-void audio_get_max(void)
-{
+void audio_get_max(void) {
    U16 i_unit;
    U16 length;
    i_unit = (wIndex >> 8);			// wIndex high byte is interface number
@@ -439,33 +415,20 @@ void audio_get_max(void)
    Usb_ack_setup_received_free();
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-   print_dbg_char('N');
    if ( i_unit == SPK_FEATURE_UNIT_ID) {
-	     switch (wValue_msb)
-	      {
+	     switch (wValue_msb) {
 	      case CS_MUTE:
-	         if( length==1 )
-	         {
+	         if( length==1 ) {
 	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
-               print_dbg_char('q');
-	   	        print_dbg_char_hex(spk_mute);
 	         }
 	         break;
 	      case CS_VOLUME:
-	         if( length==2 )
-	         {
+	         if( length==2 ) {
 	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
-               print_dbg_char('v');
-	   	        print_dbg_char_hex(((VOL_MAX >> 8) & 0xff));
-	   	        print_dbg_char_hex(((VOL_MAX >> 0) & 0xff));
-
 	         }
 	         break;
 	      }
   }
-
-	     print_dbg_char('\n');
-
 
    // BSB 20130604 disabling UAC1 IN
    /*
@@ -511,31 +474,20 @@ void audio_get_res(void)
    Usb_ack_setup_received_free();
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-   print_dbg_char('r');
    if ( i_unit==SPK_FEATURE_UNIT_ID) { // FIX: Something is seriously wrong with the value of i_unit
-	     switch (wValue_msb)
-	      {
+	     switch (wValue_msb) {
 	      case CS_MUTE:
-	         if( length==1 )
-	         {
+	         if( length==1 ) {
 	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
-	               print_dbg_char('q');
-		   	        print_dbg_char_hex(spk_mute);
 	         }
 	         break;
 	      case CS_VOLUME:
-	         if( length==2 )
-	         {
+	         if( length==2 ) {
 	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
-	               print_dbg_char('v');
-		   	        print_dbg_char_hex(((VOL_RES >> 8) & 0xff));
-		   	        print_dbg_char_hex(((VOL_RES >> 0) & 0xff));
 	         }
 	         break;
 	      }
    }
-
-	     print_dbg_char('\n');
 
 
    // BSB 20130604 disabling UAC1 IN
@@ -572,28 +524,27 @@ void audio_get_res(void)
    Usb_ack_control_out_received_free();
 }
 
-void audio_get_cur(void)
-{
-   U16 i_unit;
-   U16 length;
-   i_unit = (wIndex >> 8);			// wIndex high byte is interface number
-   length = wLength;
+void audio_get_cur(void) {
+	U16 i_unit;
+	U16 length;
+	i_unit = (wIndex >> 8);			// wIndex high byte is interface number
+	length = wLength;
 
-   Usb_ack_setup_received_free();
-   Usb_reset_endpoint_fifo_access(EP_CONTROL);
+	Usb_ack_setup_received_free();
+	Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-   if ((usb_type == USB_SETUP_GET_CLASS_ENDPOINT) && (wValue_msb == UAC_EP_CS_ATTR_SAMPLE_RATE)){
-		if (speed == 0){
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x44);
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0xac);
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+	if ((usb_type == USB_SETUP_GET_CLASS_ENDPOINT) && (wValue_msb == UAC_EP_CS_ATTR_SAMPLE_RATE)){
+		if (speed == 0) {
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0x44);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0xac);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 		}
 		else {
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 		}
-    }
+	}
 
    // BSB 20130604 disabling UAC1 IN
    /*
@@ -618,36 +569,38 @@ void audio_get_cur(void)
    }
    */
 
-   else if (i_unit==SPK_FEATURE_UNIT_ID) {
-	     print_dbg_char('c');
+	else if (i_unit==SPK_FEATURE_UNIT_ID) {
+		print_dbg_char('c');
 
-	     switch (wValue_msb)
-	      {
-	      case CS_MUTE:
-	         if( length==1 )
-	         {
-	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
-	            print_dbg_char('q');
-	   	        print_dbg_char_hex(spk_mute);
-	         }
-	         break;
-	      case CS_VOLUME:
-	         if( length==2 )
-	         {
-	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume));
+		switch (wValue_msb) {
+			case CS_MUTE:
+				if (length == 1) {
+					Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+				}
+				break;
+			case CS_VOLUME:
+				if (length == 2) {
+					if (wValue_lsb == CH_LEFT) {
+						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume_L));
+						print_dbg_char('L');
+						print_dbg_char_hex(((spk_volume_L >> 8) & 0xff));
+						print_dbg_char_hex(((spk_volume_L >> 0) & 0xff));
+					}
+					else if (wValue_lsb == CH_RIGHT) {
+						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume_R));
+						print_dbg_char('R');
+						print_dbg_char_hex(((spk_volume_R >> 8) & 0xff));
+						print_dbg_char_hex(((spk_volume_R >> 0) & 0xff));
+					}
+				}
+				break;
+			}
+		print_dbg_char('\n');
+	}
 
-	            print_dbg_char('v');
-	   	        print_dbg_char_hex(((spk_volume >> 8) & 0xff));
-	   	        print_dbg_char_hex(((spk_volume >> 0) & 0xff));
-	         }
-	         break;
-	      }
-	     print_dbg_char('\n');
-   }
-
-   Usb_ack_control_in_ready_send();
-   while(!Is_usb_control_out_received());
-   Usb_ack_control_out_received_free();
+	Usb_ack_control_in_ready_send();
+	while(!Is_usb_control_out_received());
+	Usb_ack_control_out_received_free();
 }
 
 void audio_set_cur(void)
@@ -707,32 +660,32 @@ void audio_set_cur(void)
    }
 
    // BSB 20160318 experimenting with mute and playback volume control
-   else if (i_unit==SPK_FEATURE_UNIT_ID ) {
+   else if (i_unit == SPK_FEATURE_UNIT_ID ) {
 	   uint8_t temp1, temp2;
 
 	   if (wValue_msb == CS_MUTE) {
-	       temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
-	       spk_mute = temp1;
-		   print_dbg_char('m');
-		   print_dbg_char('=');
-	       print_dbg_char_hex(temp1);
-		   print_dbg_char('\n');
+		   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
+		   spk_mute = temp1;
 	   }
 	   else if (wValue_msb == CS_VOLUME) {
-	       temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
-	       temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
-
-           LSB(spk_volume)= temp1;
-           MSB(spk_volume)= temp2;
-
-		   print_dbg_char('v');
+		   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
+		   temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
+		   if (wValue_lsb == CH_LEFT) {
+			   print_dbg_char('L');
+			   LSB(spk_volume_L)= temp1;
+			   MSB(spk_volume_L)= temp2;
+		   }
+		   else if (wValue_lsb == CH_RIGHT) {
+			   print_dbg_char('R');
+			   LSB(spk_volume_R)= temp1;
+			   MSB(spk_volume_R)= temp2;
+		   }
 		   print_dbg_char('=');
-	       print_dbg_char_hex(wValue_lsb);
-	       print_dbg_char_hex(temp2);
-	       print_dbg_char_hex(temp1);
+		   print_dbg_char_hex(temp2);
+		   print_dbg_char_hex(temp1);
 		   print_dbg_char('\n');
 	   }
-   }
+	}
 
 /*
    else if (i_unit==SPK_FEATURE_UNIT_ID ) {
@@ -913,7 +866,6 @@ Bool uac1_user_read_request(U8 type, U8 request)
 	switch (request)
 	    {
 		case BR_REQUEST_SET_CUR:
-			print_dbg_char('-'); print_dbg_char('s'); print_dbg_char('c'); print_dbg_char('\n');
 			audio_set_cur();
 			return TRUE;
 			// No need to break here !
@@ -924,42 +876,22 @@ Bool uac1_user_read_request(U8 type, U8 request)
 			return FALSE;
 			// No need to break here !
 
-/*
-		case BR_REQUEST_SET_MIN:
-			print_dbg_char('-'); print_dbg_char('s'); print_dbg_char('n'); print_dbg_char('\n');
-			return TRUE;
-
-		case BR_REQUEST_SET_MAX:
-			print_dbg_char('-'); print_dbg_char('s'); print_dbg_char('N'); print_dbg_char('\n');
-			return TRUE;
-
-		case BR_REQUEST_SET_RES:
-			print_dbg_char('-'); print_dbg_char('s'); print_dbg_char('r'); print_dbg_char('\n');
-			return TRUE;
-
-*/
-
-
 		case BR_REQUEST_GET_CUR:
-			print_dbg_char('-'); print_dbg_char('g'); print_dbg_char('c'); print_dbg_char('\n');
 			audio_get_cur();
 			return TRUE;
 			// No need to break here !
 
 		case BR_REQUEST_GET_MIN:
-			print_dbg_char('-'); print_dbg_char('g'); print_dbg_char('n'); print_dbg_char('\n');
 			audio_get_min();
 			return TRUE;
 			// No need to break here !
 
 		case BR_REQUEST_GET_MAX:
-			print_dbg_char('-'); print_dbg_char('g'); print_dbg_char('N'); print_dbg_char('\n');
 			audio_get_max();
 			return TRUE;
 			// No need to break here !
 
 		case BR_REQUEST_GET_RES:
-			print_dbg_char('-'); print_dbg_char('g'); print_dbg_char('r'); print_dbg_char('\n');
 			audio_get_res();
 			return TRUE;
 			// No need to break here !
