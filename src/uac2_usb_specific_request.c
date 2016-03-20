@@ -1006,6 +1006,8 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request == AUDIO_CS_REQUEST_CUR) ) {
 						print_dbg_char('r');
 						print_dbg_char('m');
+						print_dbg_char_hex(wValue_msb);
+						print_dbg_char_hex(wValue_lsb);
 						print_dbg_char('\n');
 
 
@@ -1026,6 +1028,8 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
 						print_dbg_char('r');
 						print_dbg_char('v');
+						print_dbg_char_hex(wValue_msb);
+						print_dbg_char_hex(wValue_lsb);
 						print_dbg_char('\n');
 
 
@@ -1224,7 +1228,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					}
 					else if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
 
-						print_dbg_char('m');
+						print_dbg_char('v');
 
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
