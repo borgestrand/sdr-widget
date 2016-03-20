@@ -1180,6 +1180,9 @@ Bool uac2_user_read_request(U8 type, U8 request)
 				case SPK_FEATURE_UNIT_ID:
 					if (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE
 						&& request == AUDIO_CS_REQUEST_CUR) {
+
+						print_dbg_char('m');
+
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
