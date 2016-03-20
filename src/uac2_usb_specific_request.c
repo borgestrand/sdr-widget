@@ -1035,14 +1035,23 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					else if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
 						print_dbg_char('r');
 						print_dbg_char('V');
-						print_dbg_char_hex(wValue_lsb);
-						print_dbg_char('\n');
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-						Usb_write_endpoint_data(EP_CONTROL, 8, 0xD2); // FIX realistic value!
-						Usb_write_endpoint_data(EP_CONTROL, 8, 0x34);
+						if (wValue_lsb == CH_LEFT) {
+							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume_L));
+							print_dbg_char('L');
+							print_dbg_char_hex(((spk_volume_L >> 8) & 0xff));
+							print_dbg_char_hex(((spk_volume_L >> 0) & 0xff));
+						}
+						else if (wValue_lsb == CH_RIGHT) {
+							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume_R));
+							print_dbg_char('R');
+							print_dbg_char_hex(((spk_volume_R >> 8) & 0xff));
+							print_dbg_char_hex(((spk_volume_R >> 0) & 0xff));
+						}
+						print_dbg_char('\n');
 
 						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received());
@@ -1243,6 +1252,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						spk_mute = temp1;
 
 						print_dbg_char_hex(wValue_lsb);
+						print_dbg_char('=');
 						print_dbg_char_hex(temp1);
 						print_dbg_char('\n');
 
@@ -1259,16 +1269,22 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
+
 						temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
 						temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
-
-						// Fix: write realistic volume
-//						LSB(spk_volume_LR) = temp1;
-//						MSB(spk_volume_LR) = temp2;
-
-						print_dbg_char_hex(wValue_lsb);
-						print_dbg_char_hex(temp1);
+						if (wValue_lsb == CH_LEFT) {
+							print_dbg_char('L');
+							LSB(spk_volume_L)= temp1;
+							MSB(spk_volume_L)= temp2;
+						}
+						else if (wValue_lsb == CH_RIGHT) {
+							print_dbg_char('R');
+							LSB(spk_volume_R)= temp1;
+							MSB(spk_volume_R)= temp2;
+						}
+						print_dbg_char('=');
 						print_dbg_char_hex(temp2);
+						print_dbg_char_hex(temp1);
 						print_dbg_char('\n');
 
 						Usb_ack_control_out_received_free();
@@ -1276,9 +1292,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						while (!Is_usb_control_in_ready()); //!< waits for status phase done
 						return TRUE;
 					}
-
-
-
 
 					else
 						return FALSE;

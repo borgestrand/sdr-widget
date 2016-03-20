@@ -229,8 +229,8 @@
 #define SPK_FEATURE_UNIT_ID            0x12
 #define SPK_FEATURE_UNIT_SOURCE_ID     SPK_INPUT_TERMINAL_ID
 #define SPK_BMA_CONTROLS               0x00000003 	// Mute master channel. [Readable and writable ?]
-#define SPK_BMA_CONTROLS_CH_1		   0x0000000F	// Volume control L
-#define SPK_BMA_CONTROLS_CH_2		   0x0000000F	// Volume control R
+#define SPK_BMA_CONTROLS_CH_1		   0x0000000C	// Volume control L
+#define SPK_BMA_CONTROLS_CH_2		   0x0000000C	// Volume control R
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID				0x13
