@@ -711,38 +711,20 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 
 
-
+    		// Has volume setting changed recently? If so store it to flash
     		if (spk_vol_usb_L_local == VOL_INVALID) {
     			spk_vol_usb_L_local = spk_vol_usb_L;		// 1st time, establish history
-            	print_dbg_char_char('L');
-            	print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
-				print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
-            	print_dbg_char_char('\n');
     		}
     		else if (spk_vol_usb_L_local != spk_vol_usb_L) {
     			spk_vol_usb_L_local = spk_vol_usb_L;
             	usb_volume_flash(CH_LEFT, spk_vol_usb_L, VOL_WRITE);
-
-            	print_dbg_char_char('l');					// volume control has changed, store it!
-            	print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
-				print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
-            	print_dbg_char_char('\n');
     		}
     		if (spk_vol_usb_R_local == VOL_INVALID) {
     			spk_vol_usb_R_local = spk_vol_usb_R;		// 1st time, establish history
-            	print_dbg_char_char('R');
-            	print_dbg_char_hex(((spk_vol_usb_R >> 8) & 0xff));
-				print_dbg_char_hex(((spk_vol_usb_R >> 0) & 0xff));
-            	print_dbg_char_char('\n');
     		}
     		else if (spk_vol_usb_R_local != spk_vol_usb_R) {
     			spk_vol_usb_R_local = spk_vol_usb_R;
             	usb_volume_flash(CH_RIGHT, spk_vol_usb_R, VOL_WRITE);
-
-            	print_dbg_char_char('r');					// volume control has changed, store it!
-            	print_dbg_char_hex(((spk_vol_usb_R >> 8) & 0xff));
-				print_dbg_char_hex(((spk_vol_usb_R >> 0) & 0xff));
-            	print_dbg_char_char('\n');
     		}
 
 

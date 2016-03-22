@@ -192,11 +192,9 @@ S16 usb_volume_flash(U8 channel, S16 volume, U8 rw) {
 		if (rw == VOL_READ) {
 			temp = (feature_get_nvram(feature_msb_vol_L) << 8) + feature_get_nvram(feature_lsb_vol_L);
 			if ( (temp >= VOL_MIN) && (temp <= VOL_MAX) ) {
-				print_dbg_char('p');
 				return temp;
 			}
 			else {
-				print_dbg_char('q');
 				temp = VOL_DEFAULT;
 				feature_set_nvram(feature_msb_vol_L, (U8)(temp >> 8));	// Storing default msb
 				feature_set_nvram(feature_lsb_vol_L, (U8)(temp >> 0));	// Storing default lsb
@@ -205,13 +203,11 @@ S16 usb_volume_flash(U8 channel, S16 volume, U8 rw) {
 		}
 		else if (rw == VOL_WRITE) {
 			if ( (volume >= VOL_MIN) && (volume <= VOL_MAX) ) {
-				print_dbg_char('r');
 				feature_set_nvram(feature_msb_vol_L, (U8)(volume >> 8));
 				feature_set_nvram(feature_lsb_vol_L, (U8)(volume >> 0));
 				return 1;
 			}
 			else {
-				print_dbg_char('s');
 				return 0;
 			}
 		}
