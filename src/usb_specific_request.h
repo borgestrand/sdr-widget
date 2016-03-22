@@ -103,6 +103,8 @@ extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_
 #define VOL_INVALID		(S16)VOL_MIN - 0x0100	// Just below VOL_MIN
 #define VOL_MAX      	(S16)0x0000	// 0dB
 #define VOL_RES      	(S16)0x0080	// 0.5dB steps. Don't expect Windows to heed this.
+#define VOL_MULT_UNITY	0x10000000	// Encoding unity volume
+#define VOL_MULT_SHIFT	28			// The number of right shifts needed after multiplication by unity
 #define CH_LEFT			0x01		// Master:0 Left:1 Right:1
 #define CH_RIGHT		0x02
 #define VOL_READ		0x01

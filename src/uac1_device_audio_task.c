@@ -510,11 +510,13 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 						silence_det |= sample_L;
 
-						// 24-bit data words. First shift up to 32 bit. Do math and shift down
-						sample_L <<= 8;
-						sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> 28) ;
-						sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-						sample_L >>= 8;
+						if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+							// 24-bit data words. First shift up to 32 bit. Do math and shift down
+							sample_L <<= 8;
+							sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+							sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+							sample_L >>= 8;
+						}
 
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -522,11 +524,13 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 						silence_det |= sample_R;
 
-						// 24-bit data words. First shift up to 32 bit. Do math and shift down
-						sample_R <<= 8;
-						sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> 28) ;
-						sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-						sample_R >>= 8;
+						if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+							// 24-bit data words. First shift up to 32 bit. Do math and shift down
+							sample_R <<= 8;
+							sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+							sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+							sample_R >>= 8;
+						}
 
 
 						// New site for setting playerStarted and aligning buffers

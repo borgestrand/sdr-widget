@@ -559,9 +559,11 @@ void uac2_device_audio_task(void *pvParameters)
 					sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 					silence_det |= sample_L;
 
-					// 32-bit data words volume control
-					sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> 28) ;
-					sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+					if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+						// 32-bit data words volume control
+						sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+						sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+					}
 
 					sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -570,9 +572,11 @@ void uac2_device_audio_task(void *pvParameters)
 					sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 					silence_det |= sample_R;
 
-					// 32-bit data words volume control
-					sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> 28) ;
-					sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+					if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+						// 32-bit data words volume control
+						sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+						sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+					}
 
 					// New site for setting playerStarted and aligning buffers
 					if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.

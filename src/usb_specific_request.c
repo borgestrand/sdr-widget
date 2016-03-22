@@ -136,7 +136,7 @@ U8 dg8saqBuffer[256];	// 256 bytes long input/output buffer for DG8SAQ commands
 // Input: 16-bit volume control word from USB, 256*dB
 // Output: 32-bit volume multiplier to volume control
 S32 usb_volume_format (S16 spk_vol_usb) {
-	S32 V = 0x10000000;		// Encodes unity
+	S32 V = VOL_MULT_UNITY;		// Encodes unity
 
 	if ( (spk_vol_usb < VOL_MIN) || (spk_vol_usb > VOL_MAX) )
 		return 0;			// Full mute

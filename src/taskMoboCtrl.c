@@ -704,7 +704,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 		btn_poll_Timerval = time/57000; // RTC on 115kHz, divide by 57000 for about 0.5s poll time
 
-		if (btn_poll_Timerval != btn_poll_lastIteration)			// Once every 1second, do stuff
+		if (btn_poll_Timerval != btn_poll_lastIteration)		// Once every 1second, do stuff
    		{
     		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
 
@@ -712,29 +712,23 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 
     		// Has volume setting changed recently? If so store it to flash
+    		// FIX: work out a better way, because this creates ticks!
     		if (spk_vol_usb_L_local == VOL_INVALID) {
     			spk_vol_usb_L_local = spk_vol_usb_L;		// 1st time, establish history
+    		}
+    		if (spk_vol_usb_R_local == VOL_INVALID) {
+    			spk_vol_usb_R_local = spk_vol_usb_R;		// 1st time, establish history
     		}
     		else if (spk_vol_usb_L_local != spk_vol_usb_L) {
     			spk_vol_usb_L_local = spk_vol_usb_L;
             	usb_volume_flash(CH_LEFT, spk_vol_usb_L, VOL_WRITE);
     		}
-    		if (spk_vol_usb_R_local == VOL_INVALID) {
-    			spk_vol_usb_R_local = spk_vol_usb_R;		// 1st time, establish history
-    		}
-    		else if (spk_vol_usb_R_local != spk_vol_usb_R) {
+    		else if (spk_vol_usb_R_local != spk_vol_usb_R) {	// Not both in a row! These suckers seem to take TIME away from scheduler!
     			spk_vol_usb_R_local = spk_vol_usb_R;
             	usb_volume_flash(CH_RIGHT, spk_vol_usb_R, VOL_WRITE);
     		}
 
-
-        	// Is the task switcher running???
-#ifdef USB_STATE_MACHINE_DEBUG
-        	print_dbg_char_char(',');
-#endif
-
-    		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
-    		{
+    		else if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) {	// If Prog button pressed and not yet handled..
     			// At first detection of Prog pin change AB-1.x / USB DAC 128 mkI/II front LEDs for contrast:
     			// RED->GREEN / GREEN->RED depending on LED_AB_FRONT
     			// Historical note: Here used to be a pink definition and a bunch of defines. Removed 20150403
@@ -789,8 +783,7 @@ static void vtaskMoboCtrl( void * pcParameters )
     			else
     				btn_poll_temp++;
     		} // if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
-    		else if ( (gpio_get_pin_value(PRG_BUTTON) != 0) && (btn_poll_temp > 0) ) // If Prog button released..
-    		{
+    		else if ( (gpio_get_pin_value(PRG_BUTTON) != 0) && (btn_poll_temp > 0) ) {	// If Prog button released..
 //    			if (btn_poll_temp == 100)		// Only reset after Prog button is released and successfull nvram change.
 //					widget_reset();		 		// If Prog were still pressed, device would go to bootloader
 					// Doesn't seem to reset Audio Widget.....
@@ -821,6 +814,14 @@ static void vtaskMoboCtrl( void * pcParameters )
     			}
     			btn_poll_temp = 0;
     		}
+
+    		// Is the task switcher running???
+#ifdef USB_STATE_MACHINE_DEBUG
+    		else
+    			print_dbg_char_char(',');
+#endif
+
+
    		} // if (btn_poll_Timerval != btn_poll_lastIteration)	// Once every 1second, do stuff
 
 		// End Prog button poll stuff BSB 20110903
