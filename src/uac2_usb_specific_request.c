@@ -1255,11 +1255,14 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						if (wLength == 2) {
 							temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
 							temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
-
 							if (wValue_lsb == CH_LEFT) {
+								LSB(spk_vol_usb_L)= temp1;
+								MSB(spk_vol_usb_L)= temp2;
 								spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 							}
 							else if (wValue_lsb == CH_RIGHT) {
+								LSB(spk_vol_usb_R)= temp1;
+								MSB(spk_vol_usb_R)= temp2;
 								spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
 							}
 						}
