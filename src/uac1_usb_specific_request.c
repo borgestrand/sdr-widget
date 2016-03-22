@@ -95,18 +95,11 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-/* Maximum limits permitted by UAC1 standard
+/* volume definition moved to usb_specific_request.h (for lack of a better place)
 #define VOL_MIN      (S16)0x8000 // only allowed for CUR
 #define VOL_MAX      (S16)0x7Fff
 #define VOL_RES      0x000A
 */
-
-// Redefined BSB 20160320
-#define VOL_MIN      	(S16)0xC400	// -60dB
-#define VOL_MAX      	(S16)0x0000	// 0dB
-#define VOL_RES      	(S16)0x0080	// 0.5dB steps. Don't expect Windows to heed this.
-#define CH_LEFT			0x01		// Master:0 Left:1 Right:1
-#define CH_RIGHT		0x02
 
 
 //_____ P R I V A T E   D E C L A R A T I O N S ____________________________
@@ -581,16 +574,16 @@ void audio_get_cur(void) {
 			case CS_VOLUME:
 				if (length == 2) {
 					if (wValue_lsb == CH_LEFT) {
-						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume_L));
+						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
 						print_dbg_char('L');
-						print_dbg_char_hex(((spk_volume_L >> 8) & 0xff));
-						print_dbg_char_hex(((spk_volume_L >> 0) & 0xff));
+						print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+						print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 					}
 					else if (wValue_lsb == CH_RIGHT) {
-						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume_R));
+						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_R));
 						print_dbg_char('R');
-						print_dbg_char_hex(((spk_volume_R >> 8) & 0xff));
-						print_dbg_char_hex(((spk_volume_R >> 0) & 0xff));
+						print_dbg_char_hex(((spk_vol_usb_R >> 8) & 0xff));
+						print_dbg_char_hex(((spk_vol_usb_R >> 0) & 0xff));
 					}
 				}
 				break;
@@ -664,26 +657,40 @@ void audio_set_cur(void)
 	   uint8_t temp1, temp2;
 
 	   if (wValue_msb == CS_MUTE) {
-		   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
-		   spk_mute = temp1;
+		   if (length == 1) {
+			   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
+			   spk_mute = temp1;
+		   }
 	   }
 	   else if (wValue_msb == CS_VOLUME) {
-		   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
-		   temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
-		   if (wValue_lsb == CH_LEFT) {
-			   print_dbg_char('L');
-			   LSB(spk_volume_L)= temp1;
-			   MSB(spk_volume_L)= temp2;
+		   if (length == 2) {
+			   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
+			   temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
+			   if (wValue_lsb == CH_LEFT) {
+				   print_dbg_char('L');
+				   LSB(spk_vol_usb_L)= temp1;
+				   MSB(spk_vol_usb_L)= temp2;
+
+				   spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
+				   print_dbg_char(' ');
+				   print_dbg_char_hex(((spk_vol_mult_L >> 24) & 0xff));
+				   print_dbg_char_hex(((spk_vol_mult_L >> 16) & 0xff));
+				   print_dbg_char_hex(((spk_vol_mult_L >> 8) & 0xff));
+				   print_dbg_char_hex(((spk_vol_mult_L >> 0) & 0xff));
+
+			   }
+			   else if (wValue_lsb == CH_RIGHT) {
+				   print_dbg_char('R');
+				   LSB(spk_vol_usb_R)= temp1;
+				   MSB(spk_vol_usb_R)= temp2;
+
+				   spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
+			   }
+			   print_dbg_char('=');
+			   print_dbg_char_hex(temp2);
+			   print_dbg_char_hex(temp1);
+			   print_dbg_char('\n');
 		   }
-		   else if (wValue_lsb == CH_RIGHT) {
-			   print_dbg_char('R');
-			   LSB(spk_volume_R)= temp1;
-			   MSB(spk_volume_R)= temp2;
-		   }
-		   print_dbg_char('=');
-		   print_dbg_char_hex(temp2);
-		   print_dbg_char_hex(temp1);
-		   print_dbg_char('\n');
 	   }
 	}
 

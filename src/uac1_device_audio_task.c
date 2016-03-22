@@ -143,8 +143,8 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	spk_mute = FALSE;
 
 	volume = 0x0000;
-	spk_volume_L = 0xD000; 	// within range from uac1_usb_specific_request
-	spk_volume_R = 0xD000; 	// within range from uac1_usb_specific_request
+	spk_vol_usb_L = 0xD000; 	// within range from uac1_usb_specific_request
+	spk_vol_usb_R = 0xD000; 	// within range from uac1_usb_specific_request
 
 	ep_audio_in = ep_in;
 	ep_audio_out = ep_out;
@@ -181,8 +181,8 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 sample_SB;
 	U8 sample_LSB;
 	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX31
-	U32 sample_L = 0;
-	U32 sample_R = 0; // BSB 20131102 Expanded for skip/insert
+	S32 sample_L = 0;
+	S32 sample_R = 0; // BSB 20131102 Expanded for skip/insert, 20160322 changed to S32!
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
@@ -506,12 +506,19 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+
+						// 24-bit data words. Shifting up to fill 32 bit, then down again by 36 instead of 28
+						sample_L = (S32)( (int64_t)( (int64_t)(sample_L<<8) * (int64_t)spk_vol_mult_L ) >> 36) ;
+
 						silence_det |= sample_L;
 
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+
+						sample_R = (S32)( (int64_t)( (int64_t)(sample_R<<8) * (int64_t)spk_vol_mult_R ) >> 36) ;
+
 						silence_det |= sample_R;
 
 						// New site for setting playerStarted and aligning buffers

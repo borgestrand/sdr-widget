@@ -332,6 +332,48 @@ void device_mouse_hid_task(void)
             	gpio_set_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 24.576MHz/2 for AB-1
             }
 
+            else if (a == 'v') {
+            	S32 spk_vol_mult;
+            	S16 temp;
+
+				print_dbg_char('\n');
+
+        		S32 V = 0x08F3671E;
+        		S32 X, A;
+        		for (A = 0x80000000; A <= 0x7E000000; A += 0x01786327) {
+            		X = (S32)( (int64_t)( (int64_t)A * (int64_t)V ) >> 28) ;
+					print_dbg_char_hex(((A >> 24) & 0xff));
+					print_dbg_char_hex(((A >> 16) & 0xff));
+					print_dbg_char_hex(((A >> 8) & 0xff));
+					print_dbg_char_hex(((A >> 0) & 0xff));
+					print_dbg_char('-');
+					print_dbg_char('>');
+					print_dbg_char_hex(((X >> 24) & 0xff));
+					print_dbg_char_hex(((X >> 16) & 0xff));
+					print_dbg_char_hex(((X >> 8) & 0xff));
+					print_dbg_char_hex(((X >> 0) & 0xff));
+					print_dbg_char('\n');
+        		}
+
+
+/*
+        		for (temp = VOL_MIN; temp <= VOL_MAX; temp += VOL_RES) {
+					print_dbg_char('v');
+					print_dbg_char_hex(((temp >> 8) & 0xff));
+					print_dbg_char_hex(((temp >> 0) & 0xff));
+					print_dbg_char('-');
+					print_dbg_char('>');
+					print_dbg_char_hex(((spk_vol_mult >> 24) & 0xff));
+					print_dbg_char_hex(((spk_vol_mult >> 16) & 0xff));
+					print_dbg_char_hex(((spk_vol_mult >> 8) & 0xff));
+					print_dbg_char_hex(((spk_vol_mult >> 0) & 0xff));
+					print_dbg_char('\n');
+            	}
+*/
+            }
+
+
+
     	} // if (readkey())
 
     	else { 											   	// GPIO pin _changes_ are sent to Host

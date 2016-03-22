@@ -131,6 +131,32 @@ U8 dg8saqBuffer[256];	// 256 bytes long input/output buffer for DG8SAQ commands
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
+// For lack of a better place, here is the volume control format message.
+// Input: 16-bit volume control word from USB, 256*dB
+// Output: 32-bit volume multiplier to volume control
+S32 usb_volume_format (S16 spk_vol_usb) {
+	S32 V = 0x10000000;		// Encodes unity
+
+	// simple shifts for 6dB steps
+	spk_vol_usb -= 0.5*256; 	// One step up to allow for clean loops
+	while (spk_vol_usb < (-6 * 256) ) {
+		V >>= 1;
+		spk_vol_usb += (6 * 256) ;
+	}
+	// >> 4 is approximately 0.5dB
+	// Method misses by -0.79..0.0dB. but we've got clean shifts at all -6dB intervals.
+	while (spk_vol_usb < (-0.5 * 256) ) {
+		V -= V >> 4;
+		spk_vol_usb += (0.5 * 256) ;
+	}
+
+	return V;
+}
+
+
+
+
+
 //! @brief This function configures the endpoints of the device application.
 //! This function is called when the set configuration request has been received.
 //!

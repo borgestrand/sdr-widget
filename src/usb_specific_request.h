@@ -97,6 +97,21 @@ extern volatile  U16	usb_interface_nb;
 extern volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
 extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 
+// Redefined BSB 20160320, USB volume limits
+#define VOL_MIN      	(S16)0xC400	// -60dB
+#define VOL_MAX      	(S16)0x0000	// 0dB
+#define VOL_RES      	(S16)0x0080	// 0.5dB steps. Don't expect Windows to heed this.
+#define CH_LEFT			0x01		// Master:0 Left:1 Right:1
+#define CH_RIGHT		0x02
+
+
+// For lack of a better place to put it, here is the volume control format message.
+// Input: 16-bit volume control word from USB, 256*dB
+// Output: 32-bit volume multiplier to volume control
+S32 usb_volume_format (S16 spk_vol_usb);
+
+
+
 // convert an unsigned int sample rate, in Hz,
 // into the four bytes required for usb transfer
 #define Usb_sample_rate_as_bytes(rate)	(((rate)>>0)&0xff),(((rate)>>8)&0xff),(((rate)>>16)&0xff),(((rate)>>24)&0xff)
