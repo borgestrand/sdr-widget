@@ -93,6 +93,7 @@
 #include "usb_standard_request.h"
 #include "usb_specific_request.h"
 #include "device_mouse_hid_task.h"
+#include "device_audio_task.h"
 #include "Mobo_config.h"
 #include "features.h"
 
@@ -332,44 +333,22 @@ void device_mouse_hid_task(void)
             	gpio_set_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 24.576MHz/2 for AB-1
             }
 
+
+
+
             else if (a == 'v') {
-            	S32 spk_vol_mult;
-            	S16 temp;
+            	static S16 temp = VOL_MIN;
+            	S16 temp2;
 
-				print_dbg_char('\n');
+            	usb_volume_flash(CH_LEFT, temp, VOL_WRITE);
+            	temp2 = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+            	usb_volume_flash(CH_RIGHT, temp, VOL_WRITE);
+            	temp2 = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
 
-        		S32 V = 0x08F3671E;
-        		S32 X, A;
-        		for (A = 0x80000000; A <= 0x7E000000; A += 0x01786327) {
-            		X = (S32)( (int64_t)( (int64_t)A * (int64_t)V ) >> 28) ;
-					print_dbg_char_hex(((A >> 24) & 0xff));
-					print_dbg_char_hex(((A >> 16) & 0xff));
-					print_dbg_char_hex(((A >> 8) & 0xff));
-					print_dbg_char_hex(((A >> 0) & 0xff));
-					print_dbg_char('-');
-					print_dbg_char('>');
-					print_dbg_char_hex(((X >> 24) & 0xff));
-					print_dbg_char_hex(((X >> 16) & 0xff));
-					print_dbg_char_hex(((X >> 8) & 0xff));
-					print_dbg_char_hex(((X >> 0) & 0xff));
-					print_dbg_char('\n');
-        		}
+            	print_dbg_char_hex(((temp2 >> 8) & 0xff));
+            	print_dbg_char_hex(((temp2 >> 0) & 0xff));
 
-
-/*
-        		for (temp = VOL_MIN; temp <= VOL_MAX; temp += VOL_RES) {
-					print_dbg_char('v');
-					print_dbg_char_hex(((temp >> 8) & 0xff));
-					print_dbg_char_hex(((temp >> 0) & 0xff));
-					print_dbg_char('-');
-					print_dbg_char('>');
-					print_dbg_char_hex(((spk_vol_mult >> 24) & 0xff));
-					print_dbg_char_hex(((spk_vol_mult >> 16) & 0xff));
-					print_dbg_char_hex(((spk_vol_mult >> 8) & 0xff));
-					print_dbg_char_hex(((spk_vol_mult >> 0) & 0xff));
-					print_dbg_char('\n');
-            	}
-*/
+            	temp ++;
             }
 
 

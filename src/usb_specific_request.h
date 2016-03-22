@@ -98,11 +98,15 @@ extern volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
 extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 
 // Redefined BSB 20160320, USB volume limits
+#define VOL_DEFAULT		(S16)0xF400	// -12dB // F400
 #define VOL_MIN      	(S16)0xC400	// -60dB
+#define VOL_INVALID		(S16)VOL_MIN - 0x0100	// Just below VOL_MIN
 #define VOL_MAX      	(S16)0x0000	// 0dB
 #define VOL_RES      	(S16)0x0080	// 0.5dB steps. Don't expect Windows to heed this.
 #define CH_LEFT			0x01		// Master:0 Left:1 Right:1
 #define CH_RIGHT		0x02
+#define VOL_READ		0x01
+#define VOL_WRITE		0x02
 
 
 // For lack of a better place to put it, here is the volume control format message.
@@ -110,7 +114,12 @@ extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_
 // Output: 32-bit volume multiplier to volume control
 S32 usb_volume_format (S16 spk_vol_usb);
 
+// For lack of a better place to put it... 8-bit RNG for dithering for 32-24 bit quantization
+// Source: http://stackoverflow.com/questions/16746971/what-is-the-fastest-way-to-generate-pseudo-random-number-by-8-bit-mcu
+uint8_t rand8(void);
 
+// Store and retrieve volume control from flash
+S16 usb_volume_flash(U8 channel, S16 volume, U8 rw);
 
 // convert an unsigned int sample rate, in Hz,
 // into the four bytes required for usb transfer

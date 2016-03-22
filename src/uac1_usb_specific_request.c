@@ -563,8 +563,6 @@ void audio_get_cur(void) {
    */
 
 	else if (i_unit==SPK_FEATURE_UNIT_ID) {
-		print_dbg_char('c');
-
 		switch (wValue_msb) {
 			case CS_MUTE:
 				if (length == 1) {
@@ -574,21 +572,24 @@ void audio_get_cur(void) {
 			case CS_VOLUME:
 				if (length == 2) {
 					if (wValue_lsb == CH_LEFT) {
+						// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
+						if (spk_vol_usb_L == VOL_INVALID) {
+							spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+							spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
+						}
 						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
-						print_dbg_char('L');
-						print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
-						print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 					}
 					else if (wValue_lsb == CH_RIGHT) {
+						// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
+						if (spk_vol_usb_R == VOL_INVALID) {
+							spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+							spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
+						}
 						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_R));
-						print_dbg_char('R');
-						print_dbg_char_hex(((spk_vol_usb_R >> 8) & 0xff));
-						print_dbg_char_hex(((spk_vol_usb_R >> 0) & 0xff));
 					}
 				}
 				break;
-			}
-		print_dbg_char('\n');
+		}
 	}
 
 	Usb_ack_control_in_ready_send();
@@ -654,7 +655,8 @@ void audio_set_cur(void)
 
    // BSB 20160318 experimenting with mute and playback volume control
    else if (i_unit == SPK_FEATURE_UNIT_ID ) {
-	   uint8_t temp1, temp2;
+		uint8_t temp1 = 0;
+		uint8_t temp2 = 0;
 
 	   if (wValue_msb == CS_MUTE) {
 		   if (length == 1) {
@@ -667,29 +669,15 @@ void audio_set_cur(void)
 			   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
 			   temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
 			   if (wValue_lsb == CH_LEFT) {
-				   print_dbg_char('L');
 				   LSB(spk_vol_usb_L)= temp1;
 				   MSB(spk_vol_usb_L)= temp2;
-
 				   spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
-				   print_dbg_char(' ');
-				   print_dbg_char_hex(((spk_vol_mult_L >> 24) & 0xff));
-				   print_dbg_char_hex(((spk_vol_mult_L >> 16) & 0xff));
-				   print_dbg_char_hex(((spk_vol_mult_L >> 8) & 0xff));
-				   print_dbg_char_hex(((spk_vol_mult_L >> 0) & 0xff));
-
 			   }
 			   else if (wValue_lsb == CH_RIGHT) {
-				   print_dbg_char('R');
 				   LSB(spk_vol_usb_R)= temp1;
 				   MSB(spk_vol_usb_R)= temp2;
-
 				   spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
 			   }
-			   print_dbg_char('=');
-			   print_dbg_char_hex(temp2);
-			   print_dbg_char_hex(temp1);
-			   print_dbg_char('\n');
 		   }
 	   }
 	}

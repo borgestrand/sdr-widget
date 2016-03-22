@@ -614,9 +614,8 @@ void uac2_usb_hid_get_idle (U8 u8_report_id)  // BSB 20120710 prefix "uac2_" add
 //!
 Bool uac2_user_read_request(U8 type, U8 request) {
 	int i;
-
-	uint8_t temp1, temp2;
-
+	uint8_t temp1 = 0;
+	uint8_t temp2 = 0;
 
 	// BSB 20120720 added
 	// this should vector to specified interface handler
@@ -1004,14 +1003,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 				case SPK_FEATURE_UNIT_ID:
 					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request == AUDIO_CS_REQUEST_CUR) ) {
-						print_dbg_char('r');
-						print_dbg_char('M');
-						print_dbg_char_hex(((wLength >> 8) & 0xff));
-						print_dbg_char_hex(((wLength >> 0) & 0xff));
-						print_dbg_char_hex(wValue_lsb);
-						print_dbg_char('\n');
-
-
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
@@ -1030,31 +1021,27 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					}
 
 					else if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
-						print_dbg_char('r');
-						print_dbg_char('V');
-						print_dbg_char_hex(((wLength >> 8) & 0xff));
-						print_dbg_char_hex(((wLength >> 0) & 0xff));
-
-
-
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						if (wLength == 2) {
 							if (wValue_lsb == CH_LEFT) {
+								// Be on the safe side here, even though fetch is done in uac2_device_audio_task.c init
+								if (spk_vol_usb_L == VOL_INVALID) {
+									spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+									spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
+								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
-								print_dbg_char('L');
-								print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
-								print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 							}
 							else if (wValue_lsb == CH_RIGHT) {
+								// Be on the safe side here, even though fetch is done in uac2_device_audio_task.c init
+								if (spk_vol_usb_R == VOL_INVALID) {
+									spk_vol_usb_R = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+									spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
+								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_R));
-								print_dbg_char('R');
-								print_dbg_char_hex(((spk_vol_usb_R >> 8) & 0xff));
-								print_dbg_char_hex(((spk_vol_usb_R >> 0) & 0xff));
 							}
 						}
-						print_dbg_char('\n');
 
 						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received());
@@ -1064,14 +1051,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 					// Is (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) sane here?
 					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_RANGE) ) {
-						print_dbg_char('r');
-						print_dbg_char('R');
-						print_dbg_char_hex(((wLength >> 8) & 0xff));
-						print_dbg_char_hex(((wLength >> 0) & 0xff));
-						print_dbg_char_hex(wValue_lsb);
-						print_dbg_char('\n');
-
-
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
@@ -1249,33 +1228,19 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 				case SPK_FEATURE_UNIT_ID:
 					if ( (wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request == AUDIO_CS_REQUEST_CUR) ) {
-
-						print_dbg_char('M');
-						print_dbg_char_hex(((wLength >> 8) & 0xff));
-						print_dbg_char_hex(((wLength >> 0) & 0xff));
-
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-						print_dbg_char_hex(wValue_lsb);
-						print_dbg_char('=');
-
 						if (wLength == 1) {
 							temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
-							print_dbg_char_hex(temp1);
 						}
 						else if (wLength > 1) {
 							for (i = 0; i < (wLength); i++) {
 								temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
-								print_dbg_char_hex(temp1);
 							}
 						}
-
 						spk_mute = temp1;
-
-						print_dbg_char('\n');
-
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send();    //!< send a ZLP for STATUS phase
@@ -1283,11 +1248,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					}
 					else if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
-
-						print_dbg_char('V');
-						print_dbg_char_hex(((wLength >> 8) & 0xff));
-						print_dbg_char_hex(((wLength >> 0) & 0xff));
-
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1297,23 +1257,11 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
 
 							if (wValue_lsb == CH_LEFT) {
-								print_dbg_char('L');
-								LSB(spk_vol_usb_L)= temp1;
-								MSB(spk_vol_usb_L)= temp2;
-
-							   spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
+								spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 							}
 							else if (wValue_lsb == CH_RIGHT) {
-								print_dbg_char('R');
-								LSB(spk_vol_usb_R)= temp1;
-								MSB(spk_vol_usb_R)= temp2;
-
-							   spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
+								spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
 							}
-							print_dbg_char('=');
-							print_dbg_char_hex(temp2);
-							print_dbg_char_hex(temp1);
-							print_dbg_char('\n');
 						}
 
 						Usb_ack_control_out_received_free();

@@ -33,11 +33,13 @@
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
 #include "rotary_encoder.h"
+#include "usb_specific_request.h"
 #include "AD7991.h"
 #include "PCF8574.h"
 #include "TMP100.h"
 #include "DG8SAQ_cmd.h"
 #include "freq_and_filters.h"
+#include "device_audio_task.h"
 #include "taskAK5394A.h"
 
 #if LCD_DISPLAY			// Multi-line LCD display
@@ -696,11 +698,53 @@ static void vtaskMoboCtrl( void * pcParameters )
    		//-------------------------------------------
 		static uint8_t btn_poll_temp=0;
 		static uint32_t btn_poll_lastIteration=0, btn_poll_Timerval; // Counters to keep track of time
+
+		static S16 spk_vol_usb_L_local = VOL_INVALID;
+		static S16 spk_vol_usb_R_local = VOL_INVALID;
+
 		btn_poll_Timerval = time/57000; // RTC on 115kHz, divide by 57000 for about 0.5s poll time
 
 		if (btn_poll_Timerval != btn_poll_lastIteration)			// Once every 1second, do stuff
    		{
     		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
+
+
+
+
+
+    		if (spk_vol_usb_L_local == VOL_INVALID) {
+    			spk_vol_usb_L_local = spk_vol_usb_L;		// 1st time, establish history
+            	print_dbg_char_char('L');
+            	print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+				print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
+            	print_dbg_char_char('\n');
+    		}
+    		else if (spk_vol_usb_L_local != spk_vol_usb_L) {
+    			spk_vol_usb_L_local = spk_vol_usb_L;
+            	usb_volume_flash(CH_LEFT, spk_vol_usb_L, VOL_WRITE);
+
+            	print_dbg_char_char('l');					// volume control has changed, store it!
+            	print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+				print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
+            	print_dbg_char_char('\n');
+    		}
+    		if (spk_vol_usb_R_local == VOL_INVALID) {
+    			spk_vol_usb_R_local = spk_vol_usb_R;		// 1st time, establish history
+            	print_dbg_char_char('R');
+            	print_dbg_char_hex(((spk_vol_usb_R >> 8) & 0xff));
+				print_dbg_char_hex(((spk_vol_usb_R >> 0) & 0xff));
+            	print_dbg_char_char('\n');
+    		}
+    		else if (spk_vol_usb_R_local != spk_vol_usb_R) {
+    			spk_vol_usb_R_local = spk_vol_usb_R;
+            	usb_volume_flash(CH_RIGHT, spk_vol_usb_R, VOL_WRITE);
+
+            	print_dbg_char_char('r');					// volume control has changed, store it!
+            	print_dbg_char_hex(((spk_vol_usb_R >> 8) & 0xff));
+				print_dbg_char_hex(((spk_vol_usb_R >> 0) & 0xff));
+            	print_dbg_char_char('\n');
+    		}
+
 
         	// Is the task switcher running???
 #ifdef USB_STATE_MACHINE_DEBUG

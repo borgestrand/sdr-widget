@@ -142,9 +142,11 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	mute = FALSE;
 	spk_mute = FALSE;
 
-	volume = 0x0000;
-	spk_vol_usb_L = 0xD000; 	// within range from uac1_usb_specific_request
-	spk_vol_usb_R = 0xD000; 	// within range from uac1_usb_specific_request
+	// Set up volume control
+	spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);		// Fetch stored or default volume setting
+	spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+	spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
+	spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
 
 	ep_audio_in = ep_in;
 	ep_audio_out = ep_out;
@@ -506,20 +508,26 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-
-						// 24-bit data words. Shifting up to fill 32 bit, then down again by 36 instead of 28
-						sample_L = (S32)( (int64_t)( (int64_t)(sample_L<<8) * (int64_t)spk_vol_mult_L ) >> 36) ;
-
 						silence_det |= sample_L;
+
+						// 24-bit data words. First shift up to 32 bit. Do math and shift down
+						sample_L <<= 8;
+						sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> 28) ;
+						sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+						sample_L >>= 8;
 
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-
-						sample_R = (S32)( (int64_t)( (int64_t)(sample_R<<8) * (int64_t)spk_vol_mult_R ) >> 36) ;
-
 						silence_det |= sample_R;
+
+						// 24-bit data words. First shift up to 32 bit. Do math and shift down
+						sample_R <<= 8;
+						sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> 28) ;
+						sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+						sample_R >>= 8;
+
 
 						// New site for setting playerStarted and aligning buffers
 						if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.

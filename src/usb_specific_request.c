@@ -84,6 +84,7 @@
 #include "pm.h"
 #include "Mobo_config.h"
 #include "DG8SAQ_cmd.h"
+#include "features.h"
 // #include "usb_audio.h"
 // #include "device_audio_task.h"
 
@@ -137,6 +138,9 @@ U8 dg8saqBuffer[256];	// 256 bytes long input/output buffer for DG8SAQ commands
 S32 usb_volume_format (S16 spk_vol_usb) {
 	S32 V = 0x10000000;		// Encodes unity
 
+	if ( (spk_vol_usb < VOL_MIN) || (spk_vol_usb > VOL_MAX) )
+		return 0;			// Full mute
+
 	// simple shifts for 6dB steps
 	spk_vol_usb -= 0.5*256; 	// One step up to allow for clean loops
 	while (spk_vol_usb < (-6 * 256) ) {
@@ -153,9 +157,90 @@ S32 usb_volume_format (S16 spk_vol_usb) {
 	return V;
 }
 
+// For lack of a better place to put it... 8-bit RNG for dithering for 32-24 bit quantization
+// Source: http://stackoverflow.com/questions/16746971/what-is-the-fastest-way-to-generate-pseudo-random-number-by-8-bit-mcu
+uint8_t rand8(void) {
+	#define STATE_BYTES 7
+	#define MULT 0x13B /* for STATE_BYTES==6 only */
+	#define MULT_LO (MULT & 255)
+	#define MULT_HI (MULT & 256)
+	static uint8_t state[STATE_BYTES] =
+	{ 0x87, 0xdd, 0xdc, 0x10, 0x35, 0xbc, 0x5c };
+	static uint16_t c = 0x42;
+	static int i = 0;
+	uint16_t t;
+	uint8_t x;
 
+	x = state[i];
+	t = (uint16_t)x * MULT_LO + c;
+	c = t >> 8;
+#if MULT_HI
+	c += x;
+#endif
+	x = t & 255;
+	state[i] = x;
+	if (++i >= sizeof(state))
+		i = 0;
+	return x;
+}
 
+// Store and retrieve volume control
+S16 usb_volume_flash(U8 channel, S16 volume, U8 rw) {
+	S16 temp;
 
+	if (channel == CH_LEFT) {
+		if (rw == VOL_READ) {
+			temp = (feature_get_nvram(feature_msb_vol_L) << 8) + feature_get_nvram(feature_lsb_vol_L);
+			if ( (temp >= VOL_MIN) && (temp <= VOL_MAX) ) {
+				print_dbg_char('p');
+				return temp;
+			}
+			else {
+				print_dbg_char('q');
+				temp = VOL_DEFAULT;
+				feature_set_nvram(feature_msb_vol_L, (U8)(temp >> 8));	// Storing default msb
+				feature_set_nvram(feature_lsb_vol_L, (U8)(temp >> 0));	// Storing default lsb
+				return temp;
+			}
+		}
+		else if (rw == VOL_WRITE) {
+			if ( (volume >= VOL_MIN) && (volume <= VOL_MAX) ) {
+				print_dbg_char('r');
+				feature_set_nvram(feature_msb_vol_L, (U8)(volume >> 8));
+				feature_set_nvram(feature_lsb_vol_L, (U8)(volume >> 0));
+				return 1;
+			}
+			else {
+				print_dbg_char('s');
+				return 0;
+			}
+		}
+	}
+	else if (channel == CH_RIGHT) {
+		if (rw == VOL_READ) {
+			temp = (feature_get_nvram(feature_msb_vol_R) << 8) + feature_get_nvram(feature_lsb_vol_R);
+			if ( (temp >= VOL_MIN) && (temp <= VOL_MAX) )
+				return temp;
+			else {
+				temp = VOL_DEFAULT;
+				feature_set_nvram(feature_msb_vol_R, (U8)(temp >> 8));	// Storing default msb
+				feature_set_nvram(feature_lsb_vol_R, (U8)(temp >> 0));	// Storing default lsb
+				return temp;
+			}
+		}
+		else if (rw == VOL_WRITE) {
+			if ( (volume >= VOL_MIN) && (volume <= VOL_MAX) ) {
+				feature_set_nvram(feature_msb_vol_R, (U8)(volume >> 8));
+				feature_set_nvram(feature_lsb_vol_R, (U8)(volume >> 0));
+				return 1;
+			}
+			else
+				return 0;
+		}
+	}
+
+	return 0;
+}
 
 //! @brief This function configures the endpoints of the device application.
 //! This function is called when the set configuration request has been received.
