@@ -52,16 +52,11 @@
 
 // CONFIGURATION
 #define NB_INTERFACE	   4	//!  DG8SAQ, Audio (2), HID
-#define CONF_NB            1    //! Number of this configuration
+#define CONF_NB            1     //! Number of this configuration
 #define CONF_INDEX         0
-<<<<<<< HEAD
-#define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered
-#define MAX_POWER          250  // 500 mA for bus-powered configuration
-=======
 //#define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED // BSB Hack 20150822 USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
 #define MAX_POWER          5 // 250    // 500 mA
->>>>>>> awx-local
 
 // IAD for Audio
 #define FIRST_INTERFACE1	1
@@ -239,7 +234,7 @@
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID				0x13
-#define SPK_OUTPUT_TERMINAL_TYPE			0x0302	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE			0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
 #define SPK_OUTPUT_TERMINAL_SOURCE_ID		SPK_FEATURE_UNIT_ID
 #define SPK_OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
@@ -362,18 +357,10 @@ S_usb_user_configuration_descriptor;
 
 extern const S_usb_device_descriptor uac2_dg8saq_usb_dev_desc;
 extern const S_usb_device_descriptor uac2_audio_usb_dev_desc;
-#ifdef VDD_SENSE
-extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
-#else
 extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
-#endif
 
 #if USB_HIGH_SPEED_SUPPORT==ENABLED
-#ifdef VDD_SENSE
-	extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;
-#else
 	extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;
-#endif
 	extern const S_usb_device_qualifier_descriptor uac2_usb_qualifier_desc;
 #endif
 

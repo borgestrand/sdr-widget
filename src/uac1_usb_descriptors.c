@@ -98,10 +98,7 @@ const S_usb_device_descriptor uac1_audio_usb_dev_desc =
 
 
 // usb_user_configuration_descriptor FS
-#ifndef VDD_SENSE
-const
-#endif
-S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
+const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 {
 	{
 		sizeof(S_usb_configuration_descriptor),
@@ -415,10 +412,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 #if (USB_HIGH_SPEED_SUPPORT==ENABLED)
 
 // usb_user_configuration_descriptor HS
-#ifndef VDD_SENSE
-const
-#endif
-S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
+const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 {
 	{
 		sizeof(S_usb_configuration_descriptor),
@@ -727,10 +721,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 
 
 // usb_user_configuration_descriptor HS
-#ifndef VDD_SENSE
-const
-#endif
-S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
+const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 {
 	{
 		sizeof(S_usb_configuration_descriptor),
@@ -1035,10 +1026,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 };
 #endif
 
-#ifndef VDD_SENSE
-const
-#endif
-S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
+const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 {
 	{
 		sizeof(S_usb_configuration_descriptor),
