@@ -142,9 +142,10 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	mute = FALSE;
 	spk_mute = FALSE;
 
-	// Set up volume control
-	spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);		// Fetch stored or default volume setting
-	spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+	// With working volume flash
+	// spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);		// Fetch stored or default volume setting
+	// spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+	// Without working volume flash, spk_vol_usb_? = VOL_DEFAULT is set in device_audio_task.c
 	spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 	spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
 
@@ -510,6 +511,7 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 						silence_det |= sample_L;
 
+#ifdef FEATURE_VOLUME_CTRL
 						if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
 							// 24-bit data words. First shift up to 32 bit. Do math and shift down
 							sample_L <<= 8;
@@ -517,13 +519,14 @@ void uac1_device_audio_task(void *pvParameters)
 							sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
 							sample_L >>= 8;
 						}
-
+#endif
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 						silence_det |= sample_R;
 
+#ifdef FEATURE_VOLUME_CTRL
 						if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
 							// 24-bit data words. First shift up to 32 bit. Do math and shift down
 							sample_R <<= 8;
@@ -531,7 +534,7 @@ void uac1_device_audio_task(void *pvParameters)
 							sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
 							sample_R >>= 8;
 						}
-
+#endif
 
 						// New site for setting playerStarted and aligning buffers
 						if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.

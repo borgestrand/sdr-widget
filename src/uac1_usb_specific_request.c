@@ -574,7 +574,10 @@ void audio_get_cur(void) {
 					if (wValue_lsb == CH_LEFT) {
 						// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
 						if (spk_vol_usb_L == VOL_INVALID) {
-							spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+							// Without working volume flash:
+							spk_vol_usb_L = VOL_DEFAULT;
+							// With working volume flash:
+							// spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);
 							spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 						}
 						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
@@ -582,7 +585,10 @@ void audio_get_cur(void) {
 					else if (wValue_lsb == CH_RIGHT) {
 						// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
 						if (spk_vol_usb_R == VOL_INVALID) {
-							spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+							// Without working volume flash:
+							spk_vol_usb_R = VOL_DEFAULT;
+							// With working volume flash:
+							// spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
 							spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
 						}
 						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_R));
@@ -681,29 +687,6 @@ void audio_set_cur(void)
 		   }
 	   }
 	}
-
-/*
-   else if (i_unit==SPK_FEATURE_UNIT_ID ) {
-	   {
-	       switch (wValue_msb)
-	       {
-	       case CS_MUTE:
-	          if( length==1 )
-	          {
-	             spk_mute=Usb_read_endpoint_data(EP_CONTROL, 8);
-	          }
-	          break;
-	       case CS_VOLUME:
-	          if( length==2 )
-	          {
-	             LSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
-	             MSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
-	          }
-	          break;
-	       }
-	    }
-   }
-   */
 
    // BSB 20130604 disabling UAC1 IN
    /*

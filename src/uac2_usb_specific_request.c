@@ -1024,19 +1024,26 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
+
 						if (wLength == 2) {
 							if (wValue_lsb == CH_LEFT) {
-								// Be on the safe side here, even though fetch is done in uac2_device_audio_task.c init
+								// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
 								if (spk_vol_usb_L == VOL_INVALID) {
-									spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+									// Without working volume flash:
+									spk_vol_usb_L = VOL_DEFAULT;
+									// With working volume flash:
+									// spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);
 									spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
 							}
 							else if (wValue_lsb == CH_RIGHT) {
-								// Be on the safe side here, even though fetch is done in uac2_device_audio_task.c init
+								// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
 								if (spk_vol_usb_R == VOL_INVALID) {
-									spk_vol_usb_R = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+									// Without working volume flash:
+									spk_vol_usb_R = VOL_DEFAULT;
+									// With working volume flash:
+									// spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
 									spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
 								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_R));

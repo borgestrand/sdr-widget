@@ -699,8 +699,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 		static uint8_t btn_poll_temp=0;
 		static uint32_t btn_poll_lastIteration=0, btn_poll_Timerval; // Counters to keep track of time
 
+/*	// Only needed with working flash writes, see below
 		static S16 spk_vol_usb_L_local = VOL_INVALID;
 		static S16 spk_vol_usb_R_local = VOL_INVALID;
+*/
 
 		btn_poll_Timerval = time/57000; // RTC on 115kHz, divide by 57000 for about 0.5s poll time
 
@@ -708,11 +710,8 @@ static void vtaskMoboCtrl( void * pcParameters )
    		{
     		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
 
-
-
-
+/*		// FIX: Flash writes creates ticks. Much faster (or interruptable code) is needed!
     		// Has volume setting changed recently? If so store it to flash
-    		// FIX: work out a better way, because this creates ticks!
     		if (spk_vol_usb_L_local == VOL_INVALID) {
     			spk_vol_usb_L_local = spk_vol_usb_L;		// 1st time, establish history
     		}
@@ -727,8 +726,9 @@ static void vtaskMoboCtrl( void * pcParameters )
     			spk_vol_usb_R_local = spk_vol_usb_R;
             	usb_volume_flash(CH_RIGHT, spk_vol_usb_R, VOL_WRITE);
     		}
+*/
 
-    		else if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) {	// If Prog button pressed and not yet handled..
+    		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) {	// If Prog button pressed and not yet handled..
     			// At first detection of Prog pin change AB-1.x / USB DAC 128 mkI/II front LEDs for contrast:
     			// RED->GREEN / GREEN->RED depending on LED_AB_FRONT
     			// Historical note: Here used to be a pink definition and a bunch of defines. Removed 20150403

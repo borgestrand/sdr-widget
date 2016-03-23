@@ -138,8 +138,10 @@ void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	ep_audio_out = ep_out;
 	ep_audio_out_fb = ep_out_fb;
 
-	spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);		// Fetch stored or default volume setting
-	spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+	// With working volume flash
+	// spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);		// Fetch stored or default volume setting
+	// spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+	// Without working volume flash, spk_vol_usb_? = VOL_DEFAULT is set in device_audio_task.c
 	spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 	spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
 
@@ -559,11 +561,14 @@ void uac2_device_audio_task(void *pvParameters)
 					sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 					silence_det |= sample_L;
 
+#ifdef FEATURE_VOLUME_CTRL
 					if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
 						// 32-bit data words volume control
 						sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
-						sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+						// rand8() too expensive at 192ksps
+						// sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
 					}
+#endif
 
 					sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -572,12 +577,14 @@ void uac2_device_audio_task(void *pvParameters)
 					sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
 					silence_det |= sample_R;
 
+#ifdef FEATURE_VOLUME_CTRL
 					if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
 						// 32-bit data words volume control
 						sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
-						sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+						// rand8() too expensive at 192ksps
+						// sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
 					}
-
+#endif
 					// New site for setting playerStarted and aligning buffers
 					if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
 #if defined(HW_GEN_DIN10)										// With WM8805 subsystem, handle semaphore

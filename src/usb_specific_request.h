@@ -121,6 +121,7 @@ S32 usb_volume_format (S16 spk_vol_usb);
 uint8_t rand8(void);
 
 // Store and retrieve volume control from flash
+// FIX: must become significantly faster in order to execute without ticks!
 S16 usb_volume_flash(U8 channel, S16 volume, U8 rw);
 
 // convert an unsigned int sample rate, in Hz,
