@@ -1020,6 +1020,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					}
 
+					// this is like audio_get_cur() for volume but on UAC2
 					else if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1036,6 +1037,15 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 									spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
+
+#ifdef USB_STATE_MACHINE_DEBUG
+							   print_dbg_char('g');
+							   print_dbg_char('L');
+							   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+							   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
+							   print_dbg_char('\n');
+#endif
+
 							}
 							else if (wValue_lsb == CH_RIGHT) {
 								// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
@@ -1254,6 +1264,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						while (!Is_usb_control_in_ready()); //!< waits for status phase done
 						return TRUE;
 					}
+					// This is like audio_set_cur for volume but on UAC2
 					else if ( (wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME) && (request == AUDIO_CS_REQUEST_CUR) ) {
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received());
@@ -1266,6 +1277,15 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								LSB(spk_vol_usb_L)= temp1;
 								MSB(spk_vol_usb_L)= temp2;
 								spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
+
+#ifdef USB_STATE_MACHINE_DEBUG
+							   print_dbg_char('s');
+							   print_dbg_char('L');
+							   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+							   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
+							   print_dbg_char('\n');
+#endif
+
 							}
 							else if (wValue_lsb == CH_RIGHT) {
 								LSB(spk_vol_usb_R)= temp1;

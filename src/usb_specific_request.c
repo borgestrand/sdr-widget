@@ -185,6 +185,7 @@ uint8_t rand8(void) {
 }
 
 // Store and retrieve volume control
+// FIX: must become significantly faster in order to execute without ticks!
 S16 usb_volume_flash(U8 channel, S16 volume, U8 rw) {
 	S16 temp;
 
