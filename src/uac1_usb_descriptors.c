@@ -46,9 +46,9 @@ const S_usb_device_descriptor uac1_dg8saq_usb_dev_desc =
 	// BSB Changed 20110901 according to mail from Roger
 	Usb_format_mcu_to_usb_data(16, USB_1_1_SPECIFICATION),
 	//	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
-	DEVICE_CLASS,
-	DEVICE_SUB_CLASS,
-	DEVICE_PROTOCOL,
+	DEVICE_CLASS_UAC1,
+	DEVICE_SUB_CLASS_UAC1,
+	DEVICE_PROTOCOL_UAC1,
 	EP_CONTROL_LENGTH,
 	Usb_format_mcu_to_usb_data(16, DG8SAQ_VENDOR_ID),
 	Usb_format_mcu_to_usb_data(16, DG8SAQ_PRODUCT_ID),
@@ -66,9 +66,9 @@ const S_usb_device_descriptor uac1_audio_usb_dev_desc =
 	// BSB Changed 20110901 according to mail from Roger
 	Usb_format_mcu_to_usb_data(16, USB_1_1_SPECIFICATION),
 	//	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
-	DEVICE_CLASS,
-	DEVICE_SUB_CLASS,
-	DEVICE_PROTOCOL,
+	DEVICE_CLASS_UAC1,
+	DEVICE_SUB_CLASS_UAC1,
+	DEVICE_PROTOCOL_UAC1,
 	EP_CONTROL_LENGTH,
 	Usb_format_mcu_to_usb_data(16, AUDIO_VENDOR_ID),
 
@@ -1353,9 +1353,9 @@ const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc =
 	// BSB Changed 20110901 according to mail from Roger
 	Usb_format_mcu_to_usb_data(16, USB_1_1_SPECIFICATION),
 	//	Usb_format_mcu_to_usb_data(16, USB_SPECIFICATION),
-	DEVICE_CLASS,
-	DEVICE_SUB_CLASS,
-	DEVICE_PROTOCOL,
+	DEVICE_CLASS_UAC1,
+	DEVICE_SUB_CLASS_UAC1,
+	DEVICE_PROTOCOL_UAC1,
 	EP_CONTROL_LENGTH,
 	NB_CONFIGURATION,
 	0

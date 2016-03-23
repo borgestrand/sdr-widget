@@ -95,9 +95,11 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-#define VOL_MIN      (S16)0x8000
-#define VOL_MAX      (S16)0x7FFF
+/* volume definition moved to usb_specific_request.h (for lack of a better place)
+#define VOL_MIN      (S16)0x8000 // only allowed for CUR
+#define VOL_MAX      (S16)0x7Fff
 #define VOL_RES      0x000A
+*/
 
 
 //_____ P R I V A T E   D E C L A R A T I O N S ____________________________
@@ -183,8 +185,6 @@ static Bool uac1_user_get_interface_descriptor() {
 	wInterface = usb_format_usb_to_mcu_data(16,Usb_read_endpoint_data(EP_CONTROL, 16));
 	switch( descriptor_type ) {
 	case HID_DESCRIPTOR:
-
-		// print_dbg_char('b'); // BSB debug 20120803
 
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
@@ -342,30 +342,29 @@ void audio_get_min(void)
 {
    U16 i_unit;  // in wIndex
    U16 length;  // in wLength
-
-   i_unit = wIndex % 256;			// wIndex high byte is interface number
+   i_unit = (wIndex >> 8);			// wIndex high byte is interface number
    length = wLength;
 
    Usb_ack_setup_received_free();
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-   if ( i_unit == SPK_FEATURE_UNIT_ID)
-      {
-         switch (wValue_msb)
-         {
+
+   if ( i_unit == SPK_FEATURE_UNIT_ID) {
+
+         switch (wValue_msb) {
          case CS_MUTE:
-            if( length==1 )
-            {
+            if( length==1 ) {
                Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
             }
             break;
          case CS_VOLUME:
-            if( length==2 )
-            {
+            if( length==2 ) {
                Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
             }
             break;
          }
       }
+
+
    // BSB 20130604 disabling UAC1 IN
    /*
    else if( i_unit==MIC_FEATURE_UNIT_ID )
@@ -400,33 +399,30 @@ void audio_get_min(void)
    Usb_ack_control_out_received_free();
 }
 
-void audio_get_max(void)
-{
+void audio_get_max(void) {
    U16 i_unit;
    U16 length;
-   i_unit = wIndex % 256;
+   i_unit = (wIndex >> 8);			// wIndex high byte is interface number
    length = wLength;
 
    Usb_ack_setup_received_free();
-
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-   if ( i_unit == SPK_FEATURE_UNIT_ID){
-	     switch (wValue_msb)
-	      {
+
+   if ( i_unit == SPK_FEATURE_UNIT_ID) {
+	     switch (wValue_msb) {
 	      case CS_MUTE:
-	         if( length==1 )
-	         {
+	         if( length==1 ) {
 	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
 	         }
 	         break;
 	      case CS_VOLUME:
-	         if( length==2 )
-	         {
+	         if( length==2 ) {
 	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
 	         }
 	         break;
 	      }
-   }
+  }
+
    // BSB 20130604 disabling UAC1 IN
    /*
    else if( i_unit==MIC_FEATURE_UNIT_ID )
@@ -465,30 +461,28 @@ void audio_get_res(void)
 {
    U16 i_unit;
    U16 length;
-   i_unit = wIndex % 256;
+   i_unit = (wIndex >> 8);			// wIndex high byte is interface number
    length = wLength;
 
    Usb_ack_setup_received_free();
-
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
-   if ( i_unit==SPK_FEATURE_UNIT_ID)
-   {
-	     switch (wValue_msb)
-	      {
+
+   if ( i_unit==SPK_FEATURE_UNIT_ID) { // FIX: Something is seriously wrong with the value of i_unit
+	     switch (wValue_msb) {
 	      case CS_MUTE:
-	         if( length==1 )
-	         {
+	         if( length==1 ) {
 	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
 	         }
 	         break;
 	      case CS_VOLUME:
-	         if( length==2 )
-	         {
+	         if( length==2 ) {
 	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
 	         }
 	         break;
 	      }
    }
+
+
    // BSB 20130604 disabling UAC1 IN
    /*
    else if( i_unit==MIC_FEATURE_UNIT_ID )
@@ -523,28 +517,27 @@ void audio_get_res(void)
    Usb_ack_control_out_received_free();
 }
 
-void audio_get_cur(void)
-{
-   U16 i_unit;
-   U16 length;
-   i_unit = wIndex % 256;
-   length = wLength;
+void audio_get_cur(void) {
+	U16 i_unit;
+	U16 length;
+	i_unit = (wIndex >> 8);			// wIndex high byte is interface number
+	length = wLength;
 
-   Usb_ack_setup_received_free();
-   Usb_reset_endpoint_fifo_access(EP_CONTROL);
+	Usb_ack_setup_received_free();
+	Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-   if ((usb_type == USB_SETUP_GET_CLASS_ENDPOINT) && (wValue_msb == UAC_EP_CS_ATTR_SAMPLE_RATE)){
-		if (speed == 0){
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x44);
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0xac);
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+	if ((usb_type == USB_SETUP_GET_CLASS_ENDPOINT) && (wValue_msb == UAC_EP_CS_ATTR_SAMPLE_RATE)){
+		if (speed == 0) {
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0x44);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0xac);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 		}
 		else {
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
-		   	Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0x80);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0xbb);
+			Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 		}
-    }
+	}
 
    // BSB 20130604 disabling UAC1 IN
    /*
@@ -569,34 +562,61 @@ void audio_get_cur(void)
    }
    */
 
-   else if (i_unit==SPK_FEATURE_UNIT_ID){
-	     switch (wValue_msb)
-	      {
-	      case CS_MUTE:
-	         if( length==1 )
-	         {
-	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
-	         }
-	         break;
-	      case CS_VOLUME:
-	         if( length==2 )
-	         {
-	            Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_volume));
-	         }
-	         break;
-	      }
-   }
+	else if (i_unit==SPK_FEATURE_UNIT_ID) {
+		switch (wValue_msb) {
+			case CS_MUTE:
+				if (length == 1) {
+					Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+				}
+				break;
+			case CS_VOLUME:
+				if (length == 2) {
+					if (wValue_lsb == CH_LEFT) {
+						// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
+						if (spk_vol_usb_L == VOL_INVALID) {
+							// Without working volume flash:
+							spk_vol_usb_L = VOL_DEFAULT;
+							// With working volume flash:
+							// spk_vol_usb_L = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+							spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
+						}
+						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
 
-   Usb_ack_control_in_ready_send();
-   while(!Is_usb_control_out_received());
-   Usb_ack_control_out_received_free();
+#ifdef USB_STATE_MACHINE_DEBUG
+					   print_dbg_char('g');
+					   print_dbg_char('L');
+					   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+					   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
+					   print_dbg_char('\n');
+#endif
+
+					}
+					else if (wValue_lsb == CH_RIGHT) {
+						// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
+						if (spk_vol_usb_R == VOL_INVALID) {
+							// Without working volume flash:
+							spk_vol_usb_R = VOL_DEFAULT;
+							// With working volume flash:
+							// spk_vol_usb_R = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+							spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
+						}
+						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_R));
+					}
+				}
+				break;
+		}
+	}
+
+	Usb_ack_control_in_ready_send();
+	while(!Is_usb_control_out_received());
+	Usb_ack_control_out_received_free();
 }
 
 void audio_set_cur(void)
 {
    U16 i_unit;
    U16 length;
-   i_unit = wIndex % 256;
+   i_unit = (wIndex >> 8);			// wIndex high byte is interface number
    length = wLength;
 
    Usb_ack_setup_received_free();
@@ -604,8 +624,10 @@ void audio_set_cur(void)
    Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
    if ((usb_type == USB_SETUP_SET_CLASS_ENDPOINT) && (wValue_msb == UAC_EP_CS_ATTR_SAMPLE_RATE)){
-		if (Usb_read_endpoint_data(EP_CONTROL, 8) == 0x44) speed = 0;
-		else speed = 1;
+		if (Usb_read_endpoint_data(EP_CONTROL, 8) == 0x44)
+			speed = 0;
+		else
+			speed = 1;
 
 		freq_changed = TRUE;
 		if (speed == 0) {		// 44.1khz
@@ -644,6 +666,44 @@ void audio_set_cur(void)
 #endif
 
 
+   }
+
+   // BSB 20160318 experimenting with mute and playback volume control
+   else if (i_unit == SPK_FEATURE_UNIT_ID ) {
+		uint8_t temp1 = 0;
+		uint8_t temp2 = 0;
+
+	   if (wValue_msb == CS_MUTE) {
+		   if (length == 1) {
+			   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
+			   spk_mute = temp1;
+		   }
+	   }
+	   else if (wValue_msb == CS_VOLUME) {
+		   if (length == 2) {
+			   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
+			   temp2 = Usb_read_endpoint_data(EP_CONTROL, 8);
+			   if (wValue_lsb == CH_LEFT) {
+				   LSB(spk_vol_usb_L)= temp1;
+				   MSB(spk_vol_usb_L)= temp2;
+				   spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
+
+#ifdef USB_STATE_MACHINE_DEBUG
+				   print_dbg_char('s');
+				   print_dbg_char('L');
+				   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+				   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
+				   print_dbg_char('\n');
+#endif
+
+			   }
+			   else if (wValue_lsb == CH_RIGHT) {
+				   LSB(spk_vol_usb_R)= temp1;
+				   MSB(spk_vol_usb_R)= temp2;
+				   spk_vol_mult_R = usb_volume_format(spk_vol_usb_R);
+			   }
+		   }
+	   }
 	}
 
    // BSB 20130604 disabling UAC1 IN
@@ -668,27 +728,6 @@ void audio_set_cur(void)
       }
    }
    */
-
-   else if (i_unit==SPK_FEATURE_UNIT_ID ){
-	   {
-	       switch (wValue_msb)
-	       {
-	       case CS_MUTE:
-	          if( length==1 )
-	          {
-	             spk_mute=Usb_read_endpoint_data(EP_CONTROL, 8);
-	          }
-	          break;
-	       case CS_VOLUME:
-	          if( length==2 )
-	          {
-	             LSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
-	             MSB(spk_volume)= Usb_read_endpoint_data(EP_CONTROL, 8);
-	          }
-	          break;
-	       }
-	    }
-   }
 
 
    Usb_ack_control_out_received_free();

@@ -93,8 +93,13 @@
 #include "usb_standard_request.h"
 #include "usb_specific_request.h"
 #include "device_mouse_hid_task.h"
+#include "device_audio_task.h"
 #include "Mobo_config.h"
 #include "features.h"
+
+#ifdef USB_METALLIC_NOISE_SIM
+#include "device_audio_task.h"	// To modify FB_rate_nominal
+#endif
 
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
@@ -304,6 +309,49 @@ void device_mouse_hid_task(void)
             }
 
             // If you need the UART for something other than HID, this is where you interpret it!
+
+
+#ifdef USB_METALLIC_NOISE_SIM
+            else if (a == 'u') {
+            	FB_rate_nominal += 64;
+            	FB_rate_nominal |= 1; // Use LSB as mask for FB rate being messed up
+            }
+            else if (a == 'd') {
+            	FB_rate_nominal -= 64;
+            	FB_rate_nominal |= 1; // Use LSB as mask for FB rate being messed up
+            }
+            else if (a == 'x') {
+            	FB_rate_nominal = FB_rate_initial; // Use LSB as mask for FB rate being messed up
+            }
+#endif
+
+            else if (a == 'c') {							// Lowercase c
+            	gpio_clr_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 22.5792MHz/2 for AB-1
+            }
+
+            else if (a == 'C') {							// Uppercase C
+            	gpio_set_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 24.576MHz/2 for AB-1
+            }
+
+
+
+
+            else if (a == 'v') {
+            	static S16 temp = VOL_MIN;
+            	S16 temp2;
+
+            	usb_volume_flash(CH_LEFT, temp, VOL_WRITE);
+            	temp2 = usb_volume_flash(CH_LEFT, 0, VOL_READ);
+            	usb_volume_flash(CH_RIGHT, temp, VOL_WRITE);
+            	temp2 = usb_volume_flash(CH_RIGHT, 0, VOL_READ);
+
+            	print_dbg_char_hex(((temp2 >> 8) & 0xff));
+            	print_dbg_char_hex(((temp2 >> 0) & 0xff));
+
+            	temp ++;
+            }
+
+
 
     	} // if (readkey())
 

@@ -37,6 +37,10 @@ typedef enum {
   feature_log_index,			// startup log display timing
   feature_filter_index,			// setting of filter
   feature_quirk_index,			// setting of various quirks
+  feature_msb_vol_L,			// left volume control, msb of usb value
+  feature_lsb_vol_L,			// left volume control, lsb
+  feature_msb_vol_R,			// right volume control, msb
+  feature_lsb_vol_R,			// right volume control, lsb
   feature_end_index				// end marker, used to size arrays
 } feature_index_t;
 
@@ -52,6 +56,10 @@ typedef enum {
 		"log",										\
 		"filter",									\
 		"quirk",									\
+		"msb_vol_L",								\
+		"lsb_vol_L",								\
+		"msb_vol_R",								\
+		"lsb_vol_R",								\
 		"end"
 
 //

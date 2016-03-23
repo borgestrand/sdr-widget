@@ -1,6 +1,7 @@
 //* -*- mode: c++; tab-width: 4; c-basic-offset: 4 -*- */
 #include "compiler.h"
 #include "device_audio_task.h"
+#include "usb_specific_request.h"
 
 //!
 //! Public : (bit) mute
@@ -9,7 +10,17 @@
 //!/
 volatile Bool mute, spk_mute;
 volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal; // BSB 20131031 FB_rate_initial and FB_rate_nominal added and changed to S32
-S16 volume, spk_volume;
+// With working volume flash:
+// S16 spk_vol_usb_L = VOL_INVALID;			// BSB 20160320 Added stereo volume control
+// S16 spk_vol_usb_R = VOL_INVALID;			// Not yet initialized from flash
+
+// Without working volume flash;
+S16 spk_vol_usb_L = VOL_DEFAULT;			// BSB 20160320 Added stereo volume control
+S16 spk_vol_usb_R = VOL_DEFAULT;			// Forced to default value
+
+
+S32 spk_vol_mult_L = 0;						// Full mute for now, re-formated in uac?_device_audio_task_init
+S32 spk_vol_mult_R = 0;
 
 volatile uint8_t input_select;							// BSB 20150501 global variable for input selector
 

@@ -88,7 +88,9 @@ void features_display_all() {
 }
 
 uint8_t feature_set(uint8_t index, uint8_t value) {
-	return index > feature_minor_index && index < feature_end_index && value < feature_end_values ?
+//	return index > feature_minor_index && index < feature_end_index && value < feature_end_values ?
+//  BSB 20160316 removed feature_end_values check to allow for generic content
+	return index > feature_minor_index && index < feature_end_index ?
 		features[index] = value :
 		0xFF;
 }
@@ -98,7 +100,9 @@ uint8_t feature_get(uint8_t index) {
 }
 
 uint8_t feature_set_nvram(uint8_t index, uint8_t value)  {
-	if ( index > feature_minor_index && index < feature_end_index && value < feature_end_values ) {
+//	if ( index > feature_minor_index && index < feature_end_index && value < feature_end_values ) {
+//  BSB 20160316 removed feature_end_values check to allow for generic content
+	if ( index > feature_minor_index && index < feature_end_index ) {
 		flashc_memset8((void *)&features_nvram[index], value, sizeof(uint8_t), TRUE);
 		return features_nvram[index];
 	} else
