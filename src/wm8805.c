@@ -220,7 +220,7 @@ void wm8805_poll(void) {
 	if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
 
 		// With this task's input_select values, assume semaphore is owned
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) ) || (input_select == MOBO_SRC_TOS1) ) {
+		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
 			if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
@@ -292,7 +292,7 @@ void wm8805_poll(void) {
 			}
 
 			// Do we own semaphore? If so, change I2S setting
-			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2)  || (input_select == MOBO_SRC_TOS1) ) {
+			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 				wm8805_clkdiv();						// Configure MCLK division
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
 				wm8805_muted = 0;
