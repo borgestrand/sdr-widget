@@ -24,7 +24,7 @@ S32 spk_vol_mult_R = 0;
 
 volatile uint8_t input_select;							// BSB 20150501 global variable for input selector
 
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 volatile xSemaphoreHandle input_select_semphr = NULL; // BSB 20150626 audio channel selection semaphore
 #endif
 

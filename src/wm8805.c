@@ -127,7 +127,7 @@ This mechanism also extends to the USB interface. With input_select == MOBO_SRC_
 MOBO_SRC_UAC1 the WM8805 is powered down and the USB receiver owns the DAC's I2S interface.
 When the USB audio is muted or halted, input_select is set to MOBO_SRC_NONE and the WM8805
 is powered up to start scanning its inputs. When it finds a valid one, input_select is set
-to MOBO_SRC_SPDIF or MOBO_SRC_TOSLINK, and the I2S interface is switched over to the WM8805.
+to MOBO_SRC_SPDIF or MOBO_SRC_TOS2, and the I2S interface is switched over to the WM8805.
 And when the WM8805 is muted or looses link, the I2S is once again handed over to the USB
 system. At first, with input_select == MOBO_SRC_NONE, this is done to mute the DAC.
 
@@ -140,8 +140,8 @@ If this project is of interest to you, please let me know! I hope to see you at 
 
 
 
-#if defined(HW_GEN_DIN10)									// Functions here only make sense for WM8805
-
+// #if defined(HW_GEN_DIN10)									// Functions here only make sense for WM8805
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 
 #include "wm8805.h"
 // #include "Mobo_config.h"
@@ -163,7 +163,7 @@ void wm8805_poll(void) {
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t wm8805_int = 0;									// WM8805 interrupt status
     static uint16_t wm8805_zerotimer = SILENCE_WM_PAUSE;	// Initially assume WM8805 is silent
-    static uint8_t input_select_wm8805_next = MOBO_SRC_TOSLINK;	// Try TOSLINK first
+    static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
     static uint8_t wm8805_muted = 1;						// Assume I2S output is muted
 	static uint8_t wm8805_power = 0;						// Starting up with wm8805 powered down
 
@@ -220,7 +220,7 @@ void wm8805_poll(void) {
 	if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
 
 		// With this task's input_select values, assume semaphore is owned
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK) ) {
+		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) ) || (input_select == MOBO_SRC_TOS1) ) {
 			input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
 			if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
@@ -243,10 +243,23 @@ void wm8805_poll(void) {
 		}
 
 		// Try other WM8805 channel
-		if (input_select_wm8805_next == MOBO_SRC_TOSLINK)	// Prepare to probe other WM channel next time we're here
+
+#ifdef HW_GEN_DIN10										// Only SPDIF and TOS2 available
+		if (input_select_wm8805_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
 			input_select_wm8805_next = MOBO_SRC_SPDIF;
 		else
-			input_select_wm8805_next = MOBO_SRC_TOSLINK;
+			input_select_wm8805_next = MOBO_SRC_TOS2;
+#endif
+#ifdef HW_GEN_DIN20										// SPDIF, TOS2 and TOS1 available
+		if (input_select_wm8805_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
+			input_select_wm8805_next = MOBO_SRC_TOS1;
+		else if (input_select_wm8805_next == MOBO_SRC_TOS1)	// Prepare to probe other WM channel next time we're here
+			input_select_wm8805_next = MOBO_SRC_SPDIF;
+		else
+			input_select_wm8805_next = MOBO_SRC_TOS2;
+#endif
+
+
 
 		wm8805_muted = 1;								// I2S is still controlled by USB which should have zeroed it.
 		wm8805_zerotimer = SILENCE_WM_INIT;				// Assume it hasn't become silent yet at startup, give it time to figure out
@@ -279,7 +292,7 @@ void wm8805_poll(void) {
 			}
 
 			// Do we own semaphore? If so, change I2S setting
-			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOSLINK) ) {
+			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2)  || (input_select == MOBO_SRC_TOS1) ) {
 				wm8805_clkdiv();						// Configure MCLK division
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
 				wm8805_muted = 0;
@@ -368,8 +381,11 @@ void wm8805_sleep(void) {
 void wm8805_input(uint8_t input_sel) {
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
-	if (input_sel == MOBO_SRC_TOSLINK) {
+	if (input_sel == MOBO_SRC_TOS2) {
 		wm8805_write_byte(0x08, 0x34);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
+	}
+	if (input_sel == MOBO_SRC_TOS1) {
+		wm8805_write_byte(0x08, 0x36);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:6 RX6
 	}
  	else if (input_sel == MOBO_SRC_SPDIF) {
 		wm8805_write_byte(0x08, 0x35);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:5 RX5
@@ -539,36 +555,29 @@ uint32_t wm8805_srd(void) {
 	// Determining speed at TP16 / DAC_0P / PA04 for now. Recompile prototype c to change io pin!
 	// Test is done for up to 1 half period, then 2 full periods
 
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 	gpio_enable_gpio_pin(AVR32_PIN_PA04);	// Enable GPIO pin, not special IO (also for input). Needed?
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 	gpio_enable_gpio_pin(AVR32_PIN_PX09);	// Enable GPIO pin, not special IO (also for input). Needed?
 #endif
-
-
-#ifdef GEN_DIN10
-#endif
-#ifdef GEN_DIN20
-#endif
-
 
 	asm volatile(
 		"ssrf	16				\n\t"	// Disable global interrupt
 		"mov	%0, 	150		\n\t"	// Load timeout
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 			"mov	r9,		-61440	\n\t"	// Immediate load, set up pointer to PA04, (0xFFFF1000) recompile C for other IO pin, do once
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 			"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PX09, recompile C for other IO pin, do once
 #endif
 
 		// If bit is 0, branch to loop while 0. If bit was 1, continue to loop while 1
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
@@ -576,11 +585,11 @@ uint32_t wm8805_srd(void) {
 
 		// Wait while bit is 1, then count two half periods
 		"L0:					\n\t"	// Loop while PA04 is 1
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
@@ -593,11 +602,11 @@ uint32_t wm8805_srd(void) {
 		"mov	%0, 	150		\n\t"	// Restart countdon for actual timing of below half-cycles
 
 		"L1:					\n\t"	// Loop while PA04 is 0
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
@@ -608,11 +617,11 @@ uint32_t wm8805_srd(void) {
 		"L1_done:				\n\t"
 
 		"L2:					\n\t"	// Loop while PBA04 is 1
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
@@ -625,11 +634,11 @@ uint32_t wm8805_srd(void) {
 
 		// Wait while bit is 0, then count two half periods
 		"L3:					\n\t"	// Loop while PA04 is 0
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
@@ -642,11 +651,11 @@ uint32_t wm8805_srd(void) {
 		"mov	%0, 	150		\n\t"	// Restart countdon for actual timing of below half-cycles
 
 		"L4:					\n\t"	// Loop while PBA04 is 1
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
@@ -657,11 +666,11 @@ uint32_t wm8805_srd(void) {
 		"L4_done:				\n\t"
 
 		"L5:					\n\t"	// Loop while PA04 is 0
-#ifdef GEN_DIN10
+#ifdef HW_GEN_DIN10
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
-#ifdef GEN_DIN20
+#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 #endif
@@ -728,4 +737,4 @@ uint32_t wm8805_srd(void) {
 }
 
 
-#endif  // HW_GEN_DIN10
+#endif  // HW_GEN_DIN10 or HW_GEN_DIN20

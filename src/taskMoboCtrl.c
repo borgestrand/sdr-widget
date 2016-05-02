@@ -48,7 +48,7 @@
 #endif
 
 
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 #include "wm8805.h"
 #include "device_audio_task.h"
 #endif
@@ -505,6 +505,35 @@ void PA_bias(void)
 	}
 }
 
+#ifdef HW_GEN_DIN20
+// Control USB multiplexer in HW_GEN_DIN20
+void mobo_usb_select(uint8_t USB_CH) {
+	if (USB_CH == USB_CH_NONE) {
+		gpio_clr_gpio_pin(AVR32_PIN_PA30);						// Disable USB MUX
+		gpio_clr_gpio_pin(AVR32_PIN_PA28);						// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(AVR32_PIN_PA31);						// NO USB A to MCU's VBUS pin
+	}
+	if (USB_CH == USB_CH_A) {
+		gpio_set_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
+		gpio_clr_gpio_pin(AVR32_PIN_PA01);						// Select USB A to MCU's USB data pins
+		gpio_set_gpio_pin(AVR32_PIN_PA31);						// Select USB A to MCU's VBUS pin
+	}
+	if (USB_CH == USB_CH_B) {
+		gpio_set_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
+		gpio_set_gpio_pin(AVR32_PIN_PA01);						// Select USB B to MCU's USB data pins
+		gpio_set_gpio_pin(AVR32_PIN_PA28);						// Select USB B to MCU's VBUS pin
+	}
+}
+
+// Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
+uint8_t mobo_usb_detect(void) {
+
+	if  (gpio_get_pin_value(AVR32_PIN_PB11) == 1)
+		return USB_CH_A;
+
+	return USB_CH_B;
+}
+#endif
 
 
 static void mobo_ctrl_factory_reset_handler(void) {
@@ -582,7 +611,7 @@ static void vtaskMoboCtrl( void * pcParameters )
     // Probe for I2C devices present and report on LCD
 	i2c_device_scan();
 
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 // FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
 	wm8805_init();							// Start up the WM8805 in a fairly dead mode
 	wm8805_sleep();
@@ -743,7 +772,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
 						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
 					}
-				#elif defined(HW_GEN_DIN10)
+
+				#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 						mobo_led(FLED_DARK, FLED_DARK, FLED_RED);	// With UAC1
 					else
@@ -772,7 +802,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 						#if defined(HW_GEN_AB1X)
 							gpio_clr_gpio_pin(AVR32_PIN_PX32);	// GREEN OFF after performed change in nvram
 							gpio_clr_gpio_pin(AVR32_PIN_PX29);	// RED OFF after performed change in nvram
-						#elif defined(HW_GEN_DIN10)
+						#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 							mobo_led(FLED_DARK, FLED_DARK, FLED_DARK); // Dark after performed change in nvram
 							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
 						#else
@@ -802,7 +832,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	   						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
 	   						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
 						}
-					#elif defined(HW_GEN_DIN10)
+					#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 						// FIX: Resort to defaults according to playback mode and source. That will require some global vars or other mess
 						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 							mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// With UAC1:
@@ -1020,14 +1050,16 @@ static void vtaskMoboCtrl( void * pcParameters )
 				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
 				{						// also present, then we can use Widget PTT_1
 										// for additional PTT control
-					#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+//					#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+					#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 (PX45) line recycled in HW_GEN_DIN10
 						gpio_set_gpio_pin(PTT_1);
 					#endif
 				}
    	    	}
 			else
 			#endif
-				#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+//				#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+				#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
 					gpio_set_gpio_pin(PTT_1);
 				#endif
 
@@ -1056,16 +1088,16 @@ static void vtaskMoboCtrl( void * pcParameters )
 				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
 				{						// also present, then we can use Widget PTT_1
 										// for additional PTT control
-					#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+					#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
 						gpio_clr_gpio_pin(PTT_1);
 					#endif
 				}
    	    	}
 			else
 			#endif
-				#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
+				#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
 					gpio_clr_gpio_pin(PTT_1);
-			#endif
+				#endif
 
    	    	if (!MENU_mode)
    	    	{
@@ -1096,7 +1128,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
         LED_Toggle(LED2);
 		
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 			wm8805_poll();									// Handle WM8805's various hardware needs
 #endif
 

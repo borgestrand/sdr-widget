@@ -391,7 +391,7 @@ void uac1_device_audio_task(void *pvParameters)
 					else {
 						// HS mode - Not likely to ever be used in UAC1 - UNTESTED code!
 						// FB rate is 4 bytes in 12.14 format
-#if defined(HW_GEN_DIN10)	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
 						if ( (input_select != MOBO_SRC_UAC1) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
 #else
 						if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {	// BSB 20131101
@@ -538,7 +538,9 @@ void uac1_device_audio_task(void *pvParameters)
 
 						// New site for setting playerStarted and aligning buffers
 						if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
-	#if defined(HW_GEN_DIN10)										// With WM8805 subsystem, handle semaphore
+
+
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem, handle semaphore
 		#ifdef USB_STATE_MACHINE_DEBUG
 							print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
 			            	if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
@@ -564,7 +566,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 		            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 
-	#if defined(HW_GEN_DIN10)										// With WM8805 subsystem set RGB front LED
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem set RGB front LED
 							mobo_led_select(current_freq.frequency, input_select);
 	#endif
 
@@ -641,7 +643,7 @@ void uac1_device_audio_task(void *pvParameters)
 							spk_buffer_1[i] = 0;
 						}
 
-	#if defined(HW_GEN_DIN10)									// With WM8805 present, handle semaphores
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 		#ifdef USB_STATE_MACHINE_DEBUG
 						print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
 		            	if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -768,7 +770,7 @@ void uac1_device_audio_task(void *pvParameters)
 					spk_buffer_1[i] = 0;
 				}
 
-	#if defined(HW_GEN_DIN10)									// With WM8805 present, handle semaphores
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 		#ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
 	            	if (xSemaphoreGive(input_select_semphr) == pdTRUE) {

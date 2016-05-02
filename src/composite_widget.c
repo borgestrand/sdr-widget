@@ -186,7 +186,7 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 #include "wm8805.h"
 #endif
 
@@ -226,8 +226,20 @@ int i;
 	for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up
 															// time for various voltages (eg to the XO) to stablize
 															// Not used in QNKTC / Henry Audio hardware
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_AB1X)
+	gpio_set_gpio_pin(AVR32_PIN_PX51);						// Enables power to XO and DAC in USBI2C AB-1.X and USB DAC 128
+#endif
 
-	gpio_set_gpio_pin(AVR32_PIN_PX51);						// Enables power to XO and DAC in USBI2C AB-1 board
+#if (defined HW_GEN_DIN20)
+	gpio_set_gpio_pin(AVR32_PIN_PA27);						// Enables power to XO and DAC in SP_DAC02
+	gpio_set_gpio_pin(AVR32_PIN_PX13);						// Reset pin override inactive. Should have external pull-up!
+	gpio_set_gpio_pin(AVR32_PIN_PA28);						// Select USB B to MCU's VBUS pin
+	gpio_clr_gpio_pin(AVR32_PIN_PA31);						// Unselect USB A to MCU's VBUS pin
+	gpio_set_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
+	gpio_set_gpio_pin(AVR32_PIN_PA01);						// Select USB B to MCU's USB data pins
+#endif
+
+
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware
 
 
@@ -242,7 +254,7 @@ int i;
 
 	mobo_xo_select(44100, input_select);					// Initial GPIO XO control and frequency indication
 
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 	mobo_led_select(44100, input_select);					// Front RGB LED
 	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
@@ -310,7 +322,7 @@ int i;
 
 	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
 
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 	wm8805_reset(WM8805_RESET_END);			// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 

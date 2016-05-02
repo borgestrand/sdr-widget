@@ -96,6 +96,8 @@
 #include "device_audio_task.h"
 #include "Mobo_config.h"
 #include "features.h"
+#include "taskMoboCtrl.h"
+#include "taskAK5394A.h"
 
 #ifdef USB_METALLIC_NOISE_SIM
 #include "device_audio_task.h"	// To modify FB_rate_nominal
@@ -334,7 +336,17 @@ void device_mouse_hid_task(void)
             }
 
 
-
+#ifdef HW_GEN_DIN20
+            else if (a == '0') {							// Digit 0
+            	mobo_usb_select(USB_CH_NONE);
+            }
+            else if (a == 'A') {							// Uppercase A
+            	mobo_usb_select(USB_CH_A);
+            }
+            else if (a == 'B') {							// Uppercase B
+            	mobo_usb_select(USB_CH_B);
+            }
+#endif
 
             else if (a == 'v') {
             	static S16 temp = VOL_MIN;
@@ -376,7 +388,7 @@ void device_mouse_hid_task(void)
 			}
 
 /* Moved to taskMoboCtrl.c
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 			wm8805_poll();									// Handle WM8805's various hardware needs
 #endif
 */

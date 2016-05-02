@@ -656,7 +656,7 @@ void audio_set_cur(void)
 		}
 
 		// We're calling mobo_xo_select here AND in uac2_device_audio_task. Just to be sure about MCLK XO select settling!
-#if defined(HW_GEN_DIN10)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 		if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) // Only change I2S settings if appropriate
 			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// GPIO XO control
 		if (input_select == MOBO_SRC_UAC2) 							// Only change I2S settings if appropriate

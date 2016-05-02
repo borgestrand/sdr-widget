@@ -40,12 +40,14 @@
 #define USB_BUFFER_TOGGLE_LIM 2		// DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
 #define USB_BUFFER_TOGGLE_PARK 10	// The error is detected in sequential code
 
-// Available digital audio sources, 3 and 4 only available in HW_GEN=din10
+// Available digital audio sources, 3 and 4 only available in HW_GEN_DIN10 and ..20. Source 5 only available in HW_GEN_DIN20
 #define MOBO_SRC_NONE		0
 #define MOBO_SRC_UAC1		1
 #define MOBO_SRC_UAC2		2
 #define MOBO_SRC_SPDIF		3
-#define MOBO_SRC_TOSLINK	4
+#define MOBO_SRC_TOS2		4		// Available in HW_GEN_DIN10 and HW_GEN_DIN20
+#define MOBO_SRC_TOS1		5		// Available in HW_GEN_DIN10 and HW_GEN_DIN20
+
 
 // Front led colors for RGB LEDs
 #define FLED_RED			1
@@ -56,6 +58,11 @@
 #define FLED_CYAN			6
 #define FLED_WHITE			7
 #define FLED_DARK			0
+
+// USB channels
+#define USB_CH_NONE			0
+#define USB_CH_A			1
+#define USB_CH_B			2
 
 // Frequency definitions, move and change to make compatible with USB system!
 #define	FREQ_TIMEOUT		0x00
