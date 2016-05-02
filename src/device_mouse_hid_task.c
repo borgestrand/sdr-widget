@@ -96,7 +96,6 @@
 #include "device_audio_task.h"
 #include "Mobo_config.h"
 #include "features.h"
-#include "taskMoboCtrl.h"
 #include "taskAK5394A.h"
 
 #ifdef USB_METALLIC_NOISE_SIM
@@ -338,13 +337,22 @@ void device_mouse_hid_task(void)
 
 #ifdef HW_GEN_DIN20
             else if (a == '0') {							// Digit 0
-            	mobo_usb_select(USB_CH_NONE);
+        		USB_CH = USB_CH_NONE;
+            	mobo_usb_select(USB_CH);
             }
             else if (a == 'A') {							// Uppercase A
-            	mobo_usb_select(USB_CH_A);
+        		USB_CH = USB_CH_A;
+            	mobo_usb_select(USB_CH);
             }
             else if (a == 'B') {							// Uppercase B
-            	mobo_usb_select(USB_CH_B);
+        		USB_CH = USB_CH_B;
+            	mobo_usb_select(USB_CH);
+            }
+            else if (a == 'D') {							// Uppercase D
+            	if (mobo_usb_detect() == USB_CH_A)
+            		print_dbg_char('A');
+            	else
+            		print_dbg_char('B');
             }
 #endif
 

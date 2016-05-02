@@ -18,14 +18,4 @@ extern void 	vStartTaskMoboCtrl(void);
 
 
 
-#ifdef HW_GEN_DIN20
-// Control USB multiplexer in HW_GEN_DIN20
-void mobo_usb_select(uint8_t USB_CH);
-
-// Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
-uint8_t mobo_usb_detect(void);
-#endif
-
-
-
 #endif

@@ -505,36 +505,6 @@ void PA_bias(void)
 	}
 }
 
-#ifdef HW_GEN_DIN20
-// Control USB multiplexer in HW_GEN_DIN20
-void mobo_usb_select(uint8_t USB_CH) {
-	if (USB_CH == USB_CH_NONE) {
-		gpio_clr_gpio_pin(AVR32_PIN_PA30);						// Disable USB MUX
-		gpio_clr_gpio_pin(AVR32_PIN_PA28);						// NO USB B to MCU's VBUS pin
-		gpio_clr_gpio_pin(AVR32_PIN_PA31);						// NO USB A to MCU's VBUS pin
-	}
-	if (USB_CH == USB_CH_A) {
-		gpio_set_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
-		gpio_clr_gpio_pin(AVR32_PIN_PA01);						// Select USB A to MCU's USB data pins
-		gpio_set_gpio_pin(AVR32_PIN_PA31);						// Select USB A to MCU's VBUS pin
-	}
-	if (USB_CH == USB_CH_B) {
-		gpio_set_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
-		gpio_set_gpio_pin(AVR32_PIN_PA01);						// Select USB B to MCU's USB data pins
-		gpio_set_gpio_pin(AVR32_PIN_PA28);						// Select USB B to MCU's VBUS pin
-	}
-}
-
-// Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
-uint8_t mobo_usb_detect(void) {
-
-	if  (gpio_get_pin_value(AVR32_PIN_PB11) == 1)
-		return USB_CH_A;
-
-	return USB_CH_B;
-}
-#endif
-
 
 static void mobo_ctrl_factory_reset_handler(void) {
 	// Force an EEPROM update in the mobo config

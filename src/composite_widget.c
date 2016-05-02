@@ -237,7 +237,9 @@ int i;
 	gpio_clr_gpio_pin(AVR32_PIN_PA31);						// Unselect USB A to MCU's VBUS pin
 	gpio_set_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
 	gpio_set_gpio_pin(AVR32_PIN_PA01);						// Select USB B to MCU's USB data pins
-#endif
+
+	USB_CH = USB_CH_B;										// FIX: Detect at startup. For now UAC1/2 selection applies to front and rear the same way.
+#endif														//      Later: Maybe make front USB constantly UAC2...
 
 
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware

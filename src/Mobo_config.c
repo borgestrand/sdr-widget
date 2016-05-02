@@ -30,6 +30,38 @@
 #include "TMP100.h"
 */
 
+#ifdef HW_GEN_DIN20
+// Control USB multiplexer in HW_GEN_DIN20
+void mobo_usb_select(uint8_t USB_CH) {
+	if (USB_CH == USB_CH_NONE) {
+		gpio_clr_gpio_pin(AVR32_PIN_PA30);						// Disable USB MUX
+		gpio_clr_gpio_pin(AVR32_PIN_PA28);						// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(AVR32_PIN_PA31);						// NO USB A to MCU's VBUS pin
+	}
+	if (USB_CH == USB_CH_A) {
+		gpio_set_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
+		gpio_clr_gpio_pin(AVR32_PIN_PA01);						// Select USB A to MCU's USB data pins
+		gpio_set_gpio_pin(AVR32_PIN_PA31);						// Select USB A to MCU's VBUS pin
+	}
+	if (USB_CH == USB_CH_B) {
+		gpio_set_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
+		gpio_set_gpio_pin(AVR32_PIN_PA01);						// Select USB B to MCU's USB data pins
+		gpio_set_gpio_pin(AVR32_PIN_PA28);						// Select USB B to MCU's VBUS pin
+	}
+}
+
+// Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
+uint8_t mobo_usb_detect(void) {
+
+	if  (gpio_get_pin_value(AVR32_PIN_PB11) == 1)
+		return USB_CH_A;
+
+	return USB_CH_B;
+}
+#endif
+
+
+
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 
 // Audio Widget HW_GEN_DIN10 / DIN20 LED control
@@ -81,11 +113,24 @@ void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0) {
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source) {
 	switch (frequency) {
+
 		case FREQ_44:
+#ifdef HW_GEN_DIN10
 			if (source == MOBO_SRC_UAC1)
 				mobo_led(FLED_DARK, FLED_GREEN, FLED_DARK);		// UAC1 green 010
 			else if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_DARK, FLED_RED, FLED_DARK);		// UAC2 red 010
+#endif
+#ifdef HW_GEN_DIN20
+			if ( (source == MOBO_SRC_UAC1) && (USB_CH == USB_CH_B) )
+				mobo_led(FLED_DARK, FLED_GREEN, FLED_DARK);		// UAC1 rear green 010
+			else if ( (source == MOBO_SRC_UAC1) && (USB_CH == USB_CH_A) )
+				mobo_led(FLED_DARK, FLED_BLUE, FLED_DARK);		// UAC1 front blue 010
+			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+				mobo_led(FLED_DARK, FLED_RED, FLED_DARK);		// UAC2 rear red 010
+			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+				mobo_led(FLED_DARK, FLED_WHITE, FLED_DARK);		// UAC2 front white 010
+#endif
 			else if (source == MOBO_SRC_SPDIF)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);	// SPDIF purple 010
 			else if (source == MOBO_SRC_TOS2)
@@ -93,11 +138,24 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if (source == MOBO_SRC_TOS1)
 				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// TOS1 yellow 010
 		break;
+
 		case FREQ_48:
+#ifdef HW_GEN_DIN10
 			if (source == MOBO_SRC_UAC1)
 				mobo_led(FLED_DARK, FLED_GREEN, FLED_GREEN);	// UAC1 green 011
 			else if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_DARK, FLED_RED, FLED_RED);		// UAC2 red 011
+#endif
+#ifdef HW_GEN_DIN20
+			if ( (source == MOBO_SRC_UAC1) && (USB_CH == USB_CH_A) )
+				mobo_led(FLED_DARK, FLED_GREEN, FLED_GREEN);	// UAC1 rear green 011
+			else if ( (source == MOBO_SRC_UAC1) && (USB_CH == USB_CH_B) )
+				mobo_led(FLED_DARK, FLED_BLUE, FLED_GREEN);	// UAC1 front blue 011
+			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+				mobo_led(FLED_DARK, FLED_RED, FLED_RED);		// UAC2 rear red 011
+			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+				mobo_led(FLED_DARK, FLED_WHITE, FLED_WHITE);	// UAC2 front white 011
+#endif
 			else if (source == MOBO_SRC_SPDIF)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_PURPLE);	// SPDIF purple 011
 			else if (source == MOBO_SRC_TOS2)
@@ -105,9 +163,18 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if (source == MOBO_SRC_TOS1)
 				mobo_led(FLED_DARK, FLED_YELLOW, FLED_YELLOW);	// TOS1 yellow 011
 		break;
+
 		case FREQ_88:
+#ifdef HW_GEN_DIN10
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 red 100
+#endif
+#ifdef HW_GEN_DIN20
+			if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 rear red 100
+			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+				mobo_led(FLED_WHITE, FLED_DARK, FLED_DARK);		// UAC2 front white 100
+#endif
 			else if (source == MOBO_SRC_SPDIF)
 				mobo_led(FLED_PURPLE, FLED_DARK, FLED_DARK);	// SPDIF purple 100
 			else if (source == MOBO_SRC_TOS2)
@@ -115,9 +182,18 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if (source == MOBO_SRC_TOS1)
 				mobo_led(FLED_YELLOW, FLED_DARK, FLED_DARK);	// TOS1 yellow 100
 		break;
+
 		case FREQ_96:
+#ifdef HW_GEN_DIN10
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 red 101
+#endif
+#ifdef HW_GEN_DIN20
+			if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 rear red 101
+			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+				mobo_led(FLED_WHITE, FLED_DARK, FLED_WHITE);	// UAC2 front white 101
+#endif
 			else if (source == MOBO_SRC_SPDIF)
 				mobo_led(FLED_PURPLE, FLED_DARK, FLED_PURPLE);	// SPDIF purple 101
 			else if (source == MOBO_SRC_TOS2)
@@ -125,9 +201,18 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if (source == MOBO_SRC_TOS1)
 				mobo_led(FLED_CYAN, FLED_DARK, FLED_CYAN);		// TOS1 yellow 101
 		break;
+
 		case FREQ_176:
+#ifdef HW_GEN_DIN10
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_RED, FLED_DARK);		// UAC2 red 110
+#endif
+#ifdef HW_GEN_DIN20
+			if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+				mobo_led(FLED_WHITE, FLED_WHITE, FLED_DARK);		// UAC2 rear red 110
+			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+				mobo_led(FLED_WHITE, FLED_WHITE, FLED_DARK);		// UAC2 front white 110
+#endif
 			else if (source == MOBO_SRC_SPDIF)
 				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_DARK);	// SPDIF purple 110
 			else if (source == MOBO_SRC_TOS2)
@@ -135,9 +220,18 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if (source == MOBO_SRC_TOS1)
 				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_DARK);	// TOS1 yellow 110
 		break;
+
 		case FREQ_192:
+#ifdef HW_GEN_DIN10
 			if (source == MOBO_SRC_UAC2)
 				mobo_led(FLED_RED, FLED_RED, FLED_RED);				// UAC2 red 111
+#endif
+#ifdef HW_GEN_DIN20
+			if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+				mobo_led(FLED_RED, FLED_RED, FLED_RED);				// UAC2 rear red 111
+			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+				mobo_led(FLED_WHITE, FLED_WHITE, FLED_WHITE);		// UAC2 front white 111
+#endif
 			else if (source == MOBO_SRC_SPDIF)
 				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_PURPLE);	// SPDIF purple 111
 			else if (source == MOBO_SRC_TOS2)
@@ -145,6 +239,7 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if (source == MOBO_SRC_TOS1)
 				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_YELLOW);	// TOS1 yellow 111
 		break;
+
 		default:
 			mobo_led(FLED_DARK, FLED_DARK, FLED_DARK);			// Invalid frequency: darkness
 		break;
