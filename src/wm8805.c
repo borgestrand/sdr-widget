@@ -344,10 +344,18 @@ void wm8805_poll(void) {
 
 // Hardware reset over GPIO pin. Consider the Power Up Configuration section of the datasheet!
 void wm8805_reset(uint8_t reset_type) {
-	if (reset_type == WM8805_RESET_START)
+	if (reset_type == WM8805_RESET_START) {
 		gpio_clr_gpio_pin(WM8805_RESET_PIN);			// Clear reset pin WM8805 active low reset
-	else
+		#ifdef HW_GEN_DIN20
+			gpio_clr_gpio_pin(WM8805_CSB_PIN);			// CSB/GPO2 pin sets 2W address. Make sure CSB outputs 0.
+		#endif											// Who knows how CSB is samplet at _reset. Assume rising edge
+	}
+	else {
 		gpio_set_gpio_pin(WM8805_RESET_PIN);			// Set reset pin WM8805 active low reset
+		#ifdef HW_GEN_DIN20
+			gpio_enable_gpio_pin(WM8805_CSB_PIN);		// CSB/GPO2 should now be an MCU input...
+		#endif
+	}
 }
 
 // Start up the WM8805
@@ -359,6 +367,8 @@ void wm8805_init(void) {
 	wm8805_write_byte(0x1D, 0xC0);	// Change 6:1, disable data truncation, run on 24 bit I2S
 
 	wm8805_write_byte(0x17, 0x00);	// 7:4 GPO1=INT_N (=SPIO_00, PX54), 3:0 GPO0=INT_N, that pin has 10kpull-down
+
+	wm8805_write_byte(0x18, 0x00);	// 7:4 GPO3='0', 3:0 GPO2='0', to match pull-down on pin CSB/GPO2, WM8805_CSB_PIN=PX37 on HW_GEN_DIN20
 
 	wm8805_write_byte(0x1A, 0xC0);	// 7:4 GPO7=ZEROFLAG (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
 //	wm8805_write_byte(0x1A, 0x70);	// 7:4 GPO7=UNLOCK (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5

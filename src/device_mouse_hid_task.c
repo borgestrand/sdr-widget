@@ -356,6 +356,22 @@ void device_mouse_hid_task(void)
             }
 #endif
 
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+            else if (a == 'L') {							// Uppercase L
+            	// 3 hex characters to LEDs. Punched as 6 digits. 0x00-0x07 are valid.
+            	// Left-to-right on device front: fled2, fled1, fled0
+            	// RED			1
+				// GREEN		2
+				// YELLOW		3
+				// BLUE			4
+				// PURPLE		5
+				// CYAN			6
+				// WHITE		7
+				// DARK			0
+            	mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
+            }
+#endif
+
             else if (a == 'v') {
             	static S16 temp = VOL_MIN;
             	S16 temp2;
