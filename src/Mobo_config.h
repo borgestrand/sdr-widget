@@ -27,6 +27,14 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 
 
 #ifdef HW_GEN_DIN20
+
+// USB multiplexer definitions
+#define USB_DATA_ENABLE_PIN_INV		AVR32_PIN_PA30		// USB_OE0, inverted MUX output enable pin
+#define USB_DATA_A0_B1_PIN			AVR32_PIN_PA02		// USB_A0_B1, MUX address control
+#define USB_VBUS_A_PIN				AVR32_PIN_PA31		// Active high enable A's VBUS
+#define USB_VBUS_B_PIN				AVR32_PIN_PA28		// Active high enable B's VBUS
+
+
 // Control USB multiplexer in HW_GEN_DIN20
 void mobo_usb_select(uint8_t USB_CH);
 

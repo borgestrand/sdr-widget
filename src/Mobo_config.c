@@ -34,21 +34,21 @@
 // Control USB multiplexer in HW_GEN_DIN20
 void mobo_usb_select(uint8_t USB_CH) {
 	if (USB_CH == USB_CH_NONE) {
-		gpio_set_gpio_pin(AVR32_PIN_PA30);						// Disable USB MUX
-		gpio_clr_gpio_pin(AVR32_PIN_PA28);						// NO USB B to MCU's VBUS pin
-		gpio_clr_gpio_pin(AVR32_PIN_PA31);						// NO USB A to MCU's VBUS pin
+		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
+		gpio_clr_gpio_pin(AVR32_PIN_PA28);				// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(AVR32_PIN_PA31);				// NO USB A to MCU's VBUS pin
 	}
 	if (USB_CH == USB_CH_A) {
-		gpio_clr_gpio_pin(AVR32_PIN_PA28);						// NO USB B to MCU's VBUS pin
-		gpio_clr_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
-		gpio_clr_gpio_pin(AVR32_PIN_PA01);						// Select USB A to MCU's USB data pins
-		gpio_set_gpio_pin(AVR32_PIN_PA31);						// Select USB A to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+		gpio_clr_gpio_pin(USB_DATA_A0_B1_PIN);			// Select USB A to MCU's USB data pins
+		gpio_set_gpio_pin(USB_VBUS_A_PIN);				// Select USB A to MCU's VBUS pin
 	}
 	if (USB_CH == USB_CH_B) {
-		gpio_clr_gpio_pin(AVR32_PIN_PA31);						// NO USB A to MCU's VBUS pin
-		gpio_clr_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
-		gpio_set_gpio_pin(AVR32_PIN_PA01);						// Select USB B to MCU's USB data pins
-		gpio_set_gpio_pin(AVR32_PIN_PA28);						// Select USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_VBUS_A_PIN);				// NO USB A to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+		gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);			// Select USB B to MCU's USB data pins
+		gpio_set_gpio_pin(USB_VBUS_B_PIN);				// Select USB B to MCU's VBUS pin
 	}
 }
 

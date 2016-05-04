@@ -521,6 +521,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 	uint32_t time, ten_s_counter=0;					// Time management
 	uint32_t lastIteration=0, Timerval;				// Counters to keep track of time
 
+#ifdef HW_GEN_DIN20
+	uint8_t USB_CH_counter = 0;						// How many poll periods have passed since a USB change detection?
+#endif
+
 	widget_initialization_start();
 	widget_factory_reset_handler_register(mobo_ctrl_factory_reset_handler);
 
@@ -1096,12 +1100,29 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 		#endif
 
-        LED_Toggle(LED2);
+        LED_Toggle(LED2); // FIX: Needed???
 		
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 			wm8805_poll();									// Handle WM8805's various hardware needs
 #endif
 
+#ifdef HW_GEN_DIN20
+           	if (mobo_usb_detect() != USB_CH) {
+           		print_dbg_char('-');
+
+           		if (USB_CH_counter++ > 5) {					// Different USB plug for some time:
+                	mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
+                    vTaskDelay(10000);						// Chill for a while
+                    if (USB_CH == USB_CH_A)					// Swap USB plugs
+                    	USB_CH = USB_CH_B;
+                    else
+                    	USB_CH = USB_CH_A;
+                	mobo_usb_select(USB_CH);
+           		}
+           	}
+
+
+#endif
 		
         vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
     }

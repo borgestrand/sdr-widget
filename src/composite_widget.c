@@ -233,11 +233,11 @@ int i;
 #if (defined HW_GEN_DIN20)
 	gpio_set_gpio_pin(AVR32_PIN_PA27);						// Enables power to XO and DAC in SP_DAC02
 	gpio_set_gpio_pin(AVR32_PIN_PX13);						// Reset pin override inactive. Should have external pull-up!
-	gpio_set_gpio_pin(AVR32_PIN_PA28);						// Select USB B to MCU's VBUS pin
-	gpio_clr_gpio_pin(AVR32_PIN_PA31);						// Unselect USB A to MCU's VBUS pin
-	gpio_clr_gpio_pin(AVR32_PIN_PA30);						// Enable USB MUX
-	gpio_set_gpio_pin(AVR32_PIN_PA01);						// Select USB B to MCU's USB data pins
 
+	gpio_clr_gpio_pin(USB_VBUS_A_PIN);						// NO USB A to MCU's VBUS pin
+	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
+	gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);					// Select USB B to MCU's USB data pins
+	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
 	USB_CH = USB_CH_B;										// FIX: Detect at startup. For now UAC1/2 selection applies to front and rear the same way.
 #endif														//      Later: Maybe make front USB constantly UAC2...
 

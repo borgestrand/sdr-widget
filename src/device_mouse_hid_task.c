@@ -199,11 +199,11 @@ void device_mouse_hid_task(void)
   {
     vTaskDelayUntil(&xLastWakeTime, configTSK_USB_DHID_MOUSE_PERIOD);
 
-    // First, check the device enumeration state
-    if (!Is_device_enumerated()) continue;
+    // First, check the device enumeration state BSB 20160504 Let's drop that for now...
+//    if (!Is_device_enumerated()) continue;
 #else
     // First, check the device enumeration state
-    if (!Is_device_enumerated()) return;
+//    if (!Is_device_enumerated()) return;
 #endif  // FREERTOS_USED
 
 
@@ -359,7 +359,7 @@ void device_mouse_hid_task(void)
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
             else if (a == 'L') {							// Uppercase L
             	// 3 hex characters to LEDs. Punched as 6 digits. 0x00-0x07 are valid.
-            	// Left-to-right on device front: fled2, fled1, fled0
+            	// Left-to-right on device front: fled2, fled1, fled0, NO! it's the other way around?! Why??
             	// RED			1
 				// GREEN		2
 				// YELLOW		3
