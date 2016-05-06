@@ -332,7 +332,7 @@ uint8_t	scan_menu_button(void)
 	// read pin and set regbit accordingly
 	//Do stuff when pushed
 	#if PRG_AS_PUSH_BUTTON
-	if ((gpio_get_pin_value(MENU_BUTTON) == 0)||(gpio_get_pin_value(PRG_BUTTON) == 0))
+	if ((gpio_get_pin_value(MENU_BUTTON) == 0)|| (gpio_get_pin_value(PRG_BUTTON) == 0))
 	#else
 	if (gpio_get_pin_value(MENU_BUTTON) == 0)
 	#endif

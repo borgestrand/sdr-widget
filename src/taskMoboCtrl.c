@@ -1108,20 +1108,23 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 #ifdef HW_GEN_DIN20
            	if (mobo_usb_detect() != USB_CH) {
-           		print_dbg_char('-');
+//           		print_dbg_char('-');
 
-           		if (USB_CH_counter++ > 5) {					// Different USB plug for some time:
+           		if (USB_CH_counter++ > 20) {				// Different USB plug for some time:
                 	mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
-                    vTaskDelay(10000);						// Chill for a while
+                    vTaskDelay(20000);						// Chill for a while
                     if (USB_CH == USB_CH_A)					// Swap USB plugs
                     	USB_CH = USB_CH_B;
                     else
                     	USB_CH = USB_CH_A;
                 	mobo_usb_select(USB_CH);
+
+                	if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) )
+                		mobo_led_select(FREQ_44, input_select);	// Change LED according to recently plugged in USB cable. Assume 44.1
+
+                	USB_CH_counter = 0;
            		}
            	}
-
-
 #endif
 		
         vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()

@@ -354,6 +354,13 @@ void device_mouse_hid_task(void)
             	else
             		print_dbg_char('B');
             }
+
+            else if (a == 'Y') {							// Uppercase Y
+            	mobo_i2s_enable(MOBO_I2S_ENABLE);
+            }
+            else if (a == 'y') {							// Lowercase y
+            	mobo_i2s_enable(MOBO_I2S_DISABLE);
+            }
 #endif
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)

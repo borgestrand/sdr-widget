@@ -179,11 +179,11 @@ void wm8805_poll(void) {
 	 * - Check if WM is really 24 bits
 	 * + Test SPDIF
 	 * + Structure code away from mobo_config.c/h, device_mouse_hid_task.c etc.
-	 * - Is spk_mute ever used in uac2_d_a_t?
+	 * + Is spk_mute ever used in uac2_d_a_t? Yes, for volume control!
 	 * + Think about some automatic silence detecting software!
 	 * - Long-term testing
 	 * + Categorize sample rate detector with proper signal generator, +-2%, reduce timeout constant everywhere
-	 * - Determine correct GPIO pin for SRD, recompile for asm constants
+	 * + Determine correct GPIO pin for SRD, recompile for asm constants
 	 * + Test USB music playback with SRD running continuously
 	 * + Get hardware capable of generating all SPDIF sample rates
 	 * + Make state machine for WM8805 sample rate detection
@@ -192,11 +192,18 @@ void wm8805_poll(void) {
 	 * + Make silence detector (use 1024 silent block detector in WM?)
 	 */
 
+#ifdef HW_GEN_DIN20										// Hard, shared I2S mute available
+	if (gpio_get_pin_value(AVR32_PIN_PX37) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
+		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) )
+			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
+	}
+#endif
+
 	// USB is giving away control,
 	if (input_select == MOBO_SRC_NONE) {
 		if (wm8805_power == 0) {
 			wm8805_power = 1;
-//					print_dbg_char('U');						// WM8805 going Up
+//					print_dbg_char('U');				// WM8805 going Up
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
 			wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
 			wm8805_zerotimer = SILENCE_WM_INIT;			// Assume it hasn't become silent yet at startup, give it time to figure out
@@ -239,7 +246,7 @@ void wm8805_poll(void) {
 #else
 			xSemaphoreGive(input_select_semphr);
 #endif
-			mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// Indicate silence detected by wm8805 subsystem
+//			mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// Indicate silence detected by wm8805 subsystem
 		}
 
 		// Try other WM8805 channel
@@ -364,11 +371,11 @@ void wm8805_init(void) {
 
 	wm8805_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ?
 
-	wm8805_write_byte(0x1D, 0xC0);	// Change 6:1, disable data truncation, run on 24 bit I2S
+	wm8805_write_byte(0x1D, 0xC0);	// 7 SPD_192K_EN = 1, Change 6:1, disable data truncation, run on 24 bit I2S
 
 	wm8805_write_byte(0x17, 0x00);	// 7:4 GPO1=INT_N (=SPIO_00, PX54), 3:0 GPO0=INT_N, that pin has 10kpull-down
 
-	wm8805_write_byte(0x18, 0x00);	// 7:4 GPO3='0', 3:0 GPO2='0', to match pull-down on pin CSB/GPO2, WM8805_CSB_PIN=PX37 on HW_GEN_DIN20
+	wm8805_write_byte(0x18, 0xF7);	// 7:4 GPO3='0', 3:0 GPO2=UNLOCK, WM8805_CSB_PIN=PX37 on HW_GEN_DIN20. OK with initial software set to 1?
 
 	wm8805_write_byte(0x1A, 0xC0);	// 7:4 GPO7=ZEROFLAG (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
 //	wm8805_write_byte(0x1A, 0x70);	// 7:4 GPO7=UNLOCK (=SPIO_04, PX15), 3:0 GPO6=INT_N, that pin is grounded SPDIF in via write to 0x1D:5
@@ -472,28 +479,41 @@ uint8_t wm8805_unlocked(void) {
 }
 
 
-// Mute the WM8805 output by means of other hardware
+// Mute the WM8805 output
 void wm8805_mute(void) {
-	int i;
 
-	for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-		spk_buffer_0[i] = 0;
-		spk_buffer_1[i] = 0;
-	}
+	#ifdef HW_GEN_DIN20					// Dedicated mute pin, leaves clocks etc intact
+		mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
+	#else								// No hard-mute, use USB subsystem
+		int i;
 
-	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-	else
-    	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-//	print_dbg_char('l');						// Not-loud!
+		for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
+			spk_buffer_0[i] = 0;					// Needed in GEN_DIN20?
+			spk_buffer_1[i] = 0;
+		}
+
+	/*
+		if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+		else
+			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+	*/
+		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
+
+	//	print_dbg_char('l');						// Not-loud!
+	#endif
 }
 
-// Un-mute the WM8805 output by means of other hardware
+// Un-mute the WM8805
 void wm8805_unmute(void) {
 	U32 wm8805_freq;
 	wm8805_freq = wm8805_srd();
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
+
+	#ifdef HW_GEN_DIN20
+		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
+	#endif
 }
 
 // Write a single byte to WM8805

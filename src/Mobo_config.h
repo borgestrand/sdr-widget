@@ -33,7 +33,8 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 #define USB_DATA_A0_B1_PIN			AVR32_PIN_PA02		// USB_A0_B1, MUX address control
 #define USB_VBUS_A_PIN				AVR32_PIN_PA31		// Active high enable A's VBUS
 #define USB_VBUS_B_PIN				AVR32_PIN_PA28		// Active high enable B's VBUS
-
+#define	MOBO_I2S_ENABLE				1
+#define MOBO_I2S_DISABLE			0
 
 // Control USB multiplexer in HW_GEN_DIN20
 void mobo_usb_select(uint8_t USB_CH);
@@ -50,6 +51,9 @@ void mobo_led_select(U32 frequency, uint8_t source);
 
 // LED control
 void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
+
+// I2S hard mute control
+void  mobo_i2s_enable(uint8_t i2s_mode);
 
 #endif // HW_GEN_DIN10 || HW_GEN_20
 

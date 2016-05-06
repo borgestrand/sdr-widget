@@ -60,6 +60,14 @@ uint8_t mobo_usb_detect(void) {
 
 	return USB_CH_B;
 }
+
+void  mobo_i2s_enable(uint8_t i2s_mode) {
+	if (i2s_mode == MOBO_I2S_ENABLE)
+		gpio_set_gpio_pin(AVR32_PIN_PX11); 					// Enable I2S data
+	else if (i2s_mode == MOBO_I2S_DISABLE)
+		gpio_clr_gpio_pin(AVR32_PIN_PX11); 					// Disable I2S data pin
+}
+
 #endif
 
 
@@ -110,7 +118,6 @@ void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0) {
 	else
 		gpio_set_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
 }
-
 
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source) {

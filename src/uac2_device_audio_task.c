@@ -701,7 +701,7 @@ void uac2_device_audio_task(void *pvParameters)
 	#else
 	            	xSemaphoreGive(input_select_semphr);
 	#endif
-	            	mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
+//	            	mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
 #endif
 				}
 
@@ -830,7 +830,7 @@ void uac2_device_audio_task(void *pvParameters)
 	#else
 				xSemaphoreGive(input_select_semphr);
 	#endif
-				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
+//				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
 #endif
 
 			}

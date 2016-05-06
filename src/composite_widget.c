@@ -230,7 +230,7 @@ int i;
 	gpio_set_gpio_pin(AVR32_PIN_PX51);						// Enables power to XO and DAC in USBI2C AB-1.X and USB DAC 128
 #endif
 
-#if (defined HW_GEN_DIN20)
+#ifdef HW_GEN_DIN20
 	gpio_set_gpio_pin(AVR32_PIN_PA27);						// Enables power to XO and DAC in SP_DAC02
 	gpio_set_gpio_pin(AVR32_PIN_PX13);						// Reset pin override inactive. Should have external pull-up!
 
@@ -238,7 +238,9 @@ int i;
 	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
 	gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);					// Select USB B to MCU's USB data pins
 	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
-	USB_CH = USB_CH_B;										// FIX: Detect at startup. For now UAC1/2 selection applies to front and rear the same way.
+//	USB_CH = USB_CH_B;										// FIX: Detect at startup. For now UAC1/2 selection applies to front and rear the same way.
+	USB_CH = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
+	mobo_i2s_enable(MOBO_I2S_ENABLE);
 #endif														//      Later: Maybe make front USB constantly UAC2...
 
 
