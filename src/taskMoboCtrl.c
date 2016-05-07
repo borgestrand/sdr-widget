@@ -1110,13 +1110,21 @@ static void vtaskMoboCtrl( void * pcParameters )
            	if (mobo_usb_detect() != USB_CH) {
 //           		print_dbg_char('-');
 
-           		if (USB_CH_counter++ > 20) {				// Different USB plug for some time:
+           		if (USB_CH_counter++ > 5) {				// Different USB plug for some time:
                 	mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
-                    vTaskDelay(20000);						// Chill for a while
-                    if (USB_CH == USB_CH_A)					// Swap USB plugs
+                    vTaskDelay(10000);						// Chill for a while
+                    if (USB_CH == USB_CH_A) {				// Swap USB plugs
                     	USB_CH = USB_CH_B;
-                    else
+						#ifdef USB_STATE_MACHINE_DEBUG
+							print_dbg_char('b');
+						#endif
+                    }
+                    else {
                     	USB_CH = USB_CH_A;
+						#ifdef USB_STATE_MACHINE_DEBUG
+							print_dbg_char('a');
+						#endif
+                    }
                 	mobo_usb_select(USB_CH);
 
                 	if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) )
