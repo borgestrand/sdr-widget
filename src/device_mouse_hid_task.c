@@ -361,6 +361,14 @@ void device_mouse_hid_task(void)
             else if (a == 'y') {							// Lowercase y
             	mobo_i2s_enable(MOBO_I2S_DISABLE);
             }
+
+            else if (a == 'F') {							// Uppercase F
+            	mobo_km(MOBO_HP_KM_ENABLE);
+            }
+
+            else if (a == 'f') {							// Lowercase f
+            	mobo_km(MOBO_HP_KM_DISABLE);
+            }
 #endif
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)

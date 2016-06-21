@@ -55,10 +55,12 @@
 //! @{
 #define FMCK_HZ                       FOSC0
 #define FCPU_HZ                       66000000
+#define FCPU_HZ_SLOW                  12000000
 #define FHSB_HZ                       33000000
 #define FPBB_HZ                       33000000
 //#define FPBA_HZ                       33000000
 #define FPBA_HZ                       66000000
+#define FPBA_HZ_SLOW                  12000000
 //! @}
 
 

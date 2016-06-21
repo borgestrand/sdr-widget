@@ -355,7 +355,7 @@ void wm8805_reset(uint8_t reset_type) {
 		gpio_clr_gpio_pin(WM8805_RESET_PIN);			// Clear reset pin WM8805 active low reset
 		#ifdef HW_GEN_DIN20
 			gpio_clr_gpio_pin(WM8805_CSB_PIN);			// CSB/GPO2 pin sets 2W address. Make sure CSB outputs 0.
-		#endif											// Who knows how CSB is samplet at _reset. Assume rising edge
+		#endif											// Who knows how CSB is sampled at _reset. Assume rising edge
 	}
 	else {
 		gpio_set_gpio_pin(WM8805_RESET_PIN);			// Set reset pin WM8805 active low reset

@@ -31,6 +31,15 @@
 */
 
 #ifdef HW_GEN_DIN20
+
+// Control headphone amp power supply (K-mult) turn-on time, for now main VDD turn on/off!
+void mobo_km(uint8_t enable) {
+	if (enable == MOBO_HP_KM_ENABLE)
+		gpio_set_gpio_pin(AVR32_PIN_PX55);				// Clear PX55 to no longer short the KM capacitors
+	else
+		gpio_clr_gpio_pin(AVR32_PIN_PX55);				// Set PX55 to short the KM capacitors (pulled up on HW)
+}
+
 // Control USB multiplexer in HW_GEN_DIN20
 void mobo_usb_select(uint8_t USB_CH) {
 	if (USB_CH == USB_CH_NONE) {

@@ -216,12 +216,16 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_enable_pin_glitch_filter(SSC_TX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 
+	print_dbg_char_char('i');
+
 	// set up SSC
 	if (uac1) {
 		ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 	} else {
 		ssc_i2s_init(ssc, 96000, 32, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 	}
+
+	print_dbg_char_char('I');
 
 	// set up PDCA
 	// In order to avoid long slave handling during undefined length bursts (INCR), the Bus Matrix
