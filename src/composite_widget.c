@@ -260,6 +260,10 @@ int i;
 	mobo_km(MOBO_HP_KM_DISABLE);
 
 
+
+	// How much does board burn during this kind of wait?
+	cpu_delay_ms(100, FCPU_HZ_SLOW);
+
 	// 3: Turn on analog part of current limiter and step-up converter.
 	gpio_set_gpio_pin(AVR32_PIN_PA27);
 
