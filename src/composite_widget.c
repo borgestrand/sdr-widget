@@ -179,6 +179,7 @@
 #include "Mobo_config.h"
 #include "taskAK5394A.h"
 #include "cycle_counter.h"
+#include "ssc_i2s.h"
 
 /*
  *  A few global variables.
@@ -291,51 +292,16 @@ int i;
 
 
 	// Wait for analog KM output to settle.
-	cpu_delay_ms(1000, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
+	cpu_delay_ms(600, FCPU_HZ_SLOW); // 600 worked, but that was without considering the DAC charge pumps
 
 
 	// Short the shared 22R resistor at LDO inputs. FIX: add to patch and board design!
 	gpio_set_gpio_pin(AVR32_PIN_PX31);
 
+	// Let things settle a bit
+	cpu_delay_ms(100, FCPU_HZ_SLOW);
 
 
-	while(1); // Is I2S to DAC silent or not? Sort that out first
-
-/*
-
-	// 2: Wait for power OK, indicator is busted.
-	while (gpio_get_pin_value(AVR32_PIN_PA29) == 0) {
-		cpu_delay_ms(2, FCPU_HZ);
-		print_dbg_char('0');
-	}
-
-	// 3: Turn on analog part of current limiter, and step-up converter
-	gpio_set_gpio_pin(AVR32_PIN_PA27);
-
-	// 4: Wait for power OK
-	while (gpio_get_pin_value(AVR32_PIN_PA29) == 0) {
-		cpu_delay_ms(2, FCPU_HZ);
-		print_dbg_char('1');
-	}
-
-	// 5: Turn on KM for all analog parts
-	mobo_km(MOBO_HP_KM_ENABLE);
-
-	// 6: Wait for power OK
-	while (gpio_get_pin_value(AVR32_PIN_PA29) == 0) {
-		cpu_delay_ms(2, FCPU_HZ);
-		print_dbg_char('2');
-	}
-
-	// 7: Turn on LDOs, not yet patched up
-
-	// 8: Wait for power OK
-
-	// 9: Turn on KM for headphone amp
-
-	// 10: Wait for power OK
-
-*/
 
 #endif														//      Later: Maybe make front USB constantly UAC2...
 
