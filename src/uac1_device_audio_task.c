@@ -183,7 +183,7 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
-	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX31
+//	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX31
 	S32 sample_L = 0;
 	S32 sample_R = 0; // BSB 20131102 Expanded for skip/insert, 20160322 changed to S32!
 	const U8 EP_AUDIO_IN = ep_audio_in;
@@ -347,6 +347,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 				if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 
+/*
 #ifdef USB_STATE_MACHINE_DEBUG						// BSB 20131206 Toggle GPIO_07 / TP72 to indicate FB EP poll
 					if (toggle_07 == 1) {			//                     = PX31 = TP72
 						gpio_clr_gpio_pin(AVR32_PIN_PX31);
@@ -357,6 +358,7 @@ void uac1_device_audio_task(void *pvParameters)
 						toggle_07 = 1;
 					}
 #endif
+*/
 
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);

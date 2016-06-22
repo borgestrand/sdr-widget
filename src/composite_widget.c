@@ -248,6 +248,13 @@ int i;
 #ifdef HW_GEN_DIN20
 	gpio_set_gpio_pin(AVR32_PIN_PX13);						// Reset pin override inactive. Should have external pull-up!
 
+	// Disable all power supplies
+	// Shouldn't be needed with pull-down
+	mobo_km(MOBO_HP_KM_DISABLE);
+	gpio_clr_gpio_pin(AVR32_PIN_PX31);
+	gpio_clr_gpio_pin(AVR32_PIN_PA27);
+
+
 	gpio_clr_gpio_pin(USB_VBUS_A_PIN);						// NO USB A to MCU's VBUS pin
 	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
 	gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);					// Select USB B to MCU's USB data pins
@@ -257,12 +264,14 @@ int i;
 	mobo_i2s_enable(MOBO_I2S_ENABLE);	// FIX: Needed here? Disable here and enable with audio?
 
 
-	mobo_km(MOBO_HP_KM_DISABLE);
+	// At default, one channel of current limiter is active. That charges digital side OS-CON and
+	// OS-CON of step up's positive side (through the inductor).
 
+	// TODO: Find a 100mA and up current limiter with controllable bias resistor
 
+	// Q:How much does board burn during this kind of wait? A: Roughly 30mA
+	cpu_delay_ms(2, FCPU_HZ_SLOW);
 
-	// How much does board burn during this kind of wait?
-	cpu_delay_ms(100, FCPU_HZ_SLOW);
 
 	// 3: Turn on analog part of current limiter and step-up converter.
 	gpio_set_gpio_pin(AVR32_PIN_PA27);
@@ -273,15 +282,20 @@ int i;
 //	gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
 //	gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
 
+	cpu_delay_ms(80, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
 
-	cpu_delay_ms(100, FCPU_HZ_SLOW);
 
-
-	// Turn on all KMs
+	// Turn on all KMs by enabling pass transistors. FIX: add to board design!
+	// Analog KM charges LDOs through shared 22R FIX: add to board as 13R + 13R or something like that.
 	mobo_km(MOBO_HP_KM_ENABLE);
 
 
+	// Wait for analog KM output to settle.
+	cpu_delay_ms(1000, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
 
+
+	// Short the shared 22R resistor at LDO inputs. FIX: add to patch and board design!
+	gpio_set_gpio_pin(AVR32_PIN_PX31);
 
 
 
