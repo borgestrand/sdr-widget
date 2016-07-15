@@ -255,6 +255,8 @@ int i;
 	gpio_clr_gpio_pin(AVR32_PIN_PX31);
 	gpio_clr_gpio_pin(AVR32_PIN_PA27);
 
+	gpio_set_gpio_pin(AVR32_PIN_PA22); // TP18				// Disable pass transistor at DAC's charge pump input
+
 
 	gpio_clr_gpio_pin(USB_VBUS_A_PIN);						// NO USB A to MCU's VBUS pin
 	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
@@ -263,6 +265,7 @@ int i;
 //	USB_CH = USB_CH_B;										// FIX: Detect at startup. For now UAC1/2 selection applies to front and rear the same way.
 	USB_CH = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
 	mobo_i2s_enable(MOBO_I2S_ENABLE);	// FIX: Needed here? Disable here and enable with audio?
+
 
 
 	// At default, one channel of current limiter is active. That charges digital side OS-CON and
@@ -279,9 +282,9 @@ int i;
 
 
 	// Turn off clock controls to establish starting point
-//	gpio_set_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0 defaults to USB
-//	gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
-//	gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
+	gpio_clr_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0. No pull-down or pull-up
+	gpio_set_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
+	gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
 
 	cpu_delay_ms(80, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
 
@@ -295,12 +298,38 @@ int i;
 	cpu_delay_ms(600, FCPU_HZ_SLOW); // 600 worked, but that was without considering the DAC charge pumps
 
 
-	// Short the shared 22R resistor at LDO inputs. FIX: add to patch and board design!
-	gpio_set_gpio_pin(AVR32_PIN_PX31);
+
+	// Moved to I2S init code
+	// Wait for some time
+
+	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
+//	gpio_set_gpio_pin(AVR32_PIN_PX31);
+
+	// Wait for some time
+
+
+	// Short the shared 22R resistor at charge pump inputs. FIX: add board design!
+//	gpio_clr_gpio_pin(AVR32_PIN_PA22); // TP18
+
 
 	// Let things settle a bit
-	cpu_delay_ms(100, FCPU_HZ_SLOW);
+	cpu_delay_ms(200, FCPU_HZ_SLOW);
 
+/* Not tied to MCLK and not yet a working solution
+	// Generate a super-slow SCLK/LRCK pair to try to fool DAC into super slow startup sequence
+	int count = 0;
+	gpio_clr_gpio_pin(AVR32_PIN_PX23); // SCLK
+	gpio_clr_gpio_pin(AVR32_PIN_PX27); // LRCK
+	while (1) {
+		gpio_tgl_gpio_pin(AVR32_PIN_PX23);
+		count ++;
+		if (count == 64) {
+			count = 0;
+			gpio_tgl_gpio_pin(AVR32_PIN_PX27);
+		}
+		cpu_delay_ms(1, FCPU_HZ_SLOW);
+	}
+*/
 
 
 #endif														//      Later: Maybe make front USB constantly UAC2...

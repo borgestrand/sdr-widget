@@ -49,6 +49,7 @@
 #include "features.h"
 #include "device_audio_task.h"
 #include "taskAK5394A.h"
+#include "cycle_counter.h"
 
 //_____ M A C R O S ________________________________________________________
 
@@ -216,16 +217,12 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_enable_pin_glitch_filter(SSC_TX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 
-	print_dbg_char_char('i');
-
 	// set up SSC
 	if (uac1) {
 		ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 	} else {
 		ssc_i2s_init(ssc, 96000, 32, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 	}
-
-	print_dbg_char_char('I');
 
 	// set up PDCA
 	// In order to avoid long slave handling during undefined length bursts (INCR), the Bus Matrix
@@ -255,4 +252,24 @@ void AK5394A_task_init(const Bool uac1) {
 	//////////////////////////////////////////////
 	// Enable now the transfer.
 	pdca_enable(PDCA_CHANNEL_SSC_TX);
+
+
+#ifdef HW_GEN_DIN20
+
+	// At this point in time, the DAC's charge pump is about to start. Give it some time to
+	// pull current while the series resistor is engaged.
+	cpu_delay_ms(80, FCPU_HZ);
+
+	// Short the shared 12R resistor at charge pump inputs while 12R at LDO input is still engaged. FIX: add board design!
+	gpio_clr_gpio_pin(AVR32_PIN_PA22); // TP18
+
+	cpu_delay_ms(200, FCPU_HZ);
+
+	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
+	gpio_set_gpio_pin(AVR32_PIN_PX31);
+
+#endif
+
+
+
 }
