@@ -264,7 +264,7 @@ int i;
 	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
 //	USB_CH = USB_CH_B;										// FIX: Detect at startup. For now UAC1/2 selection applies to front and rear the same way.
 	USB_CH = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
-	mobo_i2s_enable(MOBO_I2S_ENABLE);	// FIX: Needed here? Disable here and enable with audio?
+	mobo_i2s_enable(MOBO_I2S_DISABLE);	// Disable here and enable with audio on.
 
 
 

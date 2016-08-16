@@ -1107,10 +1107,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 #endif
 
 #ifdef HW_GEN_DIN20
-           	if (mobo_usb_detect() != USB_CH) {
+           	if (mobo_usb_detect() != USB_CH) {				// Move to USB audio tasks, consider mutex action
 //           		print_dbg_char('-');
 
-           		if (USB_CH_counter++ > 5) {				// Different USB plug for some time:
+           		if (USB_CH_counter++ > 5) {					// Different USB plug for some time:
                 	mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
                     vTaskDelay(10000);						// Chill for a while
                     if (USB_CH == USB_CH_A) {				// Swap USB plugs
