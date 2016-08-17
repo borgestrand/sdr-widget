@@ -572,6 +572,8 @@ void uac1_device_audio_task(void *pvParameters)
 							playerStarted = TRUE;					// Arrival of nonzero sample is now indication of playerStarted
 	//						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
 
+							// FIX: mobo_xo_select will control I2S mux in GEN_DINx0. Verify semaphore mutex ownership!
+
 		            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem set RGB front LED

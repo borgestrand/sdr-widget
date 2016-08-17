@@ -230,10 +230,15 @@ void wm8805_poll(void) {
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
+			wm8805_mute();
+			/*
+
+			// FIX: replace by proper mute function so that I2S hard mute is used instead?
 			if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 				mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 			else
 				mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
+			 */
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
