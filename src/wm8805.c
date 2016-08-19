@@ -230,6 +230,8 @@ void wm8805_poll(void) {
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
+			print_dbg_char('F');
+
 			wm8805_mute();
 			/*
 
@@ -503,10 +505,11 @@ void wm8805_mute(void) {
 		else
 			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
 	*/
-		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
+	#endif
+
+	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
 
 	//	print_dbg_char('l');						// Not-loud!
-	#endif
 }
 
 // Un-mute the WM8805
