@@ -607,8 +607,10 @@ void uac2_device_audio_task(void *pvParameters)
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
 								}													// Hopefully, this code won't be called repeatedly. Would there be time??
-								else
+								else {
 									print_dbg_char('-');
+									while(1); // Kill the terminal output from this task
+								}
 								print_dbg_char('\n');
 							#else // not debug
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
