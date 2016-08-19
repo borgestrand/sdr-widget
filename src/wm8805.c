@@ -240,16 +240,8 @@ void wm8805_poll(void) {
 
 		// With this task's input_select values, assume semaphore is owned
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-			input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
-//			print_dbg_char('{');
-
-			// With uac2_d_a_t running at 44.1, this is where the log seems to end from this function....
-			// With uac1_d_a_t running at 44.1, things look better.
-
-//			wm8805_mute();
-
-//			print_dbg_char('[');
+			wm8805_mute();
 
 			/*
 
@@ -263,13 +255,16 @@ void wm8805_poll(void) {
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 				print_dbg_char('+');
 			}
 			else
 				print_dbg_char('-');
 			print_dbg_char('\n');
 #else
-			xSemaphoreGive(input_select_semphr);
+			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
+			}
 #endif
 //			mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// Indicate silence detected by wm8805 subsystem
 		}
@@ -506,14 +501,8 @@ uint8_t wm8805_unlocked(void) {
 
 // Mute the WM8805 output
 void wm8805_mute(void) {
-
-	print_dbg_char('a');
-
-
 	#ifdef HW_GEN_DIN20					// Dedicated mute pin, leaves clocks etc intact
-		print_dbg_char('b');
 		mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
-		print_dbg_char('c');
 	#else								// No hard-mute, use USB subsystem
 		int i;
 
@@ -530,13 +519,7 @@ void wm8805_mute(void) {
 	*/
 	#endif
 
-	print_dbg_char('d');
-
 	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
-
-	print_dbg_char('e');
-
-	//	print_dbg_char('l');						// Not-loud!
 }
 
 // Un-mute the WM8805
