@@ -262,9 +262,8 @@ void wm8805_poll(void) {
 				print_dbg_char('-');
 			print_dbg_char('\n');
 #else
-			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+			if (xSemaphoreGive(input_select_semphr) == pdTRUE)
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
-			}
 #endif
 //			mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// Indicate silence detected by wm8805 subsystem
 		}
@@ -306,11 +305,11 @@ void wm8805_poll(void) {
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
 				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-					print_dbg_char('+');
+					print_dbg_char('*');
 					input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
 				}
 				else
-					print_dbg_char('-');
+					print_dbg_char('/');
 				print_dbg_char('\n');
 #else // not debug
 				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) // Re-take of taken semaphore returns false
