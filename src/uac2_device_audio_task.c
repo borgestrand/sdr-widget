@@ -601,17 +601,14 @@ void uac2_device_audio_task(void *pvParameters)
 							#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
-									print_dbg_char('*');
+									print_dbg_char('[');
 									input_select = MOBO_SRC_UAC2;
 									#ifdef HW_GEN_DIN20
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
 								}													// Hopefully, this code won't be called repeatedly. Would there be time??
-								else {
-									print_dbg_char('/');
-									while(1); // Kill the terminal output from this task
-								}
-								print_dbg_char('\n');
+								else
+									print_dbg_char(']');
 							#else // not debug
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 									input_select = MOBO_SRC_UAC2;
@@ -715,11 +712,10 @@ void uac2_device_audio_task(void *pvParameters)
 							print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
 							if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 								input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-								print_dbg_char('+');
+								print_dbg_char(60); // '<'
 							}
 							else
-								print_dbg_char('-');
-							print_dbg_char('\n');
+								print_dbg_char(62); // '>'
 						#else
 							if( xSemaphoreGive(input_select_semphr) == pdTRUE )
 								input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
@@ -848,11 +844,10 @@ void uac2_device_audio_task(void *pvParameters)
 						print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
 						if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 							input_select = MOBO_SRC_NONE;
-							print_dbg_char('+');
+							print_dbg_char(60); // '<'
 						}
 						else
-							print_dbg_char('-');
-						print_dbg_char('\n');
+							print_dbg_char(62); // '>'
 					#else
 						if (xSemaphoreGive(input_select_semphr) == pdTRUE)
 							input_select = MOBO_SRC_NONE;

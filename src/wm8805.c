@@ -256,11 +256,10 @@ void wm8805_poll(void) {
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
-				print_dbg_char('+');
+				print_dbg_char(60); // '<'
 			}
 			else
-				print_dbg_char('-');
-			print_dbg_char('\n');
+				print_dbg_char(62); // '>'
 #else
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE)
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
