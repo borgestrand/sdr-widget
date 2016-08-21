@@ -304,12 +304,11 @@ void wm8805_poll(void) {
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
 				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-					print_dbg_char('*');
+					print_dbg_char('[');
 					input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
 				}
 				else
-					print_dbg_char('/');
-				print_dbg_char('\n');
+					print_dbg_char(']');
 #else // not debug
 				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) // Re-take of taken semaphore returns false
 					input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
