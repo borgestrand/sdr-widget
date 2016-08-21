@@ -88,7 +88,8 @@ extern S32 spk_vol_mult_L, spk_vol_mult_R;
 extern volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
 
 #ifdef HW_GEN_DIN20
-extern volatile uint8_t USB_CH;						// Front or rear USB channel
+extern volatile uint8_t usb_ch;						// Front or rear USB channel
+extern volatile uint8_t usb_ch_swap;				// Front or rear USB channel
 #endif
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)

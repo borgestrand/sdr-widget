@@ -42,7 +42,7 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 void mobo_km(uint8_t enable);
 
 // Control USB multiplexer in HW_GEN_DIN20
-void mobo_usb_select(uint8_t USB_CH);
+void mobo_usb_select(uint8_t usb_ch);
 
 // Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
 uint8_t mobo_usb_detect(void);

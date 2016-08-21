@@ -197,8 +197,13 @@ void uac2_device_audio_task(void *pvParameters)
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
+#ifdef HW_GEN_DIN20
+		// A detected swap must be acknowledged
+		if ( (!Is_device_enumerated()) && (usb_ch_swap != USB_CH_SWAPDET) ) { time=0; startup=TRUE; continue; };
+#else
 		// First, check the device enumeration state
 		if (!Is_device_enumerated()) { time=0; startup=TRUE; continue; };
+#endif
 
 		if( startup ) {
 			time+=UAC2_configTSK_USB_DAUDIO_PERIOD;
@@ -340,7 +345,11 @@ void uac2_device_audio_task(void *pvParameters)
 			}
 		} // end alt setting 1
 
+#ifdef HW_GEN_DIN20
+		if ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) ) {
+#else
 		if (usb_alternate_setting_out == 1) {
+#endif
 
 			if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 
@@ -823,7 +832,8 @@ void uac2_device_audio_task(void *pvParameters)
 			}	// end if (Is_usb_out_received(EP_AUDIO_OUT))
 		} // end if (usb_alternate_setting_out == 1)
 
-		else { // usb_alternate_setting_out != 1			// USB connection was turned off
+
+		else { // ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) )
 			playerStarted = FALSE;
 			silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
@@ -831,6 +841,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 				#ifdef HW_GEN_DIN20							// Dedicated mute pin
 					mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
+					if (usb_ch_swap == USB_CH_SWAPDET)
+						usb_ch_swap = USB_CH_SWAPACK;		// Acknowledge a USB channel swap, that takes this task into startup
 				#endif
 
 				// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805

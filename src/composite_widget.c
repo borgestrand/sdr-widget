@@ -262,8 +262,8 @@ int i;
 	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
 	gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);					// Select USB B to MCU's USB data pins
 	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
-//	USB_CH = USB_CH_B;										// FIX: Detect at startup. For now UAC1/2 selection applies to front and rear the same way.
-	USB_CH = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
+	usb_ch = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
+	usb_ch_swap = USB_CH_NOSWAP;							// No swapping detected yet
 	mobo_i2s_enable(MOBO_I2S_DISABLE);	// Disable here and enable with audio on.
 
 

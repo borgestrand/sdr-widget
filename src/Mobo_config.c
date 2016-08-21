@@ -41,19 +41,19 @@ void mobo_km(uint8_t enable) {
 }
 
 // Control USB multiplexer in HW_GEN_DIN20
-void mobo_usb_select(uint8_t USB_CH) {
-	if (USB_CH == USB_CH_NONE) {
+void mobo_usb_select(uint8_t usb_ch) {
+	if (usb_ch == USB_CH_NONE) {
 		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
 		gpio_clr_gpio_pin(AVR32_PIN_PA28);				// NO USB B to MCU's VBUS pin
 		gpio_clr_gpio_pin(AVR32_PIN_PA31);				// NO USB A to MCU's VBUS pin
 	}
-	if (USB_CH == USB_CH_A) {
+	if (usb_ch == USB_CH_A) {
 		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_clr_gpio_pin(USB_DATA_A0_B1_PIN);			// Select USB A to MCU's USB data pins
 		gpio_set_gpio_pin(USB_VBUS_A_PIN);				// Select USB A to MCU's VBUS pin
 	}
-	if (USB_CH == USB_CH_B) {
+	if (usb_ch == USB_CH_B) {
 		gpio_clr_gpio_pin(USB_VBUS_A_PIN);				// NO USB A to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);			// Select USB B to MCU's USB data pins
@@ -63,7 +63,6 @@ void mobo_usb_select(uint8_t USB_CH) {
 
 // Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
 uint8_t mobo_usb_detect(void) {
-
 	if  (gpio_get_pin_value(AVR32_PIN_PB11) == 1)
 		return USB_CH_A;
 
@@ -148,13 +147,13 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 				mobo_led(FLED_DARK, FLED_RED, FLED_DARK);		// UAC2 red 010
 #endif
 #ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC1) && (USB_CH == USB_CH_B) )
+			if ( (source == MOBO_SRC_UAC1) && (usb_ch == USB_CH_B) )
 				mobo_led(FLED_DARK, FLED_GREEN, FLED_DARK);		// UAC1 rear green 010
-			else if ( (source == MOBO_SRC_UAC1) && (USB_CH == USB_CH_A) )
+			else if ( (source == MOBO_SRC_UAC1) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_DARK, FLED_BLUE, FLED_DARK);		// UAC1 front blue 010
-			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
 				mobo_led(FLED_DARK, FLED_RED, FLED_DARK);		// UAC2 rear red 010
-			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_DARK, FLED_WHITE, FLED_DARK);		// UAC2 front white 010
 #endif
 			else if (source == MOBO_SRC_SPDIF)
@@ -173,13 +172,13 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 				mobo_led(FLED_DARK, FLED_RED, FLED_RED);		// UAC2 red 011
 #endif
 #ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC1) && (USB_CH == USB_CH_B) )
+			if ( (source == MOBO_SRC_UAC1) && (usb_ch == USB_CH_B) )
 				mobo_led(FLED_DARK, FLED_GREEN, FLED_GREEN);	// UAC1 rear green 011
-			else if ( (source == MOBO_SRC_UAC1) && (USB_CH == USB_CH_A) )
+			else if ( (source == MOBO_SRC_UAC1) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_DARK, FLED_BLUE, FLED_BLUE);		// UAC1 front blue 011
-			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
 				mobo_led(FLED_DARK, FLED_RED, FLED_RED);		// UAC2 rear red 011
-			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_DARK, FLED_WHITE, FLED_WHITE);	// UAC2 front white 011
 #endif
 			else if (source == MOBO_SRC_SPDIF)
@@ -196,9 +195,9 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 red 100
 #endif
 #ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+			if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
 				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 rear red 100
-			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_WHITE, FLED_DARK, FLED_DARK);		// UAC2 front white 100
 #endif
 			else if (source == MOBO_SRC_SPDIF)
@@ -215,9 +214,9 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 red 101
 #endif
 #ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+			if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
 				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 rear red 101
-			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_WHITE, FLED_DARK, FLED_WHITE);	// UAC2 front white 101
 #endif
 			else if (source == MOBO_SRC_SPDIF)
@@ -234,9 +233,9 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 				mobo_led(FLED_RED, FLED_RED, FLED_DARK);		// UAC2 red 110
 #endif
 #ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+			if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
 				mobo_led(FLED_RED, FLED_RED, FLED_DARK);		// UAC2 rear red 110
-			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_WHITE, FLED_WHITE, FLED_DARK);	// UAC2 front white 110
 #endif
 			else if (source == MOBO_SRC_SPDIF)
@@ -253,9 +252,9 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 				mobo_led(FLED_RED, FLED_RED, FLED_RED);				// UAC2 red 111
 #endif
 #ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_B) )
+			if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
 				mobo_led(FLED_RED, FLED_RED, FLED_RED);				// UAC2 rear red 111
-			else if ( (source == MOBO_SRC_UAC2) && (USB_CH == USB_CH_A) )
+			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_WHITE, FLED_WHITE, FLED_WHITE);		// UAC2 front white 111
 #endif
 			else if (source == MOBO_SRC_SPDIF)

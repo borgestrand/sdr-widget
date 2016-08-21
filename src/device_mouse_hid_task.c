@@ -337,16 +337,16 @@ void device_mouse_hid_task(void)
 
 #ifdef HW_GEN_DIN20
             else if (a == '0') {							// Digit 0
-        		USB_CH = USB_CH_NONE;
-            	mobo_usb_select(USB_CH);
+        		usb_ch = USB_CH_NONE;
+            	mobo_usb_select(usb_ch);
             }
             else if (a == 'A') {							// Uppercase A
-        		USB_CH = USB_CH_A;
-            	mobo_usb_select(USB_CH);
+            	usb_ch = USB_CH_A;
+            	mobo_usb_select(usb_ch);
             }
             else if (a == 'B') {							// Uppercase B
-        		USB_CH = USB_CH_B;
-            	mobo_usb_select(USB_CH);
+            	usb_ch = USB_CH_B;
+            	mobo_usb_select(usb_ch);
             }
             else if (a == 'D') {							// Uppercase D
             	if (mobo_usb_detect() == USB_CH_A)

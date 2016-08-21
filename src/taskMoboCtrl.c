@@ -522,7 +522,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	uint32_t lastIteration=0, Timerval;				// Counters to keep track of time
 
 #ifdef HW_GEN_DIN20
-	uint8_t USB_CH_counter = 0;						// How many poll periods have passed since a USB change detection?
+	uint8_t usb_ch_counter = 0;						// How many poll periods have passed since a USB change detection?
 #endif
 
 	widget_initialization_start();
@@ -1107,30 +1107,34 @@ static void vtaskMoboCtrl( void * pcParameters )
 #endif
 
 #ifdef HW_GEN_DIN20
-           	if (mobo_usb_detect() != USB_CH) {				// Move to USB audio tasks, consider mutex action
+           	if (mobo_usb_detect() != usb_ch) {
 //           		print_dbg_char('-');
 
-           		if (USB_CH_counter++ > 5) {					// Different USB plug for some time:
+           		if (usb_ch_counter++ > 5) {					// Different USB plug for some time:
+					usb_ch_swap = USB_CH_SWAPDET;			// Signal USB audio tasks to take mute and mutex action
+                    vTaskDelay(50000);						// Chill for a while, at least one execution of uac?_device_audio_task
                 	mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
-                    vTaskDelay(10000);						// Chill for a while
-                    if (USB_CH == USB_CH_A) {				// Swap USB plugs
-                    	USB_CH = USB_CH_B;
+                    vTaskDelay(50000);						// Chill for a while, at least one execution of uac?_device_audio_task
+
+                    if (usb_ch == USB_CH_A) {				// Swap USB plugs
+                    	usb_ch = USB_CH_B;
 						#ifdef USB_STATE_MACHINE_DEBUG
 							print_dbg_char('b');
 						#endif
                     }
                     else {
-                    	USB_CH = USB_CH_A;
+                    	usb_ch = USB_CH_A;
 						#ifdef USB_STATE_MACHINE_DEBUG
 							print_dbg_char('a');
 						#endif
                     }
-                	mobo_usb_select(USB_CH);
+                	mobo_usb_select(usb_ch);
 
                 	if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) )
                 		mobo_led_select(FREQ_44, input_select);	// Change LED according to recently plugged in USB cable. Assume 44.1
 
-                	USB_CH_counter = 0;
+                	usb_ch_swap = USB_CH_NOSWAP;
+                	usb_ch_counter = 0;
            		}
            	}
 #endif
