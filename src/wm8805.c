@@ -194,8 +194,10 @@ void wm8805_poll(void) {
 
 #ifdef HW_GEN_DIN20										// Hard, shared I2S mute available
 	if (gpio_get_pin_value(AVR32_PIN_PX37) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) )
+		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
+			print_dbg_char('N');
+		}
 	}
 #endif
 
@@ -242,6 +244,7 @@ void wm8805_poll(void) {
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
 			wm8805_mute();
+			print_dbg_char('M');
 
 			/*
 
@@ -319,6 +322,9 @@ void wm8805_poll(void) {
 			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 				wm8805_clkdiv();						// Configure MCLK division
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
+				print_dbg_char('m');
+
+
 				wm8805_muted = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('!');
@@ -335,6 +341,8 @@ void wm8805_poll(void) {
 		if (wm8805_unlocked()) {						// Unlock
 			if (wm8805_muted == 0) {
 				wm8805_mute();
+				print_dbg_char('K');
+
 				wm8805_muted = 1;						// In any case, we're muted from now on.
 			}
 
@@ -350,14 +358,33 @@ void wm8805_poll(void) {
 
 	// Monitor silent or disconnected WM8805 input
 	if ( !WM_IS_PAUSED() && (wm8805_power == 1) ) {
-		if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
-			if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
-				wm8805_zerotimer += SILENCE_WM_ZERO;	// The poll intervals are crap, need thorough adjustment!
-			else
+		if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (gpio_get_pin_value(WM8805_CSB_PIN) == 1) ) { // Is the WM8805 zero flag set, or is it in unlock?
+
+			if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
 				wm8805_zerotimer += SILENCE_WM_UNLINK;
+				print_dbg_char('u');
+			}
+			if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
+				wm8805_zerotimer += SILENCE_WM_ZERO;	// The poll intervals are crap, need thorough adjustment!
+				print_dbg_char('z');
+			}
 		}
 		else
 			wm8805_zerotimer = SILENCE_WM_INIT;			// Not silent and in lock!
+
+
+/* HW_GEN_DIN10 code
+		// Monitor silent or disconnected WM8805 input
+		if ( !WM_IS_PAUSED() && (wm8805_power == 1) ) {
+			if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
+				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
+					wm8805_zerotimer += SILENCE_WM_ZERO;	// The poll intervals are crap, need thorough adjustment!
+				else
+					wm8805_zerotimer += SILENCE_WM_UNLINK;
+			}
+			else
+				wm8805_zerotimer = SILENCE_WM_INIT;			// Not silent and in lock!
+*/
 	}
 
 } // wm8805_poll
@@ -484,6 +511,11 @@ void wm8805_clkdiv(void) {
 uint8_t wm8805_unlocked(void) {
 	uint8_t temp2;						// Record SPDIF RX status
 	uint8_t temp3 = 255;				// Counter used to qualify lock
+
+	#ifdef HW_GEN_DIN20					// New hardware: dedicated pin
+		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	// Not locked!
+			return 1;					// UNLOCKED
+	#endif
 
 	while (temp3 != 0) {
 		temp2 = (wm8805_read_byte(0x0C) & 0x40) ;	// Record UNLOCK (1) or lock (0)

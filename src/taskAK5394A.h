@@ -83,9 +83,6 @@
 #define SILENCE_WM_INIT		0
 #define SILENCE_WM_ZERO		10
 #define SILENCE_WM_UNLINK	100
-#define LOUD_WM_LIMIT		3					// Set above 1 to avoid blinking LED during channel search
-#define	LOUD_WM_INIT		0
-#define	LOUD_WM_INC			1
 #define SILENCE_USB_LIMIT	12000 				// We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
 #define SILENCE_USB_INIT	0
 #define USB_IS_SILENT() (silence_USB >= SILENCE_USB_LIMIT)

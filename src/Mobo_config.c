@@ -73,13 +73,13 @@ void  mobo_i2s_enable(uint8_t i2s_mode) {
 	if (i2s_mode == MOBO_I2S_ENABLE) {
 		gpio_set_gpio_pin(AVR32_PIN_PX11); 					// Enable I2S data
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('m');								// Indicate unmute
+//		print_dbg_char('m');								// Indicate unmute
 #endif
 	}
 	else if (i2s_mode == MOBO_I2S_DISABLE) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX11); 					// Disable I2S data pin
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('M');								// Indicate mute
+//		print_dbg_char('M');								// Indicate mute
 #endif
 	}
 }
