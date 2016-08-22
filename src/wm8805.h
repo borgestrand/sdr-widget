@@ -42,8 +42,8 @@
 #define WM8805_PLL_192		1					// PLL mode is for 192ksps
 #define WM8805_PLL_EXP		2					// Experimental PLL mode
 
-#define WM_IS_UNLINKED() (wm8805_zerotimer >= SILENCE_WM_LINKUP)
-#define WM_IS_PAUSED() (wm8805_zerotimer >= SILENCE_WM_PAUSE)
+// #define WM_IS_UNLINKED() (wm8805_zerotimer >= SILENCE_WM_LINKUP)
+// #define WM_IS_PAUSED() (wm8805_zerotimer >= SILENCE_WM_PAUSE)
 
 // Regular polling of WM8805 hardware
 void wm8805_poll(void);
