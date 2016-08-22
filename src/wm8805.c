@@ -326,9 +326,6 @@ void wm8805_poll(void) {
 
 
 				wm8805_muted = 0;
-#ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('!');
-#endif
 			}
 		}
 	}
