@@ -153,22 +153,18 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "I2C.h"
 
 
-
-
 //!
 //! @brief Polling routine for WM8805 hardware
 //!
 void wm8805_poll(void) {
-	// Function originally developed inside device_mouse_hid_task, an infinite loop with a "vTaskDelay(120);"
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t wm8805_int = 0;									// WM8805 interrupt status
-//  static uint16_t wm8805_zerotimer = SILENCE_WM_PAUSE;	// Initially assume WM8805 is silent
     static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
     static uint8_t wm8805_muted = 1;						// Assume I2S output is muted
 	static uint8_t wm8805_power = 0;						// Starting up with wm8805 powered down
 
-	static uint8_t pausecounter = 0;
-	static uint8_t unlockcounter = 0;
+	static int16_t pausecounter = 0;
+	static int16_t unlockcounter = 0;
 
 
 	/* NEXT:
@@ -196,7 +192,7 @@ void wm8805_poll(void) {
 	 */
 
 #ifdef HW_GEN_DIN20										// Hard, shared I2S mute available
-	if (gpio_get_pin_value(AVR32_PIN_PX37) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
+	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
 		}
@@ -207,10 +203,9 @@ void wm8805_poll(void) {
 	if (input_select == MOBO_SRC_NONE) {
 		if (wm8805_power == 0) {
 			wm8805_power = 1;
-//					print_dbg_char('U');				// WM8805 going Up
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
 			wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
-//			wm8805_zerotimer = SILENCE_WM_INIT;			// Assume it hasn't become silent yet at startup, give it time to figure out
+
 			unlockcounter = 0;
 			pausecounter = 0;
 
@@ -223,7 +218,6 @@ void wm8805_poll(void) {
 	else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
 		if (wm8805_power == 1) {
 			wm8805_power = 0;
-//					print_dbg_char('D');						// WM8805 going Down
 			wm8805_sleep();
 		}
 	}
@@ -233,37 +227,19 @@ void wm8805_poll(void) {
 	// When WM is not selected, scan WM inputs for a short time (unlinked)
 //	if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
 
-	if ( (wm8805_power == 1) && ( (unlockcounter >= 5) || (pausecounter >= 10) ) ) {
-
-
-
-		/*
-		print_dbg_char('(');
-		print_dbg_char_hex(input_select);
-
-		if (input_select == MOBO_SRC_SPDIF)
-			print_dbg_char('q');
-		if (input_select == MOBO_SRC_TOS2)
-			print_dbg_char('r');
-		if (input_select == MOBO_SRC_TOS1)
-			print_dbg_char('s');
-*/
-
+	if ( (wm8805_power == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= WM8805_PAUSE_LIM) ) ) {
 		// With this task's input_select values, assume semaphore is owned
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
 			wm8805_mute();
 			wm8805_muted = 1;
-			print_dbg_char('M');
 
-			/*
-
-			// FIX: replace by proper mute function so that I2S hard mute is used instead?
-			if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-				mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-			else
-				mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-			 */
+/*			What caused the handover?
+			if (unlockcounter >= WM8805_UNLOCK_LIM)
+				print_dbg_char('u');
+			if (pausecounter >= WM8805_PAUSE_LIM)
+				print_dbg_char('p');
+*/
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
@@ -282,13 +258,13 @@ void wm8805_poll(void) {
 		// Try other WM8805 channel
 		if (input_select == MOBO_SRC_NONE) {
 
-			#ifdef HW_GEN_DIN10										// Only SPDIF and TOS2 available
+			#ifdef HW_GEN_DIN10									// Only SPDIF and TOS2 available
 				if (input_select_wm8805_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
 					input_select_wm8805_next = MOBO_SRC_SPDIF;
 				else
 					input_select_wm8805_next = MOBO_SRC_TOS2;
 			#endif
-			#ifdef HW_GEN_DIN20										// SPDIF, TOS2 and TOS1 available
+			#ifdef HW_GEN_DIN20									// SPDIF, TOS2 and TOS1 available
 				if (input_select_wm8805_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
 					input_select_wm8805_next = MOBO_SRC_TOS1;
 				else if (input_select_wm8805_next == MOBO_SRC_TOS1)	// Prepare to probe other WM channel next time we're here
@@ -297,12 +273,10 @@ void wm8805_poll(void) {
 					input_select_wm8805_next = MOBO_SRC_TOS2;
 			#endif
 
+#ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char(':');
 			print_dbg_char_hex(input_select_wm8805_next);
-
-
-// old code	wm8805_muted = 1;								// I2S is still controlled by USB which should have zeroed it.
-//			wm8805_zerotimer = SILENCE_WM_INIT;				// Assume it hasn't become silent yet at startup, give it time to figure out
+#endif
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
@@ -312,9 +286,7 @@ void wm8805_poll(void) {
 
 	// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
 	if ( (wm8805_muted == 1) && (wm8805_power == 1) ) {
-
-	//			if (wm8805_muted) {					// Try to unmute with qualified UNLOCK
-		if ( (!wm8805_unlocked()) && (gpio_get_pin_value(WM8805_ZERO_PIN) == 0) ) {	// Qualified lock with audio present
+		if ( (unlockcounter == 0) && (pausecounter == 0) ) {
 
 			if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -335,9 +307,6 @@ void wm8805_poll(void) {
 			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 				wm8805_clkdiv();						// Configure MCLK division
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
-				print_dbg_char('m');
-
-
 				wm8805_muted = 0;
 			}
 		}
@@ -348,12 +317,12 @@ void wm8805_poll(void) {
 	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_power == 1) ) {
 		wm8805_int = wm8805_read_byte(0x0B);			// Record interrupt status and clear pin
 
-		if (wm8805_unlocked()) {						// Unlock
+		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {
 			if (wm8805_muted == 0) {
 				wm8805_mute();
-				print_dbg_char('K');
-
 				wm8805_muted = 1;						// In any case, we're muted from now on.
+
+				print_dbg_char('K');					// Indicate PLL change
 			}
 
 			if (wm8805_srd() == FREQ_192)
@@ -369,47 +338,31 @@ void wm8805_poll(void) {
 	// Monitor silent or disconnected WM8805 input
 	if (wm8805_power == 1) {
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
-			if (unlockcounter < 5)
+			if (unlockcounter < WM8805_UNLOCK_LIM)
 				unlockcounter++;
-			else {
-				print_dbg_char('u');
-//				wm8805_zerotimer = 10000;
-			}
-		}
-		else
-			unlockcounter = 0;
-
-		if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
-			if (pausecounter < 10)
-				pausecounter++;
-			else {
-				print_dbg_char('p');
-//				wm8805_zerotimer = 10000;
-			}
 		}
 		else {
-			pausecounter = 0;
-//			wm8805_zerotimer = SILENCE_WM_INIT;			// Not silent and in lock!
+			if (unlockcounter > 0)
+				unlockcounter -= 2;						// Faster count down
+			if (unlockcounter < 0)
+				unlockcounter = 0;
+		}
+
+		if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
+			if (pausecounter < WM8805_PAUSE_LIM)
+				pausecounter++;
+		}
+		else {
+			if (pausecounter > 0)
+				pausecounter -= 4;						// Faster count down
+			if (pausecounter < 0)
+				pausecounter = 0;
 		}
 	}
 
-
-/* HW_GEN_DIN10 code
-		// Monitor silent or disconnected WM8805 input
-		if ( !WM_IS_PAUSED() && (wm8805_power == 1) ) {
-			if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (wm8805_unlocked() ) ) {		// Is the WM8805 zero flag set, or is it in unlock?
-				if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1)
-					wm8805_zerotimer += SILENCE_WM_ZERO;	// The poll intervals are crap, need thorough adjustment!
-				else
-					wm8805_zerotimer += SILENCE_WM_UNLINK;
-			}
-			else
-				wm8805_zerotimer = SILENCE_WM_INIT;			// Not silent and in lock!
-*/
-
 } // wm8805_poll
 
-// Various WM8805 functions are drafted here and later moved somewhere better.....
+
 // Using the WM8805 requires intimate knowledge of the chip and its datasheet. For this
 // reason we use a lot of raw hex rather than naming of its internal registers.
 
@@ -478,13 +431,6 @@ void wm8805_input(uint8_t input_sel) {
 
 // Select PLL setting of the WM8805
 void wm8805_pll(uint8_t pll_sel) {
-/*
- * Mute ???
- * Disable RX, set up PLL, enable RX
- * Wait for lock and report success/failure?
- * Unmute ???
- */
-
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
@@ -528,26 +474,6 @@ void wm8805_clkdiv(void) {
 		wm8805_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
 }
 
-// Is WM8805 out of lock?
-uint8_t wm8805_unlocked(void) {
-	uint8_t temp2;						// Record SPDIF RX status
-	uint8_t temp3 = 255;				// Counter used to qualify lock
-
-	#ifdef HW_GEN_DIN20					// New hardware: dedicated pin
-		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	// Not locked!
-			return 1;					// UNLOCKED
-	#endif
-
-	while (temp3 != 0) {
-		temp2 = (wm8805_read_byte(0x0C) & 0x40) ;	// Record UNLOCK (1) or lock (0)
-		if (temp2 != 0)					// ONE detection of UNLOCK==1 is enough,
-			return 1;					// UNLOCKED
-		else							// reasonably sure we really have lock
-			temp3--;
-	}
-	return 0;							// Not unlocked, i.e. LOCKED!
-}
-
 
 // Mute the WM8805 output
 void wm8805_mute(void) {
@@ -572,6 +498,7 @@ void wm8805_mute(void) {
 	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
 }
 
+
 // Un-mute the WM8805
 void wm8805_unmute(void) {
 	U32 wm8805_freq;
@@ -584,6 +511,7 @@ void wm8805_unmute(void) {
 	#endif
 }
 
+
 // Write a single byte to WM8805
 uint8_t wm8805_write_byte(uint8_t int_adr, uint8_t int_data) {
     uint8_t dev_data[2];
@@ -595,6 +523,7 @@ uint8_t wm8805_write_byte(uint8_t int_adr, uint8_t int_data) {
 	status = twi_write_out(WM8805_DEV_ADR, dev_data, 2);
 	return status;
 }
+
 
 // Read a single byte from WM8805
 uint8_t wm8805_read_byte(uint8_t int_adr) {

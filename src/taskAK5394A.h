@@ -78,11 +78,6 @@
 #define	FREQ_192			192000
 
 // Values for silence (32-bit)
-#define SILENCE_WM_LINKUP	300					// Limit when probing other WM8805 channel i.e. music NOT playing
-#define SILENCE_WM_PAUSE	3000				// Limit when input_select is a WM8805 channel i.e. music pausing
-#define SILENCE_WM_INIT		0
-#define SILENCE_WM_ZERO		10
-#define SILENCE_WM_UNLINK	100
 #define SILENCE_USB_LIMIT	12000 				// We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
 #define SILENCE_USB_INIT	0
 #define USB_IS_SILENT() (silence_USB >= SILENCE_USB_LIMIT)
