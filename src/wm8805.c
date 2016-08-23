@@ -165,6 +165,7 @@ void wm8805_poll(void) {
 
 	static int16_t pausecounter = 0;
 	static int16_t unlockcounter = 0;
+	static int16_t lockcounter = 0;
 
 
 	/* NEXT:
@@ -195,6 +196,7 @@ void wm8805_poll(void) {
 	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
+			wm8805_muted = 1;
 		}
 	}
 #endif
@@ -208,10 +210,14 @@ void wm8805_poll(void) {
 
 			unlockcounter = 0;
 			pausecounter = 0;
+			lockcounter = 0;
 
 			wm8805_input(input_select_wm8805_next);		// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
+
+			print_dbg_char('^');
+
 		}
 	}
 	// USB has assumed control, power down WM8805 if it was on
@@ -229,17 +235,18 @@ void wm8805_poll(void) {
 
 	if ( (wm8805_power == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= WM8805_PAUSE_LIM) ) ) {
 		// With this task's input_select values, assume semaphore is owned
+
+		//	What caused the trigger?
+		if (unlockcounter >= WM8805_UNLOCK_LIM)
+			print_dbg_char('u');
+		if (pausecounter >= WM8805_PAUSE_LIM)
+			print_dbg_char('p');
+
+
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
 			wm8805_mute();
 			wm8805_muted = 1;
-
-/*			What caused the handover?
-			if (unlockcounter >= WM8805_UNLOCK_LIM)
-				print_dbg_char('u');
-			if (pausecounter >= WM8805_PAUSE_LIM)
-				print_dbg_char('p');
-*/
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
@@ -280,13 +287,19 @@ void wm8805_poll(void) {
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
+			vTaskDelay(1000);								// Reasonably good in practical tests..
+
+			lockcounter = 0;
+			unlockcounter = 0;
+			pausecounter = 0;
+
 		}
 	}
 
 
 	// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
 	if ( (wm8805_muted == 1) && (wm8805_power == 1) ) {
-		if ( (unlockcounter == 0) && (pausecounter == 0) ) {
+		if ( (lockcounter >= WM8805_LOCK_LIM) && (pausecounter == 0) ) {
 
 			if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -340,12 +353,21 @@ void wm8805_poll(void) {
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
 			if (unlockcounter < WM8805_UNLOCK_LIM)
 				unlockcounter++;
+
+			lockcounter = 0;
 		}
-		else {
-			if (unlockcounter > 0)
+		else {											// Lock indication
+
+			unlockcounter = 0;
+
+/*			if (unlockcounter > 0)
 				unlockcounter -= 2;						// Faster count down
 			if (unlockcounter < 0)
 				unlockcounter = 0;
+*/
+
+			if (lockcounter < WM8805_LOCK_LIM)
+				lockcounter++;
 		}
 
 		if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
@@ -353,10 +375,13 @@ void wm8805_poll(void) {
 				pausecounter++;
 		}
 		else {
+			pausecounter = 0;
+/*
 			if (pausecounter > 0)
 				pausecounter -= 4;						// Faster count down
 			if (pausecounter < 0)
 				pausecounter = 0;
+*/
 		}
 	}
 
@@ -384,6 +409,9 @@ void wm8805_reset(uint8_t reset_type) {
 
 // Start up the WM8805
 void wm8805_init(void) {
+
+	print_dbg_char('i');
+
 	wm8805_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 RX0
 
 	wm8805_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ?

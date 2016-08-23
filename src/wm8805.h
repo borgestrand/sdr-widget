@@ -41,8 +41,9 @@
 #define WM8805_PLL_NORMAL	0					// PLL mode is normal 32-96 and 176.4ksps
 #define WM8805_PLL_192		1					// PLL mode is for 192ksps
 #define WM8805_PLL_EXP		2					// Experimental PLL mode
-#define WM8805_UNLOCK_LIM	20					// Number of poll cycles to determine that an unlock has taken place, in order to start searching
+#define WM8805_UNLOCK_LIM	2					// Number of poll cycles to determine that an unlock has taken place, in order to start searching
 #define WM8805_PAUSE_LIM	200					// Number of poll cycles to determine that music is paused. NB: Signed 16-bit number!
+#define WM8805_LOCK_LIM		2					// Number of poll cycles to verify lock
 
 // Regular polling of WM8805 hardware
 void wm8805_poll(void);

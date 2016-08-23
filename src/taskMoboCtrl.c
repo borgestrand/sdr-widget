@@ -687,7 +687,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 	// Prog button poll stuff BSB 20110903
 	gpio_enable_pin_glitch_filter(PRG_BUTTON);
 
-
 	while( 1 )
     {
 		// Poll Real Time Clock, used for 100ms and 10s timing below
@@ -1110,11 +1109,11 @@ static void vtaskMoboCtrl( void * pcParameters )
            	if (mobo_usb_detect() != usb_ch) {
 //           		print_dbg_char('-');
 
-           		if (usb_ch_counter++ > 5) {					// Different USB plug for some time:
+           		if (usb_ch_counter++ > 3) {					// Different USB plug for some time:
 					usb_ch_swap = USB_CH_SWAPDET;			// Signal USB audio tasks to take mute and mutex action
-                    vTaskDelay(50000);						// Chill for a while, at least one execution of uac?_device_audio_task
+                    vTaskDelay(10000);						// Chill for a while, at least one execution of uac?_device_audio_task
                 	mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
-                    vTaskDelay(50000);						// Chill for a while, at least one execution of uac?_device_audio_task
+                    vTaskDelay(10000);						// Chill for a while, at least one execution of uac?_device_audio_task
 
                     if (usb_ch == USB_CH_A) {				// Swap USB plugs
                     	usb_ch = USB_CH_B;
