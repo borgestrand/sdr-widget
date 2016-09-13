@@ -215,9 +215,6 @@ void wm8805_poll(void) {
 			wm8805_input(input_select_wm8805_next);		// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
-
-			print_dbg_char('^');
-
 		}
 	}
 	// USB has assumed control, power down WM8805 if it was on
@@ -236,12 +233,14 @@ void wm8805_poll(void) {
 	if ( (wm8805_power == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= WM8805_PAUSE_LIM) ) ) {
 		// With this task's input_select values, assume semaphore is owned
 
-		//	What caused the trigger?
+/*		//	What caused the trigger?
+#ifdef USB_STATE_MACHINE_DEBUG
 		if (unlockcounter >= WM8805_UNLOCK_LIM)
 			print_dbg_char('u');
 		if (pausecounter >= WM8805_PAUSE_LIM)
 			print_dbg_char('p');
-
+#endif
+*/
 
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
@@ -279,20 +278,21 @@ void wm8805_poll(void) {
 				else
 					input_select_wm8805_next = MOBO_SRC_TOS2;
 			#endif
-
+/*
+// Which channel do we try next?
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char(':');
 			print_dbg_char_hex(input_select_wm8805_next);
 #endif
+*/
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
-			vTaskDelay(1000);								// Reasonably good in practical tests..
+			vTaskDelay(1000);								// Give the poor thing a chance to link up. 640 was once a borderline case...
 
 			lockcounter = 0;
 			unlockcounter = 0;
 			pausecounter = 0;
-
 		}
 	}
 
@@ -334,8 +334,6 @@ void wm8805_poll(void) {
 			if (wm8805_muted == 0) {
 				wm8805_mute();
 				wm8805_muted = 1;						// In any case, we're muted from now on.
-
-				print_dbg_char('K');					// Indicate PLL change
 			}
 
 			if (wm8805_srd() == FREQ_192)
@@ -343,7 +341,7 @@ void wm8805_poll(void) {
 			else
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-			vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (30-ish ms)
+			vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 		}
 	}	// Done handling interrupt
 
@@ -351,21 +349,12 @@ void wm8805_poll(void) {
 	// Monitor silent or disconnected WM8805 input
 	if (wm8805_power == 1) {
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
+			lockcounter = 0;
 			if (unlockcounter < WM8805_UNLOCK_LIM)
 				unlockcounter++;
-
-			lockcounter = 0;
 		}
 		else {											// Lock indication
-
 			unlockcounter = 0;
-
-/*			if (unlockcounter > 0)
-				unlockcounter -= 2;						// Faster count down
-			if (unlockcounter < 0)
-				unlockcounter = 0;
-*/
-
 			if (lockcounter < WM8805_LOCK_LIM)
 				lockcounter++;
 		}
@@ -376,12 +365,6 @@ void wm8805_poll(void) {
 		}
 		else {
 			pausecounter = 0;
-/*
-			if (pausecounter > 0)
-				pausecounter -= 4;						// Faster count down
-			if (pausecounter < 0)
-				pausecounter = 0;
-*/
 		}
 	}
 
@@ -409,8 +392,6 @@ void wm8805_reset(uint8_t reset_type) {
 
 // Start up the WM8805
 void wm8805_init(void) {
-
-	print_dbg_char('i');
 
 	wm8805_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 RX0
 

@@ -45,8 +45,8 @@
 #define MOBO_SRC_UAC1		1
 #define MOBO_SRC_UAC2		2
 #define MOBO_SRC_SPDIF		3
-#define MOBO_SRC_TOS2		4		// Available in HW_GEN_DIN10 and HW_GEN_DIN20
-#define MOBO_SRC_TOS1		5		// Available in HW_GEN_DIN10 and HW_GEN_DIN20
+#define MOBO_SRC_TOS2		4
+#define MOBO_SRC_TOS1		5
 
 
 // Front led colors for RGB LEDs
