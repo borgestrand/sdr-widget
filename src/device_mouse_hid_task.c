@@ -369,6 +369,15 @@ void device_mouse_hid_task(void)
             else if (a == 'f') {							// Lowercase f
             	mobo_km(MOBO_HP_KM_DISABLE);
             }
+
+
+            // Start messing with ADC!
+            else if (a == 'a') {							// Lowercase a
+        		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+        		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+            }
+
+
 #endif
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
