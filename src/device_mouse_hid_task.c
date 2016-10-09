@@ -388,7 +388,6 @@ void device_mouse_hid_task(void)
 
             	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS_DBG); // init PDCA channel with options.
         		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-
 				pdca_enable(PDCA_CHANNEL_SSC_RX);
 
 
