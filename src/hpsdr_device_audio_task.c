@@ -191,7 +191,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 			else if( time >= 9*STARTUP_LED_DELAY ) {
 				startup=FALSE;
 
-				audio_buffer_in = 0;
+//				audio_buffer_in = 0;
 				audio_buffer_out = 0;
 				spk_buffer_in = 0;
 				spk_buffer_out = 0;
