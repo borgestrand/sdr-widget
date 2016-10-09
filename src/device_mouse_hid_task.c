@@ -96,6 +96,7 @@
 #include "device_audio_task.h"
 #include "Mobo_config.h"
 #include "features.h"
+#include "pdca.h" // For ADC channel config tests
 #include "taskAK5394A.h"
 
 #ifdef USB_METALLIC_NOISE_SIM
@@ -372,8 +373,20 @@ void device_mouse_hid_task(void)
 
 
             // Start messing with ADC!
+
             else if (a == 'a') {							// Lowercase a
-        		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+                static const pdca_channel_options_t PDCA_OPTIONS_DBG = {
+                	.addr = (void *)audio_buffer_0,         // memory address
+                	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
+                	.size = AUDIO_BUFFER_SIZE,              // transfer counter
+                	.r_addr = NULL,                         // next memory address
+                	.r_size = 0,                            // next transfer counter
+                	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+                };
+
+
+
+            	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS_DBG); // init PDCA channel with options.
         		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
             }
 
