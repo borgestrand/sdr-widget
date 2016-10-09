@@ -114,9 +114,15 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, AUDIO_BUFFER_SIZE);
 		audio_buffer_in = 1;
+#ifdef USB_STATE_MACHINE_DEBUG
+    	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+#endif
 	} else {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, AUDIO_BUFFER_SIZE);
 		audio_buffer_in = 0;
+#ifdef USB_STATE_MACHINE_DEBUG
+    	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+#endif
 	}
 
 }

@@ -388,6 +388,21 @@ void device_mouse_hid_task(void)
 
             	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS_DBG); // init PDCA channel with options.
         		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
+        		print_dbg_char('a');
+            }
+
+            else if (a == 'b') {							// Lowercase b
+
+            	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+            	gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+            	gpio_set_gpio_pin(AVR32_PIN_PX52);			// Pin 87
+            	gpio_set_gpio_pin(AVR32_PIN_PX43);			// Pin 88
+
+            	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+            	gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+            	gpio_clr_gpio_pin(AVR32_PIN_PX52);			// Pin 87
+            	gpio_clr_gpio_pin(AVR32_PIN_PX43);			// Pin 88
             }
 
 
