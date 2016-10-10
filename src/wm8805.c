@@ -492,8 +492,8 @@ void wm8805_mute(void) {
 		int i;
 
 		for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-			spk_buffer_0[i] = 0;					// Needed in GEN_DIN20?
-			spk_buffer_1[i] = 0;
+//balle			spk_buffer_0[i] = 0;					// Needed in GEN_DIN20?
+//balle			spk_buffer_1[i] = 0;
 		}
 
 	/*

@@ -256,6 +256,74 @@ void uac1_device_audio_task(void *pvParameters)
 		}
 		//else {
 
+// Seriously messing with ADC interface...
+#ifdef HW_GEN_DIN20
+		static int audio_buffer_in_local = -1;
+		int audio_buffer_in_temp;
+
+
+		// Startup condition with audio_buffer_in_local == -1 resets spk_index according to spk_buffer_in
+		if (audio_buffer_in_local == -1) {
+			num_remaining = spk_pdca_channel->tcr;
+			spk_buffer_in = spk_buffer_out;
+			spk_index = SPK_BUFFER_SIZE - num_remaining;
+			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+		}
+
+
+		if ( (input_select != MOBO_SRC_UAC1) ) {
+			audio_buffer_in_temp = audio_buffer_in; // Interrupt may strike at any time!
+
+			if (audio_buffer_in_temp != audio_buffer_in_local) { // Must transfer previous half-ring-buffer
+				audio_buffer_in_local = audio_buffer_in_temp;
+
+				gpio_tgl_gpio_pin(AVR32_PIN_PX18);			// Toggle Pin 84, detection is good.
+
+				for( i=0 ; i < AUDIO_BUFFER_SIZE ; i+=2 ) {
+					// Fill endpoint with sample raw
+					if (audio_buffer_in_temp == 0) {
+						sample_L = audio_buffer_0[i+IN_LEFT];
+						sample_R = audio_buffer_0[i+IN_RIGHT];
+					} else {
+						sample_L = audio_buffer_1[i+IN_LEFT];
+						sample_R = audio_buffer_1[i+IN_RIGHT];
+					}
+
+
+					if (spk_buffer_in == 0) {
+						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+					}
+					else {
+						spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+					}
+
+					spk_index += 2;
+					if (spk_index >= SPK_BUFFER_SIZE) {
+						spk_index = 0;
+						spk_buffer_in = 1 - spk_buffer_in;
+					}
+
+#ifdef USB_STATE_MACHINE_DEBUG
+					if (spk_buffer_in == 1)
+						gpio_set_gpio_pin(AVR32_PIN_PX30);
+					else
+						gpio_clr_gpio_pin(AVR32_PIN_PX30);
+#endif
+
+				}
+
+
+			}
+		}
+
+#endif
+
+
+
+
+
 			num_samples = 48;
 
 			if (usb_alternate_setting == 1) {
@@ -661,8 +729,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 						// Clear buffers for good measure! That may offload uac1_AK5394A_task() ?? and present a good mute to WM8805
 						for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-							spk_buffer_0[i] = 0;
-							spk_buffer_1[i] = 0;
+//balle							spk_buffer_0[i] = 0;
+//balle							spk_buffer_1[i] = 0;
 						}
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
@@ -794,8 +862,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 					// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
 					for (i = 0; i < SPK_BUFFER_SIZE; i++) {
-						spk_buffer_0[i] = 0;
-						spk_buffer_1[i] = 0;
+//balle						spk_buffer_0[i] = 0;
+//balle						spk_buffer_1[i] = 0;
 					}
 
 					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores

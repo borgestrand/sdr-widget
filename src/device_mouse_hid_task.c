@@ -327,14 +327,6 @@ void device_mouse_hid_task(void)
             }
 #endif
 
-            else if (a == 'c') {							// Lowercase c
-            	gpio_clr_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 22.5792MHz/2 for AB-1
-            }
-
-            else if (a == 'C') {							// Uppercase C
-            	gpio_set_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 24.576MHz/2 for AB-1
-            }
-
 
 #ifdef HW_GEN_DIN20
             else if (a == '0') {							// Digit 0
@@ -394,17 +386,18 @@ void device_mouse_hid_task(void)
         		print_dbg_char('a');
             }
 
+            // Select MCU's outgoing I2S bus
             else if (a == 'b') {							// Lowercase b
+            	gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
+       			gpio_set_gpio_pin(AVR32_PIN_PX58); 			// 44.1 control
+       			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control
+            }
 
-            	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
-            	gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-            	gpio_set_gpio_pin(AVR32_PIN_PX52);			// Pin 87
-            	gpio_set_gpio_pin(AVR32_PIN_PX43);			// Pin 88
-
-            	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
-            	gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-            	gpio_clr_gpio_pin(AVR32_PIN_PX52);			// Pin 87
-            	gpio_clr_gpio_pin(AVR32_PIN_PX43);			// Pin 88
+            // Select RXs's outgoing I2S bus
+            else if (a == 'c') {							// Lowercase b
+            	gpio_set_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 1
+       			gpio_clr_gpio_pin(AVR32_PIN_PX58); 			// 44.1 control
+       			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control
             }
 
 
