@@ -729,8 +729,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 						// Clear buffers for good measure! That may offload uac1_AK5394A_task() ?? and present a good mute to WM8805
 						for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-//balle							spk_buffer_0[i] = 0;
-//balle							spk_buffer_1[i] = 0;
+							spk_buffer_0[i] = 0;
+							spk_buffer_1[i] = 0;
 						}
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
@@ -862,8 +862,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 					// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
 					for (i = 0; i < SPK_BUFFER_SIZE; i++) {
-//balle						spk_buffer_0[i] = 0;
-//balle						spk_buffer_1[i] = 0;
+						spk_buffer_0[i] = 0;
+						spk_buffer_1[i] = 0;
 					}
 
 					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
