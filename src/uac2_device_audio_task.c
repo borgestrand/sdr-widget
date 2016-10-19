@@ -216,6 +216,8 @@ void uac2_device_audio_task(void *pvParameters)
 #define STARTUP_LED_DELAY  10000
 			if ( time<= 1*STARTUP_LED_DELAY ) {
 				LED_On( LED0 );
+
+				// pdca disable code must be moved to something dealing with spdif playback use of ADC interface
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 			}
@@ -255,6 +257,74 @@ void uac2_device_audio_task(void *pvParameters)
 				freq_changed = TRUE;						// force a freq change reset
 			}
 		}
+
+
+// Seriously messing with ADC interface...
+#ifdef HW_GEN_DIN20
+		static int audio_buffer_in_local = -1;
+		int audio_buffer_in_temp;
+
+
+		// Startup condition with audio_buffer_in_local == -1 resets spk_index according to spk_buffer_in
+		if (audio_buffer_in_local == -1) {
+			num_remaining = spk_pdca_channel->tcr;
+			spk_buffer_in = spk_buffer_out;
+			spk_index = SPK_BUFFER_SIZE - num_remaining;
+			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+		}
+
+
+		if ( ( (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
+			audio_buffer_in_temp = audio_buffer_in; // Interrupt may strike at any time!
+
+			if (audio_buffer_in_temp != audio_buffer_in_local) { // Must transfer previous half-ring-buffer
+				audio_buffer_in_local = audio_buffer_in_temp;
+
+				if (audio_buffer_in_temp == 1)
+					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+				else
+					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+
+				for( i=0 ; i < AUDIO_BUFFER_SIZE ; i+=2 ) {
+					// Fill endpoint with sample raw
+					if (audio_buffer_in_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+						sample_L = audio_buffer_0[i+IN_LEFT];
+						sample_R = audio_buffer_0[i+IN_RIGHT];
+					} else {
+						sample_L = audio_buffer_1[i+IN_LEFT];
+						sample_R = audio_buffer_1[i+IN_RIGHT];
+					}
+
+
+					if (spk_buffer_in == 0) {			// 0 Seems better than 1, but non-conclusive
+						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+					}
+					else {
+						spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+					}
+
+					spk_index += 2;
+					if (spk_index >= SPK_BUFFER_SIZE) {
+						spk_index = 0;
+						spk_buffer_in = 1 - spk_buffer_in;
+
+#ifdef USB_STATE_MACHINE_DEBUG
+						if (spk_buffer_in == 1)
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
+						else
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+#endif
+					}
+				} // for AUDIO_BUFFER_SIZE
+			} // audio_buffer_in toggle
+		} // input select
+#endif
+
+// Done messing with ADC interface
+
+
 
 		if ((usb_alternate_setting == 1)) {
 			if(Mic_freq_valid) {

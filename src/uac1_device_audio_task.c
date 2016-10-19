@@ -263,7 +263,6 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 			}
 		}
-		//else {
 
 // Seriously messing with ADC interface...
 #ifdef HW_GEN_DIN20
@@ -323,23 +322,18 @@ void uac1_device_audio_task(void *pvParameters)
 							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
 					}
-
-
-				}
-
-
-			}
-		}
-
+				} // for AUDIO_BUFFER_SIZE
+			} // audio_buffer_in toggle
+		} // input select
 #endif
 
+// Done messing with ADC interface
 
 
 
-
-			num_samples = 48;
 
 // Should we remove old ADC code from here?
+		num_samples = 48;
 			if (usb_alternate_setting == 1) {
 
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint buffer free ?
@@ -916,7 +910,6 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 			}
 
-		//}	// end startup else
 	} // end while vTask
 
 }
