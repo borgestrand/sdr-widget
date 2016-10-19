@@ -104,6 +104,7 @@ volatile S32 usb_buffer_toggle;
 volatile U8 audio_OUT_alive;
 volatile U8 audio_OUT_must_sync;
 
+
 /*! \brief The PDCA interrupt handler.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
@@ -149,7 +150,9 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 	}
 
-	// BSB 20131201 attempting improved playerstarted detection
+//	balle = PDCA_CHANNEL_SSC_RX->tcr;
+
+	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
 		usb_buffer_toggle++;
 

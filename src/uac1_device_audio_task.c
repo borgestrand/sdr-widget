@@ -213,6 +213,10 @@ void uac1_device_audio_task(void *pvParameters)
 #ifdef HW_GEN_DIN20
 		// A detected swap must be acknowledged
 		if ( (!Is_device_enumerated()) && (usb_ch_swap != USB_CH_SWAPDET) ) { time=0; startup=TRUE; continue; };
+
+
+//		(input_select != MOBO_SRC_UAC1)
+
 #else
 		// First, check the device enumeration state
 		if (!Is_device_enumerated()) { time=0; startup=TRUE; continue; };
@@ -277,11 +281,14 @@ void uac1_device_audio_task(void *pvParameters)
 			if (audio_buffer_in_temp != audio_buffer_in_local) { // Must transfer previous half-ring-buffer
 				audio_buffer_in_local = audio_buffer_in_temp;
 
-				gpio_tgl_gpio_pin(AVR32_PIN_PX18);			// Toggle Pin 84, detection is good.
+				if (audio_buffer_in_temp == 1)
+					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+				else
+					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 				for( i=0 ; i < AUDIO_BUFFER_SIZE ; i+=2 ) {
 					// Fill endpoint with sample raw
-					if (audio_buffer_in_temp == 0) {
+					if (audio_buffer_in_temp == 0) {		// 0 Seems better than 1, but non-conclusive
 						sample_L = audio_buffer_0[i+IN_LEFT];
 						sample_R = audio_buffer_0[i+IN_RIGHT];
 					} else {
@@ -290,7 +297,7 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 
 
-					if (spk_buffer_in == 0) {
+					if (spk_buffer_in == 0) {			// 0 Seems better than 1, but non-conclusive
 						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
 						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 					}
@@ -303,14 +310,15 @@ void uac1_device_audio_task(void *pvParameters)
 					if (spk_index >= SPK_BUFFER_SIZE) {
 						spk_index = 0;
 						spk_buffer_in = 1 - spk_buffer_in;
-					}
 
 #ifdef USB_STATE_MACHINE_DEBUG
-					if (spk_buffer_in == 1)
-						gpio_set_gpio_pin(AVR32_PIN_PX30);
-					else
-						gpio_clr_gpio_pin(AVR32_PIN_PX30);
+						if (spk_buffer_in == 1)
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
+						else
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
+					}
+
 
 				}
 
@@ -852,14 +860,15 @@ void uac1_device_audio_task(void *pvParameters)
 				playerStarted = FALSE;
 				silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
-				if (input_select == MOBO_SRC_UAC1) {			// Set from playing nonzero USB
+				#ifdef HW_GEN_DIN20								// Dedicated mute pin
+					if (usb_ch_swap == USB_CH_SWAPDET)
+						usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
+				#endif
 
+				if (input_select == MOBO_SRC_UAC1) {			// Set from playing nonzero USB
 					#ifdef HW_GEN_DIN20							// Dedicated mute pin
 						mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
-						if (usb_ch_swap == USB_CH_SWAPDET)
-							usb_ch_swap = USB_CH_SWAPACK;		// Acknowledge a USB channel swap, that takes this task into startup
 					#endif
-
 					// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
 					for (i = 0; i < SPK_BUFFER_SIZE; i++) {
 						spk_buffer_0[i] = 0;

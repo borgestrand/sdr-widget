@@ -837,14 +837,15 @@ void uac2_device_audio_task(void *pvParameters)
 			playerStarted = FALSE;
 			silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
-			if (input_select == MOBO_SRC_UAC2) {			// Set from playing nonzero USB
+			#ifdef HW_GEN_DIN20								// Dedicated mute pin
+				if (usb_ch_swap == USB_CH_SWAPDET)
+					usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
+			#endif
 
+			if (input_select == MOBO_SRC_UAC2) {			// Set from playing nonzero USB
 				#ifdef HW_GEN_DIN20							// Dedicated mute pin
 					mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
-					if (usb_ch_swap == USB_CH_SWAPDET)
-						usb_ch_swap = USB_CH_SWAPACK;		// Acknowledge a USB channel swap, that takes this task into startup
 				#endif
-
 				// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
 				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
 					spk_buffer_0[i] = 0;
