@@ -197,7 +197,7 @@ void uac2_freq_change_handler() {
 			FB_rate_frac = current_freq.frequency % poolingFreq;
 			FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
 */
-			if (current_freq.frequency == 96000) {
+			if (current_freq.frequency == FREQ_96) {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char('4'); // BSB debug 20121212
 #endif
@@ -229,7 +229,7 @@ void uac2_freq_change_handler() {
 				FB_rate_nominal = ((96) << 14) + FB_NOMINAL_OFFSET;	// BSB 20131115 Record FB_rate as it was set by control system
 			}
 
-		   	else if (current_freq.frequency == 88200) {
+		   	else if (current_freq.frequency == FREQ_88) {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char('3'); // BSB debug 20121212
 #endif
@@ -262,7 +262,7 @@ void uac2_freq_change_handler() {
 				FB_rate_nominal = ((88 << 14) + (1<<14)/5) + FB_NOMINAL_OFFSET;	// BSB 20131115 Record FB_rate as it was set by control system
 			}
 
-	       	else if (current_freq.frequency == 176400) {
+	       	else if (current_freq.frequency == FREQ_176) {
 #ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('5'); // BSB debug 20121212
 #endif
@@ -286,7 +286,7 @@ void uac2_freq_change_handler() {
 	    			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 	        	}
 
-			else if (current_freq.frequency == 192000) {
+			else if (current_freq.frequency == FREQ_192) {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char('6'); // BSB debug 20121212
 #endif
@@ -311,7 +311,7 @@ void uac2_freq_change_handler() {
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 			}
 
-		else if (current_freq.frequency == 48000) {
+		else if (current_freq.frequency == FREQ_48) {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char('2'); // BSB debug 20121212
 #endif
@@ -339,7 +339,7 @@ void uac2_freq_change_handler() {
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 			}
 
-			else if (current_freq.frequency == 44100) {
+			else if (current_freq.frequency == FREQ_44) {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char('1'); // BSB debug 20121212
 #endif

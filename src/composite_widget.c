@@ -355,7 +355,7 @@ int i;
 	else
 		input_select = MOBO_SRC_UAC2;
 
-	mobo_xo_select(44100, input_select);					// Initial GPIO XO control and frequency indication
+	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 	mobo_led_select(44100, input_select);					// Front RGB LED
