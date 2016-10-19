@@ -336,6 +336,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 			num_samples = 48;
 
+/*
 			if (usb_alternate_setting == 1) {
 
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint buffer free ?
@@ -422,6 +423,9 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				}
 			} // end alt setting == 1
+
+*/
+
 
 #ifdef HW_GEN_DIN20
 			if ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) ) {
@@ -858,7 +862,7 @@ void uac1_device_audio_task(void *pvParameters)
 			} // end usb_alternate_setting_out == 1
 
 
-			else { // ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) )
+			else { // opposite of ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) )
 				playerStarted = FALSE;
 				silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
