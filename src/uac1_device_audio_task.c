@@ -229,8 +229,10 @@ void uac1_device_audio_task(void *pvParameters)
 #define STARTUP_LED_DELAY  10000
 			if ( time<= 1*STARTUP_LED_DELAY ) {
 				LED_On( LED0 );
-				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+//				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+//				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
 				//	            LED_On( LED1 );
 			} else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
 			else if( time== 3*STARTUP_LED_DELAY ) LED_On( LED2 );
@@ -336,7 +338,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 			num_samples = 48;
 
-/*
+// Should we remove old ADC code from here?
 			if (usb_alternate_setting == 1) {
 
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint buffer free ?
@@ -424,7 +426,7 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 			} // end alt setting == 1
 
-*/
+// Should we remove old ADC code to here?
 
 
 #ifdef HW_GEN_DIN20
