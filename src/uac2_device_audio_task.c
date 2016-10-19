@@ -193,13 +193,19 @@ void uac2_device_audio_task(void *pvParameters)
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
-
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
 #ifdef HW_GEN_DIN20
-		// A detected swap must be acknowledged
-		if ( (!Is_device_enumerated()) && (usb_ch_swap != USB_CH_SWAPDET) ) { time=0; startup=TRUE; continue; };
+		// A detected usb swap must be acknowledged
+//		if ( (!Is_device_enumerated()) && (usb_ch_swap != USB_CH_SWAPDET) ) { time=0; startup=TRUE; continue; };
+		if (   ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) )
+			&& (!Is_device_enumerated())
+			&& (usb_ch_swap != USB_CH_SWAPDET) ) {
+				time=0;
+				startup=TRUE;
+				continue;
+		}
 #else
 		// First, check the device enumeration state
 		if (!Is_device_enumerated()) { time=0; startup=TRUE; continue; };
