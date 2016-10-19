@@ -230,8 +230,9 @@ void uac1_device_audio_task(void *pvParameters)
 			if ( time<= 1*STARTUP_LED_DELAY ) {
 				LED_On( LED0 );
 
-//				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-//				pdca_disable(PDCA_CHANNEL_SSC_RX);
+				// pdca disable code must be moved to something dealing with spdif playback use of ADC interface
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				//	            LED_On( LED1 );
 			} else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
@@ -279,7 +280,7 @@ void uac1_device_audio_task(void *pvParameters)
 		}
 
 
-		if ( (input_select != MOBO_SRC_UAC1) ) {
+		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_NONE) ) ) {
 			audio_buffer_in_temp = audio_buffer_in; // Interrupt may strike at any time!
 
 			if (audio_buffer_in_temp != audio_buffer_in_local) { // Must transfer previous half-ring-buffer
@@ -661,6 +662,7 @@ void uac1_device_audio_task(void *pvParameters)
 						}
 
 						// Do we own output (semaphore)? If so, change I2S setting and resync _once_
+						// Why are we doing this within for num_samples loop?
 						if ( (!playerStarted) && (input_select == MOBO_SRC_UAC1) ) {
 							playerStarted = TRUE;					// Arrival of nonzero sample is now indication of playerStarted
 	//						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
@@ -697,33 +699,36 @@ void uac1_device_audio_task(void *pvParameters)
 							sample_R = 0;
 						}
 
-						while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-							if (spk_buffer_in == 0) {
-								spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-								spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
-							}
-							else {
-								spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-								spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
-							}
+						// Only write to spk_buffer_? when allowed
+						if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) {
+							while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+								if (spk_buffer_in == 0) {
+									spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+									spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+								}
+								else {
+									spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+									spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+								}
 
-							spk_index += 2;
-							if (spk_index >= SPK_BUFFER_SIZE) {
-								spk_index = 0;
-								spk_buffer_in = 1 - spk_buffer_in;
+								spk_index += 2;
+								if (spk_index >= SPK_BUFFER_SIZE) {
+									spk_index = 0;
+									spk_buffer_in = 1 - spk_buffer_in;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-								if (spk_buffer_in == 1)
-									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-								else
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									if (spk_buffer_in == 1)
+										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									else
+										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 #endif
 
-								// BSB 20131201 attempting improved playerstarted detection
-								usb_buffer_toggle--;					// Counter is increased by DMA, decreased by seq. code
+									// BSB 20131201 attempting improved playerstarted detection
+									usb_buffer_toggle--;					// Counter is increased by DMA, decreased by seq. code
+								}
 							}
+							samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 						}
-						samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					} // end for num_samples
 
 					// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
