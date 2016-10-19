@@ -271,11 +271,13 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 		// Startup condition with audio_buffer_in_local == -1 resets spk_index according to spk_buffer_in
+		// How could this even work in UAC1??
 		if (audio_buffer_in_local == -1) {
 			num_remaining = spk_pdca_channel->tcr;
 			spk_buffer_in = spk_buffer_out;
 			spk_index = SPK_BUFFER_SIZE - num_remaining;
 			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+			audio_buffer_in_local = 2; // Done initiating. Must improve init code!
 		}
 
 
