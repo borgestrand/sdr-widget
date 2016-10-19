@@ -670,30 +670,33 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_R = 0;
 					}
 
-					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-						if (spk_buffer_in == 0) {
-							spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-							spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
-						}
-						else {
-							spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-							spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
-						}
+					// Only write to spk_buffer_? when allowed
+					if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
+						while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+							if (spk_buffer_in == 0) {
+								spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+								spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+							}
+							else {
+								spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+								spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+							}
 
-						spk_index += 2;
-						if (spk_index >= SPK_BUFFER_SIZE) {
-							spk_index = 0;
-							spk_buffer_in = 1 - spk_buffer_in;
+							spk_index += 2;
+							if (spk_index >= SPK_BUFFER_SIZE) {
+								spk_index = 0;
+								spk_buffer_in = 1 - spk_buffer_in;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-							if (spk_buffer_in == 1)
-								gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-							else
-								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+								if (spk_buffer_in == 1)
+									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+								else
+									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 #endif
 
-							// BSB 20131201 attempting improved playerstarted detection
-							usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+								// BSB 20131201 attempting improved playerstarted detection
+								usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+							}
 						}
 					}
 					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
