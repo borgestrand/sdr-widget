@@ -96,7 +96,7 @@
 
 
 static U32  index, spk_index;
-static U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out
+static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;	// the ID number of the buffer used for sending out
 											// to the USB and reading from USB
 
 U8 command [4][5];
@@ -111,9 +111,9 @@ static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 void hpsdr_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 {
 	index     =0;
-	audio_buffer_out = 0;
+	ADC_buf_USB_IN = 0;
 	spk_index = 0;
-	spk_buffer_in = 0;
+	DAC_buf_USB_OUT = 0;
 	mute = FALSE;
 	spk_mute = FALSE;
 	ep_audio_in = ep_in;
@@ -191,10 +191,10 @@ void hpsdr_device_audio_task(void *pvParameters)
 			else if( time >= 9*STARTUP_LED_DELAY ) {
 				startup=FALSE;
 
-				audio_buffer_in = 0;
-				audio_buffer_out = 0;
-				spk_buffer_in = 0;
-				spk_buffer_out = 0;
+				ADC_buf_PLL_write = 0;
+				ADC_buf_USB_IN = 0;
+				DAC_buf_USB_OUT = 0;
+				DAC_buf_PLL_read = 0;
 				index = 0;
 
 				freq_changed = 1;						// force a freq change reset
@@ -219,15 +219,15 @@ void hpsdr_device_audio_task(void *pvParameters)
 		num_samples = 63;	// (512 bytes - 8 bytes (sync+command)) / 8 (6 bytes I/Q + 2 bytes Mic)
 
 		//  wait till there are enough samples in the audio buffer
-		// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
+		// AK data is being filled into ~ADC_buf_PLL_write, ie if ADC_buf_PLL_write is 0
 		// buffer 0 is set in the reload register of the pdca
 		// So the actual loading is occuring in buffer 1
-		// USB data is being taken from audio_buffer_out
+		// USB data is being taken from ADC_buf_USB_IN
 
 		// find out the current status of PDCA transfer
-		// gap is how far the audio_buffer_out is from overlapping audio_buffer_in
+		// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_PLL_write
 		num_remaining = pdca_channel->tcr;
-		if (audio_buffer_in != audio_buffer_out) {
+		if (ADC_buf_PLL_write != ADC_buf_USB_IN) {
 			// AK and USB using same buffer
 			if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
 			else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
@@ -249,7 +249,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 			for( i=0 ; i < num_samples ; i++ ) {
 				// Fill endpoint with samples
 				if(!mute) {
-					if (audio_buffer_out == 0) {
+					if (ADC_buf_USB_IN == 0) {
 						sample_LSB = audio_buffer_0[index+IN_LEFT];
 						sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
 						sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
@@ -264,7 +264,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_IQ_IN, 8, sample_LSB);
 
 
-					if (audio_buffer_out == 0) {
+					if (ADC_buf_USB_IN == 0) {
 						sample_LSB = audio_buffer_0[index+IN_RIGHT];
 						sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
 						sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
@@ -281,7 +281,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 					index += 2;
 					if (index >= AUDIO_BUFFER_SIZE) {
 						index=0;
-						audio_buffer_out = 1 - audio_buffer_out;
+						ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
 					}
 				} else {
 					Usb_write_endpoint_data(EP_IQ_IN, 8, 0x00);
@@ -305,7 +305,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 
 			// Sync CS4344 spk data stream by calculating gap and provide feedback
 		num_remaining = spk_pdca_channel->tcr;
-		if (spk_buffer_in != spk_buffer_out) {
+		if (DAC_buf_USB_OUT != DAC_buf_PLL_read) {
 			// CS4344 and USB using same buffer
 			if ( spk_index < (SPK_BUFFER_SIZE - num_remaining)) gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
 			else gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
@@ -372,7 +372,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 			  };
 
 			  sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-			  if (spk_buffer_in == 0) spk_buffer_0[spk_index+OUT_LEFT] = sample;
+			  if (DAC_buf_USB_OUT == 0) spk_buffer_0[spk_index+OUT_LEFT] = sample;
 			  else spk_buffer_1[spk_index+OUT_LEFT] = sample;
 
 			  if (spk_mute) {
@@ -389,13 +389,13 @@ void hpsdr_device_audio_task(void *pvParameters)
 			  };
 
 			  sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-			  if (spk_buffer_in == 0) spk_buffer_0[spk_index+OUT_RIGHT] = sample;
+			  if (DAC_buf_USB_OUT == 0) spk_buffer_0[spk_index+OUT_RIGHT] = sample;
 			  else spk_buffer_1[spk_index+OUT_RIGHT] = sample;
 
 			  spk_index += 2;
 			  if (spk_index >= SPK_BUFFER_SIZE){
 			  spk_index = 0;
-			  spk_buffer_in = 1 - spk_buffer_in;
+			  DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 			  }
 			  }
 

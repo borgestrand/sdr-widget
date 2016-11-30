@@ -117,8 +117,8 @@
 
 static U32  index, spk_index;
 static U16  old_gap = SPK_BUFFER_SIZE;
-static U8 audio_buffer_out, spk_buffer_in;	// the ID number of the buffer used for sending out
-											// to the USB and reading from USB
+static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// the ID number of the buffer used for sending out
+												// to the USB and reading from USB
 
 static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 
@@ -129,9 +129,9 @@ static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 {
 	index     =0;
-	audio_buffer_out = 0;
+	ADC_buf_USB_IN = 0;
 	spk_index = 0;
-	spk_buffer_in = 0;
+	DAC_buf_USB_OUT = 0;
 	mute = FALSE;
 	spk_mute = FALSE;
 	ep_audio_in = ep_in;
@@ -189,6 +189,7 @@ void uac2_device_audio_task(void *pvParameters)
 	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
 	uint32_t silence_det = 0;
+	U8 DAC_buf_PLL_read_local = 0;					// Local copy read in atomic operations
 
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
@@ -238,10 +239,10 @@ void uac2_device_audio_task(void *pvParameters)
 			else if( time >= 9*STARTUP_LED_DELAY )
 			{
 				startup=FALSE;
-				audio_buffer_in = 0;
-				audio_buffer_out = 0;
-				spk_buffer_in = 0;
-				spk_buffer_out = 0; // Only place outside taskAK53984A.c where spk_buffer_out is written!
+				ADC_buf_PLL_write = 0;
+				ADC_buf_USB_IN = 0;
+				DAC_buf_USB_OUT = 0;
+				DAC_buf_PLL_read = 0; // Only place outside taskAK53984A.c where DAC_buf_PLL_read is written!
 				index = 0;
 
 				if (!FEATURE_ADC_NONE){
@@ -261,34 +262,34 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Seriously messing with ADC interface...
 #ifdef HW_GEN_DIN20
-		static int audio_buffer_in_local = -1;
-		int audio_buffer_in_temp;
+		static int ADC_buf_PLL_write_local = -1;
+		int ADC_buf_PLL_write_temp;
 
 
-		// Startup condition with audio_buffer_in_local == -1 resets spk_index according to spk_buffer_in
-		if (audio_buffer_in_local == -1) {
+		// Startup condition with ADC_buf_PLL_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
+		if (ADC_buf_PLL_write_local == -1) {
 			num_remaining = spk_pdca_channel->tcr;
-			spk_buffer_in = spk_buffer_out;
+			DAC_buf_USB_OUT = DAC_buf_PLL_read;
 			spk_index = SPK_BUFFER_SIZE - num_remaining;
 			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-			audio_buffer_in_local = 2; // Done initiating. Must improve init code!
+			ADC_buf_PLL_write_local = 2; // Done initiating. Must improve init code!
 		}
 
 
 		if ( ( (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
-			audio_buffer_in_temp = audio_buffer_in; // Interrupt may strike at any time!
+			ADC_buf_PLL_write_temp = ADC_buf_PLL_write; // Interrupt may strike at any time!
 
-			if (audio_buffer_in_temp != audio_buffer_in_local) { // Must transfer previous half-ring-buffer
-				audio_buffer_in_local = audio_buffer_in_temp;
+			if (ADC_buf_PLL_write_temp != ADC_buf_PLL_write_local) { // Must transfer previous half-ring-buffer
+				ADC_buf_PLL_write_local = ADC_buf_PLL_write_temp;
 
-				if (audio_buffer_in_temp == 1)
+				if (ADC_buf_PLL_write_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 				for( i=0 ; i < AUDIO_BUFFER_SIZE ; i+=2 ) {
 					// Fill endpoint with sample raw
-					if (audio_buffer_in_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+					if (ADC_buf_PLL_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
 						sample_L = audio_buffer_0[i+IN_LEFT];
 						sample_R = audio_buffer_0[i+IN_RIGHT];
 					} else {
@@ -297,7 +298,7 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 
 
-					if (spk_buffer_in == 0) {			// 0 Seems better than 1, but non-conclusive
+					if (DAC_buf_USB_OUT == 0) {			// 0 Seems better than 1, but non-conclusive
 						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
 						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 					}
@@ -309,17 +310,17 @@ void uac2_device_audio_task(void *pvParameters)
 					spk_index += 2;
 					if (spk_index >= SPK_BUFFER_SIZE) {
 						spk_index = 0;
-						spk_buffer_in = 1 - spk_buffer_in;
+						DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						if (spk_buffer_in == 1)
+						if (DAC_buf_USB_OUT == 1)
 							gpio_set_gpio_pin(AVR32_PIN_PX30);
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
 					}
 				} // for AUDIO_BUFFER_SIZE
-			} // audio_buffer_in toggle
+			} // ADC_buf_PLL_write toggle
 		} // input select
 
 #endif
@@ -340,16 +341,16 @@ void uac2_device_audio_task(void *pvParameters)
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 						// Sync AK data stream with USB data stream
-						// AK data is being filled into ~audio_buffer_in, ie if audio_buffer_in is 0
+						// AK data is being filled into ~ADC_buf_PLL_write, ie if ADC_buf_PLL_write is 0
 						// buffer 0 is set in the reload register of the pdca
 						// So the actual loading is occuring in buffer 1
-						// USB data is being taken from audio_buffer_out
+						// USB data is being taken from ADC_buf_USB_IN
 
 						// find out the current status of PDCA transfer
-						// gap is how far the audio_buffer_out is from overlapping audio_buffer_in
+						// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_PLL_write
 
 						num_remaining = pdca_channel->tcr;
-						if (audio_buffer_in != audio_buffer_out) {
+						if (ADC_buf_PLL_write != ADC_buf_USB_IN) {
 							// AK and USB using same buffer
 							if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
 							else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
@@ -372,7 +373,7 @@ void uac2_device_audio_task(void *pvParameters)
 						for( i=0 ; i < num_samples ; i++ ) {
 							   // Fill endpoint with samples
 							if (!mute) {
-								if (audio_buffer_out == 0) {
+								if (ADC_buf_USB_IN == 0) {
 									sample_LSB = audio_buffer_0[index+IN_LEFT];
 									sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
 									sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
@@ -387,7 +388,7 @@ void uac2_device_audio_task(void *pvParameters)
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
-								if (audio_buffer_out == 0) {
+								if (ADC_buf_USB_IN == 0) {
 									sample_LSB = audio_buffer_0[index+IN_RIGHT];
 									sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
 									sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
@@ -405,7 +406,7 @@ void uac2_device_audio_task(void *pvParameters)
 								index += 2;
 								if (index >= AUDIO_BUFFER_SIZE) {
 									index=0;
-									audio_buffer_out = 1 - audio_buffer_out;
+									ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
 								}
 							}
 							else {
@@ -721,13 +722,15 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// Align buffers
 						audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-						num_remaining = spk_pdca_channel->tcr;
-						spk_buffer_in = spk_buffer_out;			// Keep resyncing until playerStarted becomes true
+						Disable_global_interrupt();				// RTOS-atomic operation
+							num_remaining = spk_pdca_channel->tcr;
+							DAC_buf_USB_OUT = DAC_buf_PLL_read;		// Keep resyncing until playerStarted becomes true
+						Enable_global_interrupt();
 						LED_Off(LED0);							// The LEDs on the PCB near the MCU
 						LED_Off(LED1);
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						if (spk_buffer_in == 1)					// Debug message 'p' removed along with #ifdefs
+						if (DAC_buf_USB_OUT == 1)					// Debug message 'p' removed along with #ifdefs
 							gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
@@ -745,7 +748,7 @@ void uac2_device_audio_task(void *pvParameters)
 					// Only write to spk_buffer_? when allowed
 					if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
 						while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-							if (spk_buffer_in == 0) {
+							if (DAC_buf_USB_OUT == 0) {
 								spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
 								spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 							}
@@ -757,10 +760,10 @@ void uac2_device_audio_task(void *pvParameters)
 							spk_index += 2;
 							if (spk_index >= SPK_BUFFER_SIZE) {
 								spk_index = 0;
-								spk_buffer_in = 1 - spk_buffer_in;
+								DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-								if (spk_buffer_in == 1)
+								if (DAC_buf_USB_OUT == 1)
 									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 								else
 									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
@@ -825,8 +828,13 @@ void uac2_device_audio_task(void *pvParameters)
 					else									// Initially and a while after any skip/insert
 						time_to_calculate_gap = SPK2_PACKETS_PER_GAP_CALCULATION - 1;
 					if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
-						num_remaining = spk_pdca_channel->tcr;
-						if (spk_buffer_in != spk_buffer_out) { 	// CS4344 and USB using same buffer
+
+						Disable_global_interrupt();			// RTOS-atomic operation
+							num_remaining = spk_pdca_channel->tcr;
+							DAC_buf_PLL_read_local = DAC_buf_PLL_read;
+						Enable_global_interrupt();
+
+						if (DAC_buf_USB_OUT != DAC_buf_PLL_read_local) { 	// CS4344 and USB using same buffer
 							if ( spk_index < (SPK_BUFFER_SIZE - num_remaining))
 								gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
 							else

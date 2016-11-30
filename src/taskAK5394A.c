@@ -95,7 +95,7 @@ volatile U32 spk_buffer_1[SPK_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
-volatile int audio_buffer_in, spk_buffer_out;
+volatile int ADC_buf_PLL_write, DAC_buf_PLL_read;
 
 // BSB 20131201 attempting improved playerstarted detection
 volatile S32 usb_buffer_toggle;
@@ -111,16 +111,16 @@ volatile U8 audio_OUT_must_sync;
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
-	if (audio_buffer_in == 0) {
+	if (ADC_buf_PLL_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, AUDIO_BUFFER_SIZE);
-		audio_buffer_in = 1;
+		ADC_buf_PLL_write = 1;
 #ifdef USB_STATE_MACHINE_DEBUG
     	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	} else {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, AUDIO_BUFFER_SIZE);
-		audio_buffer_in = 0;
+		ADC_buf_PLL_write = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
     	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
@@ -134,17 +134,17 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
-	if (spk_buffer_out == 0) {
+	if (DAC_buf_PLL_read == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, SPK_BUFFER_SIZE);
-		spk_buffer_out = 1;
+		DAC_buf_PLL_read = 1;
 #ifdef USB_STATE_MACHINE_DEBUG
 		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 	}
 	else {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, SPK_BUFFER_SIZE);
-		spk_buffer_out = 0;
+		DAC_buf_PLL_read = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
 		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
@@ -245,8 +245,8 @@ void AK5394A_task_init(const Bool uac1) {
 	// HSB Bus matrix register MCFG1 is associated with the CPU instruction master interface.
 	AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_CPU_INSN] = 0x1;
 
-	audio_buffer_in = 0;
-	spk_buffer_out = 0;
+	ADC_buf_PLL_write = 0;
+	DAC_buf_PLL_read = 0;
 	// Register PDCA IRQ interrupt.
 	pdca_set_irq();
 
