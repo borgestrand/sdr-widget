@@ -1,0 +1,27 @@
+Reusing ADC input I2S port toward SPDIF receiver.
+
+Clock configuration
+- Needed whenever the frequency rate changes
+- Identical division setting for 44.1 and 48
+- Clock setup is done with pm_gc_setup(), move all occurances to a function..
+  In UAC2 it is called repeatedly in uac2_usb_specific_request.c
+  In UAC1 it is called once in AK5394A_task_init of taskAK5349.c
+
+
+
+
+Power control in HW_GEN_DIN_20
+- Quite messy with patches on one board but not the other
+- IO pins accessed in taskAK5394.c
+- IO pins accessed in composite_widget.c
+
+
+
+Silencer code
+- Which chunks of code try to clear the output buffers?
+- Which chunks of code will mute the outgoing I2S interface?
+
+
+
+Other notes
+- AK5394A_task_init() doesn't really start a task. Is called from hpsdr_AK5394A_task_init(), uac1_AK5394A_task_init(), ..... and presumably uac2.... which does. 
