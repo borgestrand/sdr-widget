@@ -178,6 +178,8 @@
 #include "composite_widget.h"
 #include "Mobo_config.h"
 #include "taskAK5394A.h"
+#include "cycle_counter.h"
+#include "ssc_i2s.h"
 
 /*
  *  A few global variables.
@@ -199,13 +201,21 @@ xSemaphoreHandle mutexEP_IN;
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-pm_freq_param_t   pm_freq_param=
-{
-   .cpu_f  =       FCPU_HZ
-,  .pba_f    =     FPBA_HZ
-,  .osc0_f     =   FOSC0
-,  .osc0_startup = OSC0_STARTUP
-};
+ pm_freq_param_t   pm_freq_param=
+ {
+    .cpu_f  =       FCPU_HZ
+ ,  .pba_f    =     FPBA_HZ
+ ,  .osc0_f     =   FOSC0
+ ,  .osc0_startup = OSC0_STARTUP
+ };
+
+ pm_freq_param_t   pm_freq_param_slow=
+ {
+    .cpu_f  =       FCPU_HZ_SLOW
+ ,  .pba_f    =     FPBA_HZ_SLOW
+ ,  .osc0_f     =   FOSC0
+ ,  .osc0_startup = OSC0_STARTUP
+ };
 
 
 
@@ -226,22 +236,111 @@ int i;
 	for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up
 															// time for various voltages (eg to the XO) to stablize
 															// Not used in QNKTC / Henry Audio hardware
+
+	// Set CPU and PBA clock at slow (12MHz) frequency
+	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param_slow) )
+		return 42;
+
+
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_AB1X)
 	gpio_set_gpio_pin(AVR32_PIN_PX51);						// Enables power to XO and DAC in USBI2C AB-1.X and USB DAC 128
 #endif
 
 #ifdef HW_GEN_DIN20
-	gpio_set_gpio_pin(AVR32_PIN_PA27);						// Enables power to XO and DAC in SP_DAC02
 	gpio_set_gpio_pin(AVR32_PIN_PX13);						// Reset pin override inactive. Should have external pull-up!
+
+	// Disable all power supplies
+	// Shouldn't be needed with pull-down
+	mobo_km(MOBO_HP_KM_DISABLE);
+	gpio_clr_gpio_pin(AVR32_PIN_PX31);
+	gpio_clr_gpio_pin(AVR32_PIN_PA27);
+
+	gpio_set_gpio_pin(AVR32_PIN_PA22); // TP18				// Disable pass transistor at DAC's charge pump input
+
 
 	gpio_clr_gpio_pin(USB_VBUS_A_PIN);						// NO USB A to MCU's VBUS pin
 	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
 	gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);					// Select USB B to MCU's USB data pins
 	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
-//	USB_CH = USB_CH_B;										// FIX: Detect at startup. For now UAC1/2 selection applies to front and rear the same way.
-	USB_CH = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
-	mobo_i2s_enable(MOBO_I2S_ENABLE);
+	usb_ch = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
+	usb_ch_swap = USB_CH_NOSWAP;							// No swapping detected yet
+	mobo_i2s_enable(MOBO_I2S_DISABLE);	// Disable here and enable with audio on.
+
+
+
+	// At default, one channel of current limiter is active. That charges digital side OS-CON and
+	// OS-CON of step up's positive side (through the inductor).
+
+	// TODO: Find a 100mA and up current limiter with controllable bias resistor
+
+	// Q:How much does board burn during this kind of wait? A: Roughly 30mA
+	cpu_delay_ms(2, FCPU_HZ_SLOW);
+
+
+	// 3: Turn on analog part of current limiter and step-up converter.
+	gpio_set_gpio_pin(AVR32_PIN_PA27);
+
+
+	// Turn off clock controls to establish starting point
+	gpio_clr_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0. No pull-down or pull-up
+	gpio_set_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
+	gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
+
+	cpu_delay_ms(80, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
+
+
+	// Turn on all KMs by enabling pass transistors. FIX: add to board design!
+	// Analog KM charges LDOs through shared 22R FIX: add to board as 13R + 13R or something like that.
+	mobo_km(MOBO_HP_KM_ENABLE);
+
+
+	// Wait for analog KM output to settle.
+	cpu_delay_ms(600, FCPU_HZ_SLOW); // 600 worked, but that was without considering the DAC charge pumps
+
+
+
+	// Moved to I2S init code
+	// Wait for some time
+
+	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
+//	gpio_set_gpio_pin(AVR32_PIN_PX31);
+
+	// Wait for some time
+
+
+	// Short the shared 22R resistor at charge pump inputs. FIX: add board design!
+//	gpio_clr_gpio_pin(AVR32_PIN_PA22); // TP18
+
+
+	// Let things settle a bit
+	cpu_delay_ms(200, FCPU_HZ_SLOW);
+
+/* Not tied to MCLK and not yet a working solution
+	// Generate a super-slow SCLK/LRCK pair to try to fool DAC into super slow startup sequence
+	int count = 0;
+	gpio_clr_gpio_pin(AVR32_PIN_PX23); // SCLK
+	gpio_clr_gpio_pin(AVR32_PIN_PX27); // LRCK
+	while (1) {
+		gpio_tgl_gpio_pin(AVR32_PIN_PX23);
+		count ++;
+		if (count == 64) {
+			count = 0;
+			gpio_tgl_gpio_pin(AVR32_PIN_PX27);
+		}
+		cpu_delay_ms(1, FCPU_HZ_SLOW);
+	}
+*/
+
+
 #endif														//      Later: Maybe make front USB constantly UAC2...
+
+
+	// Set CPU and PBA clock
+	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
+		return 42;
+
+	// Initialize usart comm
+	init_dbg_rs232(pm_freq_param.pba_f);
 
 
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware
@@ -256,7 +355,7 @@ int i;
 	else
 		input_select = MOBO_SRC_UAC2;
 
-	mobo_xo_select(44100, input_select);					// Initial GPIO XO control and frequency indication
+	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 	mobo_led_select(44100, input_select);					// Front RGB LED
@@ -290,9 +389,6 @@ int i;
 	rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_MAX);	// Counter reset once per 10 seconds
 	rtc_enable(&AVR32_RTC);
 
-	// Set CPU and PBA clock
-	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
-		return 42;
 
 	// Initialize features management
 	features_init();
@@ -338,7 +434,7 @@ int i;
 	INTC_init_interrupts();
 
 	// Initialize usart comm
-	init_dbg_rs232(pm_freq_param.pba_f);
+// Moved up...	init_dbg_rs232(pm_freq_param.pba_f);
 
 	// Initialize USB clock (on PLL1)
 	pm_configure_usb_clock();

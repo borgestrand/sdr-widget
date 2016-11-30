@@ -35,9 +35,14 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 #define USB_VBUS_B_PIN				AVR32_PIN_PA28		// Active high enable B's VBUS
 #define	MOBO_I2S_ENABLE				1
 #define MOBO_I2S_DISABLE			0
+#define MOBO_HP_KM_ENABLE			1					// Enable power to headphones
+#define MOBO_HP_KM_DISABLE			0					// Disable power to headphones
+
+// Control headphone amp power supply (K-mult) turn-on time
+void mobo_km(uint8_t enable);
 
 // Control USB multiplexer in HW_GEN_DIN20
-void mobo_usb_select(uint8_t USB_CH);
+void mobo_usb_select(uint8_t usb_ch);
 
 // Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
 uint8_t mobo_usb_detect(void);

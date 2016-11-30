@@ -45,8 +45,8 @@
 #define MOBO_SRC_UAC1		1
 #define MOBO_SRC_UAC2		2
 #define MOBO_SRC_SPDIF		3
-#define MOBO_SRC_TOS2		4		// Available in HW_GEN_DIN10 and HW_GEN_DIN20
-#define MOBO_SRC_TOS1		5		// Available in HW_GEN_DIN10 and HW_GEN_DIN20
+#define MOBO_SRC_TOS2		4
+#define MOBO_SRC_TOS1		5
 
 
 // Front led colors for RGB LEDs
@@ -63,6 +63,9 @@
 #define USB_CH_NONE			0
 #define USB_CH_A			1
 #define USB_CH_B			2
+#define USB_CH_NOSWAP		0		// NO USB channel swapping happening
+#define USB_CH_SWAPDET		1		// Need for channel swap detected
+#define USB_CH_SWAPACK		2		// Channel swap detect acknowledged by uac?_device_audio_task
 
 // Frequency definitions, move and change to make compatible with USB system!
 #define	FREQ_TIMEOUT		0x00
@@ -75,14 +78,6 @@
 #define	FREQ_192			192000
 
 // Values for silence (32-bit)
-#define SILENCE_WM_LINKUP	300					// Limit when probing other WM8805 channel i.e. music NOT playing
-#define SILENCE_WM_PAUSE	3000				// Limit when input_select is a WM8805 channel i.e. music pausing
-#define SILENCE_WM_INIT		0
-#define SILENCE_WM_ZERO		10
-#define SILENCE_WM_UNLINK	100
-#define LOUD_WM_LIMIT		3					// Set above 1 to avoid blinking LED during channel search
-#define	LOUD_WM_INIT		0
-#define	LOUD_WM_INC			1
 #define SILENCE_USB_LIMIT	12000 				// We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
 #define SILENCE_USB_INIT	0
 #define USB_IS_SILENT() (silence_USB >= SILENCE_USB_LIMIT)

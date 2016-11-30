@@ -49,6 +49,7 @@
 #include "features.h"
 #include "device_audio_task.h"
 #include "taskAK5394A.h"
+#include "cycle_counter.h"
 
 //_____ M A C R O S ________________________________________________________
 
@@ -103,6 +104,7 @@ volatile S32 usb_buffer_toggle;
 volatile U8 audio_OUT_alive;
 volatile U8 audio_OUT_must_sync;
 
+
 /*! \brief The PDCA interrupt handler.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
@@ -113,9 +115,15 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, AUDIO_BUFFER_SIZE);
 		audio_buffer_in = 1;
+#ifdef USB_STATE_MACHINE_DEBUG
+    	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+#endif
 	} else {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, AUDIO_BUFFER_SIZE);
 		audio_buffer_in = 0;
+#ifdef USB_STATE_MACHINE_DEBUG
+    	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+#endif
 	}
 
 }
@@ -142,7 +150,9 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 	}
 
-	// BSB 20131201 attempting improved playerstarted detection
+//	balle = PDCA_CHANNEL_SSC_RX->tcr;
+
+	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
 		usb_buffer_toggle++;
 
@@ -251,4 +261,24 @@ void AK5394A_task_init(const Bool uac1) {
 	//////////////////////////////////////////////
 	// Enable now the transfer.
 	pdca_enable(PDCA_CHANNEL_SSC_TX);
+
+
+#ifdef HW_GEN_DIN20
+
+	// At this point in time, the DAC's charge pump is about to start. Give it some time to
+	// pull current while the series resistor is engaged.
+	cpu_delay_ms(80, FCPU_HZ);
+
+	// Short the shared 12R resistor at charge pump inputs while 12R at LDO input is still engaged. FIX: add board design!
+	gpio_clr_gpio_pin(AVR32_PIN_PA22); // TP18
+
+	cpu_delay_ms(200, FCPU_HZ);
+
+	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
+	gpio_set_gpio_pin(AVR32_PIN_PX31);
+
+#endif
+
+
+
 }

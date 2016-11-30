@@ -73,7 +73,8 @@ void uac2_AK5394A_task(void*);
 //! required for device CDC task.
 //!
 void uac2_AK5394A_task_init(void) {
-	current_freq.frequency = 96000;
+//	current_freq.frequency = FREQ_96;
+	current_freq.frequency = FREQ_44;
 	AK5394A_task_init(FALSE);
 
 //clear samplerate indication FIX: move to different _init() routine
@@ -117,9 +118,11 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 		// silence speaker if USB data out is stalled, as indicated by heart-beat counter
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
-			for (i = 0; i < SPK_BUFFER_SIZE; i++) {
-				spk_buffer_0[i] = 0;
-				spk_buffer_1[i] = 0;
+			if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
+				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
+					spk_buffer_0[i] = 0;
+					spk_buffer_1[i] = 0;
+				}
 			}
 
 			// BSB 20131209 attempting improved playerstarted detection

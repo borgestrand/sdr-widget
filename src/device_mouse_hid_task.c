@@ -96,6 +96,7 @@
 #include "device_audio_task.h"
 #include "Mobo_config.h"
 #include "features.h"
+#include "pdca.h" // For ADC channel config tests
 #include "taskAK5394A.h"
 
 #ifdef USB_METALLIC_NOISE_SIM
@@ -326,27 +327,19 @@ void device_mouse_hid_task(void)
             }
 #endif
 
-            else if (a == 'c') {							// Lowercase c
-            	gpio_clr_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 22.5792MHz/2 for AB-1
-            }
-
-            else if (a == 'C') {							// Uppercase C
-            	gpio_set_gpio_pin(AVR32_PIN_PX16); 			// BSB 20160318 MUX in 24.576MHz/2 for AB-1
-            }
-
 
 #ifdef HW_GEN_DIN20
             else if (a == '0') {							// Digit 0
-        		USB_CH = USB_CH_NONE;
-            	mobo_usb_select(USB_CH);
+        		usb_ch = USB_CH_NONE;
+            	mobo_usb_select(usb_ch);
             }
             else if (a == 'A') {							// Uppercase A
-        		USB_CH = USB_CH_A;
-            	mobo_usb_select(USB_CH);
+            	usb_ch = USB_CH_A;
+            	mobo_usb_select(usb_ch);
             }
             else if (a == 'B') {							// Uppercase B
-        		USB_CH = USB_CH_B;
-            	mobo_usb_select(USB_CH);
+            	usb_ch = USB_CH_B;
+            	mobo_usb_select(usb_ch);
             }
             else if (a == 'D') {							// Uppercase D
             	if (mobo_usb_detect() == USB_CH_A)
@@ -361,6 +354,53 @@ void device_mouse_hid_task(void)
             else if (a == 'y') {							// Lowercase y
             	mobo_i2s_enable(MOBO_I2S_DISABLE);
             }
+
+            else if (a == 'F') {							// Uppercase F
+            	mobo_km(MOBO_HP_KM_ENABLE);
+            }
+
+            else if (a == 'f') {							// Lowercase f
+            	mobo_km(MOBO_HP_KM_DISABLE);
+            }
+
+
+            // Start messing with ADC!
+
+            else if (a == 'a') {							// Lowercase a
+                static const pdca_channel_options_t PDCA_OPTIONS_DBG = {
+                	.addr = (void *)audio_buffer_0,         // memory address
+                	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
+                	.size = AUDIO_BUFFER_SIZE,              // transfer counter
+                	.r_addr = NULL,                         // next memory address
+                	.r_size = 0,                            // next transfer counter
+                	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+                };
+
+
+
+            	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS_DBG); // init PDCA channel with options.
+        		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_enable(PDCA_CHANNEL_SSC_RX);
+
+
+        		print_dbg_char('a');
+            }
+
+            // Select MCU's outgoing I2S bus
+            else if (a == 'b') {							// Lowercase b
+            	gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
+       			gpio_set_gpio_pin(AVR32_PIN_PX58); 			// 44.1 control
+       			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control
+            }
+
+            // Select RXs's outgoing I2S bus
+            else if (a == 'c') {							// Lowercase b
+            	gpio_set_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 1
+       			gpio_clr_gpio_pin(AVR32_PIN_PX58); 			// 44.1 control
+       			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control
+            }
+
+
 #endif
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
