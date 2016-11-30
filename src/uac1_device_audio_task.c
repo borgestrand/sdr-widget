@@ -197,7 +197,7 @@ void uac1_device_audio_task(void *pvParameters)
 	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
 	uint32_t silence_det = 0;
-	U8 DAC_buf_PLL_read_local = 0;					// Local copy read in atomic operations
+	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	// BSB 20130602: code section moved to uac1_usb_specific_request.c
 	// if (current_freq.frequency == 48000) FB_rate = 48 << 14;
@@ -246,10 +246,10 @@ void uac1_device_audio_task(void *pvParameters)
 			else if( time >= 9*STARTUP_LED_DELAY ) {
 				startup=FALSE;
 
-				ADC_buf_PLL_write = 0;
+				ADC_buf_DMA_write = 0;
 				ADC_buf_USB_IN = 0;
 				DAC_buf_USB_OUT = 0;
-				DAC_buf_PLL_read = 0; // Only place outside taskAK53984A.c where DAC_buf_PLL_read is written!
+				DAC_buf_DMA_read = 0; // Only place outside taskAK53984A.c where DAC_buf_DMA_read is written!
 				index = 0;
 
 				if (!FEATURE_ADC_NONE){
@@ -267,35 +267,35 @@ void uac1_device_audio_task(void *pvParameters)
 
 // Seriously messing with ADC interface...
 #ifdef HW_GEN_DIN20
-		static int ADC_buf_PLL_write_local = -1;
-		int ADC_buf_PLL_write_temp;
+		static int ADC_buf_DMA_write_local = -1;
+		int ADC_buf_DMA_write_temp;
 
 
-		// Startup condition with ADC_buf_PLL_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
+		// Startup condition with ADC_buf_DMA_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
 		// How could this even work in UAC1??
-		if (ADC_buf_PLL_write_local == -1) {
+		if (ADC_buf_DMA_write_local == -1) {
 			num_remaining = spk_pdca_channel->tcr;
-			DAC_buf_USB_OUT = DAC_buf_PLL_read;
+			DAC_buf_USB_OUT = DAC_buf_DMA_read;
 			spk_index = SPK_BUFFER_SIZE - num_remaining;
 			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-			ADC_buf_PLL_write_local = 2; // Done initiating. Must improve init code!
+			ADC_buf_DMA_write_local = 2; // Done initiating. Must improve init code!
 		}
 
 
 		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_NONE) ) ) {
-			ADC_buf_PLL_write_temp = ADC_buf_PLL_write; // Interrupt may strike at any time!
+			ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
-			if (ADC_buf_PLL_write_temp != ADC_buf_PLL_write_local) { // Must transfer previous half-ring-buffer
-				ADC_buf_PLL_write_local = ADC_buf_PLL_write_temp;
+			if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_local) { // Must transfer previous half-ring-buffer
+				ADC_buf_DMA_write_local = ADC_buf_DMA_write_temp;
 
-				if (ADC_buf_PLL_write_temp == 1)
+				if (ADC_buf_DMA_write_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 				for( i=0 ; i < AUDIO_BUFFER_SIZE ; i+=2 ) {
 					// Fill endpoint with sample raw
-					if (ADC_buf_PLL_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
 						sample_L = audio_buffer_0[i+IN_LEFT];
 						sample_R = audio_buffer_0[i+IN_RIGHT];
 					} else {
@@ -326,7 +326,7 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 					}
 				} // for AUDIO_BUFFER_SIZE
-			} // ADC_buf_PLL_write toggle
+			} // ADC_buf_DMA_write toggle
 		} // input select
 #endif
 
@@ -343,16 +343,16 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 					// Sync AK data stream with USB data stream
-					// AK data is being filled into ~ADC_buf_PLL_write, ie if ADC_buf_PLL_write is 0
+					// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
 					// buffer 0 is set in the reload register of the pdca
 					// So the actual loading is occuring in buffer 1
 					// USB data is being taken from ADC_buf_USB_IN
 
 					// find out the current status of PDCA transfer
-					// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_PLL_write
+					// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
 
 					num_remaining = pdca_channel->tcr;
-					if (ADC_buf_PLL_write != ADC_buf_USB_IN) {
+					if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 						// AK and USB using same buffer
 						if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
 						else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
@@ -676,7 +676,7 @@ void uac1_device_audio_task(void *pvParameters)
 							audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 							Disable_global_interrupt();				// RTOS-atomic operation
 								num_remaining = spk_pdca_channel->tcr;
-								DAC_buf_USB_OUT = DAC_buf_PLL_read;		// Keep resyncing until playerStarted becomes true
+								DAC_buf_USB_OUT = DAC_buf_DMA_read;		// Keep resyncing until playerStarted becomes true
 							Enable_global_interrupt();
 							LED_Off(LED0);							// The LEDs on the PCB near the MCU
 							LED_Off(LED1);
@@ -784,10 +784,10 @@ void uac1_device_audio_task(void *pvParameters)
 
 							Disable_global_interrupt();			// RTOS-atomic operation
 								num_remaining = spk_pdca_channel->tcr;
-								DAC_buf_PLL_read_local = DAC_buf_PLL_read;
+								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 							Enable_global_interrupt();
 
-							if (DAC_buf_USB_OUT != DAC_buf_PLL_read_local) { 	// CS4344 and USB using same buffer
+							if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
 								if ( spk_index < (SPK_BUFFER_SIZE - num_remaining))
 									gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
 								else

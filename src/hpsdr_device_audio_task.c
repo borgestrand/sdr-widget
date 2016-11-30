@@ -191,10 +191,10 @@ void hpsdr_device_audio_task(void *pvParameters)
 			else if( time >= 9*STARTUP_LED_DELAY ) {
 				startup=FALSE;
 
-				ADC_buf_PLL_write = 0;
+				ADC_buf_DMA_write = 0;
 				ADC_buf_USB_IN = 0;
 				DAC_buf_USB_OUT = 0;
-				DAC_buf_PLL_read = 0;
+				DAC_buf_DMA_read = 0;
 				index = 0;
 
 				freq_changed = 1;						// force a freq change reset
@@ -219,15 +219,15 @@ void hpsdr_device_audio_task(void *pvParameters)
 		num_samples = 63;	// (512 bytes - 8 bytes (sync+command)) / 8 (6 bytes I/Q + 2 bytes Mic)
 
 		//  wait till there are enough samples in the audio buffer
-		// AK data is being filled into ~ADC_buf_PLL_write, ie if ADC_buf_PLL_write is 0
+		// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
 		// buffer 0 is set in the reload register of the pdca
 		// So the actual loading is occuring in buffer 1
 		// USB data is being taken from ADC_buf_USB_IN
 
 		// find out the current status of PDCA transfer
-		// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_PLL_write
+		// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
 		num_remaining = pdca_channel->tcr;
-		if (ADC_buf_PLL_write != ADC_buf_USB_IN) {
+		if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 			// AK and USB using same buffer
 			if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
 			else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
@@ -305,7 +305,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 
 			// Sync CS4344 spk data stream by calculating gap and provide feedback
 		num_remaining = spk_pdca_channel->tcr;
-		if (DAC_buf_USB_OUT != DAC_buf_PLL_read) {
+		if (DAC_buf_USB_OUT != DAC_buf_DMA_read) {
 			// CS4344 and USB using same buffer
 			if ( spk_index < (SPK_BUFFER_SIZE - num_remaining)) gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
 			else gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
