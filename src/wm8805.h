@@ -37,7 +37,7 @@
 #define WM8805_INT_N_PIN	AVR32_PIN_PX54
 #define WM8805_ZERO_PIN		AVR32_PIN_PX15
 #define WM8805_ZEROFLAG_PIN	AVR32_PIN_PX15
-#define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k
+#define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k 00111010
 #define WM8805_PLL_NORMAL	0					// PLL mode is normal 32-96 and 176.4ksps
 #define WM8805_PLL_192		1					// PLL mode is for 192ksps
 #define WM8805_PLL_EXP		2					// Experimental PLL mode
