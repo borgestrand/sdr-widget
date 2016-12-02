@@ -636,7 +636,7 @@ void audio_set_cur(void)
 			print_dbg_char('1'); // BSB debug 20121212
 #endif
 
-			current_freq.frequency = 44100;
+			current_freq.frequency = FREQ_44;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
 			FB_rate = (44 << 14) + (1 << 14)/10;
 			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
@@ -648,7 +648,7 @@ void audio_set_cur(void)
 			print_dbg_char('2'); // BSB debug 20121212
 #endif
 
-	   		current_freq.frequency = 48000;
+	   		current_freq.frequency = FREQ_48;
 			// BSB 20130602: code section moved here from uac1_device_audio_task.c
 			FB_rate = 48 << 14;
 			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system

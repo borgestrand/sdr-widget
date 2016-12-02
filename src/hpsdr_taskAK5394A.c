@@ -67,7 +67,7 @@ void hpsdr_AK5394A_task(void*);
 //! required for device CDC task.
 //!
 void hpsdr_AK5394A_task_init(void) {
-	current_freq.frequency = 48000;
+	current_freq.frequency = FREQ_48;
 	AK5394A_task_init(TRUE);
 	xTaskCreate(hpsdr_AK5394A_task,
 				configTSK_AK5394A_NAME,

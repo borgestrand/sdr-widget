@@ -28,6 +28,7 @@
 #include "usb_specific_request.h"
 #include "features.h"
 #include "widget.h"
+#include "taskAK5394A.h"
 
 // This var is used to pass frequency from USB input command
 volatile uint32_t freq_from_usb;		// New Frequency from USB
@@ -772,20 +773,20 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 				// I think this should just pass the sample rate in Hertz, 32 bits
 				switch (wIndex) {
 				case 0:
-					if (current_freq.frequency != 48000) {
-						current_freq.frequency = 48000;
+					if (current_freq.frequency != FREQ_48) {
+						current_freq.frequency = FREQ_48;
 						freq_changed = TRUE;
 					}
 					break;
 				case 1:
-					if (current_freq.frequency != 96000){
-						current_freq.frequency = 96000;
+					if (current_freq.frequency != FREQ_96){
+						current_freq.frequency = FREQ_96;
 						freq_changed = TRUE;
 					}
 					break;
 				case 2:
-					if (current_freq.frequency != 192000){
-						current_freq.frequency = 192000;
+					if (current_freq.frequency != FREQ_192){
+						current_freq.frequency = FREQ_192;
 						freq_changed = TRUE;
 					}
 					break;

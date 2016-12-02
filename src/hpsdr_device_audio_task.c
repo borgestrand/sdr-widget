@@ -327,20 +327,20 @@ void hpsdr_device_audio_task(void *pvParameters)
 			if ( (command_out[0] & 0xfe) == 0) {
 				switch (command_out[1] & 0x03) {
 				case 0:
-					if (current_freq.frequency != 48000) {
-						current_freq.frequency = 48000;
+					if (current_freq.frequency != FREQ_48) {
+						current_freq.frequency = FREQ_48;
 						freq_changed = TRUE;
 					}
 					break;
 				case 1:
-					if (current_freq.frequency != 96000) {
-						current_freq.frequency = 96000;
+					if (current_freq.frequency != FREQ_96) {
+						current_freq.frequency = FREQ_96;
 						freq_changed = TRUE;
 					}
 					break;
 				case 2:
-					if (current_freq.frequency != 192000) {
-						current_freq.frequency = 192000;
+					if (current_freq.frequency != FREQ_192) {
+						current_freq.frequency = FREQ_192;
 						freq_changed = TRUE;
 					}
 					break;

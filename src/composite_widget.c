@@ -358,7 +358,7 @@ int i;
 	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-	mobo_led_select(44100, input_select);					// Front RGB LED
+	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
 	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 

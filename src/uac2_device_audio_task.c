@@ -331,8 +331,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 		if ((usb_alternate_setting == 1)) {
 			if(Mic_freq_valid) {
-				if (current_freq.frequency == 96000) num_samples = 24;
-				else if (current_freq.frequency == 48000) num_samples = 12;
+				if (current_freq.frequency == FREQ_96) num_samples = 24;
+				else if (current_freq.frequency == FREQ_48) num_samples = 12;
 				else num_samples = 48;	// freq 192khz
 
 				if (!FEATURE_ADC_NONE) {
@@ -530,17 +530,17 @@ void uac2_device_audio_task(void *pvParameters)
 
 				if (playerStarted) {
 // 					Original Linux quirk replacement code
-//					if (((current_freq.frequency == 88200) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
-//						((current_freq.frequency == 96000) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
+//					if (((current_freq.frequency == FREQ_88) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
+//						((current_freq.frequency == FREQ_96) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
 //						FB_rate -= FB_RATE_DELTA * 512;
 
 //					Alternative Linux quirk replacement code, insert nominal FB_rate after a short interlude of requesting 99ksps (see uac2_usb_specific_request.c)
 
 					// FIX: Will Linux quirk work with WM8805 input??
-					if ( (current_freq.frequency == 88200) && (FB_rate > (98 << 14) ) ) {
+					if ( (current_freq.frequency == FREQ_88) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = FB_rate_nominal;			// BSB 20131115 restore saved nominal feedback rate
 					}
-					else if ( (current_freq.frequency == 96000) && (FB_rate > (98 << 14) ) ) {
+					else if ( (current_freq.frequency == FREQ_96) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = FB_rate_nominal;			// BSB 20131115 restore saved nominal feedback rate
 					}
 				}

@@ -95,7 +95,7 @@ void uac1_AK5394A_task(void *pvParameters) {
 
 		if (freq_changed) {
 			spk_mute = TRUE;
-			if (current_freq.frequency == 48000) {
+			if (current_freq.frequency == FREQ_48) {
 				FB_rate = 48 << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;

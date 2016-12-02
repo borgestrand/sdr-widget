@@ -200,7 +200,7 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	// BSB 20130602: code section moved to uac1_usb_specific_request.c
-	// if (current_freq.frequency == 48000) FB_rate = 48 << 14;
+	// if (current_freq.frequency == FREQ_48) FB_rate = 48 << 14;
 	// else FB_rate = (44 << 14) + (1 << 14)/10;
 
 
