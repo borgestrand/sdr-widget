@@ -363,105 +363,105 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 // Master clock to DAC's I2S port frequency setup
 void mobo_clock_division(U32 frequency) {
 
+	gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
+
 	pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-	/*
-	// External /2 variety
-	switch (frequency) {
-		case FREQ_192 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						0,                  // diven - disabled
-						0);                 // not divided
-		break;
-		case FREQ_176 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,        			// osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,        			// pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						0,        			// diven - disabled
-						0);                 // not divided
-		break;
-		case FREQ_96 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						0);                 // divided by 2
-		break;
-		case FREQ_88 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						0);                 // divided by 2
-		break;
-		case FREQ_48 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						1);                 // divided by 4
-		break;
-		case FREQ_44 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						1);                 // divided by 4
-		break;
-
-	}
-*/
-
-	// No external /2 variety
-	switch (frequency) {
-		case FREQ_192 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						0);                 // divided by 2
-		break;
-		case FREQ_176 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,        			// osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,        			// pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,        			// diven - enabled
-						0);                 // divided by 2
-		break;
-		case FREQ_96 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						1);                 // divided by 4
-		break;
-		case FREQ_88 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						1);                 // divided by 4
-		break;
-		case FREQ_48 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						3);                 // divided by 8
-		break;
-		case FREQ_44 :
-			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-						1,                  // diven - enabled
-						3);                 // divided by 8
-		break;
-
+	// External /2 variety, unmodded hardware with floating, pulled-up PA03 interpreted as 1
+	if (gpio_get_pin_value(AVR32_PIN_PA03) == 1) {
+		switch (frequency) {
+			case FREQ_192 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							0,                  // diven - disabled
+							0);                 // not divided
+			break;
+			case FREQ_176 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,        			// osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,        			// pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							0,        			// diven - disabled
+							0);                 // not divided
+			break;
+			case FREQ_96 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							0);                 // divided by 2
+			break;
+			case FREQ_88 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							0);                 // divided by 2
+			break;
+			case FREQ_48 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							1);                 // divided by 4
+			break;
+			case FREQ_44 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							1);                 // divided by 4
+			break;
+		}
 	}
 
-
+	// No external /2 variety, modded hardware with resistor tying PA03 to 0
+	else {
+		switch (frequency) {
+			case FREQ_192 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							0);                 // divided by 2
+			break;
+			case FREQ_176 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,        			// osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,        			// pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,        			// diven - enabled
+							0);                 // divided by 2
+			break;
+			case FREQ_96 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							1);                 // divided by 4
+			break;
+			case FREQ_88 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							1);                 // divided by 4
+			break;
+			case FREQ_48 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							3);                 // divided by 8
+			break;
+			case FREQ_44 :
+				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+							1,                  // diven - enabled
+							3);                 // divided by 8
+			break;
+		}
+	}
 
 	pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 }
