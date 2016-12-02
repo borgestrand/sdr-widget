@@ -25,6 +25,9 @@
 // Audio Widget select oscillator
 void mobo_xo_select(U32 frequency, uint8_t source);
 
+// Master clock to DAC's I2S port frequency setup
+void mobo_clock_division(U32 frequency);
+
 
 #ifdef HW_GEN_DIN20
 

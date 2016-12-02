@@ -45,6 +45,7 @@
 #include "gpio.h"
 #include "ssc_i2s.h"
 #include "pm.h"
+#include "Mobo_config.h"
 #include "pdca.h"
 #include "usb_standard_request.h"
 #include "usb_specific_request.h"
@@ -91,45 +92,33 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 
 		if (freq_changed) {
 
-			if (current_freq.frequency == 96000) {
+			if (current_freq.frequency == FREQ_96) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
 				gpio_clr_gpio_pin(AK5394_DFS1);
 
-				pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
-				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-							1,                  // diven - enabled
-							0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
-				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+				mobo_clock_division(FREQ_96);
 
 				FB_rate = 96 << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 
-			} else if (current_freq.frequency == 192000) {
+			} else if (current_freq.frequency == FREQ_192) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 				gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
 				gpio_set_gpio_pin(AK5394_DFS1);
 
-				pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
-				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-							0,                  // diven - disabled
-							0);                 // GCLK1 = 12.288Mhz
-				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+				mobo_clock_division(FREQ_192);
 
 				FB_rate = 192 << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 
-			} else if (current_freq.frequency == 48000) {
+			} else if (current_freq.frequency == FREQ_48) {
 
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -137,13 +126,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 				gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
 				gpio_clr_gpio_pin(AK5394_DFS1);
 
-				pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
-				pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-							0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-							1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-							1,                  // diven - enabled
-							1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
-				pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+				mobo_clock_division(FREQ_48);
 
 				FB_rate = 48 << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system

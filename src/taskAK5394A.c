@@ -44,6 +44,7 @@
 #include "gpio.h"
 #include "ssc_i2s.h"
 #include "pm.h"
+#include "Mobo_config.h"
 #include "pdca.h"
 #include "usb_standard_request.h"
 #include "features.h"
@@ -197,6 +198,13 @@ void AK5394A_task_init(const Bool uac1) {
 
 	mutexSpkUSB = xSemaphoreCreateMutex();
 
+	// FIX: UAC1 must include sampling frequency dependant mobo_clock_division or pm_gc_setup!
+	if (uac1)
+		mobo_clock_division(FREQ_44);
+	else
+		mobo_clock_division(FREQ_96);
+
+/*
 	if (uac1) {
 		pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
 					0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
@@ -211,6 +219,8 @@ void AK5394A_task_init(const Bool uac1) {
 					0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
 	}
 	pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+*/
+
 
 	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
 	// from AK5394A Xtal Oscillator

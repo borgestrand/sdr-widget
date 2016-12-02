@@ -14,6 +14,9 @@
 #include <avr32/io.h>
 #include "compiler.h"
 
+// Power module and clock control
+#include "pm.h"
+
 // To access global input source variable
 #include "device_audio_task.h"
 
@@ -85,7 +88,6 @@ void  mobo_i2s_enable(uint8_t i2s_mode) {
 }
 
 #endif
-
 
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
@@ -355,6 +357,113 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 #else
 #error undefined hardware
 #endif
+}
+
+
+// Master clock to DAC's I2S port frequency setup
+void mobo_clock_division(U32 frequency) {
+
+	pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+	/*
+	// External /2 variety
+	switch (frequency) {
+		case FREQ_192 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						0,                  // diven - disabled
+						0);                 // not divided
+		break;
+		case FREQ_176 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,        			// osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,        			// pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						0,        			// diven - disabled
+						0);                 // not divided
+		break;
+		case FREQ_96 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						0);                 // divided by 2
+		break;
+		case FREQ_88 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						0);                 // divided by 2
+		break;
+		case FREQ_48 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						1);                 // divided by 4
+		break;
+		case FREQ_44 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						1);                 // divided by 4
+		break;
+
+	}
+*/
+
+	// No external /2 variety
+	switch (frequency) {
+		case FREQ_192 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						0);                 // divided by 2
+		break;
+		case FREQ_176 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,        			// osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,        			// pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,        			// diven - enabled
+						0);                 // divided by 2
+		break;
+		case FREQ_96 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						1);                 // divided by 4
+		break;
+		case FREQ_88 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						1);                 // divided by 4
+		break;
+		case FREQ_48 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						3);                 // divided by 8
+		break;
+		case FREQ_44 :
+			pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+						0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+						1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+						1,                  // diven - enabled
+						3);                 // divided by 8
+		break;
+
+	}
+
+
+
+	pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 }
 
 
