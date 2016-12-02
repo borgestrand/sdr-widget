@@ -99,7 +99,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 				gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
 				gpio_clr_gpio_pin(AK5394_DFS1);
 
-				mobo_clock_division(FREQ_96);
+				mobo_clock_division(current_freq.frequency);
 
 				FB_rate = 96 << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
@@ -112,7 +112,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 				gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
 				gpio_set_gpio_pin(AK5394_DFS1);
 
-				mobo_clock_division(FREQ_192);
+				mobo_clock_division(current_freq.frequency);
 
 				FB_rate = 192 << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
@@ -126,7 +126,7 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 				gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
 				gpio_clr_gpio_pin(AK5394_DFS1);
 
-				mobo_clock_division(FREQ_48);
+				mobo_clock_division(current_freq.frequency);
 
 				FB_rate = 48 << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system

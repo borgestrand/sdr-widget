@@ -209,7 +209,7 @@ void uac2_freq_change_handler() {
 					gpio_clr_gpio_pin(AK5394_DFS1);
 				}
 
-				mobo_clock_division(FREQ_96);
+				mobo_clock_division(current_freq.frequency);
 
 /*
 				if (FEATURE_LINUX_QUIRK_ON)
@@ -236,7 +236,7 @@ void uac2_freq_change_handler() {
 					gpio_clr_gpio_pin(AK5394_DFS1);
 				}
 
-				mobo_clock_division(FREQ_88);
+				mobo_clock_division(current_freq.frequency);
 
 /*
 				if (FEATURE_LINUX_QUIRK_ON)
@@ -261,7 +261,7 @@ void uac2_freq_change_handler() {
 	    			gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
 	    			gpio_set_gpio_pin(AK5394_DFS1);
 
-	    			mobo_clock_division(FREQ_176);
+					mobo_clock_division(current_freq.frequency);
 
 	    			FB_rate = (176 << 14) + ((1<<14)*4) / 10;
 	    			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
@@ -280,7 +280,7 @@ void uac2_freq_change_handler() {
 					gpio_set_gpio_pin(AK5394_DFS1);
 				}
 
-    			mobo_clock_division(FREQ_192);
+				mobo_clock_division(current_freq.frequency);
 
     			FB_rate = (192) << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
@@ -302,7 +302,7 @@ void uac2_freq_change_handler() {
 					gpio_clr_gpio_pin(AK5394_DFS1);
 				}
 
-    			mobo_clock_division(FREQ_48);
+				mobo_clock_division(current_freq.frequency);
 
 				FB_rate = (48) << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
@@ -323,7 +323,7 @@ void uac2_freq_change_handler() {
 					gpio_clr_gpio_pin(AK5394_DFS1);
 				}
 
-    			mobo_clock_division(FREQ_44);
+				mobo_clock_division(current_freq.frequency);
 
 				FB_rate = (44 << 14) + (1 << 14)/10;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
