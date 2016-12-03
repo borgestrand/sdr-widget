@@ -52,11 +52,10 @@
 
 // CONFIGURATION
 #define NB_INTERFACE	   4	//!  DG8SAQ, Audio (2), HID
-#define CONF_NB            1     //! Number of this configuration
+#define CONF_NB            1	//! Number of this configuration
 #define CONF_INDEX         0
-//#define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED // BSB Hack 20150822 USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
-#define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
-#define MAX_POWER          5 // 250    // 500 mA
+#define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered
+#define MAX_POWER          250	// 500 mA
 
 // IAD for Audio
 #define FIRST_INTERFACE1	1
