@@ -72,12 +72,36 @@ static void x_image_boot(void) {
 }
 
 static void x_image_init(void) {
+#ifdef VDD_SENSE
+    if (gpio_get_pin_value(AVR32_PIN_PA19)) {
+	uac2_usb_conf_desc_fs.cfg.bmAttributes = USB_CONFIG_SELFPOWERED;
+	uac2_usb_conf_desc_fs.cfg.MaxPower = 5;		// 10mA
+#if USB_HIGH_SPEED_SUPPORT==ENABLED
+	uac2_usb_conf_desc_hs.cfg.bmAttributes = USB_CONFIG_SELFPOWERED;
+	uac2_usb_conf_desc_hs.cfg.MaxPower = 5;		// 10mA
+#endif
+    }
+    else {
+	uac2_usb_conf_desc_fs.cfg.bmAttributes = USB_CONFIG_BUSPOWERED;
+	uac2_usb_conf_desc_fs.cfg.MaxPower = 250;	// 500mA
+#if USB_HIGH_SPEED_SUPPORT==ENABLED
+	uac2_usb_conf_desc_hs.cfg.bmAttributes = USB_CONFIG_BUSPOWERED;
+	uac2_usb_conf_desc_hs.cfg.MaxPower = 250;	// 500mA
+#endif
+    }
+#endif	// VDD_SENSE
 }
 
 static void x_image_task_init(void) {
 	// Initialize USB task
 
+#ifdef USB_STATE_MACHINE_DEBUG
+#ifdef FEATURE_PRODUCT_AMB
+	gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
+#else
 	gpio_clr_gpio_pin(AVR32_PIN_PX33); // Set GPIO_09/TP70 during usb interrupt handling
+#endif
+#endif	// USB_STATE_MACHINE_DEBUG
 
 	usb_task_init();
 

@@ -58,11 +58,10 @@
 // CONFIGURATION
 // BSB 20130604 disabling UAC1 IN #define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
 #define NB_INTERFACE	   4	//!  DG8SAQ, HID, Audio (2)
-#define CONF_NB            1     //! Number of this configuration
+#define CONF_NB            1	//! Number of this configuration
 #define CONF_INDEX         0
-//#define CONF_ATTRIBUTES    USB_CONFIG_SELFPOWERED // UAC1 was set as selfpowered!
-#define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED	//USB_CONFIG_SELFPOWERED
-#define MAX_POWER          5 // 250    // 500 mA
+#define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered
+#define MAX_POWER          250  // 500mA for bus-powered operation
 
 //Audio Streaming (AS) interface descriptor
 // BSB 20130604 disabling UAC1 IN #define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
@@ -227,7 +226,7 @@
 
 // SPK Output Terminal
 #define SPK_OUTPUT_TERMINAL_ID			0x13
-#define SPK_OUTPUT_TERMINAL_TYPE		0x0302	// Headphones. Alternatively, 0x0602, "Digital Audio Interface" } or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE		0x0602	// 0x0302 = Headphones, 0x0602 = "Digital Audio Interface" or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00	// No association
 #define SPK_OUTPUT_TERMINAL_SOURCE_ID	0x12	// From Feature Unit
 
@@ -324,12 +323,22 @@ extern const S_usb_device_descriptor uac1_dg8saq_usb_dev_desc;
 	extern const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc;
 #endif
 
+#ifdef VDD_SENSE
+extern S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs;
+extern S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget;
+#else
 extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs;
 extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget;
+#endif
 
 #if (USB_HIGH_SPEED_SUPPORT==ENABLED)
+#ifdef VDD_SENSE
+	extern S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs;
+	extern S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget;
+#else
 	extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs;
 	extern const S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget;
+#endif
 	extern const S_usb_device_qualifier_descriptor uac1_usb_qualifier_desc;
 #endif
 
