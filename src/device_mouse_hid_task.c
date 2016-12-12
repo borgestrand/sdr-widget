@@ -362,8 +362,9 @@ void device_mouse_hid_task(void)
             else if (a == 'f') {							// Lowercase f
             	mobo_km(MOBO_HP_KM_DISABLE);
             }
+#endif
 
-
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
             // Start messing with ADC!
 
             else if (a == 'a') {							// Lowercase a
@@ -400,10 +401,7 @@ void device_mouse_hid_task(void)
        			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control
             }
 
-
-#endif
-
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+            // LED debug
             else if (a == 'L') {							// Uppercase L
             	// 3 hex characters to LEDs. Punched as 6 digits. 0x00-0x07 are valid.
             	// Left-to-right on device front: fled2, fled1, fled0, NO! it's the other way around?! Why??

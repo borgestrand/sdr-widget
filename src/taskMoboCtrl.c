@@ -585,7 +585,7 @@ static void vtaskMoboCtrl( void * pcParameters )
     // Probe for I2C devices present and report on LCD
 	i2c_device_scan();
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 // FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
 	wm8805_init();							// Start up the WM8805 in a fairly dead mode
 	wm8805_sleep();

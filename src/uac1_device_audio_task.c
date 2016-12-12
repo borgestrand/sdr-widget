@@ -220,6 +220,13 @@ void uac1_device_audio_task(void *pvParameters)
 				startup=TRUE;
 				continue;
 		}
+#elif (defined HW_GEN_DIN10)
+		if (   ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) )
+			&& (!Is_device_enumerated())   ) {
+				time=0;
+				startup=TRUE;
+				continue;
+		}
 #else
 		// First, check the device enumeration state
 		if (!Is_device_enumerated()) { time=0; startup=TRUE; continue; };
@@ -266,7 +273,7 @@ void uac1_device_audio_task(void *pvParameters)
 		}
 
 // Seriously messing with ADC interface...
-#ifdef HW_GEN_DIN20
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int ADC_buf_DMA_write_local = -1;
 		int ADC_buf_DMA_write_temp;
 

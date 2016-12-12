@@ -192,7 +192,7 @@ void wm8805_poll(void) {
 	 * + Make silence detector (use 1024 silent block detector in WM?)
 	 */
 
-#ifdef HW_GEN_DIN20										// Hard, shared I2S mute available
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // With patch to PX37 from WM8805
 	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
@@ -378,15 +378,15 @@ void wm8805_poll(void) {
 void wm8805_reset(uint8_t reset_type) {
 	if (reset_type == WM8805_RESET_START) {
 		gpio_clr_gpio_pin(WM8805_RESET_PIN);			// Clear reset pin WM8805 active low reset
-		#ifdef HW_GEN_DIN20
+//		#ifdef HW_GEN_DIN20		// Removed with strap at PX37
 			gpio_clr_gpio_pin(WM8805_CSB_PIN);			// CSB/GPO2 pin sets 2W address. Make sure CSB outputs 0.
-		#endif											// Who knows how CSB is sampled at _reset. Assume rising edge
+//		#endif											// Who knows how CSB is sampled at _reset. Assume rising edge
 	}
 	else {
 		gpio_set_gpio_pin(WM8805_RESET_PIN);			// Set reset pin WM8805 active low reset
-		#ifdef HW_GEN_DIN20
+//		#ifdef HW_GEN_DIN20 	// Removed with strap at PX37
 			gpio_enable_gpio_pin(WM8805_CSB_PIN);		// CSB/GPO2 should now be an MCU input...
-		#endif
+//		#endif
 	}
 }
 
@@ -591,44 +591,24 @@ uint32_t wm8805_srd(void) {
 	// Determining speed at TP16 / DAC_0P / PA04 for now. Recompile prototype c to change io pin!
 	// Test is done for up to 1 half period, then 2 full periods
 
-#ifdef HW_GEN_DIN10
-	gpio_enable_gpio_pin(AVR32_PIN_PA04);	// Enable GPIO pin, not special IO (also for input). Needed?
-#endif
-#ifdef HW_GEN_DIN20
+	// HW_GEN_DIN10 gets patched to become like HW_GEN_DIN20 in this repect
+
 	gpio_enable_gpio_pin(AVR32_PIN_PX09);	// Enable GPIO pin, not special IO (also for input). Needed?
-#endif
 
 	asm volatile(
 		"ssrf	16				\n\t"	// Disable global interrupt
 		"mov	%0, 	150		\n\t"	// Load timeout
-#ifdef HW_GEN_DIN10
-			"mov	r9,		-61440	\n\t"	// Immediate load, set up pointer to PA04, (0xFFFF1000) recompile C for other IO pin, do once
-#endif
-#ifdef HW_GEN_DIN20
-			"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PX09, recompile C for other IO pin, do once
-#endif
+		"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PX09, recompile C for other IO pin, do once
 
 		// If bit is 0, branch to loop while 0. If bit was 1, continue to loop while 1
-#ifdef HW_GEN_DIN10
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
-#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
 		"brne	L3				\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 
 		// Wait while bit is 1, then count two half periods
 		"L0:					\n\t"	// Loop while PA04 is 1
-#ifdef HW_GEN_DIN10
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
-#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
 		"brne	L0_done			\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L0				\n\t"	// Not done counting down
@@ -638,14 +618,8 @@ uint32_t wm8805_srd(void) {
 		"mov	%0, 	150		\n\t"	// Restart countdon for actual timing of below half-cycles
 
 		"L1:					\n\t"	// Loop while PA04 is 0
-#ifdef HW_GEN_DIN10
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
-#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
 		"breq	L1_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L1				\n\t"	// Not done counting down
@@ -653,14 +627,8 @@ uint32_t wm8805_srd(void) {
 		"L1_done:				\n\t"
 
 		"L2:					\n\t"	// Loop while PBA04 is 1
-#ifdef HW_GEN_DIN10
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
-#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
 		"brne	L2_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L2				\n\t"	// Not done counting down
@@ -670,14 +638,8 @@ uint32_t wm8805_srd(void) {
 
 		// Wait while bit is 0, then count two half periods
 		"L3:					\n\t"	// Loop while PA04 is 0
-#ifdef HW_GEN_DIN10
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
-#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
 		"breq	L3_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L3				\n\t"	// Not done counting down
@@ -687,14 +649,8 @@ uint32_t wm8805_srd(void) {
 		"mov	%0, 	150		\n\t"	// Restart countdon for actual timing of below half-cycles
 
 		"L4:					\n\t"	// Loop while PBA04 is 1
-#ifdef HW_GEN_DIN10
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
-#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
 		"brne	L4_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L4				\n\t"	// Not done counting down
@@ -702,14 +658,8 @@ uint32_t wm8805_srd(void) {
 		"L4_done:				\n\t"
 
 		"L5:					\n\t"	// Loop while PA04 is 0
-#ifdef HW_GEN_DIN10
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
-#ifdef HW_GEN_DIN20
 		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-#endif
 		"breq	L5_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L5				\n\t"	// Not done counting down
