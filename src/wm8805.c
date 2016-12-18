@@ -513,6 +513,9 @@ void wm8805_unmute(void) {
 	U32 wm8805_freq;
 	wm8805_freq = wm8805_srd();
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
+
+	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
+
 	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
 
 	#ifdef HW_GEN_DIN20

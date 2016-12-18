@@ -646,6 +646,9 @@ void uac1_device_audio_task(void *pvParameters)
 									print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 										print_dbg_char('[');
+
+										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+
 										input_select = MOBO_SRC_UAC1;
 										#ifdef HW_GEN_DIN20
 											mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
@@ -655,6 +658,9 @@ void uac1_device_audio_task(void *pvParameters)
 										print_dbg_char(']');
 								#else // not debug
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
+
+										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+
 										input_select = MOBO_SRC_UAC1;
 										#ifdef HW_GEN_DIN20
 											mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
