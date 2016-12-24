@@ -137,7 +137,7 @@ void uac1_AK5394A_task(void *pvParameters) {
 		if (usb_alternate_setting_out_changed){
 			if (usb_alternate_setting_out != 1){
 				spk_mute = TRUE;
-				for (i = 0; i < SPK_BUFFER_SIZE; i++){
+				for (i = 0; i < DAC_BUFFER_SIZE; i++){
 					spk_buffer_0[i] = 0;
 					spk_buffer_1[i] = 0;
 				}
@@ -150,7 +150,7 @@ void uac1_AK5394A_task(void *pvParameters) {
 // silence speaker if USB data out is stalled, as indicated by heart-beat counter
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
 			if (input_select == MOBO_SRC_UAC1) {	// balle BSB 20161010 speculative fix for ADC re-use
-				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
+				for (i = 0; i < DAC_BUFFER_SIZE; i++) {
 					spk_buffer_0[i] = 0;
 					spk_buffer_1[i] = 0;
 				}

@@ -33,8 +33,8 @@
 
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
-#define AUDIO_BUFFER_SIZE	(48*2*8) // 48 khz, stereo, 8 ms worth
-#define SPK_BUFFER_SIZE 	(48*2*16)
+#define ADC_BUFFER_SIZE	(32*2*16) // Use 2^n style number, now: 512 stereo samples! Was: 48*2*8 48 khz, stereo, 8 ms worth
+#define DAC_BUFFER_SIZE 	(32*2*16) // Both: one half-buffer holds = ideal latency 11.6/10.67/5.8/5.33/2.9/2.67ms Was: 48*2*16
 
 // BSB 20131201 attempting improved playerstarted detection.
 #define USB_BUFFER_TOGGLE_LIM 2		// DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
@@ -87,10 +87,10 @@
 //extern const pdca_channel_options_t PDCA_OPTIONS;
 //extern const pdca_channel_options_t SPK_PDCA_OPTIONS;
 
-extern volatile U32 audio_buffer_0[AUDIO_BUFFER_SIZE];
-extern volatile U32 audio_buffer_1[AUDIO_BUFFER_SIZE];
-extern volatile U32 spk_buffer_0[SPK_BUFFER_SIZE];
-extern volatile U32 spk_buffer_1[SPK_BUFFER_SIZE];
+extern volatile U32 audio_buffer_0[ADC_BUFFER_SIZE];
+extern volatile U32 audio_buffer_1[ADC_BUFFER_SIZE];
+extern volatile U32 spk_buffer_0[DAC_BUFFER_SIZE];
+extern volatile U32 spk_buffer_1[DAC_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
 extern volatile int ADC_buf_DMA_write;
 extern volatile int DAC_buf_DMA_read;

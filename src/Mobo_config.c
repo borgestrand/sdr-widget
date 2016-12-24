@@ -20,7 +20,7 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
-// To access SPK_BUFFER_SIZE and clear audio buffer
+// To access DAC_BUFFER_SIZE and clear audio buffer
 #include "taskAK5394A.h"
 #include "usb_specific_request.h"
 

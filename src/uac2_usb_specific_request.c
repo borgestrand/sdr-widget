@@ -176,7 +176,7 @@ void uac2_freq_change_handler() {
 
 		if (freq_changed) {
 			spk_mute = TRUE;						// mute speaker while changing frequency and oscillator
-			for (i = 0; i < SPK_BUFFER_SIZE; i++) {	// clears speaker buffer
+			for (i = 0; i < DAC_BUFFER_SIZE; i++) {	// clears speaker buffer
 				spk_buffer_0[i] = 0;
 				spk_buffer_1[i] = 0;
 			}

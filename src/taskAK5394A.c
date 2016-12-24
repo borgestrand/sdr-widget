@@ -74,7 +74,7 @@ static const gpio_map_t SSC_GPIO_MAP = {
 static const pdca_channel_options_t PDCA_OPTIONS = {
 	.addr = (void *)audio_buffer_0,         // memory address
 	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
-	.size = AUDIO_BUFFER_SIZE,              // transfer counter
+	.size = ADC_BUFFER_SIZE,              // transfer counter
 	.r_addr = NULL,                         // next memory address
 	.r_size = 0,                            // next transfer counter
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
@@ -83,16 +83,16 @@ static const pdca_channel_options_t PDCA_OPTIONS = {
 static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
 	.addr = (void *)spk_buffer_0,         // memory address
 	.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
-	.size = SPK_BUFFER_SIZE,              // transfer counter
+	.size = DAC_BUFFER_SIZE,              // transfer counter
 	.r_addr = NULL,                         // next memory address
 	.r_size = 0,                            // next transfer counter
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
 };
 
-volatile U32 audio_buffer_0[AUDIO_BUFFER_SIZE];
-volatile U32 audio_buffer_1[AUDIO_BUFFER_SIZE];
-volatile U32 spk_buffer_0[SPK_BUFFER_SIZE];
-volatile U32 spk_buffer_1[SPK_BUFFER_SIZE];
+volatile U32 audio_buffer_0[ADC_BUFFER_SIZE];
+volatile U32 audio_buffer_1[ADC_BUFFER_SIZE];
+volatile U32 spk_buffer_0[DAC_BUFFER_SIZE];
+volatile U32 spk_buffer_1[DAC_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
@@ -114,13 +114,13 @@ volatile U8 audio_OUT_must_sync;
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 	if (ADC_buf_DMA_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
-		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, AUDIO_BUFFER_SIZE);
+		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_DEBUG
     	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	} else {
-		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, AUDIO_BUFFER_SIZE);
+		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
     	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
@@ -137,7 +137,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	if (DAC_buf_DMA_read == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
-		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, SPK_BUFFER_SIZE);
+		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 1;
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
@@ -148,7 +148,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 	}
 	else {
-		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, SPK_BUFFER_SIZE);
+		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB

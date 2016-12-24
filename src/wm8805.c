@@ -491,7 +491,7 @@ void wm8805_mute(void) {
 	#else								// No hard-mute, use USB subsystem
 		int i;
 
-		for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
+		for (i = 0; i < DAC_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
 			spk_buffer_0[i] = 0;					// Needed in GEN_DIN20?
 			spk_buffer_1[i] = 0;
 		}

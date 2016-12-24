@@ -229,11 +229,11 @@ void hpsdr_device_audio_task(void *pvParameters)
 		num_remaining = pdca_channel->tcr;
 		if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 			// AK and USB using same buffer
-			if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
-			else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
+			if ( index < (ADC_BUFFER_SIZE - num_remaining)) gap = ADC_BUFFER_SIZE - num_remaining - index;
+			else gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
 		} else {
 			// usb and pdca working on different buffers
-			gap = (AUDIO_BUFFER_SIZE - index) + (AUDIO_BUFFER_SIZE - num_remaining);
+			gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
 		}
 
 		if ((Is_usb_in_ready(EP_IQ_IN)) && (gap > (num_samples * 2))) {
@@ -279,7 +279,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_IQ_IN, 8, sample_LSB);
 
 					index += 2;
-					if (index >= AUDIO_BUFFER_SIZE) {
+					if (index >= ADC_BUFFER_SIZE) {
 						index=0;
 						ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
 					}
@@ -307,11 +307,11 @@ void hpsdr_device_audio_task(void *pvParameters)
 		num_remaining = spk_pdca_channel->tcr;
 		if (DAC_buf_USB_OUT != DAC_buf_DMA_read) {
 			// CS4344 and USB using same buffer
-			if ( spk_index < (SPK_BUFFER_SIZE - num_remaining)) gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
-			else gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
+			if ( spk_index < (DAC_BUFFER_SIZE - num_remaining)) gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+			else gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
 		} else {
 			// usb and pdca working on different buffers
-			gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
+			gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 		}
 
 
@@ -393,7 +393,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 			  else spk_buffer_1[spk_index+OUT_RIGHT] = sample;
 
 			  spk_index += 2;
-			  if (spk_index >= SPK_BUFFER_SIZE){
+			  if (spk_index >= DAC_BUFFER_SIZE){
 			  spk_index = 0;
 			  DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 			  }

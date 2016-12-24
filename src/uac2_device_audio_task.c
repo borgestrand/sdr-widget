@@ -98,13 +98,13 @@
 #define FB_RATE_DELTA 64
 
 // BSB 20120912 UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
-#define SPK2_GAP_USKIP SPK_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
-#define SPK2_GAP_U2    SPK_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
-#define	SPK2_GAP_U1    SPK_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
-#define SPK2_GAP_NOM   SPK_BUFFER_SIZE * 4 / 4	// Ideal distance is half the size of linear buffer
-#define SPK2_GAP_L1	   SPK_BUFFER_SIZE * 3 / 4  // A quarter buffer down in distance => Slow down host a bit
-#define SPK2_GAP_L2	   SPK_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
-#define SPK2_GAP_LSKIP SPK_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
+#define SPK2_GAP_USKIP DAC_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
+#define SPK2_GAP_U2    DAC_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
+#define	SPK2_GAP_U1    DAC_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
+#define SPK2_GAP_NOM   DAC_BUFFER_SIZE * 4 / 4	// Ideal distance is half the size of linear buffer
+#define SPK2_GAP_L1	   DAC_BUFFER_SIZE * 3 / 4  // A quarter buffer down in distance => Slow down host a bit
+#define SPK2_GAP_L2	   DAC_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
+#define SPK2_GAP_LSKIP DAC_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
 #define	SPK2_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32
 #define	SPK2_PACKETS_PER_GAP_SKIP 1				// After a skip/insert, recalculate gap immediately, then again after 1ms
 #define SPK2_HOST_FB_DEAD_AFTER 200				// How many audio packets may arrive without host polling feedback, before we declare FB dead?
@@ -116,7 +116,7 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 static U32  index, spk_index;
-static U16  old_gap = SPK_BUFFER_SIZE;
+static U16  old_gap = DAC_BUFFER_SIZE;
 static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// the ID number of the buffer used for sending out
 												// to the USB and reading from USB
 
@@ -277,7 +277,7 @@ void uac2_device_audio_task(void *pvParameters)
 		if (ADC_buf_DMA_write_local == -1) {
 			num_remaining = spk_pdca_channel->tcr;
 			DAC_buf_USB_OUT = DAC_buf_DMA_read;
-			spk_index = SPK_BUFFER_SIZE - num_remaining;
+			spk_index = DAC_BUFFER_SIZE - num_remaining;
 			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 			ADC_buf_DMA_write_local = 2; // Done initiating. Must improve init code!
 		}
@@ -294,7 +294,7 @@ void uac2_device_audio_task(void *pvParameters)
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
-				for( i=0 ; i < AUDIO_BUFFER_SIZE ; i+=2 ) {
+				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
 					// Fill endpoint with sample raw
 					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
 						sample_L = audio_buffer_0[i+IN_LEFT];
@@ -315,7 +315,7 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 
 					spk_index += 2;
-					if (spk_index >= SPK_BUFFER_SIZE) {
+					if (spk_index >= DAC_BUFFER_SIZE) {
 						spk_index = 0;
 						DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
@@ -326,7 +326,7 @@ void uac2_device_audio_task(void *pvParameters)
 							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
 					}
-				} // for AUDIO_BUFFER_SIZE
+				} // for ADC_BUFFER_SIZE
 			} // ADC_buf_DMA_write toggle
 		} // input select
 
@@ -359,19 +359,19 @@ void uac2_device_audio_task(void *pvParameters)
 						num_remaining = pdca_channel->tcr;
 						if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 							// AK and USB using same buffer
-							if ( index < (AUDIO_BUFFER_SIZE - num_remaining)) gap = AUDIO_BUFFER_SIZE - num_remaining - index;
-							else gap = AUDIO_BUFFER_SIZE - index + AUDIO_BUFFER_SIZE - num_remaining + AUDIO_BUFFER_SIZE;
+							if ( index < (ADC_BUFFER_SIZE - num_remaining)) gap = ADC_BUFFER_SIZE - num_remaining - index;
+							else gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
 						}
 						else {
 							// usb and pdca working on different buffers
-							gap = (AUDIO_BUFFER_SIZE - index) + (AUDIO_BUFFER_SIZE - num_remaining);
+							gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
 						}
 
-						if ( gap < AUDIO_BUFFER_SIZE/2 ) {
+						if ( gap < ADC_BUFFER_SIZE/2 ) {
 							// throttle back, transfer less
 							num_samples--;
 						}
-						else if (gap > (AUDIO_BUFFER_SIZE + AUDIO_BUFFER_SIZE/2)) {
+						else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
 							// transfer more
 							num_samples++;
 						}
@@ -411,7 +411,7 @@ void uac2_device_audio_task(void *pvParameters)
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
 								index += 2;
-								if (index >= AUDIO_BUFFER_SIZE) {
+								if (index >= ADC_BUFFER_SIZE) {
 									index=0;
 									ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
 								}
@@ -572,7 +572,7 @@ void uac2_device_audio_task(void *pvParameters)
 					packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
 					FB_error_acc = 0;					// BSB 20131102 reset feedback error
 					FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
-					old_gap = SPK_BUFFER_SIZE;			// BSB 20131115 moved here
+					old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
 					skip_enable = 0;					// BSB 20131115 Not skipping yet...
 					skip_indicate = 0;
 					usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
@@ -748,7 +748,7 @@ void uac2_device_audio_task(void *pvParameters)
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 #endif
-						spk_index = SPK_BUFFER_SIZE - num_remaining;
+						spk_index = DAC_BUFFER_SIZE - num_remaining;
 						spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 					}
 
@@ -771,7 +771,7 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 
 							spk_index += 2;
-							if (spk_index >= SPK_BUFFER_SIZE) {
+							if (spk_index >= DAC_BUFFER_SIZE) {
 								spk_index = 0;
 								DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
@@ -808,7 +808,7 @@ void uac2_device_audio_task(void *pvParameters)
 					#endif
 
 					// Clear buffers for good measure! That may offload uac2_AK5394A_task() and present a good mute to WM8805
-					for (i = 0; i < SPK_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
+					for (i = 0; i < DAC_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
 						spk_buffer_0[i] = 0;
 						spk_buffer_1[i] = 0;
 					}
@@ -848,13 +848,13 @@ void uac2_device_audio_task(void *pvParameters)
 						Enable_global_interrupt();
 
 						if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
-							if ( spk_index < (SPK_BUFFER_SIZE - num_remaining))
-								gap = SPK_BUFFER_SIZE - num_remaining - spk_index;
+							if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
+								gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
 							else
-								gap = SPK_BUFFER_SIZE - spk_index + SPK_BUFFER_SIZE - num_remaining + SPK_BUFFER_SIZE;
+								gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
 						}
 						else // usb and pdca working on different buffers
-							gap = (SPK_BUFFER_SIZE - spk_index) + (SPK_BUFFER_SIZE - num_remaining);
+							gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
 						if(playerStarted) {
 
@@ -949,7 +949,7 @@ void uac2_device_audio_task(void *pvParameters)
 					mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
 				#endif
 				// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
-				for (i = 0; i < SPK_BUFFER_SIZE; i++) {
+				for (i = 0; i < DAC_BUFFER_SIZE; i++) {
 					spk_buffer_0[i] = 0;
 					spk_buffer_1[i] = 0;
 				}
