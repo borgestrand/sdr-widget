@@ -736,8 +736,10 @@ void uac2_device_audio_task(void *pvParameters)
 						// Align buffers
 						audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 // Stability?			Disable_global_interrupt();				// RTOS-atomic operation
+						portENTER_CRITICAL();
 							num_remaining = spk_pdca_channel->tcr;
 							DAC_buf_USB_OUT = DAC_buf_DMA_read;		// Keep resyncing until playerStarted becomes true
+						portEXIT_CRITICAL();
 // Stability?			Enable_global_interrupt();
 						LED_Off(LED0);							// The LEDs on the PCB near the MCU
 						LED_Off(LED1);
@@ -843,8 +845,10 @@ void uac2_device_audio_task(void *pvParameters)
 					if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
 // Stability?			Disable_global_interrupt();			// RTOS-atomic operation
+						portENTER_CRITICAL();
 							num_remaining = spk_pdca_channel->tcr;
 							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+						portEXIT_CRITICAL();
 // Stability?			Enable_global_interrupt();
 
 						if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
