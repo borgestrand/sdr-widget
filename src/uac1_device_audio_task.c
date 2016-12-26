@@ -647,7 +647,7 @@ void uac1_device_audio_task(void *pvParameters)
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 										print_dbg_char('[');
 
-										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+// Stability?										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
 										input_select = MOBO_SRC_UAC1;
 										#ifdef HW_GEN_DIN20
@@ -659,7 +659,7 @@ void uac1_device_audio_task(void *pvParameters)
 								#else // not debug
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 
-										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+										// Stability?										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
 										input_select = MOBO_SRC_UAC1;
 										#ifdef HW_GEN_DIN20
@@ -687,10 +687,10 @@ void uac1_device_audio_task(void *pvParameters)
 
 							// Align buffers
 							audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-							Disable_global_interrupt();				// RTOS-atomic operation
+// Stability?				Disable_global_interrupt();				// RTOS-atomic operation
 								num_remaining = spk_pdca_channel->tcr;
 								DAC_buf_USB_OUT = DAC_buf_DMA_read;		// Keep resyncing until playerStarted becomes true
-							Enable_global_interrupt();
+// Stability?				Enable_global_interrupt();
 							LED_Off(LED0);							// The LEDs on the PCB near the MCU
 							LED_Off(LED1);
 
@@ -795,10 +795,10 @@ void uac1_device_audio_task(void *pvParameters)
 							time_to_calculate_gap = SPK1_PACKETS_PER_GAP_CALCULATION - 1;
 						if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
-							Disable_global_interrupt();			// RTOS-atomic operation
+// Stability?				Disable_global_interrupt();			// RTOS-atomic operation
 								num_remaining = spk_pdca_channel->tcr;
 								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-							Enable_global_interrupt();
+// Stability?				Enable_global_interrupt();
 
 							if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
 								if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
