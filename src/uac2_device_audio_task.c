@@ -863,6 +863,7 @@ void uac2_device_audio_task(void *pvParameters)
 						// DAC_buf_DMA_read is INVALID, don't calculate new gap.
 						else {
 							gap = old_gap;
+							time_to_calculate_gap = -1;				// Immediate gap re-calculation
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('R');
 #endif
