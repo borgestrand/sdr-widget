@@ -647,7 +647,7 @@ void uac1_device_audio_task(void *pvParameters)
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 										print_dbg_char('[');
 
-// Stability?										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
 										input_select = MOBO_SRC_UAC1;
 										#ifdef HW_GEN_DIN20
@@ -659,7 +659,7 @@ void uac1_device_audio_task(void *pvParameters)
 								#else // not debug
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 
-										// Stability?										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
 										input_select = MOBO_SRC_UAC1;
 										#ifdef HW_GEN_DIN20
