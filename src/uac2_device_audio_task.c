@@ -844,26 +844,29 @@ void uac2_device_audio_task(void *pvParameters)
 						time_to_calculate_gap = SPK2_PACKETS_PER_GAP_CALCULATION - 1;
 					if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
-// Stability?			Disable_global_interrupt();			// RTOS-atomic operation
-//						portENTER_CRITICAL();
-							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-							num_remaining = spk_pdca_channel->tcr;
-							if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-								#ifdef USB_STATE_MACHINE_DEBUG
-									print_dbg_char('R');
-								#endif
-							}
-//						portEXIT_CRITICAL();
-// Stability?			Enable_global_interrupt();
+						// Which buffer is in use, and does it truly correspond to the num_remaining value?
+						// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
+						DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+						num_remaining = spk_pdca_channel->tcr;
 
-						if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
-							if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
-								gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
-							else
-								gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+						// DAC_buf_DMA_read is valid
+						if (DAC_buf_DMA_read_local == DAC_buf_DMA_read) {
+							if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
+								if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
+									gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+								else
+									gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+							}
+							else // usb and pdca working on different buffers
+								gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 						}
-						else // usb and pdca working on different buffers
-							gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+						// DAC_buf_DMA_read is INVALID, don't calculate new gap.
+						else {
+							gap = old_gap;
+#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char('R');
+#endif
+						}
 
 						if(playerStarted) {
 
