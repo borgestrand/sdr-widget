@@ -33,8 +33,14 @@
 
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
-#define ADC_BUFFER_SIZE	(32*2*16) // Use 2^n style number, now: 512 stereo samples! Was: 48*2*8 48 khz, stereo, 8 ms worth
-#define DAC_BUFFER_SIZE (32*2*16) // Both: one half-buffer holds = ideal latency 11.6/10.67/5.8/5.33/2.9/2.67ms Was: 48*2*16
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // Use same buffer size in and out of SPDIF interface
+	#define ADC_BUFFER_SIZE	(32*2*16) // Use 2^n style number, now: 512 stereo samples!
+	#define DAC_BUFFER_SIZE (32*2*16) // Both: one half-buffer holds = ideal latency 11.6/10.67/5.8/5.33/2.9/2.67ms
+#else
+	#define ADC_BUFFER_SIZE	48*2*8 // 48 khz, stereo, 8 ms worth
+	#define DAC_BUFFER_SIZE 48*2*16
+#endif
+
 
 // BSB 20131201 attempting improved playerstarted detection.
 #define USB_BUFFER_TOGGLE_LIM 2		// DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
