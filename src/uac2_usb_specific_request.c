@@ -201,8 +201,13 @@ void uac2_freq_change_handler() {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char('4'); // BSB debug 20121212
 #endif
-		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+					// Avoid when using SSC_RX for SPDIF buffering?
+				#else
+					pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#endif
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
@@ -228,8 +233,12 @@ void uac2_freq_change_handler() {
 		   		print_dbg_char('3'); // BSB debug 20121212
 #endif
 
-		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+					// Avoid when using SSC_RX for SPDIF buffering?
+				#else
+					pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#endif
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
@@ -255,25 +264,34 @@ void uac2_freq_change_handler() {
 					print_dbg_char('5'); // BSB debug 20121212
 #endif
 
-	    			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-	    			pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+					// Avoid when using SSC_RX for SPDIF buffering?
+				#else
+					pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#endif
 
-	    			gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
-	    			gpio_set_gpio_pin(AK5394_DFS1);
+				gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
+				gpio_set_gpio_pin(AK5394_DFS1);
 
-					mobo_clock_division(current_freq.frequency);
+				mobo_clock_division(current_freq.frequency);
 
-	    			FB_rate = (176 << 14) + ((1<<14)*4) / 10;
-	    			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
-	    			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
-	        	}
+				FB_rate = (176 << 14) + ((1<<14)*4) / 10;
+				FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
+				FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
+			}
 
 			else if (current_freq.frequency == FREQ_192) {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char('6'); // BSB debug 20121212
 #endif
-		   		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+		   		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+					// Avoid when using SSC_RX for SPDIF buffering?
+				#else
+					pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#endif
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
@@ -292,10 +310,12 @@ void uac2_freq_change_handler() {
 		   		print_dbg_char('2'); // BSB debug 20121212
 #endif
 
-		   		// if there are two XO, PX16 sets the 48x
-				// gpio_set_gpio_pin(AVR32_PIN_PX16);
-				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+					// Avoid when using SSC_RX for SPDIF buffering?
+				#else
+					pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#endif
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
@@ -313,10 +333,13 @@ void uac2_freq_change_handler() {
 #ifdef USB_STATE_MACHINE_DEBUG
 		   		print_dbg_char('1'); // BSB debug 20121212
 #endif
-		   		// if there are two XO, PX16 set --> 48x. clr -->44.1x
-				// gpio_clr_gpio_pin(AVR32_PIN_PX16);
-				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+					// Avoid when using SSC_RX for SPDIF buffering?
+				#else
+					pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#endif
 
 				if ( FEATURE_ADC_AK5394A ) {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz

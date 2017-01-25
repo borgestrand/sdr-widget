@@ -110,8 +110,14 @@ void uac1_AK5394A_task(void *pvParameters) {
 		}
 		if (usb_alternate_setting_changed) {
 
-			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-			pdca_disable(PDCA_CHANNEL_SSC_RX);
+			// FIX: This is not pretty! We only comment out the disabling of PDCA_CHANNEL_SSC_RX, not what else is going on in the file
+			#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+				// pdca disable code must be moved to something dealing with spdif playback use of ADC interface
+			#else
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+				pdca_disable(PDCA_CHANNEL_SSC_RX);
+			#endif
+
 			// L L  -> 48khz   L H  -> 96khz
 			gpio_clr_gpio_pin(AK5394_DFS0);
 			gpio_clr_gpio_pin(AK5394_DFS1);

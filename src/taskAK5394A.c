@@ -206,7 +206,7 @@ void AK5394A_task_init(const Bool uac1) {
 
 	mutexSpkUSB = xSemaphoreCreateMutex();
 
-	// FIX: UAC1 must include sampling frequency dependant mobo_clock_division or pm_gc_setup!
+	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
 	if (uac1)
 		mobo_clock_division(FREQ_44);
 	else
@@ -244,7 +244,7 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_enable_pin_glitch_filter(SSC_TX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 
-	// set up SSC
+	// set up SSC, it looks like frequency parameter is NOT in use
 	if (uac1) {
 		ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 	} else {
@@ -265,19 +265,27 @@ void AK5394A_task_init(const Bool uac1) {
 
 	ADC_buf_DMA_write = 0;
 	DAC_buf_DMA_read = 0;
-	// Register PDCA IRQ interrupt.
+	// Register PDCA IRQ interruptS. // Plural those are!
 	pdca_set_irq();
 
-	// Init PDCA channel with the pdca_options.
-	if (!FEATURE_ADC_NONE){
+	// Init ADC channel for SPDIF buffering
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-	}
+	#else
+		// Init PDCA channel with the pdca_options.
+		if (!FEATURE_ADC_NONE) {
+			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		}
+	#endif
+
 	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 
 	//////////////////////////////////////////////
 	// Enable now the transfer.
+	// Why don't we enable the RX here??
 	pdca_enable(PDCA_CHANNEL_SSC_TX);
 
 

@@ -238,9 +238,12 @@ void uac1_device_audio_task(void *pvParameters)
 			if ( time<= 1*STARTUP_LED_DELAY ) {
 				LED_On( LED0 );
 
-				// pdca disable code must be moved to something dealing with spdif playback use of ADC interface
-				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+					// pdca disable code must be moved to something dealing with spdif playback use of ADC interface
+				#else
+					pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					pdca_disable(PDCA_CHANNEL_SSC_RX);
+				#endif
 
 				//	            LED_On( LED1 );
 			} else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
@@ -259,20 +262,27 @@ void uac1_device_audio_task(void *pvParameters)
 				DAC_buf_DMA_read = 0; // Only place outside taskAK53984A.c where DAC_buf_DMA_read is written!
 				index = 0;
 
-				if (!FEATURE_ADC_NONE){
-					// Wait for the next frame synchronization event
-					// to avoid channel inversion.  Start with left channel - FS goes low
-					while (!gpio_get_pin_value(AK5394_LRCK));
-					while (gpio_get_pin_value(AK5394_LRCK));
 
-					// Enable now the transfer.
-					pdca_enable(PDCA_CHANNEL_SSC_RX);
-					pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				}
+				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+				#else
+					if (!FEATURE_ADC_NONE) {
+						// Wait for the next frame synchronization event
+						// to avoid channel inversion.  Start with left channel - FS goes low
+						while (!gpio_get_pin_value(AK5394_LRCK));
+						while (gpio_get_pin_value(AK5394_LRCK));
+
+						// Enable now the transfer.
+						pdca_enable(PDCA_CHANNEL_SSC_RX);
+						pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					}
+				#endif
+
 			}
 		}
 
 // Seriously messing with ADC interface...
+// We can expect consumer (MCU's DAC interface) to be steady and under firmware control,
+// .. while producer (MCU's ADC interface and WM8805 I2S out) can fall out at any time.
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int ADC_buf_DMA_write_local = -1;
 		int ADC_buf_DMA_write_temp;

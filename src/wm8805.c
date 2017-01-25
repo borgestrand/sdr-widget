@@ -151,7 +151,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h"
 #include "Mobo_config.h"
 #include "I2C.h"
-
+#include "pdca.h"
 
 //!
 //! @brief Polling routine for WM8805 hardware
@@ -414,11 +414,14 @@ void wm8805_init(void) {
 	wm8805_read_byte(0x0B);			// Clear interrupts
 
 	wm8805_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL,
+
+	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port
 }
 
 // Turn off wm8805, why can't we just run init again?
 void wm8805_sleep(void) {
 	wm8805_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL,
+	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
 }
 
 // Select input channel of the WM8805
@@ -516,7 +519,7 @@ void wm8805_unmute(void) {
 
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
 
-	mobo_xo_select(wm8805_freq, input_select);	// Unmute WM8805
+	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
 
 	#ifdef HW_GEN_DIN20
 		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
