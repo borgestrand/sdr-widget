@@ -293,6 +293,8 @@ void uac2_device_audio_task(void *pvParameters)
 		if ( ( (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
 			ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
+			// Has producer's buffer been toggled by interrupt driven DMA code?
+			// If so, copy all of producer's data. (And perform skip/insert.)
 			if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_local) { // Must transfer previous half-ring-buffer
 				ADC_buf_DMA_write_local = ADC_buf_DMA_write_temp;
 
@@ -300,6 +302,8 @@ void uac2_device_audio_task(void *pvParameters)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+
+		gpio_set_gpio_pin(AVR32_PIN_PX30); // Measure duration of copy event
 
 				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
 					// Fill endpoint with sample raw
@@ -326,14 +330,20 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_index = 0;
 						DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
+/* Track which buffer is being used by consumer
 #ifdef USB_STATE_MACHINE_DEBUG
 						if (DAC_buf_USB_OUT == 1)
 							gpio_set_gpio_pin(AVR32_PIN_PX30);
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
+*/
+
 					}
 				} // for ADC_BUFFER_SIZE
+
+		gpio_clr_gpio_pin(AVR32_PIN_PX30); // Measure duration of copy event
+
 			} // ADC_buf_DMA_write toggle
 		} // input select
 

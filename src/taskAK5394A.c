@@ -272,6 +272,7 @@ void AK5394A_task_init(const Bool uac1) {
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		// pdca_enable() is called from WM8805 power unmute functions
 	#else
 		// Init PDCA channel with the pdca_options.
 		if (!FEATURE_ADC_NONE) {
