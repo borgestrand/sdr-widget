@@ -149,7 +149,10 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		DAC_buf_DMA_read = 1;
 
 		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
+			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
+
 			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 			ADC_buf_DMA_write = 1;
 		}
@@ -167,7 +170,10 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		DAC_buf_DMA_read = 0;
 
 		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
+			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
+
 			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 			ADC_buf_DMA_write = 0;
 		}
@@ -292,8 +298,8 @@ void AK5394A_task_init(const Bool uac1) {
 
 	// Init ADC channel for SPDIF buffering
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+//		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+//		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 		// pdca_enable() is called from WM8805 power unmute functions
 	#else
 		// Init PDCA channel with the pdca_options.

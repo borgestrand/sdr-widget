@@ -319,6 +319,7 @@ void uac1_device_audio_task(void *pvParameters)
 				if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
 					index = 0;							// Sequential variables match interrupt handler code for init
 					ADC_buf_USB_IN = DAC_buf_DMA_read_local;
+
 				}
 
 				if (DAC_buf_DMA_read_temp == 1)

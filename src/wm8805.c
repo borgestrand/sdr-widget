@@ -254,6 +254,7 @@ void wm8805_poll(void) {
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
 				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 				print_dbg_char(60); // '<'
 			}
@@ -263,6 +264,7 @@ void wm8805_poll(void) {
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 
 				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 			}
