@@ -286,30 +286,12 @@ void uac1_device_audio_task(void *pvParameters)
 // .. while producer (MCU's ADC interface and WM8805 I2S out) can fall out at any time.
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int DAC_buf_DMA_read_local = -1;
+		static U16 ADC_num_remaining_prev = 0;
+		U16 skew = 0;
+		U16 skip = 0;
+		static U16 drift = 0;
 		int DAC_buf_DMA_read_temp;
 
-		/*
-		// Startup condition with ADC_buf_DMA_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
-		// How could this even work in UAC1??
-		if (DAC_buf_DMA_read_local == -1) {
-			num_remaining = pdca_channel->tcr;
-			ADC_buf_USB_IN = ADC_buf_DMA_write; // ..USB_IN is wrong in this context, it's into the MCU for forwarding to the DAC
-			index = ADC_BUFFER_SIZE - num_remaining;
-			index = index & ~((U32)1); 	// Clear LSB in order to start with L sample
-			DAC_buf_DMA_read_local = 2; // Done initiating. Must improve init code!
-		}
-
-
-		if (ADC_buf_USB_IN == -1) {
-			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
-			num_remaining = pdca_channel->tcr;
-			ADC_buf_USB_IN = ADC_buf_DMA_write; // "..USB_IN" is wrong in this context, it's into the MCU for forwarding to the DAC
-			index = ADC_BUFFER_SIZE - num_remaining;
-			index = index & ~((U32)1); 	// Clear LSB in order to start with L sample
-//			DAC_buf_DMA_read_local = 2; // Done initiating
-		}
-
-*/
 
 		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_NONE) ) ) {
 			DAC_buf_DMA_read_temp = DAC_buf_DMA_read; // Interrupt may strike at any time, cache the buffer selector
@@ -317,16 +299,42 @@ void uac1_device_audio_task(void *pvParameters)
 			if (DAC_buf_DMA_read_temp != DAC_buf_DMA_read_local) { // Must transfer previous half-ring-buffer
 				DAC_buf_DMA_read_local = DAC_buf_DMA_read_temp;
 
-				if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
-					index = 0;							// Sequential variables match interrupt handler code for init
-					ADC_buf_USB_IN = DAC_buf_DMA_read_local;
-
-				}
-
 				if (DAC_buf_DMA_read_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+
+
+				// Sequential code's part of ADC DMA reset/init
+				if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
+					index = 0;							// Sequential variables match interrupt handler code for init
+					ADC_buf_USB_IN = DAC_buf_DMA_read_local;
+					drift = 0;
+					skip = 0;
+					ADC_num_remaining_prev = 0;
+				}
+
+
+				// How far has ADC DMA moved between two consecutive DAC DMA interrupt strikes?
+				// Calculate and compensate for bipolar overflow
+				// A positive drift and skew means ADC is moving too fast and DAC samples should be inserted
+				// A negative drift and skew means ADC is moving too slowly and DAC samples should be skipped
+				skew = ADC_num_remaining_prev - ADC_num_remaining;
+				if (skew >= ADC_BUFFER_SIZE / 2)
+					skew -= ADC_BUFFER_SIZE;
+				else if (skew <= ADC_BUFFER_SIZE / 2)
+					skew += ADC_BUFFER_SIZE;
+				drift += skew;	// Fix: add some filtering to make this gentle. Add monitoring on a 'scope channel
+
+				ADC_num_remaining_prev = ADC_num_remaining;
+
+
+				// Very primitive skip/insert code
+				if (drift > 10)
+					skip = -1;
+				else if (drift < -10)
+					skip = 1;
+
 
 				for( i=0 ; i < DAC_BUFFER_SIZE ; i+=2 ) {
 					// Input from audio_buffer
@@ -364,6 +372,20 @@ void uac1_device_audio_task(void *pvParameters)
 						spk_buffer_1[i+OUT_LEFT] = sample_L;
 						spk_buffer_1[i+OUT_RIGHT] = sample_R;
 					}
+
+
+					// Super-simple skip/insert messes with the for loop variable
+					if ( (i == 2) && (skip == 1) ) {
+						i+=2;
+						skip = 0;
+						print_dbg_char('s');
+					}
+					else if ( (i == 2) && (skip == -1) ) {
+						i-=2;
+						skip = 0;
+						print_dbg_char('i');
+					}
+
 
 				} // for DAC_BUFFER_SIZE
 			} // DAC_buf_DMA_read toggle

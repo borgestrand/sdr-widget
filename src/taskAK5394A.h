@@ -105,7 +105,9 @@ extern volatile int ADC_buf_USB_IN; // Written by sequential code
 extern volatile int DAC_buf_USB_OUT; // Written by sequential code
 extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
-
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+	extern volatile U16 ADC_num_remaining;
+#endif
 
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;

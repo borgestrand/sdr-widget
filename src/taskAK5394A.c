@@ -102,6 +102,9 @@ volatile int ADC_buf_USB_IN; // Written by sequential code
 volatile int DAC_buf_USB_OUT; // Written by sequential code
 volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+	volatile U16 ADC_num_remaining = 0;
+#endif
 
 
 // BSB 20131201 attempting improved playerstarted detection
@@ -150,6 +153,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 1;
 
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
 			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -158,6 +162,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 			ADC_buf_DMA_write = 1;
 		}
+#endif
 
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
@@ -171,6 +176,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
 
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
 			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -179,6 +185,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 			ADC_buf_DMA_write = 0;
 		}
+#endif
 
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
@@ -189,7 +196,9 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 	}
 
-//	balle = PDCA_CHANNEL_SSC_RX->tcr;
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+	ADC_num_remaining = pdca_channel->tcr;	// How much is left of ADC's DMA? Record here and use in seq code
+#endif
 
 	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
