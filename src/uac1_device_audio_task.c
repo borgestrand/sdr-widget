@@ -281,69 +281,79 @@ void uac1_device_audio_task(void *pvParameters)
 		}
 
 // Seriously messing with ADC interface...
+// Rewriting for polling the consumer, not the manufacturer.
 // We can expect consumer (MCU's DAC interface) to be steady and under firmware control,
 // .. while producer (MCU's ADC interface and WM8805 I2S out) can fall out at any time.
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-		static int ADC_buf_DMA_write_local = -1;
-		int ADC_buf_DMA_write_temp;
+		static int DAC_buf_DMA_read_local = -1;
+		int DAC_buf_DMA_read_temp;
+
 
 
 		// Startup condition with ADC_buf_DMA_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
 		// How could this even work in UAC1??
-		if (ADC_buf_DMA_write_local == -1) {
-			num_remaining = spk_pdca_channel->tcr;
-			DAC_buf_USB_OUT = DAC_buf_DMA_read;
-			spk_index = DAC_BUFFER_SIZE - num_remaining;
-			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-			ADC_buf_DMA_write_local = 2; // Done initiating. Must improve init code!
+		if (DAC_buf_DMA_read_local == -1) {
+			num_remaining = pdca_channel->tcr;
+			ADC_buf_USB_IN = ADC_buf_DMA_write; // ..USB_IN is wrong in this context, it's into the MCU for forwarding to the DAC
+			index = ADC_BUFFER_SIZE - num_remaining;
+			index = index & ~((U32)1); 	// Clear LSB in order to start with L sample
+			DAC_buf_DMA_read_local = 2; // Done initiating. Must improve init code!
 		}
 
 
 		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_NONE) ) ) {
-			ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
+			DAC_buf_DMA_read_temp = DAC_buf_DMA_read; // Interrupt may strike at any time, cache the buffer selector
 
-			if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_local) { // Must transfer previous half-ring-buffer
-				ADC_buf_DMA_write_local = ADC_buf_DMA_write_temp;
+			if (DAC_buf_DMA_read_temp != DAC_buf_DMA_read_local) { // Must transfer previous half-ring-buffer
+				DAC_buf_DMA_read_local = DAC_buf_DMA_read_temp;
 
-				if (ADC_buf_DMA_write_temp == 1)
+				if (DAC_buf_DMA_read_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
-				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
+				for( i=0 ; i < DAC_BUFFER_SIZE ; i+=2 ) {
 					// Fill endpoint with sample raw
-					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
-						sample_L = audio_buffer_0[i+IN_LEFT];
-						sample_R = audio_buffer_0[i+IN_RIGHT];
-					} else {
-						sample_L = audio_buffer_1[i+IN_LEFT];
-						sample_R = audio_buffer_1[i+IN_RIGHT];
-					}
 
 
-					if (DAC_buf_USB_OUT == 0) {			// 0 Seems better than 1, but non-conclusive
-						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+					// Input from audio_buffer
+					if (ADC_buf_USB_IN == 0) {
+						sample_L = audio_buffer_0[index+IN_LEFT];
+						sample_R = audio_buffer_0[index+IN_RIGHT];
 					}
-					else {
-						spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-						spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+					else if (ADC_buf_USB_IN == 1) {
+						sample_L = audio_buffer_1[index+IN_LEFT];
+						sample_R = audio_buffer_1[index+IN_RIGHT];
 					}
 
-					spk_index += 2;
-					if (spk_index >= DAC_BUFFER_SIZE) {
-						spk_index = 0;
-						DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+					// Manually increase counter in audio_buffer
+					index += 2;
+					if (index >= ADC_BUFFER_SIZE) {
+						index = 0;
+						ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						if (DAC_buf_USB_OUT == 1)
+						if (ADC_buf_USB_IN == 1)
 							gpio_set_gpio_pin(AVR32_PIN_PX30);
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
 					}
-				} // for ADC_BUFFER_SIZE
-			} // ADC_buf_DMA_write toggle
+
+
+					// Output to one full spk_buffer (half of ring buffer)
+					// Automatically increase counter in spk_buffer (for loop)
+					if (DAC_buf_DMA_read_temp == 0) {
+						spk_buffer_0[i+OUT_LEFT] = sample_L;
+						spk_buffer_0[i+OUT_RIGHT] = sample_R;
+					}
+					else if (DAC_buf_DMA_read_temp == 1) {
+						spk_buffer_1[i+OUT_LEFT] = sample_L;
+						spk_buffer_1[i+OUT_RIGHT] = sample_R;
+					}
+
+				} // for DAC_BUFFER_SIZE
+			} // DAC_buf_DMA_read toggle
 		} // input select
 #endif
 
