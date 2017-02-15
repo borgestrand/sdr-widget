@@ -147,6 +147,13 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 1;
+
+		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
+			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
+			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
+			ADC_buf_DMA_write = 1;
+		}
+
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
@@ -158,6 +165,13 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	else if (DAC_buf_DMA_read == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
+
+		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
+			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
+			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
+			ADC_buf_DMA_write = 0;
+		}
+
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
