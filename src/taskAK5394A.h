@@ -93,6 +93,7 @@
 //extern const pdca_channel_options_t PDCA_OPTIONS;
 //extern const pdca_channel_options_t SPK_PDCA_OPTIONS;
 
+// Global buffer variables
 extern volatile U32 audio_buffer_0[ADC_BUFFER_SIZE];
 extern volatile U32 audio_buffer_1[ADC_BUFFER_SIZE];
 extern volatile U32 spk_buffer_0[DAC_BUFFER_SIZE];
@@ -102,7 +103,8 @@ extern volatile int ADC_buf_DMA_write; // Written by interrupt handler, initiate
 extern volatile int DAC_buf_DMA_read; // Written by interrupt handler, initiated by sequential code
 extern volatile int ADC_buf_USB_IN; // Written by sequential code
 extern volatile int DAC_buf_USB_OUT; // Written by sequential code
-
+extern volatile avr32_pdca_channel_t *pdca_channel;
+extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 
 
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;

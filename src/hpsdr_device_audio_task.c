@@ -154,8 +154,9 @@ void hpsdr_device_audio_task(void *pvParameters)
 	// const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 	//  U32 sample;
 
-	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
-	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
+	// Now global:
+	// volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
+	// volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 
 	for (i=0; i < 5; i++){
 		for (j=0; j < 4; j++) command[j][i] = 0;

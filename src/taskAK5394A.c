@@ -100,6 +100,8 @@ volatile int ADC_buf_DMA_write; // Written by interrupt handler, initiated by se
 volatile int DAC_buf_DMA_read; // Written by interrupt handler, initiated by sequential code
 volatile int ADC_buf_USB_IN; // Written by sequential code
 volatile int DAC_buf_USB_OUT; // Written by sequential code
+volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
+volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 
 
 // BSB 20131201 attempting improved playerstarted detection
@@ -233,6 +235,10 @@ void AK5394A_task_init(const Bool uac1) {
 	// so SCLK of 6.144Mhz ===> 96khz
 
 	mutexSpkUSB = xSemaphoreCreateMutex();
+
+	pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
+	spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
+
 
 	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
 	if (uac1)

@@ -193,8 +193,9 @@ void uac1_device_audio_task(void *pvParameters)
 	const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
 	const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
-	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
-	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
+// Now global:
+//	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
+//	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
 	uint32_t silence_det = 0;
 
