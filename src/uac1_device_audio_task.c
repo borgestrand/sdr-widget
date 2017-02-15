@@ -121,7 +121,7 @@
 
 static U32  index, spk_index;
 static U16  old_gap = DAC_BUFFER_SIZE;
-static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// the ID number of the buffer used for sending out to the USB
+// static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// These are now global the ID number of the buffer used for sending out to the USB
 static volatile U32 *audio_buffer_ptr;
 //static volatile U32 *spk_buffer_ptr;
 
@@ -197,7 +197,6 @@ void uac1_device_audio_task(void *pvParameters)
 	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
 	uint32_t silence_det = 0;
-	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	// BSB 20130602: code section moved to uac1_usb_specific_request.c
 	// if (current_freq.frequency == FREQ_48) FB_rate = 48 << 14;
@@ -288,8 +287,6 @@ void uac1_device_audio_task(void *pvParameters)
 		static int DAC_buf_DMA_read_local = -1;
 		int DAC_buf_DMA_read_temp;
 
-
-
 		// Startup condition with ADC_buf_DMA_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
 		// How could this even work in UAC1??
 		if (DAC_buf_DMA_read_local == -1) {
@@ -323,7 +320,7 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 					else if (ADC_buf_USB_IN == 1) {
 						sample_L = audio_buffer_1[index+IN_LEFT];
-						sample_R = audio_buffer_1[index+IN_RIGHT ];
+						sample_R = audio_buffer_1[index+IN_RIGHT];
 					}
 
 					// Manually increase counter in audio_buffer

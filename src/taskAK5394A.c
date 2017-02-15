@@ -96,7 +96,11 @@ volatile U32 spk_buffer_1[DAC_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
-volatile int ADC_buf_DMA_write, DAC_buf_DMA_read;
+volatile int ADC_buf_DMA_write; // Written by interrupt handler, initiated by sequential code
+volatile int DAC_buf_DMA_read; // Written by interrupt handler, initiated by sequential code
+volatile int ADC_buf_USB_IN; // Written by sequential code
+volatile int DAC_buf_USB_OUT; // Written by sequential code
+
 
 // BSB 20131201 attempting improved playerstarted detection
 volatile S32 usb_buffer_toggle;

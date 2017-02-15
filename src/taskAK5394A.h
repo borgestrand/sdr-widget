@@ -98,8 +98,13 @@ extern volatile U32 audio_buffer_1[ADC_BUFFER_SIZE];
 extern volatile U32 spk_buffer_0[DAC_BUFFER_SIZE];
 extern volatile U32 spk_buffer_1[DAC_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
-extern volatile int ADC_buf_DMA_write;
-extern volatile int DAC_buf_DMA_read;
+extern volatile int ADC_buf_DMA_write; // Written by interrupt handler, initiated by sequential code
+extern volatile int DAC_buf_DMA_read; // Written by interrupt handler, initiated by sequential code
+extern volatile int ADC_buf_USB_IN; // Written by sequential code
+extern volatile int DAC_buf_USB_OUT; // Written by sequential code
+
+
+
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;
 extern xSemaphoreHandle mutexSpkUSB;
