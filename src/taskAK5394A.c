@@ -126,7 +126,8 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 #ifdef USB_STATE_MACHINE_DEBUG
     	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
-	} else {
+	}
+	else if (ADC_buf_DMA_write == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -154,7 +155,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 #endif
 	}
-	else {
+	else if (DAC_buf_DMA_read == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
 #ifdef USB_STATE_MACHINE_DEBUG

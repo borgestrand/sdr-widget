@@ -151,7 +151,8 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h"
 #include "Mobo_config.h"
 #include "I2C.h"
-#include "pdca.h"
+#include "pdca.h" // To disable DMA at sleep
+#include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 //!
 //! @brief Polling routine for WM8805 hardware
@@ -256,8 +257,9 @@ void wm8805_poll(void) {
 			else
 				print_dbg_char(62); // '>'
 #else
-			if (xSemaphoreGive(input_select_semphr) == pdTRUE)
+			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
+			}
 #endif
 		}
 
@@ -311,8 +313,9 @@ void wm8805_poll(void) {
 				else
 					print_dbg_char(']');
 #else // not debug
-				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) // Re-take of taken semaphore returns false
+				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) { // Re-take of taken semaphore returns false
 					input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
+				}
 #endif
 			}
 
@@ -321,6 +324,9 @@ void wm8805_poll(void) {
 				wm8805_clkdiv();						// Configure MCLK division
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
 				wm8805_muted = 0;
+
+				ADC_buf_USB_IN = -1;		// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX) FIX: only here?
+
 			}
 		}
 	}
@@ -415,7 +421,8 @@ void wm8805_init(void) {
 
 	wm8805_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL,
 
-	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port
+//	ADC_buf_USB_IN = -1;			// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX)
+									// Fix: only do that once we figure out the sample rate?
 }
 
 // Turn off wm8805, why can't we just run init again?

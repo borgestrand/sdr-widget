@@ -287,6 +287,7 @@ void uac1_device_audio_task(void *pvParameters)
 		static int DAC_buf_DMA_read_local = -1;
 		int DAC_buf_DMA_read_temp;
 
+		/*
 		// Startup condition with ADC_buf_DMA_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
 		// How could this even work in UAC1??
 		if (DAC_buf_DMA_read_local == -1) {
@@ -296,6 +297,17 @@ void uac1_device_audio_task(void *pvParameters)
 			index = index & ~((U32)1); 	// Clear LSB in order to start with L sample
 			DAC_buf_DMA_read_local = 2; // Done initiating. Must improve init code!
 		}
+*/
+
+		if (ADC_buf_USB_IN == -1) {
+			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
+			num_remaining = pdca_channel->tcr;
+			ADC_buf_USB_IN = ADC_buf_DMA_write; // ..USB_IN is wrong in this context, it's into the MCU for forwarding to the DAC
+			index = ADC_BUFFER_SIZE - num_remaining;
+			index = index & ~((U32)1); 	// Clear LSB in order to start with L sample
+//			DAC_buf_DMA_read_local = 2; // Done initiating
+		}
+
 
 
 		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_NONE) ) ) {
@@ -310,9 +322,6 @@ void uac1_device_audio_task(void *pvParameters)
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 				for( i=0 ; i < DAC_BUFFER_SIZE ; i+=2 ) {
-					// Fill endpoint with sample raw
-
-
 					// Input from audio_buffer
 					if (ADC_buf_USB_IN == 0) {
 						sample_L = audio_buffer_0[index+IN_LEFT];
