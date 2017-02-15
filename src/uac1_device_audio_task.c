@@ -286,10 +286,10 @@ void uac1_device_audio_task(void *pvParameters)
 // .. while producer (MCU's ADC interface and WM8805 I2S out) can fall out at any time.
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int DAC_buf_DMA_read_local = -1;
-		static U16 ADC_num_remaining_prev = 0;
-		U16 skew = 0;
-		U16 skip = 0;
-		static U16 drift = 0;
+		static S16 ADC_num_remaining_prev = 0;
+		S16 skew = 0;
+		S16 skip = 0;
+		static S16 drift = 0;
 		int DAC_buf_DMA_read_temp;
 
 
@@ -330,11 +330,17 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 				// Very primitive skip/insert code
-				if (drift > 10)
+				if (drift > 200) {
 					skip = -1;
-				else if (drift < -10)
+//					drift --;
+				}
+				else if (drift < -2) {
 					skip = 1;
+//					drift ++;
+				}
 
+//				print_dbg_hex(drift);
+//				print_dbg_char('\n');
 
 				for( i=0 ; i < DAC_BUFFER_SIZE ; i+=2 ) {
 					// Input from audio_buffer
@@ -346,6 +352,8 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_L = audio_buffer_1[index+IN_LEFT];
 						sample_R = audio_buffer_1[index+IN_RIGHT];
 					}
+
+//					sample_L = drift << 14; // Log drift to analog output
 
 					// Manually increase counter in audio_buffer
 					index += 2;
