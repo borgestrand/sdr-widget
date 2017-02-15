@@ -325,11 +325,11 @@ void wm8805_poll(void) {
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
 				wm8805_muted = 0;
 
-				ADC_buf_USB_IN = -1;		// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX) FIX: only here?
-
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('/');
 #endif
+
+				ADC_buf_USB_IN = -1;		// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX) FIX: only here?
 
 
 			}
