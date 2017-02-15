@@ -323,7 +323,7 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 					else if (ADC_buf_USB_IN == 1) {
 						sample_L = audio_buffer_1[index+IN_LEFT];
-						sample_R = audio_buffer_1[index+IN_RIGHT];
+						sample_R = audio_buffer_1[index+IN_RIGHT ];
 					}
 
 					// Manually increase counter in audio_buffer
