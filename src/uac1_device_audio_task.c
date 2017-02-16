@@ -339,8 +339,8 @@ void uac1_device_audio_task(void *pvParameters)
 					ADC_num_remaining_prev += 2;	// Indicate sample replicated
 				}
 
-//				print_dbg_hex(s_gap_acc);
-//				print_dbg_char('\n');
+				print_dbg_hex(s_gap_acc);
+				print_dbg_char('\n');
 
 				for( i=0 ; i < DAC_BUFFER_SIZE ; i+=2 ) {
 					// Input from audio_buffer
