@@ -332,11 +332,11 @@ void uac1_device_audio_task(void *pvParameters)
 				// Very primitive skip/insert code
 				if (s_gap_acc > 20) {
 					s_skip = 1;					// ADC is too fast, drop a sample
-					ADC_num_remaining_prev --; 	// Indicate sample dropped FIX: is this and above method 2's complement safe?
+					ADC_num_remaining_prev -= 2; 	// Indicate sample dropped FIX: is this and above method 2's complement safe?
 				}
 				else if (s_gap_acc < -20) {
 					s_skip = -1;					// ADC is too slow, replicate a sample
-					ADC_num_remaining_prev ++;	// Indicate sample replicated
+					ADC_num_remaining_prev += 2;	// Indicate sample replicated
 				}
 
 //				print_dbg_hex(s_gap_acc);
