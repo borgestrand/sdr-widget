@@ -299,6 +299,13 @@ void uac1_device_audio_task(void *pvParameters)
 			if (DAC_buf_DMA_read_temp != DAC_buf_DMA_read_local) { // Must transfer previous half-ring-buffer
 				DAC_buf_DMA_read_local = DAC_buf_DMA_read_temp;
 
+				// Skip mechanism seems solid. But there is still some overlap issues. Pin 84 is not in sync with pin 83 (ADC DMA interrupt)
+				// On Bitscope it looks like Pin 84 pulses are missing during crashes.
+
+				// PX30 now tracks which ADC half-buffer we're writing to.
+				// Pin 83 tracks which ADC half-buffer the DMA is reading from. With a functional state machine the two should overlap
+				// Now they don't start off equal, and they drift.
+
 				if (DAC_buf_DMA_read_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else
@@ -307,8 +314,12 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Sequential code's part of ADC DMA reset/init
 				if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
-					index = 0;							// Sequential variables match interrupt handler code for init
-					ADC_buf_USB_IN = DAC_buf_DMA_read_local;
+//					index = 0;							// Sequential variables match interrupt handler code for init
+//					ADC_buf_USB_IN = DAC_buf_DMA_read_local; // Try to start the DMAs at the same spot even if the interrupt rate will be different
+
+					index = ADC_BUFFER_SIZE - ADC_num_remaining;	// Interrupts may strike at any time!
+					ADC_buf_USB_IN = ADC_buf_DMA_write;
+
 					s_skip = 0;
 					ADC_num_remaining_prev = ADC_num_remaining;
 					s_gap_acc = 0;
@@ -332,11 +343,11 @@ void uac1_device_audio_task(void *pvParameters)
 				// Very primitive skip/insert code
 				if (s_gap_acc > 20) {
 					s_skip = 1;					// ADC is too fast, drop a sample
-					ADC_num_remaining_prev -= 2; 	// Indicate sample dropped FIX: is this and above method 2's complement safe?
+					s_gap_acc -= 2; 	// Indicate sample dropped FIX: is this and above method 2's complement safe?
 				}
 				else if (s_gap_acc < -20) {
 					s_skip = -1;					// ADC is too slow, replicate a sample
-					ADC_num_remaining_prev += 2;	// Indicate sample replicated
+					s_gap_acc += 2;	// Indicate sample replicated
 				}
 
 				print_dbg_hex(s_gap_acc);
@@ -366,7 +377,7 @@ void uac1_device_audio_task(void *pvParameters)
 						s_skip = 0;
 						print_dbg_char('s');
 					}
-					else if (s_skip == -1) {	// Replicate a sample
+					else if (s_skip == -1) {	// Insert a sample
 						index += 0;	// void
 						s_skip = 0;
 						print_dbg_char('i');
@@ -374,7 +385,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 //					index += 2;
 					if (index >= ADC_BUFFER_SIZE) {
-						index = 0;
+//						index = 0;
+						index -= ADC_BUFFER_SIZE; // To accomedate skips at end of buffer
 						ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
 
 #ifdef USB_STATE_MACHINE_DEBUG

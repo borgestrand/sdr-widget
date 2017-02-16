@@ -156,10 +156,10 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
 			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
 
 			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
+			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 			ADC_buf_DMA_write = 1;
 		}
 #endif
@@ -179,10 +179,10 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
 			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
 
 			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
+			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 			ADC_buf_DMA_write = 0;
 		}
 #endif
