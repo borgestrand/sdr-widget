@@ -172,7 +172,7 @@ void uac1_device_audio_task(void *pvParameters)
 	static Bool startup=TRUE;
 	int i;
 //	int delta_num = 0;
-	U16 num_samples, num_remaining, gap;
+	U16 num_samples, num_remaining, gap =0;
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
 	U16 packets_since_feedback = 0;
 	U8 skip_enable = 0;
@@ -287,9 +287,8 @@ void uac1_device_audio_task(void *pvParameters)
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int DAC_buf_DMA_read_local = -1;
 		static S16 ADC_num_remaining_prev = 0;
-		S16 skew = 0;
-		S16 skip = 0;
-		static S16 drift = 0;
+		S16 s_gap = 0;
+		S16 s_skip = 0;
 		int DAC_buf_DMA_read_temp;
 
 
@@ -309,37 +308,35 @@ void uac1_device_audio_task(void *pvParameters)
 				if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
 					index = 0;							// Sequential variables match interrupt handler code for init
 					ADC_buf_USB_IN = DAC_buf_DMA_read_local;
-					drift = 0;
-					skip = 0;
+					s_skip = 0;
 					ADC_num_remaining_prev = 0;
 				}
 
 
 				// How far has ADC DMA moved between two consecutive DAC DMA interrupt strikes?
 				// Calculate and compensate for bipolar overflow
-				// A positive drift and skew means ADC is moving too fast and DAC samples should be inserted
-				// A negative drift and skew means ADC is moving too slowly and DAC samples should be skipped
-				skew = ADC_num_remaining_prev - ADC_num_remaining;
-				if (skew >= ADC_BUFFER_SIZE / 2)
-					skew -= ADC_BUFFER_SIZE;
-				else if (skew <= ADC_BUFFER_SIZE / 2)
-					skew += ADC_BUFFER_SIZE;
-				drift += skew;	// Fix: add some filtering to make this gentle. Add monitoring on a 'scope channel
+				// A positive gap means ADC is moving too fast and ADC samples should be skipped
+				// A negative gap means ADC is moving too slowly and ADC samples should be inserted
+				s_gap = ADC_num_remaining_prev - ADC_num_remaining;
+				if (s_gap >= ADC_BUFFER_SIZE / 2)
+					s_gap -= ADC_BUFFER_SIZE;
+				else if (gap <= ADC_BUFFER_SIZE / 2)
+					s_gap += ADC_BUFFER_SIZE;
 
 				ADC_num_remaining_prev = ADC_num_remaining;
 
 
 				// Very primitive skip/insert code
-				if (drift > 200) {
-					skip = -1;
-//					drift --;
+				if (s_gap > 20) {
+					s_skip = 1;					// ADC is too fast, drop a sample
+					ADC_num_remaining_prev --; 	// Indicate sample dropped FIX: is this and above method 2's complement safe?
 				}
-				else if (drift < -2) {
-					skip = 1;
-//					drift ++;
+				else if (s_gap < -20) {
+					s_skip = -1;					// ADC is too slow, replicate a sample
+					ADC_num_remaining_prev ++;	// Indicate sample replicated
 				}
 
-//				print_dbg_hex(drift);
+//				print_dbg_hex(gap);
 //				print_dbg_char('\n');
 
 				for( i=0 ; i < DAC_BUFFER_SIZE ; i+=2 ) {
@@ -356,7 +353,23 @@ void uac1_device_audio_task(void *pvParameters)
 //					sample_L = drift << 14; // Log drift to analog output
 
 					// Manually increase counter in audio_buffer
-					index += 2;
+
+					// Super-simple skip/insert, one sample per transition
+					if (s_skip == 0) {		// Normal progression
+						index += 2;
+					}
+					else if (s_skip == 1) {	// Jump over a sample
+						index += 4;
+						s_skip = 0;
+						print_dbg_char('s');
+					}
+					else if (s_skip == -1) {	// Replicate a sample
+						index += 0;	// void
+						s_skip = 0;
+						print_dbg_char('i');
+					}
+
+//					index += 2;
 					if (index >= ADC_BUFFER_SIZE) {
 						index = 0;
 						ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
@@ -380,20 +393,6 @@ void uac1_device_audio_task(void *pvParameters)
 						spk_buffer_1[i+OUT_LEFT] = sample_L;
 						spk_buffer_1[i+OUT_RIGHT] = sample_R;
 					}
-
-
-					// Super-simple skip/insert messes with the for loop variable
-					if ( (i == 2) && (skip == 1) ) {
-						i+=2;
-						skip = 0;
-						print_dbg_char('s');
-					}
-					else if ( (i == 2) && (skip == -1) ) {
-						i-=2;
-						skip = 0;
-						print_dbg_char('i');
-					}
-
 
 				} // for DAC_BUFFER_SIZE
 			} // DAC_buf_DMA_read toggle
