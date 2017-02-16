@@ -172,7 +172,7 @@ void uac1_device_audio_task(void *pvParameters)
 	static Bool startup=TRUE;
 	int i;
 //	int delta_num = 0;
-	U16 num_samples, num_remaining, gap =0;
+	U16 num_samples, num_remaining, gap = 0;
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
 	U16 packets_since_feedback = 0;
 	U8 skip_enable = 0;
@@ -288,6 +288,7 @@ void uac1_device_audio_task(void *pvParameters)
 		static int DAC_buf_DMA_read_local = -1;
 		static S16 ADC_num_remaining_prev = 0;
 		S16 s_gap = 0;
+		static S16 s_gap_acc;
 		S16 s_skip = 0;
 		int DAC_buf_DMA_read_temp;
 
@@ -309,7 +310,8 @@ void uac1_device_audio_task(void *pvParameters)
 					index = 0;							// Sequential variables match interrupt handler code for init
 					ADC_buf_USB_IN = DAC_buf_DMA_read_local;
 					s_skip = 0;
-					ADC_num_remaining_prev = 0;
+					ADC_num_remaining_prev = ADC_num_remaining;
+					s_gap_acc = 0;
 				}
 
 
@@ -318,25 +320,26 @@ void uac1_device_audio_task(void *pvParameters)
 				// A positive gap means ADC is moving too fast and ADC samples should be skipped
 				// A negative gap means ADC is moving too slowly and ADC samples should be inserted
 				s_gap = ADC_num_remaining_prev - ADC_num_remaining;
-				if (s_gap >= ADC_BUFFER_SIZE / 2)
+/*				if (s_gap >= ADC_BUFFER_SIZE / 2)
 					s_gap -= ADC_BUFFER_SIZE;
 				else if (gap <= ADC_BUFFER_SIZE / 2)
 					s_gap += ADC_BUFFER_SIZE;
-
+*/
 				ADC_num_remaining_prev = ADC_num_remaining;
 
+				s_gap_acc = s_gap_acc + s_gap; // FIX: Overflow issues?
 
 				// Very primitive skip/insert code
-				if (s_gap > 20) {
+				if (s_gap_acc > 20) {
 					s_skip = 1;					// ADC is too fast, drop a sample
 					ADC_num_remaining_prev --; 	// Indicate sample dropped FIX: is this and above method 2's complement safe?
 				}
-				else if (s_gap < -20) {
+				else if (s_gap_acc < -20) {
 					s_skip = -1;					// ADC is too slow, replicate a sample
 					ADC_num_remaining_prev ++;	// Indicate sample replicated
 				}
 
-//				print_dbg_hex(gap);
+//				print_dbg_hex(s_gap_acc);
 //				print_dbg_char('\n');
 
 				for( i=0 ; i < DAC_BUFFER_SIZE ; i+=2 ) {
