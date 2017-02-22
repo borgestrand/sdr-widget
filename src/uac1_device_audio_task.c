@@ -120,7 +120,7 @@
 //? why are these defined as statics?
 
 static U32  index, spk_index;
-static U16  old_gap = DAC_BUFFER_SIZE;
+static S16  old_gap = DAC_BUFFER_SIZE;
 // static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// These are now global the ID number of the buffer used for sending out to the USB
 static volatile U32 *audio_buffer_ptr;
 //static volatile U32 *spk_buffer_ptr;
@@ -198,6 +198,7 @@ void uac1_device_audio_task(void *pvParameters)
 //	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
 	uint32_t silence_det = 0;
+	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	// BSB 20130602: code section moved to uac1_usb_specific_request.c
 	// if (current_freq.frequency == FREQ_48) FB_rate = 48 << 14;
@@ -281,139 +282,119 @@ void uac1_device_audio_task(void *pvParameters)
 		}
 
 // Seriously messing with ADC interface...
-// Rewriting for polling the consumer, not the manufacturer.
-// We can expect consumer (MCU's DAC interface) to be steady and under firmware control,
-// .. while producer (MCU's ADC interface and WM8805 I2S out) can fall out at any time.
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-		static int DAC_buf_DMA_read_local = -1;
-		static S16 ADC_num_remaining_prev = 0;
-		S16 s_gap = 0;
-		static S16 s_gap_acc;
-		S16 s_skip = 0;
-		int DAC_buf_DMA_read_temp;
+		static int ADC_buf_DMA_write_local = -1;
+		int ADC_buf_DMA_write_temp = 0;
+//		static S16 ADC_num_remaining_prev = 0;
+//		S16 s_gap = 0;
+//		static S16 s_gap_acc;
+//		S16 s_skip = 0;
+//		int DAC_buf_DMA_read_temp;
+
+
+		// Startup condition with ADC_buf_DMA_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
+		if (ADC_buf_DMA_write_local == -1) {
+			num_remaining = spk_pdca_channel->tcr;
+			DAC_buf_USB_OUT = DAC_buf_DMA_read;
+			spk_index = DAC_BUFFER_SIZE - num_remaining;
+			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+			ADC_buf_DMA_write_local = 2; // Done initiating. Must improve init code!
+		}
 
 
 		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_NONE) ) ) {
-			DAC_buf_DMA_read_temp = DAC_buf_DMA_read; // Interrupt may strike at any time, cache the buffer selector
+			ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
-			if (DAC_buf_DMA_read_temp != DAC_buf_DMA_read_local) { // Must transfer previous half-ring-buffer
-				DAC_buf_DMA_read_local = DAC_buf_DMA_read_temp;
+			// Has producer's buffer been toggled by interrupt driven DMA code?
+			// If so, copy all of producer's data. (And perform skip/insert.)
+			if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_local) { // Must transfer previous half-ring-buffer
+				ADC_buf_DMA_write_local = ADC_buf_DMA_write_temp;
 
-				// Skip mechanism seems solid. But there is still some overlap issues. Pin 84 is not in sync with pin 83 (ADC DMA interrupt)
-				// On Bitscope it looks like Pin 84 pulses are missing during crashes.
+				if (ADC_buf_USB_IN == -1) {				// Must initiate consumer's write pointer to where-ever its read pointer may be
+					ADC_buf_USB_IN = ADC_buf_DMA_write_temp;	// Not really needed in this code. Disable further init
 
-				// PX30 now tracks which ADC half-buffer we're writing to.
-				// Pin 83 tracks which ADC half-buffer the DMA is reading from. With a functional state machine the two should overlap
-				// Now they don't start off equal, and they drift.
-				//
-				// Things are still sliding. Use different input to state machine! Perhaps count produced samples?
-				// For each sample interval (=DAC interrupt rate) ADC DMA must be fed as many samples as it consumed.
+					// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
+					old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
+					num_remaining = spk_pdca_channel->tcr;
+					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// Keep resyncing until playerStarted becomes true
+					spk_index = DAC_BUFFER_SIZE - num_remaining;
+					spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+				}
 
-				if (DAC_buf_DMA_read_temp == 1)
+				// Calculate gap before copying data into consumer register:
+				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+				num_remaining = spk_pdca_channel->tcr;
+
+				// DAC_buf_DMA_read is valid
+				if (DAC_buf_DMA_read_local == DAC_buf_DMA_read) {
+					if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
+						if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
+							gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+						else
+							gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+					}
+					else // usb and pdca working on different buffers
+						gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+				}
+				// DAC_buf_DMA_read is INVALID, don't calculate new gap.
+				else {
+					gap = old_gap;
+					time_to_calculate_gap = -1;				// Immediate gap re-calculation
+#ifdef USB_STATE_MACHINE_DEBUG
+						print_dbg_char('R');
+#endif
+				}
+
+
+				// Done calculating gap
+
+
+				if (ADC_buf_DMA_write_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
+//		gpio_set_gpio_pin(AVR32_PIN_PX30); // Measure duration of copy event
 
-				// Sequential code's part of ADC DMA reset/init
-				if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
-					index = 0;							// Sequential variables match interrupt handler code for init
-					ADC_buf_USB_IN = DAC_buf_DMA_read_local; // Try to start the DMAs at the same spot even if the interrupt rate will be different
-
-//					index = ADC_BUFFER_SIZE - ADC_num_remaining;	// Interrupts may strike at any time!
-//					ADC_buf_USB_IN = ADC_buf_DMA_write;
-
-					s_skip = 0;
-					ADC_num_remaining_prev = ADC_num_remaining;
-					s_gap_acc = 0;
-				}
-
-
-				// How far has ADC DMA moved between two consecutive DAC DMA interrupt strikes?
-				// Calculate and compensate for bipolar overflow
-				// A positive gap means ADC is moving too fast and ADC samples should be skipped
-				// A negative gap means ADC is moving too slowly and ADC samples should be inserted
-				s_gap = ADC_num_remaining_prev - ADC_num_remaining;
-/*				if (s_gap >= ADC_BUFFER_SIZE / 2)
-					s_gap -= ADC_BUFFER_SIZE;
-				else if (gap <= ADC_BUFFER_SIZE / 2)
-					s_gap += ADC_BUFFER_SIZE;
-*/
-				ADC_num_remaining_prev = ADC_num_remaining;
-
-				s_gap_acc = s_gap_acc + s_gap; // FIX: Overflow issues?
-
-				// Very primitive skip/insert code
-				if (s_gap_acc > 20) {
-					s_skip = 1;					// ADC is too fast, drop a sample
-					s_gap_acc -= 2; 	// Indicate sample dropped FIX: is this and above method 2's complement safe?
-				}
-				else if (s_gap_acc < -20) {
-					s_skip = -1;					// ADC is too slow, replicate a sample
-					s_gap_acc += 2;	// Indicate sample replicated
-				}
-
-				print_dbg_hex(s_gap_acc);
-				print_dbg_char('\n');
-
-				for( i=0 ; i < DAC_BUFFER_SIZE ; i+=2 ) {
-					// Input from audio_buffer
-					if (ADC_buf_USB_IN == 0) {
-						sample_L = audio_buffer_0[index+IN_LEFT];
-						sample_R = audio_buffer_0[index+IN_RIGHT];
-					}
-					else if (ADC_buf_USB_IN == 1) {
-						sample_L = audio_buffer_1[index+IN_LEFT];
-						sample_R = audio_buffer_1[index+IN_RIGHT];
+				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
+					// Fill endpoint with sample raw
+					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+						sample_L = audio_buffer_0[i+IN_LEFT];
+						sample_R = audio_buffer_0[i+IN_RIGHT];
+					} else {
+						sample_L = audio_buffer_1[i+IN_LEFT];
+						sample_R = audio_buffer_1[i+IN_RIGHT];
 					}
 
-//					sample_L = drift << 14; // Log drift to analog output
 
-					// Manually increase counter in audio_buffer
-
-					// Super-simple skip/insert, one sample per transition
-					if (s_skip == 0) {		// Normal progression
-						index += 2;
+					if (DAC_buf_USB_OUT == 0) {			// 0 Seems better than 1, but non-conclusive
+						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 					}
-					else if (s_skip == 1) {	// Jump over a sample
-						index += 4;
-						s_skip = 0;
-						print_dbg_char('s');
-					}
-					else if (s_skip == -1) {	// Insert a sample
-						index += 0;	// void
-						s_skip = 0;
-						print_dbg_char('i');
+					else {
+						spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
 					}
 
-//					index += 2;
-					if (index >= ADC_BUFFER_SIZE) {
-//						index = 0;
-						index -= ADC_BUFFER_SIZE; // To accomedate skips at end of buffer
-						ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
+					spk_index += 2;
+					if (spk_index >= DAC_BUFFER_SIZE) {
+						spk_index = 0;
+						DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
+// Track which buffer is being used by consumer
 #ifdef USB_STATE_MACHINE_DEBUG
-						if (ADC_buf_USB_IN == 1)
+						if (DAC_buf_USB_OUT == 1)
 							gpio_set_gpio_pin(AVR32_PIN_PX30);
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
-					}
 
-
-					// Output to one full spk_buffer (half of ring buffer)
-					// Automatically increase counter in spk_buffer (for loop)
-					if (DAC_buf_DMA_read_temp == 0) {
-						spk_buffer_0[i+OUT_LEFT] = sample_L;
-						spk_buffer_0[i+OUT_RIGHT] = sample_R;
 					}
-					else if (DAC_buf_DMA_read_temp == 1) {
-						spk_buffer_1[i+OUT_LEFT] = sample_L;
-						spk_buffer_1[i+OUT_RIGHT] = sample_R;
-					}
+				} // for ADC_BUFFER_SIZE
 
-				} // for DAC_BUFFER_SIZE
-			} // DAC_buf_DMA_read toggle
+//		gpio_clr_gpio_pin(AVR32_PIN_PX30); // Measure duration of copy event
+
+			} // ADC_buf_DMA_write toggle
 		} // input select
 #endif
 
@@ -882,7 +863,7 @@ void uac1_device_audio_task(void *pvParameters)
 							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 							num_remaining = spk_pdca_channel->tcr;
 
-							// DAC_buf_DMA_read is vali d
+							// DAC_buf_DMA_read is valid
 							if (DAC_buf_DMA_read_local == DAC_buf_DMA_read) {
 								if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
 									if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))

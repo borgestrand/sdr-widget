@@ -153,6 +153,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 1;
 
+		/*
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
 			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
@@ -163,6 +164,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 			ADC_buf_DMA_write = 1;
 		}
 #endif
+*/
 
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
@@ -175,7 +177,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	else if (DAC_buf_DMA_read == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
-
+/*
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
 			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
@@ -186,6 +188,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 			ADC_buf_DMA_write = 0;
 		}
 #endif
+*/
 
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
@@ -313,8 +316,8 @@ void AK5394A_task_init(const Bool uac1) {
 
 	// Init ADC channel for SPDIF buffering
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-//		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-//		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 		// pdca_enable() is called from WM8805 power unmute functions
 	#else
 		// Init PDCA channel with the pdca_options.

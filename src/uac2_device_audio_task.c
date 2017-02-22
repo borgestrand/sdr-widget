@@ -116,7 +116,7 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 static U32  index, spk_index;
-static U16  old_gap = DAC_BUFFER_SIZE;
+static S16  old_gap = DAC_BUFFER_SIZE;
 // static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// These are now global the ID number of the buffer used for sending out
 												// to the USB and reading from USB
 
