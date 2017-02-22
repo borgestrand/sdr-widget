@@ -314,9 +314,10 @@ void uac1_device_audio_task(void *pvParameters)
 					ADC_buf_USB_IN = ADC_buf_DMA_write_temp;	// Not really needed in this code. Disable further init
 
 					// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
+					skip_enable = 0;
 					old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
 					num_remaining = spk_pdca_channel->tcr;
-					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// Keep resyncing until playerStarted becomes true
+					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
 					spk_index = DAC_BUFFER_SIZE - num_remaining;
 					spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 				}
@@ -345,8 +346,22 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 				}
 
-
 				// Done calculating gap
+				// Apply gap to skip or insert
+
+				if (gap < SPK1_GAP_LSKIP) {
+					skip_enable |= SPK2_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+				}
+				else if (gap > SPK1_GAP_USKIP) {
+					skip_enable |= SPK2_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+				}
+				else {
+					skip_enable &= ~SPK2_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
+				}
+
+
+				// Done applying gap
+
 
 
 				if (ADC_buf_DMA_write_temp == 1)
@@ -751,7 +766,7 @@ void uac1_device_audio_task(void *pvParameters)
 // Stability?				Disable_global_interrupt();				// RTOS-atomic operation
 //							portENTER_CRITICAL();
 								num_remaining = spk_pdca_channel->tcr;
-								DAC_buf_USB_OUT = DAC_buf_DMA_read;		// Keep resyncing until playerStarted becomes true
+								DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
 //							portEXIT_CRITICAL();
 // Stability?				Enable_global_interrupt();
 							LED_Off(LED0);							// The LEDs on the PCB near the MCU

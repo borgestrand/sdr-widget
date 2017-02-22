@@ -756,7 +756,7 @@ void uac2_device_audio_task(void *pvParameters)
 // Stability?			Disable_global_interrupt();				// RTOS-atomic operation
 //						portENTER_CRITICAL();
 							num_remaining = spk_pdca_channel->tcr;
-							DAC_buf_USB_OUT = DAC_buf_DMA_read;		// Keep resyncing until playerStarted becomes true
+							DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
 //						portEXIT_CRITICAL();
 // Stability?			Enable_global_interrupt();
 						LED_Off(LED0);							// The LEDs on the PCB near the MCU
