@@ -305,6 +305,9 @@ void uac1_device_audio_task(void *pvParameters)
 				// PX30 now tracks which ADC half-buffer we're writing to.
 				// Pin 83 tracks which ADC half-buffer the DMA is reading from. With a functional state machine the two should overlap
 				// Now they don't start off equal, and they drift.
+				//
+				// Things are still sliding. Use different input to state machine! Perhaps count produced samples?
+				// For each sample interval (=DAC interrupt rate) ADC DMA must be fed as many samples as it consumed.
 
 				if (DAC_buf_DMA_read_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
@@ -314,11 +317,11 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Sequential code's part of ADC DMA reset/init
 				if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
-//					index = 0;							// Sequential variables match interrupt handler code for init
-//					ADC_buf_USB_IN = DAC_buf_DMA_read_local; // Try to start the DMAs at the same spot even if the interrupt rate will be different
+					index = 0;							// Sequential variables match interrupt handler code for init
+					ADC_buf_USB_IN = DAC_buf_DMA_read_local; // Try to start the DMAs at the same spot even if the interrupt rate will be different
 
-					index = ADC_BUFFER_SIZE - ADC_num_remaining;	// Interrupts may strike at any time!
-					ADC_buf_USB_IN = ADC_buf_DMA_write;
+//					index = ADC_BUFFER_SIZE - ADC_num_remaining;	// Interrupts may strike at any time!
+//					ADC_buf_USB_IN = ADC_buf_DMA_write;
 
 					s_skip = 0;
 					ADC_num_remaining_prev = ADC_num_remaining;
@@ -647,7 +650,7 @@ void uac1_device_audio_task(void *pvParameters)
 						FB_error_acc = FB_error_acc + ((S32)num_samples * 1<<14) - FB_rate;
 						if (FB_error_acc > SPK1_SKIP_LIMIT_14) {	// Must skip
 							samples_to_transfer_OUT = 0;			// Do some skippin'
-							FB_error_acc = FB_error_acc - (1<<14);
+							FB_error_acc = FB_error_acc - (1<<14);	// FIX: Why not 2 for stereo sample??
 							time_to_calculate_gap = -1;				// Immediate gap re-calculation
 							skip_indicate = 1;
 							LED_On(LED0);							// Indicate skipping on module LED
@@ -879,7 +882,7 @@ void uac1_device_audio_task(void *pvParameters)
 							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 							num_remaining = spk_pdca_channel->tcr;
 
-							// DAC_buf_DMA_read is valid
+							// DAC_buf_DMA_read is vali d
 							if (DAC_buf_DMA_read_local == DAC_buf_DMA_read) {
 								if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
 									if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
