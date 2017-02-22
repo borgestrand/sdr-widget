@@ -391,9 +391,12 @@ void device_mouse_hid_task(void)
 
             // Select MCU's outgoing I2S bus
             else if (a == 'b') {							// Lowercase b
-            	gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
-       			gpio_set_gpio_pin(AVR32_PIN_PX58); 			// 44.1 control
-       			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control
+
+            	ADC_buf_USB_IN = -1; // Attempt re-sync of SPDIF buffer code
+
+//            	gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
+//     			gpio_set_gpio_pin(AVR32_PIN_PX58); 			// 44.1 control
+//     			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control
 
        			// This code was brought into modified mobo_xo_select
             }
