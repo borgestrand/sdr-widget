@@ -350,13 +350,13 @@ void uac1_device_audio_task(void *pvParameters)
 				// Apply gap to skip or insert
 
 				if (gap < SPK1_GAP_LSKIP) {
-					skip_enable |= SPK2_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+					skip_enable |= SPK1_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
 				}
 				else if (gap > SPK1_GAP_USKIP) {
-					skip_enable |= SPK2_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+					skip_enable |= SPK1_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
 				}
 				else {
-					skip_enable &= ~SPK2_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
+					skip_enable &= ~SPK1_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
 				}
 
 
