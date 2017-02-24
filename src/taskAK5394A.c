@@ -103,7 +103,7 @@ volatile int DAC_buf_USB_OUT; // Written by sequential code
 volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-	volatile U16 ADC_num_remaining = 0;
+	volatile U16 DAC_num_remaining = 0;
 #endif
 
 
@@ -115,7 +115,7 @@ volatile U8 audio_OUT_alive;
 volatile U8 audio_OUT_must_sync;
 
 
-/*! \brief The PDCA interrupt handler.
+/*! \brief The PDCA interrupt handler for the ADC interface.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
  * The interrupt will happen when the reload counter reaches 0
@@ -140,9 +140,16 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 #endif
 	}
 
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+	DAC_num_remaining = spk_pdca_channel->tcr;	// How much is left of DAC's DMA? Record here at precise timing and use in seq code
+	if (DAC_buf_DMA_read == 1)
+		DAC_num_remaining |= BUF_IS_ONE;
+#endif
+
+
 }
 
-/*! \brief The PDCA interrupt handler.
+/*! \brief The PDCA interrupt handler for the DAC interface.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
  * The interrupt will happen when the reload counter reaches 0
@@ -198,10 +205,6 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 #endif
 	}
-
-#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-	ADC_num_remaining = pdca_channel->tcr;	// How much is left of ADC's DMA? Record here and use in seq code
-#endif
 
 	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)

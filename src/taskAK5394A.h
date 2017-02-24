@@ -33,6 +33,7 @@
 
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
+// Keep buffer sizes belov 2^14
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // Use same buffer size in and out of SPDIF interface
 	#define ADC_BUFFER_SIZE	(8*2*16) // Use 2^n style number, now: 512 stereo samples on DAC side!
 	#define DAC_BUFFER_SIZE (32*2*16) // Trying ADC being much smaller. DAC half-buffer holds = ideal latency 11.6/10.67/5.8/5.33/2.9/2.67ms
@@ -82,6 +83,7 @@
 #define	FREQ_96				96000
 #define	FREQ_176			176400
 #define	FREQ_192			192000
+#define BUF_IS_ONE			1<<15	// Encode DAC_buf_DMA_read (or any other buffer) in U16 variable above bits used to count up to 2xDAC_BUFFER_SIZE
 
 // Values for silence (32-bit)
 #define SILENCE_USB_LIMIT	12000 				// We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
@@ -106,7 +108,7 @@ extern volatile int DAC_buf_USB_OUT; // Written by sequential code
 extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-	extern volatile U16 ADC_num_remaining;
+	extern volatile U16 DAC_num_remaining;
 #endif
 
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
