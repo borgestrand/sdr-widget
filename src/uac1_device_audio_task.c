@@ -325,8 +325,8 @@ void uac1_device_audio_task(void *pvParameters)
 					num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
 
 
-					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
-//					DAC_buf_USB_OUT = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE);
+//					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
+					DAC_buf_USB_OUT = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE);
 
 					spk_index = DAC_BUFFER_SIZE - num_remaining;
 					spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
@@ -336,8 +336,8 @@ void uac1_device_audio_task(void *pvParameters)
 //				num_remaining = spk_pdca_channel->tcr;
 				num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
 
-				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-//				DAC_buf_DMA_read_local = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE); // Use version recorded at ADC DMA interrupt
+//				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+				DAC_buf_DMA_read_local = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE); // Use version recorded at ADC DMA interrupt
 
 
 				// Using co-sampled versions of DAC_buf_DMA_read and num_remaining, there is no need to verify them as a pair, as is done in USB code
