@@ -324,7 +324,6 @@ void uac1_device_audio_task(void *pvParameters)
 //					num_remaining = spk_pdca_channel->tcr;
 					num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
 
-
 //					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
 					DAC_buf_USB_OUT = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE);
 
@@ -353,6 +352,9 @@ void uac1_device_audio_task(void *pvParameters)
 				// Done calculating gap
 
 				// Filter gap, display it, qualify it etc. etc.
+				print_dbg_char_hex(gap);
+				print_dbg_char('\n');
+
 
 				// Apply gap to skip or insert
 
