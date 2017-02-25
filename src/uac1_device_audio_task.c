@@ -332,6 +332,9 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 
 				// Calculate gap before copying data into consumer register:
+
+				old_gap = gap;
+
 //				num_remaining = spk_pdca_channel->tcr;
 				num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
 
@@ -352,20 +355,21 @@ void uac1_device_audio_task(void *pvParameters)
 				// Done calculating gap
 
 				// Filter gap, display it, qualify it etc. etc.
-				print_dbg_char_hex(gap);
-				print_dbg_char('\n');
+//				if (old_gap != gap) {
+//					print_dbg_char_hex(gap);
+//					print_dbg_char(' ');
+//				}
 
 
-				// Apply gap to skip or insert
-
-				if (gap < SPK1_GAP_LSKIP) {
-					skip_enable |= SPK1_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+				// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
+				samples_to_transfer_OUT = 1;			// Default value
+				if ((gap < old_gap) && (gap < SPK1_GAP_L1)) {				// Quicker response than .._LSKIP
+					samples_to_transfer_OUT = 0;		// Do some skippin'
+					print_dbg_char('s');
 				}
-				else if (gap > SPK1_GAP_USKIP) {
-					skip_enable |= SPK1_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
-				}
-				else {
-					skip_enable &= ~SPK1_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
+				else if ((gap > old_gap) && (gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
+					samples_to_transfer_OUT = 2;		// Do some insertin'
+					print_dbg_char('i');
 				}
 
 
@@ -391,6 +395,38 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 
 
+// Super-rough skip/insert
+
+					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+						if (DAC_buf_USB_OUT == 0) {
+							spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+						}
+						else {
+							spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+						}
+
+						spk_index += 2;
+						if (spk_index >= DAC_BUFFER_SIZE) {
+							spk_index -= DAC_BUFFER_SIZE;
+							DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+
+#ifdef USB_STATE_MACHINE_DEBUG
+							if (DAC_buf_USB_OUT == 1)
+								gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+							else
+								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+#endif
+
+						}
+					}
+					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
+
+
+
+
+/* // Copy without skip/insert
 					if (DAC_buf_USB_OUT == 0) {			// 0 Seems better than 1, but non-conclusive
 						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
 						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
@@ -414,7 +450,12 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 
 					}
+
+ */
 				} // for ADC_BUFFER_SIZE
+
+
+
 
 //		gpio_clr_gpio_pin(AVR32_PIN_PX30); // Measure duration of copy event
 
