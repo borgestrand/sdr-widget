@@ -773,12 +773,25 @@ void uac1_device_audio_task(void *pvParameters)
 
 							// Align buffers
 							audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+
+							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+							num_remaining = spk_pdca_channel->tcr;
+							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+							// for a long time. In which we simply read the counter again
+							if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+								num_remaining = spk_pdca_channel->tcr;
+							}
+
+							DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
+/*
 // Stability?				Disable_global_interrupt();				// RTOS-atomic operation
 //							portENTER_CRITICAL();
 								num_remaining = spk_pdca_channel->tcr;
 								DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
 //							portEXIT_CRITICAL();
 // Stability?				Enable_global_interrupt();
+*/
 							LED_Off(LED0);							// The LEDs on the PCB near the MCU
 							LED_Off(LED1);
 
@@ -883,6 +896,16 @@ void uac1_device_audio_task(void *pvParameters)
 							time_to_calculate_gap = SPK1_PACKETS_PER_GAP_CALCULATION - 1;
 						if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
+
+							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+							num_remaining = spk_pdca_channel->tcr;
+							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+							// for a long time. In which we simply read the counter again
+							if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+								num_remaining = spk_pdca_channel->tcr;
+							}
+/*
 							// Which buffer is in use, and does it truly correspond to the num_remaining value?
 							// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
 							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
@@ -890,14 +913,16 @@ void uac1_device_audio_task(void *pvParameters)
 
 							// DAC_buf_DMA_read is valid
 							if (DAC_buf_DMA_read_local == DAC_buf_DMA_read) {
-								if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
-									if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
-										gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
-									else
-										gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
-								}
-								else // usb and pdca working on different buffers
-									gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+*/
+							if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
+								if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
+									gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+								else
+									gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+							}
+							else // usb and pdca working on different buffers
+								gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+/*
 							}
 							// DAC_buf_DMA_read is INVALID, don't calculate new gap.
 							else {
@@ -907,7 +932,7 @@ void uac1_device_audio_task(void *pvParameters)
 									print_dbg_char('R');
 #endif
 							}
-
+*/
 							if(playerStarted) {
 
 								if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
