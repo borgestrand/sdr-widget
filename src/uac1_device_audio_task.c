@@ -320,9 +320,12 @@ void uac1_device_audio_task(void *pvParameters)
 					skip_enable = 0;
 					old_gap = DAC_BUFFER_SIZE; // Ideal gap value
 
-					num_remaining = spk_pdca_channel->tcr;
+
+//					num_remaining = spk_pdca_channel->tcr;
+					num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
+
+
 					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
-//					num_remaining = DAC_num_remaining & ~BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
 //					DAC_buf_USB_OUT = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE);
 
 					spk_index = DAC_BUFFER_SIZE - num_remaining;
@@ -330,10 +333,12 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 
 				// Calculate gap before copying data into consumer register:
+//				num_remaining = spk_pdca_channel->tcr;
+				num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
+
 				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-				num_remaining = spk_pdca_channel->tcr;
 //				DAC_buf_DMA_read_local = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE); // Use version recorded at ADC DMA interrupt
-//				num_remaining = DAC_num_remaining & ~BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
+
 
 				// Using co-sampled versions of DAC_buf_DMA_read and num_remaining, there is no need to verify them as a pair, as is done in USB code
 				if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer

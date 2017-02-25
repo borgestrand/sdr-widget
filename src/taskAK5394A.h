@@ -83,7 +83,8 @@
 #define	FREQ_96				96000
 #define	FREQ_176			176400
 #define	FREQ_192			192000
-#define BUF_IS_ONE			1<<15	// Encode DAC_buf_DMA_read (or any other buffer) in U16 variable above bits used to count up to 2xDAC_BUFFER_SIZE
+#define BUF_IS_ONE			0x8000	// Encode DAC_buf_DMA_read (or any other buffer) in U16 variable above bits used to count up to 2xDAC_BUFFER_SIZE
+#define NOT_BUF_IS_ONE		0x7FFF
 
 // Values for silence (32-bit)
 #define SILENCE_USB_LIMIT	12000 				// We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
