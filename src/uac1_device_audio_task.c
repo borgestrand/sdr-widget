@@ -363,13 +363,13 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 				samples_to_transfer_OUT = 1;			// Default value
-				if ((gap < old_gap) && (gap < SPK1_GAP_L1)) {				// Quicker response than .._LSKIP
-					samples_to_transfer_OUT = 0;		// Do some skippin'
-					print_dbg_char('s');
-				}
-				else if ((gap > old_gap) && (gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
+				if ((gap < old_gap) && (gap < SPK1_GAP_L2)) {				// Quicker response than .._LSKIP
 					samples_to_transfer_OUT = 2;		// Do some insertin'
 					print_dbg_char('i');
+				}
+				else if ((gap > old_gap) && (gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
+					samples_to_transfer_OUT = 0;		// Do some skippin'
+					print_dbg_char('s');
 				}
 
 
