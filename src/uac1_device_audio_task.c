@@ -361,7 +361,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Filter gap, display it, qualify it etc. etc.
 				if (s_gap > s_old_gap) {
-//					print_dbg_char_hex(gap);
+//					print_dbg_hex(s_gap);
 					print_dbg_char('+');
 				}
 				else if (s_gap < s_old_gap) {
@@ -373,6 +373,10 @@ void uac1_device_audio_task(void *pvParameters)
 				s_samples_to_transfer_OUT = 1;			// Default value
 				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L2)) {				// Quicker response than .._LSKIP
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
+					print_dbg_char('s');
+					print_dbg_hex(s_old_gap);
+					print_dbg_char('\n');
+					print_dbg_hex(s_gap);
 					print_dbg_char('s');
 				}
 				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
