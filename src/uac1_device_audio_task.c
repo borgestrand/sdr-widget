@@ -289,8 +289,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 		// Some private variables
 		static U32  s_spk_index = 0;
-		S16 s_gap = DAC_BUFFER_SIZE;
-		S16 s_old_gap = DAC_BUFFER_SIZE;
+		static S16 s_gap = DAC_BUFFER_SIZE;
+		static S16 s_old_gap = DAC_BUFFER_SIZE;
 		U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
 //		static S16 s_gap_acc;
 //		S16 s_skip = 0;
@@ -860,7 +860,6 @@ void uac1_device_audio_task(void *pvParameters)
 						// Semaphore not taken, or muted, output zeros
 						if ( (input_select != MOBO_SRC_UAC1) || (spk_mute) ) {
 							sample_L = 0;
-
 							sample_R = 0;
 						}
 
