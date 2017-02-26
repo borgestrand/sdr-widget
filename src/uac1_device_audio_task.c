@@ -326,11 +326,24 @@ void uac1_device_audio_task(void *pvParameters)
 					s_old_gap = DAC_BUFFER_SIZE; // Ideal gap value
 
 
-//					num_remaining = spk_pdca_channel->tcr;
-					num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
+////				num_remaining = spk_pdca_channel->tcr;
+//					num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
 
-//					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
-					DAC_buf_USB_OUT = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE);
+////				DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
+//					DAC_buf_USB_OUT = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE);
+
+
+					// New co-sample verification routine
+					DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+					num_remaining = spk_pdca_channel->tcr;
+					// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+					// for a long time. In which we simply read the counter again
+					if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+						DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+						num_remaining = spk_pdca_channel->tcr;
+					}
+
+					DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
 
 					s_spk_index = DAC_BUFFER_SIZE - num_remaining;
 					s_spk_index = s_spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
@@ -340,16 +353,25 @@ void uac1_device_audio_task(void *pvParameters)
 
 				s_old_gap = s_gap;
 
-//				num_remaining = spk_pdca_channel->tcr;
-				num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
+////			num_remaining = spk_pdca_channel->tcr;
+//				num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
 
-//				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-				DAC_buf_DMA_read_local = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE); // Use version recorded at ADC DMA interrupt
+////			DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+//				DAC_buf_DMA_read_local = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE); // Use version recorded at ADC DMA interrupt
 
+				// New co-sample verification routine
+				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+				num_remaining = spk_pdca_channel->tcr;
+				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+				// for a long time. In which we simply read the counter again
+				if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+					DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+					num_remaining = spk_pdca_channel->tcr;
+				}
 
 				// Using co-sampled versions of DAC_buf_DMA_read and num_remaining, there is no need to verify them as a pair, as is done in USB code
 				if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
-					if ( s_spk_index < (DAC_BUFFER_SIZE - num_remaining))
+					if (s_spk_index < (DAC_BUFFER_SIZE - num_remaining))
 						s_gap = DAC_BUFFER_SIZE - num_remaining - s_spk_index;
 					else
 						s_gap = DAC_BUFFER_SIZE - s_spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
@@ -358,30 +380,32 @@ void uac1_device_audio_task(void *pvParameters)
 					s_gap = (DAC_BUFFER_SIZE - s_spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
 				// Done calculating gap
-
+/*
 				// Filter gap, display it, qualify it etc. etc.
 				if (s_gap > s_old_gap) {
-//					print_dbg_hex(s_gap);
 					print_dbg_char('+');
 				}
 				else if (s_gap < s_old_gap) {
 					print_dbg_char('-');
 				}
-
-
+*/
 				// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 				s_samples_to_transfer_OUT = 1;			// Default value
 				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L2)) {				// Quicker response than .._LSKIP
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
+//					print_dbg_char('\n');
 					print_dbg_char('s');
-					print_dbg_hex(s_old_gap);
-					print_dbg_char('\n');
-					print_dbg_hex(s_gap);
-					print_dbg_char('s');
+//					print_dbg_hex(s_old_gap);
+//					print_dbg_char(' ');
+//					print_dbg_hex(s_gap);
 				}
 				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
 					s_samples_to_transfer_OUT = 2;		// Do some insertin'
+//					print_dbg_char('\n');
 					print_dbg_char('i');
+//					print_dbg_hex(s_old_gap);
+//					print_dbg_char(' ');
+//					print_dbg_hex(s_gap);
 				}
 
 
