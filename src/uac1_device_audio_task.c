@@ -860,6 +860,7 @@ void uac1_device_audio_task(void *pvParameters)
 						// Semaphore not taken, or muted, output zeros
 						if ( (input_select != MOBO_SRC_UAC1) || (spk_mute) ) {
 							sample_L = 0;
+
 							sample_R = 0;
 						}
 
