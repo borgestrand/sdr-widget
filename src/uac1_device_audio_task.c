@@ -286,7 +286,12 @@ void uac1_device_audio_task(void *pvParameters)
 		static int ADC_buf_DMA_write_prev = -1;
 		int ADC_buf_DMA_write_temp = 0;
 //		static S16 DAC_num_remaining_prev = 0;
-//		S16 s_gap = 0;
+
+		// Some private variables
+		static U32  s_spk_index = 0;
+		S16 s_gap = DAC_BUFFER_SIZE;
+		S16 s_old_gap = DAC_BUFFER_SIZE;
+		U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
 //		static S16 s_gap_acc;
 //		S16 s_skip = 0;
 //		int DAC_buf_DMA_read_temp;
@@ -318,7 +323,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 					// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
 					skip_enable = 0;
-					old_gap = DAC_BUFFER_SIZE; // Ideal gap value
+					s_old_gap = DAC_BUFFER_SIZE; // Ideal gap value
 
 
 //					num_remaining = spk_pdca_channel->tcr;
@@ -327,13 +332,13 @@ void uac1_device_audio_task(void *pvParameters)
 //					DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
 					DAC_buf_USB_OUT = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE);
 
-					spk_index = DAC_BUFFER_SIZE - num_remaining;
-					spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+					s_spk_index = DAC_BUFFER_SIZE - num_remaining;
+					s_spk_index = s_spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 				}
 
 				// Calculate gap before copying data into consumer register:
 
-				old_gap = gap;
+				s_old_gap = s_gap;
 
 //				num_remaining = spk_pdca_channel->tcr;
 				num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
@@ -344,34 +349,34 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Using co-sampled versions of DAC_buf_DMA_read and num_remaining, there is no need to verify them as a pair, as is done in USB code
 				if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
-					if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
-						gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+					if ( s_spk_index < (DAC_BUFFER_SIZE - num_remaining))
+						s_gap = DAC_BUFFER_SIZE - num_remaining - s_spk_index;
 					else
-						gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+						s_gap = DAC_BUFFER_SIZE - s_spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
 				}
 				else // usb and pdca working on different buffers
-					gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+					s_gap = (DAC_BUFFER_SIZE - s_spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
 				// Done calculating gap
 
 				// Filter gap, display it, qualify it etc. etc.
-				if (gap > old_gap) {
+				if (s_gap > s_old_gap) {
 //					print_dbg_char_hex(gap);
 					print_dbg_char('+');
 				}
-				else if (gap < old_gap) {
+				else if (s_gap < s_old_gap) {
 					print_dbg_char('-');
 				}
 
 
 				// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
-				samples_to_transfer_OUT = 1;			// Default value
-				if ((gap < old_gap) && (gap < SPK1_GAP_L2)) {				// Quicker response than .._LSKIP
-					samples_to_transfer_OUT = 0;		// Do some skippin'
+				s_samples_to_transfer_OUT = 1;			// Default value
+				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L2)) {				// Quicker response than .._LSKIP
+					s_samples_to_transfer_OUT = 0;		// Do some skippin'
 					print_dbg_char('s');
 				}
-				else if ((gap > old_gap) && (gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
-					samples_to_transfer_OUT = 2;		// Do some insertin'
+				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
+					s_samples_to_transfer_OUT = 2;		// Do some insertin'
 					print_dbg_char('i');
 				}
 
@@ -400,19 +405,19 @@ void uac1_device_audio_task(void *pvParameters)
 
 // Super-rough skip/insert
 
-					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+					while (s_samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 						if (DAC_buf_USB_OUT == 0) {
-							spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-							spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+							spk_buffer_0[s_spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_0[s_spk_index+OUT_RIGHT] = sample_R;
 						}
 						else {
-							spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-							spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+							spk_buffer_1[s_spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_1[s_spk_index+OUT_RIGHT] = sample_R;
 						}
 
-						spk_index += 2;
-						if (spk_index >= DAC_BUFFER_SIZE) {
-							spk_index -= DAC_BUFFER_SIZE;
+						s_spk_index += 2;
+						if (s_spk_index >= DAC_BUFFER_SIZE) {
+							s_spk_index -= DAC_BUFFER_SIZE;
 							DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -424,7 +429,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 						}
 					}
-					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
+					s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 
 
 
