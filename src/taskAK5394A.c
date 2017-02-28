@@ -102,9 +102,6 @@ volatile int ADC_buf_USB_IN; // Written by sequential code
 volatile int DAC_buf_USB_OUT; // Written by sequential code
 volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
-#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-	volatile U16 DAC_num_remaining = 0;
-#endif
 
 
 // BSB 20131201 attempting improved playerstarted detection
@@ -141,16 +138,6 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 //    	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	}
-
-/*
-// Needed?
-#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-	DAC_num_remaining = spk_pdca_channel->tcr;	// How much is left of DAC's DMA? Record here at precise timing and use in seq code
-	if (DAC_buf_DMA_read == 1)
-		DAC_num_remaining |= BUF_IS_ONE;
-
-#endif
-*/
 
 }
 

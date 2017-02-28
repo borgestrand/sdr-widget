@@ -289,28 +289,13 @@ gpio_tgl_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int ADC_buf_DMA_write_prev = -1;
 		int ADC_buf_DMA_write_temp = 0;
-//		static S16 DAC_num_remaining_prev = 0;
 
 		// Some private variables
 		static U32  s_spk_index = 0;
 		static S16 s_gap = DAC_BUFFER_SIZE;
 		static S16 s_old_gap = DAC_BUFFER_SIZE;
 		U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
-//		static S16 s_gap_acc;
-//		S16 s_skip = 0;
-//		int DAC_buf_DMA_read_temp;
 
-
-/*
-		// Startup condition with ADC_buf_DMA_write_local == -1 resets spk_index according to DAC_buf_USB_OUT
-		if (ADC_buf_DMA_write_local == -1) {
-			num_remaining = spk_pdca_channel->tcr;
-			DAC_buf_USB_OUT = DAC_buf_DMA_read;
-			spk_index = DAC_BUFFER_SIZE - num_remaining;
-			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-			ADC_buf_DMA_write_local = 2; // Done initiating. Must improve init code!
-		}
-*/
 
 		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
 			ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
@@ -328,14 +313,6 @@ gpio_tgl_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 					// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
 					skip_enable = 0;
 					s_old_gap = DAC_BUFFER_SIZE; // Ideal gap value
-
-
-////				num_remaining = spk_pdca_channel->tcr;
-//					num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
-
-////				DAC_buf_USB_OUT = DAC_buf_DMA_read;		// FIX: Keep resyncing until playerStarted becomes true
-//					DAC_buf_USB_OUT = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE);
-
 
 					// New co-sample verification routine
 					DAC_buf_DMA_read_local = DAC_buf_DMA_read;
@@ -356,12 +333,6 @@ gpio_tgl_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				// Calculate gap before copying data into consumer register:
 
 				s_old_gap = s_gap;
-
-////			num_remaining = spk_pdca_channel->tcr;
-//				num_remaining = DAC_num_remaining & NOT_BUF_IS_ONE; // Use version recorded at ADC DMA interrupt
-
-////			DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-//				DAC_buf_DMA_read_local = ((DAC_num_remaining & BUF_IS_ONE) == BUF_IS_ONE); // Use version recorded at ADC DMA interrupt
 
 				// New co-sample verification routine
 				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
