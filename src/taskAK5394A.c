@@ -214,8 +214,8 @@ static void pdca_set_irq(void) {
 	// AVR32_PDCA_IRQ_0 The interrupt line to register to.
 	// AVR32_INTC_INT2  The priority level to set for this interrupt line.  INT0 is lowest.
 	// INTC_register_interrupt(__int_handler handler, int line, int priority);
-	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT2);
-	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT1);
+	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT0); //2
+	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT0); //1
 	// Enable all interrupt/exception.
 	Enable_global_interrupt();
 }
