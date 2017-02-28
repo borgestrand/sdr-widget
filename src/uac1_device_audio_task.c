@@ -258,10 +258,10 @@ void uac1_device_audio_task(void *pvParameters)
 			else if( time >= 9*STARTUP_LED_DELAY ) {
 				startup=FALSE;
 
-				ADC_buf_DMA_write = 0;
+// 				ADC_buf_DMA_write = 0;  // Is this the glitchmaker?? And if it is, why does it happen so much on Win10/64 and UAC1?
 				ADC_buf_USB_IN = 0;
 				DAC_buf_USB_OUT = 0;
-				DAC_buf_DMA_read = 0; // Only place outside taskAK53984A.c where DAC_buf_DMA_read is written!
+//				DAC_buf_DMA_read = 0; // Only place outside taskAK53984A.c where DAC_buf_DMA_read is written!
 				index = 0;
 
 
