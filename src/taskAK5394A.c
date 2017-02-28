@@ -159,25 +159,13 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
-	gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+	gpio_tgl_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 
 	if (DAC_buf_DMA_read == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 1;
 
-		/*
-#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-		if (ADC_buf_USB_IN == -1) {				// At init align ADC_DMA addressing with DAC_DMA addressing
-			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-			pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port. FIX: Also do this at sample rate chg?
-
-			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
-			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-			ADC_buf_DMA_write = 1;
-		}
-#endif
-*/
 /*
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
