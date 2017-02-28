@@ -89,6 +89,7 @@
 #include "Mobo_config.h"
 
 
+
 //_____ M A C R O S ________________________________________________________
 
 
@@ -282,6 +283,15 @@ void uac1_device_audio_task(void *pvParameters)
 		}
 
 // Seriously messing with ADC interface...
+
+
+// Temporarily re-purposing pin 84 from task of monitoring seq. producer code
+if (Is_global_interrupt_enabled())
+	gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+else
+	gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+
+
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int ADC_buf_DMA_write_prev = -1;
 		int ADC_buf_DMA_write_temp = 0;
@@ -412,11 +422,11 @@ void uac1_device_audio_task(void *pvParameters)
 				// Done applying gap
 
 
-				// Copy all of producer's most recent data to consumer's buffer
-				if (ADC_buf_DMA_write_temp == 1)
-					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-				else
-					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+//				// Copy all of producer's most recent data to consumer's buffer
+//				if (ADC_buf_DMA_write_temp == 1)
+//					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+//				else
+//					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 //		gpio_set_gpio_pin(AVR32_PIN_PX30); // Measure duration of copy event
 
