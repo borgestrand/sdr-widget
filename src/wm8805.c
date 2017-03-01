@@ -253,7 +253,7 @@ void wm8805_poll(void) {
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
-//				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
 //				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 				print_dbg_char(60); // '<'
@@ -263,7 +263,7 @@ void wm8805_poll(void) {
 #else
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 
-//				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
 //				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
@@ -338,8 +338,8 @@ void wm8805_poll(void) {
 				print_dbg_char('/');
 #endif
 */
-				ADC_buf_USB_IN = -1;		// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX) FIX: only here?
-
+				pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port FIX: fill buffers with zeros before starting up
+				ADC_buf_USB_IN = -1;			// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX)
 
 			}
 		}
@@ -435,16 +435,20 @@ void wm8805_init(void) {
 
 	wm8805_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL,
 
+/*
+// Moved to the code wich sets input_select
 	ADC_buf_USB_IN = -1;			// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX)
 									// Fix: only do that once we figure out the sample rate?
 
 	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port FIX: fill buffers with zeros before starting up
+*/
 }
 
 // Turn off wm8805, why can't we just run init again?
 void wm8805_sleep(void) {
 	wm8805_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL,
-	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+
+//	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
 }
 
 // Select input channel of the WM8805
