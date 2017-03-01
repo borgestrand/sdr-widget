@@ -51,11 +51,6 @@
 #include "compiler.h"
 #include "pdca.h"
 
-#include "gpio.h"
-
-#ifdef USB_STATE_MACHINE_DEBUG
-	#include "print_funcs.h"
-#endif
 
 volatile avr32_pdca_channel_t *pdca_get_handler(unsigned int pdca_ch_number)
 {
@@ -109,12 +104,6 @@ unsigned int pdca_get_channel_status(unsigned int pdca_ch_number)
 
 void pdca_disable(unsigned int pdca_ch_number)
 {
-	// BSB hack
-	gpio_tgl_gpio_pin(AVR32_PIN_PX43);			// Pin 88
-
-  #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('Q');
-  #endif
 	// get the correct channel pointer
   volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(pdca_ch_number);
 
@@ -126,16 +115,6 @@ void pdca_disable(unsigned int pdca_ch_number)
 
 void pdca_enable(unsigned int pdca_ch_number)
 {
-
-	// BSB hack
-	gpio_tgl_gpio_pin(AVR32_PIN_PX52);			// Pin 87
-
-/*
-  #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('P');
-  #endif
-*/
-
   // get the correct channel pointer
   volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(pdca_ch_number);
 
