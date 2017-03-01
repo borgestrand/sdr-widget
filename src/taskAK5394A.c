@@ -96,8 +96,8 @@ volatile U32 spk_buffer_1[DAC_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
-volatile int ADC_buf_DMA_write; // Written by interrupt handler, initiated by sequential code
-volatile int DAC_buf_DMA_read; // Written by interrupt handler, initiated by sequential code
+volatile int ADC_buf_DMA_write = 0; // Written by interrupt handler, initiated by sequential code
+volatile int DAC_buf_DMA_read = 0; // Written by interrupt handler, initiated by sequential code
 volatile int ADC_buf_USB_IN; // Written by sequential code
 volatile int DAC_buf_USB_OUT; // Written by sequential code
 volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
@@ -279,8 +279,8 @@ void AK5394A_task_init(const Bool uac1) {
 	// HSB Bus matrix register MCFG1 is associated with the CPU instruction master interface.
 	AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_CPU_INSN] = 0x1;
 
-	ADC_buf_DMA_write = 0;
-	DAC_buf_DMA_read = 0;
+// 	ADC_buf_DMA_write = 0; Now done in (global) variable declaration
+//	DAC_buf_DMA_read = 0; Now done in (global) variable declaration
 	// Register PDCA IRQ interruptS. // Plural those are!
 	pdca_set_irq();
 

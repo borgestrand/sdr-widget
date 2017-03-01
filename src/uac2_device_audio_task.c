@@ -160,8 +160,8 @@ void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 
 void uac2_device_audio_task(void *pvParameters)
 {
-	static U32  time=0;
-	static Bool startup=TRUE;
+//	static U32  time=0;
+//	static Bool startup=TRUE;
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i;
 	U16 num_samples, num_remaining, gap;
@@ -198,6 +198,7 @@ void uac2_device_audio_task(void *pvParameters)
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
+/*  // Disabling (startup) code
 #ifdef HW_GEN_DIN20
 		// A detected usb swap must be acknowledged
 //		if ( (!Is_device_enumerated()) && (usb_ch_swap != USB_CH_SWAPDET) ) { time=0; startup=TRUE; continue; };
@@ -273,6 +274,22 @@ void uac2_device_audio_task(void *pvParameters)
 				freq_changed = TRUE;						// force a freq change reset
 			}
 		}
+*/
+
+		/*  // Presumably important part of now removed startup code?
+					if (!FEATURE_ADC_NONE) {
+						// Wait for the next frame synchronization event
+						// to avoid channel inversion.  Start with left channel - FS goes low
+						while (!gpio_get_pin_value(AK5394_LRCK));
+						while (gpio_get_pin_value(AK5394_LRCK));
+						// Enable now the transfer.
+						pdca_enable(PDCA_CHANNEL_SSC_RX);
+						pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					}
+
+				freq_changed = TRUE;						// force a freq change reset
+
+		 */
 
 
 // Seriously messing with ADC interface...
