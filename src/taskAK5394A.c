@@ -118,7 +118,6 @@ volatile U8 audio_OUT_must_sync;
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
-	gpio_tgl_gpio_pin(AVR32_PIN_PX52);			// Pin 87
 	if (ADC_buf_DMA_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		// Register names are different from those used in AVR32108. BUT: it seems pdca_reload_channel() sets the
@@ -146,7 +145,6 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
-	gpio_tgl_gpio_pin(AVR32_PIN_PX43); // Pin 88
 	if (DAC_buf_DMA_read == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);

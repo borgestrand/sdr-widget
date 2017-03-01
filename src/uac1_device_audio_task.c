@@ -303,9 +303,6 @@ void uac1_device_audio_task(void *pvParameters)
  */
 
 // Seriously messing with ADC interface...
-
-//gpio_tgl_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int ADC_buf_DMA_write_prev = -1;
 		int ADC_buf_DMA_write_temp = 0;
@@ -365,6 +362,8 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 
 				// Using co-sampled versions of DAC_buf_DMA_read and num_remaining, there is no need to verify them as a pair, as is done in USB code
+				// FIX: Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
+				// If so look for "BUF_IS_ONE" in code around 20170227
 				if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
 					if (s_spk_index < (DAC_BUFFER_SIZE - num_remaining))
 						s_gap = DAC_BUFFER_SIZE - num_remaining - s_spk_index;
@@ -374,37 +373,17 @@ void uac1_device_audio_task(void *pvParameters)
 				else // usb and pdca working on different buffers
 					s_gap = (DAC_BUFFER_SIZE - s_spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
-				// Done calculating gap
-/*
-				// Filter gap, display it, qualify it etc. etc.
-				if (s_gap > s_old_gap) {
-					print_dbg_char('+');
-				}
-				else if (s_gap < s_old_gap) {
-					print_dbg_char('-');
-				}
-*/
+
 				// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 				s_samples_to_transfer_OUT = 1;			// Default value
 				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L2)) {				// Quicker response than .._LSKIP
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
-//					print_dbg_char('\n');
 					print_dbg_char('s');
-//					print_dbg_hex(s_old_gap);
-//					print_dbg_char(' ');
-//					print_dbg_hex(s_gap);
 				}
 				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
 					s_samples_to_transfer_OUT = 2;		// Do some insertin'
-//					print_dbg_char('\n');
 					print_dbg_char('i');
-//					print_dbg_hex(s_old_gap);
-//					print_dbg_char(' ');
-//					print_dbg_hex(s_gap);
 				}
-
-
-				// Done applying gap
 
 
 				// Copy all of producer's most recent data to consumer's buffer
@@ -412,8 +391,6 @@ void uac1_device_audio_task(void *pvParameters)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-
-//		gpio_set_gpio_pin(AVR32_PIN_PX30); // Measure duration of copy event
 
 				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
 					// Fill endpoint with sample raw
@@ -424,7 +401,6 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_L = audio_buffer_1[i+IN_LEFT];
 						sample_R = audio_buffer_1[i+IN_RIGHT];
 					}
-
 
 // Super-rough skip/insert
 
@@ -454,41 +430,7 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 					s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 
-
-
-
-/* // Copy without skip/insert
-					if (DAC_buf_USB_OUT == 0) {			// 0 Seems better than 1, but non-conclusive
-						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
-					}
-					else {
-						spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-						spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
-					}
-
-					spk_index += 2;
-					if (spk_index >= DAC_BUFFER_SIZE) {
-						spk_index = 0;
-						DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
-
-// Track which buffer is being used by consumer
-#ifdef USB_STATE_MACHINE_DEBUG
-						if (DAC_buf_USB_OUT == 1)
-							gpio_set_gpio_pin(AVR32_PIN_PX30);
-						else
-							gpio_clr_gpio_pin(AVR32_PIN_PX30);
-#endif
-
-					}
-
- */
 				} // for ADC_BUFFER_SIZE
-
-
-
-
-//		gpio_clr_gpio_pin(AVR32_PIN_PX30); // Measure duration of copy event
 
 			} // ADC_buf_DMA_write toggle
 		} // input select
