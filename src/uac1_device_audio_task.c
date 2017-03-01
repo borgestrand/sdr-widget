@@ -311,6 +311,7 @@ void uac1_device_audio_task(void *pvParameters)
 		static U32  s_spk_index = 0;
 		static S16 s_gap = DAC_BUFFER_SIZE;
 		static S16 s_old_gap = DAC_BUFFER_SIZE;
+		S32 s_zero_detect = 0;
 		U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
 
 
@@ -392,12 +393,31 @@ void uac1_device_audio_task(void *pvParameters)
 				else
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
+				s_zero_detect = 0;
+				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
+					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+						s_zero_detect |= audio_buffer_0[i+IN_LEFT];
+						s_zero_detect |= audio_buffer_0[i+IN_RIGHT];
+					}
+					else if (ADC_buf_DMA_write_temp == 1) {
+						s_zero_detect |= audio_buffer_1[i+IN_LEFT];
+						s_zero_detect |= audio_buffer_1[i+IN_RIGHT];
+					}
+					if (s_zero_detect != 0)					// End at zero detection
+						i = ADC_BUFFER_SIZE;
+				}
+
+				if (s_zero_detect == 0)
+					print_dbg_char('0');
+
+
 				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
 					// Fill endpoint with sample raw
 					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
 						sample_L = audio_buffer_0[i+IN_LEFT];
 						sample_R = audio_buffer_0[i+IN_RIGHT];
-					} else {
+					}
+					else if (ADC_buf_DMA_write_temp == 1) {
 						sample_L = audio_buffer_1[i+IN_LEFT];
 						sample_R = audio_buffer_1[i+IN_RIGHT];
 					}
@@ -409,7 +429,7 @@ void uac1_device_audio_task(void *pvParameters)
 							spk_buffer_0[s_spk_index+OUT_LEFT] = sample_L;
 							spk_buffer_0[s_spk_index+OUT_RIGHT] = sample_R;
 						}
-						else {
+						else if (DAC_buf_USB_OUT == 1) {
 							spk_buffer_1[s_spk_index+OUT_LEFT] = sample_L;
 							spk_buffer_1[s_spk_index+OUT_RIGHT] = sample_R;
 						}
