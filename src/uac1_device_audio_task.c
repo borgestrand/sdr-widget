@@ -323,7 +323,7 @@ void uac1_device_audio_task(void *pvParameters)
 			// Has producer's buffer been toggled by interrupt driven DMA code?
 			// If so, copy all of producer's data. (And perform skip/insert.)
 			// Continue writing to consumer's buffer where this routine left of last
-			if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_USB_IN == -1) )	{	// Get the init back on synchronous sampling track
+			if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_USB_IN == -1) )	{	// Do the init on synchronous sampling ref. ADC DMA timing
 				ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 				ADC_buf_USB_IN = -2;
 			}
@@ -356,10 +356,11 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 
 				// Calculate gap before copying data into consumer register:
-
 				s_old_gap = s_gap;
 
 				// New co-sample verification routine
+				// FIX: May Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
+				// If so look for "BUF_IS_ONE" in code around 20170227
 				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 				num_remaining = spk_pdca_channel->tcr;
 				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
@@ -369,16 +370,13 @@ void uac1_device_audio_task(void *pvParameters)
 					num_remaining = spk_pdca_channel->tcr;
 				}
 
-				// Using co-sampled versions of DAC_buf_DMA_read and num_remaining, there is no need to verify them as a pair, as is done in USB code
-				// FIX: Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
-				// If so look for "BUF_IS_ONE" in code around 20170227
-				if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
+				if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// DAC DMA and seq. code using same buffer
 					if (s_spk_index < (DAC_BUFFER_SIZE - num_remaining))
 						s_gap = DAC_BUFFER_SIZE - num_remaining - s_spk_index;
 					else
 						s_gap = DAC_BUFFER_SIZE - s_spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
 				}
-				else // usb and pdca working on different buffers
+				else // DAC DMA and seq. code working on different buffers
 					s_gap = (DAC_BUFFER_SIZE - s_spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
 
@@ -387,27 +385,28 @@ void uac1_device_audio_task(void *pvParameters)
 				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L2)) {				// Quicker response than .._LSKIP
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
 					print_dbg_char('s');
-					print_dbg_hex(s_old_gap);
+/*					print_dbg_hex(s_old_gap);
 					print_dbg_char(' ');
 					print_dbg_hex(s_gap);
 					print_dbg_char('\n');
-				}
+*/				}
 				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
 					s_samples_to_transfer_OUT = 2;		// Do some insertin'
 					print_dbg_char('i');
-					print_dbg_hex(s_old_gap);
+/*					print_dbg_hex(s_old_gap);
 					print_dbg_char(' ');
 					print_dbg_hex(s_gap);
 					print_dbg_char('\n');
-				}
+*/				}
 
 
-				// Copy all of producer's most recent data to consumer's buffer
+				// Prepare to copy all of producer's most recent data to consumer's buffer
 				if (ADC_buf_DMA_write_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else if (ADC_buf_DMA_write_temp == 0)
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
+				// Detect a zero package from the ADC, and thus the option of skipping/inserting big
 				s_zero_detect = 0;
 				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
 					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
@@ -425,31 +424,31 @@ void uac1_device_audio_task(void *pvParameters)
 				if (s_zero_detect == 0) {
 					print_dbg_char('0');
 					if (s_gap < (SPK1_GAP_L2 + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
-//						s_megaskip = (SPK1_GAP_U2 - SPK1_GAP_D1) - (gap);	// This is as far as we can safely skip, one ADC package at a time
-						print_dbg_char('S');
+						s_megaskip = (SPK1_GAP_U2 - SPK1_GAP_D1) - (gap);	// This is as far as we can safely skip, one ADC package at a time
+						print_dbg_char('Z');
 					}
 					else if (s_gap > (SPK1_GAP_U2 - SPK1_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
-//						s_megaskip = (gap) - (SPK1_GAP_L1 + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
-						print_dbg_char('I');
+						s_megaskip = (gap) - (SPK1_GAP_L1 + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
+						print_dbg_char('J');
 					}
 				}
 				else {
 					s_megaskip = 0;	// Not zero -> no big skips!
 				}
 
-				s_megaskip = 0;	// Not zero -> no big skips!
-/*
+
 				// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
-				if ( s_megaskip >= ADC_BUFFER_SIZE ) {
+				if (s_megaskip >= ADC_BUFFER_SIZE) {
 					print_dbg_char('S');
 					s_samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 					s_megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
 				}
 				// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
-				else if ( s_megaskip <= ADC_BUFFER_SIZE ) {
+				else if (s_megaskip <= -ADC_BUFFER_SIZE) {
 					print_dbg_char('I');
 					s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					s_megaskip += ADC_BUFFER_SIZE;	// Prepare to insert one whole ADC package, i.e. copying two ADC packages
+/*
 					for (i=0 ; i < ADC_BUFFER_SIZE *2; i+=2) { // Note the "*2"!
 						if (DAC_buf_USB_OUT == 0) {
 							spk_buffer_0[s_spk_index+OUT_LEFT] = 0;
@@ -473,11 +472,10 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 						}
 					} // for i..
-				} // mega-insert
+*/
+				} // mega-insert <=
 				// Normal operation, copy one ADC package with normal skip/insert
 				else {
-*/
-				if (1) {
 					s_megaskip = 0;					// Normal operation
 
 					for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
