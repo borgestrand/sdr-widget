@@ -102,11 +102,13 @@
 
 // BSB 20130605 FB_rate calculation with 2 levels, imported from UAC2 code
 #define SPK1_GAP_USKIP DAC_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
+#define SPK1_GAP_U3    DAC_BUFFER_SIZE * 6.3 / 4	// A half buffer up in distance	=> Speed up host a lot
 #define SPK1_GAP_U2    DAC_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
 #define	SPK1_GAP_U1    DAC_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
 #define SPK1_GAP_NOM   DAC_BUFFER_SIZE * 4 / 4	// Ideal distance is half the size of linear buffer
 #define SPK1_GAP_L1	   DAC_BUFFER_SIZE * 3 / 4  // A quarter buffer down in distance => Slow down host a bit
 #define SPK1_GAP_L2	   DAC_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
+#define SPK1_GAP_L3	   DAC_BUFFER_SIZE * 1.7 / 4
 #define SPK1_GAP_LSKIP DAC_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
 #define SPK1_GAP_D1    10						// A margin at the edges of detection
 #define	SPK1_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32
@@ -382,7 +384,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 				s_samples_to_transfer_OUT = 1;			// Default value
-				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_LSKIP)) {				// Quicker response than .._LSKIP
+				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L3)) {
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
 					print_dbg_char('s');
 /*					print_dbg_hex(s_old_gap);
@@ -390,7 +392,7 @@ void uac1_device_audio_task(void *pvParameters)
 					print_dbg_hex(s_gap);
 					print_dbg_char('\n');
 */				}
-				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_USKIP)) {			// Quicker response than .._USKIP
+				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U3)) {
 					s_samples_to_transfer_OUT = 2;		// Do some insertin'
 					print_dbg_char('i');
 /*					print_dbg_hex(s_old_gap);
@@ -422,14 +424,13 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 
 				if (s_zero_detect == 0) {
-					print_dbg_char('0');
-					if (s_gap < (SPK1_GAP_LSKIP + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
-						s_megaskip = (SPK1_GAP_USKIP - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
-						print_dbg_char('Z');
+					if (s_gap < (SPK1_GAP_L3 + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
+						s_megaskip = (SPK1_GAP_U3 - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
+//						print_dbg_char('Z');
 					}
-					else if (s_gap > (SPK1_GAP_USKIP - SPK1_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
-						s_megaskip = (s_gap) - (SPK1_GAP_LSKIP + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
-						print_dbg_char('J');
+					else if (s_gap > (SPK1_GAP_U3 - SPK1_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
+						s_megaskip = (s_gap) - (SPK1_GAP_L3 + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
+//						print_dbg_char('J');
 					}
 				}
 				else {
@@ -438,18 +439,18 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 				// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
-				if (s_megaskip >= ADC_BUFFER_SIZE) {
+				if (s_megaskip >= ADC_BUFFER_SIZE / 4) {
 					print_dbg_char('S');
 					s_samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
-					s_megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
+					s_megaskip -= ADC_BUFFER_SIZE / 4;	// We have jumped over one whole ADC package
 				}
 				// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
-				else if (s_megaskip <= -ADC_BUFFER_SIZE) {
+				else if (s_megaskip <= -ADC_BUFFER_SIZE / 4) {
 					print_dbg_char('I');
 					s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
-					s_megaskip += ADC_BUFFER_SIZE;	// Prepare to insert one whole ADC package, i.e. copying two ADC packages
-/*
-					for (i=0 ; i < ADC_BUFFER_SIZE *2; i+=2) { // Note the "*2"!
+					s_megaskip += ADC_BUFFER_SIZE / 4;	// Prepare to -insert- one quarter ADC package, i.e. copying one half ADC package
+
+					for (i=0 ; i < ADC_BUFFER_SIZE / 2; i+=2) { // Mind the /2
 						if (DAC_buf_USB_OUT == 0) {
 							spk_buffer_0[s_spk_index+OUT_LEFT] = 0;
 							spk_buffer_0[s_spk_index+OUT_RIGHT] = 0;
@@ -466,13 +467,13 @@ void uac1_device_audio_task(void *pvParameters)
 
 #ifdef USB_STATE_MACHINE_DEBUG
 							if (DAC_buf_USB_OUT == 1)
-								gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+								gpio_set_gpio_pin(AVR32_PIN_PX30);
 							else
-								gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+								gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
 						}
 					} // for i..
-*/
+
 				} // mega-insert <=
 				// Normal operation, copy one ADC package with normal skip/insert
 				else {
@@ -507,9 +508,9 @@ void uac1_device_audio_task(void *pvParameters)
 
 #ifdef USB_STATE_MACHINE_DEBUG
 								if (DAC_buf_USB_OUT == 1)
-									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									gpio_set_gpio_pin(AVR32_PIN_PX30);
 								else
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
 							}
 						}
