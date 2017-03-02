@@ -424,11 +424,11 @@ void uac1_device_audio_task(void *pvParameters)
 				if (s_zero_detect == 0) {
 					print_dbg_char('0');
 					if (s_gap < (SPK1_GAP_L2 + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
-						s_megaskip = (SPK1_GAP_U2 - SPK1_GAP_D1) - (gap);	// This is as far as we can safely skip, one ADC package at a time
+						s_megaskip = (SPK1_GAP_U2 - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
 						print_dbg_char('Z');
 					}
 					else if (s_gap > (SPK1_GAP_U2 - SPK1_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
-						s_megaskip = (gap) - (SPK1_GAP_L1 + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
+						s_megaskip = (s_gap) - (SPK1_GAP_L1 + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
 						print_dbg_char('J');
 					}
 				}
