@@ -382,7 +382,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 				s_samples_to_transfer_OUT = 1;			// Default value
-				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L2)) {				// Quicker response than .._LSKIP
+				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_LSKIP)) {				// Quicker response than .._LSKIP
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
 					print_dbg_char('s');
 /*					print_dbg_hex(s_old_gap);
@@ -390,7 +390,7 @@ void uac1_device_audio_task(void *pvParameters)
 					print_dbg_hex(s_gap);
 					print_dbg_char('\n');
 */				}
-				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U2)) {			// Quicker response than .._USKIP
+				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_USKIP)) {			// Quicker response than .._USKIP
 					s_samples_to_transfer_OUT = 2;		// Do some insertin'
 					print_dbg_char('i');
 /*					print_dbg_hex(s_old_gap);
@@ -423,12 +423,12 @@ void uac1_device_audio_task(void *pvParameters)
 
 				if (s_zero_detect == 0) {
 					print_dbg_char('0');
-					if (s_gap < (SPK1_GAP_L2 + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
-						s_megaskip = (SPK1_GAP_U2 - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
+					if (s_gap < (SPK1_GAP_LSKIP + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
+						s_megaskip = (SPK1_GAP_USKIP - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
 						print_dbg_char('Z');
 					}
-					else if (s_gap > (SPK1_GAP_U2 - SPK1_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
-						s_megaskip = (s_gap) - (SPK1_GAP_L1 + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
+					else if (s_gap > (SPK1_GAP_USKIP - SPK1_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
+						s_megaskip = (s_gap) - (SPK1_GAP_LSKIP + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
 						print_dbg_char('J');
 					}
 				}
