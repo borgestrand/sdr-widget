@@ -189,7 +189,7 @@ void wm8805_poll(void) {
 	 * + Get hardware capable of generating all SPDIF sample rates
 	 * + Make state machine for WM8805 sample rate detection
 	 * - Make state machine for source selection
-	 * - Figure out ADC interface
+	 * + Figure out ADC interface
 	 * + Make silence detector (use 1024 silent block detector in WM?)
 	 */
 
@@ -253,7 +253,7 @@ void wm8805_poll(void) {
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 
-				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+// moved to wm8805_mute()				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
 //				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 				print_dbg_char(60); // '<'
@@ -263,7 +263,7 @@ void wm8805_poll(void) {
 #else
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 
-				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+// moved to wm8805_mute()				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
 //				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
@@ -332,8 +332,6 @@ void wm8805_poll(void) {
 				wm8805_clkdiv();						// Configure MCLK division
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
 				wm8805_muted = 0;
-				pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port FIX: fill buffers with zeros before starting up
-				ADC_buf_USB_IN = -1;			// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX)
 			}
 		}
 	}
@@ -355,6 +353,7 @@ void wm8805_poll(void) {
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
 			vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+			// Where is the corresponding wm8805_unmute() ?
 		}
 	}	// Done handling interrupt
 
@@ -509,22 +508,16 @@ void wm8805_clkdiv(void) {
 
 // Mute the WM8805 output
 void wm8805_mute(void) {
-	#ifdef HW_GEN_DIN20					// Dedicated mute pin, leaves clocks etc intact
-		mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
-	#else								// No hard-mute, use USB subsystem
+	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
+	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
+		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin
+	#else											// No hard-mute, use USB subsystem
+		// FIX: this clearing messes with uacX_d_a_t.c. Chart all place where clearing takes place!!
 		int i;
-
 		for (i = 0; i < DAC_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
 			spk_buffer_0[i] = 0;					// Needed in GEN_DIN20?
 			spk_buffer_1[i] = 0;
 		}
-
-	/*
-		if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-		else
-			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-	*/
 	#endif
 
 	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
@@ -534,16 +527,19 @@ void wm8805_mute(void) {
 // Un-mute the WM8805
 void wm8805_unmute(void) {
 	U32 wm8805_freq;
-	wm8805_freq = wm8805_srd();
+	wm8805_freq = wm8805_srd();					// Check running sampling frequency
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
 
 	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
 
+	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port FIX: fill buffers with zeros before starting up
+	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port
+
 	#ifdef HW_GEN_DIN20
-		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
-	#endif
+		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
+	#endif						// FIX: move to uacX_d_a_t.c ?
 }
 
 
