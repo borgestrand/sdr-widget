@@ -189,6 +189,7 @@ void uac2_freq_change_handler() {
 				mobo_led_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO frequency indication on front RGB LED
 #else
 			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// GPIO XO control and frequency indication
+			mobo_clock_division(current_freq.frequency);
 #endif
 
 /*
@@ -213,8 +214,6 @@ void uac2_freq_change_handler() {
 					gpio_set_gpio_pin(AK5394_DFS0);		// L H  -> 96khz
 					gpio_clr_gpio_pin(AK5394_DFS1);
 				}
-
-				mobo_clock_division(current_freq.frequency);
 
 /*
 				if (FEATURE_LINUX_QUIRK_ON)
@@ -245,8 +244,6 @@ void uac2_freq_change_handler() {
 					gpio_clr_gpio_pin(AK5394_DFS1);
 				}
 
-				mobo_clock_division(current_freq.frequency);
-
 /*
 				if (FEATURE_LINUX_QUIRK_ON)
 					FB_rate = (88 << 15) + (1<<15)/5;
@@ -261,7 +258,7 @@ void uac2_freq_change_handler() {
 
 	       	else if (current_freq.frequency == FREQ_176) {
 #ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char('5'); // BSB debug 20121212
+				print_dbg_char('5'); // BSB debug 20121212
 #endif
 
 				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
@@ -274,7 +271,6 @@ void uac2_freq_change_handler() {
 				gpio_clr_gpio_pin(AK5394_DFS0);		// H L -> 192khz
 				gpio_set_gpio_pin(AK5394_DFS1);
 
-				mobo_clock_division(current_freq.frequency);
 
 				FB_rate = (176 << 14) + ((1<<14)*4) / 10;
 				FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
@@ -298,8 +294,6 @@ void uac2_freq_change_handler() {
 					gpio_set_gpio_pin(AK5394_DFS1);
 				}
 
-				mobo_clock_division(current_freq.frequency);
-
     			FB_rate = (192) << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
@@ -322,8 +316,6 @@ void uac2_freq_change_handler() {
 					gpio_clr_gpio_pin(AK5394_DFS1);
 				}
 
-				mobo_clock_division(current_freq.frequency);
-
 				FB_rate = (48) << 14;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system
     			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
@@ -345,8 +337,6 @@ void uac2_freq_change_handler() {
 					gpio_clr_gpio_pin(AK5394_DFS0);		// L H  -> 96khz L L  -> 48khz
 					gpio_clr_gpio_pin(AK5394_DFS1);
 				}
-
-				mobo_clock_division(current_freq.frequency);
 
 				FB_rate = (44 << 14) + (1 << 14)/10;
     			FB_rate_initial = FB_rate;							// BSB 20131031 Record FB_rate as it was set by control system

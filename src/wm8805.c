@@ -520,22 +520,38 @@ void wm8805_mute(void) {
 // Un-mute the WM8805
 void wm8805_unmute(void) {
 	U32 wm8805_freq = 0;
-//	wm8805_freq = wm8805_srd();					// Check running sampling frequency
-	while (wm8805_freq != wm8805_srd()) {
-		wm8805_freq = wm8805_srd();				// Check running sampling frequency a few times in case of stability issues
-	}
+
+	print_dbg_char('A');
+
+	vTaskDelay(500);
+
+	wm8805_freq = wm8805_srd();					// Check running sampling frequency
+//	while (wm8805_freq != wm8805_srd()) {
+//		wm8805_freq = wm8805_srd();				// Check running sampling frequency a few times in case of stability issues
+//	}
+
+	print_dbg_char('B');
+
 
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 
+	print_dbg_char('C');
+
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
 
+	print_dbg_char('D');
+
 	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
+
+	print_dbg_char('E');
 
 	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port
 
 	#ifdef HW_GEN_DIN20
 		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 	#endif						// FIX: move to uacX_d_a_t.c ?
+
+	print_dbg_char('F');
 }
 
 

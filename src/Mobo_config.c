@@ -381,6 +381,21 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 // Master clock to DAC's I2S port frequency setup
 void mobo_clock_division(U32 frequency) {
 
+#ifdef USB_STATE_MACHINE_DEBUG
+	if (frequency == FREQ_192)
+		print_dbg_char('6');
+	else if (frequency == FREQ_176)
+		print_dbg_char('5');
+	else if (frequency == FREQ_96)
+		print_dbg_char('4');
+	else if (frequency == FREQ_88)
+		print_dbg_char('3');
+	else if (frequency == FREQ_48)
+		print_dbg_char('2');
+	else if (frequency == FREQ_44)
+		print_dbg_char('1');
+#endif
+
 /*
 #ifdef USB_STATE_MACHINE_DEBUG
 	print_dbg_char('#');
@@ -399,6 +414,7 @@ void mobo_clock_division(U32 frequency) {
 	print_dbg_char('#');
 #endif
 */
+
 	gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
 
 	pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);

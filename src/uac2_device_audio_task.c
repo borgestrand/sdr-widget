@@ -90,10 +90,6 @@
 #include "Mobo_config.h"
 
 
-// Todo:
-// - Import all code involving dac_must_clear
-// - Import SPDIF buffering code
-
 //_____ M A C R O S ________________________________________________________
 
 
