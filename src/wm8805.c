@@ -519,8 +519,12 @@ void wm8805_mute(void) {
 
 // Un-mute the WM8805
 void wm8805_unmute(void) {
-	U32 wm8805_freq;
-	wm8805_freq = wm8805_srd();					// Check running sampling frequency
+	U32 wm8805_freq = 0;
+//	wm8805_freq = wm8805_srd();					// Check running sampling frequency
+	while (wm8805_freq != wm8805_srd()) {
+		wm8805_freq = wm8805_srd();				// Check running sampling frequency a few times in case of stability issues
+	}
+
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency

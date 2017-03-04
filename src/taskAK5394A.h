@@ -35,8 +35,9 @@
 #define PDCA_CHANNEL_SSC_TX	   1
 // Keep buffer sizes belov 2^14
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // Use same buffer size in and out of SPDIF interface
-	#define ADC_BUFFER_SIZE	(8*2*16) // Use 2^n style number, now: 512 stereo samples on DAC side!
-	#define DAC_BUFFER_SIZE (32*2*16) // Trying ADC being much smaller. DAC half-buffer holds = ideal latency 11.6/10.67/5.8/5.33/2.9/2.67ms
+	#define ADC_BUFFER_SIZE	(8*2*24) // Hand tweaked figures for 192 stability, skip/insert etc. etc....
+	#define DAC_BUFFER_SIZE (32*2*24)
+
 #else
 	#define ADC_BUFFER_SIZE	48*2*8 // 48 khz, stereo, 8 ms worth
 	#define DAC_BUFFER_SIZE 48*2*16
