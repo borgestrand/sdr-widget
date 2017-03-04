@@ -98,10 +98,11 @@ volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
 volatile int ADC_buf_DMA_write = 0; // Written by interrupt handler, initiated by sequential code
 volatile int DAC_buf_DMA_read = 0; // Written by interrupt handler, initiated by sequential code
-volatile int ADC_buf_USB_IN; // Written by sequential code
-volatile int DAC_buf_USB_OUT; // Written by sequential code
+volatile int ADC_buf_USB_IN; 	// Written by sequential code
+volatile int DAC_buf_USB_OUT; 	// Written by sequential code
 volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
+volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
 
 // BSB 20131201 attempting improved playerstarted detection

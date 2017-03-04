@@ -148,7 +148,6 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "features.h"
 #include "device_audio_task.h"
 #include "usb_specific_request.h"
-#include "taskAK5394A.h"
 #include "Mobo_config.h"
 #include "I2C.h"
 #include "pdca.h" // To disable DMA at sleep
@@ -511,14 +510,8 @@ void wm8805_mute(void) {
 	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
 	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
 		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin
-	#else											// No hard-mute, use USB subsystem
-		// FIX: this clearing messes with uacX_d_a_t.c. Chart all place where clearing takes place!!
-		int i;
-		for (i = 0; i < DAC_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-			spk_buffer_0[i] = 0;					// Needed in GEN_DIN20?
-			spk_buffer_1[i] = 0;
-		}
 	#endif
+	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear ouggoing DAC data
 
 	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
 }
@@ -534,7 +527,6 @@ void wm8805_unmute(void) {
 
 	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
 
-	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port FIX: fill buffers with zeros before starting up
 	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port
 
 	#ifdef HW_GEN_DIN20

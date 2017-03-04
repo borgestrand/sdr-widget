@@ -169,6 +169,15 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 //! @brief Entry point of the device Audio task management
 //!
 
+// Empty the contents of the outgoing pdca buffers
+void uac1_clear_dac_channel(void) {
+	int i;
+	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
+		spk_buffer_0[i] = 0;
+		spk_buffer_1[i] = 0;
+	}
+}
+
 void uac1_device_audio_task(void *pvParameters)
 {
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
@@ -214,6 +223,12 @@ void uac1_device_audio_task(void *pvParameters)
 
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC1_configTSK_USB_DAUDIO_PERIOD);
+
+		// Must we clear the DAC buffer contents?
+		if (dac_must_clear == DAC_MUST_CLEAR) {
+			uac1_clear_dac_channel();
+			dac_must_clear = DAC_CLEARED;
+		}
 
 /*  // Disabling (startup) code
 #ifdef HW_GEN_DIN20
@@ -311,7 +326,7 @@ void uac1_device_audio_task(void *pvParameters)
 		int ADC_buf_DMA_write_temp = 0;
 
 		// Some private variables
-		static U32  s_spk_index = 0;
+		static U32 s_spk_index = 0;
 		static S16 s_gap = DAC_BUFFER_SIZE;
 		static S16 s_old_gap = DAC_BUFFER_SIZE;
 		static S16 s_megaskip = 0;
@@ -326,6 +341,13 @@ void uac1_device_audio_task(void *pvParameters)
 			// If so, copy all of producer's data. (And perform skip/insert.)
 			// Continue writing to consumer's buffer where this routine left of last
 			if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_USB_IN == -1) )	{	// Do the init on synchronous sampling ref. ADC DMA timing
+				// Clear incoming SPDIF before enabling pdca to keep filling it
+				for (i = 0; i < ADC_BUFFER_SIZE; i++) {
+					audio_buffer_0[i] = 0;
+					audio_buffer_1[i] = 0;
+				}
+
+				pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
 				ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 				ADC_buf_USB_IN = -2;
 			}
@@ -336,6 +358,7 @@ void uac1_device_audio_task(void *pvParameters)
 				// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 				if (ADC_buf_USB_IN == -2) {
 					ADC_buf_USB_IN = ADC_buf_DMA_write_temp;	// Disable further init
+					dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 
 					// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
 					skip_enable = 0;
@@ -445,6 +468,7 @@ void uac1_device_audio_task(void *pvParameters)
 //					print_dbg_char('S');
 					s_samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 					s_megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
+					// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
 				}
 				// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
 				else if (s_megaskip <= -ADC_BUFFER_SIZE) {
@@ -453,13 +477,15 @@ void uac1_device_audio_task(void *pvParameters)
 					s_megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 
 					for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
-						if (DAC_buf_USB_OUT == 0) {
-							spk_buffer_0[s_spk_index+OUT_LEFT] = 0;
-							spk_buffer_0[s_spk_index+OUT_RIGHT] = 0;
-						}
-						else if (DAC_buf_USB_OUT == 1) {
-							spk_buffer_1[s_spk_index+OUT_LEFT] = 0;
-							spk_buffer_1[s_spk_index+OUT_RIGHT] = 0;
+						if (dac_must_clear == DAC_READY) {
+							if (DAC_buf_USB_OUT == 0) {
+								spk_buffer_0[s_spk_index+OUT_LEFT] = 0;
+								spk_buffer_0[s_spk_index+OUT_RIGHT] = 0;
+							}
+							else if (DAC_buf_USB_OUT == 1) {
+								spk_buffer_1[s_spk_index+OUT_LEFT] = 0;
+								spk_buffer_1[s_spk_index+OUT_RIGHT] = 0;
+							}
 						}
 
 						s_spk_index += 2;
@@ -494,13 +520,15 @@ void uac1_device_audio_task(void *pvParameters)
 
 // Super-rough skip/insert
 						while (s_samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-							if (DAC_buf_USB_OUT == 0) {
-								spk_buffer_0[s_spk_index+OUT_LEFT] = sample_L;
-								spk_buffer_0[s_spk_index+OUT_RIGHT] = sample_R;
-							}
-							else if (DAC_buf_USB_OUT == 1) {
-								spk_buffer_1[s_spk_index+OUT_LEFT] = sample_L;
-								spk_buffer_1[s_spk_index+OUT_RIGHT] = sample_R;
+							if (dac_must_clear == DAC_READY) {
+								if (DAC_buf_USB_OUT == 0) {
+									spk_buffer_0[s_spk_index+OUT_LEFT] = sample_L;
+									spk_buffer_0[s_spk_index+OUT_RIGHT] = sample_R;
+								}
+								else if (DAC_buf_USB_OUT == 1) {
+									spk_buffer_1[s_spk_index+OUT_LEFT] = sample_L;
+									spk_buffer_1[s_spk_index+OUT_RIGHT] = sample_R;
+								}
 							}
 
 							s_spk_index += 2;
@@ -723,6 +751,8 @@ void uac1_device_audio_task(void *pvParameters)
 						skip_enable = 0;					// BSB 20131115 Not skipping yet...
 						skip_indicate = 0;
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
+						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
+
 
 						// BSB 20150725: Buffer alignment takes place as soon as 1st nonzero sample is received.
 						// FIX: Move above code as well?
@@ -910,22 +940,24 @@ void uac1_device_audio_task(void *pvParameters)
 							spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 						}
 
-						// Semaphore not taken, or muted, output zeros
-						if ( (input_select != MOBO_SRC_UAC1) || (spk_mute) ) {
-							sample_L = 0;
-							sample_R = 0;
-						}
+						// Semaphore not taken, or muted, output zeros.. Should be redundant with dac_must_clear code
+//						if ( (input_select != MOBO_SRC_UAC1) || (spk_mute) ) {
+//							sample_L = 0;
+//							sample_R = 0;
+//						}
 
 						// Only write to spk_buffer_? when allowed
 						if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) {
 							while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-								if (DAC_buf_USB_OUT == 0) {
-									spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-									spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
-								}
-								else {
-									spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-									spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+								if (dac_must_clear == DAC_READY) {
+									if (DAC_buf_USB_OUT == 0) {
+										spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+									}
+									else {
+										spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+										spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+									}
 								}
 
 								spk_index += 2;
@@ -1127,11 +1159,8 @@ void uac1_device_audio_task(void *pvParameters)
 					#ifdef HW_GEN_DIN20							// Dedicated mute pin
 						mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
 					#endif
-					// Silencing incoming (OUT endpoint) audio buffer for good measure. Resorting to this buffer is in fact muting the WM8805
-					for (i = 0; i < DAC_BUFFER_SIZE; i++) {
-						spk_buffer_0[i] = 0;
-						spk_buffer_1[i] = 0;
-					}
+
+					uac1_clear_dac_channel();							// Silencing incoming (OUT endpoint) audio buffer for good measure.
 
 					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 						#ifdef USB_STATE_MACHINE_DEBUG

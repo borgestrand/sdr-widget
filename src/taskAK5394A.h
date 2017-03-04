@@ -85,6 +85,9 @@
 #define	FREQ_192			192000
 #define BUF_IS_ONE			0x8000	// Encode DAC_buf_DMA_read (or any other buffer) in U16 variable above bits used to count up to 2xDAC_BUFFER_SIZE
 #define NOT_BUF_IS_ONE		0x7FFF
+#define DAC_MUST_CLEAR		1		// Immediately clear the content of outgoing DAC buffers
+#define DAC_CLEARED			2		// Outgoing DAC buffers are cleared, don't write to DAC buffers
+#define DAC_READY			3		// Outgoing DAC buffers are ready to be written to
 
 // Values for silence (32-bit)
 #define SILENCE_USB_LIMIT	12000 				// We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
@@ -108,6 +111,8 @@ extern volatile int ADC_buf_USB_IN; // Written by sequential code
 extern volatile int DAC_buf_USB_OUT; // Written by sequential code
 extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
+extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
+
 
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;
