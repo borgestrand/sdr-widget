@@ -147,7 +147,7 @@ to exclude the API function. */
 #define configTSK_USB_DEV_STACK_SIZE          256
 #define configTSK_USB_DEV_PRIORITY            (tskIDLE_PRIORITY + 3)
 #define UAC1_configTSK_USB_DEV_PERIOD              10
-#define UAC2_configTSK_USB_DEV_PERIOD              6 // 2 Original 2 has missing debug events
+#define UAC2_configTSK_USB_DEV_PERIOD              10 // 6 failed // 2 Original 2 has missing debug events
 #define HPSDR_configTSK_USB_DEV_PERIOD              2
 
 /* USB host task definitions. */
@@ -161,7 +161,7 @@ to exclude the API function. */
 #define configTSK_USB_DCDC_STACK_SIZE         256
 #define configTSK_USB_DCDC_PRIORITY           (tskIDLE_PRIORITY + 1)
 #define UAC1_configTSK_USB_DCDC_PERIOD             200
-#define UAC2_configTSK_USB_DCDC_PERIOD             140 // Original 80 has missing debug events
+#define UAC2_configTSK_USB_DCDC_PERIOD             200  // 140 failed // Original 80 has missing debug events
 #define HPSDR_configTSK_USB_DCDC_PERIOD             80
 
 /* USB device HID task definitions. */
@@ -175,14 +175,14 @@ to exclude the API function. */
 #define configTSK_USB_DAUDIO_STACK_SIZE			256
 #define configTSK_USB_DAUDIO_PRIORITY			(tskIDLE_PRIORITY + 2)
 #define UAC1_configTSK_USB_DAUDIO_PERIOD		2
-#define UAC2_configTSK_USB_DAUDIO_PERIOD		1
+#define UAC2_configTSK_USB_DAUDIO_PERIOD		2 // Original 1 has missing debug events
 #define HPSDR_configTSK_USB_DAUDIO_PERIOD		2
 
 /* AK5394A task definitions. */
 #define configTSK_AK5394A_NAME					((const signed portCHAR *)"AK5394A")
 #define configTSK_AK5394A_STACK_SIZE			256
 #define UAC1_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 2)// Was 1
-#define UAC2_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 3)// Was +1, then +2
+#define UAC2_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 2) // (tskIDLE_PRIORITY + 3)// Was +1, then +2
 #define HPSDR_configTSK_AK5394A_PRIORITY		(tskIDLE_PRIORITY + 2)
 #define UAC1_configTSK_AK5394A_PERIOD			50
 #define UAC2_configTSK_AK5394A_PERIOD			50
