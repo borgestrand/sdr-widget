@@ -77,6 +77,7 @@
 
 // Frequency definitions, move and change to make compatible with USB system!
 #define	FREQ_TIMEOUT		0x00
+#define FREQ_INVALID		1
 #define	FREQ_32				32000
 #define	FREQ_44				44100
 #define	FREQ_48				48000

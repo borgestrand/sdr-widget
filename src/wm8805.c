@@ -519,31 +519,45 @@ void wm8805_mute(void) {
 
 // Un-mute the WM8805
 void wm8805_unmute(void) {
-	U32 wm8805_freq = 0;
+	U32 wm8805_freq = FREQ_44;
+	U32 wm8805_freq_prev = FREQ_INVALID;
 
 	print_dbg_char('A');
 
-	vTaskDelay(500);
+	// Something is very strange around here! Is wm8805_srd() reliable? Does it take away critical
+	// scheduling resources? Should we rather run it more times, but without disabling global interrupt?
+	// Debug with pin toggle and compare to actual LRCK
 
-	wm8805_freq = wm8805_srd();					// Check running sampling frequency
-//	while (wm8805_freq != wm8805_srd()) {
-//		wm8805_freq = wm8805_srd();				// Check running sampling frequency a few times in case of stability issues
-//	}
+	while (wm8805_freq != wm8805_freq_prev) {
+		wm8805_freq = wm8805_srd();
+		vTaskDelay(100);
+		wm8805_freq_prev = wm8805_freq;
+	}
+
+/*
+	do {
+		wm8805_freq = wm8805_srd();
+		vTaskDelay(100); // 100 failed 1000 failed 10000 failed
+//		print_dbg_char('x');
+	} while (wm8805_freq != wm8805_srd());
+*/
 
 	print_dbg_char('B');
 
-
-	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
-
-	print_dbg_char('C');
-
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
 
-	print_dbg_char('D');
+
+//	print_dbg_char('C');
 
 	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
 
-	print_dbg_char('E');
+//	print_dbg_char('D');
+
+	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
+
+
+//	print_dbg_char('E');
+
 
 	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port
 
@@ -551,7 +565,7 @@ void wm8805_unmute(void) {
 		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 	#endif						// FIX: move to uacX_d_a_t.c ?
 
-	print_dbg_char('F');
+//	print_dbg_char('F');
 }
 
 
@@ -738,21 +752,35 @@ uint32_t wm8805_srd(void) {
 	#define FLIM_192_LOW	0x14
 	#define FLIM_192_HIGH	0x15
 
-	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) )
-		return FREQ_32;
-	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) )
-		return FREQ_44;
-	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) )
-		return FREQ_48;
-	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) )
-		return FREQ_88;
-	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) )
-		return FREQ_96;
-	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) )
-		return FREQ_176;
-	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) )
-		return FREQ_192;
 
+	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) ) {
+		print_dbg_char('0');
+		return FREQ_32;
+	}
+	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) ) {
+		print_dbg_char('1');
+		return FREQ_44;
+	}
+	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) ) {
+		print_dbg_char('2');
+		return FREQ_48;
+	}
+	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) ) {
+		print_dbg_char('3');
+		return FREQ_88;
+	}
+	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) ) {
+		print_dbg_char('4');
+		return FREQ_96;
+	}
+	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) ) {
+		print_dbg_char('6');
+		return FREQ_176;
+	}
+	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) ) {
+		print_dbg_char('6');
+		return FREQ_192;
+	}
 	return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
 }
 
