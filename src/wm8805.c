@@ -586,7 +586,7 @@ uint32_t wm8805_srd(void) {
 	print_dbg_char('A');
 
 	i = 0;
-	while (i < 4) {
+	while (i < 14) {
 		wm8805_freq = wm8805_srd_asm();
 		vTaskDelay(100);
 		if (wm8805_freq == wm8805_freq_prev)
