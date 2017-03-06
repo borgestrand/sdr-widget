@@ -589,9 +589,10 @@ uint32_t wm8805_srd(void) {
 
 	i = 0;
 	wm8805_freq_prev = FREQ_INVALID;
-	while ( (i < 5) && (wm8805_freq == FREQ_TIMEOUT) ) {
+	while ( (i < 5) || (wm8805_freq == FREQ_TIMEOUT) ) {
 		wm8805_freq = wm8805_srd_asm();
-		vTaskDelay(10);
+
+//		vTaskDelay(10);
 		if ( (wm8805_freq == wm8805_freq_prev) && (wm8805_freq != FREQ_TIMEOUT) )
 			i++;
 		wm8805_freq_prev = wm8805_freq;
@@ -638,7 +639,6 @@ int foo(void) {
 */
 uint32_t wm8805_srd_asm(void) {
 	int16_t timeout;
-	print_dbg_char('x');
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
 	// see srd_test.c and srd_test.lst
@@ -763,35 +763,35 @@ uint32_t wm8805_srd_asm(void) {
 
 
 	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) ) {
-		print_dbg_char('0');
+//		print_dbg_char('0');
 		return FREQ_32;
 	}
 	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) ) {
-		print_dbg_char('1');
+//		print_dbg_char('1');
 		return FREQ_44;
 	}
 	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) ) {
-		print_dbg_char('2');
+//		print_dbg_char('2');
 		return FREQ_48;
 	}
 	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) ) {
-		print_dbg_char('3');
+//		print_dbg_char('3');
 		return FREQ_88;
 	}
 	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) ) {
-		print_dbg_char('4');
+//		print_dbg_char('4');
 		return FREQ_96;
 	}
 	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) ) {
-		print_dbg_char('6');
+//		print_dbg_char('6');
 		return FREQ_176;
 	}
 	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) ) {
-		print_dbg_char('6');
+//		print_dbg_char('6');
 		return FREQ_192;
 	}
 	else {
-		print_dbg_char('F');
+//		print_dbg_char('F');
 		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
 	}
 }
