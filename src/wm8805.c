@@ -508,6 +508,8 @@ void wm8805_clkdiv(void) {
 // Mute the WM8805 output
 void wm8805_mute(void) {
 	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
+	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
 	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
 		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin
 	#endif
@@ -580,16 +582,17 @@ uint8_t wm8805_read_byte(uint8_t int_adr) {
 // Wrapper test code
 uint32_t wm8805_srd(void) {
 	U32 wm8805_freq = FREQ_44;
-	U32 wm8805_freq_prev = FREQ_INVALID;
+	U32 wm8805_freq_prev;
 	int i;
 
 	print_dbg_char('A');
 
 	i = 0;
-	while (i < 14) {
+	wm8805_freq_prev = FREQ_INVALID;
+	while ( (i < 5) && (wm8805_freq == FREQ_TIMEOUT) ) {
 		wm8805_freq = wm8805_srd_asm();
-		vTaskDelay(100);
-		if (wm8805_freq == wm8805_freq_prev)
+		vTaskDelay(10);
+		if ( (wm8805_freq == wm8805_freq_prev) && (wm8805_freq != FREQ_TIMEOUT) )
 			i++;
 		wm8805_freq_prev = wm8805_freq;
 	}
@@ -759,34 +762,37 @@ uint32_t wm8805_srd_asm(void) {
 
 
 	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) ) {
-//		print_dbg_char('0');
+		print_dbg_char('0');
 		return FREQ_32;
 	}
 	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) ) {
-//		print_dbg_char('1');
+		print_dbg_char('1');
 		return FREQ_44;
 	}
 	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) ) {
-//		print_dbg_char('2');
+		print_dbg_char('2');
 		return FREQ_48;
 	}
 	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) ) {
-//		print_dbg_char('3');
+		print_dbg_char('3');
 		return FREQ_88;
 	}
 	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) ) {
-//		print_dbg_char('4');
+		print_dbg_char('4');
 		return FREQ_96;
 	}
 	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) ) {
-//		print_dbg_char('6');
+		print_dbg_char('6');
 		return FREQ_176;
 	}
 	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) ) {
-//		print_dbg_char('6');
+		print_dbg_char('6');
 		return FREQ_192;
 	}
-	return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
+	else {
+		print_dbg_char('F');
+		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
+	}
 }
 
 
