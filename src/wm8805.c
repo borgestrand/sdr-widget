@@ -519,30 +519,14 @@ void wm8805_mute(void) {
 
 // Un-mute the WM8805
 void wm8805_unmute(void) {
-	U32 wm8805_freq = FREQ_44;
-	U32 wm8805_freq_prev = FREQ_INVALID;
+	U32 wm8805_freq = FREQ_INVALID;
 
-	print_dbg_char('A');
 
 	// Something is very strange around here! Is wm8805_srd() reliable? Does it take away critical
 	// scheduling resources? Should we rather run it more times, but without disabling global interrupt?
 	// Debug with pin toggle and compare to actual LRCK
 
-	while (wm8805_freq != wm8805_freq_prev) {
-		wm8805_freq = wm8805_srd();
-		vTaskDelay(100);
-		wm8805_freq_prev = wm8805_freq;
-	}
-
-/*
-	do {
-		wm8805_freq = wm8805_srd();
-		vTaskDelay(100); // 100 failed 1000 failed 10000 failed
-//		print_dbg_char('x');
-	} while (wm8805_freq != wm8805_srd());
-*/
-
-	print_dbg_char('B');
+	wm8805_freq = wm8805_srd();	// Wrapper
 
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
 
@@ -593,6 +577,23 @@ uint8_t wm8805_read_byte(uint8_t int_adr) {
 }
 
 
+// Wrapper test code
+uint32_t wm8805_srd(void) {
+	U32 wm8805_freq = FREQ_44;
+	U32 wm8805_freq_prev = FREQ_INVALID;
+
+	print_dbg_char('A');
+
+	while (wm8805_freq != wm8805_freq_prev) {
+		wm8805_freq = wm8805_srd_asm();
+		vTaskDelay(100);
+		wm8805_freq_prev = wm8805_freq;
+	}
+
+	print_dbg_char('B');
+	return wm88_freq;
+}
+
 // Sample rate detection test
 // This is MCU assembly code which replaces the non-functional sample rate detector inside the WM8805.
 // It uses the same code for 44.1 and 48, and for 88.2 and 96. 176.4 and 192 are messed up too.
@@ -628,7 +629,7 @@ int foo(void) {
 	return timeout;
 }
 */
-uint32_t wm8805_srd(void) {
+uint32_t wm8805_srd_asm(void) {
 	int16_t timeout;
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
