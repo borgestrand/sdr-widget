@@ -581,17 +581,21 @@ uint8_t wm8805_read_byte(uint8_t int_adr) {
 uint32_t wm8805_srd(void) {
 	U32 wm8805_freq = FREQ_44;
 	U32 wm8805_freq_prev = FREQ_INVALID;
+	int i;
 
 	print_dbg_char('A');
 
-	while (wm8805_freq != wm8805_freq_prev) {
+	i = 0;
+	while (i < 4) {
 		wm8805_freq = wm8805_srd_asm();
 		vTaskDelay(100);
+		if (wm8805_freq == wm8805_freq_prev)
+			i++;
 		wm8805_freq_prev = wm8805_freq;
 	}
 
 	print_dbg_char('B');
-	return wm88_freq;
+	return wm8805_freq;
 }
 
 // Sample rate detection test
@@ -645,7 +649,7 @@ uint32_t wm8805_srd_asm(void) {
 	gpio_enable_gpio_pin(AVR32_PIN_PX09);	// Enable GPIO pin, not special IO (also for input). Needed?
 
 	asm volatile(
-		"ssrf	16				\n\t"	// Disable global interrupt
+//		"ssrf	16				\n\t"	// Disable global interrupt
 		"mov	%0, 	150		\n\t"	// Load timeout
 		"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PX09, recompile C for other IO pin, do once
 
@@ -720,7 +724,7 @@ uint32_t wm8805_srd_asm(void) {
 		"COUNTD:				\n\t"	// Countdown reached, %0 is 0
 
 		"RETURN__:				\n\t"
-		"csrf	16				\n\t"	// Enable global interrupt
+//		"csrf	16				\n\t"	// Enable global interrupt
 		:	"=r" (timeout)				// One output register
 		:								// No input registers
 		:	"r8", "r9"					// Clobber registers, pushed/popped unless assigned by GCC as temps
@@ -755,31 +759,31 @@ uint32_t wm8805_srd_asm(void) {
 
 
 	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) ) {
-		print_dbg_char('0');
+//		print_dbg_char('0');
 		return FREQ_32;
 	}
 	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) ) {
-		print_dbg_char('1');
+//		print_dbg_char('1');
 		return FREQ_44;
 	}
 	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) ) {
-		print_dbg_char('2');
+//		print_dbg_char('2');
 		return FREQ_48;
 	}
 	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) ) {
-		print_dbg_char('3');
+//		print_dbg_char('3');
 		return FREQ_88;
 	}
 	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) ) {
-		print_dbg_char('4');
+//		print_dbg_char('4');
 		return FREQ_96;
 	}
 	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) ) {
-		print_dbg_char('6');
+//		print_dbg_char('6');
 		return FREQ_176;
 	}
 	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) ) {
-		print_dbg_char('6');
+//		print_dbg_char('6');
 		return FREQ_192;
 	}
 	return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
