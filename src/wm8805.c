@@ -638,6 +638,7 @@ int foo(void) {
 */
 uint32_t wm8805_srd_asm(void) {
 	int16_t timeout;
+	print_dbg_char('x');
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
 	// see srd_test.c and srd_test.lst

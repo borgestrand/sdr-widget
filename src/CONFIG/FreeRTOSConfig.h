@@ -147,7 +147,7 @@ to exclude the API function. */
 #define configTSK_USB_DEV_STACK_SIZE          256
 #define configTSK_USB_DEV_PRIORITY            (tskIDLE_PRIORITY + 3)
 #define UAC1_configTSK_USB_DEV_PERIOD              10
-#define UAC2_configTSK_USB_DEV_PERIOD              2
+#define UAC2_configTSK_USB_DEV_PERIOD              6 // 2 Original 2 has missing debug events
 #define HPSDR_configTSK_USB_DEV_PERIOD              2
 
 /* USB host task definitions. */
@@ -161,7 +161,7 @@ to exclude the API function. */
 #define configTSK_USB_DCDC_STACK_SIZE         256
 #define configTSK_USB_DCDC_PRIORITY           (tskIDLE_PRIORITY + 1)
 #define UAC1_configTSK_USB_DCDC_PERIOD             200
-#define UAC2_configTSK_USB_DCDC_PERIOD             80
+#define UAC2_configTSK_USB_DCDC_PERIOD             140 // Original 80 has missing debug events
 #define HPSDR_configTSK_USB_DCDC_PERIOD             80
 
 /* USB device HID task definitions. */
