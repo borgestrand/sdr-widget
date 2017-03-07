@@ -148,10 +148,10 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "features.h"
 #include "device_audio_task.h"
 #include "usb_specific_request.h"
-#include "taskAK5394A.h"
 #include "Mobo_config.h"
 #include "I2C.h"
-#include "pdca.h"
+#include "pdca.h" // To disable DMA at sleep
+#include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 //!
 //! @brief Polling routine for WM8805 hardware
@@ -188,7 +188,7 @@ void wm8805_poll(void) {
 	 * + Get hardware capable of generating all SPDIF sample rates
 	 * + Make state machine for WM8805 sample rate detection
 	 * - Make state machine for source selection
-	 * - Figure out ADC interface
+	 * + Figure out ADC interface
 	 * + Make silence detector (use 1024 silent block detector in WM?)
 	 */
 
@@ -251,13 +251,22 @@ void wm8805_poll(void) {
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
+
+// moved to wm8805_mute()				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+//				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
 				print_dbg_char(60); // '<'
 			}
 			else
 				print_dbg_char(62); // '>'
 #else
-			if (xSemaphoreGive(input_select_semphr) == pdTRUE)
+			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+
+// moved to wm8805_mute()				pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+//				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
+			}
 #endif
 		}
 
@@ -311,8 +320,9 @@ void wm8805_poll(void) {
 				else
 					print_dbg_char(']');
 #else // not debug
-				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) // Re-take of taken semaphore returns false
+				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) { // Re-take of taken semaphore returns false
 					input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
+				}
 #endif
 			}
 
@@ -342,6 +352,7 @@ void wm8805_poll(void) {
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
 			vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+			// Where is the corresponding wm8805_unmute() ?
 		}
 	}	// Done handling interrupt
 
@@ -415,13 +426,20 @@ void wm8805_init(void) {
 
 	wm8805_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL,
 
-	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port
+/*
+// Moved to the code wich sets input_select
+	ADC_buf_USB_IN = -1;			// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX)
+									// Fix: only do that once we figure out the sample rate?
+
+	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port FIX: fill buffers with zeros before starting up
+*/
 }
 
 // Turn off wm8805, why can't we just run init again?
 void wm8805_sleep(void) {
 	wm8805_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL,
-	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
+
+//	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
 }
 
 // Select input channel of the WM8805
@@ -489,41 +507,36 @@ void wm8805_clkdiv(void) {
 
 // Mute the WM8805 output
 void wm8805_mute(void) {
-	#ifdef HW_GEN_DIN20					// Dedicated mute pin, leaves clocks etc intact
-		mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
-	#else								// No hard-mute, use USB subsystem
-		int i;
+	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
+	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
-		for (i = 0; i < DAC_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-			spk_buffer_0[i] = 0;					// Needed in GEN_DIN20?
-			spk_buffer_1[i] = 0;
-		}
-
-	/*
-		if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-		else
-			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Mute WM8805 by relying on USB subsystem's presumably muted output
-	*/
+	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
+		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin
 	#endif
+	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear ouggoing DAC data
 
 	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
+
+	print_dbg_char('m');
 }
 
 
 // Un-mute the WM8805
 void wm8805_unmute(void) {
-	U32 wm8805_freq;
-	wm8805_freq = wm8805_srd();
+	U32 wm8805_freq = FREQ_INVALID;
+
+	wm8805_freq = wm8805_srd();	// Wrapper
+	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
+	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 
-	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
-
-	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
+	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port
 
 	#ifdef HW_GEN_DIN20
-		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
-	#endif
+		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
+	#endif						// FIX: move to uacX_d_a_t.c ?
+
+	print_dbg_char('u');
 }
 
 
@@ -550,6 +563,53 @@ uint8_t wm8805_read_byte(uint8_t int_adr) {
 	return dev_data[0];
 }
 
+
+// Wrapper test code
+uint32_t wm8805_srd(void) {
+	U32 wm8805_freq = FREQ_44;
+	U32 wm8805_freq_prev;
+	int i;
+
+	i = 0;
+	wm8805_freq_prev = FREQ_INVALID;
+	// 5 can fail
+	// 10 seems solid but hard to say with only Juli@ as source 1 failure in N...
+	// 14 1/20 failed to detect 96
+	// 20 1/35 failed to detect 176.4
+	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
+	//
+
+	while ( (i < 30) || (wm8805_freq == FREQ_TIMEOUT) ) {
+		wm8805_freq = wm8805_srd_asm();
+//		vTaskDelay(10);
+		if ( (wm8805_freq == wm8805_freq_prev) && (wm8805_freq != FREQ_TIMEOUT) )
+			i++;
+		wm8805_freq_prev = wm8805_freq;
+	}
+
+	switch (wm8805_freq) {
+		case FREQ_44 :
+			print_dbg_char('1');
+		break;
+		case FREQ_48 :
+			print_dbg_char('2');
+		break;
+		case FREQ_88 :
+			print_dbg_char('3');
+		break;
+		case FREQ_96 :
+			print_dbg_char('4');
+		break;
+		case FREQ_176 :
+			print_dbg_char('5');
+		break;
+		case FREQ_192 :
+			print_dbg_char('6');
+		break;
+	}
+
+	return wm8805_freq;
+}
 
 // Sample rate detection test
 // This is MCU assembly code which replaces the non-functional sample rate detector inside the WM8805.
@@ -586,8 +646,10 @@ int foo(void) {
 	return timeout;
 }
 */
-uint32_t wm8805_srd(void) {
+uint32_t wm8805_srd_asm(void) {
 	int16_t timeout;
+
+	gpio_set_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
 	// see srd_test.c and srd_test.lst
@@ -602,7 +664,7 @@ uint32_t wm8805_srd(void) {
 	gpio_enable_gpio_pin(AVR32_PIN_PX09);	// Enable GPIO pin, not special IO (also for input). Needed?
 
 	asm volatile(
-		"ssrf	16				\n\t"	// Disable global interrupt
+//		"ssrf	16				\n\t"	// Disable global interrupt
 		"mov	%0, 	150		\n\t"	// Load timeout
 		"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PX09, recompile C for other IO pin, do once
 
@@ -677,7 +739,7 @@ uint32_t wm8805_srd(void) {
 		"COUNTD:				\n\t"	// Countdown reached, %0 is 0
 
 		"RETURN__:				\n\t"
-		"csrf	16				\n\t"	// Enable global interrupt
+//		"csrf	16				\n\t"	// Enable global interrupt
 		:	"=r" (timeout)				// One output register
 		:								// No input registers
 		:	"r8", "r9"					// Clobber registers, pushed/popped unless assigned by GCC as temps
@@ -710,22 +772,41 @@ uint32_t wm8805_srd(void) {
 	#define FLIM_192_LOW	0x14
 	#define FLIM_192_HIGH	0x15
 
-	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) )
-		return FREQ_32;
-	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) )
-		return FREQ_44;
-	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) )
-		return FREQ_48;
-	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) )
-		return FREQ_88;
-	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) )
-		return FREQ_96;
-	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) )
-		return FREQ_176;
-	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) )
-		return FREQ_192;
+	gpio_clr_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
 
-	return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
+
+	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) ) {
+//		print_dbg_char('0');
+		return FREQ_32;
+	}
+	if ( (timeout >= FLIM_44_LOW) && (timeout <= FLIM_44_HIGH) ) {
+//		print_dbg_char('1');
+		return FREQ_44;
+	}
+	if ( (timeout >= FLIM_48_LOW) && (timeout <= FLIM_48_HIGH) ) {
+//		print_dbg_char('2');
+		return FREQ_48;
+	}
+	if ( (timeout >= FLIM_88_LOW) && (timeout <= FLIM_88_HIGH) ) {
+//		print_dbg_char('3');
+		return FREQ_88;
+	}
+	if ( (timeout >= FLIM_96_LOW) && (timeout <= FLIM_96_HIGH) ) {
+//		print_dbg_char('4');
+		return FREQ_96;
+	}
+	if ( (timeout >= FLIM_176_LOW) && (timeout <= FLIM_176_HIGH) ) {
+//		print_dbg_char('6');
+		return FREQ_176;
+	}
+	if ( (timeout >= FLIM_192_LOW) && (timeout <= FLIM_192_HIGH) ) {
+//		print_dbg_char('6');
+		return FREQ_192;
+	}
+	else {
+//		print_dbg_char('F');
+		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
+	}
 }
 
 

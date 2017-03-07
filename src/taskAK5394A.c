@@ -96,7 +96,14 @@ volatile U32 spk_buffer_1[DAC_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
-volatile int ADC_buf_DMA_write, DAC_buf_DMA_read;
+volatile int ADC_buf_DMA_write = 0; // Written by interrupt handler, initiated by sequential code
+volatile int DAC_buf_DMA_read = 0; // Written by interrupt handler, initiated by sequential code
+volatile int ADC_buf_USB_IN; 	// Written by sequential code
+volatile int DAC_buf_USB_OUT; 	// Written by sequential code
+volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
+volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
+volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
+
 
 // BSB 20131201 attempting improved playerstarted detection
 volatile S32 usb_buffer_toggle;
@@ -106,7 +113,7 @@ volatile U8 audio_OUT_alive;
 volatile U8 audio_OUT_must_sync;
 
 
-/*! \brief The PDCA interrupt handler.
+/*! \brief The PDCA interrupt handler for the ADC interface.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
  * The interrupt will happen when the reload counter reaches 0
@@ -114,12 +121,16 @@ volatile U8 audio_OUT_must_sync;
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 	if (ADC_buf_DMA_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
+		// Register names are different from those used in AVR32108. BUT: it seems pdca_reload_channel() sets the
+		// -next- pointer, the one to be selected automatically after the current one is done. That may be why
+		// we choose the same buffer number here as in the seq. code
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_DEBUG
     	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
-	} else {
+	}
+	else if (ADC_buf_DMA_write == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -129,7 +140,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 
 }
 
-/*! \brief The PDCA interrupt handler.
+/*! \brief The PDCA interrupt handler for the DAC interface.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
  * The interrupt will happen when the reload counter reaches 0
@@ -139,6 +150,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 1;
+
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
@@ -147,9 +159,10 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 #endif
 	}
-	else {
+	else if (DAC_buf_DMA_read == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
+
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
@@ -158,8 +171,6 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 #endif
 	}
-
-//	balle = PDCA_CHANNEL_SSC_RX->tcr;
 
 	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
@@ -183,8 +194,8 @@ static void pdca_set_irq(void) {
 	// AVR32_PDCA_IRQ_0 The interrupt line to register to.
 	// AVR32_INTC_INT2  The priority level to set for this interrupt line.  INT0 is lowest.
 	// INTC_register_interrupt(__int_handler handler, int line, int priority);
-	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT2);
-	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT1);
+	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT0); //2
+	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT0); //1
 	// Enable all interrupt/exception.
 	Enable_global_interrupt();
 }
@@ -205,6 +216,10 @@ void AK5394A_task_init(const Bool uac1) {
 	// so SCLK of 6.144Mhz ===> 96khz
 
 	mutexSpkUSB = xSemaphoreCreateMutex();
+
+	pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
+	spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
+
 
 	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
 	if (uac1)
@@ -244,7 +259,7 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_enable_pin_glitch_filter(SSC_TX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 
-	// set up SSC, it looks like frequency parameter is NOT in use
+	// set up SSC, it looks like frequency parameter (FPBA_HZ) is NOT in use
 	if (uac1) {
 		ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 	} else {
@@ -263,8 +278,8 @@ void AK5394A_task_init(const Bool uac1) {
 	// HSB Bus matrix register MCFG1 is associated with the CPU instruction master interface.
 	AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_CPU_INSN] = 0x1;
 
-	ADC_buf_DMA_write = 0;
-	DAC_buf_DMA_read = 0;
+// 	ADC_buf_DMA_write = 0; Now done in (global) variable declaration
+//	DAC_buf_DMA_read = 0; Now done in (global) variable declaration
 	// Register PDCA IRQ interruptS. // Plural those are!
 	pdca_set_irq();
 

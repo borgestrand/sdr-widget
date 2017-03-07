@@ -33,9 +33,11 @@
 
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
+// Keep buffer sizes belov 2^14
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // Use same buffer size in and out of SPDIF interface
-	#define ADC_BUFFER_SIZE	(32*2*16) // Use 2^n style number, now: 512 stereo samples!
-	#define DAC_BUFFER_SIZE (32*2*16) // Both: one half-buffer holds = ideal latency 11.6/10.67/5.8/5.33/2.9/2.67ms
+	#define ADC_BUFFER_SIZE	(8*2*24) // Hand tweaked figures for 192 stability, skip/insert etc. etc....
+	#define DAC_BUFFER_SIZE (32*2*24)
+
 #else
 	#define ADC_BUFFER_SIZE	48*2*8 // 48 khz, stereo, 8 ms worth
 	#define DAC_BUFFER_SIZE 48*2*16
@@ -75,6 +77,7 @@
 
 // Frequency definitions, move and change to make compatible with USB system!
 #define	FREQ_TIMEOUT		0x00
+#define FREQ_INVALID		1
 #define	FREQ_32				32000
 #define	FREQ_44				44100
 #define	FREQ_48				48000
@@ -82,6 +85,11 @@
 #define	FREQ_96				96000
 #define	FREQ_176			176400
 #define	FREQ_192			192000
+#define BUF_IS_ONE			0x8000	// Encode DAC_buf_DMA_read (or any other buffer) in U16 variable above bits used to count up to 2xDAC_BUFFER_SIZE
+#define NOT_BUF_IS_ONE		0x7FFF
+#define DAC_MUST_CLEAR		1		// Immediately clear the content of outgoing DAC buffers
+#define DAC_CLEARED			2		// Outgoing DAC buffers are cleared, don't write to DAC buffers
+#define DAC_READY			3		// Outgoing DAC buffers are ready to be written to
 
 // Values for silence (32-bit)
 #define SILENCE_USB_LIMIT	12000 				// We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
@@ -93,13 +101,21 @@
 //extern const pdca_channel_options_t PDCA_OPTIONS;
 //extern const pdca_channel_options_t SPK_PDCA_OPTIONS;
 
+// Global buffer variables
 extern volatile U32 audio_buffer_0[ADC_BUFFER_SIZE];
 extern volatile U32 audio_buffer_1[ADC_BUFFER_SIZE];
 extern volatile U32 spk_buffer_0[DAC_BUFFER_SIZE];
 extern volatile U32 spk_buffer_1[DAC_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
-extern volatile int ADC_buf_DMA_write;
-extern volatile int DAC_buf_DMA_read;
+extern volatile int ADC_buf_DMA_write; // Written by interrupt handler, initiated by sequential code
+extern volatile int DAC_buf_DMA_read; // Written by interrupt handler, initiated by sequential code
+extern volatile int ADC_buf_USB_IN; // Written by sequential code
+extern volatile int DAC_buf_USB_OUT; // Written by sequential code
+extern volatile avr32_pdca_channel_t *pdca_channel;
+extern volatile avr32_pdca_channel_t *spk_pdca_channel;
+extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
+
+
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;
 extern xSemaphoreHandle mutexSpkUSB;

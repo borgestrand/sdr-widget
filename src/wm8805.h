@@ -36,7 +36,6 @@
 #define WM8805_CSB_PIN		AVR32_PIN_PX37		// Only applies in HW_GEN_DIN20. FIX: Rather use ext. pull-down for pin 9?
 #define WM8805_INT_N_PIN	AVR32_PIN_PX54
 #define WM8805_ZERO_PIN		AVR32_PIN_PX15
-#define WM8805_ZEROFLAG_PIN	AVR32_PIN_PX15
 #define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k 00111010
 #define WM8805_PLL_NORMAL	0					// PLL mode is normal 32-96 and 176.4ksps
 #define WM8805_PLL_192		1					// PLL mode is for 192ksps
@@ -80,6 +79,7 @@ uint8_t wm8805_read_byte(uint8_t int_adr);
 
 // Sample rate detection test
 uint32_t wm8805_srd(void);
+uint32_t wm8805_srd_asm(void);
 
 
 #endif /* WM8805_H_ */
