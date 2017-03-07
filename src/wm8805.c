@@ -516,6 +516,8 @@ void wm8805_mute(void) {
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear ouggoing DAC data
 
 	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
+
+	print_dbg_char('m');
 }
 
 
@@ -523,27 +525,10 @@ void wm8805_mute(void) {
 void wm8805_unmute(void) {
 	U32 wm8805_freq = FREQ_INVALID;
 
-
-	// Something is very strange around here! Is wm8805_srd() reliable? Does it take away critical
-	// scheduling resources? Should we rather run it more times, but without disabling global interrupt?
-	// Debug with pin toggle and compare to actual LRCK
-
 	wm8805_freq = wm8805_srd();	// Wrapper
-
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
-
-
-//	print_dbg_char('C');
-
 	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
-
-//	print_dbg_char('D');
-
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
-
-
-//	print_dbg_char('E');
-
 
 	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port
 
@@ -551,7 +536,7 @@ void wm8805_unmute(void) {
 		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 	#endif						// FIX: move to uacX_d_a_t.c ?
 
-//	print_dbg_char('F');
+	print_dbg_char('u');
 }
 
 
@@ -585,20 +570,44 @@ uint32_t wm8805_srd(void) {
 	U32 wm8805_freq_prev;
 	int i;
 
-	print_dbg_char('A');
-
 	i = 0;
 	wm8805_freq_prev = FREQ_INVALID;
-	while ( (i < 5) || (wm8805_freq == FREQ_TIMEOUT) ) {
-		wm8805_freq = wm8805_srd_asm();
+	// 5 can fail
+	// 10 seems solid but hard to say with only Juli@ as source 1 failure in N...
+	// 14 1/20 failed to detect 96
+	// 20 1/35 failed to detect 176.4
+	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
+	//
 
+	while ( (i < 30) || (wm8805_freq == FREQ_TIMEOUT) ) {
+		wm8805_freq = wm8805_srd_asm();
 //		vTaskDelay(10);
 		if ( (wm8805_freq == wm8805_freq_prev) && (wm8805_freq != FREQ_TIMEOUT) )
 			i++;
 		wm8805_freq_prev = wm8805_freq;
 	}
 
-	print_dbg_char('B');
+	switch (wm8805_freq) {
+		case FREQ_44 :
+			print_dbg_char('1');
+		break;
+		case FREQ_48 :
+			print_dbg_char('2');
+		break;
+		case FREQ_88 :
+			print_dbg_char('3');
+		break;
+		case FREQ_96 :
+			print_dbg_char('4');
+		break;
+		case FREQ_176 :
+			print_dbg_char('5');
+		break;
+		case FREQ_192 :
+			print_dbg_char('6');
+		break;
+	}
+
 	return wm8805_freq;
 }
 
@@ -639,6 +648,8 @@ int foo(void) {
 */
 uint32_t wm8805_srd_asm(void) {
 	int16_t timeout;
+
+	gpio_set_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
 	// see srd_test.c and srd_test.lst
@@ -760,6 +771,8 @@ uint32_t wm8805_srd_asm(void) {
 	#define FLIM_176_HIGH	0x17
 	#define FLIM_192_LOW	0x14
 	#define FLIM_192_HIGH	0x15
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
 
 
 	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) ) {

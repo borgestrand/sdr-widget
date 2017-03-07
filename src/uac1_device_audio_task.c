@@ -348,6 +348,8 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 
 				pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
+				pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
 				ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 				ADC_buf_USB_IN = -2;
 			}
