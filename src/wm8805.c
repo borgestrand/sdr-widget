@@ -525,7 +525,10 @@ void wm8805_mute(void) {
 void wm8805_unmute(void) {
 	U32 wm8805_freq = FREQ_INVALID;
 
+	gpio_set_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
 	wm8805_freq = wm8805_srd();	// Wrapper
+	gpio_clr_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
+
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
 	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
