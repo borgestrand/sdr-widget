@@ -167,6 +167,8 @@ void wm8805_poll(void) {
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
 
+	int16_t pausecounter_temp = 0;
+
 
 	/* NEXT:
 	 * + Decide on which interrupts to enable
@@ -228,9 +230,19 @@ void wm8805_poll(void) {
 
 	// Current WM8805 input is silent or unavailable. When WM is selected, wait for a long time (paused).
 	// When WM is not selected, scan WM inputs for a short time (unlinked)
-//	if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
+	//	if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
+	// 	if ( (wm8805_power == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= WM8805_PAUSE_LIM) ) ) {
 
-	if ( (wm8805_power == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= WM8805_PAUSE_LIM) ) ) {
+
+	// Playing input: Tolerate WM8805_PAUSE_LIM of silence before searching for other input. Scanning inputs: Tolerate WM8805_SILENCE_LIM before searching on
+	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) )
+		pausecounter_temp = WM8805_PAUSE_LIM;
+	else
+		pausecounter_temp = WM8805_SILENCE_LIM;
+
+	if ( (wm8805_power == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
+
+
 		// With this task's input_select values, assume semaphore is owned
 
 /*		//	What caused the trigger?
@@ -371,7 +383,7 @@ void wm8805_poll(void) {
 		}
 
 		if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
-			if (pausecounter < WM8805_PAUSE_LIM)
+			if (pausecounter < max(WM8805_PAUSE_LIM, WM8805_SILENCE_LIM))
 				pausecounter++;
 		}
 		else {
@@ -582,7 +594,7 @@ uint32_t wm8805_srd(void) {
 	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
 	//
 
-	while ( (i < 30) || (wm8805_freq == FREQ_TIMEOUT) ) {
+	while ( (i < 4) || (wm8805_freq == FREQ_TIMEOUT) ) {
 		wm8805_freq = wm8805_srd_asm();
 //		vTaskDelay(10);
 		if ( (wm8805_freq == wm8805_freq_prev) && (wm8805_freq != FREQ_TIMEOUT) )
