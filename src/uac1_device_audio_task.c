@@ -210,14 +210,10 @@ void uac1_device_audio_task(void *pvParameters)
 //	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 //	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
-	uint32_t silence_det = 0;
+	uint32_t silence_det_L = 0;
+	uint32_t silence_det_R = 0;
+	uint8_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
-
-	// Debugging "silence" from various sources
-	S32 min_L = 0x7FFFFFFF;
-	S32 max_L = 0x80000000;
-	S32 min_R = 0x7FFFFFFF;
-	S32 max_R = 0x80000000;
 
 
 	// BSB 20130602: code section moved to uac1_usb_specific_request.c
@@ -338,7 +334,8 @@ void uac1_device_audio_task(void *pvParameters)
 		static S16 s_gap = DAC_BUFFER_SIZE;
 		static S16 s_old_gap = DAC_BUFFER_SIZE;
 		static S16 s_megaskip = 0;
-		S32 s_zero_detect = 0;
+		U32 s_silence_det_L = 0;
+		U32 s_silence_det_R = 0;
 		U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
 
 
@@ -442,22 +439,40 @@ void uac1_device_audio_task(void *pvParameters)
 				else if (ADC_buf_DMA_write_temp == 0)
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
-				// Detect a zero package from the ADC, and thus the option of skipping/inserting big
-				s_zero_detect = 0;
-				for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
-					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
-						s_zero_detect |= audio_buffer_0[i+IN_LEFT];
-						s_zero_detect |= audio_buffer_0[i+IN_RIGHT];
-					}
-					else if (ADC_buf_DMA_write_temp == 1) {
-						s_zero_detect |= audio_buffer_1[i+IN_LEFT];
-						s_zero_detect |= audio_buffer_1[i+IN_RIGHT];
-					}
-					if (s_zero_detect != 0)					// End at zero detection
-						i = ADC_BUFFER_SIZE;
+				// Detect DC (including zero) package from the ADC, and thus the option of skipping/inserting big
+				if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+					s_silence_det_L = audio_buffer_0[IN_LEFT];
+					s_silence_det_R = audio_buffer_0[IN_RIGHT];
+				}
+				else if (ADC_buf_DMA_write_temp == 1) {
+					s_silence_det_L = audio_buffer_1[IN_LEFT];
+					s_silence_det_R = audio_buffer_1[IN_RIGHT];
 				}
 
-				if (s_zero_detect == 0) {
+				for( i=1 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
+					if (ADC_buf_DMA_write_temp == 0) {		// End as soon as a difference is spotted
+						if (s_silence_det_L != audio_buffer_0[i+IN_LEFT])
+							i = ADC_BUFFER_SIZE + 10;
+						else if (s_silence_det_R != audio_buffer_0[i+IN_RIGHT])
+							i = ADC_BUFFER_SIZE + 10;
+					}
+					else if (ADC_buf_DMA_write_temp == 1) {
+						if (s_silence_det_L != audio_buffer_1[i+IN_LEFT])
+							i = ADC_BUFFER_SIZE + 10;
+						else if (s_silence_det_R != audio_buffer_1[i+IN_RIGHT])
+							i = ADC_BUFFER_SIZE + 10;
+					}
+				}
+
+				if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
+					dig_in_silence = 0;
+				}
+				else {														// Silence was detected, update flag to SPDIF RX code
+					dig_in_silence = 1;
+					print_dbg_char('L');
+				}
+
+				if (dig_in_silence == 1) {									// Silence was detected
 					if (s_gap < (SPK1_GAP_L3 + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
 						s_megaskip = (SPK1_GAP_U3 - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
 //						print_dbg_char('Z');
@@ -520,16 +535,6 @@ void uac1_device_audio_task(void *pvParameters)
 							sample_R = audio_buffer_1[i+IN_RIGHT];
 						}
 
-						// Debugging "silence"
-						if (sample_L < min_L)
-							min_L = sample_L;
-						if (sample_L > max_L)
-							max_L = sample_L;
-						if (sample_R < min_L)
-							min_R = sample_L;
-						if (sample_R > max_R)
-							max_R = sample_R;
-
 
 // Super-rough skip/insert
 						while (s_samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
@@ -554,27 +559,6 @@ void uac1_device_audio_task(void *pvParameters)
 									gpio_set_gpio_pin(AVR32_PIN_PX30);
 								else
 									gpio_clr_gpio_pin(AVR32_PIN_PX30);
-#ifdef USB_STATE_MACHINE_DEBUG
-							if (DAC_buf_USB_OUT == 1)
-								gpio_set_gpio_pin(AVR32_PIN_PX30);
-							else
-								gpio_clr_gpio_pin(AVR32_PIN_PX30);
-
-							// Debugging "silence"
-							print_dbg_hex(min_L);
-							print_dbg_char(' ');
-							print_dbg_hex(max_L);
-							print_dbg_char(' ');
-							print_dbg_hex(min_R);
-							print_dbg_char(' ');
-							print_dbg_hex(max_R);
-							print_dbg_char('\n');
-
-							min_L = 0x7FFFFFFF;
-							max_L = 0x80000000;
-							min_R = 0x7FFFFFFF;
-							max_R = 0x80000000;
-#endif
 #endif
 							}
 						}
@@ -860,54 +844,28 @@ void uac1_device_audio_task(void *pvParameters)
 					// ON this particular AB-1.2, the Left channel is more accurate at this particular measurement. We'll wait with further
 					// calibration. FB_rate_initial is verified. Value of 1<<16 = 21mV
 
-					silence_det = 0;						// We're looking for non-zero audio data..
+					silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
+					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
 					for (i = 0; i < num_samples; i++) {
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-						silence_det |= sample_L;
+						silence_det_L |= sample_L;
 
-						// Debugging "silence"
-						if (sample_L < min_L)
-							min_L = sample_L;
-						if (sample_L > max_L)
-							max_L = sample_L;
-
-
-#ifdef FEATURE_VOLUME_CTRL
-						if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-							// 24-bit data words. First shift up to 32 bit. Do math and shift down
-							sample_L <<= 8;
-							sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
-							sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-							sample_L >>= 8;
-						}
-#endif
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-						silence_det |= sample_R;
+						silence_det_R |= sample_R;
 
-						// Debugging "silence"
-						if (sample_R < min_L)
-							min_R = sample_L;
-						if (sample_R > max_R)
-							max_R = sample_R;
-
-#ifdef FEATURE_VOLUME_CTRL
-						if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-							// 24-bit data words. First shift up to 32 bit. Do math and shift down
-							sample_R <<= 8;
-							sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
-							sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-							sample_R >>= 8;
-						}
-#endif
+						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
+							silence_det = 1;
+						else
+							silence_det = 0;
 
 						// New site for setting playerStarted and aligning buffers
-						if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
+						if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
 							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem, handle semaphore
 								#ifdef USB_STATE_MACHINE_DEBUG
 									print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
@@ -985,6 +943,24 @@ void uac1_device_audio_task(void *pvParameters)
 //							sample_R = 0;
 //						}
 
+#ifdef FEATURE_VOLUME_CTRL
+						if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+							// 24-bit data words. First shift up to 32 bit. Do math and shift down
+							sample_L <<= 8;
+							sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+							sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+							sample_L >>= 8;
+						}
+
+						if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+							// 24-bit data words. First shift up to 32 bit. Do math and shift down
+							sample_R <<= 8;
+							sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+							sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+							sample_R >>= 8;
+						}
+#endif
+
 						// Only write to spk_buffer_? when allowed
 						if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) {
 							while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
@@ -1009,21 +985,6 @@ void uac1_device_audio_task(void *pvParameters)
 										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 									else
 										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-
-									// Debugging "silence"
-									print_dbg_hex(min_L);
-									print_dbg_char(' ');
-									print_dbg_hex(max_L);
-									print_dbg_char(' ');
-									print_dbg_hex(min_R);
-									print_dbg_char(' ');
-									print_dbg_hex(max_R);
-									print_dbg_char('\n');
-
-									min_L = 0x7FFFFFFF;
-									max_L = 0x80000000;
-									min_R = 0x7FFFFFFF;
-									max_R = 0x80000000;
 #endif
 
 									// BSB 20131201 attempting improved playerstarted detection
@@ -1035,7 +996,7 @@ void uac1_device_audio_task(void *pvParameters)
 					} // end for num_samples
 
 					// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
-					if (silence_det == 0) {
+					if (silence_det == 1) {
 						if (!USB_IS_SILENT())
 							silence_USB += 4;
 					}

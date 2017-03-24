@@ -112,6 +112,10 @@ volatile S32 usb_buffer_toggle;
 volatile U8 audio_OUT_alive;
 volatile U8 audio_OUT_must_sync;
 
+// BSB 20170324 SPDIF buffer processor detects silence
+volatile U8 dig_in_silence;
+
+
 
 /*! \brief The PDCA interrupt handler for the ADC interface.
  *

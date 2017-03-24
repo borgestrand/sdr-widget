@@ -201,7 +201,9 @@ void uac2_device_audio_task(void *pvParameters)
 //	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 //	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
-	uint32_t silence_det = 0;
+	uint32_t silence_det_L = 0;
+	uint32_t silence_det_R = 0;
+	uint8_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	portTickType xLastWakeTime;
@@ -863,41 +865,30 @@ void uac2_device_audio_task(void *pvParameters)
 
 				} // end if skip_enable
 
-				silence_det = 0;						// We're looking for non-zero audio data..
+				silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
+				silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
 				for (i = 0; i < num_samples; i++) {
 					sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
-					silence_det |= sample_L;
-
-#ifdef FEATURE_VOLUME_CTRL
-					if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-						// 32-bit data words volume control
-						sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
-						// rand8() too expensive at 192ksps
-						// sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-					}
-#endif
+					silence_det_L |= sample_L;
 
 					sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8) + sample_HSB;
-					silence_det |= sample_R;
+					silence_det_R |= sample_R;
 
-#ifdef FEATURE_VOLUME_CTRL
-					if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-						// 32-bit data words volume control
-						sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
-						// rand8() too expensive at 192ksps
-						// sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-					}
-#endif
+					if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
+						silence_det = 1;
+					else
+						silence_det = 0;
+
 					// New site for setting playerStarted and aligning buffers
-					if ( (silence_det != 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
+					if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
@@ -970,6 +961,21 @@ void uac2_device_audio_task(void *pvParameters)
 //							sample_L = 0;
 //							sample_R = 0;
 //						}
+#ifdef FEATURE_VOLUME_CTRL
+					if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+						// 32-bit data words volume control
+						sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+						// rand8() too expensive at 192ksps
+						// sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+					}
+
+					if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+						// 32-bit data words volume control
+						sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+						// rand8() too expensive at 192ksps
+						// sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+					}
+#endif
 
 					// Only write to spk_buffer_? when allowed
 					if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
@@ -1006,7 +1012,7 @@ void uac2_device_audio_task(void *pvParameters)
 				} // end for num_samples
 
 				// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
-				if (silence_det == 0) {
+				if (silence_det == 1) {
 					if (!USB_IS_SILENT())
 						silence_USB ++;
 				}

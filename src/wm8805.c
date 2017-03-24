@@ -382,7 +382,7 @@ void wm8805_poll(void) {
 				lockcounter++;
 		}
 
-		if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
+		if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (dig_in_silence == 1) ) {
 			if (pausecounter < max(WM8805_PAUSE_LIM, WM8805_SILENCE_LIM))
 				pausecounter++;
 		}
@@ -538,14 +538,15 @@ void wm8805_unmute(void) {
 	U32 wm8805_freq = FREQ_INVALID;
 
 	gpio_set_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
-	wm8805_freq = wm8805_srd();	// Wrapper
+	wm8805_freq = wm8805_srd();
 	gpio_clr_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
 
 	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
 	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
 	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
 
-	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port
+	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
+												// FIX: send wm8805_freq to consumer side for monitoring against sample rate changes.
 
 	#ifdef HW_GEN_DIN20
 		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!

@@ -127,6 +127,9 @@ extern volatile S32 usb_buffer_toggle;
 extern volatile U8 audio_OUT_alive;
 extern volatile U8 audio_OUT_must_sync;
 
+// BSB 20170324 SPDIF buffer processor detects silence
+extern volatile U8 dig_in_silence;
+
 void AK5394A_pdca_disable(void);
 void AK5394A_pdca_enable(void);
 void AK5394A_task_init(Bool uac2);
