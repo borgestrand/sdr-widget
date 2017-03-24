@@ -213,6 +213,13 @@ void uac1_device_audio_task(void *pvParameters)
 	uint32_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
+	// Debugging "silence" from various sources
+	S32 min_L = 0x7FFFFFFF;
+	S32 max_L = 0x80000000;
+	S32 min_R = 0x7FFFFFFF;
+	S32 max_R = 0x80000000;
+
+
 	// BSB 20130602: code section moved to uac1_usb_specific_request.c
 	// if (current_freq.frequency == FREQ_48) FB_rate = 48 << 14;
 	// else FB_rate = (44 << 14) + (1 << 14)/10;
@@ -324,6 +331,7 @@ void uac1_device_audio_task(void *pvParameters)
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		static int ADC_buf_DMA_write_prev = -1;
 		int ADC_buf_DMA_write_temp = 0;
+
 
 		// Some private variables
 		static U32 s_spk_index = 0;
@@ -493,13 +501,6 @@ void uac1_device_audio_task(void *pvParameters)
 						if (s_spk_index >= DAC_BUFFER_SIZE) {
 							s_spk_index -= DAC_BUFFER_SIZE;
 							DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
-
-#ifdef USB_STATE_MACHINE_DEBUG
-							if (DAC_buf_USB_OUT == 1)
-								gpio_set_gpio_pin(AVR32_PIN_PX30);
-							else
-								gpio_clr_gpio_pin(AVR32_PIN_PX30);
-#endif
 						}
 					} // for i..
 
@@ -518,6 +519,17 @@ void uac1_device_audio_task(void *pvParameters)
 							sample_L = audio_buffer_1[i+IN_LEFT];
 							sample_R = audio_buffer_1[i+IN_RIGHT];
 						}
+
+						// Debugging "silence"
+						if (sample_L < min_L)
+							min_L = sample_L;
+						if (sample_L > max_L)
+							max_L = sample_L;
+						if (sample_R < min_L)
+							min_R = sample_L;
+						if (sample_R > max_R)
+							max_R = sample_R;
+
 
 // Super-rough skip/insert
 						while (s_samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
@@ -542,6 +554,27 @@ void uac1_device_audio_task(void *pvParameters)
 									gpio_set_gpio_pin(AVR32_PIN_PX30);
 								else
 									gpio_clr_gpio_pin(AVR32_PIN_PX30);
+#ifdef USB_STATE_MACHINE_DEBUG
+							if (DAC_buf_USB_OUT == 1)
+								gpio_set_gpio_pin(AVR32_PIN_PX30);
+							else
+								gpio_clr_gpio_pin(AVR32_PIN_PX30);
+
+							// Debugging "silence"
+							print_dbg_hex(min_L);
+							print_dbg_char(' ');
+							print_dbg_hex(max_L);
+							print_dbg_char(' ');
+							print_dbg_hex(min_R);
+							print_dbg_char(' ');
+							print_dbg_hex(max_R);
+							print_dbg_char('\n');
+
+							min_L = 0x7FFFFFFF;
+							max_L = 0x80000000;
+							min_R = 0x7FFFFFFF;
+							max_R = 0x80000000;
+#endif
 #endif
 							}
 						}
@@ -835,6 +868,13 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 						silence_det |= sample_L;
 
+						// Debugging "silence"
+						if (sample_L < min_L)
+							min_L = sample_L;
+						if (sample_L > max_L)
+							max_L = sample_L;
+
+
 #ifdef FEATURE_VOLUME_CTRL
 						if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
 							// 24-bit data words. First shift up to 32 bit. Do math and shift down
@@ -849,6 +889,12 @@ void uac1_device_audio_task(void *pvParameters)
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 						silence_det |= sample_R;
+
+						// Debugging "silence"
+						if (sample_R < min_L)
+							min_R = sample_L;
+						if (sample_R > max_R)
+							max_R = sample_R;
 
 #ifdef FEATURE_VOLUME_CTRL
 						if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
@@ -963,6 +1009,21 @@ void uac1_device_audio_task(void *pvParameters)
 										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 									else
 										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+
+									// Debugging "silence"
+									print_dbg_hex(min_L);
+									print_dbg_char(' ');
+									print_dbg_hex(max_L);
+									print_dbg_char(' ');
+									print_dbg_hex(min_R);
+									print_dbg_char(' ');
+									print_dbg_hex(max_R);
+									print_dbg_char('\n');
+
+									min_L = 0x7FFFFFFF;
+									max_L = 0x80000000;
+									min_R = 0x7FFFFFFF;
+									max_R = 0x80000000;
 #endif
 
 									// BSB 20131201 attempting improved playerstarted detection
