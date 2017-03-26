@@ -382,13 +382,30 @@ void wm8805_poll(void) {
 				lockcounter++;
 		}
 
-		if ( (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) || (dig_in_silence == 1) ) {
-			if (pausecounter < max(WM8805_PAUSE_LIM, WM8805_SILENCE_LIM))
-				pausecounter++;
+		// Use two zero detectors. FIX: keep software zero scanner live at all times!
+		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+			if ( (dig_in_silence == 1) ) {
+				if (pausecounter < WM8805_PAUSE_LIM) {
+					pausecounter++;
+//					print_dbg_char('.');
+				}
+			}
+			else {
+				pausecounter = 0;
+			}
 		}
 		else {
-			pausecounter = 0;
+			if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
+				if (pausecounter < WM8805_PAUSE_LIM) {
+					pausecounter++;
+//					print_dbg_char(',');
+				}
+			}
+			else {
+				pausecounter = 0;
+			}
 		}
+
 	}
 
 } // wm8805_poll

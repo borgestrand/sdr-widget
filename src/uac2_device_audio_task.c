@@ -316,7 +316,8 @@ void uac2_device_audio_task(void *pvParameters)
 				static S16 s_gap = DAC_BUFFER_SIZE;
 				static S16 s_old_gap = DAC_BUFFER_SIZE;
 				static S16 s_megaskip = 0;
-				S32 s_zero_detect = 0;
+				U32 s_silence_det_L = 0;
+				U32 s_silence_det_R = 0;
 				U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
 
 
@@ -420,22 +421,37 @@ void uac2_device_audio_task(void *pvParameters)
 						else if (ADC_buf_DMA_write_temp == 0)
 							gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
-						// Detect a zero package from the ADC, and thus the option of skipping/inserting big
-						s_zero_detect = 0;
-						for( i=0 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
-							if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
-								s_zero_detect |= audio_buffer_0[i+IN_LEFT];
-								s_zero_detect |= audio_buffer_0[i+IN_RIGHT];
-							}
-							else if (ADC_buf_DMA_write_temp == 1) {
-								s_zero_detect |= audio_buffer_1[i+IN_LEFT];
-								s_zero_detect |= audio_buffer_1[i+IN_RIGHT];
-							}
-							if (s_zero_detect != 0)					// End at zero detection
-								i = ADC_BUFFER_SIZE;
+						// Detect DC (including zero) package from the ADC, and thus the option of skipping/inserting big
+						if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+							s_silence_det_L = audio_buffer_0[IN_LEFT];
+							s_silence_det_R = audio_buffer_0[IN_RIGHT];
+						}
+						else if (ADC_buf_DMA_write_temp == 1) {
+							s_silence_det_L = audio_buffer_1[IN_LEFT];
+							s_silence_det_R = audio_buffer_1[IN_RIGHT];
 						}
 
-						if (s_zero_detect == 0) {
+						for( i=1 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
+							if (ADC_buf_DMA_write_temp == 0) {		// End as soon as a difference is spotted
+								if (s_silence_det_L != audio_buffer_0[i+IN_LEFT])
+									i = ADC_BUFFER_SIZE + 10;
+								else if (s_silence_det_R != audio_buffer_0[i+IN_RIGHT])
+									i = ADC_BUFFER_SIZE + 10;
+							}
+							else if (ADC_buf_DMA_write_temp == 1) {
+								if (s_silence_det_L != audio_buffer_1[i+IN_LEFT])
+									i = ADC_BUFFER_SIZE + 10;
+								else if (s_silence_det_R != audio_buffer_1[i+IN_RIGHT])
+									i = ADC_BUFFER_SIZE + 10;
+							}
+						}
+
+						if (i >= ADC_BUFFER_SIZE + 10) 								// Silence was NOT detected
+							dig_in_silence = 0;
+						else 														// Silence was detected, update flag to SPDIF RX code
+							dig_in_silence = 1;
+
+						if (dig_in_silence == 1) {									// Silence was detected
 							if (s_gap < (SPK2_GAP_L3 + SPK2_GAP_D1) ) {				// Are we close or past the limit for having to skip?
 								s_megaskip = (SPK2_GAP_U3 - SPK2_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
 		//						print_dbg_char('Z');

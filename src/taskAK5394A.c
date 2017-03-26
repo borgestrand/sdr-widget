@@ -89,10 +89,10 @@ static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
 };
 
-volatile U32 audio_buffer_0[ADC_BUFFER_SIZE];
-volatile U32 audio_buffer_1[ADC_BUFFER_SIZE];
-volatile U32 spk_buffer_0[DAC_BUFFER_SIZE];
-volatile U32 spk_buffer_1[DAC_BUFFER_SIZE];
+volatile S32 audio_buffer_0[ADC_BUFFER_SIZE]; // BSB 20170324 changed to signed
+volatile S32 audio_buffer_1[ADC_BUFFER_SIZE];
+volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
+volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
