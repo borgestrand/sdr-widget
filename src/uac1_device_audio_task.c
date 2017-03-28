@@ -329,20 +329,11 @@ void uac1_device_audio_task(void *pvParameters)
 
 		// Some private variables
 		static U32 s_spk_index = 0;
+		S32 sample_temp = 0;
 		static S16 s_gap = DAC_BUFFER_SIZE;
 		static S16 s_old_gap = DAC_BUFFER_SIZE;
 		static S16 s_megaskip = 0;
-//		S32 s_silence_det_L = 0;
-//		S32 s_silence_det_R = 0;
 		U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
-
-/*
-		static S32 min_L = 0x7FFFFFFF;
-		static S32 max_L = 0x80000000;
-		static S32 min_R = 0x7FFFFFFF;
-		static S32 max_R = 0x80000000;
-		static int k = 0;
-*/
 
 		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
 			ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
@@ -367,6 +358,25 @@ void uac1_device_audio_task(void *pvParameters)
 			if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Must transfer previous half-ring-buffer
 				ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 
+				// Silence / DC detector 2.0
+				for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
+					if (ADC_buf_DMA_write_temp == 0)		// End as soon as a difference is spotted
+						sample_temp = audio_buffer_0[i] & 0x00FFFF00;
+					else if (ADC_buf_DMA_write_temp == 1)
+						sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+
+					if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
+						i = ADC_BUFFER_SIZE + 10;
+				}
+
+				if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
+					dig_in_silence = 0;
+				}
+				else {														// Silence was detected, update flag to SPDIF RX code
+					dig_in_silence = 1;
+				}
+
+
 				// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 				if (ADC_buf_USB_IN == -2) {
 					ADC_buf_USB_IN = ADC_buf_DMA_write_temp;	// Disable further init
@@ -390,6 +400,8 @@ void uac1_device_audio_task(void *pvParameters)
 					s_spk_index = DAC_BUFFER_SIZE - num_remaining;
 					s_spk_index = s_spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 				}
+
+
 
 				// Calculate gap before copying data into consumer register:
 				s_old_gap = s_gap;
@@ -438,130 +450,15 @@ void uac1_device_audio_task(void *pvParameters)
 */				}
 
 
+
 				// Prepare to copy all of producer's most recent data to consumer's buffer
 				if (ADC_buf_DMA_write_temp == 1)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else if (ADC_buf_DMA_write_temp == 0)
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
-				// Detect DC (including zero) package from the ADC, and thus the option of skipping/inserting big
 
-
-// Log min/max again from CD drive....
-
-/*
-				for( i=1 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
-					if (ADC_buf_DMA_write_temp == 0) {		// End as soon as a difference is spotted
-						if ((S32)audio_buffer_0[i+IN_LEFT] < min_L)
-							min_L = (S32)audio_buffer_0[i+IN_LEFT];
-						if ((S32)audio_buffer_0[i+IN_LEFT] > max_L)
-							max_L = (S32)audio_buffer_0[i+IN_LEFT];
-						if ((S32)audio_buffer_0[i+IN_RIGHT] < min_R)
-							min_R = (S32)audio_buffer_0[i+IN_RIGHT];
-						if ((S32)audio_buffer_0[i+IN_RIGHT] > max_R)
-							max_R = (S32)audio_buffer_0[i+IN_RIGHT];
-					}
-					else if (ADC_buf_DMA_write_temp == 1) {
-						if ((S32)audio_buffer_0[i+IN_LEFT] < min_L)
-							min_L = (S32)audio_buffer_1[i+IN_LEFT];
-						if ((S32)audio_buffer_0[i+IN_LEFT] > max_L)
-							max_L = (S32)audio_buffer_1[i+IN_LEFT];
-						if ((S32)audio_buffer_0[i+IN_RIGHT] < min_R)
-							min_R = (S32)audio_buffer_1[i+IN_RIGHT];
-						if ((S32)audio_buffer_0[i+IN_RIGHT] > max_R)
-							max_R = (S32)audio_buffer_1[i+IN_RIGHT];
-					}
-				}
-
-
-				if (k < 15) // Report min/max 1/16 times
-					k++;
-				else {
-					k = 0;
-				}
-				if (k == 1) {
-					print_dbg_hex(min_L);
-					print_dbg_char(' ');
-					print_dbg_hex(max_L);
-					print_dbg_char(' ');
-					min_L = 0x7FFFFFFF;
-					max_L = 0x80000000;
-				}
-				else if (k == 8) {
-					print_dbg_hex(min_R);
-					print_dbg_char(' ');
-					print_dbg_hex(max_R);
-					print_dbg_char('\n');
-					min_R = 0x7FFFFFFF;
-					max_R = 0x80000000;
-				}
-*/
-
-// Done with min/max logger
-
-
-				// Silence / DC detector 2.0
-				S32 sample_temp = 0;
-				for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
-					if (ADC_buf_DMA_write_temp == 0)		// End as soon as a difference is spotted
-						sample_temp = audio_buffer_0[i] & 0x00FFFF00;
-					else if (ADC_buf_DMA_write_temp == 1)
-						sample_temp = audio_buffer_1[i] & 0x00FFFF00;
-
-					if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
-						i = ADC_BUFFER_SIZE + 10;
-				}
-
-				if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
-					dig_in_silence = 0;
-					print_dbg_char(':');
-				}
-				else {														// Silence was detected, update flag to SPDIF RX code
-//					dig_in_silence = 1;
-					print_dbg_char('.');
-				}
-
-
-/*
-				// Silence / DC detector
- 				if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
-					s_silence_det_L = audio_buffer_0[IN_LEFT];
-					s_silence_det_R = audio_buffer_0[IN_RIGHT];
-				}
-				else if (ADC_buf_DMA_write_temp == 1) {
-					s_silence_det_L = audio_buffer_1[IN_LEFT];
-					s_silence_det_R = audio_buffer_1[IN_RIGHT];
-				}
-
-				for( i=1 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
-					if (ADC_buf_DMA_write_temp == 0) {		// End as soon as a difference is spotted
-						if (s_silence_det_L != audio_buffer_0[i+IN_LEFT])
-							i = ADC_BUFFER_SIZE + 10;
-						else if (s_silence_det_R != audio_buffer_0[i+IN_RIGHT])
-							i = ADC_BUFFER_SIZE + 10;
-					}
-					else if (ADC_buf_DMA_write_temp == 1) {
-						if (s_silence_det_L != audio_buffer_1[i+IN_LEFT])
-							i = ADC_BUFFER_SIZE + 10;
-						else if (s_silence_det_R != audio_buffer_1[i+IN_RIGHT])
-							i = ADC_BUFFER_SIZE + 10;
-					}
-				}
-
-				if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
-					dig_in_silence = 0;
-				}
-				else {														// Silence was detected, update flag to SPDIF RX code
-//					dig_in_silence = 1;
-					print_dbg_char('.');
-				}
-
-*/
-
-				// Disabling megaskip for test purpose
-
-
-
+				// Apply megaskip when DC or zero is detected
 				if (dig_in_silence == 1) {									// Silence was detected
 					if (s_gap < (SPK1_GAP_L3 + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
 						s_megaskip = (SPK1_GAP_U3 - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
@@ -579,14 +476,14 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
 				if (s_megaskip >= ADC_BUFFER_SIZE) {
-//					print_dbg_char('S');
+					print_dbg_char('S');
 					s_samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 					s_megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
 					// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
 				}
 				// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
 				else if (s_megaskip <= -ADC_BUFFER_SIZE) {
-//					print_dbg_char('I');
+					print_dbg_char('I');
 					s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					s_megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 

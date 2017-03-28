@@ -41,8 +41,8 @@
 #define WM8805_PLL_192		1					// PLL mode is for 192ksps
 #define WM8805_PLL_EXP		2					// Experimental PLL mode
 #define WM8805_UNLOCK_LIM	2					// Number of poll cycles to determine that an unlock has taken place, in order to start searching
-#define WM8805_PAUSE_LIM	50	// 400 // 200			// Poll cycles to determine that a previously playing input is silent. NB: Signed 16-bit number!
-#define WM8805_SILENCE_LIM	20	//40				// Poll cycles to wait for a mute input to produce audio
+#define WM8805_PAUSE_LIM	300	// 400 // 200			// Poll cycles to determine that a previously playing input is silent. NB: Signed 16-bit number!
+#define WM8805_SILENCE_LIM	40	//40				// Poll cycles to wait for a mute input to produce audio
 #define WM8805_LOCK_LIM		2					// Poll cycles to verify lock
 
 // Regular polling of WM8805 hardware

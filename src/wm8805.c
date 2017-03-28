@@ -384,8 +384,9 @@ void wm8805_poll(void) {
 
 		// Use two zero detectors. FIX: keep software zero scanner live at all times!
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-			if ( (dig_in_silence == 1) ) {
-				if (pausecounter < WM8805_PAUSE_LIM) {
+			if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
+//			if ( (dig_in_silence == 1) ) {	// Open up for SW silence detection
+				if (pausecounter < WM8805_PAUSE_LIM) { // Imperfect silence detection in chip
 					pausecounter++;
 //					print_dbg_char('.');
 				}
