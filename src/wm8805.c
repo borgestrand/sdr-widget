@@ -153,6 +153,9 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "pdca.h" // To disable DMA at sleep
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
+// Global status variable
+volatile wm8805_status_t wm8805_status;
+
 //!
 //! @brief Polling routine for WM8805 hardware
 //!
@@ -160,14 +163,16 @@ void wm8805_poll(void) {
     uint8_t wm8805_pllmode = WM8805_PLL_NORMAL;				// Normal PLL setting at WM8805 reset
     uint8_t wm8805_int = 0;									// WM8805 interrupt status
     static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
-    static uint8_t wm8805_muted = 1;						// Assume I2S output is muted
-	static uint8_t wm8805_power = 0;						// Starting up with wm8805 powered down
-
 	static int16_t pausecounter = 0;
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
 
 	int16_t pausecounter_temp = 0;
+
+//  static uint8_t wm8805_muted = 1;						// Assume I2S output is muted
+//	static uint8_t wm8805_power = 0;						// Starting up with wm8805 powered down
+	wm8805_status.muted = 1;								// Assume I2S output is muted
+	wm8805_status.powered = 0;								// Starting up with wm8805 powered down
 
 
 	/* NEXT:
@@ -198,17 +203,17 @@ void wm8805_poll(void) {
 	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
-			wm8805_muted = 1;
+			wm8805_status.muted = 1;
 		}
 	}
 #endif
 
 	// USB is giving away control,
 	if (input_select == MOBO_SRC_NONE) {
-		if (wm8805_power == 0) {
-			wm8805_power = 1;
+		if (wm8805_status.powered == 0) {
+			wm8805_status.powered = 1;
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
-			wm8805_muted = 1;							// I2S is still controlled by USB which should have zeroed it.
+			wm8805_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
 
 			unlockcounter = 0;
 			pausecounter = 0;
@@ -221,8 +226,8 @@ void wm8805_poll(void) {
 	}
 	// USB has assumed control, power down WM8805 if it was on
 	else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
-		if (wm8805_power == 1) {
-			wm8805_power = 0;
+		if (wm8805_status.powered == 1) {
+			wm8805_status.powered = 0;
 			wm8805_sleep();
 		}
 	}
@@ -240,7 +245,7 @@ void wm8805_poll(void) {
 	else
 		pausecounter_temp = WM8805_SILENCE_LIM;
 
-	if ( (wm8805_power == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
+	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
 
 
 		// With this task's input_select values, assume semaphore is owned
@@ -257,7 +262,7 @@ void wm8805_poll(void) {
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
 			wm8805_mute();
-			wm8805_muted = 1;
+			wm8805_status.muted = 1;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
@@ -319,7 +324,7 @@ void wm8805_poll(void) {
 
 
 	// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
-	if ( (wm8805_muted == 1) && (wm8805_power == 1) ) {
+	if ( (wm8805_status.muted == 1) && (wm8805_status.powered == 1) ) {
 		if ( (lockcounter >= WM8805_LOCK_LIM) && (pausecounter == 0) ) {
 
 			if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
@@ -342,20 +347,20 @@ void wm8805_poll(void) {
 			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 				wm8805_clkdiv();						// Configure MCLK division
 				wm8805_unmute();						// Reconfigure I2S selection and LEDs
-				wm8805_muted = 0;
+				wm8805_status.muted = 0;
 			}
 		}
 	}
 
 
 	// Polling interrupt monitor, only use when WM8805 is on
-	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_power == 1) ) {
+	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_status.powered == 1) ) {
 		wm8805_int = wm8805_read_byte(0x0B);			// Record interrupt status and clear pin
 
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {
-			if (wm8805_muted == 0) {
+			if (wm8805_status.muted == 0) {
 				wm8805_mute();
-				wm8805_muted = 1;						// In any case, we're muted from now on.
+				wm8805_status.muted = 1;				// In any case, we're muted from now on.
 			}
 
 			if (wm8805_srd() == FREQ_192)
@@ -370,7 +375,7 @@ void wm8805_poll(void) {
 
 
 	// Monitor silent or disconnected WM8805 input
-	if (wm8805_power == 1) {
+	if (wm8805_status.powered == 1) {
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
 			lockcounter = 0;
 			if (unlockcounter < WM8805_UNLOCK_LIM)
@@ -553,15 +558,13 @@ void wm8805_mute(void) {
 
 // Un-mute the WM8805
 void wm8805_unmute(void) {
-	U32 wm8805_freq = FREQ_INVALID;
-
 	gpio_set_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
-	wm8805_freq = wm8805_srd();
+	wm8805_status.frequency = wm8805_srd();
 	gpio_clr_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
 
-	mobo_clock_division(wm8805_freq);			// Adjust MCU clock to match WM8805 frequency
-	mobo_xo_select(wm8805_freq, input_select);	// Select correct crystal oscillator AND I2S MUX
-	mobo_led_select(wm8805_freq, input_select);	// Indicate present sample rate
+	mobo_clock_division(wm8805_status.frequency);			// Adjust MCU clock to match WM8805 frequency
+	mobo_xo_select(wm8805_status.frequency, input_select);	// Select correct crystal oscillator AND I2S MUX
+	mobo_led_select(wm8805_status.frequency, input_select);	// Indicate present sample rate
 
 	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 												// FIX: send wm8805_freq to consumer side for monitoring against sample rate changes.
@@ -600,12 +603,12 @@ uint8_t wm8805_read_byte(uint8_t int_adr) {
 
 // Wrapper test code
 uint32_t wm8805_srd(void) {
-	U32 wm8805_freq = FREQ_44;
-	U32 wm8805_freq_prev;
+	U32 freq = FREQ_44;
+	U32 freq_prev;
 	int i;
 
 	i = 0;
-	wm8805_freq_prev = FREQ_INVALID;
+	freq_prev = FREQ_INVALID;
 	// 5 can fail
 	// 10 seems solid but hard to say with only Juli@ as source 1 failure in N...
 	// 14 1/20 failed to detect 96
@@ -613,15 +616,15 @@ uint32_t wm8805_srd(void) {
 	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
 	//
 
-	while ( (i < 4) || (wm8805_freq == FREQ_TIMEOUT) ) {
-		wm8805_freq = wm8805_srd_asm();
+	while ( (i < 4) || (freq == FREQ_TIMEOUT) ) {
+		freq = wm8805_srd_asm();
 //		vTaskDelay(10);
-		if ( (wm8805_freq == wm8805_freq_prev) && (wm8805_freq != FREQ_TIMEOUT) )
+		if ( (freq == freq_prev) && (freq != FREQ_TIMEOUT) )
 			i++;
-		wm8805_freq_prev = wm8805_freq;
+		freq_prev = freq;
 	}
 
-	switch (wm8805_freq) {
+	switch (freq) {
 		case FREQ_44 :
 			print_dbg_char('1');
 		break;
@@ -642,7 +645,7 @@ uint32_t wm8805_srd(void) {
 		break;
 	}
 
-	return wm8805_freq;
+	return freq;
 }
 
 // Sample rate detection test

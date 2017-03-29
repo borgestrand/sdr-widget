@@ -64,8 +64,12 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "queue.h"
-#include "gpio.h"
 #include "semphr.h"
+
+#include "gpio.h"
+
+// To access SPDIF RX status
+#include "wm8805.h"
 
 #if USB_DEVICE_FEATURE == DISABLED
   #error device_audio_task.h is #included although USB_DEVICE_FEATURE is disabled
@@ -94,6 +98,7 @@ extern volatile uint8_t usb_ch_swap;				// Front or rear USB channel
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio channel selection semaphore
+extern volatile wm8805_status_t wm8805_status;
 #endif
 
 //_____ M A C R O S ________________________________________________________

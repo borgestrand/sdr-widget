@@ -370,10 +370,10 @@ void uac1_device_audio_task(void *pvParameters)
 				}
 
 				if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
-					dig_in_silence = 0;
+					wm8805_status.silent = 0;
 				}
 				else {														// Silence was detected, update flag to SPDIF RX code
-					dig_in_silence = 1;
+					wm8805_status.silent = 1;
 				}
 
 
@@ -459,7 +459,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 				// Apply megaskip when DC or zero is detected
-				if (dig_in_silence == 1) {									// Silence was detected
+				if (wm8805_status.silent == 1) {									// Silence was detected
 					if (s_gap < (SPK1_GAP_L3 + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
 						s_megaskip = (SPK1_GAP_U3 - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
 //						print_dbg_char('Z');
