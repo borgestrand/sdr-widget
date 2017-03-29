@@ -387,6 +387,7 @@ void wm8805_poll(void) {
 				lockcounter++;
 		}
 
+/*
 		// Use two zero detectors. FIX: keep software zero scanner live at all times!
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
@@ -401,15 +402,18 @@ void wm8805_poll(void) {
 			}
 		}
 		else {
-			if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
-				if (pausecounter < WM8805_PAUSE_LIM) {
-					pausecounter++;
-//					print_dbg_char(',');
-				}
+*/
+
+// 		One zero detector responds to sequential code.
+//		if (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) {
+		if (wm8805_status.silent == 1) {
+			if (pausecounter < WM8805_PAUSE_LIM) {
+				pausecounter++;
+				print_dbg_char(',');
 			}
-			else {
-				pausecounter = 0;
-			}
+		}
+		else {
+			pausecounter = 0;
 		}
 
 	}
@@ -566,8 +570,9 @@ void wm8805_unmute(void) {
 	mobo_xo_select(wm8805_status.frequency, input_select);	// Select correct crystal oscillator AND I2S MUX
 	mobo_led_select(wm8805_status.frequency, input_select);	// Indicate present sample rate
 
+	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
+	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
-												// FIX: send wm8805_freq to consumer side for monitoring against sample rate changes.
 
 	#ifdef HW_GEN_DIN20
 		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!

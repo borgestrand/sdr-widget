@@ -335,47 +335,49 @@ void uac1_device_audio_task(void *pvParameters)
 		static S16 s_megaskip = 0;
 		U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
 
-		if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
-			ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
+		ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
-			// Has producer's buffer been toggled by interrupt driven DMA code?
-			// If so, copy all of producer's data. (And perform skip/insert.)
-			// Continue writing to consumer's buffer where this routine left of last
-			if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_USB_IN == -1) )	{	// Do the init on synchronous sampling ref. ADC DMA timing
-				// Clear incoming SPDIF before enabling pdca to keep filling it
-				for (i = 0; i < ADC_BUFFER_SIZE; i++) {
-					audio_buffer_0[i] = 0;
-					audio_buffer_1[i] = 0;
-				}
-
-				pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
-				pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-
-				ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
-				ADC_buf_USB_IN = -2;
+		// Continue writing to consumer's buffer where this routine left of last
+		if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_USB_IN == -1) )	{	// Do the init on synchronous sampling ref. ADC DMA timing
+			// Clear incoming SPDIF before enabling pdca to keep filling it
+			for (i = 0; i < ADC_BUFFER_SIZE; i++) {
+				audio_buffer_0[i] = 0;
+				audio_buffer_1[i] = 0;
 			}
 
-			if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Must transfer previous half-ring-buffer
-				ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+// Moved to wm8805 code
+//			pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
+//			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
-				// Silence / DC detector 2.0
-				for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
-					if (ADC_buf_DMA_write_temp == 0)		// End as soon as a difference is spotted
-						sample_temp = audio_buffer_0[i] & 0x00FFFF00;
-					else if (ADC_buf_DMA_write_temp == 1)
-						sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+			ADC_buf_USB_IN = -2;
+		}
 
-					if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
-						i = ADC_BUFFER_SIZE + 10;
-				}
+		// Has producer's buffer been toggled by interrupt driven DMA code?
+		// If so, check it for silence. If selected as source, copy all of producer's data. (And perform skip/insert.)
+		if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
+			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 
-				if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
-					wm8805_status.silent = 0;
-				}
-				else {														// Silence was detected, update flag to SPDIF RX code
-					wm8805_status.silent = 1;
-				}
+			// Silence / DC detector 2.0
+			for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
+				if (ADC_buf_DMA_write_temp == 0)		// End as soon as a difference is spotted
+					sample_temp = audio_buffer_0[i] & 0x00FFFF00;
+				else if (ADC_buf_DMA_write_temp == 1)
+					sample_temp = audio_buffer_1[i] & 0x00FFFF00;
 
+				if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
+					i = ADC_BUFFER_SIZE + 10;
+			}
+
+			if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
+				wm8805_status.silent = 0;
+			}
+			else {														// Silence was detected, update flag to SPDIF RX code
+				wm8805_status.silent = 1;
+			}
+
+//			if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
+			if ( ( (input_select == MOBO_SRC_TOS1) && (input_select == MOBO_SRC_TOS2) && (input_select == MOBO_SRC_SPDIF) ) ) {
 
 				// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 				if (ADC_buf_USB_IN == -2) {
