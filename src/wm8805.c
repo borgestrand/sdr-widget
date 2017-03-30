@@ -211,8 +211,8 @@ void wm8805_poll(void) {
 	// USB is giving away control,
 	if (input_select == MOBO_SRC_NONE) {
 		if (wm8805_status.powered == 0) {
-			wm8805_status.powered = 1;
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
+			wm8805_status.powered = 1;
 			wm8805_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
 
 			unlockcounter = 0;
@@ -409,7 +409,7 @@ void wm8805_poll(void) {
 		if (wm8805_status.silent == 1) {
 			if (pausecounter < WM8805_PAUSE_LIM) {
 				pausecounter++;
-				print_dbg_char(',');
+//				print_dbg_char(',');
 			}
 		}
 		else {
@@ -469,13 +469,19 @@ void wm8805_init(void) {
 // Moved to the code wich sets input_select
 	ADC_buf_USB_IN = -1;			// Force init of MCU's ADC DMA port and cause pdca_enable(PDCA_CHANNEL_SSC_RX)
 									// Fix: only do that once we figure out the sample rate?
-
-	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Enable I2S reception at MCU's ADC port FIX: fill buffers with zeros before starting up
 */
+	print_dbg_char('+');
+	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
+	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 }
 
 // Turn off wm8805, why can't we just run init again?
 void wm8805_sleep(void) {
+	print_dbg_char('-');
+
+	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
+	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
 	wm8805_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL,
 
 //	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Disable I2S reception at MCU's ADC port
@@ -546,8 +552,9 @@ void wm8805_clkdiv(void) {
 
 // Mute the WM8805 output
 void wm8805_mute(void) {
-	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
-	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+// moved to wm8805_sleep()
+//	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
+//	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
 		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin
@@ -570,8 +577,6 @@ void wm8805_unmute(void) {
 	mobo_xo_select(wm8805_status.frequency, input_select);	// Select correct crystal oscillator AND I2S MUX
 	mobo_led_select(wm8805_status.frequency, input_select);	// Indicate present sample rate
 
-	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
-	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 
 	#ifdef HW_GEN_DIN20

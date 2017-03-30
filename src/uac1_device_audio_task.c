@@ -371,9 +371,11 @@ void uac1_device_audio_task(void *pvParameters)
 
 			if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
 				wm8805_status.silent = 0;
+				print_dbg_char(':');
 			}
 			else {														// Silence was detected, update flag to SPDIF RX code
 				wm8805_status.silent = 1;
+				print_dbg_char('.');
 			}
 
 //			if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
