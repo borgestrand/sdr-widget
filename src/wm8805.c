@@ -378,7 +378,8 @@ void wm8805_poll(void) {
 		}
 
 // 		SW zero detector responds needs powered-up WM8805
-		if ( (wm8805_status.silent == 1) || (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) ) {
+//		if ( (wm8805_status.silent == 1) || (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) ) {
+		if ( (wm8805_status.silent == 1)  ) {
 			if (pausecounter < WM8805_PAUSE_LIM)
 				pausecounter++;
 		}
