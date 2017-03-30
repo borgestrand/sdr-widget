@@ -140,7 +140,6 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	ADC_buf_USB_IN = 0;
 	spk_index = 0;
 	DAC_buf_USB_OUT = 0;
-//	spk_buffer_ptr = spk_buffer_0;
 	mute = FALSE;
 	spk_mute = FALSE;
 
@@ -179,10 +178,7 @@ void uac1_clear_dac_channel(void) {
 void uac1_device_audio_task(void *pvParameters)
 {
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
-//	static U32  time=0;
-//	static Bool startup=TRUE;
 	int i;
-//	int delta_num = 0;
 	U16 num_samples, num_remaining, gap = 0;
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
 	U16 packets_since_feedback = 0;
@@ -194,7 +190,6 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
-//	U8 toggle_07 = 0;	// BSB 20131206 keep track of GPIO_07 / PX31
 	S32 sample_L = 0;
 	S32 sample_R = 0; // BSB 20131102 Expanded for skip/insert, 20160322 changed to S32!
 	const U8 EP_AUDIO_IN = ep_audio_in;
@@ -204,9 +199,6 @@ void uac1_device_audio_task(void *pvParameters)
 	const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
 	const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
-// Now global:
-//	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
-//	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
 	uint32_t silence_det_L = 0;
 	uint32_t silence_det_R = 0;
@@ -345,12 +337,12 @@ void uac1_device_audio_task(void *pvParameters)
 				audio_buffer_1[i] = 0;
 			}
 
-// Moved to wm8805 code
-//			pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
-//			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-
 			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 			ADC_buf_USB_IN = -2;
+		}
+
+		if (wm8805_status.powered == 0) {				// This code is unable to detect silence in a shut-down WM8805
+			wm8805_status.silent = 0;
 		}
 
 		// Has producer's buffer been toggled by interrupt driven DMA code?
@@ -359,27 +351,26 @@ void uac1_device_audio_task(void *pvParameters)
 			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 
 			// Silence / DC detector 2.0
-			for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
-				if (ADC_buf_DMA_write_temp == 0)		// End as soon as a difference is spotted
-					sample_temp = audio_buffer_0[i] & 0x00FFFF00;
-				else if (ADC_buf_DMA_write_temp == 1)
-					sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+			if (wm8805_status.powered != 0) {			// This code is unable to detect silence in a shut-down WM8805
+				for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
+					if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
+						sample_temp = audio_buffer_0[i] & 0x00FFFF00;
+					else if (ADC_buf_DMA_write_temp == 1)
+						sample_temp = audio_buffer_1[i] & 0x00FFFF00;
 
-				if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
-					i = ADC_BUFFER_SIZE + 10;
+					if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
+						i = ADC_BUFFER_SIZE + 10;
+				}
+
+				if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
+					wm8805_status.silent = 0;
+				}
+				else {									// Silence was detected, update flag to SPDIF RX code
+					wm8805_status.silent = 1;
+				}
 			}
 
-			if (i >= ADC_BUFFER_SIZE + 10) {							// Silence was NOT detected
-				wm8805_status.silent = 0;
-				print_dbg_char(':');
-			}
-			else {														// Silence was detected, update flag to SPDIF RX code
-				wm8805_status.silent = 1;
-				print_dbg_char('.');
-			}
-
-//			if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
-			if ( ( (input_select == MOBO_SRC_TOS1) && (input_select == MOBO_SRC_TOS2) && (input_select == MOBO_SRC_SPDIF) ) ) {
+			if ( ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) ) {
 
 				// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 				if (ADC_buf_USB_IN == -2) {
@@ -404,8 +395,6 @@ void uac1_device_audio_task(void *pvParameters)
 					s_spk_index = DAC_BUFFER_SIZE - num_remaining;
 					s_spk_index = s_spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 				}
-
-
 
 				// Calculate gap before copying data into consumer register:
 				s_old_gap = s_gap;
@@ -436,23 +425,12 @@ void uac1_device_audio_task(void *pvParameters)
 				s_samples_to_transfer_OUT = 1;			// Default value
 				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L3)) {
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
-//					s_megaskip = 0;						// We crossed the line!
 					print_dbg_char('s');
-/*					print_dbg_hex(s_old_gap);
-					print_dbg_char(' ');
-					print_dbg_hex(s_gap);
-					print_dbg_char('\n');
-*/				}
+				}
 				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U3)) {
 					s_samples_to_transfer_OUT = 2;		// Do some insertin'
-//					s_megaskip = 0;						// We crossed the line!
 					print_dbg_char('i');
-/*					print_dbg_hex(s_old_gap);
-					print_dbg_char(' ');
-					print_dbg_hex(s_gap);
-					print_dbg_char('\n');
-*/				}
-
+				}
 
 
 				// Prepare to copy all of producer's most recent data to consumer's buffer
@@ -466,11 +444,9 @@ void uac1_device_audio_task(void *pvParameters)
 				if (wm8805_status.silent == 1) {									// Silence was detected
 					if (s_gap < (SPK1_GAP_L3 + SPK1_GAP_D1) ) {				// Are we close or past the limit for having to skip?
 						s_megaskip = (SPK1_GAP_U3 - SPK1_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
-//						print_dbg_char('Z');
 					}
 					else if (s_gap > (SPK1_GAP_U3 - SPK1_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
 						s_megaskip = (s_gap) - (SPK1_GAP_L3 + SPK1_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
-//						print_dbg_char('J');
 					}
 				}
 				else {
