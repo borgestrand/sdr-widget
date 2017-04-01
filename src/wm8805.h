@@ -43,7 +43,7 @@
 #define WM8805_UNLOCK_LIM	2					// Number of poll cycles to determine that an unlock has taken place, in order to start searching
 #define WM8805_PAUSE_LIM	350	// 400 // 200	// Poll cycles to determine that a previously playing input is silent. NB: Signed 16-bit number!
 #define WM8805_SILENCE_LIM	20	//40			// Poll cycles to wait for a mute input to produce audio
-#define WM8805_LOCK_LIM		3					// Poll cycles to verify lock
+#define WM8805_LOCK_LIM		4					// Poll cycles to verify lock
 
 typedef struct wm8805_status {					// Definition of global variable
 	uint8_t powered;

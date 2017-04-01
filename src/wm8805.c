@@ -196,11 +196,11 @@ void wm8805_poll(void) {
 	 * + Make silence detector (use 1024 silent block detector in WM?)
 	 */
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // With patch to PX37 from WM8805
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With patch to PX37 from WM8805
 	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
-			wm8805_status.muted = 1;
+			wm8805_status.reliable = 0;					// Something went wrong, we're not reliable
 		}
 	}
 #endif
@@ -211,7 +211,7 @@ void wm8805_poll(void) {
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
 			wm8805_status.powered = 1;
 			wm8805_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
-			wm8805_status.silent = 0;					// We haven't yet detected silence
+//			wm8805_status.silent = 0;					// We haven't yet detected silence
 
 			unlockcounter = 0;
 			pausecounter = 0;
@@ -226,7 +226,7 @@ void wm8805_poll(void) {
 	// USB has assumed control, power down WM8805 if it was on
 	else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
 		if (wm8805_status.powered == 1) {
-			wm8805_status.silent = 0;					// We haven't yet detected silence
+//			wm8805_status.silent = 0;					// We haven't yet detected silence
 			wm8805_status.powered = 0;
 			wm8805_sleep();
 		}
@@ -261,7 +261,7 @@ void wm8805_poll(void) {
 
 			wm8805_mute();
 			wm8805_status.muted = 1;
-			wm8805_status.silent = 0;
+//			wm8805_status.silent = 0;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task

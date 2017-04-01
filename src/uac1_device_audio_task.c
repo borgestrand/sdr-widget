@@ -341,10 +341,10 @@ void uac1_device_audio_task(void *pvParameters)
 			ADC_buf_USB_IN = -2;
 		}
 
-		if (wm8805_status.powered == 0) {				// This code is unable to detect silence in a shut-down WM8805
-			wm8805_status.silent = 0;					// Shut down -> reset the silence so that we're able to restart
-		}
-		else if (wm8805_status.reliable == 0) {			// Temporarily unreliable counts as silent
+//		if (wm8805_status.powered == 0) {				// This code is unable to detect silence in a shut-down WM8805
+//			wm8805_status.silent = 0;					// Shut down -> reset the silence detector so that we're able to restart
+//		}
+		if (wm8805_status.reliable == 0) {			// Temporarily unreliable counts as silent
 			wm8805_status.silent = 1;
 		}
 
@@ -354,7 +354,7 @@ void uac1_device_audio_task(void *pvParameters)
 			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 
 			// Silence / DC detector 2.0
-			if (wm8805_status.powered != 0) {			// This code is unable to detect silence in a shut-down WM8805
+			if (wm8805_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
 					if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
 						sample_temp = audio_buffer_0[i] & 0x00FFFF00;
