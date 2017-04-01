@@ -154,7 +154,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 // Global status variable
-volatile wm8805_status_t wm8805_status = {0, 1, 0, FREQ_TIMEOUT};
+volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT};
 
 //!
 //! @brief Polling routine for WM8805 hardware
@@ -217,6 +217,7 @@ void wm8805_poll(void) {
 			pausecounter = 0;
 			lockcounter = 0;
 
+			wm8805_status.reliable = 0;
 			wm8805_input(input_select_wm8805_next);		// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
@@ -245,8 +246,6 @@ void wm8805_poll(void) {
 		pausecounter_temp = WM8805_SILENCE_LIM;
 
 	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
-
-
 		// With this task's input_select values, assume semaphore is owned
 
 /*		//	What caused the trigger?
@@ -305,6 +304,7 @@ void wm8805_poll(void) {
 #endif
 */
 			// FIX: disable and re-enable ADC DMA around here?
+			wm8805_status.reliable = 0;
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
@@ -320,7 +320,6 @@ void wm8805_poll(void) {
 	// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
 	if ( (wm8805_status.muted == 1) && (wm8805_status.powered == 1) ) {
 		if ( (lockcounter >= WM8805_LOCK_LIM) && (pausecounter == 0) ) {
-
 			if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
@@ -368,17 +367,23 @@ void wm8805_poll(void) {
 	}	// Done handling interrupt
 
 
+
 	// Monitor silent or disconnected WM8805 input
 	if (wm8805_status.powered == 1) {
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
 			lockcounter = 0;
-			if (unlockcounter < WM8805_UNLOCK_LIM)
+			if (unlockcounter < WM8805_UNLOCK_LIM) {
 				unlockcounter++;
+			}
 		}
 		else {											// Lock indication
 			unlockcounter = 0;
-			if (lockcounter < WM8805_LOCK_LIM)
+			if (lockcounter < WM8805_LOCK_LIM) {
 				lockcounter++;
+			}
+			else {
+				wm8805_status.reliable = 1;
+			}
 		}
 
 // 		SW zero detector responds needs powered-up WM8805

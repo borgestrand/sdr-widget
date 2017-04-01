@@ -49,6 +49,7 @@ typedef struct wm8805_status {					// Definition of global variable
 	uint8_t powered;
 	uint8_t muted;
 	uint8_t silent;
+	uint8_t reliable;
 	uint32_t frequency;
 } wm8805_status_t;
 
