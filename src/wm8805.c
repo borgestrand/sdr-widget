@@ -168,8 +168,6 @@ void wm8805_poll(void) {
 	static int16_t lockcounter = 0;
 	int16_t pausecounter_temp = 0;
 
-//  static uint8_t wm8805_muted = 1;						// Assume I2S output is muted
-//	static uint8_t wm8805_power = 0;						// Starting up with wm8805 powered down
 
 	/* NEXT:
 	 * + Decide on which interrupts to enable
@@ -190,7 +188,7 @@ void wm8805_poll(void) {
 	 * + Test USB music playback with SRD running continuously
 	 * + Get hardware capable of generating all SPDIF sample rates
 	 * + Make state machine for WM8805 sample rate detection
-	 * - Make state machine for source selection
+	 * + Make state machine for source selection
 	 * + Figure out ADC interface
 	 * + Make silence detector (use 1024 silent block detector in WM?)
 	 */
@@ -210,10 +208,9 @@ void wm8805_poll(void) {
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
 			wm8805_status.powered = 1;
 			wm8805_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
-//			wm8805_status.silent = 0;					// We haven't yet detected silence
 
-			unlockcounter = 0;
 			pausecounter = 0;
+			unlockcounter = 0;
 			lockcounter = 0;
 
 			wm8805_status.reliable = 0;					// Because of input change
@@ -225,7 +222,6 @@ void wm8805_poll(void) {
 	// USB has assumed control, power down WM8805 if it was on
 	else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
 		if (wm8805_status.powered == 1) {
-//			wm8805_status.silent = 0;					// We haven't yet detected silence
 			wm8805_status.powered = 0;
 			wm8805_status.reliable = 0;					// Because of power down
 			wm8805_sleep();
@@ -235,34 +231,19 @@ void wm8805_poll(void) {
 
 	// Current WM8805 input is silent or unavailable. When WM is selected, wait for a long time (paused).
 	// When WM is not selected, scan WM inputs for a short time (unlinked)
-	//	if (  ( ( (input_select == MOBO_SRC_NONE) && (WM_IS_UNLINKED()) ) || (WM_IS_PAUSED()) ) && (wm8805_power == 1)  ) {
-	// 	if ( (wm8805_power == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= WM8805_PAUSE_LIM) ) ) {
-
-
-	// Playing input: Tolerate WM8805_PAUSE_LIM of silence before searching for other input. Scanning inputs: Tolerate WM8805_SILENCE_LIM before searching on
+	// Playing input: Tolerate WM8805_PAUSE_LIM of silence before searching for other input.
+	// Scanning inputs: Tolerate WM8805_SILENCE_LIM before searching on
 	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) )
 		pausecounter_temp = WM8805_PAUSE_LIM;
 	else
 		pausecounter_temp = WM8805_SILENCE_LIM;
 
-//	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
-	if ( (wm8805_status.powered == 1) && ( (wm8805_status.reliable == 0) || (pausecounter >= pausecounter_temp) ) ) {
-		// With this task's input_select values, assume semaphore is owned
-
-/*		//	What caused the trigger?
-#ifdef USB_STATE_MACHINE_DEBUG
-		if (unlockcounter >= WM8805_UNLOCK_LIM)
-			print_dbg_char('u');
-		if (pausecounter >= WM8805_PAUSE_LIM)
-			print_dbg_char('p');
-#endif
-*/
+	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
 
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
 			wm8805_mute();
 			wm8805_status.muted = 1;
-//			wm8805_status.silent = 0;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
@@ -297,13 +278,7 @@ void wm8805_poll(void) {
 				else
 					input_select_wm8805_next = MOBO_SRC_TOS2;
 			#endif
-/*
-// Which channel do we try next?
-#ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char(':');
-			print_dbg_char_hex(input_select_wm8805_next);
-#endif
-*/
+
 			// FIX: disable and re-enable ADC DMA around here?
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
@@ -319,33 +294,31 @@ void wm8805_poll(void) {
 
 
 	// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
-//	if ( (wm8805_status.muted == 1) && (wm8805_status.powered == 1) ) { // May rewrite as more logical &&
-//		if ( (lockcounter >= WM8805_LOCK_LIM) && (pausecounter == 0) ) { // May equally test for .reliable == 1
-	if ( (wm8805_status.muted == 1) && (wm8805_status.reliable == 1) && (pausecounter == 0)) {{
+	if ( (wm8805_status.muted == 1) && (wm8805_status.reliable == 1) && (pausecounter == 0)) {
 
-			if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
+		if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
-				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-					print_dbg_char('[');
-					input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
-				}
-				else
-					print_dbg_char(']');
+			print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
+			if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+				print_dbg_char('[');
+				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
+			}
+			else
+				print_dbg_char(']');
 #else // not debug
-				if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) { // Re-take of taken semaphore returns false
-					input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
-				}
+			if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) { // Re-take of taken semaphore returns false
+				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
+			}
 #endif
-			}
+		}
 
-			// Do we own semaphore? If so, change I2S setting
-			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-				wm8805_clkdiv();						// Configure MCLK division
-				wm8805_unmute();						// Reconfigure DAC-side I2S and LEDs
-				wm8805_status.muted = 0;
-			}
-	}}
+		// Do we own semaphore? If so, change I2S setting
+		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+			wm8805_clkdiv();						// Configure MCLK division
+			wm8805_unmute();						// Reconfigure DAC-side I2S and LEDs
+			wm8805_status.muted = 0;
+		}
+	}
 
 
 	// Polling interrupt monitor, only use when WM8805 is on
@@ -354,12 +327,10 @@ void wm8805_poll(void) {
 
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {
 			wm8805_status.reliable = 0;					// RX is not stable
-
 			if (wm8805_status.muted == 0) {
 				wm8805_mute();
 				wm8805_status.muted = 1;				// In any case, we're muted from now on.
 			}
-
 			if (wm8805_srd() == FREQ_192)
 				wm8805_pllmode = WM8805_PLL_192;
 			else
@@ -368,7 +339,6 @@ void wm8805_poll(void) {
 			vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 		}
 	}	// Done handling interrupt
-
 
 
 	// Monitor silent or disconnected WM8805 input
@@ -391,7 +361,7 @@ void wm8805_poll(void) {
 			}
 		}
 
-// 		SW zero detector responds needs powered-up WM8805
+// 		SW zero detector depends on uacX_device_audio_task to update .silent
 //		if ( (wm8805_status.silent == 1) || (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) ) {
 		if ( (wm8805_status.silent == 1)  ) {
 			if (pausecounter < WM8805_PAUSE_LIM)
