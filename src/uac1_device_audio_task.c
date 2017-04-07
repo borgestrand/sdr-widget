@@ -341,20 +341,19 @@ void uac1_device_audio_task(void *pvParameters)
 			ADC_buf_USB_IN = -2;
 		}
 
-//		if (wm8805_status.powered == 0) {				// This code is unable to detect silence in a shut-down WM8805
-//			wm8805_status.silent = 0;					// Shut down -> reset the silence detector so that we're able to restart
-//		}
 		if (wm8805_status.reliable == 0) {			// Temporarily unreliable counts as silent
 			wm8805_status.silent = 1;
+			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;			// Respond as soon as .reliable is set
 		}
 
 		// Has producer's buffer been toggled by interrupt driven DMA code?
 		// If so, check it for silence. If selected as source, copy all of producer's data. (And perform skip/insert.)
-		if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
+		// Only bother if .reliable != 0
+		else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
 			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 
 			// Silence / DC detector 2.0
-			if (wm8805_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
+//			if (wm8805_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
 					if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
 						sample_temp = audio_buffer_0[i] & 0x00FFFF00;
@@ -371,9 +370,13 @@ void uac1_device_audio_task(void *pvParameters)
 				else {									// Silence was detected, update flag to SPDIF RX code
 					wm8805_status.silent = 1;
 				}
-			}
+//			}
 
 			if ( ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) ) {
+
+				if (wm8805_status.frequency != wm8805_srd())	// Do we have time for this?
+					print_dbg_char('F');
+
 
 				// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 				if (ADC_buf_USB_IN == -2) {
@@ -426,13 +429,13 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 				s_samples_to_transfer_OUT = 1;			// Default value
-				if ((s_gap < s_old_gap) && (s_gap < SPK1_GAP_L3)) {
+				if ((s_gap <= s_old_gap) && (s_gap < SPK1_GAP_L3)) {
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
-					print_dbg_char('s');
+//					print_dbg_char('s');
 				}
-				else if ((s_gap > s_old_gap) && (s_gap > SPK1_GAP_U3)) {
+				else if ((s_gap >= s_old_gap) && (s_gap > SPK1_GAP_U3)) {
 					s_samples_to_transfer_OUT = 2;		// Do some insertin'
-					print_dbg_char('i');
+//					print_dbg_char('i');
 				}
 
 
@@ -441,7 +444,6 @@ void uac1_device_audio_task(void *pvParameters)
 					gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 				else if (ADC_buf_DMA_write_temp == 0)
 					gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-
 
 				// Apply megaskip when DC or zero is detected
 				if (wm8805_status.silent == 1) {									// Silence was detected
@@ -459,14 +461,14 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
 				if (s_megaskip >= ADC_BUFFER_SIZE) {
-					print_dbg_char('S');
+//					print_dbg_char('S');
 					s_samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 					s_megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
 					// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
 				}
 				// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
 				else if (s_megaskip <= -ADC_BUFFER_SIZE) {
-					print_dbg_char('I');
+//					print_dbg_char('I');
 					s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					s_megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 

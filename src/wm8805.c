@@ -166,7 +166,6 @@ void wm8805_poll(void) {
 	static int16_t pausecounter = 0;
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
-
 	int16_t pausecounter_temp = 0;
 
 //  static uint8_t wm8805_muted = 1;						// Assume I2S output is muted
@@ -199,8 +198,8 @@ void wm8805_poll(void) {
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With patch to PX37 from WM8805
 	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
 			wm8805_status.reliable = 0;					// Something went wrong, we're not reliable
+			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
 		}
 	}
 #endif
@@ -217,7 +216,7 @@ void wm8805_poll(void) {
 			pausecounter = 0;
 			lockcounter = 0;
 
-			wm8805_status.reliable = 0;
+			wm8805_status.reliable = 0;					// Because of input change
 			wm8805_input(input_select_wm8805_next);		// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
@@ -228,6 +227,7 @@ void wm8805_poll(void) {
 		if (wm8805_status.powered == 1) {
 //			wm8805_status.silent = 0;					// We haven't yet detected silence
 			wm8805_status.powered = 0;
+			wm8805_status.reliable = 0;					// Because of power down
 			wm8805_sleep();
 		}
 	}
@@ -245,7 +245,8 @@ void wm8805_poll(void) {
 	else
 		pausecounter_temp = WM8805_SILENCE_LIM;
 
-	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
+//	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
+	if ( (wm8805_status.powered == 1) && ( (wm8805_status.reliable == 0) || (pausecounter >= pausecounter_temp) ) ) {
 		// With this task's input_select values, assume semaphore is owned
 
 /*		//	What caused the trigger?
@@ -304,7 +305,7 @@ void wm8805_poll(void) {
 #endif
 */
 			// FIX: disable and re-enable ADC DMA around here?
-			wm8805_status.reliable = 0;
+			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 			wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
@@ -318,8 +319,10 @@ void wm8805_poll(void) {
 
 
 	// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
-	if ( (wm8805_status.muted == 1) && (wm8805_status.powered == 1) ) {
-		if ( (lockcounter >= WM8805_LOCK_LIM) && (pausecounter == 0) ) {
+//	if ( (wm8805_status.muted == 1) && (wm8805_status.powered == 1) ) { // May rewrite as more logical &&
+//		if ( (lockcounter >= WM8805_LOCK_LIM) && (pausecounter == 0) ) { // May equally test for .reliable == 1
+	if ( (wm8805_status.muted == 1) && (wm8805_status.reliable == 1) && (pausecounter == 0)) {{
+
 			if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('T');					// Debug semaphore, capital letters for WM8805 task
@@ -339,11 +342,10 @@ void wm8805_poll(void) {
 			// Do we own semaphore? If so, change I2S setting
 			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 				wm8805_clkdiv();						// Configure MCLK division
-				wm8805_unmute();						// Reconfigure I2S selection and LEDs
+				wm8805_unmute();						// Reconfigure DAC-side I2S and LEDs
 				wm8805_status.muted = 0;
 			}
-		}
-	}
+	}}
 
 
 	// Polling interrupt monitor, only use when WM8805 is on
@@ -351,6 +353,8 @@ void wm8805_poll(void) {
 		wm8805_int = wm8805_read_byte(0x0B);			// Record interrupt status and clear pin
 
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {
+			wm8805_status.reliable = 0;					// RX is not stable
+
 			if (wm8805_status.muted == 0) {
 				wm8805_mute();
 				wm8805_status.muted = 1;				// In any case, we're muted from now on.
@@ -362,7 +366,6 @@ void wm8805_poll(void) {
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
 			vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-			// Where is the corresponding wm8805_unmute() ?
 		}
 	}	// Done handling interrupt
 
@@ -371,6 +374,7 @@ void wm8805_poll(void) {
 	// Monitor silent or disconnected WM8805 input
 	if (wm8805_status.powered == 1) {
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
+			wm8805_status.reliable = 0;					// Duplication of code from the top of this section, bad style!
 			lockcounter = 0;
 			if (unlockcounter < WM8805_UNLOCK_LIM) {
 				unlockcounter++;
@@ -382,6 +386,7 @@ void wm8805_poll(void) {
 				lockcounter++;
 			}
 			else {
+				wm8805_status.frequency = wm8805_srd();	// Not necessarily stable at this point...
 				wm8805_status.reliable = 1;
 			}
 		}
@@ -395,7 +400,6 @@ void wm8805_poll(void) {
 		else {
 			pausecounter = 0;
 		}
-
 	}
 
 } // wm8805_poll
@@ -530,13 +534,20 @@ void wm8805_mute(void) {
 
 // Un-mute the WM8805
 void wm8805_unmute(void) {
+//	S32 freq_temp;
+
 	gpio_set_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
-	wm8805_status.frequency = wm8805_srd();
+//	freq_temp = wm8805_srd();		// FIX: is this a little too late in the process?
 	gpio_clr_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
 
-	mobo_clock_division(wm8805_status.frequency);			// Adjust MCU clock to match WM8805 frequency
-	mobo_xo_select(wm8805_status.frequency, input_select);	// Select correct crystal oscillator AND I2S MUX
-	mobo_led_select(wm8805_status.frequency, input_select);	// Indicate present sample rate
+//	if (freq_temp != wm8805_status.frequency) {
+//		wm8805_status.frequency = freq_temp;
+//	}
+
+	// May do a test vs. freq_prev to determine if clock resetting and muxing is really needed
+	mobo_clock_division(wm8805_status.frequency);			// Outgoing I2S clock division selector
+	mobo_xo_select(wm8805_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
+	mobo_led_select(wm8805_status.frequency, input_select);	// User interface channel indicator
 
 	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 
