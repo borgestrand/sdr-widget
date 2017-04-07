@@ -239,7 +239,6 @@ void wm8805_poll(void) {
 		pausecounter_temp = WM8805_SILENCE_LIM;
 
 	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
-
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
 			wm8805_mute();
@@ -356,7 +355,8 @@ void wm8805_poll(void) {
 				lockcounter++;
 			}
 			else {
-				wm8805_status.frequency = wm8805_srd();	// Not necessarily stable at this point...
+				if (wm8805_status.reliable == 0)		// Only once at this spot
+					wm8805_status.frequency = wm8805_srd();	// Not necessarily stable at this point...
 				wm8805_status.reliable = 1;
 			}
 		}
@@ -371,6 +371,23 @@ void wm8805_poll(void) {
 			pausecounter = 0;
 		}
 	}
+
+	/* We can't trust this routine if we can't trust wm8805_srd() in the first place. Unless we want to trust statistics
+	// As-is this code doesn't work because it doesn't can unmute() in any way.
+	// Monitor frequency mishaps without changing inputs or muting
+	S32 freq_temp;
+	if (wm8805_status.reliable == 1) {
+		freq_temp = wm8805_srd();
+		if (wm8805_status.frequency != freq_temp) {	// Frequency mismatch requires re-lock
+			print_dbg_char('F');
+
+			wm8805_status.frequency = freq_temp;
+			wm8805_status.reliable = 0;
+			lockcounter = 0;
+			unlockcounter = 0;
+		}
+	}
+	 */
 
 } // wm8805_poll
 
@@ -564,9 +581,9 @@ uint32_t wm8805_srd(void) {
 	// 14 1/20 failed to detect 96
 	// 20 1/35 failed to detect 176.4
 	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
-	//
+	// Even 400 will fail some times!
 
-	while ( (i < 4) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
+	while ( (i < 400) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
 		freq = wm8805_srd_asm();
 //		vTaskDelay(10);
 		if ( (freq == freq_prev) && (freq != FREQ_TIMEOUT) )
