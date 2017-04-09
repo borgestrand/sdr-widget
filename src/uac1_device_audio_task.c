@@ -374,12 +374,6 @@ void uac1_device_audio_task(void *pvParameters)
 
 			if ( ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) ) {
 
-				// Check frequency status
-				S32 freq_temp = wm8805_srd();
-				if ( (wm8805_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ){	// Do we have time for this?
-					print_dbg_char('\\');
-				}
-
 				// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 				if (ADC_buf_USB_IN == -2) {
 					ADC_buf_USB_IN = ADC_buf_DMA_write_temp;	// Disable further init

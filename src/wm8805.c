@@ -167,6 +167,7 @@ void wm8805_poll(void) {
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
 	int16_t pausecounter_temp = 0;
+	S32 freq_temp = 0;
 
 
 	/* NEXT:
@@ -281,9 +282,22 @@ void wm8805_poll(void) {
 			// FIX: disable and re-enable ADC DMA around here?
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
-			wm8805_pllmode = WM8805_PLL_NORMAL;
-			wm8805_pll(wm8805_pllmode);						// Is this a good assumption, or should we test its (not yet stable) freq?
 			vTaskDelay(1000);								// Give the poor thing a chance to link up. 640 was once a borderline case...
+
+			// Duplicated code!
+			do {											// Repeated PLL setup
+				wm8805_status.frequency = wm8805_srd();
+				if (wm8805_status.frequency == FREQ_192)
+					wm8805_pllmode = WM8805_PLL_192;
+				else
+					wm8805_pllmode = WM8805_PLL_NORMAL;
+				wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+				vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+			} while (wm8805_status.frequency != wm8805_srd());
+
+
+			wm8805_pllmode = WM8805_PLL_NORMAL;
+
 
 			lockcounter = 0;
 			unlockcounter = 0;
@@ -329,13 +343,17 @@ void wm8805_poll(void) {
 			if (wm8805_status.muted == 0) {
 				wm8805_mute();
 				wm8805_status.muted = 1;				// In any case, we're muted from now on.
+
+				do {									// Repeated PLL setup
+					wm8805_status.frequency = wm8805_srd();
+					if (wm8805_status.frequency == FREQ_192)
+						wm8805_pllmode = WM8805_PLL_192;
+					else
+						wm8805_pllmode = WM8805_PLL_NORMAL;
+					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?				} while (wm8805_status.frequency != wm8805_srd());
+
 			}
-			if (wm8805_srd() == FREQ_192)
-				wm8805_pllmode = WM8805_PLL_192;
-			else
-				wm8805_pllmode = WM8805_PLL_NORMAL;
-			wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-			vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 		}
 	}	// Done handling interrupt
 
@@ -355,11 +373,28 @@ void wm8805_poll(void) {
 				lockcounter++;
 			}
 			else {
-				if (wm8805_status.reliable == 0)		// Only once at this spot
-					wm8805_status.frequency = wm8805_srd();	// Not necessarily stable at this point...
+				if (wm8805_status.reliable == 0) {		// Only once at this spot
+/*
+					#define sdr_poll_repetitions 10
+					int i = sdr_poll_repetitions;		// N, number of successful polls required
+					wm8805_status.frequency = wm8805_srd();
 
-				if (wm8805_status.frequency != FREQ_TIMEOUT)
-					wm8805_status.reliable = 1;
+					while (i > 0) {						// Must verify N times
+						vTaskDelay(10);					// 1ms poll
+						if (wm8805_status.frequency == wm8805_srd())
+							i--;
+						else {							// New baseline to be verified
+							wm8805_status.frequency = wm8805_srd();
+							i = sdr_poll_repetitions;
+						}
+
+					}
+*/
+					wm8805_status.frequency = wm8805_srd();
+
+					if (wm8805_status.frequency != FREQ_TIMEOUT)
+						wm8805_status.reliable = 1;
+				}
 			}
 		}
 
@@ -390,6 +425,21 @@ void wm8805_poll(void) {
 		}
 	}
 	 */
+
+
+	// Check frequency status. Halt operation if frequency has changed
+	freq_temp = wm8805_srd();
+	if ( (wm8805_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ) {	// Do we have time for this?
+//		print_dbg_char('\\');
+
+		wm8805_status.frequency = freq_temp;
+
+		wm8805_status.reliable = 0;
+		wm8805_mute();
+		wm8805_status.muted = 1;
+		lockcounter = 0;
+		unlockcounter = 0;
+	}
 
 } // wm8805_poll
 
@@ -591,7 +641,7 @@ uint32_t wm8805_srd(void) {
 	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
 	// Even 400 will fail some times!
 
-	while ( (i < 4) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
+	while ( (i < 3) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
 		freq = wm8805_srd_asm2();
 //		vTaskDelay(10);
 		if ( (freq == freq_prev) && (freq != FREQ_TIMEOUT) )
@@ -946,7 +996,7 @@ uint32_t wm8805_srd_asm2(void) {
 	#define SLIM_88_HIGH	790
 	#define SLIM_96_LOW		679
 	#define SLIM_96_HIGH	726
-	#define SLIM_176_LOW	369
+	#define SLIM_176_LOW	369		// Add margin??
 	#define SLIM_176_HIGH	396
 	#define SLIM_192_LOW	339
 	#define SLIM_192_HIGH	363
