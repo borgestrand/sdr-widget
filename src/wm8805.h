@@ -37,8 +37,9 @@
 #define WM8805_INT_N_PIN	AVR32_PIN_PX54
 #define WM8805_ZERO_PIN		AVR32_PIN_PX15
 #define WM8805_DEV_ADR		0x3A 				// 0x3A with pin 9 patched to GND with 10k 00111010
-#define WM8805_PLL_NORMAL	0					// PLL mode is normal 32-96 and 176.4ksps
-#define WM8805_PLL_192		1					// PLL mode is for 192ksps
+#define WM8805_PLL_NONE		0
+#define WM8805_PLL_NORMAL	1					// PLL mode is normal 32-96 and 176.4ksps
+#define WM8805_PLL_192		2					// PLL mode is for 192ksps
 #define WM8805_PLL_EXP		2					// Experimental PLL mode
 #define WM8805_UNLOCK_LIM	2					// Number of poll cycles to determine that an unlock has taken place, in order to start searching
 #define WM8805_PAUSE_LIM	350	// 400 // 200	// Poll cycles to determine that a previously playing input is silent. NB: Signed 16-bit number!
