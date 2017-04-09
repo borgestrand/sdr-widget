@@ -160,6 +160,7 @@ volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT};
 //! @brief Polling routine for WM8805 hardware
 //!
 void wm8805_poll(void) {
+    static uint8_t wm8805_pllmode = WM8805_PLL_NONE;				// Normal PLL setting at WM8805 reset
     uint8_t wm8805_int = 0;									// WM8805 interrupt status
     static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
 	static int16_t pausecounter = 0;
@@ -206,6 +207,8 @@ void wm8805_poll(void) {
 	if (input_select == MOBO_SRC_NONE) {
 		if (wm8805_status.powered == 0) {
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
+			wm8805_pllmode = WM8805_PLL_NONE;			// Force PLL re-init
+			print_dbg_char('0');
 			wm8805_status.powered = 1;
 			wm8805_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
 
@@ -215,7 +218,32 @@ void wm8805_poll(void) {
 
 			wm8805_status.reliable = 0;					// Because of input change
 			wm8805_input(input_select_wm8805_next);		// Try next input source
-			wm8805_pll();								// Set up PLL
+			vTaskDelay(1000);							// Give the poor thing a chance to link up. 640 was once a borderline case...
+
+
+//			wm8805_pllmode = WM8805_PLL_NORMAL;
+//			wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
+
+			// Duplicated code!
+//			do {									// Repeated PLL setup
+				wm8805_status.frequency = wm8805_srd();
+/*					if (wm8805_status.frequency == FREQ_192)
+					wm8805_pllmode = WM8805_PLL_192;
+				else
+					wm8805_pllmode = WM8805_PLL_NORMAL;
+				wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+				vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+*/
+				if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_pllmode != WM8805_PLL_192) ) ||
+					  ( (wm8805_status.frequency != FREQ_192) && (wm8805_pllmode != WM8805_PLL_NORMAL) ) ) {
+					if (wm8805_status.frequency == FREQ_192)
+						wm8805_pllmode = WM8805_PLL_192;
+					else
+						wm8805_pllmode = WM8805_PLL_NORMAL;
+					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+				}
+//			} while (wm8805_status.frequency != wm8805_srd());
 
 
 		}
@@ -282,22 +310,28 @@ void wm8805_poll(void) {
 			// FIX: disable and re-enable ADC DMA around here?
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
-			wm8805_pll();									// Configure PLL after selecting new input
+			vTaskDelay(1000);								// Give the poor thing a chance to link up. 640 was once a borderline case...
 
-/*
 			// Duplicated code!
-			do {											// Repeated PLL setup
+//			do {									// Repeated PLL setup
 				wm8805_status.frequency = wm8805_srd();
-				if (wm8805_status.frequency == FREQ_192)
+/*					if (wm8805_status.frequency == FREQ_192)
 					wm8805_pllmode = WM8805_PLL_192;
 				else
 					wm8805_pllmode = WM8805_PLL_NORMAL;
 				wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
 				vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-			} while (wm8805_status.frequency != wm8805_srd());
-
-			wm8805_pllmode = WM8805_PLL_NORMAL;
 */
+				if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_pllmode != WM8805_PLL_192) ) ||
+					  ( (wm8805_status.frequency != FREQ_192) && (wm8805_pllmode != WM8805_PLL_NORMAL) ) ) {
+					if (wm8805_status.frequency == FREQ_192)
+						wm8805_pllmode = WM8805_PLL_192;
+					else
+						wm8805_pllmode = WM8805_PLL_NORMAL;
+					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+				}
+//			} while (wm8805_status.frequency != wm8805_srd());
 
 			lockcounter = 0;
 			unlockcounter = 0;
@@ -343,20 +377,29 @@ void wm8805_poll(void) {
 			if (wm8805_status.muted == 0) {
 				wm8805_mute();
 				wm8805_status.muted = 1;				// In any case, we're muted from now on.
-				wm8805_pll();
 
-/*
-				do {									// Repeated PLL setup
+//				do {									// Repeated PLL setup
 					wm8805_status.frequency = wm8805_srd();
-					if (wm8805_status.frequency == FREQ_192)
+/*					if (wm8805_status.frequency == FREQ_192)
 						wm8805_pllmode = WM8805_PLL_192;
 					else
 						wm8805_pllmode = WM8805_PLL_NORMAL;
 					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?				} while (wm8805_status.frequency != wm8805_srd());
-*/
+					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?*/
+					if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_pllmode != WM8805_PLL_192) ) ||
+						  ( (wm8805_status.frequency != FREQ_192) && (wm8805_pllmode != WM8805_PLL_NORMAL) ) ) {
+						if (wm8805_status.frequency == FREQ_192)
+							wm8805_pllmode = WM8805_PLL_192;
+						else
+							wm8805_pllmode = WM8805_PLL_NORMAL;
+						wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+						vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+					}
+//				} while (wm8805_status.frequency != wm8805_srd());
+
 			}
 		}
+		vTaskDelay(1000);
 	}	// Done handling interrupt
 
 
@@ -394,8 +437,10 @@ void wm8805_poll(void) {
 */
 					wm8805_status.frequency = wm8805_srd();
 
-					if (wm8805_status.frequency != FREQ_TIMEOUT)
+					if (wm8805_status.frequency != FREQ_TIMEOUT) {
+						print_dbg_char('r');
 						wm8805_status.reliable = 1;
+					}
 				}
 			}
 		}
@@ -429,10 +474,10 @@ void wm8805_poll(void) {
 	 */
 
 
-	// Check frequency status. Halt operation if frequency has changed
+	// Check frequency status. Halt operation if frequency has changed. Don't change source
 	freq_temp = wm8805_srd();
 	if ( (wm8805_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ) {	// Do we have time for this?
-//		print_dbg_char('\\');
+		print_dbg_char('\\');
 
 		wm8805_status.frequency = freq_temp;
 
@@ -514,51 +559,33 @@ void wm8805_input(uint8_t input_sel) {
  	}
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
-	vTaskDelay(500);					// Allow the new input to stabilize
 }
 
-
 // Select PLL setting of the WM8805
-void wm8805_pll(void) {
+void wm8805_pll(uint8_t pll_sel) {
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
-	uint8_t pll_sel;
-	static uint8_t pll_sel_prev = WM8805_PLL_NONE;	// unrecognized at first
 
-	if (wm8805_srd() == FREQ_192)
-		pll_sel = WM8805_PLL_192;
-	else
-		pll_sel = WM8805_PLL_NORMAL;
+	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
+	if (pll_sel == WM8805_PLL_NORMAL) {
 
-	if (pll_sel != pll_sel_prev) {			// Need for new PLL setting
-		pll_sel_prev = pll_sel;
+		print_dbg_char('_');
 
-		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
-		if (pll_sel == WM8805_PLL_NORMAL) {
-
-			print_dbg_char('_');
-
-			wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
-			wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
-			wm8805_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
-			wm8805_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
-		}
-
-		// Special PLL setup for 192
-		else if (pll_sel == WM8805_PLL_192) {	// PLL setting 8.192
-
-			print_dbg_char(169);			// High line
-
-			wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
-			wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
-			wm8805_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
-			wm8805_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
-		}
-
-		vTaskDelay(3000);					// Allow the thing to stabilize
-
-		// FIX: Loop until stable?
+		wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
+		wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
+		wm8805_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
+		wm8805_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
 	}
 
+	// Special PLL setup for 192
+	else if (pll_sel == WM8805_PLL_192) {	// PLL setting 8.192
+
+		print_dbg_char(169);			// High line
+
+		wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
+		wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
+		wm8805_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
+		wm8805_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
+	}
 
 /* // Bad news: unified PLL setting doesn't work!
 	else if (pll_sel == WM8805_PLL_EXP) { 	// Experimental PLL setting 8.0247 failed 192, 8.1 failed 176 and 192. Forget it!
