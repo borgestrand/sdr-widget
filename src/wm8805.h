@@ -89,6 +89,7 @@ uint8_t wm8805_read_byte(uint8_t int_adr);
 // Sample rate detection test
 uint32_t wm8805_srd(void);
 uint32_t wm8805_srd_asm(void);
+uint32_t wm8805_srd_asm2(void);		// For test and evaluation
 
 
 #endif /* WM8805_H_ */

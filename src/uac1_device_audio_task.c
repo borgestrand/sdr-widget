@@ -374,9 +374,11 @@ void uac1_device_audio_task(void *pvParameters)
 
 			if ( ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) ) {
 
-//				if (wm8805_status.frequency != wm8805_srd())	// Do we have time for this?
-//					print_dbg_char('F');
-
+				// Check frequency status
+				S32 freq_temp = wm8805_srd();
+				if ( (wm8805_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ){	// Do we have time for this?
+					print_dbg_char('\\');
+				}
 
 				// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 				if (ADC_buf_USB_IN == -2) {
@@ -431,11 +433,11 @@ void uac1_device_audio_task(void *pvParameters)
 				s_samples_to_transfer_OUT = 1;			// Default value
 				if ((s_gap <= s_old_gap) && (s_gap < SPK1_GAP_L3)) {
 					s_samples_to_transfer_OUT = 0;		// Do some skippin'
-					print_dbg_char('s');
+//					print_dbg_char('s');
 				}
 				else if ((s_gap >= s_old_gap) && (s_gap > SPK1_GAP_U3)) {
 					s_samples_to_transfer_OUT = 2;		// Do some insertin'
-					print_dbg_char('i');
+//					print_dbg_char('i');
 				}
 
 
@@ -461,14 +463,14 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
 				if (s_megaskip >= ADC_BUFFER_SIZE) {
-					print_dbg_char('S');
+//					print_dbg_char('S');
 					s_samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 					s_megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
 					// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
 				}
 				// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
 				else if (s_megaskip <= -ADC_BUFFER_SIZE) {
-					print_dbg_char('I');
+//					print_dbg_char('I');
 					s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					s_megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 

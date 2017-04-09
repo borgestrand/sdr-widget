@@ -357,7 +357,9 @@ void wm8805_poll(void) {
 			else {
 				if (wm8805_status.reliable == 0)		// Only once at this spot
 					wm8805_status.frequency = wm8805_srd();	// Not necessarily stable at this point...
-				wm8805_status.reliable = 1;
+
+				if (wm8805_status.frequency != FREQ_TIMEOUT)
+					wm8805_status.reliable = 1;
 			}
 		}
 
@@ -468,6 +470,9 @@ void wm8805_pll(uint8_t pll_sel) {
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 	if (pll_sel == WM8805_PLL_NORMAL) {
+
+		print_dbg_char('_');
+
 		wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 		wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
 		wm8805_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
@@ -476,6 +481,9 @@ void wm8805_pll(uint8_t pll_sel) {
 
 	// Special PLL setup for 192
 	else if (pll_sel == WM8805_PLL_192) {	// PLL setting 8.192
+
+		print_dbg_char(169);			// High line
+
 		wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
 		wm8805_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
@@ -583,14 +591,29 @@ uint32_t wm8805_srd(void) {
 	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
 	// Even 400 will fail some times!
 
-	while ( (i < 400) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
-		freq = wm8805_srd_asm();
+	while ( (i < 4) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
+		freq = wm8805_srd_asm2();
 //		vTaskDelay(10);
 		if ( (freq == freq_prev) && (freq != FREQ_TIMEOUT) )
 			i++;
 		freq_prev = freq;
 	}
-
+/*
+	if (freq == FREQ_44)
+		print_dbg_char('1');
+	else if (freq == FREQ_48)
+		print_dbg_char('2');
+	else if (freq == FREQ_88)
+		print_dbg_char('3');
+	else if (freq == FREQ_96)
+		print_dbg_char('4');
+	else if (freq == FREQ_176)
+		print_dbg_char('5');
+	else if (freq == FREQ_192)
+		print_dbg_char('6');
+	else
+		print_dbg_char('U');
+*/
 	return freq;
 }
 
@@ -752,7 +775,7 @@ uint32_t wm8805_srd_asm(void) {
 	#define FLIM_96_HIGH	0x2B
 	#define FLIM_176_LOW	0x16
 	#define FLIM_176_HIGH	0x17
-	#define FLIM_192_LOW	0x14
+	#define FLIM_192_LOW	0x14 // Was 0x14
 	#define FLIM_192_HIGH	0x15
 
 	gpio_clr_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
@@ -790,6 +813,173 @@ uint32_t wm8805_srd_asm(void) {
 //		print_dbg_char('F');
 		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
 	}
+}
+
+
+
+
+
+
+uint32_t wm8805_srd_asm2(void) {
+	uint32_t timeout;
+
+	gpio_set_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
+
+	// see srd_test.c and srd_test.lst
+
+	// New board: Will move to PX09, pin 49
+
+	// Determining speed at TP16 / DAC_0P / PA04 for now. Recompile prototype c to change io pin!
+	// Test is done for up to 1 half period, then 2 full periods
+
+	// HW_GEN_DIN10 gets patched to become like HW_GEN_DIN20 in this repect
+
+	gpio_enable_gpio_pin(AVR32_PIN_PX09);	// Enable GPIO pin, not special IO (also for input). Needed?
+
+	asm volatile(
+//		"ssrf	16				\n\t"	// Disable global interrupt
+		"mov	%0, 	2000	\n\t"	// Load timeout
+		"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PX09, recompile C for other IO pin, do once
+
+		// If bit is 0, branch to loop while 0. If bit was 1, continue to loop while 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	S3				\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+
+		// Wait while bit is 1, then count two half periods
+		"S0:					\n\t"	// Loop while PA04 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	S0_done			\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S0				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S0_done:				\n\t"
+
+		"mfsr	r10, 264		\n\t"	// Load 1st cycle counter into r10
+
+		"S1:					\n\t"	// Loop while PA04 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	S1_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S1				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S1_done:				\n\t"
+
+		"S2:					\n\t"	// Loop while PBA04 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	S2_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S2				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S2_done:				\n\t"
+		"rjmp	SRETURN__		\n\t"
+
+
+
+		// Wait while bit is 0, then count two half periods
+		"S3:					\n\t"	// Loop while PA04 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	S3_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S3				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S3_done:				\n\t"
+
+		"mfsr	r10, 264		\n\t"	// Load 1st cycle counter into r10
+
+		"S4:					\n\t"	// Loop while PBA04 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	S4_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S4				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S4_done:				\n\t"
+
+		"S5:					\n\t"	// Loop while PA04 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	28		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	S5_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S5				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S5_done:				\n\t"
+		"rjmp	SRETURN__		\n\t"
+
+
+		"SRETURN__:				\n\t"
+
+		"mfsr	%0, 264			\n\t"	// Load 2nd cycle counter into r11
+		"sub	%0, r10			\n\t"	// Return difference from 1st to 2nd cycle counter
+
+
+		"SCOUNTD:				\n\t"	// Countdown reached, %0 is 0
+
+//		"csrf	16				\n\t"	// Enable global interrupt
+		:	"=r" (timeout)				// One output register
+		:								// No input registers
+		:	"r8", "r9", "r10"			// Clobber registers, pushed/popped unless assigned by GCC as temps
+	);
+
+//	timeout = 150 - timeout;
+
+	// It looks like we have approx. With 66MHz CPU clock it looks like 1 ticks
+	// Results from measurements and math:
+	//  44.1 1478-1580 (1496.6)
+	//  48.0 1358-1452 (1375.0)
+	//	88.2  739- 790 ( 748.3)
+	//  96.0  679- 726 ( 687.5)
+	// 176.4  369- 396 ( 374.2)
+	// 192.0  339- 363 ( 343.8)
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
+
+	#define SLIM_44_LOW		1478
+	#define SLIM_44_HIGH	1580 		// Gives timeout of 2000
+	#define SLIM_48_LOW		1358
+	#define SLIM_48_HIGH	1452
+	#define SLIM_88_LOW		739
+	#define SLIM_88_HIGH	790
+	#define SLIM_96_LOW		679
+	#define SLIM_96_HIGH	726
+	#define SLIM_176_LOW	369
+	#define SLIM_176_HIGH	396
+	#define SLIM_192_LOW	339
+	#define SLIM_192_HIGH	363
+
+	if ( (timeout >= SLIM_44_LOW) && (timeout <= SLIM_44_HIGH) ) {
+//		print_dbg_char('1');
+		return FREQ_44;
+	}
+	if ( (timeout >= SLIM_48_LOW) && (timeout <= SLIM_48_HIGH) ) {
+//		print_dbg_char('2');
+		return FREQ_48;
+	}
+	if ( (timeout >= SLIM_88_LOW) && (timeout <= SLIM_88_HIGH) ) {
+//		print_dbg_char('3');
+		return FREQ_88;
+	}
+	if ( (timeout >= SLIM_96_LOW) && (timeout <= SLIM_96_HIGH) ) {
+//		print_dbg_char('4');
+		return FREQ_96;
+	}
+	if ( (timeout >= SLIM_176_LOW) && (timeout <= SLIM_176_HIGH) ) {
+//		print_dbg_char('6');
+		return FREQ_176;
+	}
+	if ( (timeout >= SLIM_192_LOW) && (timeout <= SLIM_192_HIGH) ) {
+//		print_dbg_char('6');
+		return FREQ_192;
+	}
+	else {
+//		print_dbg_char('F');
+		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
+	}
+
 }
 
 

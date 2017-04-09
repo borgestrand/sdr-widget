@@ -301,7 +301,7 @@ extern __inline__ void cpu_delay_cy(unsigned long delay)
 
 
 #define Get_sys_count()     ( Get_system_register(AVR32_COUNT)        )
-#define Set_sys_count(x)    ( Set_system_register(AVR32_COUNT,   (x)) )
+// #define Set_sys_count(x)    ( Set_system_register(AVR32_COUNT,   (x)) )
 #define Get_sys_compare()   ( Get_system_register(AVR32_COMPARE)      )
 #define Set_sys_compare(x)  ( Set_system_register(AVR32_COMPARE, (x)) )
 

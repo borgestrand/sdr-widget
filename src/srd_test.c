@@ -7,6 +7,11 @@
 #define GPIO  AVR32_GPIO
 
 
+int32_t getcounter(void) {
+	return Get_system_register(AVR32_COUNT);
+}
+
+
 int32_t BSBmult(int32_t A, int32_t V) {
 	int32_t X;
 

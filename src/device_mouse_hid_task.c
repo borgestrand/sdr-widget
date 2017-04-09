@@ -391,6 +391,11 @@ void device_mouse_hid_task(void)
 
             // Select MCU's outgoing I2S bus
             else if (a == 'b') {							// Lowercase b
+            	while (1) {
+            		print_dbg_char('\n');
+            		print_dbg_hex(wm8805_srd_asm2());
+            		vTaskDelay(1000);
+            	}
             }
 
             // Select RXs's outgoing I2S bus
