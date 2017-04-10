@@ -195,14 +195,31 @@ void wm8805_poll(void) {
 	 * + Make silence detector (use 1024 silent block detector in WM?)
 	 */
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With patch to PX37 from WM8805
+/*
 	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			wm8805_status.reliable = 0;					// Something went wrong, we're not reliable
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
 		}
 	}
-#endif
+*/
+
+
+/*
+	// Check frequency status. Halt operation if frequency has changed. Don't change source
+	freq_temp = wm8805_srd();
+	if ( (wm8805_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ) {	// Do we have time for this?
+		print_dbg_char('\\');
+
+		wm8805_status.frequency = freq_temp;
+
+		wm8805_status.reliable = 0;
+		wm8805_mute();
+		wm8805_status.muted = 1;
+		lockcounter = 0;
+		unlockcounter = 0;
+	}
+*/
 
 	// USB is giving away control,
 	if (input_select == MOBO_SRC_NONE) {
@@ -219,6 +236,7 @@ void wm8805_poll(void) {
 
 			wm8805_status.reliable = 0;					// Because of input change
 			wm8805_input(input_select_wm8805_next);		// Try next input source
+			print_dbg_char('a');
 			vTaskDelay(100);
 
 
@@ -242,6 +260,7 @@ void wm8805_poll(void) {
 					else
 						wm8805_pllmode = WM8805_PLL_NORMAL;
 					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+					print_dbg_char('b');
 					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 				}
 //			} while (wm8805_status.frequency != wm8805_srd());
@@ -315,6 +334,7 @@ void wm8805_poll(void) {
 			// FIX: disable and re-enable ADC DMA around here?
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
+			print_dbg_char('c');
 			vTaskDelay(100);
 
 			// Duplicated code!
@@ -334,6 +354,7 @@ void wm8805_poll(void) {
 					else
 						wm8805_pllmode = WM8805_PLL_NORMAL;
 					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
+					print_dbg_char('d');
 					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 				}
 //			} while (wm8805_status.frequency != wm8805_srd());
@@ -377,7 +398,9 @@ void wm8805_poll(void) {
 	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_status.powered == 1) ) {
 		wm8805_int = wm8805_read_byte(0x0B);			// Record interrupt status and clear pin
 
-		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {
+		print_dbg_char('!');
+
+//		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {
 			wm8805_status.reliable = 0;					// RX is not stable
 			if (wm8805_status.muted == 0) {
 				wm8805_mute();
@@ -398,12 +421,14 @@ void wm8805_poll(void) {
 						else
 							wm8805_pllmode = WM8805_PLL_NORMAL;
 						wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-						vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+						print_dbg_char('e');
+//						vTaskDelay(1500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 					}
 //				} while (wm8805_status.frequency != wm8805_srd());
 
 			}
-		}
+//		}
+		print_dbg_char('f');
 		vTaskDelay(3000);
 	}	// Done handling interrupt
 
@@ -460,40 +485,6 @@ void wm8805_poll(void) {
 			pausecounter = 0;
 		}
 	}
-
-	/* We can't trust this routine if we can't trust wm8805_srd() in the first place. Unless we want to trust statistics
-	// As-is this code doesn't work because it doesn't can unmute() in any way.
-	// Monitor frequency mishaps without changing inputs or muting
-	S32 freq_temp;
-	if (wm8805_status.reliable == 1) {
-		freq_temp = wm8805_srd();
-		if (wm8805_status.frequency != freq_temp) {	// Frequency mismatch requires re-lock
-			print_dbg_char('F');
-
-			wm8805_status.frequency = freq_temp;
-			wm8805_status.reliable = 0;
-			lockcounter = 0;
-			unlockcounter = 0;
-		}
-	}
-	 */
-
-	/*
-
-	// Check frequency status. Halt operation if frequency has changed. Don't change source
-	freq_temp = wm8805_srd();
-	if ( (wm8805_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ) {	// Do we have time for this?
-		print_dbg_char('\\');
-
-		wm8805_status.frequency = freq_temp;
-
-		wm8805_status.reliable = 0;
-		wm8805_mute();
-		wm8805_status.muted = 1;
-		lockcounter = 0;
-		unlockcounter = 0;
-	}
-*/
 
 } // wm8805_poll
 
@@ -697,7 +688,8 @@ uint32_t wm8805_srd(void) {
 
 	while ( (i < 3) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
 		freq = wm8805_srd_asm2();
-//		vTaskDelay(10);
+//		print_dbg_char('g');
+		vTaskDelay(10);
 		if ( (freq == freq_prev) && (freq != FREQ_TIMEOUT) )
 			i++;
 		freq_prev = freq;
