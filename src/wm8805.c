@@ -166,7 +166,8 @@ void wm8805_poll(void) {
 	static int16_t pausecounter = 0;
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
-	int16_t pausecounter_temp = 0;
+	int16_t pausecounter_temp;
+	int16_t unlockcounter_temp;
 	S32 freq_temp = 0;
 
 
@@ -218,7 +219,7 @@ void wm8805_poll(void) {
 
 			wm8805_status.reliable = 0;					// Because of input change
 			wm8805_input(input_select_wm8805_next);		// Try next input source
-			vTaskDelay(1000);							// Give the poor thing a chance to link up. 640 was once a borderline case...
+			vTaskDelay(100);
 
 
 //			wm8805_pllmode = WM8805_PLL_NORMAL;
@@ -262,12 +263,16 @@ void wm8805_poll(void) {
 	// When WM is not selected, scan WM inputs for a short time (unlinked)
 	// Playing input: Tolerate WM8805_PAUSE_LIM of silence before searching for other input.
 	// Scanning inputs: Tolerate WM8805_SILENCE_LIM before searching on
-	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) )
+	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+		unlockcounter_temp = WM8805_HICKUP_LIM;
 		pausecounter_temp = WM8805_PAUSE_LIM;
-	else
+	}
+	else {
+		unlockcounter_temp = WM8805_UNLOCK_LIM;
 		pausecounter_temp = WM8805_SILENCE_LIM;
+	}
 
-	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= WM8805_UNLOCK_LIM) || (pausecounter >= pausecounter_temp) ) ) {
+	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= unlockcounter_temp) || (pausecounter >= pausecounter_temp) ) ) {
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
 			wm8805_mute();
@@ -310,7 +315,7 @@ void wm8805_poll(void) {
 			// FIX: disable and re-enable ADC DMA around here?
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
-			vTaskDelay(1000);								// Give the poor thing a chance to link up. 640 was once a borderline case...
+			vTaskDelay(100);
 
 			// Duplicated code!
 //			do {									// Repeated PLL setup
@@ -399,7 +404,7 @@ void wm8805_poll(void) {
 
 			}
 		}
-		vTaskDelay(1000);
+		vTaskDelay(3000);
 	}	// Done handling interrupt
 
 
@@ -408,7 +413,7 @@ void wm8805_poll(void) {
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
 			wm8805_status.reliable = 0;					// Duplication of code from the top of this section, bad style!
 			lockcounter = 0;
-			if (unlockcounter < WM8805_UNLOCK_LIM) {
+			if (unlockcounter < WM8805_HICKUP_LIM) {
 				unlockcounter++;
 			}
 		}
@@ -473,6 +478,7 @@ void wm8805_poll(void) {
 	}
 	 */
 
+	/*
 
 	// Check frequency status. Halt operation if frequency has changed. Don't change source
 	freq_temp = wm8805_srd();
@@ -487,6 +493,7 @@ void wm8805_poll(void) {
 		lockcounter = 0;
 		unlockcounter = 0;
 	}
+*/
 
 } // wm8805_poll
 
