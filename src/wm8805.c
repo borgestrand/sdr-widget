@@ -348,7 +348,7 @@ void wm8805_poll(void) {
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 			print_dbg_char('c');
-			vTaskDelay(200);
+			vTaskDelay(50);
 
 			// Duplicated code!
 //			do {									// Repeated PLL setup
@@ -410,13 +410,15 @@ void wm8805_poll(void) {
 	// Polling interrupt monitor, only use when WM8805 is on
 	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_status.powered == 1) ) {
 		wm8805_status.reliable = 0;					// RX is not stable
-		wm8805_mute();
-		wm8805_status.muted = 1;					// In any case, we're muted from now on.
+		if (wm8805_status.muted == 0) {				// Mute audio
+			wm8805_mute();
+			wm8805_status.muted = 1;
+		}
 
-		// 2*200 if clean, up to 20*200 if not clean. PLL change typically uses two interrupts
+		// 2*50 if clean, up to 20*50 if not clean. PLL change typically uses two interrupts
 		int i = 20;
 		while (i > 0) {
-			vTaskDelay(200);
+			vTaskDelay(30);
 
 			if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)
 				i--;
@@ -438,7 +440,7 @@ void wm8805_poll(void) {
 			else
 				wm8805_pllmode = WM8805_PLL_NORMAL;
 			wm8805_pll(wm8805_pllmode);				// Update PLL settings at any sample rate change!
-//			print_dbg_char('e');
+			print_dbg_char('e');
 			vTaskDelay(500);						// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 		}
 	}	// Done handling interrupt
