@@ -335,7 +335,7 @@ void wm8805_poll(void) {
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 			print_dbg_char('c');
-			vTaskDelay(100);
+			vTaskDelay(1000);
 
 			// Duplicated code!
 //			do {									// Repeated PLL setup
@@ -396,15 +396,44 @@ void wm8805_poll(void) {
 
 	// Polling interrupt monitor, only use when WM8805 is on
 	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_status.powered == 1) ) {
+		wm8805_status.reliable = 0;					// RX is not stable
+		wm8805_mute();
+		wm8805_status.muted = 1;				// In any case, we're muted from now on.
+
+/*
+		vTaskDelay(600);	// Add a small delay to try to avoid most double 'rupting
+
+		// Add a variable delay
+		int i = 20;
+		while ( (gpio_get_pin_value(WM8805_CSB_PIN) == 1) && (i-- > 0) ) {
+			vTaskDelay(200);	// Wait up to 4000, 400ms, for chip stability
+		}
+*/
+		// 3*200 if clean, up to 20*200 if not clean
+		int i = 20;
+		while (i > 0) {
+			vTaskDelay(200);
+
+			if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)
+				i--;
+			else
+				i-=7;
+		}
+
 		wm8805_int = wm8805_read_byte(0x0B);			// Record interrupt status and clear pin
 
+
 		print_dbg_char('!');
+		print_dbg_char_hex(wm8805_int);
+
 
 //		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {
-			wm8805_status.reliable = 0;					// RX is not stable
-			if (wm8805_status.muted == 0) {
-				wm8805_mute();
-				wm8805_status.muted = 1;				// In any case, we're muted from now on.
+//			wm8805_status.reliable = 0;					// RX is not stable
+
+		// What's this for???
+//			if (wm8805_status.muted == 0) {
+//				wm8805_mute();
+//				wm8805_status.muted = 1;				// In any case, we're muted from now on.
 
 //				do {									// Repeated PLL setup
 					wm8805_status.frequency = wm8805_srd();
@@ -422,14 +451,14 @@ void wm8805_poll(void) {
 							wm8805_pllmode = WM8805_PLL_NORMAL;
 						wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
 						print_dbg_char('e');
-//						vTaskDelay(1500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+						vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 					}
 //				} while (wm8805_status.frequency != wm8805_srd());
 
-			}
+//			}
 //		}
-		print_dbg_char('f');
-		vTaskDelay(3000);
+//		print_dbg_char('f');
+//		vTaskDelay(100);
 	}	// Done handling interrupt
 
 
