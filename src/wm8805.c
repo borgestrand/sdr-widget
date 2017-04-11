@@ -250,21 +250,8 @@ void wm8805_poll(void) {
 			wm8805_input(input_select_wm8805_next);		// Try next input source
 //			print_dbg_char('a');
 
-
-			// Duplication!
-			wm8805_status.frequency = wm8805_srd();
-			if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
-				  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
-				if (wm8805_status.frequency == FREQ_192)
-					wm8805_status.pllmode = WM8805_PLL_192;
-				else
-					wm8805_status.pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_status.pllmode);					// Update PLL settings at any sample rate change!
-//					print_dbg_char('b');
-				vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-			}
-
-
+			wm8805_pll();
+//			print_dbg_char('b');
 		}
 	}
 	// USB has assumed control, power down WM8805 if it was on
@@ -332,21 +319,13 @@ void wm8805_poll(void) {
 
 			// FIX: disable and re-enable ADC DMA around here?
 			wm8805_status.reliable = 0;						// Because of input change
+			lockcounter = 0;
+			unlockcounter = 0;
+			pausecounter = 0;
 			wm8805_input(input_select_wm8805_next);			// Try next input source
-//			print_dbg_char('c');
 
-			// Code duplication
-			wm8805_status.frequency = wm8805_srd();
-			if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
-				  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
-				if (wm8805_status.frequency == FREQ_192)
-					wm8805_status.pllmode = WM8805_PLL_192;
-				else
-					wm8805_status.pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_status.pllmode);					// Update PLL settings at any sample rate change!
-//					print_dbg_char('d');
-				vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-			}
+			wm8805_pll();
+//			print_dbg_char('c');
 
 			lockcounter = 0;
 			unlockcounter = 0;
@@ -407,17 +386,9 @@ void wm8805_poll(void) {
 //		print_dbg_char('!');
 //		print_dbg_char_hex(wm8805_int);
 
-		wm8805_status.frequency = wm8805_srd();
-		if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
-			  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
-			if (wm8805_status.frequency == FREQ_192)
-				wm8805_status.pllmode = WM8805_PLL_192;
-			else
-				wm8805_status.pllmode = WM8805_PLL_NORMAL;
-			wm8805_pll(wm8805_status.pllmode);				// Update PLL settings at any sample rate change!
-//			print_dbg_char('e');
-			vTaskDelay(500);						// Let WM8805 PLL try to settle for some time
-		}
+		wm8805_pll();
+//		print_dbg_char('e');
+
 	}	// Done handling interrupt
 
 
@@ -549,7 +520,25 @@ void wm8805_input(uint8_t input_sel) {
 }
 
 // Select PLL setting of the WM8805
-void wm8805_pll(uint8_t pll_sel) {
+void wm8805_pll(void) {
+	uint8_t pll_sel = WM8805_PLL_NONE;
+
+	// Figure out what's happening and act accordingly
+	wm8805_status.frequency = wm8805_srd();
+	if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
+	  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
+		if (wm8805_status.frequency == FREQ_192)
+			pll_sel = WM8805_PLL_192;
+		else
+			pll_sel = WM8805_PLL_NORMAL;
+	//	print_dbg_char('b');
+	}
+
+	// Don't change the PLL setting
+	if (pll_sel == WM8805_PLL_NONE)
+		return;
+
+	// Change the PLL setting
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
@@ -583,6 +572,8 @@ void wm8805_pll(uint8_t pll_sel) {
 	}
 */
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
+
+	vTaskDelay(500);					// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 }
 
 // Set up WM8805 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
