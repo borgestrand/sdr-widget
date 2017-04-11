@@ -160,15 +160,28 @@ volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT};
 //! @brief Polling routine for WM8805 hardware
 //!
 void wm8805_poll(void) {
-    static uint8_t wm8805_pllmode = WM8805_PLL_NONE;				// Normal PLL setting at WM8805 reset
-    uint8_t wm8805_int = 0;									// WM8805 interrupt status
+
+	#define pausecounter_initial 20000
+	#define startup_empty_runs 40
+
+    static uint8_t wm8805_pllmode = WM8805_PLL_NONE;			// Normal PLL setting at WM8805 reset
+    uint8_t wm8805_int = 0;										// WM8805 interrupt status
     static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
-	static int16_t pausecounter = 0;
+	static int16_t pausecounter = pausecounter_initial;						// Initiated to a value much larger than what is seen in practical use
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
 	int16_t pausecounter_temp;
 	int16_t unlockcounter_temp;
 	S32 freq_temp = 0;
+
+
+	// Run the first 40 iterations without starting up. (40*120/10 = 480ms)
+	if (pausecounter >= pausecounter_initial - startup_empty_runs) {
+		pausecounter--;
+		if (pausecounter == pausecounter_initial - startup_empty_runs)
+			pausecounter = 0;
+		return;
+	}
 
 
 	/* NEXT:
@@ -237,7 +250,7 @@ void wm8805_poll(void) {
 			wm8805_status.reliable = 0;					// Because of input change
 			wm8805_input(input_select_wm8805_next);		// Try next input source
 			print_dbg_char('a');
-			vTaskDelay(100);
+			vTaskDelay(200);
 
 
 //			wm8805_pllmode = WM8805_PLL_NORMAL;
@@ -261,7 +274,7 @@ void wm8805_poll(void) {
 						wm8805_pllmode = WM8805_PLL_NORMAL;
 					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
 					print_dbg_char('b');
-					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+					vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 				}
 //			} while (wm8805_status.frequency != wm8805_srd());
 
@@ -335,7 +348,7 @@ void wm8805_poll(void) {
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 			print_dbg_char('c');
-			vTaskDelay(1000);
+			vTaskDelay(200);
 
 			// Duplicated code!
 //			do {									// Repeated PLL setup
@@ -355,7 +368,7 @@ void wm8805_poll(void) {
 						wm8805_pllmode = WM8805_PLL_NORMAL;
 					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
 					print_dbg_char('d');
-					vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+					vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 				}
 //			} while (wm8805_status.frequency != wm8805_srd());
 
@@ -400,7 +413,7 @@ void wm8805_poll(void) {
 		wm8805_mute();
 		wm8805_status.muted = 1;					// In any case, we're muted from now on.
 
-		// 3*200 if clean, up to 20*200 if not clean. PLL change typically uses two interrupts
+		// 2*200 if clean, up to 20*200 if not clean. PLL change typically uses two interrupts
 		int i = 20;
 		while (i > 0) {
 			vTaskDelay(200);
@@ -408,13 +421,13 @@ void wm8805_poll(void) {
 			if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)
 				i--;
 			else
-				i-=7;
+				i-=10;
 		}
 
 		wm8805_int = wm8805_read_byte(0x0B);		// Record interrupt status and clear pin
 
 
-//		print_dbg_char('!');
+		print_dbg_char('!');
 //		print_dbg_char_hex(wm8805_int);
 
 		wm8805_status.frequency = wm8805_srd();
@@ -611,6 +624,8 @@ void wm8805_clkdiv(void) {
 
 // Mute the WM8805 output
 void wm8805_mute(void) {
+	print_dbg_char('M');
+
 	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
 		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin
 	#endif
@@ -623,6 +638,9 @@ void wm8805_mute(void) {
 // Un-mute the WM8805
 void wm8805_unmute(void) {
 //	S32 freq_temp;
+
+	print_dbg_char('U');
+
 
 	gpio_set_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
 //	freq_temp = wm8805_srd();		// FIX: is this a little too late in the process?
@@ -684,7 +702,7 @@ uint32_t wm8805_srd(void) {
 	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
 	// Even 400 will fail some times!
 
-	while ( (i < 3) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
+	while ( (i < 4) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
 		freq = wm8805_srd_asm2();
 //		print_dbg_char('g');
 		vTaskDelay(10);
