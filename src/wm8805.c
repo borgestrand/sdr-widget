@@ -154,7 +154,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 // Global status variable
-volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT};
+volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8805_PLL_NONE};
 
 //!
 //! @brief Polling routine for WM8805 hardware
@@ -164,7 +164,6 @@ void wm8805_poll(void) {
 	#define pausecounter_initial 20000
 	#define startup_empty_runs 40
 
-    static uint8_t wm8805_pllmode = WM8805_PLL_NONE;			// Normal PLL setting at WM8805 reset
     uint8_t wm8805_int = 0;										// WM8805 interrupt status
     static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
 	static int16_t pausecounter = pausecounter_initial;						// Initiated to a value much larger than what is seen in practical use
@@ -238,8 +237,8 @@ void wm8805_poll(void) {
 	if (input_select == MOBO_SRC_NONE) {
 		if (wm8805_status.powered == 0) {
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
-			wm8805_pllmode = WM8805_PLL_NONE;			// Force PLL re-init
-			print_dbg_char('0');
+			wm8805_status.pllmode = WM8805_PLL_NONE;			// Force PLL re-init
+//			print_dbg_char('0');
 			wm8805_status.powered = 1;
 			wm8805_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
 
@@ -249,34 +248,21 @@ void wm8805_poll(void) {
 
 			wm8805_status.reliable = 0;					// Because of input change
 			wm8805_input(input_select_wm8805_next);		// Try next input source
-			print_dbg_char('a');
-			vTaskDelay(200);
+//			print_dbg_char('a');
 
 
-//			wm8805_pllmode = WM8805_PLL_NORMAL;
-//			wm8805_pll(wm8805_pllmode);					// Is this a good assumption, or should we test its (not yet stable) freq?
-
-			// Duplicated code!
-//			do {									// Repeated PLL setup
-				wm8805_status.frequency = wm8805_srd();
-/*					if (wm8805_status.frequency == FREQ_192)
-					wm8805_pllmode = WM8805_PLL_192;
+			// Duplication!
+			wm8805_status.frequency = wm8805_srd();
+			if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
+				  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
+				if (wm8805_status.frequency == FREQ_192)
+					wm8805_status.pllmode = WM8805_PLL_192;
 				else
-					wm8805_pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-				vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-*/
-				if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_pllmode != WM8805_PLL_192) ) ||
-					  ( (wm8805_status.frequency != FREQ_192) && (wm8805_pllmode != WM8805_PLL_NORMAL) ) ) {
-					if (wm8805_status.frequency == FREQ_192)
-						wm8805_pllmode = WM8805_PLL_192;
-					else
-						wm8805_pllmode = WM8805_PLL_NORMAL;
-					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-					print_dbg_char('b');
-					vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-				}
-//			} while (wm8805_status.frequency != wm8805_srd());
+					wm8805_status.pllmode = WM8805_PLL_NORMAL;
+				wm8805_pll(wm8805_status.pllmode);					// Update PLL settings at any sample rate change!
+//					print_dbg_char('b');
+				vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+			}
 
 
 		}
@@ -347,30 +333,20 @@ void wm8805_poll(void) {
 			// FIX: disable and re-enable ADC DMA around here?
 			wm8805_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
-			print_dbg_char('c');
-			vTaskDelay(50);
+//			print_dbg_char('c');
 
-			// Duplicated code!
-//			do {									// Repeated PLL setup
-				wm8805_status.frequency = wm8805_srd();
-/*					if (wm8805_status.frequency == FREQ_192)
-					wm8805_pllmode = WM8805_PLL_192;
+			// Code duplication
+			wm8805_status.frequency = wm8805_srd();
+			if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
+				  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
+				if (wm8805_status.frequency == FREQ_192)
+					wm8805_status.pllmode = WM8805_PLL_192;
 				else
-					wm8805_pllmode = WM8805_PLL_NORMAL;
-				wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-				vTaskDelay(3000);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-*/
-				if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_pllmode != WM8805_PLL_192) ) ||
-					  ( (wm8805_status.frequency != FREQ_192) && (wm8805_pllmode != WM8805_PLL_NORMAL) ) ) {
-					if (wm8805_status.frequency == FREQ_192)
-						wm8805_pllmode = WM8805_PLL_192;
-					else
-						wm8805_pllmode = WM8805_PLL_NORMAL;
-					wm8805_pll(wm8805_pllmode);					// Update PLL settings at any sample rate change!
-					print_dbg_char('d');
-					vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-				}
-//			} while (wm8805_status.frequency != wm8805_srd());
+					wm8805_status.pllmode = WM8805_PLL_NORMAL;
+				wm8805_pll(wm8805_status.pllmode);					// Update PLL settings at any sample rate change!
+//					print_dbg_char('d');
+				vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+			}
 
 			lockcounter = 0;
 			unlockcounter = 0;
@@ -428,20 +404,19 @@ void wm8805_poll(void) {
 
 		wm8805_int = wm8805_read_byte(0x0B);		// Record interrupt status and clear pin
 
-
-		print_dbg_char('!');
+//		print_dbg_char('!');
 //		print_dbg_char_hex(wm8805_int);
 
 		wm8805_status.frequency = wm8805_srd();
-		if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_pllmode != WM8805_PLL_192) ) ||
-			  ( (wm8805_status.frequency != FREQ_192) && (wm8805_pllmode != WM8805_PLL_NORMAL) ) ) {
+		if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
+			  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
 			if (wm8805_status.frequency == FREQ_192)
-				wm8805_pllmode = WM8805_PLL_192;
+				wm8805_status.pllmode = WM8805_PLL_192;
 			else
-				wm8805_pllmode = WM8805_PLL_NORMAL;
-			wm8805_pll(wm8805_pllmode);				// Update PLL settings at any sample rate change!
-			print_dbg_char('e');
-			vTaskDelay(500);						// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+				wm8805_status.pllmode = WM8805_PLL_NORMAL;
+			wm8805_pll(wm8805_status.pllmode);				// Update PLL settings at any sample rate change!
+//			print_dbg_char('e');
+			vTaskDelay(500);						// Let WM8805 PLL try to settle for some time
 		}
 	}	// Done handling interrupt
 
@@ -570,6 +545,7 @@ void wm8805_input(uint8_t input_sel) {
  	}
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
+	vTaskDelay(100);					// Allow for stability
 }
 
 // Select PLL setting of the WM8805
@@ -626,7 +602,7 @@ void wm8805_clkdiv(void) {
 
 // Mute the WM8805 output
 void wm8805_mute(void) {
-	print_dbg_char('M');
+//	print_dbg_char('M');
 
 	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
 		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin
@@ -639,29 +615,21 @@ void wm8805_mute(void) {
 
 // Un-mute the WM8805
 void wm8805_unmute(void) {
-//	S32 freq_temp;
+//	print_dbg_char('U');
 
-	print_dbg_char('U');
-
-
-	gpio_set_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
-//	freq_temp = wm8805_srd();		// FIX: is this a little too late in the process?
-	gpio_clr_gpio_pin(AVR32_PIN_PX43); // Pin 88 is high during this particular SRD
-
-//	if (freq_temp != wm8805_status.frequency) {
-//		wm8805_status.frequency = freq_temp;
-//	}
+	gpio_set_gpio_pin(AVR32_PIN_PX43); 				// Pin 88 is high during this particular SRD
+	gpio_clr_gpio_pin(AVR32_PIN_PX43); 				// Pin 88 is high during this particular SRD
 
 	// May do a test vs. freq_prev to determine if clock resetting and muxing is really needed
 	mobo_clock_division(wm8805_status.frequency);			// Outgoing I2S clock division selector
 	mobo_xo_select(wm8805_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 	mobo_led_select(wm8805_status.frequency, input_select);	// User interface channel indicator
 
-	ADC_buf_USB_IN = -1;						// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
+	ADC_buf_USB_IN = -1;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 
 	#ifdef HW_GEN_DIN20
-		mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
-	#endif						// FIX: move to uacX_d_a_t.c ?
+		mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
+	#endif
 }
 
 
