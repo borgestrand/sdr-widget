@@ -171,7 +171,6 @@ void wm8805_poll(void) {
 	static int16_t lockcounter = 0;
 	int16_t pausecounter_temp;
 	int16_t unlockcounter_temp;
-	S32 freq_temp = 0;
 
 
 	// Run the first 40 iterations without starting up. (40*120/10 = 480ms)
@@ -521,6 +520,8 @@ void wm8805_input(uint8_t input_sel) {
 // Select PLL setting of the WM8805
 
 void wm8805_pll(void) {
+	uint8_t pll_sel = WM8805_PLL_NONE;
+
 	wm8805_status.frequency = wm8805_srd();
 	if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
 		  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
@@ -528,13 +529,15 @@ void wm8805_pll(void) {
 			wm8805_status.pllmode = WM8805_PLL_192;
 		else
 			wm8805_status.pllmode = WM8805_PLL_NORMAL;
-		wm8805_pll_holder(wm8805_status.pllmode);					// Update PLL settings at any sample rate change!
-	//					print_dbg_char('b');
-		vTaskDelay(500);							// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
-	}
-}
 
-void wm8805_pll_holder(uint8_t pll_sel) {
+		pll_sel = wm8805_status.pllmode;
+	}
+
+	// NO need for new PLL setup
+	if (pll_sel == WM8805_PLL_NONE)
+		return;
+
+	// PLL setup has changed
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
@@ -568,7 +571,10 @@ void wm8805_pll_holder(uint8_t pll_sel) {
 	}
 */
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
+
+	vTaskDelay(500);					// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 }
+
 
 // Set up WM8805 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
 void wm8805_clkdiv(void) {
