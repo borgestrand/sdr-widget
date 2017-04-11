@@ -341,7 +341,7 @@ void uac1_device_audio_task(void *pvParameters)
 			ADC_buf_USB_IN = -2;
 		}
 
-		if (wm8805_status.reliable == 0) {			// Temporarily unreliable counts as silent
+		if (wm8805_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
 			wm8805_status.silent = 1;
 			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;			// Respond as soon as .reliable is set
 		}
@@ -349,6 +349,9 @@ void uac1_device_audio_task(void *pvParameters)
 		// Has producer's buffer been toggled by interrupt driven DMA code?
 		// If so, check it for silence. If selected as source, copy all of producer's data. (And perform skip/insert.)
 		// Only bother if .reliable != 0
+		else if (wm8805_status.buffered == 0) {
+			wm8805_status.silent = 0;
+		}
 		else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
 			ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 

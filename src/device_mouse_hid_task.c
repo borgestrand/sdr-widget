@@ -368,34 +368,14 @@ void device_mouse_hid_task(void)
             // Start messing with ADC!
 
             else if (a == 'a') {							// Lowercase a
-                static const pdca_channel_options_t PDCA_OPTIONS_DBG = {
-                	.addr = (void *)audio_buffer_0,         // memory address
-                	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
-                	.size = ADC_BUFFER_SIZE,              // transfer counter
-                	.r_addr = NULL,                         // next memory address
-                	.r_size = 0,                            // next transfer counter
-                	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
-                };
-
-
-
-            	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS_DBG); // init PDCA channel with options.
-        		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-				pdca_enable(PDCA_CHANNEL_SSC_RX);
-
-
-        		print_dbg_char('a');
-
-        		// This code was brought into taskAK5394A.c (init) and wm8805(enable)
+            	wm8805_status.buffered = 0;					// Use regenerated clock
+            	mobo_xo_select(wm8805_status.frequency, input_select);
             }
 
             // Select MCU's outgoing I2S bus
             else if (a == 'b') {							// Lowercase b
-            	while (1) {
-            		print_dbg_char('\n');
-            		print_dbg_hex(wm8805_srd_asm2());
-            		vTaskDelay(1000);
-            	}
+            	wm8805_status.buffered = 1;					// Use precision clock and buffering
+            	mobo_xo_select(wm8805_status.frequency, input_select);
             }
 
             // Select RXs's outgoing I2S bus

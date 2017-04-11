@@ -54,6 +54,7 @@ typedef struct wm8805_status {					// Definition of global variable
 	uint8_t reliable;
 	uint32_t frequency;
 	uint8_t pllmode;
+	uint8_t buffered;
 } wm8805_status_t;
 
 // Regular polling of WM8805 hardware

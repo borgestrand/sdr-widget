@@ -336,10 +336,31 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 // NB: updated to support SPDIF buffering in MCU. That is highly experimental code!
 #elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 
-/* Old version with I2S mux
-	// FIX: correlate with mode currently selected by user or auto, that's a global variable!
-	if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
-		gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
+	if (wm8805_status.buffered == 0) {
+	// Old version with I2S mux
+		// FIX: correlate with mode currently selected by user or auto, that's a global variable!
+		if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
+			gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
+
+			// Clock source control
+			if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
+				gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+				gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			}
+			else {
+				gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+				gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			}
+		}
+		else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOS2)  || (source == MOBO_SRC_TOS1) ) {
+			gpio_set_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0 defaults to USB
+			gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
+			gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
+		}
+	}
+	else {
+	// New version without I2S mux, with buffering via MCU's ADC interface
+		gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 USB version in all cases
 
 		// Clock source control
 		if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
@@ -350,26 +371,6 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
 			gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 		}
-	}
-	else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOS2)  || (source == MOBO_SRC_TOS1) ) {
-		gpio_set_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0 defaults to USB
-		gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
-		gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
-	}
-*/
-
-// New version without I2S mux, with buffering via MCU's ADC interface
-	// FIX: correlate with mode currently selected by user or auto, that's a global variable!
-	gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 USB version in all cases
-
-	// Clock source control
-	if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
-		gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-		gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
-	}
-	else {
-		gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-		gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 	}
 
 #else

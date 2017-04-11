@@ -154,7 +154,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 // Global status variable
-volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8805_PLL_NONE};
+volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8805_PLL_NONE, 1};
 
 //!
 //! @brief Polling routine for WM8805 hardware
