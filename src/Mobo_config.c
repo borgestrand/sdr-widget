@@ -272,6 +272,251 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 		break;
 	}
 }
+
+
+// Handle spdif and toslink input
+void mobo_handle_spdif() {
+	static int ADC_buf_DMA_write_prev = -1;
+	int ADC_buf_DMA_write_temp = 0;
+	static U32 s_spk_index = 0;
+	static S16 s_gap = DAC_BUFFER_SIZE;
+	S16 s_old_gap = DAC_BUFFER_SIZE;
+	static S16 s_megaskip = 0;
+	U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
+	int i;										// Generic counter
+
+	U8 DAC_buf_DMA_read_local;					// Local copy read in atomic operations
+	U16 num_remaining;
+
+	S32 sample_temp = 0;
+	S32 sample_L = 0;
+	S32 sample_R = 0;
+
+	const U8 IN_LEFT = FEATURE_IN_NORMAL ? 0 : 1;	// FIX: save time by not evaluating for every bloody sample!
+	const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
+	const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
+	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
+
+
+	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
+
+	// Continue writing to consumer's buffer where this routine left of last
+	if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_USB_IN == -1) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
+		// Clear incoming SPDIF before enabling pdca to keep filling it
+		for (i = 0; i < ADC_BUFFER_SIZE; i++) {
+			audio_buffer_0[i] = 0;
+			audio_buffer_1[i] = 0;
+		}
+
+		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+		ADC_buf_USB_IN = -2;
+	}
+
+	if (wm8805_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
+		wm8805_status.silent = 1;
+		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;			// Respond as soon as .reliable is set
+	}
+
+	// Has producer's buffer been toggled by interrupt driven DMA code?
+	// If so, check it for silence. If selected as source, copy all of producer's data. (And perform skip/insert.)
+	// Only bother if .reliable != 0
+	else if (wm8805_status.buffered == 0) {
+		wm8805_status.silent = 0;
+	}
+	else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
+		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+
+		// Silence / DC detector 2.0
+//			if (wm8805_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
+			for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
+				if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
+					sample_temp = audio_buffer_0[i] & 0x00FFFF00;
+				else if (ADC_buf_DMA_write_temp == 1)
+					sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+
+				if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
+					i = ADC_BUFFER_SIZE + 10;
+			}
+
+			if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
+				wm8805_status.silent = 0;
+			}
+			else {									// Silence was detected, update flag to SPDIF RX code
+				wm8805_status.silent = 1;
+			}
+//			}
+
+		if ( ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) ) {
+
+			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
+			if (ADC_buf_USB_IN == -2) {
+				ADC_buf_USB_IN = ADC_buf_DMA_write_temp;	// Disable further init
+				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
+
+				// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
+//				skip_enable = 0;
+				s_gap = DAC_BUFFER_SIZE; // Ideal gap value
+
+				// New co-sample verification routine
+				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+				num_remaining = spk_pdca_channel->tcr;
+				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+				// for a long time. In which we simply read the counter again
+				if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+					DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+					num_remaining = spk_pdca_channel->tcr;
+				}
+				DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
+
+				s_spk_index = DAC_BUFFER_SIZE - num_remaining;
+				s_spk_index = s_spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+			}
+
+			// Calculate gap before copying data into consumer register:
+			s_old_gap = s_gap;
+
+			// New co-sample verification routine
+			// FIX: May Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
+			// If so look for "BUF_IS_ONE" in code around 20170227
+			DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+			num_remaining = spk_pdca_channel->tcr;
+			// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+			// for a long time. In which we simply read the counter again
+			if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+				num_remaining = spk_pdca_channel->tcr;
+			}
+
+			if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// DAC DMA and seq. code using same buffer
+				if (s_spk_index < (DAC_BUFFER_SIZE - num_remaining))
+					s_gap = DAC_BUFFER_SIZE - num_remaining - s_spk_index;
+				else
+					s_gap = DAC_BUFFER_SIZE - s_spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+			}
+			else // DAC DMA and seq. code working on different buffers
+				s_gap = (DAC_BUFFER_SIZE - s_spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+
+
+			// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
+			s_samples_to_transfer_OUT = 1;			// Default value
+			if ((s_gap <= s_old_gap) && (s_gap < SPK_GAP_L3)) {
+				s_samples_to_transfer_OUT = 0;		// Do some skippin'
+				print_dbg_char('s');
+			}
+			else if ((s_gap >= s_old_gap) && (s_gap > SPK_GAP_U3)) {
+				s_samples_to_transfer_OUT = 2;		// Do some insertin'
+				print_dbg_char('i');
+			}
+
+
+			// Prepare to copy all of producer's most recent data to consumer's buffer
+			if (ADC_buf_DMA_write_temp == 1)
+				gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+			else if (ADC_buf_DMA_write_temp == 0)
+				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+
+			// Apply megaskip when DC or zero is detected
+			if (wm8805_status.silent == 1) {									// Silence was detected
+				if (s_gap < (SPK_GAP_L3 + SPK_GAP_D1) ) {				// Are we close or past the limit for having to skip?
+					s_megaskip = (SPK_GAP_U3 - SPK_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
+				}
+				else if (s_gap > (SPK_GAP_U3 - SPK_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
+					s_megaskip = (s_gap) - (SPK_GAP_L3 + SPK_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
+				}
+			}
+			else {
+				s_megaskip = 0;	// Not zero -> no big skips!
+			}
+
+
+			// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
+			if (s_megaskip >= ADC_BUFFER_SIZE) {
+				print_dbg_char('S');
+				s_samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
+				s_megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
+				// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
+			}
+			// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
+			else if (s_megaskip <= -ADC_BUFFER_SIZE) {
+				print_dbg_char('I');
+				s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
+				s_megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
+
+				for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
+					if (dac_must_clear == DAC_READY) {
+						if (DAC_buf_USB_OUT == 0) {
+							spk_buffer_0[s_spk_index+OUT_LEFT] = 0;
+							spk_buffer_0[s_spk_index+OUT_RIGHT] = 0;
+						}
+						else if (DAC_buf_USB_OUT == 1) {
+							spk_buffer_1[s_spk_index+OUT_LEFT] = 0;
+							spk_buffer_1[s_spk_index+OUT_RIGHT] = 0;
+						}
+					}
+
+					s_spk_index += 2;
+					if (s_spk_index >= DAC_BUFFER_SIZE) {
+						s_spk_index -= DAC_BUFFER_SIZE;
+						DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+					}
+				} // for i..
+
+			} // mega-insert <=
+			// Normal operation, copy one ADC package with normal skip/insert
+			else {
+				s_megaskip = 0;					// Normal operation
+
+				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
+					// Fill endpoint with sample raw
+					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+						sample_L = audio_buffer_0[i+IN_LEFT];
+						sample_R = audio_buffer_0[i+IN_RIGHT];
+					}
+					else if (ADC_buf_DMA_write_temp == 1) {
+						sample_L = audio_buffer_1[i+IN_LEFT];
+						sample_R = audio_buffer_1[i+IN_RIGHT];
+					}
+
+
+// Super-rough skip/insert
+					while (s_samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+						if (dac_must_clear == DAC_READY) {
+							if (DAC_buf_USB_OUT == 0) {
+								spk_buffer_0[s_spk_index+OUT_LEFT] = sample_L;
+								spk_buffer_0[s_spk_index+OUT_RIGHT] = sample_R;
+							}
+							else if (DAC_buf_USB_OUT == 1) {
+								spk_buffer_1[s_spk_index+OUT_LEFT] = sample_L;
+								spk_buffer_1[s_spk_index+OUT_RIGHT] = sample_R;
+							}
+						}
+
+						s_spk_index += 2;
+						if (s_spk_index >= DAC_BUFFER_SIZE) {
+							s_spk_index -= DAC_BUFFER_SIZE;
+							DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+
+#ifdef USB_STATE_MACHINE_DEBUG
+							if (DAC_buf_USB_OUT == 1)
+								gpio_set_gpio_pin(AVR32_PIN_PX30);
+							else
+								gpio_clr_gpio_pin(AVR32_PIN_PX30);
+#endif
+						}
+					}
+					s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
+				} // for ADC_BUFFER_SIZE
+			} // Normal operation
+
+		} // ADC_buf_DMA_write toggle
+	} // input select
+
+
+
+
+}
+
+
 #endif
 
 /*! \brief Audio Widget select oscillator

@@ -97,24 +97,6 @@
 
 #define FB_RATE_DELTA 64
 
-// BSB 20120912 UAC2 feedback rewritten with outer outer and inner bounds, use 2*FB_RATE_DELTA for outer bounds
-#define SPK2_GAP_USKIP DAC_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
-#define SPK2_GAP_U3    DAC_BUFFER_SIZE * 6 / 4
-#define SPK2_GAP_U2    DAC_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
-#define	SPK2_GAP_U1    DAC_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
-#define SPK2_GAP_NOM   DAC_BUFFER_SIZE * 4 / 4	// Ideal distance is half the size of linear buffer
-#define SPK2_GAP_L1	   DAC_BUFFER_SIZE * 3 / 4  // A quarter buffer down in distance => Slow down host a bit
-#define SPK2_GAP_L2	   DAC_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
-#define SPK2_GAP_L3	   DAC_BUFFER_SIZE * 2 / 4
-#define SPK2_GAP_LSKIP DAC_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
-#define SPK2_GAP_D1    10						// A margin at the edges of detection
-#define	SPK2_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32
-#define	SPK2_PACKETS_PER_GAP_SKIP 1				// After a skip/insert, recalculate gap immediately, then again after 1ms
-#define SPK2_HOST_FB_DEAD_AFTER 200				// How many audio packets may arrive without host polling feedback, before we declare FB dead?
-#define SPK2_SKIP_EN_GAP 1                      // Enable skip/insert due to low gap
-#define SPK2_SKIP_EN_DEAD 2						// Enable skip/insert due to dead host feedback system
-#define SPK2_SKIP_LIMIT_14 2<<14 			    // 10.14 and 12.14 format. |accumulated error| must be > 2 samples.
-#define SPK2_SKIP_LIMIT_16 2<<14 			    // 16.16 format for samples/250uS |accumulated error| must be > 2 samples.
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
@@ -306,257 +288,10 @@ void uac2_device_audio_task(void *pvParameters)
 		 */
 
 
-		// Seriously messing with ADC interface...
-		#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-				static int ADC_buf_DMA_write_prev = -1;
-				int ADC_buf_DMA_write_temp = 0;
-
-				// Some private variables
-				static U32 s_spk_index = 0;
-				static S16 s_gap = DAC_BUFFER_SIZE;
-				static S16 s_old_gap = DAC_BUFFER_SIZE;
-				static S16 s_megaskip = 0;
-				U32 s_silence_det_L = 0;
-				U32 s_silence_det_R = 0;
-				U16 s_samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
-
-
-				if ( ( (input_select != MOBO_SRC_UAC1) && (input_select != MOBO_SRC_UAC2) && (input_select != MOBO_SRC_NONE) ) ) {
-					ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
-
-					// Has producer's buffer been toggled by interrupt driven DMA code?
-					// If so, copy all of producer's data. (And perform skip/insert.)
-					// Continue writing to consumer's buffer where this routine left of last
-					if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_USB_IN == -1) )	{	// Do the init on synchronous sampling ref. ADC DMA timing
-						// Clear incoming SPDIF before enabling pdca to keep filling it
-						for (i = 0; i < ADC_BUFFER_SIZE; i++) {
-							audio_buffer_0[i] = 0;
-							audio_buffer_1[i] = 0;
-						}
-
-						pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
-						pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-
-						ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
-						ADC_buf_USB_IN = -2;
-					}
-
-					if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Must transfer previous half-ring-buffer
-						ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
-
-						// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
-						if (ADC_buf_USB_IN == -2) {
-							ADC_buf_USB_IN = ADC_buf_DMA_write_temp;	// Disable further init
-							dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
-
-							// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
-							skip_enable = 0;
-							s_gap = DAC_BUFFER_SIZE; // Ideal gap value
-
-							// New co-sample verification routine
-							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-							num_remaining = spk_pdca_channel->tcr;
-							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-							// for a long time. In which we simply read the counter again
-							if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-								num_remaining = spk_pdca_channel->tcr;
-							}
-							DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
-
-							s_spk_index = DAC_BUFFER_SIZE - num_remaining;
-							s_spk_index = s_spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-						}
-
-						// Calculate gap before copying data into consumer register:
-						s_old_gap = s_gap;
-
-						// New co-sample verification routine
-						// FIX: May Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
-						// If so look for "BUF_IS_ONE" in code around 20170227
-						DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-						num_remaining = spk_pdca_channel->tcr;
-						// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-						// for a long time. In which we simply read the counter again
-						if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-							num_remaining = spk_pdca_channel->tcr;
-						}
-
-						if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// DAC DMA and seq. code using same buffer
-							if (s_spk_index < (DAC_BUFFER_SIZE - num_remaining))
-								s_gap = DAC_BUFFER_SIZE - num_remaining - s_spk_index;
-							else
-								s_gap = DAC_BUFFER_SIZE - s_spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
-						}
-						else // DAC DMA and seq. code working on different buffers
-							s_gap = (DAC_BUFFER_SIZE - s_spk_index) + (DAC_BUFFER_SIZE - num_remaining);
-
-
-						// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
-						s_samples_to_transfer_OUT = 1;			// Default value
-						if ((s_gap < s_old_gap) && (s_gap < SPK2_GAP_L3)) {
-							s_samples_to_transfer_OUT = 0;		// Do some skippin'
-		//					s_megaskip = 0;						// We crossed the line!
-							print_dbg_char('s');
-		/*					print_dbg_hex(s_old_gap);
-							print_dbg_char(' ');
-							print_dbg_hex(s_gap);
-							print_dbg_char('\n');
-		*/				}
-						else if ((s_gap > s_old_gap) && (s_gap > SPK2_GAP_U3)) {
-							s_samples_to_transfer_OUT = 2;		// Do some insertin'
-		//					s_megaskip = 0;						// We crossed the line!
-							print_dbg_char('i');
-		/*					print_dbg_hex(s_old_gap);
-							print_dbg_char(' ');
-							print_dbg_hex(s_gap);
-							print_dbg_char('\n');
-		*/				}
-
-
-						// Prepare to copy all of producer's most recent data to consumer's buffer
-						if (ADC_buf_DMA_write_temp == 1)
-							gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-						else if (ADC_buf_DMA_write_temp == 0)
-							gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-
-						// Detect DC (including zero) package from the ADC, and thus the option of skipping/inserting big
-						if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
-							s_silence_det_L = audio_buffer_0[IN_LEFT];
-							s_silence_det_R = audio_buffer_0[IN_RIGHT];
-						}
-						else if (ADC_buf_DMA_write_temp == 1) {
-							s_silence_det_L = audio_buffer_1[IN_LEFT];
-							s_silence_det_R = audio_buffer_1[IN_RIGHT];
-						}
-
-						for( i=1 ; i < ADC_BUFFER_SIZE ; i+=2 ) {
-							if (ADC_buf_DMA_write_temp == 0) {		// End as soon as a difference is spotted
-								if (s_silence_det_L != audio_buffer_0[i+IN_LEFT])
-									i = ADC_BUFFER_SIZE + 10;
-								else if (s_silence_det_R != audio_buffer_0[i+IN_RIGHT])
-									i = ADC_BUFFER_SIZE + 10;
-							}
-							else if (ADC_buf_DMA_write_temp == 1) {
-								if (s_silence_det_L != audio_buffer_1[i+IN_LEFT])
-									i = ADC_BUFFER_SIZE + 10;
-								else if (s_silence_det_R != audio_buffer_1[i+IN_RIGHT])
-									i = ADC_BUFFER_SIZE + 10;
-							}
-						}
-
-						if (i >= ADC_BUFFER_SIZE + 10) 								// Silence was NOT detected
-							dig_in_silence = 0;
-						else 														// Silence was detected, update flag to SPDIF RX code
-							dig_in_silence = 1;
-
-						if (dig_in_silence == 1) {									// Silence was detected
-							if (s_gap < (SPK2_GAP_L3 + SPK2_GAP_D1) ) {				// Are we close or past the limit for having to skip?
-								s_megaskip = (SPK2_GAP_U3 - SPK2_GAP_D1) - (s_gap);	// This is as far as we can safely skip, one ADC package at a time
-		//						print_dbg_char('Z');
-							}
-							else if (s_gap > (SPK2_GAP_U3 - SPK2_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
-								s_megaskip = (s_gap) - (SPK2_GAP_L3 + SPK2_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
-		//						print_dbg_char('J');
-							}
-						}
-						else {
-							s_megaskip = 0;	// Not zero -> no big skips!
-						}
-
-
-						// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
-						if (s_megaskip >= ADC_BUFFER_SIZE) {
-		//					print_dbg_char('S');
-							s_samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
-							s_megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
-							// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
-						}
-						// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
-						else if (s_megaskip <= -ADC_BUFFER_SIZE) {
-		//					print_dbg_char('I');
-							s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
-							s_megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
-
-							for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
-								if (dac_must_clear == DAC_READY) {
-									if (DAC_buf_USB_OUT == 0) {
-										spk_buffer_0[s_spk_index+OUT_LEFT] = 0;
-										spk_buffer_0[s_spk_index+OUT_RIGHT] = 0;
-									}
-									else if (DAC_buf_USB_OUT == 1) {
-										spk_buffer_1[s_spk_index+OUT_LEFT] = 0;
-										spk_buffer_1[s_spk_index+OUT_RIGHT] = 0;
-									}
-								}
-
-								s_spk_index += 2;
-								if (s_spk_index >= DAC_BUFFER_SIZE) {
-									s_spk_index -= DAC_BUFFER_SIZE;
-									DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
-
-		#ifdef USB_STATE_MACHINE_DEBUG
-									if (DAC_buf_USB_OUT == 1)
-										gpio_set_gpio_pin(AVR32_PIN_PX30);
-									else
-										gpio_clr_gpio_pin(AVR32_PIN_PX30);
-		#endif
-								}
-							} // for i..
-
-						} // mega-insert <=
-						// Normal operation, copy one ADC package with normal skip/insert
-						else {
-							s_megaskip = 0;					// Normal operation
-
-							for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
-								// Fill endpoint with sample raw
-								if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
-									sample_L = audio_buffer_0[i+IN_LEFT];
-									sample_R = audio_buffer_0[i+IN_RIGHT];
-								}
-								else if (ADC_buf_DMA_write_temp == 1) {
-									sample_L = audio_buffer_1[i+IN_LEFT];
-									sample_R = audio_buffer_1[i+IN_RIGHT];
-								}
-
-		// Super-rough skip/insert
-								while (s_samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-									if (dac_must_clear == DAC_READY) {
-										if (DAC_buf_USB_OUT == 0) {
-											spk_buffer_0[s_spk_index+OUT_LEFT] = sample_L;
-											spk_buffer_0[s_spk_index+OUT_RIGHT] = sample_R;
-										}
-										else if (DAC_buf_USB_OUT == 1) {
-											spk_buffer_1[s_spk_index+OUT_LEFT] = sample_L;
-											spk_buffer_1[s_spk_index+OUT_RIGHT] = sample_R;
-										}
-									}
-
-									s_spk_index += 2;
-									if (s_spk_index >= DAC_BUFFER_SIZE) {
-										s_spk_index -= DAC_BUFFER_SIZE;
-										DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
-
-		#ifdef USB_STATE_MACHINE_DEBUG
-										if (DAC_buf_USB_OUT == 1)
-											gpio_set_gpio_pin(AVR32_PIN_PX30);
-										else
-											gpio_clr_gpio_pin(AVR32_PIN_PX30);
-		#endif
-									}
-								}
-								s_samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
-							} // for ADC_BUFFER_SIZE
-						} // Normal operation
-
-					} // ADC_buf_DMA_write toggle
-				} // input select
-		#endif
-
-		// Done messing with ADC interface
-
+// Process digital input
+#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+		mobo_handle_spdif();
+#endif
 
 
 		if ((usb_alternate_setting == 1)) {
@@ -815,11 +550,11 @@ void uac2_device_audio_task(void *pvParameters)
 
 /*					// Try to detect a dead Host feedback system
 				if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
-					if (packets_since_feedback > SPK2_HOST_FB_DEAD_AFTER)
-						skip_enable |= SPK2_SKIP_EN_DEAD;	// Enable skip/insert due to dead host feedback system
+					if (packets_since_feedback > SPK_HOST_FB_DEAD_AFTER)
+						skip_enable |= SPK_SKIP_EN_DEAD;	// Enable skip/insert due to dead host feedback system
 					else {
 						packets_since_feedback ++;
-						skip_enable &= ~SPK2_SKIP_EN_DEAD;	// Disable skip/insert due to dead host feedback system
+						skip_enable &= ~SPK_SKIP_EN_DEAD;	// Disable skip/insert due to dead host feedback system
 					}
 				}
 */
@@ -1074,9 +809,9 @@ void uac2_device_audio_task(void *pvParameters)
 					time_to_calculate_gap--;
 				else {
 					if (time_to_calculate_gap == -1)		// Immediately after a skip/insert and then again shortly
-						time_to_calculate_gap = SPK2_PACKETS_PER_GAP_SKIP - 1;
+						time_to_calculate_gap = SPK_PACKETS_PER_GAP_SKIP - 1;
 					else									// Initially and a while after any skip/insert
-						time_to_calculate_gap = SPK2_PACKETS_PER_GAP_CALCULATION - 1;
+						time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
 					if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
 						DAC_buf_DMA_read_local = DAC_buf_DMA_read;
@@ -1104,20 +839,20 @@ void uac2_device_audio_task(void *pvParameters)
 
 #ifndef USB_METALLIC_NOISE_SIM										// Disable skip/insert when demoing metallic noise
 							if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
-								if (gap < SPK2_GAP_LSKIP) {
-									skip_enable |= SPK2_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+								if (gap < SPK_GAP_LSKIP) {
+									skip_enable |= SPK_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
 								}
-								else if (gap > SPK2_GAP_USKIP) {
-									skip_enable |= SPK2_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+								else if (gap > SPK_GAP_USKIP) {
+									skip_enable |= SPK_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
 								}
 								else {
-									skip_enable &= ~SPK2_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
+									skip_enable &= ~SPK_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
 								}
 							}
 #endif
 
 							if (gap < old_gap) {
-								if (gap < SPK2_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
+								if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
 									FB_rate -= 2*FB_RATE_DELTA;
 									old_gap = gap;
 									skip_indicate = 0;				// Feedback system is running again!
@@ -1126,7 +861,7 @@ void uac2_device_audio_task(void *pvParameters)
 									print_dbg_char('/');
 #endif
 								}
-								else if (gap < SPK2_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
+								else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
 									FB_rate -= FB_RATE_DELTA;
 									old_gap = gap;
 									skip_indicate = 0;				// Feedback system is running again!
@@ -1141,7 +876,7 @@ void uac2_device_audio_task(void *pvParameters)
 								}
 							}
 							else if (gap > old_gap) {
-								if (gap > SPK2_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
+								if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
 									FB_rate += 2*FB_RATE_DELTA;
 									old_gap = gap;
 									skip_indicate = 0;				// Feedback system is running again!
@@ -1150,7 +885,7 @@ void uac2_device_audio_task(void *pvParameters)
 									print_dbg_char('*');
 #endif
 								}
-								else if (gap > SPK2_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
+								else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
 									FB_rate += FB_RATE_DELTA;
 									old_gap = gap;
 									skip_indicate = 0;				// Feedback system is running again!

@@ -513,7 +513,7 @@ void wm8805_input(uint8_t input_sel) {
  	}
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
-	vTaskDelay(100);					// Allow for stability
+	vTaskDelay(200);					// Allow for stability
 }
 
 

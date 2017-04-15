@@ -111,6 +111,29 @@ extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_
 #define VOL_WRITE		0x02
 
 
+// Gap limits for feedback and correction systems
+#define SPK_GAP_USKIP DAC_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
+#define SPK_GAP_U3    DAC_BUFFER_SIZE * 6 / 4
+#define SPK_GAP_U2    DAC_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
+#define	SPK_GAP_U1    DAC_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
+#define SPK_GAP_NOM   DAC_BUFFER_SIZE * 4 / 4	// Ideal distance is half the size of linear buffer
+#define SPK_GAP_L1	   DAC_BUFFER_SIZE * 3 / 4  // A quarter buffer down in distance => Slow down host a bit
+#define SPK_GAP_L2	   DAC_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
+#define SPK_GAP_L3	   DAC_BUFFER_SIZE * 2 / 4
+#define SPK_GAP_LSKIP DAC_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
+#define SPK_GAP_D1    10						// A margin at the edges of detection
+#define	SPK_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32
+#define	SPK_PACKETS_PER_GAP_SKIP 1				// After a skip/insert, recalculate gap immediately, then again after 1ms
+#define SPK_HOST_FB_DEAD_AFTER 200				// How many audio packets may arrive without host polling feedback, before we declare FB dead?
+#define SPK_SKIP_EN_GAP 1                      // Enable skip/insert due to low gap
+#define SPK_SKIP_EN_DEAD 2						// Enable skip/insert due to dead host feedback system
+
+#define SPK1_SKIP_LIMIT_14 2<<14 			    // 10.14 and 12.14 format. |accumulated error| must be > 2 samples.
+#define SPK2_SKIP_LIMIT_14 2<<14 			    // 10.14 and 12.14 format. |accumulated error| must be > 2 samples.
+#define SPK2_SKIP_LIMIT_16 2<<14 			    // 16.16 format for samples/250uS |accumulated error| must be > 2 samples.
+
+
+
 // For lack of a better place to put it, here is the volume control format message.
 // Input: 16-bit volume control word from USB, 256*dB
 // Output: 32-bit volume multiplier to volume control
