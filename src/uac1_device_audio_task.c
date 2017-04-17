@@ -479,8 +479,7 @@ void uac1_device_audio_task(void *pvParameters)
 				} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
 
-				/* SPDIF reduced OK */
-
+				/* SPDIF reduced */
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
 				if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
 
@@ -488,11 +487,13 @@ void uac1_device_audio_task(void *pvParameters)
 					if (Is_usb_out_received(EP_AUDIO_OUT)) {
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
+						/*
 						// Needed in minimal USB functionality?
 						num_samples = Usb_byte_count(EP_AUDIO_OUT);
 						for (i = 0; i < num_samples; i++) {
 							Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						}
+						*/
 
 						Usb_ack_out_received_free(EP_AUDIO_OUT);
 					}
@@ -896,47 +897,68 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 			else { // opposite of ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) )
-				playerStarted = FALSE;
-				silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
-				#ifdef HW_GEN_DIN20								// Dedicated mute pin
-					if (usb_ch_swap == USB_CH_SWAPDET)
-						usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
-				#endif
-
-				if (input_select == MOBO_SRC_UAC1) {			// Set from playing nonzero USB
-					#ifdef HW_GEN_DIN20							// Dedicated mute pin
-						mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
-					#endif
-
-					uac1_clear_dac_channel();					// Silencing incoming (OUT endpoint) audio buffer for good measure.
-
-					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
-						#ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char('h');				// Debug semaphore, lowercase letters for USB tasks
-							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-								input_select = MOBO_SRC_NONE;
-								print_dbg_char(60); // '<'
-							}
-							else
-								print_dbg_char(62); // '>'
-						#else
-							if (xSemaphoreGive(input_select_semphr) == pdTRUE)
-								input_select = MOBO_SRC_NONE;
-						#endif
-//	 			   		mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
-					#endif
+				/* SPDIF reduced */
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+				if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
+					// Do nothing at this stage
 				}
-			}
+				else {
+#else
+				if (1) {
+#endif
+					playerStarted = FALSE;
+					silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
+
+					#ifdef HW_GEN_DIN20								// Dedicated mute pin
+						if (usb_ch_swap == USB_CH_SWAPDET)
+							usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
+					#endif
+
+					if (input_select == MOBO_SRC_UAC1) {			// Set from playing nonzero USB
+						#ifdef HW_GEN_DIN20							// Dedicated mute pin
+							mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
+						#endif
+
+						uac1_clear_dac_channel();					// Silencing incoming (OUT endpoint) audio buffer for good measure.
+
+						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
+							#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char('h');				// Debug semaphore, lowercase letters for USB tasks
+								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+									input_select = MOBO_SRC_NONE;
+									print_dbg_char(60); // '<'
+								}
+								else
+									print_dbg_char(62); // '>'
+							#else
+								if (xSemaphoreGive(input_select_semphr) == pdTRUE)
+									input_select = MOBO_SRC_NONE;
+							#endif
+//			 			   		mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
+						#endif
+					}
+				}
+			} // end opposite of usb_alternate_setting_out == 1
 
 			// BSB 20131201 attempting improved playerstarted detection
-			if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA, decreased by seq. code
-				usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
-				playerStarted = FALSE;
+				/* SPDIF reduced */
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
+				// Do nothing at this stage
+			}
+			else {
+#else
+			if (1) {
+#endif
+				if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA, decreased by seq. code
+					usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
+					playerStarted = FALSE;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('q');
+					print_dbg_char('q');
 #endif
+				}
 			}
 
 	} // end while vTask
