@@ -971,7 +971,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				}
 			}
-		} // end opposite of usb_alternate_setting_out == 1
+		} // end opposite of usb_alternate_setting_out ==  1
 
 
 		// BSB 20131201 attempting improved playerstarted detection
