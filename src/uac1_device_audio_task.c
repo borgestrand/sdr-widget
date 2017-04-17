@@ -400,7 +400,7 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 				// BSB 20131031 actual gap calculation moved to after OUT data processing
 
-
+				/* SPDIF reduced OK */
 				if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) {	// Endpoint buffer free ?
 
 /*
@@ -479,394 +479,419 @@ void uac1_device_audio_task(void *pvParameters)
 				} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
 
+				/* SPDIF reduced OK */
 
-				if (Is_usb_out_received(EP_AUDIO_OUT)) {
-					spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+				if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
 
-					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-					num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
+					// Do minimal USB action to make Host believe Device is actually receiving
+					if (Is_usb_out_received(EP_AUDIO_OUT)) {
+						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
-					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
-						packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
-						FB_error_acc = 0;					// BSB 20131102 reset feedback error
-						FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
-						old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
-						skip_enable = 0;					// BSB 20131115 Not skipping yet...
-						skip_indicate = 0;
-						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
-						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
+						// Needed in minimal USB functionality?
+						num_samples = Usb_byte_count(EP_AUDIO_OUT);
+						for (i = 0; i < num_samples; i++) {
+							Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						}
+
+						Usb_ack_out_received_free(EP_AUDIO_OUT);
+					}
+				}
+				else {
+#else
+				if (1) {
+#endif
+
+					if (Is_usb_out_received(EP_AUDIO_OUT)) {
+						spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
+
+						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
+						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
+
+						if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+							time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
+							packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
+							FB_error_acc = 0;					// BSB 20131102 reset feedback error
+							FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
+							old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
+							skip_enable = 0;					// BSB 20131115 Not skipping yet...
+							skip_indicate = 0;
+							usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
+							dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
 
-						// BSB 20150725: Buffer alignment takes place as soon as 1st nonzero sample is received.
-						// FIX: Move above code as well?
-					} // end if (!playerStarted) || (audio_OUT_must_sync)
+							// BSB 20150725: Buffer alignment takes place as soon as 1st nonzero sample is received.
+							// FIX: Move above code as well?
+						} // end if (!playerStarted) || (audio_OUT_must_sync)
 
-					// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-					audio_OUT_alive = 1;					// Indicate samples arriving on audio OUT endpoint. Do this after syncing
+						// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+						audio_OUT_alive = 1;					// Indicate samples arriving on audio OUT endpoint. Do this after syncing
 
 
-					// Received samples in 10.14 or 12.14 format is num_samples * 1<<14
-					// Error increases when Host (in average) sends too much data compared to FB_rate
-					// A high error means we must skip.
+						// Received samples in 10.14 or 12.14 format is num_samples * 1<<14
+						// Error increases when Host (in average) sends too much data compared to FB_rate
+						// A high error means we must skip.
 
-/*					// Try to detect a dead Host feedback system
-					if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
-						if (packets_since_feedback > SPK_HOST_FB_DEAD_AFTER)
-							skip_enable |= SPK_SKIP_EN_DEAD;	// Enable skip/insert due to dead host feedback system
+	/*					// Try to detect a dead Host feedback system
+						if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
+							if (packets_since_feedback > SPK_HOST_FB_DEAD_AFTER)
+								skip_enable |= SPK_SKIP_EN_DEAD;	// Enable skip/insert due to dead host feedback system
+							else {
+								packets_since_feedback ++;
+								skip_enable &= ~SPK_SKIP_EN_DEAD;	// Disable skip/insert due to dead host feedback system
+							}
+						}
+	*/
+
+						// Default:1 Skip:0 Insert:2 Only one skip or insert per USB package
+						// .. prior to for(num_samples) Hence 1st sample in a package is skipped or inserted
+
+						// num_samples is stereo samples per ms. FB_rate is sample rate in kHz << 14. So num_samples<<14 should match FB_rate
+
+						samples_to_transfer_OUT = 1;
+						if (skip_enable == 0) {					// Respond to all skip enablers
+							FB_error_acc = 0;
+						}
 						else {
-							packets_since_feedback ++;
-							skip_enable &= ~SPK_SKIP_EN_DEAD;	// Disable skip/insert due to dead host feedback system
-						}
-					}
-*/
+							FB_error_acc = FB_error_acc + ((S32)num_samples * 1<<14) - FB_rate;
+							if (FB_error_acc > SPK1_SKIP_LIMIT_14) {	// Must skip
+								samples_to_transfer_OUT = 0;			// Do some skippin'
+								FB_error_acc = FB_error_acc - (1<<14);	// FIX: Why not 2 for stereo sample??
+								time_to_calculate_gap = -1;				// Immediate gap re-calculation
+								skip_indicate = 1;
+								LED_On(LED0);							// Indicate skipping on module LED
 
-					// Default:1 Skip:0 Insert:2 Only one skip or insert per USB package
-					// .. prior to for(num_samples) Hence 1st sample in a package is skipped or inserted
-
-					// num_samples is stereo samples per ms. FB_rate is sample rate in kHz << 14. So num_samples<<14 should match FB_rate
-
-					samples_to_transfer_OUT = 1;
-					if (skip_enable == 0) {					// Respond to all skip enablers
-						FB_error_acc = 0;
-					}
-					else {
-						FB_error_acc = FB_error_acc + ((S32)num_samples * 1<<14) - FB_rate;
-						if (FB_error_acc > SPK1_SKIP_LIMIT_14) {	// Must skip
-							samples_to_transfer_OUT = 0;			// Do some skippin'
-							FB_error_acc = FB_error_acc - (1<<14);	// FIX: Why not 2 for stereo sample??
-							time_to_calculate_gap = -1;				// Immediate gap re-calculation
-							skip_indicate = 1;
-							LED_On(LED0);							// Indicate skipping on module LED
-
-#ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char('s') ;
-#endif
-
-						}
-						else if (FB_error_acc < -SPK1_SKIP_LIMIT_14) {	// Must insert
-							samples_to_transfer_OUT = 2;			// Do some insertin'
-							FB_error_acc = FB_error_acc + (1<<14);
-							time_to_calculate_gap = -1;				// Immediate gap re-calculation
-							skip_indicate = 1;
-							LED_On(LED1);							// Indicate skipping on module LED
-
-#ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char('i');
-#endif
-						}
-					}
-
-// BSB 20131106 some notes on using AB-1.1 analog output for debug
-//					sample_L = 0x007FFFFF; // posative 24-bit full scale for calibration AB-1.1: 2.744VDC NB!! ES9023 keep squares at least 3dB
-//					sample_R = 0xFF800001; // negitive 24-bit full scale for calibration AB-1.2: -2.745VDC     below full-scale!
-//					sample_L = (U32)num_samples << 16; // +127 is maximum. Expect 9 times 44 and once 45. Multimeter:945.4mVDC dead on!
-//					sample_R = (U32)FB_rate_initial << 2; // It was <<'ed by 14, expect 44.1 /  Multimeter: 948.6mVDC not quite dead on..
-//					sample_R = (U32)num_samples << 16; // +127 is maximum. Expect 9 times 44 and once 45. Multimeter: 948.0mVDC
-//					sample_L = (U32)FB_rate_initial << 2; // It was <<'ed by 14, expect 44.1 /  Multimeter: 946.1mVDC dead on!
-//					sample_L = (U32)FB_error_acc << 2;
-//					sample_R = (U32)num_samples << 16;
-
-					// ON this particular AB-1.2, the Left channel is more accurate at this particular measurement. We'll wait with further
-					// calibration. FB_rate_initial is verified. Value of 1<<16 = 21mV
-
-					silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
-					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
-					for (i = 0; i < num_samples; i++) {
-						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-						silence_det_L |= sample_L;
-
-						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-						sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-						silence_det_R |= sample_R;
-
-						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
-							silence_det = 1;
-						else
-							silence_det = 0;
-
-						// New site for setting playerStarted and aligning buffers
-						if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
-							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem, handle semaphore
-								#ifdef USB_STATE_MACHINE_DEBUG
-									print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
-									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
-										print_dbg_char('[');
-
-										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
-
-										input_select = MOBO_SRC_UAC1;
-										#ifdef HW_GEN_DIN20
-											mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
-										#endif
-									}										// Hopefully, this code won't be called repeatedly. Would there be time??
-									else
-										print_dbg_char(']');
-								#else // not debug
-									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
-
-										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
-
-										input_select = MOBO_SRC_UAC1;
-										#ifdef HW_GEN_DIN20
-											mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
-										#endif
-								#endif
-							#else // not HW_GEN_DIN10/20											// No WM8805, take control
-								input_select = MOBO_SRC_UAC1;
-							#endif
-						}
-
-						// Do we own output (semaphore)? If so, change I2S setting and resync _once_
-						// Why are we doing this within for num_samples loop?
-						if ( (!playerStarted) && (input_select == MOBO_SRC_UAC1) ) {
-							playerStarted = TRUE;					// Arrival of nonzero sample is now indication of playerStarted
-	//						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
-
-							// FIX: mobo_xo_select will control I2S mux in GEN_DINx0. Verify semaphore mutex ownership!
-
-		            		mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem set RGB front LED
-							mobo_led_select(current_freq.frequency, input_select);
+	#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char('s');
 	#endif
 
-							// Align buffers
-							audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-
-							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-							num_remaining = spk_pdca_channel->tcr;
-							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-							// for a long time. In which we simply read the counter again
-							if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-								num_remaining = spk_pdca_channel->tcr;
 							}
-							DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
+							else if (FB_error_acc < -SPK1_SKIP_LIMIT_14) {	// Must insert
+								samples_to_transfer_OUT = 2;			// Do some insertin'
+								FB_error_acc = FB_error_acc + (1<<14);
+								time_to_calculate_gap = -1;				// Immediate gap re-calculation
+								skip_indicate = 1;
+								LED_On(LED1);							// Indicate skipping on module LED
 
-							LED_Off(LED0);							// The LEDs on the PCB near the MCU
-							LED_Off(LED1);
+	#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char('i');
+	#endif
+							}
+						}
 
-#ifdef USB_STATE_MACHINE_DEBUG
-							if (DAC_buf_USB_OUT == 1)					// Debug message 'p' removed along with #ifdefs
-								gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+	// BSB 20131106 some notes on using AB-1.1 analog output for debug
+	//					sample_L = 0x007FFFFF; // posative 24-bit full scale for calibration AB-1.1: 2.744VDC NB!! ES9023 keep squares at least 3dB
+	//					sample_R = 0xFF800001; // negitive 24-bit full scale for calibration AB-1.2: -2.745VDC     below full-scale!
+	//					sample_L = (U32)num_samples << 16; // +127 is maximum. Expect 9 times 44 and once 45. Multimeter:945.4mVDC dead on!
+	//					sample_R = (U32)FB_rate_initial << 2; // It was <<'ed by 14, expect 44.1 /  Multimeter: 948.6mVDC not quite dead on..
+	//					sample_R = (U32)num_samples << 16; // +127 is maximum. Expect 9 times 44 and once 45. Multimeter: 948.0mVDC
+	//					sample_L = (U32)FB_rate_initial << 2; // It was <<'ed by 14, expect 44.1 /  Multimeter: 946.1mVDC dead on!
+	//					sample_L = (U32)FB_error_acc << 2;
+	//					sample_R = (U32)num_samples << 16;
+
+						// ON this particular AB-1.2, the Left channel is more accurate at this particular measurement. We'll wait with further
+						// calibration. FB_rate_initial is verified. Value of 1<<16 = 21mV
+
+						silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
+						silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
+						for (i = 0; i < num_samples; i++) {
+							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+							silence_det_L |= sample_L;
+
+							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+							silence_det_R |= sample_R;
+
+							if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
+								silence_det = 1;
 							else
-								gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-#endif
+								silence_det = 0;
 
-							spk_index = DAC_BUFFER_SIZE - num_remaining;
-							spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-						}
+							// New site for setting playerStarted and aligning buffers
+							if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
+								#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem, handle semaphore
+									#ifdef USB_STATE_MACHINE_DEBUG
+										print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
+										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
+											print_dbg_char('[');
 
-						// Semaphore not taken, or muted, output zeros.. Should be redundant with dac_must_clear code
-//						if ( (input_select != MOBO_SRC_UAC1) || (spk_mute) ) {
-//							sample_L = 0;
-//							sample_R = 0;
-//						}
+											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
-#ifdef FEATURE_VOLUME_CTRL
-						if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-							// 24-bit data words. First shift up to 32 bit. Do math and shift down
-							sample_L <<= 8;
-							sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
-							sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-							sample_L >>= 8;
-						}
+											input_select = MOBO_SRC_UAC1;
+											#ifdef HW_GEN_DIN20
+												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
+											#endif
+										}										// Hopefully, this code won't be called repeatedly. Would there be time??
+										else
+											print_dbg_char(']');
+									#else // not debug
+										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 
-						if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-							// 24-bit data words. First shift up to 32 bit. Do math and shift down
-							sample_R <<= 8;
-							sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
-							sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-							sample_R >>= 8;
-						}
-#endif
+											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
-						// Only write to spk_buffer_? when allowed
-						if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) {
-							while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-								if (dac_must_clear == DAC_READY) {
-									if (DAC_buf_USB_OUT == 0) {
-										spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
-									}
-									else {
-										spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-										spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
-									}
-								}
-
-								spk_index += 2;
-								if (spk_index >= DAC_BUFFER_SIZE) {
-									spk_index = 0;
-									DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
-
-#ifdef USB_STATE_MACHINE_DEBUG
-									if (DAC_buf_USB_OUT == 1)
-										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-									else
-										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-#endif
-
-									// BSB 20131201 attempting improved playerstarted detection
-									usb_buffer_toggle--;					// Counter is increased by DMA, decreased by seq. code
-								}
+											input_select = MOBO_SRC_UAC1;
+											#ifdef HW_GEN_DIN20
+												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
+											#endif
+									#endif
+								#else // not HW_GEN_DIN10/20											// No WM8805, take control
+									input_select = MOBO_SRC_UAC1;
+								#endif
 							}
-							samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
-						}
-					} // end for num_samples
 
-					// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
-					if (silence_det == 1) {
-						if (!USB_IS_SILENT())
-							silence_USB += 4;
-					}
-					else // stereo sample is non-zero
-						silence_USB = SILENCE_USB_INIT;			// USB interface is not silent!
+							// Do we own output (semaphore)? If so, change I2S setting and resync _once_
+							// Why are we doing this within for num_samples loop?
+							if ( (!playerStarted) && (input_select == MOBO_SRC_UAC1) ) {
+								playerStarted = TRUE;					// Arrival of nonzero sample is now indication of playerStarted
+		//						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
 
-					Usb_ack_out_received_free(EP_AUDIO_OUT);
+								// FIX: mobo_xo_select will control I2S mux in GEN_DINx0. Verify semaphore mutex ownership!
 
-					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC1) ) { // Oops, we just went silent, probably from pause
-						playerStarted = FALSE;
+								mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 
-						#ifdef HW_GEN_DIN20						// Dedicated mute pin
-							mobo_i2s_enable(MOBO_I2S_DISABLE);	// Hard-mute of I2S pin
-						#endif
+		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem set RGB front LED
+								mobo_led_select(current_freq.frequency, input_select);
+		#endif
 
-						// Clear buffers for good measure! That may offload uac1_AK5394A_task() ?? and present a good mute to WM8805
-						for (i = 0; i < DAC_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-							spk_buffer_0[i] = 0;
-							spk_buffer_1[i] = 0;
-						}
+								// Align buffers
+								audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 
-						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
-							#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
-								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-									print_dbg_char(60); // '<'
-								}
-								else
-									print_dbg_char(62); // '>'
-							#else
-								if( xSemaphoreGive(input_select_semphr) == pdTRUE )
-									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-							#endif
-//			    			mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
-						#endif
-					}
-
-/* BSB 20131031 New location of gap calculation code */
-
-					// Calculate gap after N packets, NOT each time feedback endpoint is polled
-					if (time_to_calculate_gap > 0)
-						time_to_calculate_gap--;
-					else {
-						if (time_to_calculate_gap == -1)		// Immediately after a skip/insert and then again shortly
-							time_to_calculate_gap = SPK_PACKETS_PER_GAP_SKIP - 1;
-						else									// Initially and a while after any skip/insert
-							time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
-						if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
-
-							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-							num_remaining = spk_pdca_channel->tcr;
-							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-							// for a long time. In which we simply read the counter again
-							if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
 								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 								num_remaining = spk_pdca_channel->tcr;
-							}
+								// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+								// for a long time. In which we simply read the counter again
+								if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+									DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+									num_remaining = spk_pdca_channel->tcr;
+								}
+								DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
 
-							// Which buffer is in use, and does it truly correspond to the num_remaining value?
-							// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
-							if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
-								if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
-									gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+								LED_Off(LED0);							// The LEDs on the PCB near the MCU
+								LED_Off(LED1);
+
+	#ifdef USB_STATE_MACHINE_DEBUG
+								if (DAC_buf_USB_OUT == 1)					// Debug message 'p' removed along with #ifdefs
+									gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 								else
-									gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+									gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+	#endif
+
+								spk_index = DAC_BUFFER_SIZE - num_remaining;
+								spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 							}
-							else // usb and pdca working on different buffers
-								gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
-							if(playerStarted) {
+							// Semaphore not taken, or muted, output zeros.. Should be redundant with dac_must_clear code
+	//						if ( (input_select != MOBO_SRC_UAC1) || (spk_mute) ) {
+	//							sample_L = 0;
+	//							sample_R = 0;
+	//						}
 
-								if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
-									if (gap < SPK_GAP_LSKIP) {
-										skip_enable |= SPK_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+	#ifdef FEATURE_VOLUME_CTRL
+							if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+								// 24-bit data words. First shift up to 32 bit. Do math and shift down
+								sample_L <<= 8;
+								sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+								sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+								sample_L >>= 8;
+							}
+
+							if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+								// 24-bit data words. First shift up to 32 bit. Do math and shift down
+								sample_R <<= 8;
+								sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+								sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+								sample_R >>= 8;
+							}
+	#endif
+
+							// Only write to spk_buffer_? when allowed
+							if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) {
+								while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+									if (dac_must_clear == DAC_READY) {
+										if (DAC_buf_USB_OUT == 0) {
+											spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+											spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+										}
+										else {
+											spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+											spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+										}
 									}
-									else if (gap > SPK_GAP_USKIP) {
-										skip_enable |= SPK_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
-									}
-									else {
-										skip_enable &= ~SPK_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
+
+									spk_index += 2;
+									if (spk_index >= DAC_BUFFER_SIZE) {
+										spk_index = 0;
+										DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+
+	#ifdef USB_STATE_MACHINE_DEBUG
+										if (DAC_buf_USB_OUT == 1)
+											gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+										else
+											gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+	#endif
+
+										// BSB 20131201 attempting improved playerstarted detection
+										usb_buffer_toggle--;					// Counter is increased by DMA, decreased by seq. code
 									}
 								}
+								samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
+							}
+						} // end for num_samples
 
-								if (gap < old_gap) {
-									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
-										FB_rate -= 2*FB_RATE_DELTA;
-										old_gap = gap;
-										skip_indicate = 0;				// Feedback system is running again!
-										LED_On(LED0);
-#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('/');
-#endif
+						// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
+						if (silence_det == 1) {
+							if (!USB_IS_SILENT())
+								silence_USB += 4;
+						}
+						else // stereo sample is non-zero
+							silence_USB = SILENCE_USB_INIT;			// USB interface is not silent!
+
+						Usb_ack_out_received_free(EP_AUDIO_OUT);
+
+						if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC1) ) { // Oops, we just went silent, probably from pause
+							playerStarted = FALSE;
+
+							#ifdef HW_GEN_DIN20						// Dedicated mute pin
+								mobo_i2s_enable(MOBO_I2S_DISABLE);	// Hard-mute of I2S pin
+							#endif
+
+							// Clear buffers for good measure! That may offload uac1_AK5394A_task() ?? and present a good mute to WM8805
+							for (i = 0; i < DAC_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
+								spk_buffer_0[i] = 0;
+								spk_buffer_1[i] = 0;
+							}
+
+							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
+								#ifdef USB_STATE_MACHINE_DEBUG
+									print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
+									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+										input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+										print_dbg_char(60); // '<'
 									}
-									else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
-										FB_rate -= FB_RATE_DELTA;
-										old_gap = gap;
-										skip_indicate = 0;				// Feedback system is running again!
-										LED_On(LED0);
-#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('-');
-#endif
+									else
+										print_dbg_char(62); // '>'
+								#else
+									if( xSemaphoreGive(input_select_semphr) == pdTRUE )
+										input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+								#endif
+	//			    			mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
+							#endif
+						}
+
+	/* BSB 20131031 New location of gap calculation code */
+
+						// Calculate gap after N packets, NOT each time feedback endpoint is polled
+						if (time_to_calculate_gap > 0)
+							time_to_calculate_gap--;
+						else {
+							if (time_to_calculate_gap == -1)		// Immediately after a skip/insert and then again shortly
+								time_to_calculate_gap = SPK_PACKETS_PER_GAP_SKIP - 1;
+							else									// Initially and a while after any skip/insert
+								time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
+							if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
+
+								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+								num_remaining = spk_pdca_channel->tcr;
+								// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+								// for a long time. In which we simply read the counter again
+								if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+									DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+									num_remaining = spk_pdca_channel->tcr;
+								}
+
+								// Which buffer is in use, and does it truly correspond to the num_remaining value?
+								// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
+								if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
+									if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
+										gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+									else
+										gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+								}
+								else // usb and pdca working on different buffers
+									gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+
+								if(playerStarted) {
+
+									if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
+										if (gap < SPK_GAP_LSKIP) {
+											skip_enable |= SPK_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+										}
+										else if (gap > SPK_GAP_USKIP) {
+											skip_enable |= SPK_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
+										}
+										else {
+											skip_enable &= ~SPK_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
+										}
+									}
+
+									if (gap < old_gap) {
+										if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
+											FB_rate -= 2*FB_RATE_DELTA;
+											old_gap = gap;
+											skip_indicate = 0;				// Feedback system is running again!
+											LED_On(LED0);
+	#ifdef USB_STATE_MACHINE_DEBUG
+											print_dbg_char('/');
+	#endif
+										}
+										else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
+											FB_rate -= FB_RATE_DELTA;
+											old_gap = gap;
+											skip_indicate = 0;				// Feedback system is running again!
+											LED_On(LED0);
+	#ifdef USB_STATE_MACHINE_DEBUG
+											print_dbg_char('-');
+	#endif
+										}
+										else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
+											LED_Off(LED0);
+											LED_Off(LED1);
+										}
+									}
+									else if (gap > old_gap) {
+										if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
+											FB_rate += 2*FB_RATE_DELTA;
+											old_gap = gap;
+											skip_indicate = 0;				// Feedback system is running again!
+											LED_On(LED1);
+	#ifdef USB_STATE_MACHINE_DEBUG
+											print_dbg_char('*');
+	#endif
+										}
+										else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
+											FB_rate += FB_RATE_DELTA;
+											old_gap = gap;
+											skip_indicate = 0;				// Feedback system is running again!
+											LED_On(LED1);
+	#ifdef USB_STATE_MACHINE_DEBUG
+											print_dbg_char('+');
+	#endif
+										}
+										else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
+											LED_Off(LED0);
+											LED_Off(LED1);
+										}
 									}
 									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
 										LED_Off(LED0);
 										LED_Off(LED1);
 									}
-								}
-								else if (gap > old_gap) {
-									if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
-										FB_rate += 2*FB_RATE_DELTA;
-										old_gap = gap;
-										skip_indicate = 0;				// Feedback system is running again!
-										LED_On(LED1);
-#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('*');
-#endif
-									}
-									else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
-										FB_rate += FB_RATE_DELTA;
-										old_gap = gap;
-										skip_indicate = 0;				// Feedback system is running again!
-										LED_On(LED1);
-#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('+');
-#endif
-									}
-									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
-										LED_Off(LED0);
-										LED_Off(LED1);
-									}
-								}
-								else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
-									LED_Off(LED0);
-									LED_Off(LED1);
-								}
-							} // end if(playerStarted)
-						} // end if (usb_alternate_setting_out == 1)
+								} // end if(playerStarted)
+							} // end if (usb_alternate_setting_out == 1)
 
-					} // end if time_to_calculate_gap == 0
+						} // end if time_to_calculate_gap == 0
 
-/* BSB 20131031 End of new location for gap calculation code */
+	/* BSB 20131031 End of new location for gap calculation code */
 
-				}	// end usb_out_received
+					}	// end usb_out_received
+
+				} // end if(1) / input_select on RX chip
+
 			} // end usb_alternate_setting_out == 1
 
 
