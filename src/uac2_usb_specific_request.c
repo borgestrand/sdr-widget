@@ -200,7 +200,7 @@ void uac2_freq_change_handler() {
 */
 			if (current_freq.frequency == FREQ_96) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char('4'); // BSB debug 20121212
+//		   		print_dbg_char('4'); // BSB debug 20121212
 #endif
 
 				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
@@ -229,7 +229,7 @@ void uac2_freq_change_handler() {
 
 		   	else if (current_freq.frequency == FREQ_88) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char('3'); // BSB debug 20121212
+//		   		print_dbg_char('3'); // BSB debug 20121212
 #endif
 
 				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
@@ -258,7 +258,7 @@ void uac2_freq_change_handler() {
 
 	       	else if (current_freq.frequency == FREQ_176) {
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('5'); // BSB debug 20121212
+//				print_dbg_char('5'); // BSB debug 20121212
 #endif
 
 				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
@@ -279,7 +279,7 @@ void uac2_freq_change_handler() {
 
 			else if (current_freq.frequency == FREQ_192) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char('6'); // BSB debug 20121212
+//		   		print_dbg_char('6'); // BSB debug 20121212
 #endif
 
 		   		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
@@ -301,7 +301,7 @@ void uac2_freq_change_handler() {
 
 		else if (current_freq.frequency == FREQ_48) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char('2'); // BSB debug 20121212
+//		   		print_dbg_char('2'); // BSB debug 20121212
 #endif
 
 				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
@@ -323,7 +323,7 @@ void uac2_freq_change_handler() {
 
 			else if (current_freq.frequency == FREQ_44) {
 #ifdef USB_STATE_MACHINE_DEBUG
-		   		print_dbg_char('1'); // BSB debug 20121212
+//		   		print_dbg_char('1'); // BSB debug 20121212
 #endif
 
 				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
