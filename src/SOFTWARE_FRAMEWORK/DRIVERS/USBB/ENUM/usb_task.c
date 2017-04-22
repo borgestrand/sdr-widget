@@ -285,7 +285,7 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
 	portBASE_TYPE task_woken = pdFALSE;
 
 // BSB debug 20150823
-print_dbg_char('!'); // Indicate USB interrupt.
+print_dbg_char('!'); // Indicate USB interrupt .
 
 
 // ---------- DEVICE events management -----------------------------------------
