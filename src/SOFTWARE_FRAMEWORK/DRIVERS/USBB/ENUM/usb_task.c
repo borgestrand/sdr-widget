@@ -196,12 +196,12 @@ void usb_task(void *pvParameters)
 {
   // Register the USB interrupt handler to the interrupt controller and enable
   // the USB interrupt.
-  print_dbg_char('V');
+//  print_dbg_char('V');
 
   Disable_global_interrupt();
 
   INTC_register_interrupt((__int_handler)&usb_general_interrupt, AVR32_USBB_IRQ, USB_INT_LEVEL);
-  print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '!' below is critical!!
+//  print_dbg_char('W'); // Very strange behaviour! The timing of print_dbg_char here and '!' below is critical!!
 
 // Try to move 'W' out of the interrupt lock-out, then implement with some delay. Check if freertos delay will work or hang. 
 // Do we know the scheduler has started up properly when this function is called? Could the hang point be while waiting for the semaphore?
@@ -213,7 +213,7 @@ void usb_task(void *pvParameters)
 
   Enable_global_interrupt();
 
-  print_dbg_char('X');
+//  print_dbg_char('X');
 
   while (TRUE)
   {
@@ -221,7 +221,7 @@ void usb_task(void *pvParameters)
     while (!xSemaphoreTake(usb_tsk_semphr, portMAX_DELAY));
 
 
-print_dbg_char('Y');
+// print_dbg_char('Y');
 
 // ---- DEVICE-ONLY USB MODE ---------------------------------------------------
   if (usb_device_tsk) vTaskDelete(usb_device_tsk), usb_device_tsk = NULL;
