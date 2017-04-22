@@ -60,7 +60,7 @@ volatile avr32_pdca_channel_t *pdca_get_handler(unsigned int pdca_ch_number)
   if (pdca_ch_number >= AVR32_PDCA_CHANNEL_LENGTH)
     return (volatile avr32_pdca_channel_t *)PDCA_INVALID_ARGUMENT;
 
-  return pdca_channel ;
+  return pdca_channel;
 }
 
 
