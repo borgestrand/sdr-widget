@@ -1161,7 +1161,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 				case CSD_ID_2:							// set CUR freq
 #ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char('F'); // BSB debug 20121212
+					print_dbg_char('K'); // BSB debug 20121212
 #endif
 
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb == 0

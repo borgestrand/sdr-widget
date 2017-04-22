@@ -647,6 +647,9 @@ Bool usb_get_interface(void)
 //!
 void usb_set_interface(void)
 {
+
+	print_dbg_char('X');
+
    U8 u8_i;
 
    // wValue = Alternate Setting
