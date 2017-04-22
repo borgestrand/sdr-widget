@@ -285,14 +285,21 @@ void wm8805_poll(void) {
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-				input_select = MOBO_SRC_NONE;				// Indicate USB may  over control, but don't power down!
 
+				// Highly experimental
+				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+
+				input_select = MOBO_SRC_NONE;				// Indicate USB may  over control, but don't power down!
 				print_dbg_char(60); // '<'
 			}
 			else
 				print_dbg_char(62); // '>'
 #else
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+
+				// Highly experimental
+				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 			}
 #endif
@@ -340,11 +347,19 @@ void wm8805_poll(void) {
 			if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 				print_dbg_char('[');
 				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
+
+				// Highly experimental
+				gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
+
 			}
 			else
 				print_dbg_char(']');
 #else // not debug
 			if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) { // Re-take of taken semaphore returns false
+
+				// Highly experimental
+				gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
+
 				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
 			}
 #endif
