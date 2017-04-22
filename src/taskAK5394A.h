@@ -34,10 +34,14 @@
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
 // Keep buffer sizes belov 2^14
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // Use same buffer size in and out of SPDIF interface
-	#define ADC_BUFFER_SIZE	(8*2*24) // Hand tweaked figures for 192 stability, skip/insert etc. etc....
-	#define DAC_BUFFER_SIZE (32*2*24)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
+// Nominal values
+//	#define ADC_BUFFER_SIZE	(8*2*24)
+//	#define DAC_BUFFER_SIZE (32*2*24)
 
+// Trying to provoke bugs in 44.1 SPDIF playback during USB activity. *5 instead of *24 means running DMAs slightly faster than nominal at 192
+	#define ADC_BUFFER_SIZE	(8*2*5)
+	#define DAC_BUFFER_SIZE (32*2*5)
 #else
 	#define ADC_BUFFER_SIZE	48*2*8 // 48 khz, stereo, 8 ms worth
 	#define DAC_BUFFER_SIZE 48*2*16
