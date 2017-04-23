@@ -614,7 +614,7 @@ void wm8805_pll(void) {
 */
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
 
-	vTaskDelay(2000);	//500 bad start 3000 good start				// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+	vTaskDelay(1000);	//500 bad start 3000, 2000 good start				// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 }
 
 
