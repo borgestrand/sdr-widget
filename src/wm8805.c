@@ -162,7 +162,21 @@ volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8805_PLL_N
 void wm8805_poll(void) {
 
 	#define pausecounter_initial 20000
-	#define startup_empty_runs 40
+	#define startup_empty_runs 40 // Was 40 // Will this help for cold boot?
+
+	/*
+	 * 400 - 32s
+	 * Brief power down
+	 * 400 - 18s
+	 * 400 - 14s
+	 *
+	 *
+	 *
+	 *
+	 *
+	 */
+
+
 
     uint8_t wm8805_int = 0;										// WM8805 interrupt status
     static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
@@ -287,7 +301,7 @@ void wm8805_poll(void) {
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 
 				// Highly experimental
-				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+//				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 
 				input_select = MOBO_SRC_NONE;				// Indicate USB may  over control, but don't power down!
 				print_dbg_char(60); // '<'
@@ -298,7 +312,7 @@ void wm8805_poll(void) {
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 
 				// Highly experimental
-				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+//				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 
 				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
 			}
@@ -349,7 +363,7 @@ void wm8805_poll(void) {
 				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
 
 				// Highly experimental
-				gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
+//				gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
 
 			}
 			else
@@ -358,7 +372,7 @@ void wm8805_poll(void) {
 			if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) { // Re-take of taken semaphore returns false
 
 				// Highly experimental
-				gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
+//				gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
 
 				input_select = input_select_wm8805_next;	// Owning semaphore we may write to input_select
 			}
@@ -466,17 +480,25 @@ void wm8805_poll(void) {
 // Hardware reset over GPIO pin. Consider the Power Up Configuration section of the datasheet!
 void wm8805_reset(uint8_t reset_type) {
 	if (reset_type == WM8805_RESET_START) {
+		// 20170423 new
+		gpio_set_gpio_pin(AVR32_PIN_PA15);			// SDA must be 1 at reset for SW. NB This will conflict with I2C!
+
 		gpio_clr_gpio_pin(WM8805_RESET_PIN);		// Clear reset pin WM8805 active low reset
 		gpio_clr_gpio_pin(WM8805_CSB_PIN);			// CSB/GPO2 pin sets 2W address. Make sure CSB outputs 0.
 	}
 	else {
 		gpio_set_gpio_pin(WM8805_RESET_PIN);		// Set reset pin WM8805 active low reset
 		gpio_enable_gpio_pin(WM8805_CSB_PIN);		// CSB/GPO2 should now be an MCU input...
+
+		// 20170423 new
+		gpio_enable_gpio_pin(AVR32_PIN_PA15);		// SDA should now be an MCU input...
 	}
 }
 
 // Start up the WM8805
 void wm8805_init(void) {
+
+	static uint8_t initial = 1;
 
 	wm8805_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 RX0
 
@@ -499,6 +521,14 @@ void wm8805_init(void) {
 	wm8805_read_byte(0x0B);			// Clear interrupts
 
 	wm8805_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL,
+
+	if (initial == 1) {
+
+		vTaskDelay(1000);					// Allow for stability. 500 gives much better performance than 200
+
+		initial = 0;
+	}
+
 
 	// Enable CPU's processing of produced data
 	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
@@ -739,7 +769,7 @@ int foo(void) {
 uint32_t wm8805_srd_asm(void) {
 	int16_t timeout;
 
-	gpio_set_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
+//	gpio_set_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
 	// see srd_test.c and srd_test.lst
@@ -862,7 +892,7 @@ uint32_t wm8805_srd_asm(void) {
 	#define FLIM_192_LOW	0x14 // Was 0x14
 	#define FLIM_192_HIGH	0x15
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
+//	gpio_clr_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
 
 
 	if ( (timeout >= FLIM_32_LOW) && (timeout <= FLIM_32_HIGH) ) {

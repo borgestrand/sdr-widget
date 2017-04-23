@@ -246,6 +246,15 @@ int i;
 	gpio_set_gpio_pin(AVR32_PIN_PX51);						// Enables power to XO and DAC in USBI2C AB-1.X and USB DAC 128
 #endif
 
+
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+//	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
+	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
+
+	// NB: No I2C activity until WM8805_RESET_END !
+#endif
+
+
 #ifdef HW_GEN_DIN20
 	gpio_set_gpio_pin(AVR32_PIN_PX13);						// Reset pin override inactive. Should have external pull-up!
 
@@ -359,7 +368,7 @@ int i;
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
-	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
+//	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 
 	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it

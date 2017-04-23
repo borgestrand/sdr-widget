@@ -40,8 +40,13 @@
 //	#define DAC_BUFFER_SIZE (32*2*24)
 
 // Trying to provoke bugs in 44.1 SPDIF playback during USB activity. *5 instead of *24 means running DMAs slightly faster than nominal at 192
-	#define ADC_BUFFER_SIZE	(8*2*3)
-	#define DAC_BUFFER_SIZE (32*2*3)
+//	#define ADC_BUFFER_SIZE	(8*2*3)
+//	#define DAC_BUFFER_SIZE (32*2*3)
+
+// Are larger buffer less error prone?
+	#define ADC_BUFFER_SIZE	(8*2*48)
+	#define DAC_BUFFER_SIZE (32*2*48)
+
 #else
 	#define ADC_BUFFER_SIZE	48*2*8 // 48 khz, stereo, 8 ms worth
 	#define DAC_BUFFER_SIZE 48*2*16
