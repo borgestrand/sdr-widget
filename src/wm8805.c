@@ -557,7 +557,7 @@ void wm8805_input(uint8_t input_sel) {
  	}
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
-	vTaskDelay(800);					// Allow for stability. 500 gives much better performance than 200. 500 is still unstable on startup
+	vTaskDelay(400);					// Allow for stability. 500 gives much better performance than 200. 500 is still unstable on startup, but is this the cause?
 }
 
 
@@ -614,7 +614,7 @@ void wm8805_pll(void) {
 */
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
 
-	vTaskDelay(3000);	//500				// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+	vTaskDelay(2000);	//500 bad start 3000 good start				// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 }
 
 
