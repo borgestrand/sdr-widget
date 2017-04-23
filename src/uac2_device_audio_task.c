@@ -175,10 +175,6 @@ void uac2_device_audio_task(void *pvParameters)
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
-	const U8 IN_LEFT = FEATURE_IN_NORMAL ? 0 : 1;
-	const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
-	const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
-	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 // Now global:
 //	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 //	volatile avr32_pdca_channel_t *spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
@@ -187,6 +183,19 @@ void uac2_device_audio_task(void *pvParameters)
 	uint32_t silence_det_R = 0;
 	uint8_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
+
+	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
+	#define IN_LEFT 0
+	#define IN_RIGHT 1
+	#define OUT_LEFT 0
+	#define OUT_RIGHT 1
+	#else
+		const U8 IN_LEFT = FEATURE_IN_NORMAL ? 0 : 1;
+		const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
+		const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
+		const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
+	#endif
 
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();

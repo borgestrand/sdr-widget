@@ -91,6 +91,11 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
  * \retval none
  */
 #if I2C
+
+// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
+#else
+
 static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
 {
 	uint8_t retval;
@@ -171,7 +176,8 @@ static void i2c_device_scan(void)
 	i2c.pcf0x3f = (twi_probe(MOBO_TWI,0x3f)== TWI_SUCCESS);
 	#endif
 }
-#endif
+#endif // #ifdef I2C
+#endif // Henry Audio device
 
 
 /*! \brief Print stuff in the second line of the LCD
@@ -582,8 +588,14 @@ static void vtaskMoboCtrl( void * pcParameters )
  	// Initialize I2C communications
 	#if I2C
 	twi_init();
-    // Probe for I2C devices present and report on LCD
-	i2c_device_scan();
+
+	// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
+	#else
+		// Probe for I2C devices present and report on LCD
+		i2c_device_scan();
+	#endif
+
 
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 // FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
