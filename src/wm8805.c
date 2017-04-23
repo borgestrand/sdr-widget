@@ -542,7 +542,7 @@ void wm8805_sleep(void) {
 // Select input channel of the WM8805
 void wm8805_input(uint8_t input_sel) {
 
-	print_dbg_char(0x30 + input_sel);
+//	print_dbg_char(0x30 + input_sel);
 
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
@@ -557,7 +557,7 @@ void wm8805_input(uint8_t input_sel) {
  	}
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
-	vTaskDelay(400);					// Allow for stability. 500 gives much better performance than 200. 500 is still unstable on startup, but is this the cause?
+	vTaskDelay(400);					// Allow for stability. 500 gives much better performance than 200.
 }
 
 
@@ -586,7 +586,7 @@ void wm8805_pll(void) {
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 	if (pll_sel == WM8805_PLL_NORMAL) {
-		print_dbg_char('_');
+//		print_dbg_char('_');
 
 		wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 		wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
@@ -596,7 +596,7 @@ void wm8805_pll(void) {
 
 	// Special PLL setup for 192
 	else if (pll_sel == WM8805_PLL_192) {	// PLL setting 8.192
-		print_dbg_char(169);			// High line
+//		print_dbg_char(169);			// High line
 
 		wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
@@ -650,8 +650,6 @@ void wm8805_mute(void) {
 void wm8805_unmute(void) {
 //	print_dbg_char('U');
 
-	gpio_set_gpio_pin(AVR32_PIN_PX43); 				// Pin 88 is high during this particular SRD
-	gpio_clr_gpio_pin(AVR32_PIN_PX43); 				// Pin 88 is high during this particular SRD
 
 	// May do a test vs. freq_prev to determine if clock resetting and muxing is really needed
 	mobo_clock_division(wm8805_status.frequency);			// Outgoing I2S clock division selector
@@ -769,8 +767,6 @@ int foo(void) {
 */
 uint32_t wm8805_srd_asm(void) {
 	int16_t timeout;
-
-//	gpio_set_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
 	// see srd_test.c and srd_test.lst
