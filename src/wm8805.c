@@ -765,7 +765,7 @@ int foo(void) {
 	return timeout;
 }
 */
-uint32_t wm8805_srd_asm(void) {
+uint32_t wm8805_srd_asm(void)  {
 	int16_t timeout;
 
 	// Using #define TIMEOUT_LIM 150 doesn't seem to work inside asm(), so hardcode constant 150 everywhere!
