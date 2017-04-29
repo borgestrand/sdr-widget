@@ -615,6 +615,10 @@ void audio_get_cur(void) {
 
 void audio_set_cur(void)
 {
+
+	// USB click debug
+	gpio_set_gpio_pin(AVR32_PIN_PX43); // pin88
+
    U16 i_unit;
    U16 length;
    i_unit = (wIndex >> 8);			// wIndex high byte is interface number
@@ -735,6 +739,10 @@ void audio_set_cur(void)
    Usb_ack_control_out_received_free();
    Usb_ack_control_in_ready_send();
    while (!Is_usb_control_in_ready());
+
+
+	// USB click debug
+	gpio_clr_gpio_pin(AVR32_PIN_PX43); // pin88
 }
 
 //! This function is called by the standard USB read request function when
