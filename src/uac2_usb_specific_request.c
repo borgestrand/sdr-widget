@@ -173,10 +173,6 @@ const U8 Speedx_2[38] = {
 
 void uac2_freq_change_handler() {
 	int i;
-
-	// USB click debug
-	gpio_set_gpio_pin(AVR32_PIN_PX43); // pin88
-
 		if (freq_changed) {
 
 			// We're calling mobo_xo_select here AND in uac2_device_audio_task. Just to be sure about MCLK XO select settling!
@@ -377,10 +373,6 @@ void uac2_freq_change_handler() {
 			// reset freq_changed flag
 			freq_changed = FALSE;
 		}
-
-		// USB click debug
-		gpio_clr_gpio_pin(AVR32_PIN_PX43); // pin88
-
 }
 
 

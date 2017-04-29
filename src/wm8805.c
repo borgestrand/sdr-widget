@@ -768,8 +768,6 @@ int foo(void) {
 uint32_t wm8805_srd_asm2(void) {
 	uint32_t timeout;
 
-	gpio_set_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
-
 	// see srd_test.c and srd_test.lst
 
 	// New board: Will move to PX09, pin 49
@@ -880,8 +878,6 @@ uint32_t wm8805_srd_asm2(void) {
 	//  96.0  679- 726 ( 687.5)
 	// 176.4  369- 396 ( 374.2)
 	// 192.0  339- 363 ( 343.8)
-
-	gpio_clr_gpio_pin(AVR32_PIN_PX52); // Pin 87 is high during SRD
 
 	#define SLIM_44_LOW		1478
 	#define SLIM_44_HIGH	1580 		// Gives timeout of 2000
