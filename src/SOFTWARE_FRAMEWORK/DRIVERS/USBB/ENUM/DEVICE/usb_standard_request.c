@@ -649,11 +649,6 @@ Bool usb_get_interface(void)
 //!
 void usb_set_interface(void)
 {
-
-//	print_dbg_char('X');
-	// USB click debug
-	gpio_set_gpio_pin(AVR32_PIN_PX52); // pin87
-
    U8 u8_i;
 
    // wValue = Alternate Setting
@@ -756,9 +751,6 @@ void usb_set_interface(void)
    // send a ZLP for STATUS phase
    Usb_ack_control_in_ready_send();
    while (!Is_usb_control_in_ready());
-
-	// USB click debug
-	gpio_clr_gpio_pin(AVR32_PIN_PX52); // pin87
 
 }
 
