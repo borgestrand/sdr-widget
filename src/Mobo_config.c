@@ -380,7 +380,7 @@ void mobo_handle_spdif(uint8_t width) {
 				}
 				DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
 
-				spk_index = DAC_BUFFER_SIZE - num_remaining;
+				spk_index = DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE * 0.9/4; // Nasty offset to put on skips sooner
 				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 			}
 
@@ -414,14 +414,14 @@ void mobo_handle_spdif(uint8_t width) {
 			if ((gap <= old_gap) && (gap < SPK_GAP_L1)) {
 				skip = 0;							// Do some skippin'
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('s');
+//				print_dbg_char('s');
 #endif
 			}
 //			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
 			else if ((gap >= old_gap) && (gap > SPK_GAP_U1)) {
 				skip = 2;							// Do some insertin'
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('i');
+//				print_dbg_char('i');
 #endif
 			}
 
@@ -442,7 +442,7 @@ void mobo_handle_spdif(uint8_t width) {
 				S32 prevabsdiff_L = 0;
 				S32 prevabsdiff_R = 0;
 				S32 score = 0;
-				S32 prevscore = (2^31)-1;	// An unreasonably large positive number
+				S32 prevscore = 0x7FFFFFFF;	// An unreasonably large positive number
 
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
@@ -480,6 +480,10 @@ void mobo_handle_spdif(uint8_t width) {
 					prevabsdiff_L = absdiff_L;
 					prevabsdiff_R = absdiff_R;
 				}
+#ifdef USB_STATE_MACHINE_DEBUG
+				print_dbg_char_hex(target);
+				print_dbg_char('\n');
+#endif
 
 
 			}
