@@ -305,7 +305,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 // Process digital input
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-		mobo_handle_spdif();
+		mobo_handle_spdif(24); // UAC1 uses 24-bit data
 #endif
 
 

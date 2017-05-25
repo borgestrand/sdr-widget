@@ -55,7 +55,7 @@ uint8_t mobo_usb_detect(void);
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 
 // Process spdif and toslink inputs
-void mobo_handle_spdif(void);
+void mobo_handle_spdif(uint8_t width);
 
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source);

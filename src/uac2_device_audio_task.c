@@ -299,7 +299,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Process digital input
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-		mobo_handle_spdif();
+		mobo_handle_spdif(32); // UAC2 uses 32-bit data
 #endif
 
 

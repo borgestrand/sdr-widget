@@ -542,7 +542,7 @@ void wm8805_sleep(void) {
 // Select input channel of the WM8805
 void wm8805_input(uint8_t input_sel) {
 
-//	print_dbg_char(0x30 + input_sel);
+	print_dbg_char(0x30 + input_sel);
 
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
@@ -557,8 +557,15 @@ void wm8805_input(uint8_t input_sel) {
  	}
 
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
-	vTaskDelay(400);					// Allow for stability. 500 gives much better performance than 200.
+	vTaskDelay(600);					// Allow for stability. 500 gives much better performance than 200.
 }
+
+// Delays of:
+// 400 / 1200	Poor cold start
+// 600 / 1200	Warm start OK. Cold start failed
+// 600 / 3000	Warm start OK. Cold start OK
+// 600 / 2000	Warm start OK. Cold start OK
+// 600 / 1500	Warm start OK. Cold start OK
 
 
 // Select PLL setting of the WM8805
@@ -586,7 +593,7 @@ void wm8805_pll(void) {
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 	if (pll_sel == WM8805_PLL_NORMAL) {
-//		print_dbg_char('_');
+		print_dbg_char('_');
 
 		wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 		wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
@@ -596,7 +603,7 @@ void wm8805_pll(void) {
 
 	// Special PLL setup for 192
 	else if (pll_sel == WM8805_PLL_192) {	// PLL setting 8.192
-//		print_dbg_char(169);			// High line
+		print_dbg_char(169);			// High line
 
 		wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
@@ -614,7 +621,7 @@ void wm8805_pll(void) {
 */
 	wm8805_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL,
 
-	vTaskDelay(1200);	//500, 1000  bad start 3000, 2000, 1500 good start				// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
+	vTaskDelay(1500);	//500, 1000  bad start 3000, 2000, 1500 good start				// Let WM8805 PLL try to settle for some time (300-ish ms) FIX: too long?
 }
 
 

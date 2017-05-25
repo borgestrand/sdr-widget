@@ -275,22 +275,25 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 
 
 // Handle spdif and toslink input
-void mobo_handle_spdif(void) {
+void mobo_handle_spdif(uint8_t width) {
 	static int ADC_buf_DMA_write_prev = -1;
 	int ADC_buf_DMA_write_temp = 0;
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
 	S16 old_gap = DAC_BUFFER_SIZE;
-	static S16 megaskip = 0;
-	U16 samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
+
+//	U16 samples_to_transfer_OUT = 1; 	// Default value 1. Skip:0. Insert:2
 	int i;										// Generic counter
 
 	U8 DAC_buf_DMA_read_local;					// Local copy read in atomic operations
 	U16 num_remaining;
 
 	S32 sample_temp = 0;
-	S32 sample_L = 0;
-	S32 sample_R = 0;
+	static S32 sample_L = 0;
+	static S32 sample_R = 0;
+	static S16 megaskip = 0;
+	int8_t skip = 0;
+
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
@@ -405,23 +408,59 @@ void mobo_handle_spdif(void) {
 				gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
 
-			// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
+			// Apply gap to skip or insert
+			skip = 0;
+			if ((gap <= old_gap) && (gap < SPK_GAP_L3)) {
+				skip = 1;							// Do some skippin'
+#ifdef USB_STATE_MACHINE_DEBUG
+				print_dbg_char('s');
+#endif
+			}
+			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
+				skip = -1							// Do some insertin'
+#ifdef USB_STATE_MACHINE_DEBUG
+				print_dbg_char('i');
+#endif
+			}
+
+			// If we must skip, what is the best place to do that?
+			if (skip != 0) {
+
+				int16_t target = 0;
+				S32 prevsample_L = 0;
+				S32 prevsample_R = 0;
+				S32 absdiff_L = 0;
+				S32 absdiff_R = 0;
+				S32 prevabsdiff_L = 0;
+				S32 prevabsdiff_R = 0;
+				S32 score = 0;
+				S32 prevscore = -2^31;
+
+
+
+
 			samples_to_transfer_OUT = 1;			// Default value
 			if ((gap <= old_gap) && (gap < SPK_GAP_L3)) {
 				samples_to_transfer_OUT = 0;		// Do some skippin'
+#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('s');
+#endif
 			}
 			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
 				samples_to_transfer_OUT = 2;		// Do some insertin'
+#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('i');
+#endif
 			}
 
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
+#ifdef USB_STATE_MACHINE_DEBUG
 			if (ADC_buf_DMA_write_temp == 1)
 				gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 			else if (ADC_buf_DMA_write_temp == 0)
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+#endif
 
 			// Apply megaskip when DC or zero is detected
 			if (wm8805_status.silent == 1) {									// Silence was detected
@@ -439,14 +478,18 @@ void mobo_handle_spdif(void) {
 
 			// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
 			if (megaskip >= ADC_BUFFER_SIZE) {
+#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('S');
+#endif
 				samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 				megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
 				// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
 			}
 			// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
 			else if (megaskip <= -ADC_BUFFER_SIZE) {
+#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('I');
+#endif
 				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 
@@ -767,6 +810,9 @@ void mobo_clock_division(U32 frequency) {
 	}
 
 	pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+
+	gpio_disable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
 }
 
 
