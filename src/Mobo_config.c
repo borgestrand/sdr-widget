@@ -380,7 +380,7 @@ void mobo_handle_spdif(uint8_t width) {
 				}
 				DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
 
-				spk_index = DAC_BUFFER_SIZE - num_remaining;  + DAC_BUFFER_SIZE * 0.9/4; // Nasty offset to put on skips sooner
+				spk_index = DAC_BUFFER_SIZE - num_remaining; // + DAC_BUFFER_SIZE * 0.9/4; // Nasty offset to put on skips sooner
 				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 			}
 
@@ -410,18 +410,18 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 			// Apply gap to skip or insert
-//			if ((gap <= old_gap) && (gap < SPK_GAP_L3)) {
-			if ((gap <= old_gap) && (gap < SPK_GAP_L1)) {
+			if ((gap <= old_gap) && (gap < SPK_GAP_L3)) {
+//			if ((gap <= old_gap) && (gap < SPK_GAP_L1)) {
 				skip = 0;							// Do some skippin'
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('s');
+//				print_dbg_char('s');
 #endif
 			}
-//			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
-			else if ((gap >= old_gap) && (gap > SPK_GAP_U1)) {
+			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
+//			else if ((gap >= old_gap) && (gap > SPK_GAP_U1)) {
 				skip = 2;							// Do some insertin'
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('i');
+//				print_dbg_char('i');
 #endif
 			}
 
@@ -496,7 +496,6 @@ void mobo_handle_spdif(uint8_t width) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 #endif
 
-/*
 			// Apply megaskip when DC or zero is detected
 			if (wm8805_status.silent == 1) {									// Silence was detected
 				if (gap < (SPK_GAP_L3 + SPK_GAP_D1) ) {				// Are we close or past the limit for having to skip?
@@ -509,12 +508,11 @@ void mobo_handle_spdif(uint8_t width) {
 			else {
 				megaskip = 0;	// Not zero -> no big skips!
 			}
-*/
 
 			// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
 			if (megaskip >= ADC_BUFFER_SIZE) {
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('S');
+//				print_dbg_char('S');
 #endif
 				skip = 1;						// No single-sample skip/insert
 				megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
@@ -523,7 +521,7 @@ void mobo_handle_spdif(uint8_t width) {
 			// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
 			else if (megaskip <= -ADC_BUFFER_SIZE) {
 #ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('I');
+//				print_dbg_char('I');
 #endif
 				skip = 1;						// No single-sample skip/insert
 				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
