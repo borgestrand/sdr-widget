@@ -427,8 +427,6 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 
-// Calculate target without using it for now
-
 			// If we must skip, what is the best place to do that?
 			// Code is prototyped in skip_insert_draft_c.m
 			if (samples_to_transfer_OUT != 1) {
@@ -489,9 +487,6 @@ void mobo_handle_spdif(uint8_t width) {
 //				print_dbg_char('\n');
 #endif
 			}
-
-
-// Done calculating target
 
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
@@ -564,7 +559,12 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 // Super-rough skip/insert
-					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+//					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+
+					p = 1;
+					if (i == target)			// Are we touching the stereo sample?
+						p = samples_to_transfer_OUT;				// If so let's check what we're doing to it
+					while (p-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 						if (dac_must_clear == DAC_READY) {
 							if (DAC_buf_USB_OUT == 0) {
 								spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
