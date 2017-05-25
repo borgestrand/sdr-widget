@@ -417,13 +417,13 @@ void mobo_handle_spdif(uint8_t width) {
 			if ((gap <= old_gap) && (gap < SPK_GAP_L1)) {
 //			if (gap < SPK_GAP_L1) {
 				samples_to_transfer_OUT = 0;		// Do some skippin'
-				print_dbg_char('s');
+//				print_dbg_char('s');
 			}
 //			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
 			else if ((gap >= old_gap) && (gap > SPK_GAP_U1)) {
 //			else if (gap > SPK_GAP_U1) {
 				samples_to_transfer_OUT = 2;		// Do some insertin'
-				print_dbg_char('i');
+//				print_dbg_char('i');
 			}
 
 
@@ -568,7 +568,6 @@ void mobo_handle_spdif(uint8_t width) {
 					p = 1;
 					if (i == target) {			// Are we touching the stereo sample?
 						p = samples_to_transfer_OUT;				// If so let's check what we're doing to it
-						print_dbg_char('.');
 					}
 
 					while (p-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet

@@ -36,8 +36,8 @@
 // Keep buffer sizes belov 2^14
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
 // Nominal values
-	#define ADC_BUFFER_SIZE	(6*2*24) //  Was 8*2*24 Trying 1/7 rate to have more ppm pull range in skip/insert..
-	#define DAC_BUFFER_SIZE (42*2*24)// Was 32*2*24
+	#define ADC_BUFFER_SIZE	(8*2*24)
+	#define DAC_BUFFER_SIZE (32*2*24)
 
 // Trying to provoke bugs in 44.1 SPDIF playback during USB activity. *5 instead of *24 means running DMAs slightly faster than nominal at 192
 //	#define ADC_BUFFER_SIZE	(8*2*3)
