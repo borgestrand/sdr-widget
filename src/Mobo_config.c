@@ -283,8 +283,8 @@ void mobo_handle_spdif(uint8_t width) {
 	S16 old_gap = DAC_BUFFER_SIZE;
 
 	U16 samples_to_transfer_OUT = 1; 	// Default value 1. Skip:0. Insert:2
-	int i;								// Generic counter
-	int p;								// Generic counter
+	S16 i;								// Generic counter
+	S16 p;								// Generic counter
 
 	U8 DAC_buf_DMA_read_local;			// Local copy read in atomic operations
 	U16 num_remaining;
@@ -293,7 +293,7 @@ void mobo_handle_spdif(uint8_t width) {
 	static S32 sample_L = 0;
 	static S32 sample_R = 0;
 	static S16 megaskip = 0;
-	int target = -1;					// Default value, no sample to touch
+	S16 target = -1;					// Default value, no sample to touch
 
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
@@ -412,6 +412,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 			// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 			samples_to_transfer_OUT = 1;			// Default value
+			target = -1;
 //			if ((gap <= old_gap) && (gap < SPK_GAP_L3)) {
 			if ((gap <= old_gap) && (gap < SPK_GAP_L1)) {
 //			if (gap < SPK_GAP_L1) {
@@ -430,7 +431,7 @@ void mobo_handle_spdif(uint8_t width) {
 			// If we must skip, what is the best place to do that?
 			// Code is prototyped in skip_insert_draft_c.m
 			if (samples_to_transfer_OUT != 1) {
-				int target = 0;					// If calculation fails, remove 1st sample in package
+				target = 0;					// If calculation fails, remove 1st sample in package
 				S32 prevsample_L = sample_L; 	// sample_L is static, so this is the last data from previous package transfer
 				S32 prevsample_R = sample_R;
 				if (width == 24) {				// We're starting out with 32-bit signed math here.
@@ -470,8 +471,8 @@ void mobo_handle_spdif(uint8_t width) {
 					// Determine which stereo sample should be touched
 					score = absdiff_L + absdiff_R + prevabsdiff_L + prevabsdiff_R;
 					if (score < prevscore) {
-						if (i != 0) {	// Can't touch last sample of package
-							target = i-1;
+						if (i != 0) {		// Can't touch last sample of package
+							target = i-2;	// Stereo sample offset
 							prevscore = score;
 						}
 					}
@@ -484,7 +485,7 @@ void mobo_handle_spdif(uint8_t width) {
 				}
 #ifdef USB_STATE_MACHINE_DEBUG
 //				print_dbg_char_hex(target);
-//				print_dbg_char('\n');
+//				print_dbg_char(' ');
 #endif
 			}
 
@@ -546,6 +547,9 @@ void mobo_handle_spdif(uint8_t width) {
 			else {
 				megaskip = 0;					// Normal operation
 
+//				print_dbg_char_hex(target);
+//				print_dbg_char('\n');
+
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					// Fill endpoint with sample raw
 					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
@@ -562,8 +566,11 @@ void mobo_handle_spdif(uint8_t width) {
 //					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 
 					p = 1;
-					if (i == target)			// Are we touching the stereo sample?
+					if (i == target) {			// Are we touching the stereo sample?
 						p = samples_to_transfer_OUT;				// If so let's check what we're doing to it
+						print_dbg_char('.');
+					}
+
 					while (p-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 						if (dac_must_clear == DAC_READY) {
 							if (DAC_buf_USB_OUT == 0) {
