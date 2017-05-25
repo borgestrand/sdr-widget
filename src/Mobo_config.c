@@ -380,8 +380,8 @@ void mobo_handle_spdif(uint8_t width) {
 				}
 				DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
 
-//				spk_index = DAC_BUFFER_SIZE - num_remaining;
-				spk_index = DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE * 0.9/4; // Nasty offset to put on skips sooner
+				spk_index = DAC_BUFFER_SIZE - num_remaining;
+//				spk_index = DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE * 0.9/4; // Nasty offset to put on skips sooner
 				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 			}
 
@@ -413,14 +413,14 @@ void mobo_handle_spdif(uint8_t width) {
 			// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 			samples_to_transfer_OUT = 1;			// Default value
 			target = -1;
-//			if ((gap <= old_gap) && (gap < SPK_GAP_L3)) {
-			if ((gap <= old_gap) && (gap < SPK_GAP_L1)) {
+			if ((gap <= old_gap) && (gap < SPK_GAP_L3)) {
+//			if ((gap <= old_gap) && (gap < SPK_GAP_L1)) {
 //			if (gap < SPK_GAP_L1) {
 				samples_to_transfer_OUT = 0;		// Do some skippin'
 //				print_dbg_char('s');
 			}
-//			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
-			else if ((gap >= old_gap) && (gap > SPK_GAP_U1)) {
+			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
+//			else if ((gap >= old_gap) && (gap > SPK_GAP_U1)) {
 //			else if (gap > SPK_GAP_U1) {
 				samples_to_transfer_OUT = 2;		// Do some insertin'
 //				print_dbg_char('i');
