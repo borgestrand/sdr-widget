@@ -281,16 +281,20 @@ void mobo_handle_spdif(uint8_t width) {
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
 	S16 old_gap = DAC_BUFFER_SIZE;
-	static S16 megaskip = 0;
-	U16 samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
-	int i;										// Generic counter
 
-	U8 DAC_buf_DMA_read_local;					// Local copy read in atomic operations
+	U16 samples_to_transfer_OUT = 1; 	// Default value 1. Skip:0. Insert:2
+	int i;								// Generic counter
+	int p;								// Generic counter
+
+	U8 DAC_buf_DMA_read_local;			// Local copy read in atomic operations
 	U16 num_remaining;
 
 	S32 sample_temp = 0;
-	S32 sample_L = 0;
-	S32 sample_R = 0;
+	static S32 sample_L = 0;
+	static S32 sample_R = 0;
+	static S16 megaskip = 0;
+	int target = -1;					// Default value, no sample to touch
+
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
@@ -420,6 +424,74 @@ void mobo_handle_spdif(uint8_t width) {
 				samples_to_transfer_OUT = 2;		// Do some insertin'
 				print_dbg_char('i');
 			}
+
+
+
+// Calculate target without using it for now
+
+			// If we must skip, what is the best place to do that?
+			// Code is prototyped in skip_insert_draft_c.m
+			if (samples_to_transfer_OUT != 1) {
+				int target = 0;					// If calculation fails, remove 1st sample in package
+				S32 prevsample_L = sample_L; 	// sample_L is static, so this is the last data from previous package transfer
+				S32 prevsample_R = sample_R;
+				if (width == 24) {				// We're starting out with 32-bit signed math here.
+					prevsample_L <<= 8;
+					prevsample_R <<= 8;
+				}
+				prevsample_L >>= 4;
+				prevsample_R >>= 4;
+				S32 absdiff_L = 0;
+				S32 absdiff_R = 0;
+				S32 prevabsdiff_L = 0;
+				S32 prevabsdiff_R = 0;
+				S32 score = 0;
+				S32 prevscore = 0x7FFFFFFF;	// An unreasonably large positive number
+
+				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
+					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+						sample_L = audio_buffer_0[i+IN_LEFT];
+						sample_R = audio_buffer_0[i+IN_RIGHT];
+					}
+					else if (ADC_buf_DMA_write_temp == 1) {
+						sample_L = audio_buffer_1[i+IN_LEFT];
+						sample_R = audio_buffer_1[i+IN_RIGHT];
+					}
+					if (width == 24) {			// We're starting out with 32-bit signed math here.
+						sample_L <<= 8;
+						sample_R <<= 8;
+					}
+
+					// Calculating the "energy" coming from sample n-1 to sample n
+					sample_L >>= 4;	// Avoid saturation
+					sample_R >>= 4;
+					absdiff_L = abs(sample_L - prevsample_L);
+					absdiff_R = abs(sample_R - prevsample_R);
+
+					// Summing the "energy" going from sample n-2 to sample n-1 and the energy going from sample n-1 to sample n
+					// Determine which stereo sample should be touched
+					score = absdiff_L + absdiff_R + prevabsdiff_L + prevabsdiff_R;
+					if (score < prevscore) {
+						if (i != 0) {	// Can't touch last sample of package
+							target = i-1;
+							prevscore = score;
+						}
+					}
+
+					// Establish history within packet. Redundant in very last sample in package, but if test is too expensive
+					prevsample_L = sample_L;
+					prevsample_R = sample_R;
+					prevabsdiff_L = absdiff_L;
+					prevabsdiff_R = absdiff_R;
+				}
+#ifdef USB_STATE_MACHINE_DEBUG
+//				print_dbg_char_hex(target);
+//				print_dbg_char('\n');
+#endif
+			}
+
+
+// Done calculating target
 
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
