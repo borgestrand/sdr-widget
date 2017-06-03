@@ -193,8 +193,8 @@
 #define INPUT_TERMINAL_ID				0x01
 #define INPUT_TERMINAL_TYPE				0x0201 	// Terminal is microphone
 #define INPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define INPUT_TERMINAL_NB_CHANNELS		0x02   	// Two channels for input terminal
-#define INPUT_TERMINAL_CHANNEL_CONF		0x00000003 	// Two channels at front left and front right positions
+#define INPUT_TERMINAL_NB_CHANNELS		0x00   	// Was: '2 // Two channels for input terminal
+#define INPUT_TERMINAL_CHANNEL_CONF		0x00000000 	// Was: '3 // Two channels at front left and front right positions
 //#define INPUT_TERMINAL_CONTROLS			0x0040	// D7-6 Cluster control - readonly
 #define INPUT_TERMINAL_CONTROLS			0x0000	// none
 #define INPUT_TERMINAL_CH_NAME_ID		0x00	// No channel name

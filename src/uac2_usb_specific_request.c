@@ -112,6 +112,36 @@ extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
 
+// New attempt at writing sample rate definition for Windows Creator's update
+const U8 Speedx[74] = {
+	0x06, 0x00, 		// 6 sample triplets
+
+	0x44,0xac,0x00,0x00,	//44.1k Min
+	0x44,0xac,0x00,0x00,	//44.1k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
+
+	0x80,0xbb,0x00,0x00,	//48k Min
+	0x80,0xbb,0x00,0x00,	//48k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
+
+	0x88,0x58,0x01,0x00,	//88.2k Min
+	0x88,0x58,0x01,0x00,	//88.2k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
+
+	0x00,0x77,0x01,0x00,	//96k Min
+	0x00,0x77,0x01,0x00,	//96k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
+
+	0x10,0xb1,0x02,0x00,	//176.4k Min
+	0x10,0xb1,0x02,0x00,	//176.4k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
+
+	0x00,0xee,0x02,0x00,	//192k Min
+	0x00,0xee,0x02,0x00,	//192k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
+};
+
+
 const U8 Speedx_1[26] = {
 0x02,0x00,				//number of sample rate triplets
 
@@ -872,9 +902,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < min(wLength, sizeof(Speedx_1)); i++) {
+						for (i = 0; i < min(wLength, sizeof(Speedx)); i++) { // Was Speedx_1
 							//if (FEATURE_DAC_GENERIC)
-								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]); // Was Speedx_2, buggy?
 							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 							}
 						Usb_ack_control_in_ready_send();
@@ -934,9 +964,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						// give total # of bytes requested
-						for (i = 0; i < min(wLength, sizeof(Speedx_1)); i++) {
+						for (i = 0; i < min(wLength, sizeof(Speedx)); i++) { // Was: Speedx_1
 							//if (FEATURE_DAC_GENERIC)
-								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_1[i]);
+								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]); // Was: Speedx_1
 							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 						}
 						Usb_ack_control_in_ready_send();
