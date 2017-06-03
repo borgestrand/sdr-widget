@@ -175,10 +175,10 @@
 
 // Clock Source descriptor
 #define CSD_ID_1						0x04
-#define CSD_ID_1_TYPE					0b00000001	// fixed freq internal clock
+#define CSD_ID_1_TYPE					0b00000010	// was: 01 fixed. int. Trying 10 var. int. // fixed freq internal clock
 #define CSD_ID_1_CONTROL				0b00000111	// freq r/w, validity r
 #define CSD_ID_2						0x05
-#define CSD_ID_2_TYPE					0b00000001	// fixed freq internal clock
+#define CSD_ID_2_TYPE					0b00000010	// was: 01 fixed. int. Trying 10 var. int. // fixed freq internal clock
 #define CSD_ID_2_CONTROL				0b00000111	// freq r/w, validity r
 
 // Clock Selector descriptor
@@ -193,8 +193,8 @@
 #define INPUT_TERMINAL_ID				0x01
 #define INPUT_TERMINAL_TYPE				0x0201 	// Terminal is microphone
 #define INPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define INPUT_TERMINAL_NB_CHANNELS		0x02   	// Two channels for input terminal
-#define INPUT_TERMINAL_CHANNEL_CONF		0x00000003 	// Two channels at front left and front right positions
+#define INPUT_TERMINAL_NB_CHANNELS		0x00   	// Two channels for input terminal was 0x02, try 0x00
+#define INPUT_TERMINAL_CHANNEL_CONF		0x00000000 	// Was: 0x0..03, try 0x00// Two channels at front left and front right positions
 //#define INPUT_TERMINAL_CONTROLS			0x0040	// D7-6 Cluster control - readonly
 #define INPUT_TERMINAL_CONTROLS			0x0000	// none
 #define INPUT_TERMINAL_CH_NAME_ID		0x00	// No channel name
@@ -216,11 +216,11 @@
 #define MIC_BMA_CONTROLS_CH_2		   0x00000003
 
 // Speaker Input Terminal
-#define SPK_INPUT_TERMINAL_ID			0x11
+#define SPK_INPUT_TERMINAL_ID			0x01	// Was 0x11, trying 0x01
 #define SPK_INPUT_TERMINAL_TYPE			0x0101	// USB Streaming
 #define SPK_INPUT_TERMINAL_ASSOCIATION	0x00	// No association
-#define SPK_INPUT_TERMINAL_NB_CHANNELS	0x02
-#define SPK_INPUT_TERMINAL_CHANNEL_CONF	0x0003	// left front and right front
+#define SPK_INPUT_TERMINAL_NB_CHANNELS	0x00 // Was: 0x02, try 0x00
+#define SPK_INPUT_TERMINAL_CHANNEL_CONF	0x0000	// was: 0x00003, try 0x0000 // left front and right front
 #define SPK_INPUT_TERMINAL_CH_NAME_ID	0x00	
 #define SPK_INPUT_TERMINAL_STRING_DESC	AIT_INDEX
 
@@ -232,7 +232,7 @@
 #define SPK_BMA_CONTROLS_CH_2		   0x0000000C	// Volume control R
 
 // SPK Output Terminal descriptor
-#define SPK_OUTPUT_TERMINAL_ID				0x13
+#define SPK_OUTPUT_TERMINAL_ID				0x02	// Was 0x13, trying 0x02
 #define SPK_OUTPUT_TERMINAL_TYPE			0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
 #define SPK_OUTPUT_TERMINAL_SOURCE_ID		SPK_FEATURE_UNIT_ID
@@ -276,8 +276,8 @@
 #define AS_FORMAT_TYPE						0x01		// PCM Format
 #define AS_FORMATS							0x00000001	// PCM only
 #define AS_CONTROLS							0b00000111	// active alt settings r/w, valid alt settings r
-#define AS_NB_CHANNELS						0x02
-#define AS_CHAN_CONFIG						0x00000003	// L+R front
+#define AS_NB_CHANNELS						0x00	// Was: 0x02, try 0x00
+#define AS_CHAN_CONFIG						0x00000000	// Was: 0x0..03, try 0x00 // L+R front
 
 // Format type for ALT1
 #define FORMAT_TYPE_1						0x01	// Format TypeI

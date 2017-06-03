@@ -98,7 +98,7 @@ extern volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
 extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 
 // Redefined BSB 20160320, USB volume limits
-#define VOL_DEFAULT		(S16)0xF400	// -12dB // F400
+#define VOL_DEFAULT		(S16)0x0000 // Because there is no way to change volume on PC/UAC2 (S16)0xF400	// -12dB // F400
 #define VOL_MIN      	(S16)0xC400	// -60dB
 #define VOL_INVALID		(S16)VOL_MIN - 0x0100	// Just below VOL_MIN
 #define VOL_MAX      	(S16)0x0000	// 0dB
