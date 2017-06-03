@@ -216,7 +216,7 @@
 #define MIC_BMA_CONTROLS_CH_2		   0x00000003
 
 // Speaker Input Terminal
-#define SPK_INPUT_TERMINAL_ID			0x01	// Was 0x11, trying 0x01
+#define SPK_INPUT_TERMINAL_ID			0x11	// Was 0x11, trying 0x01
 #define SPK_INPUT_TERMINAL_TYPE			0x0101	// USB Streaming
 #define SPK_INPUT_TERMINAL_ASSOCIATION	0x00	// No association
 #define SPK_INPUT_TERMINAL_NB_CHANNELS	0x00 // Was: 0x02, try 0x00
@@ -232,7 +232,7 @@
 #define SPK_BMA_CONTROLS_CH_2		   0x0000000C	// Volume control R
 
 // SPK Output Terminal descriptor
-#define SPK_OUTPUT_TERMINAL_ID				0x02	// Was 0x13, trying 0x02
+#define SPK_OUTPUT_TERMINAL_ID				0x13	// Was 0x13, trying 0x02
 #define SPK_OUTPUT_TERMINAL_TYPE			0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
 #define SPK_OUTPUT_TERMINAL_SOURCE_ID		SPK_FEATURE_UNIT_ID
