@@ -709,6 +709,13 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 #endif
 }
 
+// Wait for DA's LRCK to go low
+void mobo_wait_for_low_DA_LRCK(void) {
+	// to avoid channel inversion.  Start with left channel - FS goes low
+	while (!gpio_get_pin_value(AVR32_PIN_PX27));
+	while (gpio_get_pin_value(AVR32_PIN_PX27));
+}
+
 
 // Master clock to DAC's I2S port frequency setup
 void mobo_clock_division(U32 frequency) {

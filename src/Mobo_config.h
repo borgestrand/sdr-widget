@@ -28,6 +28,10 @@ void mobo_xo_select(U32 frequency, uint8_t source);
 // Master clock to DAC's I2S port frequency setup
 void mobo_clock_division(U32 frequency);
 
+// Wait for DA's LRCK to go low
+void mobo_wait_for_low_DA_LRCK(void);
+
+
 
 #ifdef HW_GEN_DIN20
 

@@ -617,6 +617,10 @@ void uac1_device_audio_task(void *pvParameters)
 
 											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
+											// Resync I2S out after changing XOs
+											mobo_wait_for_low_DA_LRCK();
+											pdca_enable(PDCA_CHANNEL_SSC_TX);
+
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20
 												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
@@ -628,6 +632,10 @@ void uac1_device_audio_task(void *pvParameters)
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 
 											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+
+											// Resync I2S out after changing XOs
+											mobo_wait_for_low_DA_LRCK();
+											pdca_enable(PDCA_CHANNEL_SSC_TX);
 
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20
@@ -648,6 +656,11 @@ void uac1_device_audio_task(void *pvParameters)
 								// FIX: mobo_xo_select will control I2S mux in GEN_DINx0. Verify semaphore mutex ownership!
 
 								mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
+
+								// Resync I2S out after changing XOs
+								mobo_wait_for_low_DA_LRCK();
+								pdca_enable(PDCA_CHANNEL_SSC_TX);
+
 
 		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem set RGB front LED
 								mobo_led_select(current_freq.frequency, input_select);

@@ -310,6 +310,10 @@ void AK5394A_task_init(const Bool uac1) {
 	//////////////////////////////////////////////
 	// Enable now the transfer.
 	// Why don't we enable the RX here??
+
+	// Resync I2S before (re)enabling PDCA_CHANNEL_SSC_TX
+	mobo_wait_for_low_DA_LRCK();
+
 	pdca_enable(PDCA_CHANNEL_SSC_TX);
 
 

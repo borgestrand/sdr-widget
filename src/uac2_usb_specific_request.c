@@ -234,6 +234,11 @@ void uac2_freq_change_handler() {
 		}
 		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
 		mobo_clock_division(current_freq.frequency);
+
+		// Resync I2S out after changing XOs
+		mobo_wait_for_low_DA_LRCK();
+		pdca_enable(PDCA_CHANNEL_SSC_TX);
+
 #endif
 
 		/*
