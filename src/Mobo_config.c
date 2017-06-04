@@ -711,9 +711,10 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 
 // Wait for DA's LRCK to go low
 void mobo_wait_for_low_DA_LRCK(void) {
-	// to avoid channel inversion.  Start with left channel - FS goes low
-	while (!gpio_get_pin_value(AVR32_PIN_PX27));
+	// To avoid channel inversion.  Start with left channel - FS goes low
+	// WHY? I'd expect the opposite to work!
 	while (gpio_get_pin_value(AVR32_PIN_PX27));
+	while (!gpio_get_pin_value(AVR32_PIN_PX27));
 }
 
 
