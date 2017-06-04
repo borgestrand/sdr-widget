@@ -789,7 +789,7 @@ void uac2_device_audio_task(void *pvParameters)
 									else {
 										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 								//		print_dbg_char_nibble(spk_buffer_1[1] >> 16);	// Print what is presumably a right sample nibble
-								//		print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
+										print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
 									}
 	#endif
 
