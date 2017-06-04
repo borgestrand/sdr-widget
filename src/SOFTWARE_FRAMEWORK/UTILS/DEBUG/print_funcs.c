@@ -228,6 +228,17 @@ void print_dbg_char_hex(unsigned char n)
   print_char_hex(DBG_USART, n);
 }
 
+
+void print_dbg_char_nibble(unsigned char n)
+{
+	n = n & 0x0F;	// Keep only 4 LSBs
+	if (n < 0x0A)
+		print_char(DBG_USART, n+48);	// 0..9
+	else
+		print_char(DBG_USART, n+55);	// A..F
+}
+
+
 void print_dbg_char_bin(unsigned char n)
 {
 	unsigned char index = 0x80;

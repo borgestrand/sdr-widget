@@ -185,11 +185,13 @@ void uac2_device_audio_task(void *pvParameters)
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
+
+
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
-	#define IN_LEFT 0
-	#define IN_RIGHT 1
-	#define OUT_LEFT 0
-	#define OUT_RIGHT 1
+		#define IN_LEFT 0
+		#define IN_RIGHT 1
+		#define OUT_LEFT 0
+		#define OUT_RIGHT 1
 	#else
 		const U8 IN_LEFT = FEATURE_IN_NORMAL ? 0 : 1;
 		const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
@@ -770,8 +772,14 @@ void uac2_device_audio_task(void *pvParameters)
 	#ifdef USB_STATE_MACHINE_DEBUG
 									if (DAC_buf_USB_OUT == 1)
 										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-									else
+									else {
 										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+
+
+								//		print_dbg_char_nibble(spk_buffer_1[1] >> 16);	// Print what is presumably a right sample nibble
+										print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
+
+									}
 	#endif
 
 									// BSB 20131201 attempting improved playerstarted detection
@@ -781,6 +789,22 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					} // end for num_samples
+
+/*
+					// The silence detector detects the correct arrival of samples
+					if (silence_det_L != 0)
+						print_dbg_char('l');
+					if (silence_det_R != 0)
+						print_dbg_char('r');
+*/
+
+					// Do we increment by 2 and keep the LSB free? Quite likely..
+//					print_dbg_char_nibble(spk_index); // Terminal is too slow.
+
+
+					// Is something wrong with I2S output definition?
+
+
 
 					// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
 					if (silence_det == 1) {

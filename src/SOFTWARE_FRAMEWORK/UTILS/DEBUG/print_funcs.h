@@ -314,6 +314,12 @@ extern void print_dbg_ulong(unsigned long n);
  */
 extern void print_dbg_char_hex(unsigned char n);
 
+/*! \brief Prints a char to DBG_USART in a single-character nibble hexadecimal representation.
+ *
+ * \param n The char to print.
+ */
+extern void print_dbg_char_nibble(unsigned char n);
+
 /*! \brief Writes a character (not passed as pointer) as binary to DBG_USART
  *
  * \param c is an int

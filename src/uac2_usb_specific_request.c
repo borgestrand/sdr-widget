@@ -943,7 +943,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						//						print_dbg_char('k'); // BSB debug 20120910
+						print_dbg_char('k'); // BSB debug 20120910
 #endif
 
 						Usb_ack_setup_received_free();
@@ -961,7 +961,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						//						print_dbg_char('i'); // BSB debug 20120910
+						print_dbg_char('i'); // BSB debug 20120910
 #endif
 
 						Usb_ack_setup_received_free();
@@ -980,7 +980,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_RANGE) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						//						print_dbg_char('j'); // BSB debug 20120910
+						print_dbg_char('j'); // BSB debug 20120910
 #endif
 
 						Usb_ack_setup_received_free();

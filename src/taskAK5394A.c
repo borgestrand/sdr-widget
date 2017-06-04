@@ -160,6 +160,10 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
 		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+
+//		print_dbg_char_nibble(spk_buffer_1[1] >> 16);	// Print what is presumably a right sample nibble
+		print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
+
 #endif
 #endif
 	}
@@ -172,6 +176,9 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
 		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+
+//		print_dbg_char_nibble(spk_buffer_1[1] >> 16);	// Print what is presumably a right sample nibble
+//		print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
 #endif
 #endif
 	}
