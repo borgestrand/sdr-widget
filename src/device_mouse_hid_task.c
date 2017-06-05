@@ -423,6 +423,7 @@ void device_mouse_hid_task(void)
 
 
             	pdca_disable(PDCA_CHANNEL_SSC_TX);
+            	pdca_disable(PDCA_CHANNEL_SSC_RX);
 
 
 /*
@@ -449,6 +450,15 @@ void device_mouse_hid_task(void)
             	while (gpio_get_pin_value(AVR32_PIN_PX27))  ;
             	while (!gpio_get_pin_value(AVR32_PIN_PX27));
 
+            	static const pdca_channel_options_t PDCA_OPTIONS = {
+            		.addr = (void *)audio_buffer_0,         // memory address
+            		.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
+            		.size = ADC_BUFFER_SIZE,              // transfer counter
+            		.r_addr = NULL,                         // next memory address
+            		.r_size = 0,                            // next transfer counter
+            		.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+            	};
+
             	static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
             		.addr = (void *)spk_buffer_0,         // memory address
             		.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
@@ -458,9 +468,15 @@ void device_mouse_hid_task(void)
             		.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
             	};
 
+
+            	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+            	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+            	pdca_enable(PDCA_CHANNEL_SSC_RX);
+
             	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
             	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
             	pdca_enable(PDCA_CHANNEL_SSC_TX);
+
 
             	taskEXIT_CRITICAL();
 
