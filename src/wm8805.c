@@ -663,10 +663,6 @@ void wm8805_unmute(void) {
 	mobo_xo_select(wm8805_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 	mobo_led_select(wm8805_status.frequency, input_select);	// User interface channel indicator
 
-	// Resync I2S out after changing XOs
-	mobo_wait_for_low_DA_LRCK();
-	pdca_enable(PDCA_CHANNEL_SSC_TX);
-
 	ADC_buf_USB_IN = -1;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 
 	#ifdef HW_GEN_DIN20

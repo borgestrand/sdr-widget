@@ -131,14 +131,14 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_DEBUG
-    	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+//    	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	}
 	else if (ADC_buf_DMA_write == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
-    	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+//   	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	}
 
@@ -175,7 +175,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #else
 		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 //		print_dbg_char_nibble(spk_buffer_1[1] >> 16);	// Print what is presumably a right sample nibble
-		print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
+//		print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
 #endif
 #endif
 	}
@@ -310,9 +310,6 @@ void AK5394A_task_init(const Bool uac1) {
 	//////////////////////////////////////////////
 	// Enable now the transfer.
 	// Why don't we enable the RX here??
-
-	// Resync I2S before (re)enabling PDCA_CHANNEL_SSC_TX
-	mobo_wait_for_low_DA_LRCK();
 
 	pdca_enable(PDCA_CHANNEL_SSC_TX);
 

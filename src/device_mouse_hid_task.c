@@ -99,6 +99,8 @@
 #include "pdca.h" // For ADC channel config tests
 #include "taskAK5394A.h"
 
+#include "ssc_i2s.h" // For I2S tests
+
 #ifdef USB_METALLIC_NOISE_SIM
 #include "device_audio_task.h"	// To modify FB_rate_nominal
 #endif
@@ -355,13 +357,6 @@ void device_mouse_hid_task(void)
             	mobo_i2s_enable(MOBO_I2S_DISABLE);
             }
 
-            else if (a == 'F') {							// Uppercase F
-            	mobo_km(MOBO_HP_KM_ENABLE);
-            }
-
-            else if (a == 'f') {							// Lowercase f
-            	mobo_km(MOBO_HP_KM_DISABLE);
-            }
 #endif
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
@@ -384,6 +379,98 @@ void device_mouse_hid_task(void)
        			gpio_clr_gpio_pin(AVR32_PIN_PX58); 			// 44.1 control
        			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control
             }
+
+            // Restart I2S
+            else if (a == 'd') {							// Lowercase d
+            	pdca_enable(PDCA_CHANNEL_SSC_TX);
+            }
+
+            // Restart I2S
+            else if (a == 'e') {							// Lowercase e
+            	// Gives random L/R swap
+            	// UAC1 defaults, 48ksps
+            	ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
+            }
+
+            // Restart I2S
+            else if (a == 'f') {							// Lowercase f
+            	// No influence on L/R swap
+            	// mobo_xo_select(current_freq.frequency, input_select);
+
+            	// This alone breaks quite a lot..
+            	ssc_i2s_reset(ssc);
+            }
+
+            // Restart I2S
+            else if (a == 'g') {							// Lowercase g
+            	// No influence on L/R swap
+            	mobo_clock_division(current_freq.frequency);
+            }
+
+            // Restart I2S
+            else if (a == 'i') {							// Lowercase i
+
+            	// Preceding by this gives random L/R swap
+            	//mobo_wait_for_low_DA_LRCK();
+
+            	// Preceding by this gives random L/R swap
+            	// mobo_clock_division(current_freq.frequency);
+
+
+               	gpio_tgl_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+
+            	taskENTER_CRITICAL();
+
+
+            	pdca_disable(PDCA_CHANNEL_SSC_TX);
+
+
+/*
+ * 	Both UAC1 and UAC2 behave similarly with USB playback.
+ *  Waiting while 0, then while 1, then while 0 causes the inversion to toggle each time 'i' is called.
+ *  Waiting while 1, then while 0, then while 1 causes a static inversion there L and R are always swapped.
+ *  Trying briefly with a mono mode on falling edge didn't cause any change. (The mono mode alone made an expected mess.)
+ *
+ */
+
+
+//            	while (gpio_get_pin_value(AVR32_PIN_PX27));
+//            	while (!gpio_get_pin_value(AVR32_PIN_PX27));
+//           	while (gpio_get_pin_value(AVR32_PIN_PX27));
+//            	while (!gpio_get_pin_value(AVR32_PIN_PX27));
+
+            	// UAC2 defaults, 48ksps
+//            	ssc_i2s_init(ssc, 48000, 32, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
+
+            	// UAC1 defaults, 48ksps
+            	ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
+
+
+            	while (gpio_get_pin_value(AVR32_PIN_PX27));
+            	while (!gpio_get_pin_value(AVR32_PIN_PX27));
+
+
+
+            	static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
+            		.addr = (void *)spk_buffer_0,         // memory address
+            		.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
+            		.size = DAC_BUFFER_SIZE,              // transfer counter
+            		.r_addr = NULL,                         // next memory address
+            		.r_size = 0,                            // next transfer counter
+            		.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+            	};
+
+            	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
+            	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+            	pdca_enable(PDCA_CHANNEL_SSC_TX);
+
+
+
+            	taskEXIT_CRITICAL();
+
+//            	print_dbg_char_hex(t);
+            }
+
 
             // LED debug
             else if (a == 'L') {							// Uppercase L

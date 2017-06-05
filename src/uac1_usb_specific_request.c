@@ -660,21 +660,12 @@ void audio_set_cur(void)
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 		if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) { // Only change I2S settings if appropriate
 			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);					// GPIO XO control
-
-			// Resync I2S out after changing XOs
-			mobo_wait_for_low_DA_LRCK();
-			pdca_enable(PDCA_CHANNEL_SSC_TX);
 		}
 		if (input_select == MOBO_SRC_UAC1) {										// Only change I2S settings if appropriate
 			mobo_led_select(current_freq.frequency, MOBO_SRC_UAC1);					// GPIO frequency indication on front RGB LED
 		}
 #else
 		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// GPIO XO control and frequency indication
-
-		// Resync I2S out after changing XOs
-		mobo_wait_for_low_DA_LRCK();
-		pdca_enable(PDCA_CHANNEL_SSC_TX);
-
 #endif
 
 

@@ -132,7 +132,8 @@ static int set_clock_divider(volatile avr32_ssc_t *ssc,
 void ssc_i2s_reset(volatile avr32_ssc_t *ssc)
 {
   /* Software reset SSC */
-  ssc->cr = AVR32_SSC_CR_SWRST_MASK;
+	  ssc->cr = AVR32_SSC_CR_SWRST_MASK;
+//	  ssc->cr = AVR32_SSC_CR_SWRST_MASK | AVR32_SSC_CR_TXDIS_MASK;	// TX disable hasn't solved it yet..
 }
 
 
@@ -204,8 +205,9 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
                   AVR32_SSC_TCMR_CKO_INPUT_ONLY				<< AVR32_SSC_TCMR_CKO_OFFSET    |
                   0                                         << AVR32_SSC_TCMR_CKI_OFFSET    |
                   AVR32_SSC_TCMR_CKG_NONE                   << AVR32_SSC_TCMR_CKG_OFFSET    |
-                  AVR32_SSC_TCMR_START_DETECT_ANY_EDGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |
-   //               AVR32_SSC_TCMR_START_DETECT_LEVEL_CHANGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |
+//                AVR32_SSC_TCMR_START_DETECT_FALLING_TF	   << AVR32_SSC_TCMR_START_OFFSET  |	// Only transmit on falling BSB 20170605 see ssc_320.h
+                  AVR32_SSC_TCMR_START_DETECT_ANY_EDGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |		// Transmit on rising and falling
+//                AVR32_SSC_TCMR_START_DETECT_LEVEL_CHANGE_TF   << AVR32_SSC_TCMR_START_OFFSET  |
                   1                                         << AVR32_SSC_TCMR_STTDLY_OFFSET |
                   (frame_bit_res - 1)                       << AVR32_SSC_TCMR_PERIOD_OFFSET;
 
