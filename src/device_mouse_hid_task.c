@@ -440,16 +440,14 @@ void device_mouse_hid_task(void)
 //            	while (!gpio_get_pin_value(AVR32_PIN_PX27));
 
             	// UAC2 defaults, 48ksps
-//            	ssc_i2s_init(ssc, 48000, 32, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
+            	ssc_i2s_init(ssc, 48000, 32, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 
             	// UAC1 defaults, 48ksps
-            	ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
+//            	ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 
 
             	while (gpio_get_pin_value(AVR32_PIN_PX27))  ;
             	while (!gpio_get_pin_value(AVR32_PIN_PX27));
-
-
 
             	static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
             		.addr = (void *)spk_buffer_0,         // memory address
@@ -463,8 +461,6 @@ void device_mouse_hid_task(void)
             	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
             	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
             	pdca_enable(PDCA_CHANNEL_SSC_TX);
-
-
 
             	taskEXIT_CRITICAL();
 
