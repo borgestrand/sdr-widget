@@ -446,7 +446,7 @@ void device_mouse_hid_task(void)
             	ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 
 
-            	while (gpio_get_pin_value(AVR32_PIN_PX27));
+            	while (gpio_get_pin_value(AVR32_PIN_PX27))  ;
             	while (!gpio_get_pin_value(AVR32_PIN_PX27));
 
 
