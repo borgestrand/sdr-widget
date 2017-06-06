@@ -216,6 +216,18 @@ void AK5394A_pdca_enable(void) {
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 }
 
+// Turn on the TX pdca, run after ssc_i2s_init()
+void AK5394A_pdca_tx_enable(void) {
+   	taskENTER_CRITICAL();
+   	pdca_disable(PDCA_CHANNEL_SSC_TX);
+	while (!gpio_get_pin_value(AVR32_PIN_PX27));		// Start PDCA at safe time in I2S output timing
+	while (gpio_get_pin_value(AVR32_PIN_PX27));	// It's a mystery why one works here and the other one works there!
+	pdca_enable(PDCA_CHANNEL_SSC_TX);
+	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
+	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+	taskEXIT_CRITICAL();
+}
+
 void AK5394A_task_init(const Bool uac1) {
 	// Set up CS4344
 	// Set up GLCK1 to provide master clock for CS4344
@@ -321,20 +333,8 @@ void AK5394A_task_init(const Bool uac1) {
 	pdca_enable(PDCA_CHANNEL_SSC_TX);
 */
 
-	// TX is enabled only once, after ssc_i2s_init() This recipe seems to work when tested with 'i'
-	// 1 - Test that this gives clean USB audio (UAC 1 & 2 with all combinations of resets, channel changes, rate changes..)
-	// 2 - If anything fails, focus on USB audio first
-	// 3 - Use whatever works in RX path. Must poll PX36 or aliases, or PX26 which it shorts to
-
-   	taskENTER_CRITICAL();
-   	pdca_disable(PDCA_CHANNEL_SSC_TX);
-	while (gpio_get_pin_value(AVR32_PIN_PX27));		// Start PDCA at safe time in I2S output timing
-	while (!gpio_get_pin_value(AVR32_PIN_PX27));
-	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
-	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
-	pdca_enable(PDCA_CHANNEL_SSC_TX);
-	taskEXIT_CRITICAL();
-
+	// Turn on SPDIF TX
+	AK5394A_pdca_tx_enable();
 
 
 #ifdef HW_GEN_DIN20

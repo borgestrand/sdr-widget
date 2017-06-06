@@ -143,4 +143,7 @@ void AK5394A_pdca_disable(void);
 void AK5394A_pdca_enable(void);
 void AK5394A_task_init(Bool uac2);
 
+void AK5394A_pdca_tx_enable(void);
+void AK5394A_pdca_rx_enable(void);
+
 #endif /* TASKAK5394A_H_ */
