@@ -468,11 +468,12 @@ void device_mouse_hid_task(void)
             		.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
             	};
 
-
+            	// More or less pointless since it depends on the outgoing ADC LRCK to sync up properly
             	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
             	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
             	pdca_enable(PDCA_CHANNEL_SSC_RX);
 
+            	// This seems to do the trick with the outgoing channel as tested on UAC1 and UAC2
             	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
             	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
             	pdca_enable(PDCA_CHANNEL_SSC_TX);
@@ -481,6 +482,59 @@ void device_mouse_hid_task(void)
             	taskEXIT_CRITICAL();
 
 //            	print_dbg_char_hex(t);
+            }
+
+            // Restart I2S
+            else if (a == 'j') {							// Lowercase i
+               	gpio_tgl_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+
+            	pdca_disable(PDCA_CHANNEL_SSC_TX);
+            	pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+            	// Restart I2S
+
+            	// UAC1 defaults, 48ksps
+            	if (FEATURE_IMAGE_UAC1_AUDIO)
+            		ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
+
+            	// UAC2 defaults, 48ksps
+            	else if (FEATURE_IMAGE_UAC2_AUDIO)
+            		ssc_i2s_init(ssc, 48000, 32, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
+
+
+            	// Restart RX PDCA
+            	static const pdca_channel_options_t PDCA_OPTIONS = {
+            		.addr = (void *)audio_buffer_0,         // memory address
+            		.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
+            		.size = ADC_BUFFER_SIZE,              // transfer counter
+            		.r_addr = NULL,                         // next memory address
+            		.r_size = 0,                            // next transfer counter
+            		.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+            	};
+            	taskENTER_CRITICAL();
+            	while (gpio_get_pin_value(AVR32_PIN_PX36))  ;
+            	while (!gpio_get_pin_value(AVR32_PIN_PX36));
+            	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+            	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+            	pdca_enable(PDCA_CHANNEL_SSC_RX);
+            	taskEXIT_CRITICAL();
+
+            	// Restart TX PDCA
+            	static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
+            		.addr = (void *)spk_buffer_0,         // memory address
+            		.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
+            		.size = DAC_BUFFER_SIZE,              // transfer counter
+            		.r_addr = NULL,                         // next memory address
+            		.r_size = 0,                            // next transfer counter
+            		.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+            	};
+            	taskENTER_CRITICAL();
+            	while (gpio_get_pin_value(AVR32_PIN_PX27))  ;
+            	while (!gpio_get_pin_value(AVR32_PIN_PX27));
+            	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
+            	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+            	pdca_enable(PDCA_CHANNEL_SSC_TX);
+            	taskEXIT_CRITICAL();
             }
 
 

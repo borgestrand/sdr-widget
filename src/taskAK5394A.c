@@ -267,6 +267,12 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_enable_pin_glitch_filter(SSC_TX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 
+
+	// Disable PDCAs for good measure before messing with ssc_i2s configuration
+	pdca_disable(PDCA_CHANNEL_SSC_TX);
+	pdca_disable(PDCA_CHANNEL_SSC_RX);
+
+
 	// set up SSC, it looks like frequency parameter (FPBA_HZ) is NOT in use
 	if (uac1) {
 		ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
@@ -304,6 +310,7 @@ void AK5394A_task_init(const Bool uac1) {
 		}
 	#endif
 
+/* Old-ish code for TX enable
 	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 
@@ -312,6 +319,22 @@ void AK5394A_task_init(const Bool uac1) {
 	// Why don't we enable the RX here??
 
 	pdca_enable(PDCA_CHANNEL_SSC_TX);
+*/
+
+	// TX is enabled only once, after ssc_i2s_init() This recipe seems to work when tested with 'i'
+	// 1 - Test that this gives clean USB audio (UAC 1 & 2 with all combinations of resets, channel changes, rate changes..)
+	// 2 - If anything fails, focus on USB audio first
+	// 3 - Use whatever works in RX path. Must poll PX36 or aliases, or PX26 which it shorts to
+
+   	taskENTER_CRITICAL();
+   	pdca_disable(PDCA_CHANNEL_SSC_TX);
+	while (gpio_get_pin_value(AVR32_PIN_PX27));		// Start PDCA at safe time in I2S output timing
+	while (!gpio_get_pin_value(AVR32_PIN_PX27));
+	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
+	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+	pdca_enable(PDCA_CHANNEL_SSC_TX);
+	taskEXIT_CRITICAL();
+
 
 
 #ifdef HW_GEN_DIN20
