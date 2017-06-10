@@ -268,7 +268,11 @@ void AK5394A_task_init(const Bool uac1) {
 	spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 
 
+	// Clock qualification
+	gpio_set_gpio_pin(AVR32_PIN_PX30); // CH0
+
 	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
+	// Move to after clocks are actually set up!
 	if (uac1)
 		mobo_clock_division(FREQ_44);
 	else
