@@ -615,9 +615,8 @@ void uac1_device_audio_task(void *pvParameters)
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 											print_dbg_char('[');
 
+											mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
-
-//											AK5394A_pdca_tx_enable(current_freq.frequency);	// Trying to force out LRCK inversion
 
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20
@@ -629,9 +628,8 @@ void uac1_device_audio_task(void *pvParameters)
 									#else // not debug
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 
+											mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
-
-//											AK5394A_pdca_tx_enable(current_freq.frequency);	// Trying to force out LRCK inversion
 
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20
@@ -651,10 +649,12 @@ void uac1_device_audio_task(void *pvParameters)
 
 								// FIX: mobo_xo_select will control I2S mux in GEN_DINx0. Verify semaphore mutex ownership!
 
-								mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 
 		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem set RGB front LED
 								mobo_led_select(current_freq.frequency, input_select);
+		#else
+								// USB-only hardware: set up oscillator here
+								mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 		#endif
 
 								// Align buffers

@@ -659,9 +659,9 @@ void wm8805_unmute(void) {
 
 
 	// May do a test vs. freq_prev to determine if clock resetting and muxing is really needed
-	mobo_clock_division(wm8805_status.frequency);			// Outgoing I2S clock division selector
 	mobo_xo_select(wm8805_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 	mobo_led_select(wm8805_status.frequency, input_select);	// User interface channel indicator
+	mobo_clock_division(wm8805_status.frequency);			// Outgoing I2S clock division selector
 
 	ADC_buf_USB_IN = -1;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 

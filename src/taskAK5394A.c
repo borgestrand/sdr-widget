@@ -272,7 +272,6 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_set_gpio_pin(AVR32_PIN_PX30); // CH0
 
 	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
-	// Move to after clocks are actually set up!
 	if (uac1)
 		mobo_clock_division(FREQ_44);
 	else
@@ -352,7 +351,7 @@ void AK5394A_task_init(const Bool uac1) {
 	#endif
 
 
-	// Turn on SPDIF TX
+	// Turn on SPDIF TX. Run manually here on boot. Otherwise this is executed from within mobo_clock_division()
 	// Called here only, it results in random channel inversion on the outgoing I2S
 	// Trying to collect all pdca enabling stuff in one single function
 	AK5394A_pdca_tx_enable(FREQ_44);
