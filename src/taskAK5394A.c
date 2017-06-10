@@ -155,6 +155,9 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 1;
 
+/* Bring this chunk back in again!
+#ifdef USB_STATE_MACHINE_DEBUG
+
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
@@ -164,11 +167,14 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 //		print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
 #endif
 #endif
+*/
 	}
 	else if (DAC_buf_DMA_read == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
 
+/* Bring this chunk back in again!
+#ifdef USB_STATE_MACHINE_DEBUG
 #ifdef USB_STATE_MACHINE_DEBUG
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
@@ -178,6 +184,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 //		print_dbg_char_nibble(spk_buffer_1[0] >> 16);	// Print what is presumably a left sample nibble
 #endif
 #endif
+*/
 	}
 
 	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
@@ -218,13 +225,21 @@ void AK5394A_pdca_enable(void) {
 
 // Turn on the TX pdca, run after ssc_i2s_init()
 void AK5394A_pdca_tx_enable(void) {
+//   	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+
+//	ssc_i2s_enable_rx_tx(ssc);
+
+	pdca_disable(PDCA_CHANNEL_SSC_TX);
    	taskENTER_CRITICAL();
-   	pdca_disable(PDCA_CHANNEL_SSC_TX);
-	while (!gpio_get_pin_value(AVR32_PIN_PX27));		// Start PDCA at safe time in I2S output timing
-	while (gpio_get_pin_value(AVR32_PIN_PX27));	// It's a mystery why one works here and the other one works there!
-	pdca_enable(PDCA_CHANNEL_SSC_TX);
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);	// It's a mystery why one works here and the other one works there!
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);	// Start PDCA at safe time in I2S output timing
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);	// It's a mystery why one works here and the other one works there!
+
+   	pdca_enable(PDCA_CHANNEL_SSC_TX);
+
 	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+
 	taskEXIT_CRITICAL();
 }
 
@@ -241,11 +256,16 @@ void AK5394A_task_init(const Bool uac1) {
 	spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 
 
+	// Clock qualification 1
+	gpio_set_gpio_pin(AVR32_PIN_PX33);
+
+
 	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
 	if (uac1)
 		mobo_clock_division(FREQ_44);
 	else
 		mobo_clock_division(FREQ_96);
+
 
 /*
 	if (uac1) {
@@ -264,11 +284,10 @@ void AK5394A_task_init(const Bool uac1) {
 	pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 */
 
-
 	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
-	// from AK5394A Xtal Oscillator
-	pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 
+	// from AK5394A Xtal Oscillator. This takes a while. Bit clock starts running after this.
+	pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 
 	// Assign GPIO to SSC.
 	gpio_enable_module(SSC_GPIO_MAP, sizeof(SSC_GPIO_MAP) / sizeof(SSC_GPIO_MAP[0]));
@@ -279,13 +298,15 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_enable_pin_glitch_filter(SSC_TX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 
-
 	// Disable PDCAs for good measure before messing with ssc_i2s configuration
 	pdca_disable(PDCA_CHANNEL_SSC_TX);
 	pdca_disable(PDCA_CHANNEL_SSC_RX);
 
+	// Clock qualification
+	gpio_set_gpio_pin(AVR32_PIN_PX18); // Channel D2 goes high
 
 	// set up SSC, it looks like frequency parameter (FPBA_HZ) is NOT in use
+	// It doesn't start from 0 but from 1. 1st whole LRCK cycle is 2x its expected duration.
 	if (uac1) {
 		ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 	} else {
@@ -333,8 +354,33 @@ void AK5394A_task_init(const Bool uac1) {
 	pdca_enable(PDCA_CHANNEL_SSC_TX);
 */
 
+	// Clock qualification
+	gpio_set_gpio_pin(AVR32_PIN_PX17);
+
+	AK5394A_pdca_tx_enable(); 	// Called here, it results in random channel inversion on the outgoing I2S
+
+
+	/*
+
+   	pdca_disable(PDCA_CHANNEL_SSC_TX);
+   	taskENTER_CRITICAL();
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+	pdca_enable(PDCA_CHANNEL_SSC_TX);
+
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
+
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+	while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+
+	taskEXIT_CRITICAL();
+*/
+
 	// Turn on SPDIF TX
-	AK5394A_pdca_tx_enable();
+//	AK5394A_pdca_tx_enable();
 
 
 #ifdef HW_GEN_DIN20

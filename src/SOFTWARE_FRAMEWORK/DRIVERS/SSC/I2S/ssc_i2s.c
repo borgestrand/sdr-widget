@@ -129,12 +129,40 @@ static int set_clock_divider(volatile avr32_ssc_t *ssc,
 }
 
 
-void ssc_i2s_reset(volatile avr32_ssc_t *ssc)
-{
-  /* Software reset SSC */
-	  ssc->cr = AVR32_SSC_CR_SWRST_MASK;
-//	  ssc->cr = AVR32_SSC_CR_SWRST_MASK | AVR32_SSC_CR_TXDIS_MASK;	// TX disable hasn't solved it yet..
-}
+// This stops I2S TX permanently.
+ void ssc_i2s_disable_tx(volatile avr32_ssc_t *ssc) {
+   /* Disable TX portion of SSC. See doc32072 page 525*/
+	  ssc->cr |= AVR32_SSC_CR_TXDIS_MASK;
+
+	  ssc->cr &= ~AVR32_SSC_CR_TXDIS_MASK;
+ }
+
+
+// Will this work at all?
+ void ssc_i2s_disable_rx(volatile avr32_ssc_t *ssc) {
+   /* Disable RX portion of SSC. See doc32072 page 525*/
+ 	  ssc->cr |= AVR32_SSC_CR_RXDIS_MASK;
+ }
+
+
+ void ssc_i2s_enable_rx_tx(volatile avr32_ssc_t *ssc) {
+   /* Enable RX and TX in SSC */
+	    unsigned long txen_mask = 0x00000000,
+	                  rxen_mask = 0x00000000;
+
+	    txen_mask = AVR32_SSC_CR_TXEN_MASK;
+        rxen_mask = AVR32_SSC_CR_RXEN_MASK;
+
+        /* Enable transceiver and/or receiver */
+        ssc->cr = txen_mask | rxen_mask;
+ }
+
+
+ void ssc_i2s_reset(volatile avr32_ssc_t *ssc)
+ {
+   /* Software reset SSC */
+  	  ssc->cr = AVR32_SSC_CR_SWRST_MASK;
+ }
 
 
 int ssc_i2s_init(volatile avr32_ssc_t *ssc,
@@ -282,6 +310,10 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
 
         /* Enable transceiver and/or receiver */
         ssc->cr = txen_mask | rxen_mask;
+
+//		Done in
+//		void ssc_i2s_enable_rx_tx(volatile avr32_ssc_t *ssc);
+
   }
 
   else if (mode == SSC_I2S_MODE_SLAVE_STEREO_IN)

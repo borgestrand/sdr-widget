@@ -108,6 +108,29 @@ enum
 };
 
 
+
+/*! \brief Disable the TX part of SSC module. Not functional!
+ *
+ *  \param ssc pointer to the correct volatile avr32_ssc_t struct
+ */
+void ssc_i2s_disable_tx(volatile avr32_ssc_t *ssc);
+
+
+/*! \brief Disable the RX part of SSC module. Not functional!
+ *
+ *  \param ssc pointer to the correct volatile avr32_ssc_t struct
+ */
+void ssc_i2s_disable_rx(volatile avr32_ssc_t *ssc);
+
+
+/*! \brief Enable RX and TX part of SSC module. Untested
+ *
+ *  \param ssc pointer to the correct volatile avr32_ssc_t struct
+ */
+void ssc_i2s_enable_rx_tx(volatile avr32_ssc_t *ssc);
+
+
+
 /*! \brief Resets the SSC module
  *
  *  \param ssc pointer to the correct volatile avr32_ssc_t struct

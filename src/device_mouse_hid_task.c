@@ -486,7 +486,7 @@ void device_mouse_hid_task(void)
 
             // Restart I2S
             else if (a == 'j') {							// Lowercase i
-               	gpio_tgl_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+//               	gpio_tgl_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 
 //            	pdca_disable(PDCA_CHANNEL_SSC_RX);
 
@@ -513,6 +513,8 @@ void device_mouse_hid_task(void)
 
             	// Restart TX PDCA
 
+//            	ssc_i2s_disable_tx(PDCA_CHANNEL_SSC_TX);	// Will this prevent funny pulsing on opposite channel? No. It stops TX permanently
+
             	static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
             		.addr = (void *)spk_buffer_0,         // memory address
             		.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
@@ -522,11 +524,11 @@ void device_mouse_hid_task(void)
             		.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
             	};
 
-				if (FEATURE_IMAGE_UAC1_AUDIO)	            // UAC1 defaults, 48ksps
+/*				if (FEATURE_IMAGE_UAC1_AUDIO)	            // UAC1 defaults, 48ksps
 					ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 				else if (FEATURE_IMAGE_UAC2_AUDIO)			// UAC2 defaults, 48ksps
 					ssc_i2s_init(ssc, 48000, 32, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
-
+*/
 				AK5394A_pdca_tx_enable();
 
 /*

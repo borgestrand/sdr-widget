@@ -489,13 +489,13 @@ void mobo_handle_spdif(uint8_t width) {
 #endif
 			}
 
-
+/* Bring this chunk back in again!
 			// Prepare to copy all of producer's most recent data to consumer's buffer
 			if (ADC_buf_DMA_write_temp == 1)
 				gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 			else if (ADC_buf_DMA_write_temp == 0)
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-
+*/
 			// Apply megaskip when DC or zero is detected
 			if (wm8805_status.silent == 1) {									// Silence was detected
 				if (gap < (SPK_GAP_L3 + SPK_GAP_D1) ) {				// Are we close or past the limit for having to skip?
@@ -587,12 +587,14 @@ void mobo_handle_spdif(uint8_t width) {
 							spk_index -= DAC_BUFFER_SIZE;
 							DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
+/* Bring this chunk back in again!
 #ifdef USB_STATE_MACHINE_DEBUG
 							if (DAC_buf_USB_OUT == 1)
 								gpio_set_gpio_pin(AVR32_PIN_PX30);
 							else
 								gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
+*/
 						}
 					}
 					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package

@@ -617,6 +617,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
+											AK5394A_pdca_tx_enable();	// Trying to force out LRCK inversion
+
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20
 												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
@@ -628,6 +630,8 @@ void uac1_device_audio_task(void *pvParameters)
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 
 											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+
+											AK5394A_pdca_tx_enable();	// Trying to force out LRCK inversion
 
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20
@@ -669,13 +673,14 @@ void uac1_device_audio_task(void *pvParameters)
 								LED_Off(LED0);							// The LEDs on the PCB near the MCU
 								LED_Off(LED1);
 
+/* Bring this chunk back in again!
 	#ifdef USB_STATE_MACHINE_DEBUG
 								if (DAC_buf_USB_OUT == 1)					// Debug message 'p' removed along with #ifdefs
 									gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 								else
 									gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 	#endif
-
+*/
 								spk_index = DAC_BUFFER_SIZE - num_remaining;
 								spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 							}
@@ -723,13 +728,14 @@ void uac1_device_audio_task(void *pvParameters)
 										spk_index = 0;
 										DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
+/* Bring this chunk back in again!
 	#ifdef USB_STATE_MACHINE_DEBUG
 										if (DAC_buf_USB_OUT == 1)
 											gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 										else
 											gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 	#endif
-
+*/
 										// BSB 20131201 attempting improved playerstarted detection
 										usb_buffer_toggle--;					// Counter is increased by DMA, decreased by seq. code
 									}

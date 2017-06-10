@@ -292,7 +292,7 @@ int i;
 
 	// Turn off clock controls to establish starting point
 	gpio_clr_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0. No pull-down or pull-up
-	gpio_set_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
+	gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
 	gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
 
 	cpu_delay_ms(80, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
@@ -363,6 +363,9 @@ int i;
 		input_select = MOBO_SRC_UAC1;
 	else
 		input_select = MOBO_SRC_UAC2;
+
+	// Clock qualification
+	gpio_set_gpio_pin(AVR32_PIN_PX30);
 
 	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
 
