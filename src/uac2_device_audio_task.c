@@ -670,7 +670,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
-										AK5394A_pdca_tx_enable();	// Trying to force out LRCK inversion
+										AK5394A_pdca_tx_enable(current_freq.frequency);	// Trying to force out LRCK inversion
 
 
 										input_select = MOBO_SRC_UAC2;
@@ -685,7 +685,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
-										AK5394A_pdca_tx_enable();	// Trying to force out LRCK inversion
+										AK5394A_pdca_tx_enable(current_freq.frequency);	// Trying to force out LRCK inversion
 
 										input_select = MOBO_SRC_UAC2;
 										#ifdef HW_GEN_DIN20

@@ -224,20 +224,32 @@ void AK5394A_pdca_enable(void) {
 }
 
 // Turn on the TX pdca, run after ssc_i2s_init()
-void AK5394A_pdca_tx_enable(void) {
+void AK5394A_pdca_tx_enable(U32 frequency) {
 //   	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 
 //	ssc_i2s_enable_rx_tx(ssc);
 
 	pdca_disable(PDCA_CHANNEL_SSC_TX);
    	taskENTER_CRITICAL();
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);	// It's a mystery why one works here and the other one works there!
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);	// Start PDCA at safe time in I2S output timing
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);	// It's a mystery why one works here and the other one works there!
+   	// This code came about by trial and error, not hard science...
+	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
+	}
+	else {
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
+	}
 
+	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_TX);
-
-	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
+//	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 
 	taskEXIT_CRITICAL();
@@ -256,16 +268,11 @@ void AK5394A_task_init(const Bool uac1) {
 	spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 
 
-	// Clock qualification 1
-	gpio_set_gpio_pin(AVR32_PIN_PX33);
-
-
 	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
 	if (uac1)
 		mobo_clock_division(FREQ_44);
 	else
 		mobo_clock_division(FREQ_96);
-
 
 /*
 	if (uac1) {
@@ -301,9 +308,6 @@ void AK5394A_task_init(const Bool uac1) {
 	// Disable PDCAs for good measure before messing with ssc_i2s configuration
 	pdca_disable(PDCA_CHANNEL_SSC_TX);
 	pdca_disable(PDCA_CHANNEL_SSC_RX);
-
-	// Clock qualification
-	gpio_set_gpio_pin(AVR32_PIN_PX18); // Channel D2 goes high
 
 	// set up SSC, it looks like frequency parameter (FPBA_HZ) is NOT in use
 	// It doesn't start from 0 but from 1. 1st whole LRCK cycle is 2x its expected duration.
@@ -343,44 +347,12 @@ void AK5394A_task_init(const Bool uac1) {
 		}
 	#endif
 
-/* Old-ish code for TX enable
-	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
-	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
-
-	//////////////////////////////////////////////
-	// Enable now the transfer.
-	// Why don't we enable the RX here??
-
-	pdca_enable(PDCA_CHANNEL_SSC_TX);
-*/
-
-	// Clock qualification
-	gpio_set_gpio_pin(AVR32_PIN_PX17);
-
-	AK5394A_pdca_tx_enable(); 	// Called here, it results in random channel inversion on the outgoing I2S
-
-
-	/*
-
-   	pdca_disable(PDCA_CHANNEL_SSC_TX);
-   	taskENTER_CRITICAL();
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-	pdca_enable(PDCA_CHANNEL_SSC_TX);
-
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
-
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-	while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
-
-	taskEXIT_CRITICAL();
-*/
 
 	// Turn on SPDIF TX
-//	AK5394A_pdca_tx_enable();
+	// Called here only, it results in random channel inversion on the outgoing I2S
+	// Trying to collect all pdca enabling stuff in one single function
+	AK5394A_pdca_tx_enable(FREQ_44);
+
 
 
 #ifdef HW_GEN_DIN20

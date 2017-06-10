@@ -529,7 +529,7 @@ void device_mouse_hid_task(void)
 				else if (FEATURE_IMAGE_UAC2_AUDIO)			// UAC2 defaults, 48ksps
 					ssc_i2s_init(ssc, 48000, 32, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 */
-				AK5394A_pdca_tx_enable();
+				AK5394A_pdca_tx_enable(current_freq.frequency);
 
 /*
                	taskENTER_CRITICAL();

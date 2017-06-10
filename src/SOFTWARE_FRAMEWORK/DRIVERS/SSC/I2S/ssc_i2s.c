@@ -311,7 +311,7 @@ int ssc_i2s_init(volatile avr32_ssc_t *ssc,
         /* Enable transceiver and/or receiver */
         ssc->cr = txen_mask | rxen_mask;
 
-//		Done in
+//		Also done in
 //		void ssc_i2s_enable_rx_tx(volatile avr32_ssc_t *ssc);
 
   }

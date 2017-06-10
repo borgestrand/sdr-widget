@@ -860,6 +860,10 @@ void mobo_clock_division(U32 frequency) {
 	}
 
 	pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
+
+// We'd liek to call this one here, but it's not suitable before ssc_i2s_init has run. Or so we believe...
+//	AK5394A_pdca_tx_enable();	// Trying to force out LRCK inversion
+
 }
 
 
