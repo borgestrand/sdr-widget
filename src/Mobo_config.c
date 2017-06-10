@@ -759,7 +759,7 @@ void mobo_clock_division(U32 frequency) {
 	print_dbg_char('#');
 #endif
 */
-	if (frequency != freq_prev) {		// Only run when things change
+	if (frequency != prev_frequency) {		// Only run when things change
 
 		gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
 
@@ -863,10 +863,10 @@ void mobo_clock_division(U32 frequency) {
 
 		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-		if (freq_prev != FREQ_INVALID) 				// Don't run on 1st iteration of this function after bootup
+		if (prev_frequency != FREQ_INVALID) 				// Don't run on 1st iteration of this function after bootup
 			AK5394A_pdca_tx_enable(frequency);		// Trying to force out LRCK inversion
 
-		freq_prev = frequency;
+		prev_frequency = frequency;
 	}
 
 
