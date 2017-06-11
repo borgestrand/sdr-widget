@@ -615,7 +615,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 // XO control and SPI muxing on ab1x hardware generation
 	static U32 prev_frequency = FREQ_INVALID;
 
-	if (frequency != prev_frequency) {		// Only run when things change
+	if (frequency != prev_frequency) {		//   Only run when things change
 
 	#if defined(HW_GEN_AB1X)
 		switch (frequency) {
