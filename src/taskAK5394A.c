@@ -218,20 +218,64 @@ static void pdca_set_irq(void) {
 void AK5394A_pdca_disable(void) {
 }
 
+// The old pdca_enable() code which will remain.
 void AK5394A_pdca_enable(void) {
 	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 }
 
+
+// Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
+// FIX: Build some safety mechanism into the while loop to prevent lock-up!
+void AK5394A_pdca_rx_enable(U32 frequency) {
+//   	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+
+//	ssc_i2s_enable_rx_tx(ssc);
+
+	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed?
+
+   	taskENTER_CRITICAL();
+
+   	// This code came about by trial and error, not hard science...
+	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
+		while (gpio_get_pin_value(AK5394_LRCK) == 0);
+		while (gpio_get_pin_value(AK5394_LRCK) == 1);
+		while (gpio_get_pin_value(AK5394_LRCK) == 0);
+		while (gpio_get_pin_value(AK5394_LRCK) == 1);
+		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+	}
+	else if ( (frequency == FREQ_44) || (frequency == FREQ_48) || (frequency == FREQ_88) || (frequency == FREQ_96) ){
+		while (gpio_get_pin_value(AK5394_LRCK) == 1);
+		while (gpio_get_pin_value(AK5394_LRCK) == 0);
+		while (gpio_get_pin_value(AK5394_LRCK) == 1);
+		while (gpio_get_pin_value(AK5394_LRCK) == 0);
+		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+	}
+	else {
+		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+	}
+
+	// What is the optimal sequence?
+   	pdca_enable(PDCA_CHANNEL_SSC_RX);
+//	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
+	taskEXIT_CRITICAL();
+}
+
+
 // Turn on the TX pdca, run after ssc_i2s_init()
+// FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_tx_enable(U32 frequency) {
 //   	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 
 //	ssc_i2s_enable_rx_tx(ssc);
 
-	pdca_disable(PDCA_CHANNEL_SSC_TX);
+	pdca_disable(PDCA_CHANNEL_SSC_TX);				// Needed?
+
    	taskENTER_CRITICAL();
    	// This code came about by trial and error, not hard science...
+   	// This configuration seems rather stable, in UAC2 in DIN_GEN20 and in AB_1X. But it's far from -verified-
 	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
@@ -239,11 +283,14 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
 	}
+	else if ( (frequency == FREQ_44) || (frequency == FREQ_48) || (frequency == FREQ_88) || (frequency == FREQ_96) ){
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
+	}
 	else {
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	}
 
@@ -254,6 +301,8 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 	taskEXIT_CRITICAL();
 }
+
+
 
 void AK5394A_task_init(const Bool uac1) {
 	// Set up CS4344
@@ -339,9 +388,11 @@ void AK5394A_task_init(const Bool uac1) {
 
 	// Init ADC channel for SPDIF buffering
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+	/*  Empty for now....
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-		// pdca_enable() is called from WM8805 power unmute functions
+//		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		// pdca_enable() is called from WM8805 init functions
+	 */
 	#else
 		// Init PDCA channel with the pdca_options.
 		if (!FEATURE_ADC_NONE) {

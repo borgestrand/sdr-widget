@@ -92,6 +92,8 @@ void hpsdr_AK5394A_task(void *pvParameters) {
 
 		if (freq_changed) {
 
+			print_dbg_char('9');	// Does this ever happen?
+
 			if (current_freq.frequency == FREQ_96) {
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);

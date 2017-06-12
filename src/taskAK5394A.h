@@ -143,7 +143,10 @@ void AK5394A_pdca_disable(void);
 void AK5394A_pdca_enable(void);
 void AK5394A_task_init(Bool uac2);
 
+// New code polls DAC LRCK
 void AK5394A_pdca_tx_enable(U32 frequency);
-void AK5394A_pdca_rx_enable(void);
+
+// New code polls ADC LRCK
+void AK5394A_pdca_rx_enable(U32 frequency);
 
 #endif /* TASKAK5394A_H_ */

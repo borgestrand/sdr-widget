@@ -94,6 +94,10 @@ void uac1_AK5394A_task(void *pvParameters) {
 		vTaskDelayUntil(&xLastWakeTime, UAC1_configTSK_AK5394A_PERIOD);
 
 		if (freq_changed) {
+
+			print_dbg_char('8');	// Does this ever happen?
+
+
 			spk_mute = TRUE;
 			if (current_freq.frequency == FREQ_48) {
 				FB_rate = 48 << 14;
@@ -109,6 +113,9 @@ void uac1_AK5394A_task(void *pvParameters) {
 			freq_changed = FALSE;
 		}
 		if (usb_alternate_setting_changed) {
+
+			print_dbg_char('7');	// Does this ever happen?
+
 
 			// FIX: This is not pretty! We only comment out the disabling of PDCA_CHANNEL_SSC_RX, not what else is going on in the file
 			#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)

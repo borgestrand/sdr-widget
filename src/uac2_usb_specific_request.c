@@ -387,27 +387,30 @@ void uac2_freq_change_handler() {
 		}
 
 		if (FEATURE_ADC_AK5394A) {
-			// re-sync SSC to LRCK
-			// Wait for the next frame synchronization event
-			// to avoid channel inversion.  Start with left channel - FS goes low
-			// However, the channels are reversed at 192khz
+			#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // Just to be on the safe side
+			#else
+				// re-sync SSC to LRCK
+				// Wait for the next frame synchronization event
+				// to avoid channel inversion.  Start with left channel - FS goes low
+				// However, the channels are reversed at 192khz
 
-			if (current_freq.frequency == 192000) {
-				while (gpio_get_pin_value(AK5394_LRCK))
-					;
-				while (!gpio_get_pin_value(AK5394_LRCK))
-					; // exit when FS goes high
-			} else {
-				while (!gpio_get_pin_value(AK5394_LRCK))
-					;
-				while (gpio_get_pin_value(AK5394_LRCK))
-					; // exit when FS goes low
-			}
-			// Enable now the transfer.
-			pdca_enable(PDCA_CHANNEL_SSC_RX);
+				if (current_freq.frequency == 192000) {
+					while (gpio_get_pin_value(AK5394_LRCK))
+						;
+					while (!gpio_get_pin_value(AK5394_LRCK))
+						; // exit when FS goes high
+				} else {
+					while (!gpio_get_pin_value(AK5394_LRCK))
+						;
+					while (gpio_get_pin_value(AK5394_LRCK))
+						; // exit when FS goes low
+				}
+				// Enable now the transfer.
+				pdca_enable(PDCA_CHANNEL_SSC_RX);
 
-			// Init PDCA channel with the pdca_options.
-			AK5394A_pdca_enable();
+				// Init PDCA channel with the pdca_options.
+				AK5394A_pdca_enable();
+			#endif
 		}
 
 		spk_mute = FALSE;

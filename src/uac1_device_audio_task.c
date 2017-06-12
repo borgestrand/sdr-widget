@@ -629,7 +629,7 @@ void uac1_device_audio_task(void *pvParameters)
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 
 											mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-											mobo_clock_division(current_freq.frequency);     	// Re-configure correct USB sample rate
+											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20

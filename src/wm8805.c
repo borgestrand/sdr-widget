@@ -527,8 +527,11 @@ void wm8805_init(void) {
 //	}
 
 	// Enable CPU's processing of produced data
-	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
-	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	// This is needed for the silence detector
+	AK5394A_pdca_rx_enable(FREQ_INVALID);	// Start up without caring about I2S frequency or synchronization
+
+//	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
+//	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 }
 
 // Turn off wm8805, why can't we just run init again?
@@ -657,11 +660,12 @@ void wm8805_mute(void) {
 void wm8805_unmute(void) {
 //	print_dbg_char('U');
 
-
-	// May do a test vs. freq_prev to determine if clock resetting and muxing is really needed
 	mobo_xo_select(wm8805_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 	mobo_led_select(wm8805_status.frequency, input_select);	// User interface channel indicator
 	mobo_clock_division(wm8805_status.frequency);			// Outgoing I2S clock division selector
+
+	AK5394A_pdca_rx_enable(wm8805_status.frequency);		// New code to test for L/R swap
+
 
 	ADC_buf_USB_IN = -1;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 
