@@ -234,7 +234,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 
    	// This code came about by trial and error, not hard science...
 	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
-		while (gpio_get_pin_value(AK5394_LRCK) == 0);
+//		while (gpio_get_pin_value(AK5394_LRCK) == 0);
 		while (gpio_get_pin_value(AK5394_LRCK) == 1);
 		while (gpio_get_pin_value(AK5394_LRCK) == 0);
 		while (gpio_get_pin_value(AK5394_LRCK) == 1);
@@ -244,12 +244,13 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		while (gpio_get_pin_value(AK5394_LRCK) == 1);
 		while (gpio_get_pin_value(AK5394_LRCK) == 0);
 		while (gpio_get_pin_value(AK5394_LRCK) == 1);
-		while (gpio_get_pin_value(AK5394_LRCK) == 0);
+//		while (gpio_get_pin_value(AK5394_LRCK) == 0);
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 	}
 	else {
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 	}
+
 
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_RX);
@@ -266,10 +267,12 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 //	pdca_disable(PDCA_CHANNEL_SSC_TX);				// Needed?
 
    	taskENTER_CRITICAL();
+
    	// This code came about by trial and error, not hard science...
+
    	// This configuration seems rather stable, in UAC2 in DIN_GEN20 and in AB_1X. But it's far from -verified-
 	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+//		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
@@ -279,12 +282,13 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+//		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	}
 	else {
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	}
+
 
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_TX);
