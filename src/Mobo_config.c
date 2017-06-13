@@ -869,12 +869,32 @@ void mobo_clock_division(U32 frequency) {
 	}
 
 
-
-
 // We'd liek to call this one here, but it's not suitable before ssc_i2s_init has run. Or so we believe...
 //	AK5394A_pdca_tx_enable();	// Trying to force out LRCK inversion
 
 }
+
+
+// Empty the contents of the incoming pdca buffers
+void mobo_clear_adc_channel(void) {
+	int i;
+	for (i = 0; i < ADC_BUFFER_SIZE; i++) {
+		audio_buffer_0[i] = 0;
+		audio_buffer_1[i] = 0;
+	}
+}
+
+
+// Empty the contents of the outgoing pdca buffers
+void mobo_clear_dac_channel(void) {
+	int i;
+	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
+		spk_buffer_0[i] = 0;
+		spk_buffer_1[i] = 0;
+	}
+}
+
+
 
 
 //

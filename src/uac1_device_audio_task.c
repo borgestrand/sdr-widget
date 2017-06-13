@@ -148,14 +148,6 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 //! @brief Entry point of the device Audio task management
 //!
 
-// Empty the contents of the outgoing pdca buffers
-void uac1_clear_dac_channel(void) {
-	int i;
-	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
-		spk_buffer_0[i] = 0;
-		spk_buffer_1[i] = 0;
-	}
-}
 
 void uac1_device_audio_task(void *pvParameters)
 {
@@ -209,7 +201,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 		// Must we clear the DAC buffer contents?
 		if (dac_must_clear == DAC_MUST_CLEAR) {
-			uac1_clear_dac_channel();
+			mobo_clear_dac_channel();
 			dac_must_clear = DAC_CLEARED;
 		}
 
@@ -762,10 +754,7 @@ void uac1_device_audio_task(void *pvParameters)
 							#endif
 
 							// Clear buffers for good measure! That may offload uac1_AK5394A_task() ?? and present a good mute to WM8805
-							for (i = 0; i < DAC_BUFFER_SIZE; i++) {		// Clear USB subsystem's buffer in order to mute I2S
-								spk_buffer_0[i] = 0;
-								spk_buffer_1[i] = 0;
-							}
+							mobo_clear_dac_channel();
 
 							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 								#ifdef USB_STATE_MACHINE_DEBUG
@@ -920,7 +909,7 @@ void uac1_device_audio_task(void *pvParameters)
 							mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
 						#endif
 
-						uac1_clear_dac_channel();					// Silencing incoming (OUT endpoint) audio buffer for good measure.
+						mobo_clear_dac_channel();					// Silencing incoming (OUT endpoint) audio buffer for good measure.
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG

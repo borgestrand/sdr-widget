@@ -531,7 +531,7 @@ void wm8805_init(void) {
 	AK5394A_pdca_rx_enable(FREQ_INVALID);	// Start up without caring about I2S frequency or synchronization
 
 //	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
-//  	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+//  pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 }
 
 // Turn off wm8805, why can't we just run init again?

@@ -228,11 +228,7 @@ void AK5394A_pdca_enable(void) {
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
-//   	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
-
-//	ssc_i2s_enable_rx_tx(ssc);
-
-	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed?
+//	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed?
 
    	taskENTER_CRITICAL();
 
@@ -267,11 +263,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 // Turn on the TX pdca, run after ssc_i2s_init()
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_tx_enable(U32 frequency) {
-//   	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
-
-//	ssc_i2s_enable_rx_tx(ssc);
-
-	pdca_disable(PDCA_CHANNEL_SSC_TX);				// Needed?
+//	pdca_disable(PDCA_CHANNEL_SSC_TX);				// Needed?
 
    	taskENTER_CRITICAL();
    	// This code came about by trial and error, not hard science...
