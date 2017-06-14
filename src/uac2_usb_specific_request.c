@@ -218,18 +218,8 @@ void uac2_freq_change_handler() {
 		// We're calling mobo_xo_select here AND in uac2_device_audio_task. Just to be sure about MCLK XO select settling!
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 		if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Often, UAC2 has changed to NONE before this can execute
-
 			spk_mute = TRUE; // mute speaker while changing frequency and oscillator
-
-//			gpio_set_gpio_pin(AVR32_PIN_PX33); // ch1
-
-			for (i = 0; i < DAC_BUFFER_SIZE; i++) { // clears speaker buffer
-				spk_buffer_0[i] = 0;
-				spk_buffer_1[i] = 0;
-			}
-
-//			gpio_clr_gpio_pin(AVR32_PIN_PX33); // ch1
-
+			mobo_clear_dac_channel();
 		}
 		if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) // Only change I2S settings if appropriate
 		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control
@@ -237,15 +227,7 @@ void uac2_freq_change_handler() {
 		mobo_led_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO frequency indication on front RGB LED
 #else
 		spk_mute = TRUE; // mute speaker while changing frequency and oscillator
-
-//		gpio_set_gpio_pin(AVR32_PIN_PX33); // ch1
-
-		for (i = 0; i < DAC_BUFFER_SIZE; i++) { // clears speaker buffer
-			spk_buffer_0[i] = 0;
-			spk_buffer_1[i] = 0;
-		}
-
-//		gpio_clr_gpio_pin(AVR32_PIN_PX33); // ch1
+		mobo_clear_dac_channel();
 
 		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
 		mobo_clock_division(current_freq.frequency);

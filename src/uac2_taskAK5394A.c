@@ -119,16 +119,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 		// silence speaker if USB data out is stalled, as indicated by heart-beat counter
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
 			if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
-
-//				gpio_set_gpio_pin(AVR32_PIN_PX33); // ch1
-
-				for (i = 0; i < DAC_BUFFER_SIZE; i++) {
-					spk_buffer_0[i] = 0;
-					spk_buffer_1[i] = 0;
-				}
-
-//				gpio_clr_gpio_pin(AVR32_PIN_PX33); // ch1
-
+				mobo_clear_dac_channel();
 			}
 
 			// BSB 20131209 attempting improved playerstarted detection

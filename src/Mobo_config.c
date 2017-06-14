@@ -524,7 +524,7 @@ void mobo_handle_spdif(uint8_t width) {
 				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 
 
-				gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
+//				gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
 
 
 				for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
@@ -555,7 +555,7 @@ void mobo_handle_spdif(uint8_t width) {
 //				print_dbg_char('\n');
 
 
-				gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
+//				gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
 
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					// Fill endpoint with sample raw
@@ -611,7 +611,7 @@ void mobo_handle_spdif(uint8_t width) {
 		} // ADC_buf_DMA_write toggle
 	} // input select
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX30); // ch0
+//	gpio_clr_gpio_pin(AVR32_PIN_PX30); // ch0
 
 } // mobo_handle_spdif(void)
 
@@ -905,14 +905,14 @@ void mobo_clear_adc_channel(void) {
 void mobo_clear_dac_channel(void) {
 	int i;
 
-//	gpio_set_gpio_pin(AVR32_PIN_PX33); // ch1
+	gpio_set_gpio_pin(AVR32_PIN_PX33); // ch1
 
 	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
-		spk_buffer_0[i] = 0;
-		spk_buffer_1[i] = 0;
+		spk_buffer_0[i] = 0xAAAAAAAA;	// 0;
+		spk_buffer_1[i] = 0x55555555;	// 0;
 	}
 
-//	gpio_clr_gpio_pin(AVR32_PIN_PX33); // ch1
+	gpio_clr_gpio_pin(AVR32_PIN_PX33); // ch1
 }
 
 
