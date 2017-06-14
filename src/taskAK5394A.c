@@ -228,7 +228,7 @@ void AK5394A_pdca_enable(void) {
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
-//	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed?
+//	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed? When removed it changes LRCK poll timing below.// Needed?
 
    	taskENTER_CRITICAL();
 
@@ -251,10 +251,8 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 	}
 
-
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_RX);
-//	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 	taskEXIT_CRITICAL();
@@ -264,13 +262,13 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 // Turn on the TX pdca, run after ssc_i2s_init()
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_tx_enable(U32 frequency) {
-//	pdca_disable(PDCA_CHANNEL_SSC_TX);				// Needed?
+//	pdca_disable(PDCA_CHANNEL_SSC_TX);				// Needed? When removed it changes LRCK poll timing below.
+
+	gpio_set_gpio_pin(AVR32_PIN_PX33); // ch1
 
    	taskENTER_CRITICAL();
 
    	// This code came about by trial and error, not hard science...
-
-   	// This configuration seems rather stable, in UAC2 in DIN_GEN20 and in AB_1X. But it's far from -verified-
 	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
 //		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
@@ -292,10 +290,11 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_TX);
-//	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 
 	taskEXIT_CRITICAL();
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX33); // ch1
 }
 
 
@@ -312,9 +311,6 @@ void AK5394A_task_init(const Bool uac1) {
 	pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_RX);
 	spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 
-
-	// Clock qualification
-	gpio_set_gpio_pin(AVR32_PIN_PX30); // CH0
 
 	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
 	if (uac1)

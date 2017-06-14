@@ -74,13 +74,13 @@ uint8_t mobo_usb_detect(void) {
 
 void  mobo_i2s_enable(uint8_t i2s_mode) {
 	if (i2s_mode == MOBO_I2S_ENABLE) {
-		gpio_set_gpio_pin(AVR32_PIN_PX11); 					// Enable I2S data
+//		gpio_set_gpio_pin(AVR32_PIN_PX11); 					// Enable I2S data
 #ifdef USB_STATE_MACHINE_DEBUG
 //		print_dbg_char('m');								// Indicate unmute
 #endif
 	}
 	else if (i2s_mode == MOBO_I2S_DISABLE) {
-		gpio_clr_gpio_pin(AVR32_PIN_PX11); 					// Disable I2S data pin
+//		gpio_clr_gpio_pin(AVR32_PIN_PX11); 					// Disable I2S data pin
 #ifdef USB_STATE_MACHINE_DEBUG
 //		print_dbg_char('M');								// Indicate mute
 #endif
@@ -298,10 +298,10 @@ void mobo_handle_spdif(uint8_t width) {
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
-#define IN_LEFT 0
-#define IN_RIGHT 1
-#define OUT_LEFT 0
-#define OUT_RIGHT 1
+	#define IN_LEFT 0
+	#define IN_RIGHT 1
+	#define OUT_LEFT 0
+	#define OUT_RIGHT 1
 #else
 	const U8 IN_LEFT = FEATURE_IN_NORMAL ? 0 : 1;
 	const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
@@ -523,6 +523,10 @@ void mobo_handle_spdif(uint8_t width) {
 				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 
+
+				gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
+
+
 				for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
 					if (dac_must_clear == DAC_READY) {
 						if (DAC_buf_USB_OUT == 0) {
@@ -549,6 +553,9 @@ void mobo_handle_spdif(uint8_t width) {
 
 //				print_dbg_char_hex(target);
 //				print_dbg_char('\n');
+
+
+				gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
 
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					// Fill endpoint with sample raw
@@ -603,7 +610,11 @@ void mobo_handle_spdif(uint8_t width) {
 
 		} // ADC_buf_DMA_write toggle
 	} // input select
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX30); // ch0
+
 } // mobo_handle_spdif(void)
+
 
 #endif
 
@@ -878,20 +889,30 @@ void mobo_clock_division(U32 frequency) {
 // Empty the contents of the incoming pdca buffers
 void mobo_clear_adc_channel(void) {
 	int i;
+
+//	gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
+
 	for (i = 0; i < ADC_BUFFER_SIZE; i++) {
 		audio_buffer_0[i] = 0;
 		audio_buffer_1[i] = 0;
 	}
+
+//	gpio_clr_gpio_pin(AVR32_PIN_PX30); // ch0
 }
 
 
 // Empty the contents of the outgoing pdca buffers
 void mobo_clear_dac_channel(void) {
 	int i;
+
+//	gpio_set_gpio_pin(AVR32_PIN_PX33); // ch1
+
 	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
 		spk_buffer_0[i] = 0;
 		spk_buffer_1[i] = 0;
 	}
+
+//	gpio_clr_gpio_pin(AVR32_PIN_PX33); // ch1
 }
 
 

@@ -273,8 +273,12 @@ int i;
 	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
 	usb_ch = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
 	usb_ch_swap = USB_CH_NOSWAP;							// No swapping detected yet
+
+	// Try to remove this function. It is currently empty.
 	mobo_i2s_enable(MOBO_I2S_DISABLE);	// Disable here and enable with audio on.
 
+	// Just keep I2S on...
+	gpio_set_gpio_pin(AVR32_PIN_PX11); 						// Enable I2S data
 
 
 	// At default, one channel of current limiter is active. That charges digital side OS-CON and
@@ -363,9 +367,6 @@ int i;
 		input_select = MOBO_SRC_UAC1;
 	else
 		input_select = MOBO_SRC_UAC2;
-
-	// Clock qualification
-	gpio_set_gpio_pin(AVR32_PIN_PX30);
 
 	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
 

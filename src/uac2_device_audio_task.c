@@ -820,7 +820,7 @@ void uac2_device_audio_task(void *pvParameters)
 							mobo_i2s_enable(MOBO_I2S_DISABLE);	// Hard-mute of I2S pin
 						#endif
 
-						// Clear buffers for good measure! That may offload uac2_AK5394A_task() and present a good mute to WM8805
+						// Clear buffers before give
 						mobo_clear_dac_channel();
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
@@ -978,7 +978,8 @@ void uac2_device_audio_task(void *pvParameters)
 						mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
 					#endif
 
-					mobo_clear_dac_channel();					// Silencing incoming (OUT endpoint) audio buffer for good measure.
+					// Clear buffers before give
+					mobo_clear_dac_channel();
 
 					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 						#ifdef USB_STATE_MACHINE_DEBUG

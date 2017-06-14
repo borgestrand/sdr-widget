@@ -647,8 +647,14 @@ void wm8805_clkdiv(void) {
 void wm8805_mute(void) {
 //	print_dbg_char('M');
 
+	// Empty outgoing buffers if owned by WM8805 code
+	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+		mobo_clear_dac_channel();
+	}
+
+
 	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
-		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin
+		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin, try to avoid using this hardware!
 	#endif
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear ouggoing DAC data
 
