@@ -80,8 +80,17 @@ static const pdca_channel_options_t PDCA_OPTIONS = {
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
 };
 
-static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
+static const pdca_channel_options_t SPK_PDCA_OPTIONS_b0 = {
 	.addr = (void *)spk_buffer_0,         // memory address
+	.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
+	.size = DAC_BUFFER_SIZE,              // transfer counter
+	.r_addr = NULL,                         // next memory address
+	.r_size = 0,                            // next transfer counter
+	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+};
+
+static const pdca_channel_options_t SPK_PDCA_OPTIONS_b1 = {
+	.addr = (void *)spk_buffer_1,         // memory address
 	.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
 	.size = DAC_BUFFER_SIZE,              // transfer counter
 	.r_addr = NULL,                         // next memory address
@@ -254,29 +263,66 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 void AK5394A_pdca_tx_enable(U32 frequency) {
 //	pdca_disable(PDCA_CHANNEL_SSC_TX);				// Needed? When removed it changes LRCK poll timing below.
 
+	U16 num_remaining;
+
+
+
 	gpio_set_gpio_pin(AVR32_PIN_PX18); // ch2
+
+	mobo_clear_dac_channel(); // To avoid odd spurs which some times occur
 
    	taskENTER_CRITICAL();
 
+/*
    	// This code came about by trial and error, not hard science...
 	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
-//		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
 	}
 	else if ( (frequency == FREQ_44) || (frequency == FREQ_48) || (frequency == FREQ_88) || (frequency == FREQ_96) ){
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-//		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
 	}
-	else {
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS); // init PDCA channel with options.
-	}
+	if (DAC_buf_DMA_read == 1)	// Trying to jump to the best suited PDCA half-buffer
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b1);
+	else
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
+*/
 
+   	// Hand optimized code to not waste any time from LRCK edge to pdca_init_channel() call
+	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
+		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
+		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
+		num_remaining = pdca_channel->tcr;
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+
+		if (1) { //( num_remaining > 100) {	// A lot left to play back in buffer, choose init buffer in one way
+			while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+			if (DAC_buf_DMA_read == 1)
+				pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b1);
+			else
+				pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
+		}
+		else {		// Almost done playing back in buffer, choose opposite buffer to init
+			while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+			if (DAC_buf_DMA_read == 1)
+				pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
+			else
+				pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b1);
+		}
+	}
+	else {	// No known frequency, don't halt system while polling for LRCK edge
+		if (DAC_buf_DMA_read == 1)	// Trying to jump to the best suited PDCA half-buffer
+			pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b1);
+		else
+			pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
+	}
 
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_TX);

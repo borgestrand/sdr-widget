@@ -658,12 +658,19 @@ void audio_set_cur(void)
 
 		// We're calling mobo_xo_select here AND in uac2_device_audio_task. Just to be sure about MCLK XO select settling!
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+
+		// Included here because it makes sense in UAC2 code..
+		if (input_select == MOBO_SRC_UAC1) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
+			spk_mute = TRUE; // mute speaker while changing frequency and oscillator
+			mobo_clear_dac_channel();
+		}
+
 		if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) { // Only change I2S settings if appropriate
 			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);					// GPIO XO control
 		}
-		if (input_select == MOBO_SRC_UAC1) {										// Only change I2S settings if appropriate
-			mobo_led_select(current_freq.frequency, MOBO_SRC_UAC1);					// GPIO frequency indication on front RGB LED
-		}
+//		if (input_select == MOBO_SRC_UAC1) {										// Only change I2S settings if appropriate
+//			mobo_led_select(current_freq.frequency, MOBO_SRC_UAC1);					// GPIO frequency indication on front RGB LED
+//		}
 #else
 		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// GPIO XO control and frequency indication
 #endif
