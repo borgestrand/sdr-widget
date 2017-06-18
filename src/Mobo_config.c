@@ -523,10 +523,6 @@ void mobo_handle_spdif(uint8_t width) {
 				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 
-
-//				gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
-
-
 				for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
 					if (dac_must_clear == DAC_READY) {
 						if (DAC_buf_USB_OUT == 0) {
@@ -553,9 +549,6 @@ void mobo_handle_spdif(uint8_t width) {
 
 //				print_dbg_char_hex(target);
 //				print_dbg_char('\n');
-
-
-//				gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
 
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					// Fill endpoint with sample raw
@@ -594,14 +587,12 @@ void mobo_handle_spdif(uint8_t width) {
 							spk_index -= DAC_BUFFER_SIZE;
 							DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
-/* Bring this chunk back in again!
 #ifdef USB_STATE_MACHINE_DEBUG
 							if (DAC_buf_USB_OUT == 1)
 								gpio_set_gpio_pin(AVR32_PIN_PX30);
 							else
 								gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
-*/
 						}
 					}
 					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
@@ -610,8 +601,6 @@ void mobo_handle_spdif(uint8_t width) {
 
 		} // ADC_buf_DMA_write toggle
 	} // input select
-
-//	gpio_clr_gpio_pin(AVR32_PIN_PX30); // ch0
 
 } // mobo_handle_spdif(void)
 
@@ -890,14 +879,14 @@ void mobo_clock_division(U32 frequency) {
 void mobo_clear_adc_channel(void) {
 	int i;
 
-//	gpio_set_gpio_pin(AVR32_PIN_PX30); // ch0
+//	gpio_set_gpio_pin(AVR32_PIN_PX18); // ch2
 
 	for (i = 0; i < ADC_BUFFER_SIZE; i++) {
 		audio_buffer_0[i] = 0;
 		audio_buffer_1[i] = 0;
 	}
 
-//	gpio_clr_gpio_pin(AVR32_PIN_PX30); // ch0
+//	gpio_clr_gpio_pin(AVR32_PIN_PX18); // ch2
 }
 
 
@@ -905,14 +894,14 @@ void mobo_clear_adc_channel(void) {
 void mobo_clear_dac_channel(void) {
 	int i;
 
-	gpio_set_gpio_pin(AVR32_PIN_PX33); // ch1
+	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
 
 	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
 		spk_buffer_0[i] = 0xAAAAAAAA;	// 0;
 		spk_buffer_1[i] = 0x55555555;	// 0;
 	}
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX33); // ch1
+	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
 }
 
 
