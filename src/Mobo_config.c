@@ -894,14 +894,14 @@ void mobo_clear_adc_channel(void) {
 void mobo_clear_dac_channel(void) {
 	int i;
 
-	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
+//	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
 
 	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
-		spk_buffer_0[i] = 0; // 0xAAAAAAAA;	// 0;
-		spk_buffer_1[i] = 0; // 0x55555555;	// 0;
+		spk_buffer_0[i] = 0;
+		spk_buffer_1[i] = 0;
 	}
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
+//	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
 }
 
 

@@ -632,6 +632,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 					silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
 					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
+
+					gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
+
 					for (i = 0; i < num_samples; i++) {
 						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -780,6 +783,9 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					} // end for num_samples
+
+					gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
+
 
 /*
 					// The silence detector detects the correct arrival of samples

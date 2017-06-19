@@ -293,6 +293,7 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
 */
 
+/*
    	// Hand optimized code to not waste any time from LRCK edge to pdca_init_channel() call
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
@@ -323,6 +324,23 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		else
 			pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
 	}
+*/
+	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
+		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
+		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
+		num_remaining = pdca_channel->tcr;
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
+		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
+		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[]
+	}
+	else {	// No known frequency, don't halt system while polling for LRCK edge
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
+		DAC_buf_DMA_read = 0;
+	}
+
 
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_TX);
