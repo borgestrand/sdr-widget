@@ -80,17 +80,8 @@ static const pdca_channel_options_t PDCA_OPTIONS = {
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
 };
 
-static const pdca_channel_options_t SPK_PDCA_OPTIONS_b0 = {
+static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
 	.addr = (void *)spk_buffer_0,         // memory address
-	.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
-	.size = DAC_BUFFER_SIZE,              // transfer counter
-	.r_addr = NULL,                         // next memory address
-	.r_size = 0,                            // next transfer counter
-	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
-};
-
-static const pdca_channel_options_t SPK_PDCA_OPTIONS_b1 = {
-	.addr = (void *)spk_buffer_1,         // memory address
 	.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
 	.size = DAC_BUFFER_SIZE,              // transfer counter
 	.r_addr = NULL,                         // next memory address
@@ -333,12 +324,12 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
-		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[]
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
+		DAC_buf_DMA_read = 1;	// pdca_init_channel will force start from spk_buffer_0[]
 	}
 	else {	// No known frequency, don't halt system while polling for LRCK edge
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
-		DAC_buf_DMA_read = 0;
+		DAC_buf_DMA_read = 1;
 	}
 
 
