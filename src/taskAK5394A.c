@@ -325,11 +325,11 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
-		DAC_buf_DMA_read = 1;	// pdca_init_channel will force start from spk_buffer_0[]
+		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
 	}
 	else {	// No known frequency, don't halt system while polling for LRCK edge
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
-		DAC_buf_DMA_read = 1;
+		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
+		DAC_buf_DMA_read = 0;
 	}
 
 
