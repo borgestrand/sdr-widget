@@ -215,7 +215,6 @@ void uac2_freq_change_handler() {
 
 	if (freq_changed) {
 
-		// We're calling mobo_xo_select here AND in uac2_device_audio_task. Just to be sure about MCLK XO select settling!
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 		if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
 			spk_mute = TRUE; // mute speaker while changing frequency and oscillator

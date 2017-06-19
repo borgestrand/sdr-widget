@@ -565,8 +565,20 @@ void uac2_device_audio_task(void *pvParameters)
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
-						// BSB 20150725: Buffer alignment takes place as soon as 1st nonzero sample is received.
-						// FIX: Move above code as well?
+						// BSB 20150725: Buffer alignment also takes place as soon as 1st nonzero sample is received.
+						// Can that be dropped?
+
+						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF
+						audio_OUT_must_sync = 0;
+						DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+						num_remaining = spk_pdca_channel->tcr;
+						// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+						// for a long time. In which we simply read the counter again
+						if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
+							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+							num_remaining = spk_pdca_channel->tcr;
+						}
+						DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
 					} // end if (!playerStarted) || (audio_OUT_must_sync)
 
 
@@ -716,9 +728,9 @@ void uac2_device_audio_task(void *pvParameters)
 							mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 	#endif
 
-							// Align buffers
-							audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 
+							// Align buffers, retained above with arrival of USB data
+							audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 							num_remaining = spk_pdca_channel->tcr;
 							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
@@ -769,11 +781,11 @@ void uac2_device_audio_task(void *pvParameters)
 								if (dac_must_clear == DAC_READY) {
 									if (DAC_buf_USB_OUT == 0) {
 										spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R - 0x55555555;
+										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 									}
 									else {
 										spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-										spk_buffer_1[spk_index+OUT_RIGHT] = sample_R + 0x55555555;
+										spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
 									}
 								}
 
