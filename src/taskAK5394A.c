@@ -150,6 +150,9 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
+
+	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
+
 	if (DAC_buf_DMA_read == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
@@ -185,6 +188,9 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	if (!audio_OUT_alive)				// If no packet has been received since last DMA reset,
 		audio_OUT_must_sync = 1;		// indicate that next arriving packet must enter mid-buffer
 	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
+
 }
 
 /*! \brief Init interrupt controller and register pdca_int_handler interrupt.
@@ -260,6 +266,8 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 	gpio_set_gpio_pin(AVR32_PIN_PX18); // ch2
 
+	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+
 	mobo_clear_dac_channel(); // To avoid odd spurs which some times occur
 
    	taskENTER_CRITICAL();
@@ -326,10 +334,14 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
 		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
+
+		gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 	else {	// No known frequency, don't halt system while polling for LRCK edge
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
 		DAC_buf_DMA_read = 0;
+
+		gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 
 

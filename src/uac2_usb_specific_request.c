@@ -222,7 +222,11 @@ void uac2_freq_change_handler() {
 			mobo_clear_dac_channel();
 		}
 		if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {	// Only change I2S settings if appropriate
-			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control
+			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Give USB the I2S control with proper MCLK
+			mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+
+			// Will this work if we go from SPDIF to USB already playing at different sample rate?
+
 		}
 //		if (input_select == MOBO_SRC_UAC2) {	// Only change I2S settings if appropriate
 //			mobo_led_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO frequency indication on front RGB LED

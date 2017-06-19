@@ -294,6 +294,21 @@ void uac2_device_audio_task(void *pvParameters)
 // Process digital input
 #if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 		mobo_handle_spdif(32); // UAC2 uses 32-bit data
+
+		static uint8_t prev_input_select = MOBO_SRC_NONE;
+
+		// Did SPDIF system just give up I2S control? If get onto the sample rate of the USB system ASAP
+		if (input_select == MOBO_SRC_NONE) {
+			if ( (prev_input_select == MOBO_SRC_SPDIF) ||
+				 (prev_input_select == MOBO_SRC_TOS1) ||
+				 (prev_input_select == MOBO_SRC_TOS2) ) {
+
+				mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
+				mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+			}
+		}
+		prev_input_select = input_select;
+
 #endif
 
 
@@ -633,8 +648,6 @@ void uac2_device_audio_task(void *pvParameters)
 					silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
 					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
 
-					gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
-
 					for (i = 0; i < num_samples; i++) {
 						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -663,8 +676,9 @@ void uac2_device_audio_task(void *pvParameters)
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 										print_dbg_char('[');
 
-										mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+//	Too time consuming, we're missing whole USB packets by doing this here.
+//										mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
+//										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
 										input_select = MOBO_SRC_UAC2;
 										#ifdef HW_GEN_DIN20
@@ -676,8 +690,8 @@ void uac2_device_audio_task(void *pvParameters)
 								#else // not debug
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 
-										mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+//										mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
+//										mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
 										input_select = MOBO_SRC_UAC2;
 										#ifdef HW_GEN_DIN20
@@ -755,11 +769,11 @@ void uac2_device_audio_task(void *pvParameters)
 								if (dac_must_clear == DAC_READY) {
 									if (DAC_buf_USB_OUT == 0) {
 										spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R - 0x55555555;
 									}
 									else {
 										spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-										spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+										spk_buffer_1[spk_index+OUT_RIGHT] = sample_R + 0x55555555;
 									}
 								}
 
@@ -783,9 +797,6 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					} // end for num_samples
-
-					gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
-
 
 /*
 					// The silence detector detects the correct arrival of samples
