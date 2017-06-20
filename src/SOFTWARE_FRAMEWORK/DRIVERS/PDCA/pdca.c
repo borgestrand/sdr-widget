@@ -140,7 +140,7 @@ void pdca_load_channel(unsigned int pdca_ch_number, volatile void *addr, unsigne
   Bool global_interrupt_enabled = Is_global_interrupt_enabled();
 
   if (global_interrupt_enabled) Disable_global_interrupt();
-  pdca_channel->mar = (unsigned long)addr;
+  pdca_channel->marr = (unsigned long)addr; // BSB mar -> marr ?
   pdca_channel->tcr = size;
   pdca_channel->cr = AVR32_PDCA_ECLR_MASK;
   pdca_channel->isr;

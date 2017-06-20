@@ -75,8 +75,8 @@ static const pdca_channel_options_t PDCA_OPTIONS = {
 	.addr = (void *)audio_buffer_0,         // memory address
 	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
 	.size = ADC_BUFFER_SIZE,              // transfer counter
-	.r_addr = NULL,                         // next memory address
-	.r_size = 0,                            // next transfer counter
+	.r_addr = NULL,                         // next memory address // Is this safe?? What about using audio_buffer_1 here?
+	.r_size = 0,                            // next transfer counter // Is this to force an immediate interrupt?
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
 };
 
@@ -271,7 +271,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		while (gpio_get_pin_value(AK5394_LRCK) == 0);
 		while (gpio_get_pin_value(AK5394_LRCK) == 1);
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
+		ADC_buf_DMA_write = 0;
 
 		//   	gpio_clr_gpio_pin(AVR32_PIN_PX17);
 	}
@@ -282,7 +282,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		//   	gpio_clr_gpio_pin(AVR32_PIN_PX17);
 	}
 
-	// What is the optimal sequence?
+	// What is the optimal sequence? These two are simple write operations
    	pdca_enable(PDCA_CHANNEL_SSC_RX);
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
