@@ -634,6 +634,7 @@ void uac1_device_audio_task(void *pvParameters)
 							}
 						} // end for num_samples
 
+
 						// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
 						if (silence_det == 1) {
 							if (!USB_IS_SILENT())

@@ -691,13 +691,6 @@ void uac2_device_audio_task(void *pvParameters)
 						print_dbg_char('r');
 */
 
-					// Do we increment by 2 and keep the LSB free? Quite likely..
-//					print_dbg_char_nibble(spk_index); // Terminal is too slow.
-
-
-					// Is something wrong with I2S output definition?
-
-
 
 					// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
 					if (silence_det == 1) {
