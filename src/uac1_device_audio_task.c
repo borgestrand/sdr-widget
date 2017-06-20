@@ -107,9 +107,6 @@
 
 static U32  index, spk_index;
 static S16  old_gap = DAC_BUFFER_SIZE;
-// static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// These are now global the ID number of the buffer used for sending out to the USB
-//static volatile U32 *spk_buffer_ptr;
-
 static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 
 //!
@@ -209,95 +206,6 @@ void uac1_device_audio_task(void *pvParameters)
 			dac_must_clear = DAC_CLEARED;
 		}
 
-/*  // Disabling (startup) code
-#ifdef HW_GEN_DIN20
-		// A detected usb swap must be acknowledged
-//		if ( (!Is_device_enumerated()) && (usb_ch_swap != USB_CH_SWAPDET) ) { time=0; startup=TRUE; continue; };
-		if (   ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) )
-			&& (!Is_device_enumerated())
-			&& (usb_ch_swap != USB_CH_SWAPDET) ) {
-				time=0;
-				startup=TRUE;
-				continue;
-		}
-#elif (defined HW_GEN_DIN10)
-		if (   ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) )
-			&& (!Is_device_enumerated())   ) {
-				time=0;
-				startup=TRUE;
-				continue;
-		}
-#else
-		// First, check the device enumeration state
-		if (!Is_device_enumerated()) { time=0; startup=TRUE; continue; };
-#endif
-
-		if( startup ) {
-
-			time+=UAC1_configTSK_USB_DAUDIO_PERIOD;
-#define STARTUP_LED_DELAY  10000
-			if ( time<= 1*STARTUP_LED_DELAY ) {
-				LED_On( LED0 );
-
-				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-					// pdca disable code must be moved to something dealing with spdif playback use of ADC interface
-				#else
-					pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-					pdca_disable(PDCA_CHANNEL_SSC_RX);
-				#endif
-
-				//	            LED_On( LED1 );
-			} else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
-			else if( time== 3*STARTUP_LED_DELAY ) LED_On( LED2 );
-			else if( time== 4*STARTUP_LED_DELAY ) LED_On( LED3 );
-			else if( time== 5*STARTUP_LED_DELAY ) LED_Off( LED0 );
-			else if( time== 6*STARTUP_LED_DELAY ) LED_Off( LED1 );
-			else if( time== 7*STARTUP_LED_DELAY ) LED_Off( LED2 );
-			else if( time== 8*STARTUP_LED_DELAY ) LED_Off( LED3 );
-			else if( time >= 9*STARTUP_LED_DELAY ) {
-				startup=FALSE;
-
- 				ADC_buf_DMA_write = 0;  // Is this the glitchmaker?? And if it is, why does it happen so much on Win10/64 and UAC1?
-				ADC_buf_USB_IN = 0;
-				DAC_buf_USB_OUT = 0;
-				DAC_buf_DMA_read = 0; // Only place outside taskAK53984A.c where DAC_buf_DMA_read is written!
-				index = 0;
-				print_dbg_char('Z');
-
-
-				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-				#else
-					if (!FEATURE_ADC_NONE) {
-						// Wait for the next frame synchronization event
-						// to avoid channel inversion.  Start with left channel - FS goes low
-						while (!gpio_get_pin_value(AK5394_LRCK));
-						while (gpio_get_pin_value(AK5394_LRCK));
-
-						// Enable now the transfer.
-						pdca_enable(PDCA_CHANNEL_SSC_RX);
-						pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-					}
-				#endif
-
-			}
-		}
-
-
-*/
-
-/*  // Presumably important part of now removed startup code?
- 					if (!FEATURE_ADC_NONE) {
-						// Wait for the next frame synchronization event
-						// to avoid channel inversion.  Start with left channel - FS goes low
-						while (!gpio_get_pin_value(AK5394_LRCK));
-						while (gpio_get_pin_value(AK5394_LRCK));
-
-						// Enable now the transfer.
-						pdca_enable(PDCA_CHANNEL_SSC_RX);
-						pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-					}
-
- */
 
 		// Process digital input
 		#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
@@ -320,7 +228,7 @@ void uac1_device_audio_task(void *pvParameters)
 		#endif
 
 
-// Should we remove old ADC code from here?
+		// Should we remove old ADC code from here?
 		num_samples = 48;
 			if (usb_alternate_setting == 1) {
 
@@ -408,8 +316,7 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				}
 			} // end alt setting == 1
-
-// Should we remove old ADC code to here?
+			// Should we remove old ADC code to here?
 
 
 #ifdef HW_GEN_DIN20
@@ -528,9 +435,6 @@ void uac1_device_audio_task(void *pvParameters)
 							usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 							dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
-							// BSB 20150725: Buffer alignment also takes place as soon as 1st nonzero sample is received.
-							// Can that be dropped?
-
 							// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF
 							audio_OUT_must_sync = 0;
 							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
@@ -546,7 +450,7 @@ void uac1_device_audio_task(void *pvParameters)
 							LED_Off(LED1);
 
 	#ifdef USB_STATE_MACHINE_DEBUG
-							if (DAC_buf_USB_OUT == 1)					// Debug message 'p' removed along with #ifdefs
+							if (DAC_buf_USB_OUT == 1)
 								gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 							else
 								gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
@@ -652,10 +556,6 @@ void uac1_device_audio_task(void *pvParameters)
 										print_dbg_char('t');					// Debug semaphore, lowercase letters in USB tasks
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 											print_dbg_char('[');
-
-//											mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-//											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
-
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20
 												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
@@ -665,10 +565,6 @@ void uac1_device_audio_task(void *pvParameters)
 											print_dbg_char(']');
 									#else // not debug
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
-
-//											mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-//											mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
-
 											input_select = MOBO_SRC_UAC1;
 											#ifdef HW_GEN_DIN20
 												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
@@ -686,57 +582,6 @@ void uac1_device_audio_task(void *pvParameters)
 								}
 							#endif
 
-
-/*
- 							// Do we own output (semaphore)? If so, change I2S setting and resync _once_
-							// Why are we doing this within for num_samples loop?
-							if ( (!playerStarted) && (input_select == MOBO_SRC_UAC1) ) {
-								playerStarted = TRUE;					// Arrival of nonzero sample is now indication of playerStarted
-		//						silence_USB = SILENCE_USB_INIT;			// Let loop code determine silence. FIX: test with sample rate changes!
-
-								// FIX: mobo_xo_select will control I2S mux in GEN_DINx0. Verify semaphore mutex ownership!
-
-
-		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem set RGB front LED
-								mobo_led_select(current_freq.frequency, input_select);
-		#else
-								// USB-only hardware: set up oscillator here. NO! Set it up in uac1_usb_specific_request.c
-//								mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-		#endif
-
-/+								// Align buffers, retained above with arrival of USB data
-								audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-								num_remaining = spk_pdca_channel->tcr;
-								// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-								// for a long time. In which we simply read the counter again
-								if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-									DAC_buf_DMA_read_local = DAC_buf_DMA_read;
-									num_remaining = spk_pdca_channel->tcr;
-								}
-								DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
-
-								LED_Off(LED0);							// The LEDs on the PCB near the MCU
-								LED_Off(LED1);
-
-	#ifdef USB_STATE_MACHINE_DEBUG
-								if (DAC_buf_USB_OUT == 1)					// Debug message 'p' removed along with #ifdefs
-									gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-								else
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-	#endif
-								spk_index = DAC_BUFFER_SIZE - num_remaining;
-								spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-+/
-							}
-
-*/
-
-							// Semaphore not taken, or muted, output zeros.. Should be redundant with dac_must_clear code
-	//						if ( (input_select != MOBO_SRC_UAC1) || (spk_mute) ) {
-	//							sample_L = 0;
-	//							sample_R = 0;
-	//						}
 
 	#ifdef FEATURE_VOLUME_CTRL
 							if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
