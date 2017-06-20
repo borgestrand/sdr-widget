@@ -175,6 +175,10 @@ void uac1_device_audio_task(void *pvParameters)
 	uint8_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
+		Bool ledSet = FALSE;
+	#endif
+
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
 	#define IN_LEFT 0
@@ -508,6 +512,9 @@ void uac1_device_audio_task(void *pvParameters)
 						spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
+
+						gpio_tgl_gpio_pin(AVR32_PIN_PX52); // pin87 ch7
+
 						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
 
 						if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
@@ -547,6 +554,7 @@ void uac1_device_audio_task(void *pvParameters)
 							spk_index = DAC_BUFFER_SIZE - num_remaining;
 							spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 
+							playerStarted = TRUE;				// Moved here from mutex take code
 						} // end if (!playerStarted) || (audio_OUT_must_sync)
 
 						// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
@@ -671,7 +679,16 @@ void uac1_device_audio_task(void *pvParameters)
 								#endif
 							}
 
-							// Do we own output (semaphore)? If so, change I2S setting and resync _once_
+							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+								if ( (!ledSet) && (input_select == MOBO_SRC_UAC1) ) {
+									ledSet = TRUE;
+									mobo_led_select(current_freq.frequency, input_select);
+								}
+							#endif
+
+
+/*
+ 							// Do we own output (semaphore)? If so, change I2S setting and resync _once_
 							// Why are we doing this within for num_samples loop?
 							if ( (!playerStarted) && (input_select == MOBO_SRC_UAC1) ) {
 								playerStarted = TRUE;					// Arrival of nonzero sample is now indication of playerStarted
@@ -687,7 +704,7 @@ void uac1_device_audio_task(void *pvParameters)
 //								mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 		#endif
 
-/*								// Align buffers, retained above with arrival of USB data
+/+								// Align buffers, retained above with arrival of USB data
 								audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 								num_remaining = spk_pdca_channel->tcr;
@@ -710,8 +727,10 @@ void uac1_device_audio_task(void *pvParameters)
 	#endif
 								spk_index = DAC_BUFFER_SIZE - num_remaining;
 								spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-*/
++/
 							}
+
+*/
 
 							// Semaphore not taken, or muted, output zeros.. Should be redundant with dac_must_clear code
 	//						if ( (input_select != MOBO_SRC_UAC1) || (spk_mute) ) {
@@ -791,6 +810,7 @@ void uac1_device_audio_task(void *pvParameters)
 							mobo_clear_dac_channel();
 
 							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
+								ledSet = FALSE;
 								#ifdef USB_STATE_MACHINE_DEBUG
 									print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
 									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -946,6 +966,7 @@ void uac1_device_audio_task(void *pvParameters)
 						mobo_clear_dac_channel();					// Silencing incoming (OUT endpoint) audio buffer for good measure.
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
+							ledSet = FALSE;
 							#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('h');				// Debug semaphore, lowercase letters for USB tasks
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
