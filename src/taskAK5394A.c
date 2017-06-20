@@ -150,9 +150,6 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
-
-	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
-
 	if (DAC_buf_DMA_read == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
@@ -188,9 +185,6 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	if (!audio_OUT_alive)				// If no packet has been received since last DMA reset,
 		audio_OUT_must_sync = 1;		// indicate that next arriving packet must enter mid-buffer
 	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
-
-	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
-
 }
 
 /*! \brief Init interrupt controller and register pdca_int_handler interrupt.
@@ -224,7 +218,9 @@ void AK5394A_pdca_enable(void) {
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
-//	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed? When removed it changes LRCK poll timing below.// Needed?
+/*
+ *
+ * //	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed? When removed it changes LRCK poll timing below.// Needed?
 
    	taskENTER_CRITICAL();
 
@@ -247,87 +243,69 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 	}
 
+
+	ADC_buf_DMA_write = 0;
+
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_RX);
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 	taskEXIT_CRITICAL();
+
+*/
+
+
+	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
+
+	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	mobo_clear_adc_channel();
+
+   	taskENTER_CRITICAL();
+
+   	// FIX: add some countdown safety measure in case clock has stopped!
+	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
+		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
+		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
+		while (gpio_get_pin_value(AK5394_LRCK) == 0);
+		while (gpio_get_pin_value(AK5394_LRCK) == 1);
+		while (gpio_get_pin_value(AK5394_LRCK) == 0);
+		while (gpio_get_pin_value(AK5394_LRCK) == 1);
+		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
+
+		//   	gpio_clr_gpio_pin(AVR32_PIN_PX17);
+	}
+	else {	// No known frequency, don't halt system while polling for LRCK edge
+		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+		ADC_buf_DMA_write = 0;
+
+		//   	gpio_clr_gpio_pin(AVR32_PIN_PX17);
+	}
+
+	// What is the optimal sequence?
+   	pdca_enable(PDCA_CHANNEL_SSC_RX);
+	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
+	taskEXIT_CRITICAL();
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
 }
 
 
 // Turn on the TX pdca, run after ssc_i2s_init()
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_tx_enable(U32 frequency) {
-//	pdca_disable(PDCA_CHANNEL_SSC_TX);				// Needed? When removed it changes LRCK poll timing below.
-
-	U16 num_remaining;
-
-
-
 	gpio_set_gpio_pin(AVR32_PIN_PX18); // ch2
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
-
 	mobo_clear_dac_channel(); // To avoid odd spurs which some times occur
 
    	taskENTER_CRITICAL();
 
-/*
-   	// This code came about by trial and error, not hard science...
-	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-	}
-	else if ( (frequency == FREQ_44) || (frequency == FREQ_48) || (frequency == FREQ_88) || (frequency == FREQ_96) ){
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-	}
-	if (DAC_buf_DMA_read == 1)	// Trying to jump to the best suited PDCA half-buffer
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b1);
-	else
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
-*/
-
-/*
-   	// Hand optimized code to not waste any time from LRCK edge to pdca_init_channel() call
+   	// FIX: add some countdown safety measure in case clock has stopped!
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
-		num_remaining = pdca_channel->tcr;
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-
-		if (1) { //( num_remaining > 100) {	// A lot left to play back in buffer, choose init buffer in one way
-			while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-			if (DAC_buf_DMA_read == 1)
-				pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b1);
-			else
-				pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
-		}
-		else {		// Almost done playing back in buffer, choose opposite buffer to init
-			while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-			if (DAC_buf_DMA_read == 1)
-				pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
-			else
-				pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b1);
-		}
-	}
-	else {	// No known frequency, don't halt system while polling for LRCK edge
-		if (DAC_buf_DMA_read == 1)	// Trying to jump to the best suited PDCA half-buffer
-			pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b1);
-		else
-			pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS_b0);
-	}
-*/
-	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
-		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
-		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
-		num_remaining = pdca_channel->tcr;
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
 		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
@@ -343,7 +321,6 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 		gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
-
 
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_TX);

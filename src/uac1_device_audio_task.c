@@ -419,9 +419,6 @@ void uac1_device_audio_task(void *pvParameters)
 						spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-
-						gpio_tgl_gpio_pin(AVR32_PIN_PX52); // pin87 ch7
-
 						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
 
 						if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA

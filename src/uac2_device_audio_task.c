@@ -450,8 +450,6 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
-					gpio_tgl_gpio_pin(AVR32_PIN_PX52); // pin87 ch7
-
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);
 					num_samples = num_samples / 8;
 
@@ -654,11 +652,11 @@ void uac2_device_audio_task(void *pvParameters)
 								if (dac_must_clear == DAC_READY) {
 									if (DAC_buf_USB_OUT == 0) {
 										spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R - 0x22222222;
+										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 									}
 									else {
 										spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-										spk_buffer_1[spk_index+OUT_RIGHT] = sample_R + 0x22222222;
+										spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
 									}
 								}
 
