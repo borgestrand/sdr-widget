@@ -535,6 +535,18 @@ void uac1_device_audio_task(void *pvParameters)
 								num_remaining = spk_pdca_channel->tcr;
 							}
 							DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
+							LED_Off(LED0);							// The LEDs on the PCB near the MCU
+							LED_Off(LED1);
+
+	#ifdef USB_STATE_MACHINE_DEBUG
+							if (DAC_buf_USB_OUT == 1)					// Debug message 'p' removed along with #ifdefs
+								gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+							else
+								gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+	#endif
+							spk_index = DAC_BUFFER_SIZE - num_remaining;
+							spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+
 						} // end if (!playerStarted) || (audio_OUT_must_sync)
 
 						// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
@@ -671,11 +683,11 @@ void uac1_device_audio_task(void *pvParameters)
 		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)			// With WM8805 subsystem set RGB front LED
 								mobo_led_select(current_freq.frequency, input_select);
 		#else
-								// USB-only hardware: set up oscillator here
-								mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
+								// USB-only hardware: set up oscillator here. NO! Set it up in uac1_usb_specific_request.c
+//								mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 		#endif
 
-								// Align buffers, retained above with arrival of USB data
+/*								// Align buffers, retained above with arrival of USB data
 								audio_OUT_must_sync = 0;				// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 								num_remaining = spk_pdca_channel->tcr;
@@ -698,6 +710,7 @@ void uac1_device_audio_task(void *pvParameters)
 	#endif
 								spk_index = DAC_BUFFER_SIZE - num_remaining;
 								spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+*/
 							}
 
 							// Semaphore not taken, or muted, output zeros.. Should be redundant with dac_must_clear code
