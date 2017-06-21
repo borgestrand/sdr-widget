@@ -131,14 +131,14 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_DEBUG
-//    	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+    	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	}
 	else if (ADC_buf_DMA_write == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
 #ifdef USB_STATE_MACHINE_DEBUG
-//   	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+   	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	}
 
@@ -255,7 +255,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 */
 
 
-	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
+	gpio_set_gpio_pin(AVR32_PIN_PX43); // ch6 p88
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	mobo_clear_adc_channel();
@@ -288,14 +288,14 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 
 	taskEXIT_CRITICAL();
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
+	gpio_clr_gpio_pin(AVR32_PIN_PX43); // ch6 p88
 }
 
 
 // Turn on the TX pdca, run after ssc_i2s_init()
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_tx_enable(U32 frequency) {
-	gpio_set_gpio_pin(AVR32_PIN_PX18); // ch2
+	gpio_set_gpio_pin(AVR32_PIN_PX52); // ch5 p87
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 	mobo_clear_dac_channel(); // To avoid odd spurs which some times occur
@@ -328,7 +328,7 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 	taskEXIT_CRITICAL();
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX18); // ch2
+	gpio_clr_gpio_pin(AVR32_PIN_PX52); // ch5 p87
 }
 
 
