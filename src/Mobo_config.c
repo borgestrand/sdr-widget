@@ -511,14 +511,14 @@ void mobo_handle_spdif(uint8_t width) {
 
 			// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
 			if (megaskip >= ADC_BUFFER_SIZE) {
-				print_dbg_char('S');
+//				print_dbg_char('S');
 				samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 				megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
 				// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
 			}
 			// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
 			else if (megaskip <= -ADC_BUFFER_SIZE) {
-				print_dbg_char('I');
+//				print_dbg_char('I');
 				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 

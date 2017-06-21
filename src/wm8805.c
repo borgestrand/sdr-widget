@@ -596,7 +596,7 @@ void wm8805_pll(void) {
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 	if (pll_sel == WM8805_PLL_NORMAL) {
-		print_dbg_char('_');
+//		print_dbg_char('_');
 
 		wm8805_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 		wm8805_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
@@ -606,7 +606,7 @@ void wm8805_pll(void) {
 
 	// Special PLL setup for 192
 	else if (pll_sel == WM8805_PLL_192) {	// PLL setting 8.192
-		print_dbg_char(169);			// High line
+//		print_dbg_char(169);			// High line
 
 		wm8805_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8805_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
@@ -729,7 +729,7 @@ uint32_t wm8805_srd(void) {
 		freq_prev = freq;
 	}
 
-
+/*
 	if (freq == FREQ_44)
 		print_dbg_char('1');
 	else if (freq == FREQ_48)
@@ -744,6 +744,7 @@ uint32_t wm8805_srd(void) {
 		print_dbg_char('6');
 	else
 		print_dbg_char('U');
+*/
 
 	return freq;
 }
