@@ -545,7 +545,7 @@ void wm8805_sleep(void) {
 // Select input channel of the WM8805
 void wm8805_input(uint8_t input_sel) {
 
-	print_dbg_char(0x30 + input_sel);
+//	print_dbg_char(0x30 + input_sel);
 
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
@@ -728,7 +728,8 @@ uint32_t wm8805_srd(void) {
 			i++;
 		freq_prev = freq;
 	}
-/*
+
+
 	if (freq == FREQ_44)
 		print_dbg_char('1');
 	else if (freq == FREQ_48)
@@ -743,7 +744,7 @@ uint32_t wm8805_srd(void) {
 		print_dbg_char('6');
 	else
 		print_dbg_char('U');
-*/
+
 	return freq;
 }
 
