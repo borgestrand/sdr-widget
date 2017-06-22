@@ -218,6 +218,8 @@ void AK5394A_pdca_enable(void) {
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
+	U16 countdown = 0xFFFF;
+
 /*
  *
  * //	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed? When removed it changes LRCK poll timing below.// Needed?
@@ -266,10 +268,10 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
-		while (gpio_get_pin_value(AK5394_LRCK) == 0);
-		while (gpio_get_pin_value(AK5394_LRCK) == 1);
-		while (gpio_get_pin_value(AK5394_LRCK) == 0);
-		while (gpio_get_pin_value(AK5394_LRCK) == 1);
+		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
+		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
+		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
+		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
 		ADC_buf_DMA_write = 0;
 
@@ -295,6 +297,8 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 // Turn on the TX pdca, run after ssc_i2s_init()
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_tx_enable(U32 frequency) {
+	U16 countdown = 0xFFFF;
+
 	gpio_set_gpio_pin(AVR32_PIN_PX52); // ch5 p87
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
@@ -306,10 +310,10 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 0);
-		while (gpio_get_pin_value(AVR32_PIN_PX27) == 1);
+		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--;
+		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 1) && (countdown != 0) ) countdown--;
+		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--;
+		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 1) && (countdown != 0) ) countdown--;
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
 		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
 

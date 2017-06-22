@@ -84,7 +84,6 @@ void uac1_AK5394A_task(void *pvParameters) {
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
-	int i;
 	volatile S32 usb_buffer_toggle;
 
 	while (TRUE) {
