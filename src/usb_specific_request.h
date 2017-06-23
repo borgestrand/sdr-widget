@@ -110,11 +110,6 @@ extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_
 #define VOL_READ		0x01
 #define VOL_WRITE		0x02
 
-
-// Gap limits for feedback and correction systems
-
-#define SPK_GAP_DELTA   DAC_BUFFER_SIZE * 0.1 / 4	// A convenient separation between limits
-
 // USB skip/insert limits
 #define SPK_GAP_USKIP DAC_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
 #define SPK_GAP_LSKIP DAC_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
@@ -125,14 +120,16 @@ extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_
 #define SPK_GAP_L2	DAC_BUFFER_SIZE * 2 / 4  		// A half buffer down in distance => Slow down host a lot
 
 // SPDIF buffer skip/insert limits
-#define SPK_GAP_L3	DAC_BUFFER_SIZE * 2 / 4			// Lower limit for safe operation, starting point for skip/insert
+#define SPK_GAP_DELTA   DAC_BUFFER_SIZE / 40		// A convenient separation between limits
+
+#define SPK_GAP_L3	DAC_BUFFER_SIZE * 1.85 / 4		// Lower limit for safe operation, starting point for skip/insert
 #define SPK_GAP_LD	SPK_GAP_L3 + SPK_GAP_DELTA		// Mega skip/insert landing position
 #define SPK_GAP_LM	SPK_GAP_L3 + SPK_GAP_DELTA		// Starting point for mega skip/insert
 #define SPK_GAP_LX	SPK_GAP_L3 - 2 * SPK_GAP_DELTA	// Starting point for oscillator toggle
 
-#define SPK_GAP_U3	DAC_BUFFER_SIZE * 6				// Upper limit for safe operation, starting point for skip/insert
-#define SPK_GAP_UD	SPK_GAP_U3 + SPK_GAP_DELTA		// Mega skip/insert landing position
-#define SPK_GAP_UM	SPK_GAP_U3 + SPK_GAP_DELTA		// Starting point for mega skip/insert
+#define SPK_GAP_U3	DAC_BUFFER_SIZE * 6.15	/ 4		// Upper limit for safe operation, starting point for skip/insert
+#define SPK_GAP_UD	SPK_GAP_U3 - SPK_GAP_DELTA		// Mega skip/insert landing position
+#define SPK_GAP_UM	SPK_GAP_U3 - SPK_GAP_DELTA		// Starting point for mega skip/insert
 #define SPK_GAP_UX	SPK_GAP_U3 + 2 * SPK_GAP_DELTA	// Starting point for oscillator toggle
 
 // Various other defines
