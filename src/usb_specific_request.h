@@ -113,13 +113,15 @@ extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_
 
 // Gap limits for feedback and correction systems
 #define SPK_GAP_USKIP DAC_BUFFER_SIZE * 7 / 4	// Almost a full buffer up in distance => enable skip/insert
-#define SPK_GAP_U3    DAC_BUFFER_SIZE * 6 / 4
+#define SPK_GAP_UX    DAC_BUFFER_SIZE * 6 / 4	// At this gap we resort to SPDIF RX's XO
+#define SPK_GAP_U3    DAC_BUFFER_SIZE * 5.5 / 4	// At this gap we start skip/insert
 #define SPK_GAP_U2    DAC_BUFFER_SIZE * 6 / 4	// A half buffer up in distance	=> Speed up host a lot
 #define	SPK_GAP_U1    DAC_BUFFER_SIZE * 5 / 4	// A quarter buffer up in distance => Speed up host a bit
 #define SPK_GAP_NOM   DAC_BUFFER_SIZE * 4 / 4	// Ideal distance is half the size of linear buffer
 #define SPK_GAP_L1	   DAC_BUFFER_SIZE * 3 / 4  // A quarter buffer down in distance => Slow down host a bit
 #define SPK_GAP_L2	   DAC_BUFFER_SIZE * 2 / 4  // A half buffer down in distance => Slow down host a lot
-#define SPK_GAP_L3	   DAC_BUFFER_SIZE * 2 / 4
+#define SPK_GAP_L3	   DAC_BUFFER_SIZE * 2.5 / 4	// At this gap we start skip/insert
+#define SPK_GAP_LX	   DAC_BUFFER_SIZE * 2 / 4		// At this gap we resort to SPDIF RX's XO
 #define SPK_GAP_LSKIP DAC_BUFFER_SIZE * 1 / 4	// Almost a full buffer down in distance => enable skip/insert
 #define SPK_GAP_D1    10						// A margin at the edges of detection
 #define	SPK_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32

@@ -413,19 +413,27 @@ void mobo_handle_spdif(uint8_t width) {
 			// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 			samples_to_transfer_OUT = 1;			// Default value
 			target = -1;
-			if ((gap <= old_gap) && (gap < SPK_GAP_L3)) {
-//			if ((gap <= old_gap) && (gap < SPK_GAP_L1)) {
+
+			// Apply skip/insert
+			if ((gap <= old_gap) && (gap <= SPK_GAP_L3)) {
+//			if ((gap <= old_gap) && (gap <= SPK_GAP_L1)) {
 //			if (gap < SPK_GAP_L1) {
 				samples_to_transfer_OUT = 0;		// Do some skippin'
 				print_dbg_char('s');
 			}
-			else if ((gap >= old_gap) && (gap > SPK_GAP_U3)) {
-//			else if ((gap >= old_gap) && (gap > SPK_GAP_U1)) {
+			else if ((gap >= old_gap) && (gap >= SPK_GAP_U3)) {
+//			else if ((gap >= old_gap) && (gap >= SPK_GAP_U1)) {
 //			else if (gap > SPK_GAP_U1) {
 				samples_to_transfer_OUT = 2;		// Do some insertin'
 				print_dbg_char('i');
 			}
 
+			// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
+			if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ){
+				// Explicitly enable receiver's MCLK generator?
+				mobo_xo_select(FREQ_RXNATIVE, input_select);
+				print_dbg_char('X');
+			}
 
 
 			// If we must skip, what is the best place to do that?
@@ -511,14 +519,22 @@ void mobo_handle_spdif(uint8_t width) {
 
 			// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
 			if (megaskip >= ADC_BUFFER_SIZE) {
-//				print_dbg_char('S');
+
+				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
+				mobo_xo_select(wm8805_status.frequency, input_select);
+
+				print_dbg_char('S');
 				samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 				megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
 				// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
 			}
 			// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
 			else if (megaskip <= -ADC_BUFFER_SIZE) {
-//				print_dbg_char('I');
+
+				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
+				mobo_xo_select(wm8805_status.frequency, input_select);
+
+				print_dbg_char('I');
 				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 
@@ -698,8 +714,14 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		// New version without I2S mux, with buffering via MCU's ADC interface
 			gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 USB version in all cases
 
+
 			// Clock source control
-			if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
+			if (frequency == FREQ_RXNATIVE) {		// Use MCLK from SPDIF RX
+				// Explicitly turn on MCLK generation in SPDIF RX?
+				gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
+				gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+			}
+			else if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
 				gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
 				gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 			}
