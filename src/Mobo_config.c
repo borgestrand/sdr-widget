@@ -281,6 +281,7 @@ void mobo_handle_spdif(uint8_t width) {
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
 	S16 old_gap = DAC_BUFFER_SIZE;
+	static S16 iterations = 0;
 
 	U16 samples_to_transfer_OUT = 1; 	// Default value 1. Skip:0. Insert:2
 	S16 i;								// Generic counter
@@ -337,6 +338,13 @@ void mobo_handle_spdif(uint8_t width) {
 	}
 	else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
 		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+
+		if (input_select == MOBO_SRC_NONE)
+			iterations = 0;
+		else if ( ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) ) {
+			if (iterations < 100)
+				iterations++;
+		}
 
 		// Silence / DC detector 2.0
 //			if (wm8805_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
@@ -429,7 +437,8 @@ void mobo_handle_spdif(uint8_t width) {
 			}
 
 			// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
-			if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ){
+			// Just don't do it right after starting playback
+			if (  ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) && (iterations > 50)  ) {
 				// Explicitly enable receiver's MCLK generator?
 				mobo_xo_select(FREQ_RXNATIVE, input_select);
 				print_dbg_char('X');
