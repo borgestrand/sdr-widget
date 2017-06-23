@@ -504,12 +504,12 @@ void mobo_handle_spdif(uint8_t width) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 			// Apply megaskip when DC or zero is detected
-			if (wm8805_status.silent == 1) {									// Silence was detected
-				if (gap < (SPK_GAP_L3 + SPK_GAP_D1) ) {				// Are we close or past the limit for having to skip?
-					megaskip = (SPK_GAP_U3 - SPK_GAP_D1) - (gap);	// This is as far as we can safely skip, one ADC package at a time
+			if (wm8805_status.silent == 1) {				// Silence was detected
+				if (gap < SPK_GAP_LM ) {					// Are we close or past the limit for having to skip?
+					megaskip = SPK_GAP_UD - gap;			// This is as far as we can safely skip, one ADC package at a time
 				}
-				else if (gap > (SPK_GAP_U3 - SPK_GAP_D1) ) {			// Are we close to or past the limit for having to insert?
-					megaskip = (gap) - (SPK_GAP_L3 + SPK_GAP_D1);	// This is as far as we can safely insert, one ADC package at a time
+				else if (gap > SPK_GAP_UM ) {				// Are we close to or past the limit for having to insert?
+					megaskip = gap - SPK_GAP_LD; 			// This is as far as we can safely insert, one ADC package at a time
 				}
 			}
 			else {
