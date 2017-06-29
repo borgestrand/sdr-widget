@@ -422,28 +422,25 @@ void mobo_handle_spdif(uint8_t width) {
 			samples_to_transfer_OUT = 1;			// Default value
 			target = -1;
 
-			// Apply skip/insert
-			if ((gap <= old_gap) && (gap <= SPK_GAP_L3)) {
-//			if ((gap <= old_gap) && (gap <= SPK_GAP_L1)) {
-//			if (gap < SPK_GAP_L1) {
-				samples_to_transfer_OUT = 0;		// Do some skippin'
-				print_dbg_char('s');
-			}
-			else if ((gap >= old_gap) && (gap >= SPK_GAP_U3)) {
-//			else if ((gap >= old_gap) && (gap >= SPK_GAP_U1)) {
-//			else if (gap > SPK_GAP_U1) {
-				samples_to_transfer_OUT = 2;		// Do some insertin'
-				print_dbg_char('i');
-			}
+			if (iterations > 20) {
+				// Apply skip/insert
+				// Just don't do it right after starting playback
+				if ((gap < old_gap) && (gap < SPK_GAP_L3)) {
+					samples_to_transfer_OUT = 0;		// Do some skippin'
+					print_dbg_char('s');
+				}
+				else if ((gap > old_gap) && (gap > SPK_GAP_U3)) {
+					samples_to_transfer_OUT = 2;		// Do some insertin'
+					print_dbg_char('i');
+				}
 
-			// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
-			// Just don't do it right after starting playback
-			if (  ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) && (iterations > 50)  ) {
-				// Explicitly enable receiver's MCLK generator?
-				mobo_xo_select(FREQ_RXNATIVE, input_select);
-				print_dbg_char('X');
+				// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
+				if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) {
+					// Explicitly enable receiver's MCLK generator?
+					mobo_xo_select(FREQ_RXNATIVE, input_select);
+					print_dbg_char('X');
+				}
 			}
-
 
 			// If we must skip, what is the best place to do that?
 			// Code is prototyped in skip_insert_draft_c.m
