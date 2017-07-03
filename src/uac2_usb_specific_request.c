@@ -968,7 +968,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-						print_dbg_char('P');
+						print_dbg_char('S');
 
 						// give total # of bytes requested
 						for (i = 0; i < min(wLength, sizeof(Speedx)); i++) { // Was Speedx_1

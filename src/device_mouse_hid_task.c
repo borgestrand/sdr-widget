@@ -353,8 +353,13 @@ void device_mouse_hid_task(void)
             else if (a == 'Y') {							// Uppercase Y
             	mobo_i2s_enable(MOBO_I2S_ENABLE);
             }
+
             else if (a == 'y') {							// Lowercase y
             	mobo_i2s_enable(MOBO_I2S_DISABLE);
+            }
+
+            else if (a == 'R') {							// Uppercase R
+            	gpio_clr_gpio_pin(AVR32_PIN_PX13); 			// RESET_N / NSRST = 0
             }
 
 #endif
