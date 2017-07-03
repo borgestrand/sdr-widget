@@ -696,10 +696,15 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 	// BSB 20120720 copy from uac1_usb_specific_request begin
 
+	// It may look like the  OS is pulling the RX endpoint...
+
 	//** Specific request from Class HID
 	// this should vector to specified interface handler
 	if (wIndex == DSC_INTERFACE_HID) // Interface number of HID
 	{
+
+		print_dbg_char('B');	// Does this ever happen? Not on Mac..
+
 
 		if (type == OUT_CL_INTERFACE) // USB_SETUP_SET_CLASS_INTER
 		{
@@ -963,6 +968,8 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
+						print_dbg_char('P');
+
 						// give total # of bytes requested
 						for (i = 0; i < min(wLength, sizeof(Speedx)); i++) { // Was Speedx_1
 							//if (FEATURE_DAC_GENERIC)
@@ -1027,6 +1034,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
+
+						print_dbg_char('Q');
+
 						// give total # of bytes requested
 						for (i = 0; i < min(wLength, sizeof(Speedx)); i++) { // Was: Speedx_1
 							//if (FEATURE_DAC_GENERIC)
@@ -1079,6 +1089,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return FALSE;
 
 				case SPK_FEATURE_UNIT_ID:
+
+					print_dbg_char('R');
+
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
 						Usb_ack_setup_received_free();
@@ -1341,6 +1354,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return FALSE;
 
 				case SPK_FEATURE_UNIT_ID:
+
+					print_dbg_char('P');
+
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
 						Usb_ack_setup_received_free();

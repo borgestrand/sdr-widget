@@ -1587,7 +1587,9 @@ extern const S_usb_aia usb_user_aia;
 
 // #define USB_HID_REPORT_DESC 47
 #define USB_HID_REPORT_DESC 67 // BSB 20120711: Changed according to BasicAudioDevice-10.pdf table 8-2
-extern const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC];
+// extern const U8 usb_hid_report_descriptor[OUT_CL_INTERFACE];
+extern const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC]; // The length was completely off!
+
 
 extern U16 configTSK_USB_DEV_PERIOD;
 
