@@ -362,6 +362,11 @@ void device_mouse_hid_task(void)
             	gpio_clr_gpio_pin(AVR32_PIN_PX13); 			// RESET_N / NSRST = 0
             }
 
+            else if (a == 'P') {							// Uppercase P
+            	gpio_clr_gpio_pin(AVR32_PIN_PB10); 			// PROG = 0
+            	gpio_clr_gpio_pin(AVR32_PIN_PX13); 			// RESET_N / NSRST = 0
+            }
+
 #endif
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)

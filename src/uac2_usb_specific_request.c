@@ -1038,10 +1038,12 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						print_dbg_char('Q');
 
 						// give total # of bytes requested
-						for (i = 0; i < min(wLength, sizeof(Speedx)); i++) { // Was: Speedx_1
+						for (i = 0; i < min(wLength , sizeof(Speedx)); i++) { // Was: Speedx_1
 							//if (FEATURE_DAC_GENERIC)
 							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]); // Was: Speedx_1
 							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+
+							print_dbg_char('*');
 						}
 						Usb_ack_control_in_ready_send(); print_dbg_char('K');
 
