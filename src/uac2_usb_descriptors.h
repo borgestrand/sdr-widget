@@ -181,7 +181,7 @@
 #define CSD_ID_2_TYPE					0b00000010	// Was: 01 fixed freq internal clock. Is: 10 var. int.
 #define CSD_ID_2_CONTROL				0b00000111	// freq r/w, validity r
 
-#define CSD_ID_2_INPUT_PINS				0x01	// BSB 20170706 hack
+//#define CSD_ID_2_INPUT_PINS				0x01	// BSB 20170706 hack
 
 // Clock Selector descriptor
 #define CSX_ID							0x06
