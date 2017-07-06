@@ -193,7 +193,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  CLOCK_SELECTOR_INDEX
     }
 
-
+/*
   ,
   {  sizeof (S_usb_clock_selector_descriptor)
 	,  CS_INTERFACE
@@ -202,8 +202,9 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 	,  CSD_ID_2_INPUT_PINS
 	,  CSD_ID_2 // What to use here? Is this safe?
 	,  CSD_ID_2_CONTROL
-	,  CLOCK_SOURCE_2_INDEX // Is this a string?
+	,  CLOCK_SOURCE_2_INDEX
 	}
+*/
 
  /*
   ,
@@ -253,8 +254,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  SPK_INPUT_TERMINAL_ID
   ,  Usb_format_mcu_to_usb_data(16, SPK_INPUT_TERMINAL_TYPE)
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
-//  ,  CSX_ID
-	,  CSD_ID_2
+  ,  CSX_ID
+//	,  CSD_ID_2
   ,  SPK_INPUT_TERMINAL_NB_CHANNELS
   ,  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
   ,  INPUT_TERMINAL_CH_NAME_ID
@@ -280,8 +281,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  Usb_format_mcu_to_usb_data(16, SPK_OUTPUT_TERMINAL_TYPE)
   ,  SPK_OUTPUT_TERMINAL_ASSOCIATION
   ,  SPK_OUTPUT_TERMINAL_SOURCE_ID
-//  ,  CSX_ID
-	,  CSD_ID_2
+  ,  CSX_ID
+//	,  CSD_ID_2
   ,  Usb_format_mcu_to_usb_data(16,SPK_OUTPUT_TERMINAL_CONTROLS)
   ,  0x00
   }
@@ -569,6 +570,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 		  ,  CLOCK_SOURCE_2_INDEX // Is this a string?
 		  }
 */
+
 
 
 ,
