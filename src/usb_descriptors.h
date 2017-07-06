@@ -1317,7 +1317,7 @@ __attribute__((__packed__))
   U8  bClockID;       	  /* Clock Selector ID */
   U8  bNrInPins;		     /* Number of Input Pins */ // Set to 1
   U8  baCSourceID1;			/* variable length */
-//  U8  baCSourceID2;		// Only one...
+  U8  baCSourceID2;		// Only one...
   U8  bmControls;			/* Clock selector control bitmap  */
   U8  iClockSelector;			/* String descriptor of this clock selector */
 } S_usb_clock_selector_descriptor;

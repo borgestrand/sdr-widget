@@ -188,12 +188,12 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  CSX_ID
     ,  CSX_INPUT_PINS
     ,  CSX_SOURCE_1
-  //  ,  CSX_SOURCE_2
+    ,  CSX_SOURCE_2
     ,  CSX_CONTROL
     ,  CLOCK_SELECTOR_INDEX
     }
 
-/*
+
   ,
   {  sizeof (S_usb_clock_selector_descriptor)
 	,  CS_INTERFACE
@@ -204,7 +204,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 	,  CSD_ID_2_CONTROL
 	,  CLOCK_SOURCE_2_INDEX // Is this a string?
 	}
-*/
+
  /*
   ,
     {  sizeof(S_usb_in_ter_descriptor_2)
@@ -571,7 +571,6 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 */
 
 
-
 ,
 {  sizeof (S_usb_clock_selector_descriptor)
   ,  CS_INTERFACE
@@ -579,7 +578,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  CSX_ID
   ,  CSX_INPUT_PINS
   ,  CSX_SOURCE_1
-//  ,  CSX_SOURCE_2
+  ,  CSX_SOURCE_2
   ,  CSX_CONTROL
   ,  CLOCK_SELECTOR_INDEX
   }
