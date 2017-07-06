@@ -317,7 +317,10 @@ __attribute__((__packed__))
 	S_usb_ac_interface_descriptor_2			audioac;
 //	S_usb_clock_source_descriptor			audio_cs1;
 	S_usb_clock_source_descriptor			audio_cs2;
-	S_usb_clock_selector_descriptor			audio_csel;
+
+////	S_usb_clock_selector_descriptor			audio_csel;
+
+
 	//			S_usb_clock_multiplier_descriptor		audio_cmul;
 /*
 	S_usb_in_ter_descriptor_2 				mic_in_ter;
