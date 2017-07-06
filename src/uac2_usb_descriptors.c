@@ -543,7 +543,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  OUTPUT_TERMINAL_ID
     ,  CLOCK_SOURCE_2_INDEX
     }
-
+  //
 ////,
 ////	{  sizeof (S_usb_clock_selector_descriptor)
 ////	  ,  CS_INTERFACE
