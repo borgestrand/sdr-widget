@@ -186,11 +186,10 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  CS_INTERFACE
     ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR
     ,  CSX_ID
-    ,  CSX_INPUT_PINS
-    ,  CSX_SOURCE_1
-    ,  CSX_SOURCE_2
+    ,  0x01
+    ,  0x05
     ,  CSX_CONTROL
-    ,  CLOCK_SELECTOR_INDEX
+    ,  0x00
     }
 
 /*
@@ -573,17 +572,16 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 
 
 
-,
-{  sizeof (S_usb_clock_selector_descriptor)
-  ,  CS_INTERFACE
-  ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR
-  ,  CSX_ID
-  ,  CSX_INPUT_PINS
-  ,  CSX_SOURCE_1
-  ,  CSX_SOURCE_2
-  ,  CSX_CONTROL
-  ,  CLOCK_SELECTOR_INDEX
-  }
+  ,
+  {  sizeof (S_usb_clock_selector_descriptor)
+    ,  CS_INTERFACE
+    ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR
+    ,  CSX_ID
+    ,  0x01
+    ,  0x05
+    ,  CSX_CONTROL
+    ,  0x00
+    }
 
   /*
 ,
