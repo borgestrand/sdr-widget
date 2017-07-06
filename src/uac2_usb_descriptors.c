@@ -154,6 +154,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_2)
   //  		+ sizeof(S_usb_clock_selector_descriptor)
 			+ /*2* */sizeof(S_usb_clock_source_descriptor)
+			+ /*2* */sizeof(S_usb_clock_selector_descriptor)
     		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
             + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
 			+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
@@ -177,23 +178,21 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
      ,  CSD_ID_2_TYPE
      ,  CSD_ID_2_CONTROL
      ,  INPUT_TERMINAL_ID
-     ,  0x00   // BSB UAC2 debug WHY?
+     ,  CLOCK_SOURCE_2_INDEX   // Was: 0x00 BSB UAC2 debug WHY?
      }
-/*
   ,
 
   {  sizeof (S_usb_clock_selector_descriptor)
     ,  CS_INTERFACE
     ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR
-    ,  CSX_ID
-    ,  CSX_INPUT_PINS
-    ,  CSX_SOURCE_1
-    ,  CSX_SOURCE_2
-    ,  CSX_CONTROL
-    ,  0x00
+    ,  CSD_ID_2
+    ,  CSD_ID_2_INPUT_PINS
+    ,  CSD_ID_2 // What to use here? Is this safe?
+    ,  CSD_ID_2_CONTROL
+    ,  CLOCK_SOURCE_2_INDEX // Is this a string?
     }
-*/
-/*
+
+ /*
   ,
     {  sizeof(S_usb_in_ter_descriptor_2)
     ,  CS_INTERFACE
@@ -516,10 +515,12 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
    ,  HEADSET_CATEGORY
    ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_2)
 //   	+ sizeof(S_usb_clock_selector_descriptor)
+
 		+ /*2* */sizeof(S_usb_clock_source_descriptor)
+		+ /*2* */sizeof(S_usb_clock_selector_descriptor)
    		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
         + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
-	    + /*2* */sizeof(S_usb_out_ter_descriptor_2))
+		+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
    ,  MIC_LATENCY_CONTROL
    }
 /*
@@ -542,6 +543,18 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  OUTPUT_TERMINAL_ID
     ,  CLOCK_SOURCE_2_INDEX
     }
+,
+	{  sizeof (S_usb_clock_selector_descriptor)
+	  ,  CS_INTERFACE
+	  ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR
+	  ,  CSD_ID_2
+	  ,  CSD_ID_2_INPUT_PINS
+	  ,  CSD_ID_2 // What to use here? Is this safe?
+	  ,  CSD_ID_2_CONTROL
+	  ,  CLOCK_SOURCE_2_INDEX // Is this a string?
+	  }
+
+
 
 /*
 ,

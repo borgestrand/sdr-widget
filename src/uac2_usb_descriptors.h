@@ -181,6 +181,8 @@
 #define CSD_ID_2_TYPE					0b00000010	// Was: 01 fixed freq internal clock. Is: 10 var. int.
 #define CSD_ID_2_CONTROL				0b00000111	// freq r/w, validity r
 
+#define CSD_ID_2_INPUT_PINS				0x01	// BSB 20170706 hack
+
 // Clock Selector descriptor
 #define CSX_ID							0x06
 #define CSX_INPUT_PINS					0x02
@@ -315,7 +317,7 @@ __attribute__((__packed__))
 	S_usb_ac_interface_descriptor_2			audioac;
 //	S_usb_clock_source_descriptor			audio_cs1;
 	S_usb_clock_source_descriptor			audio_cs2;
-//	S_usb_clock_selector_descriptor			audio_csel;
+	S_usb_clock_selector_descriptor			audio_csel;
 	//			S_usb_clock_multiplier_descriptor		audio_cmul;
 /*
 	S_usb_in_ter_descriptor_2 				mic_in_ter;
