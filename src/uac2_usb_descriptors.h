@@ -59,7 +59,7 @@
 
 // IAD for Audio
 #define FIRST_INTERFACE1	1
-#define INTERFACE_COUNT1	2						//!  Audio Control, Audio Out
+#define INTERFACE_COUNT1	2						//!  Audio Control, Audio Out, what about feedback?
 #define FUNCTION_CLASS		AUDIO_CLASS
 #define FUNCTION_SUB_CLASS  0
 #define FUNCTION_PROTOCOL	IP_VERSION_02_00
@@ -234,7 +234,7 @@
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID				0x13
-#define SPK_OUTPUT_TERMINAL_TYPE			0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE			0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
 #define SPK_OUTPUT_TERMINAL_SOURCE_ID		SPK_FEATURE_UNIT_ID
 #define SPK_OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls

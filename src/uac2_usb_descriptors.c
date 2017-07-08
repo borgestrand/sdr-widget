@@ -180,7 +180,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
      ,  CSD_ID_2
      ,  CSD_ID_2_TYPE
      ,  CSD_ID_2_CONTROL
-     ,  INPUT_TERMINAL_ID
+     ,  SPK_INPUT_TERMINAL_ID	// Was: INPUT_TERMINAL_ID
      ,  CLOCK_SOURCE_2_INDEX   //   Was: 0x00 BSB UAC2 debug WHY?
      }
 
@@ -289,6 +289,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  0x00
   }
 
+  // === read until here....
  ,
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
@@ -558,7 +559,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  CSD_ID_2
     ,  CSD_ID_2_TYPE
     ,  CSD_ID_2_CONTROL
-    ,  OUTPUT_TERMINAL_ID
+    ,  SPK_INPUT_TERMINAL_ID	// Was: OUTPUT_TERMINAL_ID
     ,  CLOCK_SOURCE_2_INDEX
     }
 
