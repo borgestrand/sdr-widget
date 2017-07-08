@@ -260,8 +260,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
 ////  ,  CSX_ID
   ,  CSD_ID_2
-  ,  SPK_INPUT_TERMINAL_NB_CHANNELS
-  ,  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
+  ,  0x00 // SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
+  ,  Usb_format_mcu_to_usb_data(32, 0x00) //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
   ,  INPUT_TERMINAL_CH_NAME_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
   ,  INPUT_TERMINAL_STRING_DESC
@@ -642,8 +642,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
 //  ,  CSX_ID
   ,  CSD_ID_2
-  ,  SPK_INPUT_TERMINAL_NB_CHANNELS
-  ,  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
+  ,  0x00 // SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
+  ,  Usb_format_mcu_to_usb_data(32, 0x00)  //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
   ,  SPK_INPUT_TERMINAL_STRING_DESC
