@@ -51,7 +51,7 @@
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   4	//!  DG8SAQ, Audio (2), HID
+#define NB_INTERFACE	   3  // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
 #define CONF_NB            1	//! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered

@@ -57,7 +57,7 @@
 
 // CONFIGURATION
 // BSB 20130604 disabling UAC1 IN #define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
-#define NB_INTERFACE	   4	//!  DG8SAQ, HID, Audio (2)
+#define NB_INTERFACE	   3 // HID, Audio (2) // was: 4	//!  DG8SAQ, HID, Audio (2)
 #define CONF_NB            1	//! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered
