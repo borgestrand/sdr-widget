@@ -83,7 +83,7 @@
 // USB HID Interface descriptor
 #define INTERFACE_NB3			    3
 #define ALTERNATE_NB3	            0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT3			    2                  //! The number of endpoints this interface has
+#define NB_ENDPOINT3			    1 // 2                  //! The number of endpoints this interface has
 #define INTERFACE_CLASS3		    HID_CLASS          //! HID Class
 #define INTERFACE_SUB_CLASS3        NO_SUBCLASS        //! No Subclass
 #define INTERFACE_PROTOCOL3    		NO_PROTOCOL		   //! No Protocol
@@ -105,7 +105,7 @@
 #define EP_SIZE_4_HS            EP_IN_LENGTH_4_HS
 #define EP_INTERVAL_4           5               //! Interrupt polling interval from host
 
-// USB Endpoint 5 descriptor
+// USB Endpoint 5 descriptor // Disable for now...
 #define ENDPOINT_NB_5           (UAC2_EP_HID_RX)
 #define EP_ATTRIBUTES_5         TYPE_INTERRUPT
 #define EP_OUT_LENGTH_5_FS      8
@@ -342,7 +342,8 @@ __attribute__((__packed__))
 	S_usb_interface_descriptor		ifc3;
 	S_usb_hid_descriptor           	hid;
 	S_usb_endpoint_descriptor      	ep4;
-	S_usb_endpoint_descriptor	   	ep5;
+
+//	S_usb_endpoint_descriptor	   	ep5; // disabling idle HID OUT endpoint
 
 
 /*

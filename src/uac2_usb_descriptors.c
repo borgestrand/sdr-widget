@@ -260,7 +260,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
 ////  ,  CSX_ID
   ,  CSD_ID_2
-  ,  0x00 // SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
+  ,  SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below... Didn't solve it.
   ,  Usb_format_mcu_to_usb_data(32, 0x00) //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
   ,  INPUT_TERMINAL_CH_NAME_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
@@ -392,6 +392,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   	Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS),
   	EP_INTERVAL_4
   }
+/*
   ,
   {
   	sizeof(S_usb_endpoint_descriptor),
@@ -401,6 +402,9 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   	Usb_format_mcu_to_usb_data(16, EP_SIZE_5_FS),
   	EP_INTERVAL_5
   }
+
+  */
+
   // BSB 20120720 Insert EP 4 and 5, HID TX and RX end
 
   /*
@@ -642,8 +646,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
 //  ,  CSX_ID
   ,  CSD_ID_2
-  ,  0x00 // SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
-  ,  Usb_format_mcu_to_usb_data(32, 0x00)  //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
+  ,  SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
+  ,  Usb_format_mcu_to_usb_data(32, 0x00)  //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF) // 0 in Pro-Ject
   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
   ,  SPK_INPUT_TERMINAL_STRING_DESC
@@ -770,18 +774,23 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   	ENDPOINT_DESCRIPTOR,
   	ENDPOINT_NB_4,
   	EP_ATTRIBUTES_4,
-  	Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS),
+  	Usb_format_mcu_to_usb_data(16, EP_SIZE_4_HS),
   	EP_INTERVAL_4
   }
+
+/*// Trying to remove idle HID OUT endpoint
   ,
   {
   	sizeof(S_usb_endpoint_descriptor),
   	ENDPOINT_DESCRIPTOR,
   	ENDPOINT_NB_5,
   	EP_ATTRIBUTES_5,
-  	Usb_format_mcu_to_usb_data(16, EP_SIZE_5_FS),
+  	Usb_format_mcu_to_usb_data(16, EP_SIZE_5_HS),
   	EP_INTERVAL_5
   }
+
+*/
+
   // BSB 20120720 Insert EP 4 and 5, HID TX and RX end
 
 
