@@ -113,7 +113,7 @@ __attribute__((__packed__))
 #endif
 {
 	S_usb_configuration_descriptor					cfg;
-	S_usb_interface_descriptor	 					ifc0;
+//	S_usb_interface_descriptor	 					ifc0;
 	S_usb_endpoint_descriptor						ep1;
 	S_usb_endpoint_descriptor						ep2;
 	S_usb_endpoint_descriptor						ep3;

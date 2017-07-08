@@ -66,7 +66,7 @@
 #define FUNCTION_INDEX		0
 
 
-// USB DG8SAQ Interface  descriptor
+// USB DG8SAQ Interface descriptor
 #define INTERFACE_NB0			    0
 #define ALTERNATE_NB0	            0                  //! The alt setting nb of this interface
 #define NB_ENDPOINT0			    0                  //! The number of endpoints this interface has
@@ -307,7 +307,7 @@ __attribute__((__packed__))
 #endif
 {
 	S_usb_configuration_descriptor			cfg;
-	S_usb_interface_descriptor	 			ifc0;
+//	S_usb_interface_descriptor	 			ifc0;
 
 	//! Audio descriptors Class 2
 

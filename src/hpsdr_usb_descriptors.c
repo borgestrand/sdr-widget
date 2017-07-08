@@ -72,8 +72,10 @@ const S_usb_user_configuration_descriptor hpsdr_usb_conf_desc_fs = {
 		CONF_INDEX,
 		CONF_ATTRIBUTES,
 		MAX_POWER
-	},
+	}
 
+/*
+	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -85,6 +87,8 @@ const S_usb_user_configuration_descriptor hpsdr_usb_conf_desc_fs = {
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
+
+*/
 	,
 
 	{   sizeof(S_usb_endpoint_descriptor)
@@ -128,7 +132,9 @@ const S_usb_user_configuration_descriptor hpsdr_usb_conf_desc_hs = {
 		CONF_INDEX,
 		CONF_ATTRIBUTES,
 		MAX_POWER
-	},
+	}
+/*
+	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -140,6 +146,7 @@ const S_usb_user_configuration_descriptor hpsdr_usb_conf_desc_hs = {
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
+*/
 	,
     {   sizeof(S_usb_endpoint_descriptor)
 		,   ENDPOINT_DESCRIPTOR

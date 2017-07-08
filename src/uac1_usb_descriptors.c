@@ -112,8 +112,10 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		CONF_INDEX,
 		CONF_ATTRIBUTES,
 		MAX_POWER
-	},
+	}
 
+/*
+ 	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -125,6 +127,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
+
+	*/
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -429,7 +433,10 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		CONF_INDEX,
 		CONF_ATTRIBUTES,
 		MAX_POWER
-	},
+	}
+
+/*
+	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -440,8 +447,10 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		INTERFACE_SUB_CLASS0,
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
-	},
+	}
+*/
 
+	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -741,7 +750,10 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		CONF_INDEX,
 		CONF_ATTRIBUTES,
 		MAX_POWER
-	},
+	}
+
+/*
+	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -752,8 +764,10 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		INTERFACE_SUB_CLASS0,
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
-	},
+	}
 
+*/
+	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -1049,8 +1063,10 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		CONF_INDEX,
 		CONF_ATTRIBUTES,
 		MAX_POWER
-	},
+	}
 
+/*
+	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -1062,6 +1078,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
+
+*/
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
