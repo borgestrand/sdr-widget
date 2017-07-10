@@ -327,6 +327,23 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  0x00
     }
  ,
+
+
+ { sizeof(S_usb_format_type_1)
+ , CS_INTERFACE
+ , FORMAT_SUB_TYPE
+ , FORMAT_TYPE_1
+ , FORMAT_SUBSLOT_SIZE_1
+ , FORMAT_BIT_RESOLUTION_1
+ , 0x02 // Two discrete samples
+ , Usb_format_mcu_to_usb_data(16, 0x44ac)
+ , 0x00 // 3_bytes_LE(44100)
+ , Usb_format_mcu_to_usb_data(16, 0x80bb)
+ , 0x00 // 3_bytes_LE(48000)
+ }
+
+ /*
+
     {  sizeof(S_usb_format_type_2)
     ,  CS_INTERFACE
     ,  FORMAT_SUB_TYPE
@@ -334,6 +351,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  FORMAT_SUBSLOT_SIZE_1
     ,  FORMAT_BIT_RESOLUTION_1
     }
+
+*/
   ,
       {   sizeof(S_usb_endpoint_audio_descriptor_2)
       ,   ENDPOINT_DESCRIPTOR
@@ -711,6 +730,25 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
       ,  0x00
     }
  ,
+
+
+
+ { sizeof(S_usb_format_type_1)
+ , CS_INTERFACE
+ , FORMAT_SUB_TYPE
+ , FORMAT_TYPE_1
+ , FORMAT_SUBSLOT_SIZE_1
+ , FORMAT_BIT_RESOLUTION_1
+ , 0x02 // Two discrete samples
+ , Usb_format_mcu_to_usb_data(16, 0x44ac)
+ , 0x00 // 3_bytes_LE(44100)
+ , Usb_format_mcu_to_usb_data(16, 0x80bb)
+ , 0x00 // 3_bytes_LE(48000)
+ }
+
+/*
+
+
     {  sizeof(S_usb_format_type_2)
     ,  CS_INTERFACE
     ,  FORMAT_SUB_TYPE
@@ -718,6 +756,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  FORMAT_SUBSLOT_SIZE_1
     ,  FORMAT_BIT_RESOLUTION_1
     }
+
+*/
  ,
     {   sizeof(S_usb_endpoint_audio_descriptor_2)
     ,   ENDPOINT_DESCRIPTOR

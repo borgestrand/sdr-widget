@@ -333,7 +333,11 @@ __attribute__((__packed__))
 	S_usb_as_interface_descriptor	 		spk_as_alt0;
 	S_usb_as_interface_descriptor	 		spk_as_alt1;
 	S_usb_as_g_interface_descriptor_2		spk_g_as;
-	S_usb_format_type_2						spk_format_type;
+//	S_usb_format_type_2						spk_format_type;
+
+	S_usb_format_type_1						spk_format_type;
+
+
 	S_usb_endpoint_audio_descriptor_2 		ep2;
 	S_usb_endpoint_audio_specific_2			ep2_s;
 	S_usb_endpoint_audio_descriptor_2 		ep3;
