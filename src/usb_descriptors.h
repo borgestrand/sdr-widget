@@ -1205,19 +1205,20 @@ struct
 __attribute__((__packed__))
 #endif
 {
-	U8		bLenght;
-	U8 	bDescriptorType;
-	U8 	bDescriptorSubType;
-	U8		bFormatType;
-	U8		bNrChannels;
-	U8		bSubFrameSize;
-	U8		bBitResolution;
-	U8		bSampleFreqType;
-	U16	wLsbyteiSamFreq_1;
-	U8		bMsbyteiSamFreq_1;
-	U16	wLsbyteiSamFreq_2;
-	U8		bMsbyteiSamFreq_2;
+	U8		bLenght;				// 0
+	U8 	bDescriptorType;			// 1
+	U8 	bDescriptorSubType;			// 2
+	U8		bFormatType;			// 3
+	U8		bNrChannels;			// 4
+	U8		bSubFrameSize;			// 5
+	U8		bBitResolution;			// 6
+	U8		bSampleFreqType;		// 7
+	U16	wLsbyteiSamFreq_1;			// 8, 9
+	U8		bMsbyteiSamFreq_1;		// 10
+	U16	wLsbyteiSamFreq_2;			// 11, 12
+	U8		bMsbyteiSamFreq_2;		// 13
 } S_usb_format_type_1;
+
 
 
 //! Endpoint AUDIO Specific descriptor
@@ -1485,6 +1486,7 @@ __attribute__((__packed__))
 
 
 //! Class-Specific Audio Format Type descriptor pp 4.9.3 -> 2.3.1.6 Type I Format
+// This looks buggy!It does not seem to be according to Frmts10.PDF
 typedef
 #if (defined __ICCAVR32__)
 #pragma pack(1)
