@@ -59,7 +59,7 @@
 
 // IAD for Audio
 #define FIRST_INTERFACE1	1
-#define INTERFACE_COUNT1	1 // 2						//!  Audio Control, Audio Out, what about feedback?
+#define INTERFACE_COUNT1	2						//!  Audio Control, Audio Out, what about feedback?
 #define FUNCTION_CLASS		AUDIO_CLASS
 #define FUNCTION_SUB_CLASS  0
 #define FUNCTION_PROTOCOL	IP_VERSION_02_00
