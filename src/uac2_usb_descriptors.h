@@ -51,7 +51,7 @@
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   3  // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+#define NB_INTERFACE	   2 // 3  // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
 #define CONF_NB            1	//! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered
@@ -59,7 +59,7 @@
 
 // IAD for Audio
 #define FIRST_INTERFACE1	1
-#define INTERFACE_COUNT1	2						//!  Audio Control, Audio Out, what about feedback?
+#define INTERFACE_COUNT1	1 // 2						//!  Audio Control, Audio Out, what about feedback?
 #define FUNCTION_CLASS		AUDIO_CLASS
 #define FUNCTION_SUB_CLASS  0
 #define FUNCTION_PROTOCOL	IP_VERSION_02_00
@@ -132,7 +132,7 @@
 
 
 // USB Endpoint 1 descriptor
-#define ENDPOINT_NB_1       ( UAC2_EP_AUDIO_IN | MSK_EP_DIR )
+#define ENDPOINT_NB_1       ( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
 #define EP_ATTRIBUTES_1		0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
 //#define EP_IN_LENGTH_1_FS	294				   // 3 bytes * 49 samples * stereo
 //#define EP_IN_LENGTH_1_HS	294
@@ -145,7 +145,7 @@
 
 
 // USB Endpoint 2 descriptor
-#define ENDPOINT_NB_2       ( UAC2_EP_AUDIO_OUT )
+#define ENDPOINT_NB_2       ( UAC2_EP_AUDIO_OUT )	// 0x02
 #define EP_ATTRIBUTES_2     0b00000101			// ISOCHRONOUS ASYNC
 //#define EP_OUT_LENGTH_2_HS  294				// 3 bytes * 49 samples * stereo
 //#define EP_OUT_LENGTH_2_FS	294
@@ -158,7 +158,7 @@
 
 
 // USB Endpoint 3 descriptor
-#define ENDPOINT_NB_3       ( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x83
+#define ENDPOINT_NB_3       ( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x81
 #define EP_ATTRIBUTES_3     0b00010001      // ISOCHRONOUS FEEDBACK
 #define EP_IN_LENGTH_3_FS   4 //64				//   BSB 20170703 Is this really correct? Never tested in FS
 #define EP_IN_LENGTH_3_HS	4 //64				//

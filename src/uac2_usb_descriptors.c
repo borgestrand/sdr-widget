@@ -323,7 +323,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  AS_FORMAT_TYPE
     ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
     ,  AS_NB_CHANNELS
-    ,  Usb_format_mcu_to_usb_data(32,AS_CHAN_CONFIG)
+    ,  Usb_format_mcu_to_usb_data(32, 0x02 ) // Usb_format_mcu_to_usb_data(32,AS_CHAN_CONFIG)
     ,  0x00
     }
  ,
@@ -707,7 +707,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  AS_FORMAT_TYPE
     ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
     ,  AS_NB_CHANNELS
-    ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
+    ,  Usb_format_mcu_to_usb_data(32, 0x02) //Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
       ,  0x00
     }
  ,
