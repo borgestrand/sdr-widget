@@ -1486,7 +1486,6 @@ __attribute__((__packed__))
 
 
 //! Class-Specific Audio Format Type descriptor pp 4.9.3 -> 2.3.1.6 Type I Format
-// This looks buggy!It does not seem to be according to Frmts10.PDF
 typedef
 #if (defined __ICCAVR32__)
 #pragma pack(1)

@@ -328,11 +328,7 @@ __attribute__((__packed__))
 	S_usb_out_ter_descriptor_2				mic_out_ter;
 */
 	S_usb_in_ter_descriptor_2				spk_in_ter;
-
-
-//	S_usb_feature_unit_descriptor_2			spk_fea_unit;
-
-
+	S_usb_feature_unit_descriptor_2			spk_fea_unit;
 	S_usb_out_ter_descriptor_2				spk_out_ter;
 	S_usb_as_interface_descriptor	 		spk_as_alt0;
 	S_usb_as_interface_descriptor	 		spk_as_alt1;

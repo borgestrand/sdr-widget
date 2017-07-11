@@ -159,7 +159,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 			+ /*2* */sizeof(S_usb_clock_source_descriptor)
 ////			+ /*2* */sizeof(S_usb_clock_selector_descriptor)
     		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
-//            + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
+            + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
 			+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
     ,  MIC_LATENCY_CONTROL
     }
@@ -260,14 +260,13 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
 ////  ,  CSX_ID
   ,  CSD_ID_2
-  ,  SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below... Didn't solve it.
+  ,  0x00 // SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below... Didn't solve it.
   ,  Usb_format_mcu_to_usb_data(32, 0x00) //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
   ,  INPUT_TERMINAL_CH_NAME_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
   ,  INPUT_TERMINAL_STRING_DESC
   }
-
-/*  ,
+,
   {  sizeof(S_usb_feature_unit_descriptor_2)
   ,  CS_INTERFACE
   ,  FEATURE_UNIT_SUB_TYPE
@@ -278,8 +277,6 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  Usb_format_mcu_to_usb_data(32, SPK_BMA_CONTROLS_CH_2)
   ,  0x00
   }
-
-*/
 ,
   {  sizeof(S_usb_out_ter_descriptor_2)
   ,  CS_INTERFACE
@@ -287,7 +284,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  SPK_OUTPUT_TERMINAL_ID
   ,  Usb_format_mcu_to_usb_data(16, SPK_OUTPUT_TERMINAL_TYPE)
   ,  SPK_OUTPUT_TERMINAL_ASSOCIATION
-  ,  0x11 // input terminal for now SPK_OUTPUT_TERMINAL_SOURCE_ID
+  ,  SPK_OUTPUT_TERMINAL_SOURCE_ID
 ////  ,  CSX_ID
   ,  CSD_ID_2
   ,  Usb_format_mcu_to_usb_data(16,SPK_OUTPUT_TERMINAL_CONTROLS)
@@ -549,7 +546,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 		+ /*2* */sizeof(S_usb_clock_source_descriptor)
 ////		+ /*2* */sizeof(S_usb_clock_selector_descriptor)
    		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
-        //+ /*2* */sizeof(S_usb_feature_unit_descriptor_2)
+        + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
 		+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
    ,  MIC_LATENCY_CONTROL
    }
@@ -651,14 +648,13 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
 //  ,  CSX_ID
   ,  CSD_ID_2
-  ,  SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
+  ,  0x00 // SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
   ,  Usb_format_mcu_to_usb_data(32, 0x00)  //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF) // 0 in Pro-Ject
   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
   ,  SPK_INPUT_TERMINAL_STRING_DESC
   }
-
-/*  ,
+,
   {  sizeof(S_usb_feature_unit_descriptor_2)
   ,  CS_INTERFACE
   ,  FEATURE_UNIT_SUB_TYPE
@@ -669,7 +665,6 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  Usb_format_mcu_to_usb_data(32, SPK_BMA_CONTROLS_CH_2)
   ,  0x00
   }
-  */
 ,
   {  sizeof(S_usb_out_ter_descriptor_2)
   ,  CS_INTERFACE
@@ -677,7 +672,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  SPK_OUTPUT_TERMINAL_ID
   ,  Usb_format_mcu_to_usb_data(16, SPK_OUTPUT_TERMINAL_TYPE)
   ,  SPK_OUTPUT_TERMINAL_ASSOCIATION
-  ,  0x11 // Input terminal for now SPK_OUTPUT_TERMINAL_SOURCE_ID
+  ,  SPK_OUTPUT_TERMINAL_SOURCE_ID
 ////  ,  CSX_ID
   ,  CSD_ID_2
   ,  Usb_format_mcu_to_usb_data(16,SPK_OUTPUT_TERMINAL_CONTROLS)
