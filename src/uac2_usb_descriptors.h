@@ -222,8 +222,12 @@
 #define SPK_INPUT_TERMINAL_ASSOCIATION	0x00	// No association
 #define SPK_INPUT_TERMINAL_NB_CHANNELS	0x02
 #define SPK_INPUT_TERMINAL_CHANNEL_CONF	0x0003	// left front and right front
-#define SPK_INPUT_TERMINAL_CH_NAME_ID	0x00	
+#define SPK_INPUT_TERMINAL_CH_NAME_ID	LEFT_CH_INDEX // Was: 0x00
 #define SPK_INPUT_TERMINAL_STRING_DESC	AIT_INDEX
+
+
+
+
 
 //SPK Feature Unit descriptor
 #define SPK_FEATURE_UNIT_ID            0x12

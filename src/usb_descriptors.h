@@ -194,6 +194,9 @@
 #define AOT_INDEX		0x09
 #define AIN_INDEX		0x0A
 #define AIA_INDEX		0x0B
+#define LEFT_CH_INDEX	0x0C		// Must be consecutive
+#define RIGHT_CH_INDEX	0x0D
+
 
 
 #define NB_CONFIGURATION      1
@@ -508,6 +511,36 @@
   Usb_unicode('t')\
 }
 
+#define USB_LEFT_CH_LENGTH       8
+#define USB_LEFT_CH \
+{\
+  Usb_unicode('A'),\
+  Usb_unicode('n'),\
+  Usb_unicode('a'),\
+  Usb_unicode('l'),\
+  Usb_unicode('o'),\
+  Usb_unicode('g'),\
+  Usb_unicode(' '),\
+  Usb_unicode('L')\
+}
+
+#define USB_RIGHT_CH_LENGTH       8
+#define USB_RIGHT_CH \
+{\
+  Usb_unicode('A'),\
+  Usb_unicode('n'),\
+  Usb_unicode('a'),\
+  Usb_unicode('l'),\
+  Usb_unicode('o'),\
+  Usb_unicode('g'),\
+  Usb_unicode(' '),\
+  Usb_unicode('R')\
+}
+
+
+
+
+
 //_____ U S B  Widget-Lite   D E S C R I P T O R _____________
 
 //! struct usb_WL
@@ -612,6 +645,54 @@ __attribute__((__packed__))
 #pragma pack()
 #endif
 S_usb_aia;
+
+
+//_____ U S B  Audio Left channel   D E S C R I P T O R _____________
+
+//! struct usb_left_channel
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+  U8  bLength;                  //!< Size of this descriptor in U8s
+  U8  bDescriptorType;          //!< STRING descriptor type
+  U16 wstring[USB_LEFT_CH_LENGTH];   //!< Unicode characters
+}
+#if (defined __ICCAVR32__)
+#pragma pack()
+#endif
+S_usb_left_channel;
+
+
+//_____ U S B  Audio Right channel   D E S C R I P T O R _____________
+
+//! struct usb_right_channel
+typedef
+#if (defined __ICCAVR32__)
+#pragma pack(1)
+#endif
+struct
+#if (defined __GNUC__)
+__attribute__((__packed__))
+#endif
+{
+  U8  bLength;                  //!< Size of this descriptor in U8s
+  U8  bDescriptorType;          //!< STRING descriptor type
+  U16 wstring[USB_RIGHT_CH_LENGTH];   //!< Unicode characters
+}
+#if (defined __ICCAVR32__)
+#pragma pack()
+#endif
+S_usb_right_channel;
+
+
+
+
 
 // Stop test
 #define LANGUAGE_ID           0x0409
@@ -1585,6 +1666,11 @@ extern const S_usb_ait usb_user_ait;
 extern const S_usb_aot usb_user_aot;
 extern const S_usb_ain usb_user_ain;
 extern const S_usb_aia usb_user_aia;
+extern const S_usb_left_channel usb_left_channel;
+extern const S_usb_right_channel usb_right_channel;
+
+
+
 
 // #define USB_HID_REPORT_DESC 47
 #define USB_HID_REPORT_DESC 67 // BSB 20120711: Changed according to BasicAudioDevice-10.pdf table 8-2

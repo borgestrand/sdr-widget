@@ -252,20 +252,25 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     }
 */
   ,
+
+
+
   {  sizeof(S_usb_in_ter_descriptor_2)
-  ,  CS_INTERFACE
-  ,  INPUT_TERMINAL_SUB_TYPE
-  ,  SPK_INPUT_TERMINAL_ID
-  ,  Usb_format_mcu_to_usb_data(16, SPK_INPUT_TERMINAL_TYPE)
-  ,  SPK_INPUT_TERMINAL_ASSOCIATION
-////  ,  CSX_ID
-  ,  CSD_ID_2
-  ,  0x00 // SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below... Didn't solve it.
-  ,  Usb_format_mcu_to_usb_data(32, 0x00) //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF)
-  ,  INPUT_TERMINAL_CH_NAME_ID
-  ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
-  ,  INPUT_TERMINAL_STRING_DESC
-  }
+   ,  CS_INTERFACE
+   ,  INPUT_TERMINAL_SUB_TYPE
+   ,  SPK_INPUT_TERMINAL_ID
+   ,  Usb_format_mcu_to_usb_data(16, SPK_INPUT_TERMINAL_TYPE)
+   ,  SPK_INPUT_TERMINAL_ASSOCIATION
+ //  ,  CSX_ID
+   ,  CSD_ID_2
+   ,  SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
+   ,  Usb_format_mcu_to_usb_data(32, 0x00)  //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF) // 0 in Pro-Ject
+   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
+   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
+   ,  SPK_INPUT_TERMINAL_STRING_DESC
+   }
+
+
 ,
   {  sizeof(S_usb_feature_unit_descriptor_2)
   ,  CS_INTERFACE
@@ -315,6 +320,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  0x00
     }
  ,
+
+ /*
     {  sizeof(S_usb_as_g_interface_descriptor_2)
     ,  CS_INTERFACE
     ,  GENERAL_SUB_TYPE
@@ -326,6 +333,21 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  Usb_format_mcu_to_usb_data(32,AS_CHAN_CONFIG) // Should this be 0x02?
     ,  0x00
     }
+
+    */
+
+ {  sizeof(S_usb_as_g_interface_descriptor_2)
+  ,  CS_INTERFACE
+  ,  GENERAL_SUB_TYPE
+    ,  SPK_INPUT_TERMINAL_ID
+  ,  0x00 // AS_CONTROLS
+  ,  AS_FORMAT_TYPE
+  ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
+  ,  AS_NB_CHANNELS
+  ,  Usb_format_mcu_to_usb_data(32, 0x00)  //Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
+    ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
+  }
+
  ,
 
     {  sizeof(S_usb_format_type_2)
@@ -580,7 +602,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 		  ,  CSD_ID_2_INPUT_PINS
 		  ,  CSD_ID_2 // What to use here? Is this safe?
 		  ,  CSD_ID_2_CONTROL
-		  ,  CLOCK_SOURCE_2_INDEX // Is this a string?
+		  ,  CLOCK_SOURCE_2_INDEX
 		  }
 */
 
@@ -648,7 +670,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
 //  ,  CSX_ID
   ,  CSD_ID_2
-  ,  0x00 // SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
+  ,  SPK_INPUT_TERMINAL_NB_CHANNELS // Tsai suggests 0x00 here and below...
   ,  Usb_format_mcu_to_usb_data(32, 0x00)  //  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF) // 0 in Pro-Ject
   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
   ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
@@ -705,12 +727,12 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  CS_INTERFACE
     ,  GENERAL_SUB_TYPE
       ,  SPK_INPUT_TERMINAL_ID
-    ,  AS_CONTROLS
+    ,  0x00 // AS_CONTROLS
     ,  AS_FORMAT_TYPE
     ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
     ,  AS_NB_CHANNELS
-    ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
-      ,  0x00
+    ,  Usb_format_mcu_to_usb_data(32, 0x00)  //Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
+      ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
     }
  ,
 

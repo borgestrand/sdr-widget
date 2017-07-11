@@ -192,6 +192,25 @@ const S_usb_aia usb_user_aia =
 	USB_AIA
 };
 
+//usb_left_channel
+const S_usb_left_channel usb_left_channel =
+{
+	sizeof(S_usb_left_channel),
+	STRING_DESCRIPTOR,
+	USB_LEFT_CH
+};
+
+//usb_right_channel
+const S_usb_right_channel usb_right_channel =
+{
+	sizeof(S_usb_right_channel),
+	STRING_DESCRIPTOR,
+	USB_RIGHT_CH
+};
+
+
+
+
 /*
 // usb_hid_report_descriptor
 const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =

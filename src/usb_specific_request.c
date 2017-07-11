@@ -341,6 +341,16 @@ Bool usb_user_get_descriptor(U8 type, U8 string)
        pbuffer = &usb_user_aia;
        break;
 
+    case LEFT_CH_INDEX:
+       data_to_transfer = sizeof(usb_left_channel);
+       pbuffer = &usb_left_channel;
+       break;
+
+    case RIGHT_CH_INDEX:
+       data_to_transfer = sizeof(usb_right_channel);
+       pbuffer = &usb_right_channel;
+       break;
+
 
     default:
       break;
