@@ -112,7 +112,7 @@ extern U16 data_to_transfer;
 // New attempt at writing sample rate definition for Windows Creator's update
 // 2 ranges of sample rates. Works on ASIO. Fixed to 44.1 on C.U.
 
-/*
+
 const U8 Speedx[14] = {
 	0x01, 0x00, //number of sample rate triplets
 
@@ -120,7 +120,7 @@ const U8 Speedx[14] = {
 	0x80, 0xbb, 0x00, 0x00, //48k Max
 	0x3c, 0x0f, 0x00, 0x00, //48-44.1k Res
 };
-*/
+
 
 /*
 const U8 Speedx[38] = {
@@ -140,6 +140,7 @@ const U8 Speedx[38] = {
 };
 */
 
+/*
 const U8 Speedx[38] = {
 	0x03, 0x00, //number of sample rate triplets
 
@@ -155,7 +156,7 @@ const U8 Speedx[38] = {
 	0x00,0xee,0x02,0x00,	//192k Max
 	0xf0,0x3c,0x00,0x00,	//192-176.4 Res
 };
-
+*/
 
 /*
 const U8 Speedx[26] = { // was 74 for 6 triplets
