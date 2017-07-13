@@ -342,8 +342,7 @@ void usb_get_descriptor(void)
   wLength = usb_format_usb_to_mcu_data(16, temp.u16[1]);  //!< ignore wIndex, keep and format wLength
   Usb_ack_setup_received_free();                          //!< clear the setup received flag
 
-  if (wLength > data_to_transfer)
-  {
+  if (wLength > data_to_transfer) {
     zlp = !(data_to_transfer % EP_CONTROL_LENGTH);  //!< zero length packet condition
   }
   else
