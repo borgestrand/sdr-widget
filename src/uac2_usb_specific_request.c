@@ -153,6 +153,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 
 // Speed triplets. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
 
+/*
 const U8 Speedx[14] = {
 	0x01, 0x00, //number of sample rate triplets
 
@@ -160,7 +161,7 @@ const U8 Speedx[14] = {
 	0x00, 0x77, 0x01, 0x00,	//96k Max
 	0x80, 0xbb, 0x00, 0x00, //48k Res
 };
-
+*/
 
 /*
 const U8 Speedx[38] = {
@@ -180,7 +181,7 @@ const U8 Speedx[38] = {
 };
 */
 
-/*
+
 const U8 Speedx[38] = { // Win10 sees this as 44.1, 88.2 and 176.4
 	0x03, 0x00, //number of sample rate triplets
 
@@ -196,7 +197,7 @@ const U8 Speedx[38] = { // Win10 sees this as 44.1, 88.2 and 176.4
 	0x00,0xee,0x02,0x00,	//192k Max
 	0xf0,0x3c,0x00,0x00,	//192-176.4 Res
 };
-*/
+
 
 /*
 const U8 Speedx[26] = { // was 74 for 6 triplets
