@@ -1094,35 +1094,24 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						print_dbg_char('Q');
 
-						// give total # of bytes requested
+						data_to_transfer = sizeof(Speedx);
+						pbuffer = (const U8*)Speedx;
+						send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 
-						// Attempted Win10 hack
-//						if (wLength == 0x0100) {
-//							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[0]);
-//							print_dbg_char('L');
-//							print_dbg_char('+');
-//						}
-//						else {
-							for (i = 0; i < min(wLength , sizeof(Speedx)); i++) { // Was: Speedx_1
-								//if (FEATURE_DAC_GENERIC)
-								Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]); // Was: Speedx_1
-								//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
+/*
+						for (i = 0; i < min(wLength , sizeof(Speedx)); i++) {
+							//if (FEATURE_DAC_GENERIC)
+							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]); // Was: Speedx_1
+							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
 
-								print_dbg_char('*');
-							}
-//						}
-
-						// Does this help the Win10 C.U. situation?
-//						for (i = 0; i < (wLength - sizeof(Speedx)); i++) {
-//							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-//							print_dbg_char('/');
-//						}
-
+							print_dbg_char('*');
+						}
 						Usb_ack_control_in_ready_send(); print_dbg_char('v');
 
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
+*/
 						return TRUE;
 					} else
 						return FALSE;
