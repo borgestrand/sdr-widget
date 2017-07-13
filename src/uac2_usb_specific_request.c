@@ -109,9 +109,49 @@ S_freq Mic_freq;
 extern const void *pbuffer;
 extern U16 data_to_transfer;
 
-// New attempt at writing sample rate definition for Windows Creator's update
-// 2 ranges of sample rates. Works on ASIO. Fixed to 44.1 on C.U.
 
+// Send a descriptor to the Host, if needed by means of multiple fillings of EP0
+void send_descriptor(U16 wLength, Bool zlp) {
+	if (wLength > data_to_transfer) {
+		zlp = !(data_to_transfer % EP_CONTROL_LENGTH); //!< zero length packet condition
+	} else {
+		data_to_transfer = wLength; //!< send only requested number of data bytes
+	}
+
+	Usb_ack_nak_out(EP_CONTROL);
+
+	while (data_to_transfer && (!Is_usb_nak_out(EP_CONTROL))) {
+		while (!Is_usb_control_in_ready() && !Is_usb_nak_out(EP_CONTROL))
+			;
+
+		if (Is_usb_nak_out(EP_CONTROL))
+			break; // don't clear the flag now, it will be cleared after
+
+		Usb_reset_endpoint_fifo_access(EP_CONTROL);
+		data_to_transfer = usb_write_ep_txpacket(EP_CONTROL, pbuffer,
+				data_to_transfer, &pbuffer);
+		if (Is_usb_nak_out(EP_CONTROL))
+			break;
+		else
+			Usb_ack_control_in_ready_send(); print_dbg_char('e'); //!< Send data until necessary
+	}
+
+	if (zlp && (!Is_usb_nak_out(EP_CONTROL))) {
+		while (!Is_usb_control_in_ready())
+			;
+		Usb_ack_control_in_ready_send(); print_dbg_char('f');
+	}
+
+	while (!(Is_usb_nak_out(EP_CONTROL)))
+		;
+	Usb_ack_nak_out(EP_CONTROL);
+	while (!Is_usb_control_out_received())
+		;
+	Usb_ack_control_out_received_free();
+}
+
+
+// Speed triplets. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
 
 const U8 Speedx[14] = {
 	0x01, 0x00, //number of sample rate triplets
@@ -588,44 +628,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	print_dbg_char(' ');
 	print_dbg_char_hex(wIndex >> 8);
 
-
-
-	if (wLength > data_to_transfer) {
-		zlp = !(data_to_transfer % EP_CONTROL_LENGTH); //!< zero length packet condition
-	} else {
-		data_to_transfer = wLength; //!< send only requested number of data bytes
-	}
-
-	Usb_ack_nak_out(EP_CONTROL);
-
-	while (data_to_transfer && (!Is_usb_nak_out(EP_CONTROL))) {
-		while (!Is_usb_control_in_ready() && !Is_usb_nak_out(EP_CONTROL))
-			;
-
-		if (Is_usb_nak_out(EP_CONTROL))
-			break; // don't clear the flag now, it will be cleared after
-
-		Usb_reset_endpoint_fifo_access(EP_CONTROL);
-		data_to_transfer = usb_write_ep_txpacket(EP_CONTROL, pbuffer,
-				data_to_transfer, &pbuffer);
-		if (Is_usb_nak_out(EP_CONTROL))
-			break;
-		else
-			Usb_ack_control_in_ready_send(); print_dbg_char('e'); //!< Send data until necessary
-	}
-
-	if (zlp && (!Is_usb_nak_out(EP_CONTROL))) {
-		while (!Is_usb_control_in_ready())
-			;
-		Usb_ack_control_in_ready_send(); print_dbg_char('f');
-	}
-
-	while (!(Is_usb_nak_out(EP_CONTROL)))
-		;
-	Usb_ack_nak_out(EP_CONTROL);
-	while (!Is_usb_control_out_received())
-		;
-	Usb_ack_control_out_received_free();
+	send_descriptor(wLength, zlp); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 
 #ifdef USB_STATE_MACHINE_DEBUG
 //	print_dbg_char('h'); // BSB debug 20120803
