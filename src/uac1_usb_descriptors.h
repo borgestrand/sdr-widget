@@ -87,7 +87,7 @@
 // USB HID Interface descriptor
 #define INTERFACE_NB1			    1
 #define ALTERNATE_NB1	            0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT1			    2                  //! The number of endpoints this interface has
+#define NB_ENDPOINT1			    1 // Was: 2                  //! The number of endpoints this interface has
 #define INTERFACE_CLASS1		    HID_CLASS          //! HID Class
 #define INTERFACE_SUB_CLASS1        NO_SUBCLASS        //! No Subclass
 #define INTERFACE_PROTOCOL1    		NO_PROTOCOL		   //! No Protocol
@@ -226,7 +226,7 @@
 
 // SPK Output Terminal
 #define SPK_OUTPUT_TERMINAL_ID			0x13
-#define SPK_OUTPUT_TERMINAL_TYPE		0x0602	// 0x0302 = Headphones, 0x0602 = "Digital Audio Interface" or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE		0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00	// No association
 #define SPK_OUTPUT_TERMINAL_SOURCE_ID	0x12	// From Feature Unit
 
