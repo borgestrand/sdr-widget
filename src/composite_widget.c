@@ -267,11 +267,12 @@ int i;
 	gpio_set_gpio_pin(AVR32_PIN_PA22); // TP18				// Disable pass transistor at DAC's charge pump input
 
 
-	gpio_clr_gpio_pin(USB_VBUS_A_PIN);						// NO USB A to MCU's VBUS pin
-	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
-	gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);					// Select USB B to MCU's USB data pins
-	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
-	usb_ch = mobo_usb_detect();								// Auto detect which USB plug to use. A has priority if present
+//	gpio_clr_gpio_pin(USB_VBUS_A_PIN);						// NO USB A to MCU's VBUS pin
+//	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
+//	gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);					// Select USB B to MCU's USB data pins
+//	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
+	usb_ch = mobo_usb_detect();								// Detect which USB plug to use. A has priority if present
+	mobo_usb_select(usb_ch);								// Connect USB plug
 	usb_ch_swap = USB_CH_NOSWAP;							// No swapping detected yet
 
 	// Try to remove this function. It is currently empty.

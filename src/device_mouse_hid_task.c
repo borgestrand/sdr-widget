@@ -585,6 +585,10 @@ void device_mouse_hid_task(void)
             	temp ++;
             }
 
+            else if (a == 'm') {
+            	mobo_led_select(FREQ_44, input_select);
+            }
+
 
 
     	} // if (readkey())

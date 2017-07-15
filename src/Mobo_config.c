@@ -47,8 +47,8 @@ void mobo_km(uint8_t enable) {
 void mobo_usb_select(uint8_t usb_ch) {
 	if (usb_ch == USB_CH_NONE) {
 		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
-		gpio_clr_gpio_pin(AVR32_PIN_PA28);				// NO USB B to MCU's VBUS pin
-		gpio_clr_gpio_pin(AVR32_PIN_PA31);				// NO USB A to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_VBUS_A_PIN);				// NO USB A to MCU's VBUS pin
 	}
 	if (usb_ch == USB_CH_A) {
 		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
@@ -63,6 +63,8 @@ void mobo_usb_select(uint8_t usb_ch) {
 		gpio_set_gpio_pin(USB_VBUS_B_PIN);				// Select USB B to MCU's VBUS pin
 	}
 }
+
+
 
 // Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
 uint8_t mobo_usb_detect(void) {
@@ -139,6 +141,15 @@ void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0) {
 
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source) {
+
+	// No source is indicated as USB audio
+	if (source == MOBO_SRC_NONE) {
+		if (FEATURE_IMAGE_UAC1_AUDIO)
+			source = MOBO_SRC_UAC1;
+		else if (FEATURE_IMAGE_UAC2_AUDIO)
+			source = MOBO_SRC_UAC2;
+	}
+
 	switch (frequency) {
 
 		case FREQ_44:

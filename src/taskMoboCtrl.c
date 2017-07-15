@@ -1126,23 +1126,21 @@ static void vtaskMoboCtrl( void * pcParameters )
                     vTaskDelay(200);						// Chill for a while, at least one execution of uac?_device_audio_task
                 	mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
                     vTaskDelay(500);						// Chill for a while, at least one execution of uac?_device_audio_task
+                    usb_ch = mobo_usb_detect();
 
-                    if (usb_ch == USB_CH_A) {				// Swap USB plugs
-                    	usb_ch = USB_CH_B;
-						#ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char('b');
-						#endif
-                    }
-                    else {
-                    	usb_ch = USB_CH_A;
-						#ifdef USB_STATE_MACHINE_DEBUG
+					#ifdef USB_STATE_MACHINE_DEBUG			// Report what just happened
+						if (usb_ch == USB_CH_A)
 							print_dbg_char('a');
-						#endif
-                    }
-                	mobo_usb_select(usb_ch);
+						else if (usb_ch == USB_CH_B)
+							print_dbg_char('b');
+					#endif
 
-                	if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) )
+					mobo_usb_select(usb_ch);
+
+                	if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
+						print_dbg_char('X');
                 		mobo_led_select(FREQ_44, input_select);	// Change LED according to recently plugged in USB cable. Assume 44.1
+                	}
 
                 	usb_ch_swap = USB_CH_NOSWAP;
                 	usb_ch_counter = 0;
