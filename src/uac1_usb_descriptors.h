@@ -57,7 +57,7 @@
 
 // CONFIGURATION
 // BSB 20130604 disabling UAC1 IN #define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
-#define NB_INTERFACE	   3 // HID, Audio (2) // was: 4	//!  DG8SAQ, HID, Audio (2)
+#define NB_INTERFACE	   4	//!  DG8SAQ, HID, Audio (2) OR 3 // HID, Audio (2)
 #define CONF_NB            1	//! Number of this configuration
 #define CONF_INDEX         0
 #define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered
@@ -109,7 +109,7 @@
 #define EP_SIZE_1_HS            EP_IN_LENGTH_1_HS
 #define EP_INTERVAL_1           5               //! Interrupt polling interval from host
 
-// USB Endpoint 2 descriptor
+// USB Endpoint 2 descriptor - not used
 #define ENDPOINT_NB_2           (UAC1_EP_HID_RX)
 #define EP_ATTRIBUTES_2         TYPE_INTERRUPT
 #define EP_OUT_LENGTH_2_FS      8
@@ -283,11 +283,11 @@ __attribute__((__packed__))
 #endif
 {
 	  S_usb_configuration_descriptor cfg;
-//	  S_usb_interface_descriptor	 ifc0;
+	  S_usb_interface_descriptor	 ifc0;
 	  S_usb_interface_descriptor	ifc1;
 	  S_usb_hid_descriptor           hid;
 	  S_usb_endpoint_descriptor      ep1;
-	  S_usb_endpoint_descriptor		 ep2;
+//	  S_usb_endpoint_descriptor		 ep2;
 	  S_usb_interface_association_descriptor iad1;
 	  S_usb_interface_descriptor     	ifc2;
 	  S_usb_ac_interface_descriptor_1  	audioac;

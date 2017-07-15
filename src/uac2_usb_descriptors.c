@@ -365,7 +365,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   }
  ,
 
-//! Here is where Audio Class 2 specific stuff  is
+//! Here is where Audio Class 2 specific stuff is
 
   {
     sizeof(S_usb_interface_association_descriptor) // 4.6

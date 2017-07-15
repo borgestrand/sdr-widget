@@ -114,7 +114,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		MAX_POWER
 	}
 
-/*
+
  	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -128,7 +128,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		INTERFACE_INDEX0
 	}
 
-	*/
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -160,6 +159,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
 		EP_INTERVAL_1
 	},
+/*
 	{
 		sizeof(S_usb_endpoint_descriptor),
 		ENDPOINT_DESCRIPTOR,
@@ -169,6 +169,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		EP_INTERVAL_2
 	}
 	,
+*/
 
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
@@ -435,7 +436,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		MAX_POWER
 	}
 
-/*
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -448,7 +448,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
-*/
+
 
 	,
 	{
@@ -481,6 +481,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS),
 		EP_INTERVAL_1
 	},
+/*
 	{
 		sizeof(S_usb_endpoint_descriptor),
 		ENDPOINT_DESCRIPTOR,
@@ -489,8 +490,9 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS),
 		EP_INTERVAL_2
 	}
-
 	,
+	*/
+
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
 	  ,  FIRST_INTERFACE1					// bFirstInterface
@@ -752,7 +754,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		MAX_POWER
 	}
 
-/*
+
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -766,7 +768,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		INTERFACE_INDEX0
 	}
 
-*/
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -798,6 +799,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS),
 		EP_INTERVAL_1
 	},
+/*
 	{
 		sizeof(S_usb_endpoint_descriptor),
 		ENDPOINT_DESCRIPTOR,
@@ -806,8 +808,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS),
 		EP_INTERVAL_2
 	}
-
 	,
+*/
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
 	  ,  FIRST_INTERFACE1					// bFirstInterface
@@ -1065,7 +1067,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		MAX_POWER
 	}
 
-/*
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -1079,7 +1080,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		INTERFACE_INDEX0
 	}
 
-*/
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -1111,6 +1111,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
 		EP_INTERVAL_1
 	},
+
+/*
 	{
 		sizeof(S_usb_endpoint_descriptor),
 		ENDPOINT_DESCRIPTOR,
@@ -1120,6 +1122,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		EP_INTERVAL_2
 	}
 	,
+
+	*/
 
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
