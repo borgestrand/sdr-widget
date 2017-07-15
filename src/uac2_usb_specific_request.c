@@ -151,19 +151,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 }
 
 
-// Speed triplets. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
-
-/*
-const U8 Speedx[14] = {
-	0x01, 0x00, //number of sample rate triplets
-
-	0x80, 0xbb, 0x00, 0x00, //48k Min
-	0x00, 0x77, 0x01, 0x00,	//96k Max
-	0x80, 0xbb, 0x00, 0x00, //48k Res
-};
-*/
-
-
+// Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
 const U8 Speedx[74] = {
 	0x06, 0x00, // Number of sample rate triplets
 
@@ -193,88 +181,11 @@ const U8 Speedx[74] = {
 };
 
 
-/*
-const U8 Speedx[38] = { // Win10 sees this as 44.1, 88.2 and 176.4
-	0x03, 0x00, //number of sample rate triplets
-
-	0x44, 0xac, 0x00, 0x00, //44.1k Min
-	0x80, 0xbb, 0x00, 0x00, //48k Max
-	0x3c, 0x0f, 0x00, 0x00, //48-44.1k Res
-
-	0x88,0x58,0x01,0x00,	//88.2k Min
-	0x00,0x77,0x01,0x00,	//96k Max
-	0x78,0x1e,0x00,0x00,	//96-88.2 Res
-
-	0x10,0xb1,0x02,0x00,	//176.4k Min
-	0x00,0xee,0x02,0x00,	//192k Max
-	0xf0,0x3c,0x00,0x00,	//192-176.4 Res
-};
-*/
-
-/*
-const U8 Speedx[26] = { // was 74 for 6 triplets
-	0x02, 0x00, //number of sample rate triplets
-
-	0x44, 0xac, 0x00, 0x00, //44.1k Min
-	0x10, 0xb1, 0x02, 0x00, //176.4k Max
-	0x44, 0xac, 0x00, 0x00, //44.1k Res
-
-	0x80, 0xbb, 0x00, 0x00, //48k Min
-	0x00, 0xee, 0x02, 0x00, //192k Max
-	0x80, 0xbb, 0x00, 0x00, //48k Res
-};
-*/
-
-/*
-// Sample rate not visible on C.U. at 44.1 or 48
-const U8 Speedx[14] = { // was 74 for 6 triplets
-	0x01, 0x00, //number of sample rate triplets
-
-	0x80, 0xbb, 0x00, 0x00,	//48k Min
-	0x80, 0xbb, 0x00, 0x00,	//48k Min
-	0x00, 0x00, 0x00, 0x00, //0 Res
-};
-*/
-
-/*
-// 6 discrete sample triplets. Fails on ASIO 192. Not recognized as device on C.U.
-const U8 Speedx[74] = {
-	0x06, 0x00,
-
-	0x44,0xac,0x00,0x00,	//44.1k Min
-	0x44,0xac,0x00,0x00,	//44.1k Max
-	0x00,0x00,0x00,0x00,	// 0 Res
-
-	0x80,0xbb,0x00,0x00,	//48k Min
-	0x80,0xbb,0x00,0x00,	//48k Max
-	0x00,0x00,0x00,0x00,	// 0 Res
-
-	0x88,0x58,0x01,0x00,	//88.2k Min
-	0x88,0x58,0x01,0x00,	//88.2k Max
-	0x00,0x00,0x00,0x00,	// 0 Res
-
-	0x00,0x77,0x01,0x00,	//96k Min
-	0x00,0x77,0x01,0x00,	//96k Max
-	0x00,0x00,0x00,0x00,	// 0 Res
-
-	0x10,0xb1,0x02,0x00,	//176.4k Min
-	0x10,0xb1,0x02,0x00,	//176.4k Max
-	0x00,0x00,0x00,0x00,	// 0 Res
-
-	0x00,0xee,0x02,0x00,	//192k Min
-	0x00,0xee,0x02,0x00,	//192k Max
-	0x00,0x00,0x00,0x00,	// 0 Res
-};
-*/
-
-
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
 
 void uac2_freq_change_handler() {
-//	int i;
-
 
 	if (freq_changed) {
 
@@ -1033,18 +944,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						print_dbg_char('S');
 
-						// give total # of bytes requested
-						for (i = 0; i < min(wLength, sizeof(Speedx)); i++) { // Was Speedx_1
-							//if (FEATURE_DAC_GENERIC)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]); // Was Speedx_2, buggy?
-							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
-						}
-
-						// Does this help the Win10 C.U. situation?
-//						for (i = 0; i < (wLength - sizeof(Speedx)); i++) {
-//							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-//							print_dbg_char('/');
-//						}
+						data_to_transfer = sizeof(Speedx);
+						pbuffer = (const U8*)Speedx;
+						send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 
 						Usb_ack_control_in_ready_send(); print_dbg_char('s');
 
@@ -1111,20 +1013,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						pbuffer = (const U8*)Speedx;
 						send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 
-/*
-						for (i = 0; i < min(wLength , sizeof(Speedx)); i++) {
-							//if (FEATURE_DAC_GENERIC)
-							Usb_write_endpoint_data(EP_CONTROL, 8, Speedx[i]); // Was: Speedx_1
-							//else Usb_write_endpoint_data(EP_CONTROL, 8, Speedx_2[i]);
-
-							print_dbg_char('*');
-						}
-						Usb_ack_control_in_ready_send(); print_dbg_char('v');
-
-						while (!Is_usb_control_out_received())
-							;
-						Usb_ack_control_out_received_free();
-*/
 						return TRUE;
 					} else
 						return FALSE;

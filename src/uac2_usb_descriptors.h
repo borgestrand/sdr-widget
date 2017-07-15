@@ -51,68 +51,68 @@
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   3  // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
-#define CONF_NB            1	//! Number of this configuration
-#define CONF_INDEX         0
-#define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered
-#define MAX_POWER          250	// 500 mA
+#define NB_INTERFACE	   				4  // 4: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+#define CONF_NB            				1	//! Number of this configuration
+#define CONF_INDEX         				0
+#define CONF_ATTRIBUTES    				USB_CONFIG_BUSPOWERED  // default is bus-powered
+#define MAX_POWER          				250 // 500mA
 
 // IAD for Audio
-#define FIRST_INTERFACE1	1
-#define INTERFACE_COUNT1	2						//!  Audio Control, Audio Out, what about feedback?
-#define FUNCTION_CLASS		AUDIO_CLASS
-#define FUNCTION_SUB_CLASS  0
-#define FUNCTION_PROTOCOL	IP_VERSION_02_00
-#define FUNCTION_INDEX		0
+#define FIRST_INTERFACE1				1
+#define INTERFACE_COUNT1				2						//!  Audio Control, Audio Out, what about feedback?
+#define FUNCTION_CLASS					AUDIO_CLASS
+#define FUNCTION_SUB_CLASS  			0
+#define FUNCTION_PROTOCOL				IP_VERSION_02_00
+#define FUNCTION_INDEX					0
 
 
 // USB DG8SAQ Interface descriptor
-#define INTERFACE_NB0			    0
-#define ALTERNATE_NB0	            0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT0			    0                  //! The number of endpoints this interface has
-#define INTERFACE_CLASS0		    NO_CLASS           //! No Class
-#define INTERFACE_SUB_CLASS0        NO_SUBCLASS        //! No Subclass
-#define INTERFACE_PROTOCOL0    		NO_PROTOCOL		   //! No Protocol
-#define INTERFACE_INDEX0       		0
+#define INTERFACE_NB0			    	0
+#define ALTERNATE_NB0	            	0                  //! The alt setting nb of this interface
+#define NB_ENDPOINT0			    	0                  //! The number of endpoints this interface has
+#define INTERFACE_CLASS0		    	NO_CLASS           //! No Class
+#define INTERFACE_SUB_CLASS0        	NO_SUBCLASS        //! No Subclass
+#define INTERFACE_PROTOCOL0    			NO_PROTOCOL		   //! No Protocol
+#define INTERFACE_INDEX0       			0
 
-#define DSC_INTERFACE_DG8SAQ		INTERFACE_NB0
+#define DSC_INTERFACE_DG8SAQ			INTERFACE_NB0
 
 // BSB 20120719 HID insertion begin
 // In most cases: translation from uac1 code follows pattern of NB1 -> NB4, NB2 -> NB5
 
 // USB HID Interface descriptor
-#define INTERFACE_NB3			    3
-#define ALTERNATE_NB3	            0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT3			    1 // 2                  //! The number of endpoints this interface has
-#define INTERFACE_CLASS3		    HID_CLASS          //! HID Class
-#define INTERFACE_SUB_CLASS3        NO_SUBCLASS        //! No Subclass
-#define INTERFACE_PROTOCOL3    		NO_PROTOCOL		   //! No Protocol
-#define INTERFACE_INDEX3       		0
+#define INTERFACE_NB3			    	3
+#define ALTERNATE_NB3	            	0                  //! The alt setting nb of this interface
+#define NB_ENDPOINT3			    	1 // 2                  //! The number of endpoints this interface has
+#define INTERFACE_CLASS3		    	HID_CLASS          //! HID Class
+#define INTERFACE_SUB_CLASS3        	NO_SUBCLASS        //! No Subclass
+#define INTERFACE_PROTOCOL3    			NO_PROTOCOL		   //! No Protocol
+#define INTERFACE_INDEX3       			0
 
-#define DSC_INTERFACE_HID			INTERFACE_NB3
+#define DSC_INTERFACE_HID				INTERFACE_NB3
 
 // HID descriptor
-#define HID_VERSION                 0x0111  //! HID Class Specification release number
-#define HID_COUNTRY_CODE            0x00    //! Hardware target country
-#define HID_NUM_DESCRIPTORS			0x01    //! Number of HID class descriptors to follow
+#define HID_VERSION                 	0x0111  //! HID Class Specification release number
+#define HID_COUNTRY_CODE            	0x00    //! Hardware target country
+#define HID_NUM_DESCRIPTORS				0x01    //! Number of HID class descriptors to follow
 
 // USB Endpoint 4 descriptor
-#define ENDPOINT_NB_4           (UAC2_EP_HID_TX| MSK_EP_DIR)
-#define EP_ATTRIBUTES_4         TYPE_INTERRUPT
-#define EP_IN_LENGTH_4_FS       8
-#define EP_SIZE_4_FS            EP_IN_LENGTH_4_FS
-#define EP_IN_LENGTH_4_HS       8
-#define EP_SIZE_4_HS            EP_IN_LENGTH_4_HS
-#define EP_INTERVAL_4           5               //! Interrupt polling interval from host
+#define ENDPOINT_NB_4           		(UAC2_EP_HID_TX| MSK_EP_DIR)
+#define EP_ATTRIBUTES_4         		TYPE_INTERRUPT
+#define EP_IN_LENGTH_4_FS       		8
+#define EP_SIZE_4_FS            		EP_IN_LENGTH_4_FS
+#define EP_IN_LENGTH_4_HS       		8
+#define EP_SIZE_4_HS            		EP_IN_LENGTH_4_HS
+#define EP_INTERVAL_4           		5               //! Interrupt polling interval from host
 
-// USB Endpoint 5 descriptor // Disable for now...
-#define ENDPOINT_NB_5           (UAC2_EP_HID_RX)
-#define EP_ATTRIBUTES_5         TYPE_INTERRUPT
-#define EP_OUT_LENGTH_5_FS      8
-#define EP_SIZE_5_FS            EP_OUT_LENGTH_5_FS
-#define EP_OUT_LENGTH_5_HS      8
-#define EP_SIZE_5_HS            EP_OUT_LENGTH_5_HS
-#define EP_INTERVAL_5           5               //! Interrupt polling interval from host
+// USB Endpoint 5 descriptor - not used
+#define ENDPOINT_NB_5           		(UAC2_EP_HID_RX)
+#define EP_ATTRIBUTES_5         		TYPE_INTERRUPT
+#define EP_OUT_LENGTH_5_FS      		8
+#define EP_SIZE_5_FS            		EP_OUT_LENGTH_5_FS
+#define EP_OUT_LENGTH_5_HS      		8
+#define EP_SIZE_5_HS            		EP_OUT_LENGTH_5_HS
+#define EP_INTERVAL_5           		5               //! Interrupt polling interval from host
 
 // BSB 20120719 HID insertion end
 
@@ -120,52 +120,52 @@
 // Audio Class V2.0 descriptor values
 
 // Standard Audio Control (AC) interface descriptor
-#define INTERFACE_NB1       1
-#define ALTERNATE_NB1       0
-#define NB_ENDPOINT1        0			     //! No endpoint for AC interface
-#define INTERFACE_CLASS1    AUDIO_CLASS  	 //! Audio Class
-#define INTERFACE_SUB_CLASS1 AUDIO_INTERFACE_SUBCLASS_AUDIOCONTROL
-#define INTERFACE_PROTOCOL1  IP_VERSION_02_00		     //! IP_VERSION_02_00 ie UAC V2
-#define INTERFACE_INDEX1     WL_INDEX
+#define INTERFACE_NB1       			1
+#define ALTERNATE_NB1       			0
+#define NB_ENDPOINT1        			0			     //! No endpoint for AC interface
+#define INTERFACE_CLASS1    			AUDIO_CLASS  	 //! Audio Class
+#define INTERFACE_SUB_CLASS1 			AUDIO_INTERFACE_SUBCLASS_AUDIOCONTROL
+#define INTERFACE_PROTOCOL1  			IP_VERSION_02_00		     //! IP_VERSION_02_00 ie UAC V2
+#define INTERFACE_INDEX1     			WL_INDEX
 
-#define DSC_INTERFACE_AUDIO			INTERFACE_NB1
+#define DSC_INTERFACE_AUDIO				INTERFACE_NB1
 
 
-// USB Endpoint 1 descriptor
-#define ENDPOINT_NB_1       ( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
-#define EP_ATTRIBUTES_1		0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
-//#define EP_IN_LENGTH_1_FS	294				   // 3 bytes * 49 samples * stereo
-//#define EP_IN_LENGTH_1_HS	294
-#define EP_IN_LENGTH_1_FS	392				   // 4 bytes * 49 samples * stereo
-#define EP_IN_LENGTH_1_HS	392
-#define EP_SIZE_1_FS		EP_IN_LENGTH_1_FS
-#define EP_SIZE_1_HS        EP_IN_LENGTH_1_HS
-#define EP_INTERVAL_1_FS	0x01			   // one packet per uframe, each uF 1ms, so only 48khz
-#define EP_INTERVAL_1_HS    0x02			   // One packet per 2 uframe, each uF 125us, so 192khz
+// USB Endpoint 1 descriptor - not used
+#define ENDPOINT_NB_1       			( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
+#define EP_ATTRIBUTES_1					0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
+//#define EP_IN_LENGTH_1_FS				294				   // 3 bytes * 49 samples * stereo
+//#define EP_IN_LENGTH_1_HS				294
+#define EP_IN_LENGTH_1_FS				392				   // 4 bytes * 49 samples * stereo
+#define EP_IN_LENGTH_1_HS				392
+#define EP_SIZE_1_FS					EP_IN_LENGTH_1_FS
+#define EP_SIZE_1_HS        			EP_IN_LENGTH_1_HS
+#define EP_INTERVAL_1_FS				0x01			   // one packet per uframe, each uF 1ms, so only 48khz
+#define EP_INTERVAL_1_HS    			0x02			   // One packet per 2 uframe, each uF 125us, so 192khz
 
 
 // USB Endpoint 2 descriptor
-#define ENDPOINT_NB_2       ( UAC2_EP_AUDIO_OUT )	// 0x02
-#define EP_ATTRIBUTES_2     0b00000101			// ISOCHRONOUS ASYNC
-//#define EP_OUT_LENGTH_2_HS  294				// 3 bytes * 49 samples * stereo
-//#define EP_OUT_LENGTH_2_FS	294
-#define EP_OUT_LENGTH_2_HS  392				   // 4 bytes * 49 samples * stereo
-#define EP_OUT_LENGTH_2_FS	392
-#define EP_SIZE_2_FS		EP_OUT_LENGTH_2_FS
-#define EP_SIZE_2_HS        EP_OUT_LENGTH_2_HS
-#define EP_INTERVAL_2_FS	0x01			 // one packet per frame
-#define EP_INTERVAL_2_HS    0x02			 // One packet per 2 uframe
+#define ENDPOINT_NB_2       			( UAC2_EP_AUDIO_OUT )	// 0x02
+#define EP_ATTRIBUTES_2     			0b00000101			// ISOCHRONOUS ASYNC
+//#define EP_OUT_LENGTH_2_HS  			294				// 3 bytes * 49 samples * stereo
+//#define EP_OUT_LENGTH_2_FS			294
+#define EP_OUT_LENGTH_2_HS  			392				   // 4 bytes * 49 samples * stereo
+#define EP_OUT_LENGTH_2_FS				392
+#define EP_SIZE_2_FS					EP_OUT_LENGTH_2_FS
+#define EP_SIZE_2_HS        			EP_OUT_LENGTH_2_HS
+#define EP_INTERVAL_2_FS				0x01			 // one packet per frame
+#define EP_INTERVAL_2_HS    			0x02			 // One packet per 2 uframe
 
 
 // USB Endpoint 3 descriptor
-#define ENDPOINT_NB_3       ( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x81
-#define EP_ATTRIBUTES_3     0b00010001      // ISOCHRONOUS FEEDBACK
-#define EP_IN_LENGTH_3_FS   4 //64				//   BSB 20170703 Is this really correct? Never tested in FS
-#define EP_IN_LENGTH_3_HS	4 //64				//
-#define EP_SIZE_3_FS		EP_IN_LENGTH_3_FS
-#define EP_SIZE_3_HS        EP_IN_LENGTH_3_HS
-#define EP_INTERVAL_3_FS	0x01
-#define EP_INTERVAL_3_HS    0x04 // High number is good! /<= 4 works on Windows. Anything works on Linux. 4 OK on Mac
+#define ENDPOINT_NB_3       			( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x81
+#define EP_ATTRIBUTES_3     			0b00010001      // ISOCHRONOUS FEEDBACK
+#define EP_IN_LENGTH_3_FS   			4 //64				//   BSB 20170703 Is this really correct? Never tested in FS
+#define EP_IN_LENGTH_3_HS				4 //64				//
+#define EP_SIZE_3_FS					EP_IN_LENGTH_3_FS
+#define EP_SIZE_3_HS        			EP_IN_LENGTH_3_HS
+#define EP_INTERVAL_3_FS				0x01
+#define EP_INTERVAL_3_HS   				0x04 // High number is good! /<= 4 works on Windows. Anything works on Linux. 4 OK on Mac
 
 // AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION_2          0x0200
@@ -173,7 +173,7 @@
 #define HEADSET_CATEGORY 				0x04
 #define MIC_LATENCY_CONTROL				0b00000000
 
-// Clock Source descriptor
+// Clock Source descriptor - not used
 #define CSD_ID_1						0x04
 #define CSD_ID_1_TYPE					0b00000001	// Was: 01 fixed freq internal clock. Is: 10 var. int.
 #define CSD_ID_1_CONTROL				0b00000111	// freq r/w, validity r
@@ -182,7 +182,7 @@
 #define CSD_ID_2_CONTROL				0b00000111	// Was: 00000111 freq r/w, validity r
 
 
-// Clock Selector descriptor
+// Clock Selector descriptor - not used
 #define CSX_ID							0x06
 #define CSX_INPUT_PINS					0x02
 #define CSX_SOURCE_1					CSD_ID_1
@@ -196,8 +196,7 @@
 #define INPUT_TERMINAL_ASSOCIATION		0x00   	// No association
 #define INPUT_TERMINAL_NB_CHANNELS		0x00   	// Was: '2 // Two channels for input terminal
 #define INPUT_TERMINAL_CHANNEL_CONF		0x00000000 	// Was: '3 // Two channels at front left and front right positions
-//#define INPUT_TERMINAL_CONTROLS			0x0040	// D7-6 Cluster control - readonly
-#define INPUT_TERMINAL_CONTROLS			0x0000	// none
+#define INPUT_TERMINAL_CONTROLS			0x0000	// none 0x0040	// D7-6 Cluster control - readonly
 #define INPUT_TERMINAL_CH_NAME_ID		0x00	// No channel name
 #define INPUT_TERMINAL_STRING_DESC	    0x00	// No string descriptor
 
@@ -221,35 +220,29 @@
 #define SPK_INPUT_TERMINAL_TYPE			0x0101	// USB Streaming
 #define SPK_INPUT_TERMINAL_ASSOCIATION	0x00	// No association
 #define SPK_INPUT_TERMINAL_NB_CHANNELS	0x02
-#define SPK_INPUT_TERMINAL_CHANNEL_CONF	0x0003	// left front and right front
+#define SPK_INPUT_TERMINAL_CHANNEL_CONF	0x0000 	// 0x0000 suggested by Tsai and used elsewhere. Was: // 0x0003	// left front and right front
 #define SPK_INPUT_TERMINAL_CH_NAME_ID	LEFT_CH_INDEX // Was: 0x00
 #define SPK_INPUT_TERMINAL_STRING_DESC	AIT_INDEX
 
-
-
-
-
 //SPK Feature Unit descriptor
-#define SPK_FEATURE_UNIT_ID            0x12
-#define SPK_FEATURE_UNIT_SOURCE_ID     SPK_INPUT_TERMINAL_ID
-#define SPK_BMA_CONTROLS               0x00000003 	// Mute master channel. [Readable and writable ?]
-#define SPK_BMA_CONTROLS_CH_1		   0x0000000C	// Volume control L
-#define SPK_BMA_CONTROLS_CH_2		   0x0000000C	// Volume control R
+#define SPK_FEATURE_UNIT_ID          	0x12
+#define SPK_FEATURE_UNIT_SOURCE_ID   	SPK_INPUT_TERMINAL_ID
+#define SPK_BMA_CONTROLS           		0x00000003 	// Mute master channel. [Readable and writable ?]
+#define SPK_BMA_CONTROLS_CH_1			0x0000000C	// Volume control L
+#define SPK_BMA_CONTROLS_CH_2			0x0000000C	// Volume control R
 
 // SPK Output Terminal descriptor
-#define SPK_OUTPUT_TERMINAL_ID				0x13
-#define SPK_OUTPUT_TERMINAL_TYPE			0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
-#define SPK_OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define SPK_OUTPUT_TERMINAL_SOURCE_ID		SPK_FEATURE_UNIT_ID
-#define SPK_OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
+#define SPK_OUTPUT_TERMINAL_ID			0x13
+#define SPK_OUTPUT_TERMINAL_TYPE		0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00   	// No association
+#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_FEATURE_UNIT_ID
+#define SPK_OUTPUT_TERMINAL_CONTROLS	0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
-//#define STD_AS_INTERFACE_IN				0x03   // Index of Std AS Interface for Audio In
 #define STD_AS_INTERFACE_OUT			0x02   // Index of Std AS Interface for Audio Out
 
 #define DSC_INTERFACE_AS				STD_AS_INTERFACE_IN
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
-
 
 //Alternate O Audio Streaming (AS) interface descriptor
 #define ALT0_AS_INTERFACE_INDEX			0x00   // Index of Std AS interface Alt0
@@ -258,14 +251,12 @@
 #define ALT0_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
 #define ALT0_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
 
-
 //Alternate 1 Audio Streaming (AS) interface descriptor
 #define ALT1_AS_INTERFACE_INDEX			0x01   // Index of Std AS interface Alt1
 #define ALT1_AS_NB_ENDPOINT				0x01   // Nb of endpoints for alt1 interface
 #define ALT1_AS_INTERFACE_CLASS			0x01   // Audio class
 #define ALT1_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
 #define ALT1_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
-
 
 //Alternate 2 Audio Streaming (AS) interface descriptor
 #define ALT2_AS_INTERFACE_INDEX			0x02   // Index of Std AS interface Alt2
@@ -274,20 +265,19 @@
 #define ALT2_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
 #define ALT2_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
 
-
 //Class Specific AS (general) Interface descriptor
-#define AS_TERMINAL_LINK					OUTPUT_TERMINAL_ID		// Unit Id of the output terminal
-#define AS_DELAY							0x01		// Interface delay
-#define AS_FORMAT_TYPE						0x01		// PCM Format
-#define AS_FORMATS							0x00000001	// PCM only
-#define AS_CONTROLS							0b00000111	// active alt settings r/w, valid alt settings r
-#define AS_NB_CHANNELS						0x02
-#define AS_CHAN_CONFIG						0x00000003	// L+R front
+#define AS_TERMINAL_LINK				OUTPUT_TERMINAL_ID		// Unit Id of the output terminal
+#define AS_DELAY						0x01		// Interface delay
+#define AS_FORMAT_TYPE					0x01		// PCM Format
+#define AS_FORMATS						0x00000001	// PCM only
+#define AS_CONTROLS						0x00 // Recommended for UAC2 0b00000111	// active alt settings r/w, valid alt settings r
+#define AS_NB_CHANNELS					0x02
+#define AS_CHAN_CONFIG					0x00000000 	// Recommended. Was: 0x00000003	// L+R front
 
 // Format type for ALT1
-#define FORMAT_TYPE_1						0x01	// Format TypeI
-#define FORMAT_SUBSLOT_SIZE_1				0x04	// Number of bytes per subslot
-#define FORMAT_BIT_RESOLUTION_1				0x18	// 24 bits per sample
+#define FORMAT_TYPE_1					0x01	// Format TypeI
+#define FORMAT_SUBSLOT_SIZE_1			0x04	// Number of bytes per subslot
+#define FORMAT_BIT_RESOLUTION_1			0x18	// 24 bits per sample
 
 //Audio endpoint specific descriptor field
 #define AUDIO_EP_ATRIBUTES				0b00000000	 	// No sampling freq, no pitch, no pading
@@ -311,26 +301,13 @@ __attribute__((__packed__))
 #endif
 {
 	S_usb_configuration_descriptor			cfg;
-//	S_usb_interface_descriptor	 			ifc0;
+	S_usb_interface_descriptor	 			ifc0;			// Widget-Control endpoint
 
 	//! Audio descriptors Class 2
-
 	S_usb_interface_association_descriptor	iad1;
 	S_usb_interface_descriptor				ifc1;
 	S_usb_ac_interface_descriptor_2			audioac;
-//	S_usb_clock_source_descriptor			audio_cs1;
 	S_usb_clock_source_descriptor			audio_cs2;
-
-
-////	S_usb_clock_selector_descriptor			audio_csel;
-
-
-	//			S_usb_clock_multiplier_descriptor		audio_cmul;
-/*
-	S_usb_in_ter_descriptor_2 				mic_in_ter;
-	S_usb_feature_unit_descriptor_2			mic_fea_unit;
-	S_usb_out_ter_descriptor_2				mic_out_ter;
-*/
 	S_usb_in_ter_descriptor_2				spk_in_ter;
 	S_usb_feature_unit_descriptor_2			spk_fea_unit;
 	S_usb_out_ter_descriptor_2				spk_out_ter;
@@ -344,22 +321,10 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_specific_2			ep2_s;
 	S_usb_endpoint_audio_descriptor_2 		ep3;
 
-	// BSB 20120720 Added
-	S_usb_interface_descriptor		ifc3;
-	S_usb_hid_descriptor           	hid;
-	S_usb_endpoint_descriptor      	ep4;
-
-//	S_usb_endpoint_descriptor	   	ep5; // disabling idle HID OUT endpoint
-
-
-/*
-	S_usb_as_interface_descriptor	 		mic_as_alt0;
-	S_usb_as_interface_descriptor	 		mic_as_alt1;
-	S_usb_as_g_interface_descriptor_2		mic_g_as;
-	S_usb_format_type_2						mic_format_type;
-	S_usb_endpoint_audio_descriptor_2 		ep1;
-	S_usb_endpoint_audio_specific_2			ep1_s;
-*/
+	// BSB 20120720 Added, reduced to ONE TX endpoint
+	S_usb_interface_descriptor				ifc3;
+	S_usb_hid_descriptor           			hid;
+	S_usb_endpoint_descriptor     		 	ep4;
 }
 #if (defined __ICCAVR32__)
 #pragma pack()
