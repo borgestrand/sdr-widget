@@ -657,7 +657,12 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 // XO control and SPI muxing on ab1x hardware generation
 	static U32 prev_frequency = FREQ_INVALID;
 
-	if (frequency != prev_frequency) {		//   Only run when things change
+	print_dbg_char('I');
+
+	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
+
+		print_dbg_char('J');
+
 
 	#if defined(HW_GEN_AB1X)
 		switch (frequency) {
@@ -806,7 +811,13 @@ void mobo_clock_division(U32 frequency) {
 	print_dbg_char('#');
 #endif
 */
-	if (frequency != prev_frequency) {		// Only run when things change
+
+	print_dbg_char('X');
+
+	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
+
+		print_dbg_char('Y');
+
 
 		gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
 
@@ -851,6 +862,12 @@ void mobo_clock_division(U32 frequency) {
 								1);                 // divided by 4
 				break;
 				case FREQ_44 :
+					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+								1,                  // diven - enabled
+								1);                 // divided by 4
+				case FREQ_INVALID : // Treated as 44.1
 					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
 								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
 								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
@@ -904,16 +921,25 @@ void mobo_clock_division(U32 frequency) {
 								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
 								1,                  // diven - enabled
 								3);                 // divided by 8
+				case FREQ_INVALID :		// Treated as 44.1
+					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+								1,                  // diven - enabled
+								3);                 // divided by 8
 				break;
 			}
 		}
 
 		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-		if (prev_frequency != FREQ_INVALID) 				// Don't run on 1st iteration of this function after bootup
+//		if (prev_frequency != FREQ_INVALID) 				// Don't run on 1st iteration of this function after bootup
 			AK5394A_pdca_tx_enable(frequency);		// Trying to force out LRCK inversion
 
 		prev_frequency = frequency;
+
+		print_dbg_char('A');
+
 	}
 
 

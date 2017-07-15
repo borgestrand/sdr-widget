@@ -264,7 +264,6 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 
    	taskENTER_CRITICAL();
 
-   	// FIX: add some countdown safety measure in case clock has stopped!
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
@@ -306,7 +305,6 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
    	taskENTER_CRITICAL();
 
-   	// FIX: add some countdown safety measure in case clock has stopped!
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
@@ -332,6 +330,11 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 	taskEXIT_CRITICAL();
 
+	if (countdown < 100)
+		print_dbg_char('Z');
+	else
+		print_dbg_char('1');
+
 	gpio_clr_gpio_pin(AVR32_PIN_PX52); // ch5 p87
 }
 
@@ -350,28 +353,14 @@ void AK5394A_task_init(const Bool uac1) {
 	spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 
 
-	// FIX: UAC1 must include sampling frequency dependent mobo_clock_division or pm_gc_setup!
+/*
+	// This is probably too early and will cause pdca_tx_enable timeout. Must start after XO is up! And after SSC is up?
 	if (uac1)
 		mobo_clock_division(FREQ_44);
 	else
 		mobo_clock_division(FREQ_96);
-
-/*
-	if (uac1) {
-		pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-					0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-					1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-					1,                  // diven - enabled
-					1);                 // divided by 4.  Therefore GCLK1 = 3.072Mhz
-	} else {
-		pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-					0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-					1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-					1,                  // diven - enabled
-					0);                 // divided by 2.  Therefore GCLK1 = 6.144Mhz
-	}
-	pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 */
+
 
 	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
 
@@ -435,7 +424,15 @@ void AK5394A_task_init(const Bool uac1) {
 	// Turn on SPDIF TX. Run manually here on boot. Otherwise this is executed from within mobo_clock_division()
 	// Called here only, it results in random channel inversion on the outgoing I2S
 	// Trying to collect all pdca enabling stuff in one single function
-	AK5394A_pdca_tx_enable(FREQ_44);
+
+	// AK5394A_pdca_tx_enable(FREQ_44);
+	// Rather use mobo_clock_division which will call AK5394A_pdca_tx_enable()
+//	if (uac1)
+//		mobo_clock_division(FREQ_44);
+//	else
+//		mobo_clock_division(FREQ_96);
+
+	mobo_clock_division(FREQ_INVALID); // Force a reconfigure when music starts.
 
 
 
