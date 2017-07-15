@@ -133,7 +133,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 		if (Is_usb_nak_out(EP_CONTROL))
 			break;
 		else
-			Usb_ack_control_in_ready_send(); print_dbg_char('e'); //!< Send data until necessary
+			Usb_ack_control_in_ready_send(); print_dbg_char('e'); //!<  Send data until necessary
 	}
 
 	if (zlp && (!Is_usb_nak_out(EP_CONTROL))) {
