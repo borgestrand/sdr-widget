@@ -176,7 +176,7 @@ static Bool uac1_user_get_interface_descriptor() {
 	U16		wInterface;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('a'); // BSB debug 20120803
+//	print_dbg_char('a'); // BSB debug 20120803
 #endif
 
 	zlp             = FALSE;                                  /* no zero length packet */
@@ -190,7 +190,7 @@ static Bool uac1_user_get_interface_descriptor() {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char('c'); // BSB debug 20120803
+//			print_dbg_char('c'); // BSB debug 20120803
 #endif
 
 			if (FEATURE_BOARD_WIDGET) {
@@ -204,7 +204,7 @@ static Bool uac1_user_get_interface_descriptor() {
 #else
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			 print_dbg_char('d'); // BSB debug 20120803
+//			 print_dbg_char('d'); // BSB debug 20120803
 #endif
 
 			if (FEATURE_BOARD_WIDGET) {
@@ -231,7 +231,7 @@ static Bool uac1_user_get_interface_descriptor() {
 	case HID_REPORT_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('e'); // BSB debug 20120803
+//		print_dbg_char('e'); // BSB debug 20120803
 #endif
 		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
 		data_to_transfer = sizeof(usb_hid_report_descriptor);
@@ -240,14 +240,14 @@ static Bool uac1_user_get_interface_descriptor() {
 	case HID_PHYSICAL_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('f'); // BSB debug 20120803
+//		print_dbg_char('f'); // BSB debug 20120803
 #endif
 		// TODO
 		return FALSE;
 	default:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('g'); // BSB debug 20120803
+//		print_dbg_char('g'); // BSB debug 20120803
 #endif
 		return FALSE;
 	}
@@ -297,7 +297,7 @@ static Bool uac1_user_get_interface_descriptor() {
 	Usb_ack_control_out_received_free();
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('h'); // BSB debug 20120803
+//	print_dbg_char('h'); // BSB debug 20120803
 #endif
 
 	return TRUE;
@@ -581,7 +581,7 @@ void audio_get_cur(void) {
 							spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 						}
 						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
-
+/*
 #ifdef USB_STATE_MACHINE_DEBUG
 					   print_dbg_char('g');
 					   print_dbg_char('L');
@@ -589,7 +589,7 @@ void audio_get_cur(void) {
 					   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 					   print_dbg_char('\n');
 #endif
-
+*/
 					}
 					else if (wValue_lsb == CH_RIGHT) {
 						// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
@@ -703,7 +703,7 @@ void audio_set_cur(void)
 				   MSB(spk_vol_usb_L)= temp2;
 				   spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 
-
+/*
 #ifdef USB_STATE_MACHINE_DEBUG
 				   print_dbg_char('s');
 				   print_dbg_char('L');
@@ -711,7 +711,7 @@ void audio_set_cur(void)
 				   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 				   print_dbg_char('\n');
 #endif
-
+*/
 			   }
 			   else if (wValue_lsb == CH_RIGHT) {
 				   LSB(spk_vol_usb_R)= temp1;

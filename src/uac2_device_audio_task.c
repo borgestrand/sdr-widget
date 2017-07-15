@@ -531,7 +531,7 @@ void uac2_device_audio_task(void *pvParameters)
 								skip_indicate = 1;
 								LED_On(LED0);							// Indicate skipping on module LED
 	#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('s');
+	//							print_dbg_char('s');
 	#endif
 							}
 							else if (FB_error_acc < -SPK2_SKIP_LIMIT_14) {	// Must insert
@@ -541,7 +541,7 @@ void uac2_device_audio_task(void *pvParameters)
 								skip_indicate = 1;
 								LED_On(LED1);							// Indicate skipping on module LED
 	#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('i');
+	//							print_dbg_char('i');
 	#endif
 							}
 						} // end if usb_full_speeed
@@ -554,7 +554,7 @@ void uac2_device_audio_task(void *pvParameters)
 								skip_indicate = 1;
 								LED_On(LED0);							// Indicate skipping on module LED
 	#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('s');
+	//							print_dbg_char('s');
 	#endif
 							}
 							else if (FB_error_acc < -SPK2_SKIP_LIMIT_16) {	// Must insert
@@ -564,7 +564,7 @@ void uac2_device_audio_task(void *pvParameters)
 								skip_indicate = 1;
 								LED_On(LED1);							// Indicate skipping on module LED
 	#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('i');
+	//							print_dbg_char('i');
 	#endif
 							}
 						} // end if usb_high_speed

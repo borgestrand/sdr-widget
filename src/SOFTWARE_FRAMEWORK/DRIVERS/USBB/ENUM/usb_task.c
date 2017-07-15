@@ -363,7 +363,6 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
 
 void usb_suspend_action(void)
 {
-   print_dbg_char('S');
    volatile avr32_pm_t *pm = &AVR32_PM;
    pm->AWEN.usb_waken = 1;
    SLEEP(AVR32_PM_SMODE_STATIC);

@@ -427,18 +427,24 @@ void mobo_handle_spdif(uint8_t width) {
 				// Just don't do it right after starting playback
 				if ((gap < old_gap) && (gap < SPK_GAP_L3)) {
 					samples_to_transfer_OUT = 0;		// Do some skippin'
+#ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('s');
+#endif
 				}
 				else if ((gap > old_gap) && (gap > SPK_GAP_U3)) {
 					samples_to_transfer_OUT = 2;		// Do some insertin'
+#ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('i');
+#endif
 				}
 
 				// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
 				if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) {
 					// Explicitly enable receiver's MCLK generator?
 					mobo_xo_select(FREQ_RXNATIVE, input_select);
+#ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('X');
+#endif
 				}
 			}
 
@@ -529,7 +535,9 @@ void mobo_handle_spdif(uint8_t width) {
 				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
 				mobo_xo_select(wm8805_status.frequency, input_select);
 
+#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('S');
+#endif
 				samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
 				megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
 				// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
@@ -540,7 +548,9 @@ void mobo_handle_spdif(uint8_t width) {
 				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
 				mobo_xo_select(wm8805_status.frequency, input_select);
 
+#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('I');
+#endif
 				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
 
