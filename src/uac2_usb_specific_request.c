@@ -165,7 +165,7 @@ const U8 Speedx[14] = {
 
 
 const U8 Speedx[74] = {
-	0x06, 0x00, //number of sample rate triplets
+	0x06, 0x00, // Number of sample rate triplets
 
 	0x44,0xac,0x00,0x00,	//44.1k Min
 	0x44,0xac,0x00,0x00,	//44.1k Max
