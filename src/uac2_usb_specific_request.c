@@ -133,13 +133,13 @@ void send_descriptor(U16 wLength, Bool zlp) {
 		if (Is_usb_nak_out(EP_CONTROL))
 			break;
 		else
-			Usb_ack_control_in_ready_send(); print_dbg_char('e'); //!<  Send data until necessary
+			Usb_ack_control_in_ready_send(); //!<  Send data until necessary
 	}
 
 	if (zlp && (!Is_usb_nak_out(EP_CONTROL))) {
 		while (!Is_usb_control_in_ready())
 			;
-		Usb_ack_control_in_ready_send(); print_dbg_char('f');
+		Usb_ack_control_in_ready_send();
 	}
 
 	while (!(Is_usb_nak_out(EP_CONTROL)))
@@ -460,22 +460,6 @@ static Bool uac2_user_get_interface_descriptor() {
 	descriptor_type = Usb_read_endpoint_data(EP_CONTROL, 8); /* read MSB of wValue    */
 	wInterface = usb_format_usb_to_mcu_data(16,Usb_read_endpoint_data(EP_CONTROL, 16));
 
-
-
-	print_dbg_char('\n');
-	print_dbg_char('a');
-	print_dbg_char(' ');
-	print_dbg_char_hex(string_type);
-	print_dbg_char('-');
-	print_dbg_char_hex(descriptor_type);
-	print_dbg_char('.');
-	print_dbg_char_hex(wInterface);
-	print_dbg_char(',');
-	print_dbg_char_hex(wInterface >> 8);
-
-
-
-
 	switch (descriptor_type) {
 	case HID_DESCRIPTOR:
 
@@ -541,17 +525,6 @@ static Bool uac2_user_get_interface_descriptor() {
 	wLength = Usb_read_endpoint_data(EP_CONTROL, 16);
 	wLength = usb_format_usb_to_mcu_data(16, wLength);
 	Usb_ack_setup_received_free(); //!< clear the setup received flag
-
-
-	print_dbg_char('_');
-	print_dbg_char_hex(wLength);
-	print_dbg_char(':');
-	print_dbg_char_hex(wLength >> 8);
-	print_dbg_char(';');
-	print_dbg_char_hex(wIndex);
-	print_dbg_char(' ');
-	print_dbg_char_hex(wIndex >> 8);
-
 	send_descriptor(wLength, zlp); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -571,21 +544,12 @@ static Bool uac2_user_get_interface_descriptor() {
 void uac2_usb_hid_set_idle(U8 u8_report_id, U8 u8_duration) // BSB 20120710 prefix "uac2_" added
 {
 
-	print_dbg_char('\n');
-	print_dbg_char('c');
-	print_dbg_char(' ');
-	print_dbg_char_hex(u8_report_id);
-	print_dbg_char('-');
-	print_dbg_char_hex(u8_duration);
-
-
-
 	Usb_ack_setup_received_free();
 
 	if (wIndex == DSC_INTERFACE_HID)
 		g_u8_report_rate = u8_duration;
 
-	Usb_ack_control_in_ready_send(); print_dbg_char('g');
+	Usb_ack_control_in_ready_send();
 	while (!Is_usb_control_in_ready())
 		;
 }
@@ -596,19 +560,11 @@ void uac2_usb_hid_set_idle(U8 u8_report_id, U8 u8_duration) // BSB 20120710 pref
 //!
 void uac2_usb_hid_get_idle(U8 u8_report_id) // BSB 20120710 prefix "uac2_" added
 {
-
-
-	print_dbg_char('\n');
-	print_dbg_char('d');
-	print_dbg_char(' ');
-	print_dbg_char_hex(u8_report_id);
-
-
 	Usb_ack_setup_received_free();
 
 	if ((wLength != 0) && (wIndex == DSC_INTERFACE_HID)) {
 		Usb_write_endpoint_data(EP_CONTROL, 8, g_u8_report_rate);
-		Usb_ack_control_in_ready_send(); print_dbg_char('h');
+		Usb_ack_control_in_ready_send();
 	}
 
 	while (!Is_usb_control_out_received())
@@ -629,16 +585,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	uint8_t temp1 = 0;
 	uint8_t temp2 = 0;
 
-
-	print_dbg_char('\n');
-	print_dbg_char('b');
-	print_dbg_char(' ');
-	print_dbg_char_hex(type);
-	print_dbg_char('-');
-	print_dbg_char_hex(request);
-
-
-
 	// BSB 20120720 added
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR)
@@ -653,21 +599,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	wLength
 			= usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
-
-	print_dbg_char('.');
-	print_dbg_char_hex(wValue_msb);
-	print_dbg_char(',');
-	print_dbg_char_hex(wValue_lsb);
-	print_dbg_char('_');
-	print_dbg_char_hex(wLength);
-	print_dbg_char(':');
-	print_dbg_char_hex(wLength >> 8);
-	print_dbg_char(';');
-	print_dbg_char_hex(wIndex);
-	print_dbg_char(' ');
-	print_dbg_char_hex(wIndex >> 8);
-
-
 	// BSB 20120720 copy from uac1_usb_specific_request begin
 
 	// It may look like the  OS is pulling the RX endpoint...
@@ -676,10 +607,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	// this should vector to specified interface handler
 	if (wIndex == DSC_INTERFACE_HID) // Interface number of HID
 	{
-
-		print_dbg_char('B');	// Does this ever happen? Not on Mac..
-
-
 		if (type == OUT_CL_INTERFACE) // USB_SETUP_SET_CLASS_INTER
 		{
 			switch (request) {
@@ -700,7 +627,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					usb_report[0] = Usb_read_endpoint_data(EP_CONTROL, 8);
 					usb_report[1] = Usb_read_endpoint_data(EP_CONTROL, 8);
 					Usb_ack_control_out_received_free();
-					Usb_ack_control_in_ready_send(); print_dbg_char('i');
+					Usb_ack_control_in_ready_send();
 					while (!Is_usb_control_in_ready())
 						;
 					return TRUE;
@@ -715,7 +642,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					usb_feature_report[1]
 							= Usb_read_endpoint_data(EP_CONTROL, 8);
 					Usb_ack_control_out_received_free();
-					Usb_ack_control_in_ready_send();  print_dbg_char('j');//!< send a ZLP for STATUS phase
+					Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 					while (!Is_usb_control_in_ready())
 						; //!< waits for status phase done
 					return TRUE;
@@ -743,7 +670,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					Usb_reset_endpoint_fifo_access(EP_CONTROL);
 					Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[0]);
 					Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[1]);
-					Usb_ack_control_in_ready_send(); print_dbg_char('k');
+					Usb_ack_control_in_ready_send();
 
 					while (!Is_usb_control_out_received())
 						;
@@ -759,7 +686,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					Usb_reset_endpoint_fifo_access(EP_CONTROL);
 					Usb_write_endpoint_data(EP_CONTROL, 8, usb_feature_report[0]);
 					Usb_write_endpoint_data(EP_CONTROL, 8, usb_feature_report[1]);
-					Usb_ack_control_in_ready_send(); print_dbg_char('l');
+					Usb_ack_control_in_ready_send();
 
 					while (!Is_usb_control_out_received())
 						;
@@ -851,7 +778,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					Usb_reset_endpoint_fifo_access(EP_CONTROL);
 					Usb_write_endpoint_data(EP_CONTROL, 8, 0x01);
 					Usb_write_endpoint_data(EP_CONTROL, 8, 0b00000011); // alt 0 and 1 valid
-					Usb_ack_control_in_ready_send(); print_dbg_char('m');
+					Usb_ack_control_in_ready_send();
 
 					while (!Is_usb_control_out_received())
 						;
@@ -862,7 +789,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					Usb_ack_setup_received_free();
 					Usb_reset_endpoint_fifo_access(EP_CONTROL);
 					Usb_write_endpoint_data(EP_CONTROL, 8, usb_alternate_setting_out);
-					Usb_ack_control_in_ready_send(); print_dbg_char('n');
+					Usb_ack_control_in_ready_send();
 					while (!Is_usb_control_out_received())
 						;
 					Usb_ack_control_out_received_free();
@@ -875,7 +802,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 					Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 					Usb_write_endpoint_data(EP_CONTROL, 8, 0x00); // only PCM format
-					Usb_ack_control_in_ready_send(); print_dbg_char('o');
+					Usb_ack_control_in_ready_send();
 					while (!Is_usb_control_out_received())
 						;
 					Usb_ack_control_out_received_free();
@@ -894,7 +821,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							= Usb_read_endpoint_data(EP_CONTROL, 8);
 					usb_alternate_setting_out_changed = TRUE;
 					Usb_ack_control_out_received_free();
-					Usb_ack_control_in_ready_send();  print_dbg_char('p');//!< send a ZLP for STATUS phase
+					Usb_ack_control_in_ready_send();  //!< send a ZLP for STATUS phase
 					while (!Is_usb_control_in_ready())
 						; //!< waits for status phase done
 					return FALSE;
@@ -916,7 +843,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[2]); // 0x00017700 is 96khz
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[1]); // 0x0002ee00 is 192khz
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[0]);
-						Usb_ack_control_in_ready_send(); print_dbg_char('q');
+						Usb_ack_control_in_ready_send();
 
 						while (!Is_usb_control_out_received())
 							;
@@ -931,7 +858,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						// temp hack to give total # of bytes requested
 						for (i = 0; i < (wLength - 1); i++)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-						Usb_ack_control_in_ready_send(); print_dbg_char('r');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -942,13 +869,11 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-						print_dbg_char('S');
-
 						data_to_transfer = sizeof(Speedx);
 						pbuffer = (const U8*)Speedx;
 						send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 
-						Usb_ack_control_in_ready_send(); print_dbg_char('s');
+						Usb_ack_control_in_ready_send();
 
 						while (!Is_usb_control_out_received())
 							;
@@ -972,7 +897,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[2]); // 0x00017700 is 96khz
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[1]); // 0x0002ee00 is 192khz
 						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[0]);
-						Usb_ack_control_in_ready_send(); print_dbg_char('t');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -991,7 +916,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						for (i = 0; i < (wLength - 1); i++)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 
-						Usb_ack_control_in_ready_send(); print_dbg_char('u');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -1005,9 +930,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-
-
-						print_dbg_char('Q');
 
 						data_to_transfer = sizeof(Speedx);
 						pbuffer = (const U8*)Speedx;
@@ -1026,7 +948,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						// temp hack to give total # of bytes requested
 						for (i = 0; i < (wLength - 1); i++)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
-						Usb_ack_control_in_ready_send(); print_dbg_char('w');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -1045,7 +967,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						for (i = 0; i < (wLength - 1); i++)
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 
-						Usb_ack_control_in_ready_send(); print_dbg_char('x');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -1054,9 +976,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return FALSE;
 
 				case SPK_FEATURE_UNIT_ID:
-
-					print_dbg_char('R');
-
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
 						Usb_ack_setup_received_free();
@@ -1070,7 +989,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute); // or 0
 						}
 
-						Usb_ack_control_in_ready_send(); print_dbg_char('y');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -1118,7 +1037,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							}
 						}
 
-						Usb_ack_control_in_ready_send(); print_dbg_char('z');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -1138,7 +1057,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
 						}
 
-						Usb_ack_control_in_ready_send(); print_dbg_char('1');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -1168,7 +1087,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 						};
-						Usb_ack_control_in_ready_send(); print_dbg_char('2');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -1196,7 +1115,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);
 						};
-						Usb_ack_control_in_ready_send(); print_dbg_char('3');
+						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
 						Usb_ack_control_out_received_free();
@@ -1238,7 +1157,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Mic_freq_valid = TRUE;
 
 						Usb_ack_control_out_received_free();
-						Usb_ack_control_in_ready_send();  print_dbg_char('4');//!< send a ZLP for STATUS phase
+						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready())
 							; //!< waits for status phase done
 						return TRUE;
@@ -1275,7 +1194,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							Mic_freq_valid = FALSE;
 
 						Usb_ack_control_out_received_free();
-						Usb_ack_control_in_ready_send();  print_dbg_char('5');//!< send a ZLP for STATUS phase
+						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready())
 							; //!< waits for status phase done
 						return TRUE;
@@ -1292,7 +1211,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						clock_selected = Usb_read_endpoint_data(EP_CONTROL, 8);
 						clock_changed = TRUE;
 						Usb_ack_control_out_received_free();
-						Usb_ack_control_in_ready_send();  print_dbg_char('6');//!< send a ZLP for STATUS phase
+						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready())
 							; //!< waits for status phase done
 						if (clock_selected < 1 || clock_selected
@@ -1311,7 +1230,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 						mute = Usb_read_endpoint_data(EP_CONTROL, 8);
 						Usb_ack_control_out_received_free();
-						Usb_ack_control_in_ready_send();  print_dbg_char('7');//!< send a ZLP for STATUS phase
+						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready())
 							; //!< waits for status phase done
 						return TRUE;
@@ -1319,8 +1238,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return FALSE;
 
 				case SPK_FEATURE_UNIT_ID:
-
-					print_dbg_char('P');
 
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
@@ -1339,7 +1256,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						spk_mute = temp1;
 
 						Usb_ack_control_out_received_free();
-						Usb_ack_control_in_ready_send();  print_dbg_char('8');//!< send a ZLP for STATUS phase
+						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready())
 							; //!< waits for status phase done
 						return TRUE;
@@ -1378,7 +1295,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						}
 
 						Usb_ack_control_out_received_free();
-						Usb_ack_control_in_ready_send();  print_dbg_char('9');//!< send a ZLP for STATUS phase
+						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready())
 							; //!< waits for status phase done
 						return TRUE;
