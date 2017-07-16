@@ -670,9 +670,6 @@ void audio_set_cur(void)
 			// Will this work if we go from SPDIF to USB already playing at different sample rate?
 
 		}
-//		if (input_select == MOBO_SRC_UAC2) {	// Only change I2S settings if appropriate
-//			mobo_led_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO frequency indication on front RGB LED
-//		}
 #else
 		spk_mute = TRUE; // mute speaker while changing frequency and oscillator
 		mobo_clear_dac_channel();
