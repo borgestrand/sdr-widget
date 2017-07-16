@@ -150,7 +150,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 	Usb_ack_control_out_received_free();
 }
 
-/*
+
 // Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
 const U8 Speedx[74] = {
 	0x06, 0x00, // Number of sample rate triplets
@@ -171,17 +171,16 @@ const U8 Speedx[74] = {
 	0x00,0x77,0x01,0x00,	//96k Max
 	0x00,0x00,0x00,0x00,	// 0 Res
 
-	0x10,0xb1,0x02,0x00,	//176.4k Min	Hopefully makes sense as 176.4 to Win10 and 176.4, 192 to ASIO
-	0x00,0xee,0x02,0x00,	//192k Max
-	0xf0,0x3c,0x00,0x00,	//192-176.4 Res
+	0x10,0xb1,0x02,0x00,	//176.4k Min
+	0x10,0xb1,0x02,0x00,	//176.4k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
 
-	0x00,0xee,0x02,0x00,	//192k Min		Discrete 192 for Win10 support, not read by ASIO (>64 bytes)
+	0x00,0xee,0x02,0x00,	//192k Min
 	0x00,0xee,0x02,0x00,	//192k Max
 	0x00,0x00,0x00,0x00,	// 0 Res
 };
-*/
 
-
+/*
 // Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
 const U8 Speedx[50] = {
 	0x04, 0x00, // Number of sample rate triplets
@@ -203,7 +202,7 @@ const U8 Speedx[50] = {
 	0xf0,0x3c,0x00,0x00,	//192-176.4 Res
 
 };
-
+*/
 
 /*
 // Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
