@@ -635,14 +635,14 @@ void uac2_device_audio_task(void *pvParameters)
 							// 32-bit data words volume control
 							sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
 							// rand8() too expensive at 192ksps
-							//  += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+							// sample_L += rand8(); // dither in bits 7:0
 						}
 
 						if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
 							// 32-bit data words volume control
 							sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
 							// rand8() too expensive at 192ksps
-							// sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+							// sample_R += rand8(); // dither in bits 7:0
 						}
 	#endif
 

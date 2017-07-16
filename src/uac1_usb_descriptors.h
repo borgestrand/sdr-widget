@@ -219,10 +219,18 @@
 #define SPK_FEATURE_UNIT_ID				0x12
 #define SPK_FEATURE_UNIT_SOURCE_ID		0x11
 #define SPK_FEATURE_UNIT_CONTROL_SIZE	0x02	// 2 bytes for each control
-#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x0001	// Mute
-#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x0002	// Volume control on left front
-#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x0002	// Volume control on right front
 #define SPK_FEATURE_UNIT_CH_NAME_ID		0x00	// No name
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+	#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x0001	// Mute
+	#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x0002	// Volume control on left front
+	#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x0002	// Volume control on right front
+#else
+	#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x0001	// Mute
+	#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x0000	// No volume control on left front
+	#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x0000	// No volume control on right front
+#endif
+
+
 
 // SPK Output Terminal
 #define SPK_OUTPUT_TERMINAL_ID			0x13
