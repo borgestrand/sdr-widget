@@ -568,6 +568,10 @@ void device_mouse_hid_task(void)
 				// DARK			0
             	mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
             }
+
+            else if (a == 'm') {
+            	mobo_led_select(FREQ_44, input_select);
+            }
 #endif
 
             else if (a == 'v') {
@@ -583,10 +587,6 @@ void device_mouse_hid_task(void)
             	print_dbg_char_hex(((temp2 >> 0) & 0xff));
 
             	temp ++;
-            }
-
-            else if (a == 'm') {
-            	mobo_led_select(FREQ_44, input_select);
             }
 
 
