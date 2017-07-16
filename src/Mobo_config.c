@@ -714,6 +714,15 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
 				gpio_set_gpio_pin(SAMPLEFREQ_VAL1);
 			break;
+			default: // same as 44.1
+				if (FEATURE_BOARD_USBI2S)
+					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+				else if (FEATURE_BOARD_USBDAC)
+					gpio_clr_gpio_pin(AVR32_PIN_PX51);
+				gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
+				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
+			break;
+
 		}
 
 	// XO control and I2S muxing on Digital Input 1.0 / 2.0 generation
@@ -867,7 +876,7 @@ void mobo_clock_division(U32 frequency) {
 								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
 								1,                  // diven - enabled
 								1);                 // divided by 4
-				case FREQ_INVALID : // Treated as 44.1
+				default : // Treated as 44.1
 					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
 								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
 								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
@@ -921,7 +930,7 @@ void mobo_clock_division(U32 frequency) {
 								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
 								1,                  // diven - enabled
 								3);                 // divided by 8
-				case FREQ_INVALID :		// Treated as 44.1
+				default :		// Treated as 44.1
 					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
 								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
 								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
@@ -933,8 +942,7 @@ void mobo_clock_division(U32 frequency) {
 
 		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-//		if (prev_frequency != FREQ_INVALID) 				// Don't run on 1st iteration of this function after bootup
-			AK5394A_pdca_tx_enable(frequency);		// Trying to force out LRCK inversion
+		AK5394A_pdca_tx_enable(frequency);			// LRCK inversion will occur with FREQ_INVALID
 
 		prev_frequency = frequency;
 

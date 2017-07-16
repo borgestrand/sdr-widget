@@ -353,18 +353,8 @@ void AK5394A_task_init(const Bool uac1) {
 	spk_pdca_channel = pdca_get_handler(PDCA_CHANNEL_SSC_TX);
 
 
-/*
-	// This is probably too early and will cause pdca_tx_enable timeout. Must start after XO is up! And after SSC is up?
-	if (uac1)
-		mobo_clock_division(FREQ_44);
-	else
-		mobo_clock_division(FREQ_96);
-*/
-
-
-	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
-
 	// from AK5394A Xtal Oscillator. This takes a while. Bit clock starts running after this.
+	pm_enable_osc1_ext_clock(&AVR32_PM);	// OSC1 is clocked by 12.288Mhz Osc
 	pm_enable_clk1(&AVR32_PM, OSC1_STARTUP);
 
 	// Assign GPIO to SSC.
@@ -414,6 +404,7 @@ void AK5394A_task_init(const Bool uac1) {
 	 */
 	#else
 		// Init PDCA channel with the pdca_options.
+		// REMOVE! The ADC should be designed out completely
 		if (!FEATURE_ADC_NONE) {
 			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -421,18 +412,9 @@ void AK5394A_task_init(const Bool uac1) {
 	#endif
 
 
-	// Turn on SPDIF TX. Run manually here on boot. Otherwise this is executed from within mobo_clock_division()
-	// Called here only, it results in random channel inversion on the outgoing I2S
-	// Trying to collect all pdca enabling stuff in one single function
-
-	// AK5394A_pdca_tx_enable(FREQ_44);
-	// Rather use mobo_clock_division which will call AK5394A_pdca_tx_enable()
-//	if (uac1)
-//		mobo_clock_division(FREQ_44);
-//	else
-//		mobo_clock_division(FREQ_96);
-
-	mobo_clock_division(FREQ_INVALID); // Force a reconfigure when music starts.
+	// Initial setup of clock and TX IO. This will cause LR inversion when called with FREQ_INVALID
+	// Therefore, call it with proper frequency when playback starts.
+	mobo_clock_division(FREQ_INVALID);
 
 
 

@@ -661,6 +661,9 @@ void audio_set_cur(void)
 			mobo_clear_dac_channel();
 		}
 		if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) {	// Only change I2S settings if appropriate
+
+			print_dbg_char('b');
+
 			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1);	// Give USB the I2S control with proper MCLK
 			mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
 
