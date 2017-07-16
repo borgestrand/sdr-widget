@@ -220,44 +220,7 @@ void AK5394A_pdca_enable(void) {
 void AK5394A_pdca_rx_enable(U32 frequency) {
 	U16 countdown = 0xFFFF;
 
-/*
- *
- * //	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Needed? When removed it changes LRCK poll timing below.// Needed?
-
-   	taskENTER_CRITICAL();
-
-   	// This code came about by trial and error, not hard science...
-	if ( (frequency == FREQ_192) || (frequency == FREQ_176) ) {
-//		while (gpio_get_pin_value(AK5394_LRCK) == 0);
-		while (gpio_get_pin_value(AK5394_LRCK) == 1);
-		while (gpio_get_pin_value(AK5394_LRCK) == 0);
-		while (gpio_get_pin_value(AK5394_LRCK) == 1);
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-	}
-	else if ( (frequency == FREQ_44) || (frequency == FREQ_48) || (frequency == FREQ_88) || (frequency == FREQ_96) ){
-		while (gpio_get_pin_value(AK5394_LRCK) == 1);
-		while (gpio_get_pin_value(AK5394_LRCK) == 0);
-		while (gpio_get_pin_value(AK5394_LRCK) == 1);
-//		while (gpio_get_pin_value(AK5394_LRCK) == 0);
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-	}
-	else {
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-	}
-
-
-	ADC_buf_DMA_write = 0;
-
-	// What is the optimal sequence?
-   	pdca_enable(PDCA_CHANNEL_SSC_RX);
-	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-
-	taskEXIT_CRITICAL();
-
-*/
-
-
-	gpio_set_gpio_pin(AVR32_PIN_PX43); // ch6 p88
+//	gpio_set_gpio_pin(AVR32_PIN_PX43); // ch6 p88
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	mobo_clear_adc_channel();
@@ -289,7 +252,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 
 	taskEXIT_CRITICAL();
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX43); // ch6 p88
+//	gpio_clr_gpio_pin(AVR32_PIN_PX43); // ch6 p88
 }
 
 
@@ -298,7 +261,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 void AK5394A_pdca_tx_enable(U32 frequency) {
 	U16 countdown = 0xFFFF;
 
-	gpio_set_gpio_pin(AVR32_PIN_PX52); // ch5 p87
+//	gpio_set_gpio_pin(AVR32_PIN_PX52); // ch5 p87
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 	mobo_clear_dac_channel(); // To avoid odd spurs which some times occur
@@ -330,12 +293,7 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 	taskEXIT_CRITICAL();
 
-	if (countdown < 100)
-		print_dbg_char('Z');
-	else
-		print_dbg_char('1');
-
-	gpio_clr_gpio_pin(AVR32_PIN_PX52); // ch5 p87
+//	gpio_clr_gpio_pin(AVR32_PIN_PX52); // ch5 p87
 }
 
 

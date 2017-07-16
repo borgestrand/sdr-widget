@@ -657,13 +657,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 // XO control and SPI muxing on ab1x hardware generation
 	static U32 prev_frequency = FREQ_INVALID;
 
-	print_dbg_char('I');
-
 	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
-
-		print_dbg_char('J');
-
-
 	#if defined(HW_GEN_AB1X)
 		switch (frequency) {
 			case FREQ_44:
@@ -722,12 +716,11 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			break;
-
-		}
+		} // switch
 
 	// XO control and I2S muxing on Digital Input 1.0 / 2.0 generation
 	// NB: updated to support SPDIF buffering in MCU. That is highly experimental code!
-	#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 
 		if (wm8805_status.buffered == 0) {
 		// Old version with I2S mux
@@ -754,7 +747,6 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		else {
 		// New version without I2S mux, with buffering via MCU's ADC interface
 			gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 USB version in all cases
-
 
 			// Clock source control
 			if (frequency == FREQ_RXNATIVE) {		// Use MCLK from SPDIF RX
@@ -785,49 +777,8 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 void mobo_clock_division(U32 frequency) {
 
 	static U32 prev_frequency = FREQ_INVALID;
-/*
-#ifdef USB_STATE_MACHINE_DEBUG
-	if (frequency == FREQ_192)
-		print_dbg_char('6');
-	else if (frequency == FREQ_176)
-		print_dbg_char('5');
-	else if (frequency == FREQ_96)
-		print_dbg_char('4');
-	else if (frequency == FREQ_88)
-		print_dbg_char('3');
-	else if (frequency == FREQ_48)
-		print_dbg_char('2');
-	else if (frequency == FREQ_44)
-		print_dbg_char('1');
-#endif
-*/
-
-/*
-#ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('#');
-	if (frequency == FREQ_192)
-		print_dbg_char_hex(6);
-	else if (frequency == FREQ_176)
-		print_dbg_char_hex(5);
-	else if (frequency == FREQ_96)
-		print_dbg_char_hex(4);
-	else if (frequency == FREQ_88)
-		print_dbg_char_hex(3);
-	else if (frequency == FREQ_48)
-		print_dbg_char_hex(2);
-	else if (frequency == FREQ_44)
-		print_dbg_char_hex(1);
-	print_dbg_char('#');
-#endif
-*/
-
-	print_dbg_char('X');
 
 	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
-
-		print_dbg_char('Y');
-
-
 		gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
 
 		pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
@@ -945,15 +896,7 @@ void mobo_clock_division(U32 frequency) {
 		AK5394A_pdca_tx_enable(frequency);			// LRCK inversion will occur with FREQ_INVALID
 
 		prev_frequency = frequency;
-
-		print_dbg_char('A');
-
 	}
-
-
-// We'd liek to call this one here, but it's not suitable before ssc_i2s_init has run. Or so we believe...
-//	AK5394A_pdca_tx_enable();	// Trying to force out LRCK inversion
-
 }
 
 
