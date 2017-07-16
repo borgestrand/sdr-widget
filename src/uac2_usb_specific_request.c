@@ -181,6 +181,7 @@ const U8 Speedx[62] = {
 };
 */
 
+/*
 // Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
 const U8 Speedx[38] = {
 	0x03, 0x00, // Number of sample rate triplets
@@ -200,6 +201,21 @@ const U8 Speedx[38] = {
 //	0x00,0xee,0x02,0x00,	//192k Min		Discrete 192 for Win10 support, not read by ASIO
 //	0x00,0xee,0x02,0x00,	//192k Max
 //	0x00,0x00,0x00,0x00,	// 0 Res
+};
+*/
+
+// Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
+const U8 Speedx[26] = {
+	0x02, 0x00, // Number of sample rate triplets
+
+	0x44,0xac,0x00,0x00,	//44.1k Min
+	0x10,0xb1,0x02,0x00,	//176.4k Max
+	0x44,0xac,0x00,0x00,	//44.1k Res
+
+	0x80,0xbb,0x00,0x00,	//48k Min
+	0x00,0xee,0x02,0x00,	//192k Max
+	0x80,0xbb,0x00,0x00,	//48k Res
+
 };
 
 
