@@ -156,8 +156,10 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_2)
 			+ /*2* */sizeof(S_usb_clock_source_descriptor)
     		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
-            + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
-			+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+    		+ /*2* */sizeof(S_usb_feature_unit_descriptor_2)
+#endif
+    		+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
     ,  MIC_LATENCY_CONTROL
     }
 
@@ -187,7 +189,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
    ,  SPK_INPUT_TERMINAL_STRING_DESC
    }
 ,
-  {  sizeof(S_usb_feature_unit_descriptor_2)
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+ {  sizeof(S_usb_feature_unit_descriptor_2)
   ,  CS_INTERFACE
   ,  FEATURE_UNIT_SUB_TYPE
   ,  SPK_FEATURE_UNIT_ID
@@ -198,6 +201,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  0x00
   }
 ,
+#endif
+
   {  sizeof(S_usb_out_ter_descriptor_2)
   ,  CS_INTERFACE
   ,  OUTPUT_TERMINAL_SUB_TYPE
@@ -398,10 +403,12 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
    ,  Usb_format_mcu_to_usb_data(16, AUDIO_CLASS_REVISION_2)
    ,  HEADSET_CATEGORY
    ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_2)
-		+ /*2* */sizeof(S_usb_clock_source_descriptor)
+   		+ /*2* */sizeof(S_usb_clock_source_descriptor)
    		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
-        + /*2* */sizeof(S_usb_feature_unit_descriptor_2)
-		+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+   		+ /*2* */sizeof(S_usb_feature_unit_descriptor_2)
+#endif
+   		+ /*2* */sizeof(S_usb_out_ter_descriptor_2))
    ,  MIC_LATENCY_CONTROL
    }
   , {  sizeof (S_usb_clock_source_descriptor)
@@ -430,7 +437,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  SPK_INPUT_TERMINAL_STRING_DESC
   }
 ,
-  {  sizeof(S_usb_feature_unit_descriptor_2)
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+{  sizeof(S_usb_feature_unit_descriptor_2)
   ,  CS_INTERFACE
   ,  FEATURE_UNIT_SUB_TYPE
   ,  SPK_FEATURE_UNIT_ID
@@ -441,6 +449,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  0x00
   }
 ,
+#endif
   {  sizeof(S_usb_out_ter_descriptor_2)
   ,  CS_INTERFACE
   ,  OUTPUT_TERMINAL_SUB_TYPE

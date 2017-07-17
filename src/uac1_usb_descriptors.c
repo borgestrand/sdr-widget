@@ -202,10 +202,15 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   // BSB 20130604 disabling UAC1 IN
 //	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
 //		 2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
-	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+sizeof(S_usb_in_ter_descriptor_1)+
-		 sizeof(S_usb_feature_unit_descriptor_1)+sizeof(S_usb_out_ter_descriptor_1))
-
-
+	   ,
+		   Usb_format_mcu_to_usb_data(16,
+				   sizeof(S_usb_ac_interface_descriptor_1)
+				   +sizeof(S_usb_in_ter_descriptor_1)
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+				   +sizeof(S_usb_feature_unit_descriptor_1)
+#endif
+				   +sizeof(S_usb_out_ter_descriptor_1)
+		   )
        ,  NB_OF_STREAMING_INTERFACE
 	   ,  BELONGS_AUDIO_INTERFACE_OUT
 	   // BSB 20130604 disabling UAC1 IN 	   ,  BELONGS_AUDIO_INTERFACE_IN
@@ -257,6 +262,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  0x00
 	   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
 	}
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	,
 	{  sizeof(S_usb_feature_unit_descriptor_1)
 	   ,  CS_INTERFACE
@@ -269,6 +275,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_2)
 	   ,  SPK_FEATURE_UNIT_CH_NAME_ID
 	}
+#endif
 	,
 	{  sizeof(S_usb_out_ter_descriptor_1)
 	   ,  CS_INTERFACE
@@ -522,8 +529,14 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 // BSB 20130604 disabling UAC1 IN
 //	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
 //			 2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
-	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+sizeof(S_usb_in_ter_descriptor_1)+
-			 sizeof(S_usb_feature_unit_descriptor_1)+sizeof(S_usb_out_ter_descriptor_1))
+	   ,  Usb_format_mcu_to_usb_data(16,
+			   sizeof(S_usb_ac_interface_descriptor_1)
+			   +sizeof(S_usb_in_ter_descriptor_1)
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+			   +sizeof(S_usb_feature_unit_descriptor_1)
+#endif
+			   +sizeof(S_usb_out_ter_descriptor_1)
+		   )
 
 	   ,  NB_OF_STREAMING_INTERFACE
 	   ,  BELONGS_AUDIO_INTERFACE_OUT
@@ -576,6 +589,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  0x00
 	   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
 	}
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	,
 	{  sizeof(S_usb_feature_unit_descriptor_1)
 	   ,  CS_INTERFACE
@@ -588,6 +602,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_2)
 	   ,  SPK_FEATURE_UNIT_CH_NAME_ID
 	}
+#endif
 	,
 	{  sizeof(S_usb_out_ter_descriptor_1)
 	   ,  CS_INTERFACE
@@ -839,8 +854,14 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 // BSB 20130604 disabling UAC1 IN
 //	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
 //		2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
-       ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+sizeof(S_usb_in_ter_descriptor_1)+
-		sizeof(S_usb_feature_unit_descriptor_1)+sizeof(S_usb_out_ter_descriptor_1))
+       ,  Usb_format_mcu_to_usb_data(16,
+    		   sizeof(S_usb_ac_interface_descriptor_1)
+    		   +sizeof(S_usb_in_ter_descriptor_1)
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+    		   +sizeof(S_usb_feature_unit_descriptor_1)
+#endif
+    		   +sizeof(S_usb_out_ter_descriptor_1)
+    	)
 	   ,  NB_OF_STREAMING_INTERFACE
 	   ,  BELONGS_AUDIO_INTERFACE_OUT
 	   // BSB 20130604 disabling UAC1 IN	   ,  BELONGS_AUDIO_INTERFACE_IN
@@ -892,6 +913,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  0x00
 	   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
 	}
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	,
 	{  sizeof(S_usb_feature_unit_descriptor_1)
 	   ,  CS_INTERFACE
@@ -904,6 +926,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_2)
 	   ,  SPK_FEATURE_UNIT_CH_NAME_ID
 	}
+#endif
 	,
 	{  sizeof(S_usb_out_ter_descriptor_1)
 	   ,  CS_INTERFACE
@@ -1155,8 +1178,14 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 // BSB 20130604 disabling UAC1 IN
 //	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+2*sizeof(S_usb_in_ter_descriptor_1)+
 //		2*sizeof(S_usb_feature_unit_descriptor_1)+2*sizeof(S_usb_out_ter_descriptor_1))
-	   ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_1)+sizeof(S_usb_in_ter_descriptor_1)+
-		sizeof(S_usb_feature_unit_descriptor_1)+sizeof(S_usb_out_ter_descriptor_1))
+	   ,  Usb_format_mcu_to_usb_data(16,
+			   sizeof(S_usb_ac_interface_descriptor_1)
+			   +sizeof(S_usb_in_ter_descriptor_1)
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+			   +sizeof(S_usb_feature_unit_descriptor_1)
+#endif
+			   +sizeof(S_usb_out_ter_descriptor_1)
+		)
 	   ,  NB_OF_STREAMING_INTERFACE
 	   ,  BELONGS_AUDIO_INTERFACE_OUT
 	   // BSB 20130604 disabling UAC1 IN	   ,  BELONGS_AUDIO_INTERFACE_IN
@@ -1208,6 +1237,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  0x00
 	   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
 	}
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	,
 	{  sizeof(S_usb_feature_unit_descriptor_1)
 	   ,  CS_INTERFACE
@@ -1220,6 +1250,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  Usb_format_mcu_to_usb_data(16, SPK_FEATURE_UNIT_BMA_CONTROLS_2)
 	   ,  SPK_FEATURE_UNIT_CH_NAME_ID
 	}
+#endif
 	,
 	{  sizeof(S_usb_out_ter_descriptor_1)
 	   ,  CS_INTERFACE

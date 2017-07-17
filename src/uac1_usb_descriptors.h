@@ -216,18 +216,14 @@
 #define SPK_INPUT_TERMINAL_CH_NAME_ID	0x00	// No channel name
 
 // SPK Feature Unit
-#define SPK_FEATURE_UNIT_ID				0x12
-#define SPK_FEATURE_UNIT_SOURCE_ID		0x11
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+#define SPK_FEATURE_UNIT_ID				0x14	// Was: 0x14
+#define SPK_FEATURE_UNIT_SOURCE_ID		SPK_INPUT_TERMINAL_ID
 #define SPK_FEATURE_UNIT_CONTROL_SIZE	0x02	// 2 bytes for each control
 #define SPK_FEATURE_UNIT_CH_NAME_ID		0x00	// No name
-#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
-	#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x0001	// Mute
-	#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x0002	// Volume control on left front
-	#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x0002	// Volume control on right front
-#else
-	#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x0001	// Mute
-	#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x0000	// No volume control on left front
-	#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x0000	// No volume control on right front
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_0 0x0001	// Mute
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_1	0x0002	// Volume control on left front
+#define SPK_FEATURE_UNIT_BMA_CONTROLS_2	0x0002	// Volume control on right front
 #endif
 
 
@@ -236,7 +232,11 @@
 #define SPK_OUTPUT_TERMINAL_ID			0x13
 #define SPK_OUTPUT_TERMINAL_TYPE		0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00	// No association
-#define SPK_OUTPUT_TERMINAL_SOURCE_ID	0x12	// From Feature Unit
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_FEATURE_UNIT_ID	// From Feature Unit
+#else
+	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_INPUT_TERMINAL_ID	// From Feature Unit
+#endif
 
 #define SPK_ALT1_AS_NB_ENDPOINT			0x02	// OUT EP and FB EP
 //#define SPK_ALT1_AS_NB_ENDPOINT			0x01	// OUT EP
@@ -303,7 +303,9 @@ __attribute__((__packed__))
 	  // BSB 20130604 disabling UAC1 IN   S_usb_feature_unit_descriptor_1  	mic_fea_unit;
 	  // BSB 20130604 disabling UAC1 IN   S_usb_out_ter_descriptor_1	 	mic_out_ter;
 	  S_usb_in_ter_descriptor_1			spk_in_ter;
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	  S_usb_feature_unit_descriptor_1	spk_fea_unit;
+#endif
 	  S_usb_out_ter_descriptor_1		spk_out_ter;
 	  S_usb_as_interface_descriptor 	spk_as_alt0;
 	  S_usb_as_interface_descriptor 	spk_as_alt1;

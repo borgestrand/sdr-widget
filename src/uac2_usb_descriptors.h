@@ -224,25 +224,27 @@
 #define SPK_INPUT_TERMINAL_CH_NAME_ID	LEFT_CH_INDEX // Was: 0x00
 #define SPK_INPUT_TERMINAL_STRING_DESC	AIT_INDEX
 
-//SPK Feature Unit descriptor
-#define SPK_FEATURE_UNIT_ID          	0x12
-#define SPK_FEATURE_UNIT_SOURCE_ID   	SPK_INPUT_TERMINAL_ID
-#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
-	#define SPK_BMA_CONTROLS           	0x00000003 	// Mute master channel. [Readable and writable ?]
-	#define SPK_BMA_CONTROLS_CH_1		0x0000000C	// Volume control L
-	#define SPK_BMA_CONTROLS_CH_2		0x0000000C	// Volume control R
-#else
-	#define SPK_BMA_CONTROLS           	0x00000003 	// Mute master channel. [Readable and writable ?]
-	#define SPK_BMA_CONTROLS_CH_1		0x00000000	// No volume control L
-	#define SPK_BMA_CONTROLS_CH_2		0x00000000	// No volume control R
-#endif
 
+//SPK Feature Unit descriptor
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+#define SPK_FEATURE_UNIT_ID          	0x14	// Was 0x12
+#define SPK_FEATURE_UNIT_SOURCE_ID   	SPK_INPUT_TERMINAL_ID
+#define SPK_BMA_CONTROLS           	0x00000003 	// Mute master channel. [Readable and writable ?]
+#define SPK_BMA_CONTROLS_CH_1		0x0000000C	// Volume control L
+#define SPK_BMA_CONTROLS_CH_2		0x0000000C	// Volume control R
+#endif
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID			0x13
 #define SPK_OUTPUT_TERMINAL_TYPE		0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00   	// No association
-#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_FEATURE_UNIT_ID
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
+	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_FEATURE_UNIT_ID
+#else
+	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_INPUT_TERMINAL_ID
+#endif
+
+
 #define SPK_OUTPUT_TERMINAL_CONTROLS	0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
@@ -316,7 +318,9 @@ __attribute__((__packed__))
 	S_usb_ac_interface_descriptor_2			audioac;
 	S_usb_clock_source_descriptor			audio_cs2;
 	S_usb_in_ter_descriptor_2				spk_in_ter;
+#ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	S_usb_feature_unit_descriptor_2			spk_fea_unit;
+#endif
 	S_usb_out_ter_descriptor_2				spk_out_ter;
 	S_usb_as_interface_descriptor	 		spk_as_alt0;
 	S_usb_as_interface_descriptor	 		spk_as_alt1;
