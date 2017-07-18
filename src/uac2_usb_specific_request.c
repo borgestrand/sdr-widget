@@ -150,8 +150,10 @@ void send_descriptor(U16 wLength, Bool zlp) {
 	Usb_ack_control_out_received_free();
 }
 
-
-// Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
+/*
+// Sample rate triplet. Windows 10 Creators Update refused. Use single frequencies.
+// This will cause the ASIO driver to not see the 196ksps definition.
+// To fix -that- search for "triplets" in the ASIO driver code and change the array size from 64 to 128.
 const U8 Speedx[74] = {
 	0x06, 0x00, // Number of sample rate triplets
 
@@ -180,10 +182,11 @@ const U8 Speedx[74] = {
 	0x00,0x00,0x00,0x00,	// 0 Res
 };
 
-/*
-// Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
-const U8 Speedx[50] = {
-	0x04, 0x00, // Number of sample rate triplets
+*/
+
+// Sample rate triplet. Works in Win10 build 16232 and in ASIO driver
+const U8 Speedx[38] = {
+	0x03, 0x00, // Number of sample rate triplets
 
 	0x44,0xac,0x00,0x00,	//44.1k Min
 	0x80,0xbb,0x00,0x00,	//48k Max
@@ -193,31 +196,11 @@ const U8 Speedx[50] = {
 	0x00,0x77,0x01,0x00,	//96k Max
 	0x78,0x1e,0x00,0x00,	//96-88.2 Res
 
-	0x00,0xee,0x02,0x00,	//192k Min		Discrete 192 for Win10 support
-	0x00,0xee,0x02,0x00,	//192k Max
-	0x00,0x00,0x00,0x00,	// 0 Res
-
 	0x10,0xb1,0x02,0x00,	//176.4k Min
 	0x00,0xee,0x02,0x00,	//192k Max
 	0xf0,0x3c,0x00,0x00,	//192-176.4 Res
-
 };
-*/
 
-/*
-// Sample rate triplet. Windows 10 Creators Update refuses to understand ranges. Use single frequencies.
-const U8 Speedx[26] = {
-	0x02, 0x00, // Number of sample rate triplets
-
-	0x44,0xac,0x00,0x00,	//44.1k Min		Accepted by ASIO driver
-	0x10,0xb1,0x02,0x00,	//176.4k Max
-	0x44,0xac,0x00,0x00,	//44.1k Res
-
-	0x80,0xbb,0x00,0x00,	//48k Min		Accepted by ASIO driver
-	0x00,0xee,0x02,0x00,	//192k Max
-	0x80,0xbb,0x00,0x00,	//48k Res
-};
-*/
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -1012,7 +995,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else
 						return FALSE;
-
+#ifdef FEATURE_VOLUME_CTRL
 				case SPK_FEATURE_UNIT_ID:
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
@@ -1104,6 +1087,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 					else
 						return FALSE;
+#endif
 
 				case INPUT_TERMINAL_ID:
 					if (wValue_msb == AUDIO_TE_CONTROL_CS_CLUSTER //&& wValue_lsb == 0
@@ -1275,8 +1259,8 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else
 						return FALSE;
 
+#ifdef FEATURE_VOLUME_CTRL
 				case SPK_FEATURE_UNIT_ID:
-
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
 						Usb_ack_setup_received_free();
@@ -1299,6 +1283,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							; //!< waits for status phase done
 						return TRUE;
 					}
+
 					// This is like audio_set_cur for volume but on UAC2
 					else if ((wValue_msb == AUDIO_FU_CONTROL_CS_VOLUME)
 							&& (request == AUDIO_CS_REQUEST_CUR)) {
@@ -1341,6 +1326,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 					else
 						return FALSE;
+#endif
 
 				default:
 					return FALSE;

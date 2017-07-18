@@ -338,6 +338,7 @@ void uac1_usb_hid_get_idle (U8 u8_report_id) // BSB 20120710 prefix "uac1_" adde
    Usb_ack_control_out_received_free();
 }
 
+#ifdef FEATURE_VOLUME_CTRL
 void audio_get_min(void)
 {
    U16 i_unit;  // in wIndex
@@ -398,7 +399,9 @@ void audio_get_min(void)
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
 }
+#endif
 
+#ifdef FEATURE_VOLUME_CTRL
 void audio_get_max(void) {
    U16 i_unit;
    U16 length;
@@ -456,7 +459,9 @@ void audio_get_max(void) {
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
 }
+#endif
 
+#ifdef FEATURE_VOLUME_CTRL
 void audio_get_res(void)
 {
    U16 i_unit;
@@ -516,6 +521,7 @@ void audio_get_res(void)
    while(!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
 }
+#endif
 
 void audio_get_cur(void) {
 	U16 i_unit;
@@ -562,6 +568,7 @@ void audio_get_cur(void) {
    }
    */
 
+#ifdef FEATURE_VOLUME_CTRL
 	else if (i_unit==SPK_FEATURE_UNIT_ID) {
 		switch (wValue_msb) {
 			case CS_MUTE:
@@ -606,6 +613,7 @@ void audio_get_cur(void) {
 				break;
 		}
 	}
+#endif
 
 	Usb_ack_control_in_ready_send();
 	while(!Is_usb_control_out_received());
@@ -681,6 +689,7 @@ void audio_set_cur(void)
    }
 
    // BSB 20160318 experimenting with mute and playback volume control
+#ifdef FEATURE_VOLUME_CTRL
    else if (i_unit == SPK_FEATURE_UNIT_ID ) {
 		uint8_t temp1 = 0;
 		uint8_t temp2 = 0;
@@ -718,6 +727,7 @@ void audio_set_cur(void)
 		   }
 	   }
 	}
+#endif
 
    // BSB 20130604 disabling UAC1 IN
    /*
@@ -890,6 +900,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 			return TRUE;
 			// No need to break here !
 
+#ifdef FEATURE_VOLUME_CTRL
 		case BR_REQUEST_GET_MIN:
 			audio_get_min();
 			return TRUE;
@@ -904,6 +915,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 			audio_get_res();
 			return TRUE;
 			// No need to break here !
+#endif
 
 		default:
 			return FALSE;
