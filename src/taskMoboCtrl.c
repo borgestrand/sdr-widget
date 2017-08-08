@@ -749,13 +749,11 @@ static void vtaskMoboCtrl( void * pcParameters )
 				#if defined(HW_GEN_AB1X)
 					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 					{										// With UAC1:
-						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+						mobo_led(FLED_RED);
 					}
 					else
 					{										// With UAC != 1
-						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+						mobo_led(FLED_GREEN);
 					}
 
 				#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
@@ -785,8 +783,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 					if (btn_poll_temp == 100) {
 						#if defined(HW_GEN_AB1X)
-							gpio_clr_gpio_pin(AVR32_PIN_PX32);	// GREEN OFF after performed change in nvram
-							gpio_clr_gpio_pin(AVR32_PIN_PX29);	// RED OFF after performed change in nvram
+							mobo_led(FLED_DARK);
 						#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 							mobo_led(FLED_DARK, FLED_DARK, FLED_DARK); // Dark after performed change in nvram
 							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
@@ -809,13 +806,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 					#if defined(HW_GEN_AB1X)
 						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 						{										// With UAC1:
-	   						gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
-	   						gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
-						}
+							mobo_led(FLED_GREEN);						}
 						else
 						{										// With UAC != 1
-	   						gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
-	   						gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+							mobo_led(FLED_RED);
 						}
 					#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 						// FIX: Resort to defaults according to playback mode and source. That will require some global vars or other mess

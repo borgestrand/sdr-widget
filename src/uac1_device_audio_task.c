@@ -172,7 +172,7 @@ void uac1_device_audio_task(void *pvParameters)
 	uint8_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 		Bool ledSet = FALSE;
 	#endif
 

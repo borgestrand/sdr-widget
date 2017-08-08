@@ -66,6 +66,7 @@
  */
 
 #include <avr32/io.h>
+#include "gpio.h"
 #include "preprocessor.h"
 #include "compiler.h"
 #include "SDRwdgt.h"
@@ -192,8 +193,8 @@ Bool LED_Test(U32 leds)
   return Tst_bits(LED_State, leds);
 }
 
-
-void LED_Off(U32 leds)
+// Actual GPIO manipulation
+void LED_Off_GPIO(U32 leds)
 {
   // Use the LED descriptors to get the connections of a given LED to the MCU.
   tLED_DESCRIPTOR *led_descriptor = &LED_DESCRIPTOR[0] - 1;
@@ -220,8 +221,8 @@ void LED_Off(U32 leds)
   }
 }
 
-
-void LED_On(U32 leds)
+// Actual GPIO manipulation
+void LED_On_GPIO(U32 leds)
 {
   // Use the LED descriptors to get the connections of a given LED to the MCU.
   tLED_DESCRIPTOR *led_descriptor = &LED_DESCRIPTOR[0] - 1;
@@ -247,6 +248,33 @@ void LED_On(U32 leds)
     leds >>= led_shift;
   }
 }
+
+
+//Function called by other code
+void LED_Off(U32 leds) {
+	gpio_enable_pin_pull_up(AVR32_PIN_PA04);	// Floating: Active high. GND: Active low
+
+	if (gpio_get_pin_value(AVR32_PIN_PA04) == 1)	// Active high
+		LED_Off_GPIO(leds);
+	else											// Active low
+		LED_On_GPIO(leds);
+
+	gpio_disable_pin_pull_up(AVR32_PIN_PA04);	// Floating: Active high. GND: Active low
+}
+
+
+//Function called by other code
+void LED_On(U32 leds) {
+	gpio_enable_pin_pull_up(AVR32_PIN_PA04);	// Floating: Active high. GND: Active low
+
+	if (gpio_get_pin_value(AVR32_PIN_PA04) == 1)	// Active high
+		LED_On_GPIO(leds);
+	else											// Active low
+		LED_Off_GPIO(leds);
+
+	gpio_disable_pin_pull_up(AVR32_PIN_PA04);	// Floating: Active high. GND: Active low
+}
+
 
 
 void LED_Toggle(U32 leds)

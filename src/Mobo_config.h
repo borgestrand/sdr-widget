@@ -60,6 +60,12 @@ uint8_t mobo_usb_detect(void);
 #endif
 
 
+#ifdef HW_GEN_AB1X
+// Front panel RG LED control
+void mobo_led(uint8_t fled);
+#endif
+
+
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 
 // Process spdif and toslink inputs

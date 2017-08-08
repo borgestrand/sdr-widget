@@ -75,6 +75,7 @@
 #define FLED_CYAN			6
 #define FLED_WHITE			7
 #define FLED_DARK			0
+#define FLED_NO_CHG			9
 
 // USB channels
 #define USB_CH_NONE			0

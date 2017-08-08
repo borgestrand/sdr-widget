@@ -33,6 +33,51 @@
 #include "TMP100.h"
 */
 
+#ifdef HW_GEN_AB1X
+	void mobo_led(uint8_t fled) {
+		gpio_enable_pin_pull_up(AVR32_PIN_PA04);	// Floating: Active high. GND: Active low
+
+		if (gpio_get_pin_value(AVR32_PIN_PA04) == 1) {	// Active high
+			if (fled == FLED_DARK) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
+				gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+			}
+			else if (fled == FLED_RED) {
+				gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+				gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+			}
+			else if (fled == FLED_GREEN) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
+				gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+			}
+			else if (fled == FLED_YELLOW) {
+				gpio_set_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+				gpio_set_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+			}
+		}
+		else {	// Active low
+			if (fled == FLED_DARK) {
+				gpio_set_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
+				gpio_set_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+			}
+			else if (fled == FLED_RED) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+				gpio_set_gpio_pin(AVR32_PIN_PX32);	// Clear GREEN light on external AB-1.1 LED
+			}
+			else if (fled == FLED_GREEN) {
+				gpio_set_gpio_pin(AVR32_PIN_PX29);	// Clear RED light on external AB-1.1 LED
+				gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+			}
+			else if (fled == FLED_YELLOW) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX29);	// Set RED light on external AB-1.1 LED
+				gpio_clr_gpio_pin(AVR32_PIN_PX32);	// Set GREEN light on external AB-1.1 LED
+			}
+		}
+		gpio_disable_pin_pull_up(AVR32_PIN_PA04);	// Floating: Active high. GND: Active low
+	}
+#endif
+
+
 #ifdef HW_GEN_DIN20
 
 // Control headphone amp power supply (K-mult) turn-on time, for now main VDD turn on/off!
@@ -890,6 +935,8 @@ void mobo_clock_division(U32 frequency) {
 				break;
 			}
 		}
+
+		gpio_disable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
 
 		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 

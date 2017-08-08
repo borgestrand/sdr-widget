@@ -227,6 +227,11 @@ int main(void)
 {
 int i;
 
+	// Avoid burning power in LEDs next to MCU
+	LED_Off(LED0);							// The LEDs on the PCB near the MCU
+	LED_Off(LED1);
+
+
 	// Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
 	wdt_disable();
 
@@ -388,13 +393,10 @@ int i;
 	// Overriden by #if LED_STATUS == LED_STATUS_AB in SDRwdgt.h
 	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 	{														// With UAC1:
-		gpio_clr_gpio_pin(AVR32_PIN_PX29);					// Clear RED light on external AB-1.1 LED
-		gpio_set_gpio_pin(AVR32_PIN_PX32);					// Set GREEN light on external AB-1.1 LED
-	}
+		mobo_led(FLED_GREEN);	}
 	else
 	{														// With UAC != 1
-		gpio_set_gpio_pin(AVR32_PIN_PX29);					// Set RED light on external AB-1.1 LED
-		gpio_clr_gpio_pin(AVR32_PIN_PX32);					// Clear GREEN light on external AB-1.1 LED
+		mobo_led(FLED_RED);
 	}
 #endif
 
