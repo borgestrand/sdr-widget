@@ -161,6 +161,8 @@ volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8805_PLL_N
 //!
 void wm8805_poll(void) {
 
+	gpio_tgl_gpio_pin(AVR32_PIN_PX43); // ch5 p88
+
 	// Arbitrary startup delay ATD
 	#define pausecounter_initial 20000
 	#define startup_empty_runs 40 // Was 40 // Will this help for cold boot?
@@ -172,7 +174,6 @@ void wm8805_poll(void) {
 	 * 400 - 14s
 	 *
 	 */
-
 
 
     uint8_t wm8805_int = 0;										// WM8805 interrupt status
@@ -384,7 +385,6 @@ void wm8805_poll(void) {
 		}
 	}
 
-
 	// Polling interrupt monitor, only use when WM8805 is on
 	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_status.powered == 1) ) {
 		wm8805_status.reliable = 0;					// RX is not stable
@@ -393,7 +393,8 @@ void wm8805_poll(void) {
 			wm8805_status.muted = 1;
 		}
 
-		// 2*50 if clean, up to 20*50 if not clean. PLL change typically uses two interrupts
+
+		// 2*30 if clean, up to 20*30 if not clean. PLL change typically uses two interrupts
 		int i = 20;
 		while (i > 0) {
 			vTaskDelay(30);
@@ -575,8 +576,8 @@ void wm8805_input(uint8_t input_sel) {
 
 void wm8805_pll(void) {
 	uint8_t pll_sel = WM8805_PLL_NONE;
-
 	wm8805_status.frequency = wm8805_srd();
+
 	if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
 		  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
 		if (wm8805_status.frequency == FREQ_192)
@@ -708,26 +709,24 @@ uint8_t wm8805_read_byte(uint8_t int_adr) {
 // Wrapper test code
 uint32_t wm8805_srd(void) {
 	U32 freq = FREQ_44;
-	U32 freq_prev;
-	int i;
+	U32 freq_prev = FREQ_INVALID;
+	int timeouts = 0;
+	int consecutives = 0;
 
-	i = 0;
-	freq_prev = FREQ_INVALID;
-	// 5 can fail
-	// 10 seems solid but hard to say with only Juli@ as source 1 failure in N...
-	// 14 1/20 failed to detect 96
-	// 20 1/35 failed to detect 176.4
-	// 30 1/26 failed to detect 96, seen as prev. song, wait longer to try to determine sample rate?
-	// Even 400 will fail some times!
-
-	while ( (i < 4) || ( (freq == FREQ_TIMEOUT) && (i < 80) ) ) {
+	while ( (consecutives < 4) && (timeouts < 4) ) {
 		freq = wm8805_srd_asm2();
-//		print_dbg_char('g');
-		vTaskDelay(10);
-		if ( (freq == freq_prev) && (freq != FREQ_TIMEOUT) )
-			i++;
+		if ( (freq == freq_prev) && (freq != FREQ_TIMEOUT) ) {
+			consecutives ++;
+		}
+		else {
+			timeouts ++;
+			consecutives = 0;
+		}
 		freq_prev = freq;
 	}
+
+	if (timeouts >= 4)
+		freq = FREQ_TIMEOUT;
 
 /*
 	if (freq == FREQ_44)

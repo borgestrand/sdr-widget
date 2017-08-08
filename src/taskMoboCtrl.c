@@ -1108,38 +1108,38 @@ static void vtaskMoboCtrl( void * pcParameters )
         LED_Toggle(LED2); // FIX: Needed???
 		
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-			wm8805_poll();									// Handle WM8805's various hardware needs
+		wm8805_poll();									// Handle WM8805's various hardware needs
 #endif
 
 #ifdef HW_GEN_DIN20
-           	if (mobo_usb_detect() != usb_ch) {
-           		print_dbg_char('#');
+		if (mobo_usb_detect() != usb_ch) {
+			print_dbg_char('#');
 
-           		if (usb_ch_counter++ > 2) {					// Different USB plug for some time:
-					usb_ch_swap = USB_CH_SWAPDET;			// Signal USB audio tasks to take mute and mutex action
-                    vTaskDelay(200);						// Chill for a while, at least one execution of uac?_device_audio_task
-                	mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
-                    vTaskDelay(500);						// Chill for a while, at least one execution of uac?_device_audio_task
-                    usb_ch = mobo_usb_detect();
+			if (usb_ch_counter++ > 2) {					// Different USB plug for some time:
+				usb_ch_swap = USB_CH_SWAPDET;			// Signal USB audio tasks to take mute and mutex action
+				vTaskDelay(200);						// Chill for a while, at least one execution of uac?_device_audio_task
+				mobo_usb_select(USB_CH_NONE);			// Disconnect USB cables. Various house keeping in other tasks...
+				vTaskDelay(500);						// Chill for a while, at least one execution of uac?_device_audio_task
+				usb_ch = mobo_usb_detect();
 
-					#ifdef USB_STATE_MACHINE_DEBUG			// Report what just happened
-						if (usb_ch == USB_CH_A)
-							print_dbg_char('a');
-						else if (usb_ch == USB_CH_B)
-							print_dbg_char('b');
-					#endif
+				#ifdef USB_STATE_MACHINE_DEBUG			// Report what just happened
+					if (usb_ch == USB_CH_A)
+						print_dbg_char('a');
+					else if (usb_ch == USB_CH_B)
+						print_dbg_char('b');
+				#endif
 
-					mobo_usb_select(usb_ch);
+				mobo_usb_select(usb_ch);
 
-                	if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
-						print_dbg_char('X');
-                		mobo_led_select(FREQ_44, input_select);	// Change LED according to recently plugged in USB cable. Assume 44.1
-                	}
+				if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
+					print_dbg_char('X');
+					mobo_led_select(FREQ_44, input_select);	// Change LED according to recently plugged in USB cable. Assume 44.1
+				}
 
-                	usb_ch_swap = USB_CH_NOSWAP;
-                	usb_ch_counter = 0;
-           		}
-           	}
+				usb_ch_swap = USB_CH_NOSWAP;
+				usb_ch_counter = 0;
+			}
+		}
 #endif
 		
         vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
