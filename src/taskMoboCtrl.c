@@ -1132,7 +1132,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 				mobo_usb_select(usb_ch);
 
 				if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
-					print_dbg_char('X');
+//					print_dbg_char('X');
 					mobo_led_select(FREQ_44, input_select);	// Change LED according to recently plugged in USB cable. Assume 44.1
 				}
 

@@ -161,8 +161,6 @@ volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8805_PLL_N
 //!
 void wm8805_poll(void) {
 
-	gpio_tgl_gpio_pin(AVR32_PIN_PX43); // ch5 p88
-
 	// Arbitrary startup delay ATD
 	#define pausecounter_initial 20000
 	#define startup_empty_runs 40 // Was 40 // Will this help for cold boot?
@@ -175,7 +173,6 @@ void wm8805_poll(void) {
 	 *
 	 */
 
-
     uint8_t wm8805_int = 0;										// WM8805 interrupt status
     static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
 	static int16_t pausecounter = pausecounter_initial;						// Initiated to a value much larger than what is seen in practical use
@@ -183,7 +180,6 @@ void wm8805_poll(void) {
 	static int16_t lockcounter = 0;
 	int16_t pausecounter_temp;
 	int16_t unlockcounter_temp;
-
 
 	// Run the first 40 iterations without starting up. (40*120/10 = 480ms)
 	if (pausecounter >= pausecounter_initial - startup_empty_runs) {
@@ -248,7 +244,7 @@ void wm8805_poll(void) {
 	if (input_select == MOBO_SRC_NONE) {
 		if (wm8805_status.powered == 0) {
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
-			wm8805_status.pllmode = WM8805_PLL_NONE;			// Force PLL re-init
+			wm8805_status.pllmode = WM8805_PLL_NONE;	// Force PLL re-init
 //			print_dbg_char('0');
 			wm8805_status.powered = 1;
 			wm8805_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.

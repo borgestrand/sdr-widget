@@ -150,7 +150,6 @@ void send_descriptor(U16 wLength, Bool zlp) {
 	Usb_ack_control_out_received_free();
 }
 
-/*
 // Sample rate triplet. Windows 10 Creators Update refused. Use single frequencies.
 // This will cause the ASIO driver to not see the 196ksps definition.
 // To fix -that- search for "triplets" in the ASIO driver code and change the array size from 64 to 128.
@@ -182,8 +181,8 @@ const U8 Speedx[74] = {
 	0x00,0x00,0x00,0x00,	// 0 Res
 };
 
-*/
 
+/*
 // Sample rate triplet. Works in Win10 build 16232 and in ASIO driver
 const U8 Speedx[38] = {
 	0x03, 0x00, // Number of sample rate triplets
@@ -200,7 +199,7 @@ const U8 Speedx[38] = {
 	0x00,0xee,0x02,0x00,	//192k Max
 	0xf0,0x3c,0x00,0x00,	//192-176.4 Res
 };
-
+*/
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
