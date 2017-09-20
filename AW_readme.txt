@@ -85,7 +85,7 @@ hardware exist:
 - Single-board Audio Widget hardware by George Boudreau / Yoyodyne consulting
   ...
 
-- Modular Audio Widget by Børge Strand-Bergesen / QNKTC
+- Modular Audio Widget by BÃ¸rge Strand-Bergesen / QNKTC
   The USB-I2S module sits on a separate Analog Board. The module may be moved
   onto other analog boards. The Analog Board is made to be modded if one wants
   to. These implementations have been named AB-1, AB-1.1, AB-1.12, AB-1.13 and
