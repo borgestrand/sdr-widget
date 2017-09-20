@@ -528,19 +528,19 @@ up if things are tricky the first time!
      This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.7"
 
 4  - Copy files from Add_to_flip345_bin.zip from
-	 https://github.com/borgestrand/widget_binaries/blob/master/Add_to_flip345_bin.zip?raw=true
+     https://github.com/borgestrand/widget_binaries/blob/master/Add_to_flip345_bin.zip?raw=true
      to folder 
      "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
 
 5  - Download the latest firmware from 
      https://github.com/borgestrand/widget_binaries
-	 or
-	 http://code.google.com/p/sdr-widget/downloads/list
+     or
+     http://code.google.com/p/sdr-widget/downloads/list
      or from the /Release folder of locally compiled firmware. Save it to 
      somewhere convenient, for example
      "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
-	 For volume control in the Henry Audio USB DAC 128 mkII use this file:
-	 https://github.com/borgestrand/widget_binaries/blob/master/awx_20160323_volume_control.elf?raw=true
+     For volume control in the Henry Audio USB DAC 128 mkII use this file:
+     https://github.com/borgestrand/widget_binaries/blob/master/awx_20160323_volume_control.elf?raw=true
 
 6  - Do the following. Ignore and approve any messages about driver not being 
      signed. Start, Run, hdwwiz.exe, Next, Install the hardware ... manually, 
