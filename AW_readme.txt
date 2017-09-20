@@ -528,7 +528,7 @@ up if things are tricky the first time!
      This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.7"
 
 4  - Copy files from Add_to_flip345_bin.zip from
-     https://github.com/borgestrand/widget_binaries/blob/master/ASIO_bin_patch_20140429.zip?raw=true
+	 https://github.com/borgestrand/widget_binaries/blob/master/Add_to_flip345_bin.zip?raw=true
      to folder 
      "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
 
