@@ -591,10 +591,10 @@ void audio_get_cur(void) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
 					   print_dbg_char('g');
-//					   print_dbg_char('L');
-//					   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
-//					   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
-//					   print_dbg_char('\n');
+					   print_dbg_char('L');
+					   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+					   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
+					   print_dbg_char('\n');
 #endif
 
 					}
@@ -712,10 +712,10 @@ void audio_set_cur(void)
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				   print_dbg_char('s');
-//				   print_dbg_char('L');
-//				   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
-//				   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
-//				   print_dbg_char('\n');
+				   print_dbg_char('L');
+				   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
+				   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
+				   print_dbg_char('\n');
 #endif
 
 			   }
