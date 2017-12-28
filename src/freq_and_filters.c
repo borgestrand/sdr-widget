@@ -71,9 +71,9 @@ void SetFilter(uint32_t freq)
 	uint8_t i;
 	#endif
 
-	#if SCRAMBLED_FILTERS						// Enable a non contiguous order of filters
+//	#if SCRAMBLED_FILTERS						// Enable a non contiguous order of filters
 	uint8_t data;
-	#endif
+//	#endif
 
 	sint32_t Freq;
 

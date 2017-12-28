@@ -50,41 +50,41 @@
 
 /*! \name Features to include at compile time. */
 //! @{
-#define MOBO_FUNCTIONS		1	// AD7991/AD5301/TMP100, P/SWR etc...  (needs I2C driver)
+#define MOBO_FUNCTIONS		0 // 1 Disabled 20171228	// AD7991/AD5301/TMP100, P/SWR etc...  (needs I2C driver)
 								// Without this, we have a simple Si570 control
 // None, or only one of the two, CALC_FREQ_MUL_ADD or CALC_BAND_MUL_ADD should be selected
 #define CALC_FREQ_MUL_ADD	0	// Frequency Subtract and Multiply Routines (for smart VFO)
 								// normally not needed with Mobo 4.3.   *OR*
-#define CALC_BAND_MUL_ADD	1	// Band dependent Frequency Subtract and Multiply Routines
+#define CALC_BAND_MUL_ADD	0 // 1 Disabled 20171228	// Band dependent Frequency Subtract and Multiply Routines
 								// (for smart VFO) normally not needed with Mobo 4.3.
 
-#define BPF_LPF_Module		1	// Band Pass and Low Pass filter switcing
+#define BPF_LPF_Module		0 // 1 Disabled 20171228	// Band Pass and Low Pass filter switcing
 
-#define SCRAMBLED_FILTERS	1	// Enable a non contiguous order of filters
+#define SCRAMBLED_FILTERS	0 // 1 Disabled 20171228	// Enable a non contiguous order of filters
 
 // Low Pass Filters for Transmit ----------------------------------------------------------
-#define TX_FILTERS			1	// Enable TX filter selection, including one of the four options below
+#define TX_FILTERS			0 // 1 Disabled 20171228	// Enable TX filter selection, including one of the four options below
 // Only one of the four below should be selected, if TX_FILTERS is selected
-#define	PCF_LPF				1	// External Port Expander Control of Low Pass filters
+#define	PCF_LPF				0 // 1 Disabled 20171228	// External Port Expander Control of Low Pass filters
 #define	PCF_16LPF			0	// External Port Expander Control of 16 Low Pass filters
 #define PCF_FILTER_IO		0	// 8x BCD control for LPF switching, switches P1 pins 4-6
 #define M0RZF_FILTER_IO		0	// M0RZF 20W amplifier LPF switching, switches P1 pins 4-6
 
-#define FRQ_CGH_DURING_TX	1	// Allow Si570 Frequency change during TX
+#define FRQ_CGH_DURING_TX	0 // 1 Disabled 20171228	// Allow Si570 Frequency change during TX
 #define FLTR_CGH_DURING_TX	0	// Allow Filter changes when frequency is changed during TX
 
 // Transmit specific features --------------------------------------------------------------
-#define POWER_SWR           1   // Measure, and if LCD, display Power and SWR.
+#define POWER_SWR           0 // 1 Disabled 20171228   // Measure, and if LCD, display Power and SWR.
                                 // If not defined, while LCD is defined, then
                                 // LCD displays Vdd and I-Pa
-#define SWR_ALARM_FUNC      1   // SWR alarm function, activates a secondary PTT
+#define SWR_ALARM_FUNC      0 // 1 Disabled 20171228   // SWR alarm function, activates a secondary PTT
                                 // with auto Hi-SWR shutdown. Is dependent
                                 // on POWER_SWR being defined as well
 #define REVERSE_PTT2_LOGIC	0	// Reverse the logic of the PTT2 signal pin
 
-#define	FAN_CONTROL			1	// Turn PA Cooling FAN On/Off, based on temperature
+#define	FAN_CONTROL			0 // 1 Disabled 20171228	// Turn PA Cooling FAN On/Off, based on temperature
 // Only one of the two below is selected with the FAN Control
-#define	BUILTIN_PCF_FAN		1	// This alternative uses a pin on the builtin PCF8574
+#define	BUILTIN_PCF_FAN		0 // 1 Disabled 20171228	// This alternative uses a pin on the builtin PCF8574
 								// pin is definable by Cmd 64 index 3, normally header P1, pin 5
 #define	EXTERN_PCF_FAN		0	// This alternative uses a pin on an external PCF8574
 								// pin is definable by Cmd 64 index 3
@@ -93,7 +93,7 @@
 #define	TX_BARGRAPH_dB		0	// TX audio bargraph in dB or VU-meter style
 
 // Menu Function specific features --------------------------------------------------------
-#define PRG_AS_PUSH_BUTTON	1	// Activates the PRG button as a second optional Push Button
+#define PRG_AS_PUSH_BUTTON	0 // 1 Disabled 20171228	// Activates the PRG button as a second optional Push Button
 								// used for the Menu Functions.
 
 // Tests and Debug ------------------------------------------------------------------------

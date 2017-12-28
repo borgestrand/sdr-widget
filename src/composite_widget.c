@@ -380,9 +380,12 @@ int i;
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
 //	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
+
+	// Does this change taskMoboCtrol infinite loop response?
+	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
+
 #endif
 
-	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
 
 //clear samplerate indication
 #if defined(HW_GEN_AB1X)

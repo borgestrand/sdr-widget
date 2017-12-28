@@ -705,6 +705,18 @@ static void vtaskMoboCtrl( void * pcParameters )
 		time = 	rtc_get_value(&AVR32_RTC);
 
 
+#ifdef USB_STATE_MACHINE_DEBUG
+	print_dbg_char('1');
+#endif
+
+	vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
+
+    }
+
+	// Drop rest of infinite task...
+	if (0) {
+
+
 		// Prog button poll stuff BSB 20110903
 
 		//-------------------------------------------
@@ -724,6 +736,8 @@ static void vtaskMoboCtrl( void * pcParameters )
    		{
     		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
 
+
+
 /*		// FIX: Flash writes creates ticks. Much faster (or interruptable code) is needed!
     		// Has volume setting changed recently? If so store it to flash
     		if (spk_vol_usb_L_local == VOL_INVALID) {
@@ -741,6 +755,12 @@ static void vtaskMoboCtrl( void * pcParameters )
             	usb_volume_flash(CH_RIGHT, spk_vol_usb_R, VOL_WRITE);
     		}
 */
+
+    		if (gpio_get_pin_value(PRG_BUTTON) == 0) {
+				#ifdef USB_STATE_MACHINE_DEBUG
+					print_dbg_char('p');
+				#endif
+    		}
 
     		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) {	// If Prog button pressed and not yet handled..
     			// At first detection of Prog pin change AB-1.x / USB DAC 128 mkI/II front LEDs for contrast:
@@ -1018,6 +1038,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Asked for TX on, TX not yet on and no Temperature alarm
    		if (TX_flag && !TX_state && !TMP_alarm)
 		{
+
+print_dbg_char('2');
+
+
 			LED_Off(LED0);
 
 			TX_state = TRUE;
@@ -1057,6 +1081,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Asked for TX off, TX still on, or if Temperature Alarm
 		else if ((!TX_flag && TX_state) || (TMP_alarm && TX_state))
 		{
+
+print_dbg_char('3');
+
 			LED_On(LED0);
 
 			TX_state = FALSE;
@@ -1143,6 +1170,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 #endif
 		
         vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
+
+
+print_dbg_char('4');
+
     }
 }
 
