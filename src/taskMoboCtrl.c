@@ -708,14 +708,14 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 	while( 1 )
     {
-		vTaskDelayUntil(&xLastWakeTime, 120); // This is the delay method used in other tasks
+		vTaskDelayUntil(&xLastWakeTime, configTSK_MoboCtrl_PERIOD); // This is the delay method used in other tasks
 
 		// Poll Real Time Clock, used for 100ms and 10s timing below
 //		time = 	rtc_get_value(&AVR32_RTC);
 
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('t'); // mobodebug
+		//print_dbg_char('t'); // mobodebug
 		print_dbg_char_nibble(input_select);
 #endif
 
