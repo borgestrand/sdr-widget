@@ -196,6 +196,13 @@ void uac2_device_audio_task(void *pvParameters)
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
 
+		static int thenumber = 0;
+		if (thenumber++ == 1000) {
+			print_dbg_char('r'); // mobodebug
+			thenumber = 0;
+		}
+
+
 		// Process digital input
 		#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 			mobo_handle_spdif(32); // UAC2 uses 32-bit data
@@ -884,6 +891,8 @@ void uac2_device_audio_task(void *pvParameters)
 								input_select = MOBO_SRC_NONE;
 						#endif
 	//						mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
+					#else // HW_GEN_AB1X
+//						input_select = MOBO_SRC_NONE;
 					#endif
 
 				}

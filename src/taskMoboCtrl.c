@@ -699,19 +699,29 @@ static void vtaskMoboCtrl( void * pcParameters )
 	// Prog button poll stuff BSB 20110903
 	gpio_enable_pin_glitch_filter(PRG_BUTTON);
 
+
+
+	portTickType xLastWakeTime;
+	xLastWakeTime = xTaskGetTickCount();
+
+
+
 	while( 1 )
     {
+		vTaskDelayUntil(&xLastWakeTime, 120); // This is the delay method used in other tasks
+
 		// Poll Real Time Clock, used for 100ms and 10s timing below
-		time = 	rtc_get_value(&AVR32_RTC);
+//		time = 	rtc_get_value(&AVR32_RTC);
 
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('1');
+		print_dbg_char('t'); // mobodebug
+		print_dbg_char_nibble(input_select);
 #endif
 
-	vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
+//	vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
 
-    }
+    } // mobodebug
 
 	// Drop rest of infinite task...
 	if (0) {
@@ -1038,10 +1048,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Asked for TX on, TX not yet on and no Temperature alarm
    		if (TX_flag && !TX_state && !TMP_alarm)
 		{
-
-print_dbg_char('2');
-
-
 			LED_Off(LED0);
 
 			TX_state = TRUE;
@@ -1081,9 +1087,6 @@ print_dbg_char('2');
 		// Asked for TX off, TX still on, or if Temperature Alarm
 		else if ((!TX_flag && TX_state) || (TMP_alarm && TX_state))
 		{
-
-print_dbg_char('3');
-
 			LED_On(LED0);
 
 			TX_state = FALSE;
@@ -1170,10 +1173,6 @@ print_dbg_char('3');
 #endif
 		
         vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
-
-
-print_dbg_char('4');
-
     }
 }
 
