@@ -878,6 +878,8 @@ void uac2_device_audio_task(void *pvParameters)
 					// Clear buffers before give
 					mobo_clear_dac_channel();
 
+					// mobodebug is this another scheduler thief?
+
 					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 						ledSet = FALSE;
 						#ifdef USB_STATE_MACHINE_DEBUG
