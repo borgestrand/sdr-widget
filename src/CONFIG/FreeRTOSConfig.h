@@ -197,7 +197,7 @@ to exclude the API function. */
 /* taskMoboCtrl definitions. */
 #define configTSK_MoboCtrl_NAME				  ((const signed portCHAR *)"taskMoboCtrl")
 #define configTSK_MoboCtrl_STACK_SIZE		  1024
-#define configTSK_MoboCtrl_PRIORITY			  (tskIDLE_PRIORITY + 2) // mobodebug // Was 0 // (tskIDLE_PRIORITY + 1) // Was 0
+#define configTSK_MoboCtrl_PRIORITY			  (tskIDLE_PRIORITY + 1) // mobodebug: +2 works, but we prefer imrpoved UAC2 code // Was 0 // (tskIDLE_PRIORITY + 1) // Was 0
 #define configTSK_MoboCtrl_PERIOD			  120
 
 /* taskPowerDisplay definitions. */

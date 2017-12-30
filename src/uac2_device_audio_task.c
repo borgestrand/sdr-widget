@@ -707,7 +707,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
 
-					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
+//					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
+					// mobodebug untested fix
+					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) && (playerStarted != FALSE) ) { // Oops, we just went silent, probably from pause
 						playerStarted = FALSE;
 
 						#ifdef HW_GEN_DIN20						// Dedicated mute pin
@@ -862,7 +864,7 @@ void uac2_device_audio_task(void *pvParameters)
 #else
 			if (1) {
 #endif
-				playerStarted = FALSE;
+//				playerStarted = FALSE;  // mobodebug, commented out here and included below
 				silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
 				#ifdef HW_GEN_DIN20								// Dedicated mute pin
@@ -870,14 +872,17 @@ void uac2_device_audio_task(void *pvParameters)
 						usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
 				#endif
 
-				if (input_select == MOBO_SRC_UAC2) {			// Set from playing nonzero USB
+//				if (input_select == MOBO_SRC_UAC2) {			// Set from playing nonzero USB
+				// mobodebug untested fix
+				if ( (input_select == MOBO_SRC_UAC2) && (playerStarted != FALSE) ) {			// Set from playing nonzero USB
+					playerStarted = FALSE;	// Inserted here in mobodebug untested fix, removed above
+
 					#ifdef HW_GEN_DIN20							// Dedicated mute pin
 						mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
 					#endif
 
 					// Clear buffers before give
 					mobo_clear_dac_channel();
-
 					// mobodebug is this another scheduler thief?
 
 					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
