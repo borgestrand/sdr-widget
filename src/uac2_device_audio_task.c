@@ -195,11 +195,19 @@ void uac2_device_audio_task(void *pvParameters)
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
-
+/*
 		static int thenumber = 0;
 		if (thenumber++ == 1000) {
 			print_dbg_char('r'); // mobodebug
 			thenumber = 0;
+		}
+*/
+
+		// Introduced into UAC2 code with mobodebug
+		// Must we clear the DAC buffer contents?
+		if (dac_must_clear == DAC_MUST_CLEAR) {
+			mobo_clear_dac_channel();
+			dac_must_clear = DAC_CLEARED;
 		}
 
 
@@ -718,7 +726,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// Clear buffers before give
 						mobo_clear_dac_channel();
-
 						// mobodebug Could this be the spot which sucks up CPU time with input_select == MOBO_SRC_UAC2
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
@@ -899,11 +906,8 @@ void uac2_device_audio_task(void *pvParameters)
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE)
 								input_select = MOBO_SRC_NONE;
 						#endif
-	//						mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
-					#else // HW_GEN_AB1X
-//						input_select = MOBO_SRC_NONE;
+//			 		   		mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
 					#endif
-
 				}
 			}
 		} // end opposite of usb_alternate_setting_out ==  1

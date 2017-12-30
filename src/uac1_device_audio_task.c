@@ -642,7 +642,9 @@ void uac1_device_audio_task(void *pvParameters)
 
 						Usb_ack_out_received_free(EP_AUDIO_OUT);
 
-						if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC1) ) { // Oops, we just went silent, probably from pause
+	//					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC1) ) { // Oops, we just went silent, probably from pause
+						// mobodebug untested fix
+						if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC1) && (playerStarted != FALSE) ) { // Oops, we just went silent, probably from pause
 							playerStarted = FALSE;
 
 							#ifdef HW_GEN_DIN20						// Dedicated mute pin
@@ -651,6 +653,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 							// Clear buffers for good measure! That may offload uac1_AK5394A_task() ?? and present a good mute to WM8805
 							mobo_clear_dac_channel();
+							// mobodebug possible cycle thief ???
 
 							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 								ledSet = FALSE;
@@ -793,7 +796,7 @@ void uac1_device_audio_task(void *pvParameters)
 #else
 				if (1) {
 #endif
-					playerStarted = FALSE;
+//					playerStarted = FALSE;  // mobodebug, commented out here and included below
 					silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
 					#ifdef HW_GEN_DIN20								// Dedicated mute pin
@@ -801,12 +804,18 @@ void uac1_device_audio_task(void *pvParameters)
 							usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
 					#endif
 
-					if (input_select == MOBO_SRC_UAC1) {			// Set from playing nonzero USB
+	//				if (input_select == MOBO_SRC_UAC1) {			// Set from playing nonzero USB
+					// mobodebug untested fix
+					if ( (input_select == MOBO_SRC_UAC1) && (playerStarted != FALSE) ) {			// Set from playing nonzero USB
+						playerStarted = FALSE;	// Inserted here in mobodebug untested fix, removed above
+
 						#ifdef HW_GEN_DIN20							// Dedicated mute pin
 							mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
 						#endif
 
+						// Clear buffers before give
 						mobo_clear_dac_channel();					// Silencing incoming (OUT endpoint) audio buffer for good measure.
+						// mobodebug is this another scheduler thief?
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
 							ledSet = FALSE;
@@ -827,6 +836,7 @@ void uac1_device_audio_task(void *pvParameters)
 					}
 				}
 			} // end opposite of usb_alternate_setting_out == 1
+
 
 			// BSB 20131201 attempting improved playerstarted detection
 				/* SPDIF reduced */

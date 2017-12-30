@@ -704,10 +704,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
-
-
-	while( 1 )
-    {
+	while (1) {
 		vTaskDelayUntil(&xLastWakeTime, configTSK_MoboCtrl_PERIOD); // This is the delay method used in other tasks. mobodebug: same effect as vTaskDelay(120)?
 
 		// Poll Real Time Clock, used for 100ms and 10s timing below

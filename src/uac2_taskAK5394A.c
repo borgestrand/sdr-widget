@@ -115,12 +115,13 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_AK5394A_PERIOD);
 
-
+/*
 		static int thenumber = 0;
 		if (thenumber++ == 1000) {
 			print_dbg_char('p'); // mobodebug
 			thenumber = 0;
 		}
+*/
 
 		// silence speaker if USB data out is stalled, as indicated by heart-beat counter
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
