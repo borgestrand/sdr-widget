@@ -57,7 +57,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_ADC_DEFAULT=feature_adc_none \
 	-DFEATURE_DAC_DEFAULT=feature_dac_generic \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_none \
-	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
+	-DFEATURE_LOG_DEFAULT=feature_log_none \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
 	-DFEATURE_PRODUCT_AB1x \
