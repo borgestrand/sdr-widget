@@ -705,17 +705,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (1) {
-
-		// mobodebug
-		static int thenumber = 0;
-		if (thenumber++ == 100) {
-			print_dbg_char('x'); // mobodebug
-			thenumber = 0;
-		}
-
-// Pick one:
-//		vTaskDelayUntil(&xLastWakeTime, configTSK_MoboCtrl_PERIOD); // This is the delay method used in other tasks. mobodebug: same effect as vTaskDelay(120)?
-		vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
+		vTaskDelayUntil(&xLastWakeTime, configTSK_MoboCtrl_PERIOD); // This is the delay method used in other tasks.
 
 		// Prog button poll stuff BSB 20110903
 
@@ -735,14 +725,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		btn_poll_Timerval = time/57000; // RTC on 115kHz, divide by 57000 for about 0.5s poll time
 
 		if (btn_poll_Timerval != btn_poll_lastIteration) {	// Once every 0.5 second, do stuff
-
-#ifdef USB_STATE_MACHINE_DEBUG
-		//print_dbg_char('t'); // mobodebug
-		print_dbg_char_nibble(input_select);
-#endif
-
-
-    		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
+			btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
 
 
 
