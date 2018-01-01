@@ -195,14 +195,6 @@ void uac2_device_audio_task(void *pvParameters)
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
-/*
-		static int thenumber = 0;
-		if (thenumber++ == 1000) {
-			print_dbg_char('r'); // mobodebug
-			thenumber = 0;
-		}
-*/
-
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents?
 		if (dac_must_clear == DAC_MUST_CLEAR) {
