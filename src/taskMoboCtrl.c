@@ -705,18 +705,14 @@ static void vtaskMoboCtrl( void * pcParameters )
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (1) {
-		vTaskDelayUntil(&xLastWakeTime, configTSK_MoboCtrl_PERIOD); // This is the delay method used in other tasks. mobodebug: same effect as vTaskDelay(120)?
+//		vTaskDelayUntil(&xLastWakeTime, configTSK_MoboCtrl_PERIOD); // This is the delay method used in other tasks. mobodebug: same effect as vTaskDelay(120)?
 
-		// Poll Real Time Clock, used for 100ms and 10s timing below
-//		time = 	rtc_get_value(&AVR32_RTC);
+		// Poll Real Time Clock, used for 0.5s, 100ms and 10s timing below
+		time = 	rtc_get_value(&AVR32_RTC);
 
 
-#ifdef USB_STATE_MACHINE_DEBUG
-		//print_dbg_char('t'); // mobodebug
-		print_dbg_char_nibble(input_select);
-#endif
 
-//	vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
+		vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
 
 
 /*		mobodebug, run with full feature set
@@ -741,8 +737,14 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 		btn_poll_Timerval = time/57000; // RTC on 115kHz, divide by 57000 for about 0.5s poll time
 
-		if (btn_poll_Timerval != btn_poll_lastIteration)		// Once every 1second, do stuff
-   		{
+		if (btn_poll_Timerval != btn_poll_lastIteration) {	// Once every 0.5 second, do stuff
+
+#ifdef USB_STATE_MACHINE_DEBUG
+		//print_dbg_char('t'); // mobodebug
+		print_dbg_char_nibble(input_select);
+#endif
+
+
     		btn_poll_lastIteration = btn_poll_Timerval;			// Make ready for next iteration
 
 
@@ -1171,7 +1173,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		}
 #endif
 		
-        vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
+//        vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()
     }
 }
 
