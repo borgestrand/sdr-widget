@@ -966,6 +966,10 @@ void mobo_clear_adc_channel(void) {
 void mobo_clear_dac_channel(void) {
 	int i;
 
+#ifdef USB_STATE_MACHINE_DEBUG
+	print_dbg_char('C');
+#endif
+
 //	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
 
 	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
