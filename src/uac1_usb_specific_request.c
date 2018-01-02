@@ -641,7 +641,7 @@ void audio_set_cur(void)
 		if (speed == 0) {		// 44.1khz
 
 #ifdef USB_STATE_MACHINE_DEBUG
-//			print_dbg_char('1'); // BSB debug 20121212
+			print_dbg_char('1'); // BSB debug 20121212
 #endif
 
 			current_freq.frequency = FREQ_44;
@@ -653,7 +653,7 @@ void audio_set_cur(void)
 		else {					// 48khz
 
 #ifdef USB_STATE_MACHINE_DEBUG
-//			print_dbg_char('2'); // BSB debug 20121212
+			print_dbg_char('2'); // BSB debug 20121212
 #endif
 
 	   		current_freq.frequency = FREQ_48;
