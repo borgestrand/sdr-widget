@@ -102,7 +102,7 @@ Release/widget.elf::
 	rm -f Release/widget.elf Release/src/features.o
 	./make-widget
 
-prod-test::
+prod-test:: 
 	rm -f Release/widget.elf Release/src/features.o
 	CFLAGS="$(PROD_TEST_DEFAULTS)" ./make-widget
 
