@@ -837,8 +837,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 
     		// Is the task switcher running???
 #ifdef USB_STATE_MACHINE_DEBUG
-    		else
-    			print_dbg_char_char(',');
+    		else {
+    			// print_dbg_char_char(',');
+    			print_dbg_char_nibble(input_select);
+    		}
 #endif
 
 

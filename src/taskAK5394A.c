@@ -264,6 +264,8 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 //	gpio_set_gpio_pin(AVR32_PIN_PX52); // ch5 p87
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+
+	// print_dbg_char_char('0');
 	mobo_clear_dac_channel(); // To avoid odd spurs which some times occur
 
    	taskENTER_CRITICAL();

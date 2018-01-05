@@ -118,6 +118,9 @@ void uac2_AK5394A_task(void *pvParameters) {
 		// silence speaker if USB data out is stalled, as indicated by heart-beat counter
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
 			if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
+
+				// This is quite busy while idle
+				// print_dbg_char_char('?');
 				mobo_clear_dac_channel();
 			}
 

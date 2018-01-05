@@ -226,6 +226,7 @@ void uac2_freq_change_handler() {
 //		}
 #else
 		spk_mute = TRUE; // mute speaker while changing frequency and oscillator
+		//print_dbg_char_char('=');
 		mobo_clear_dac_channel();
 
 		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
