@@ -198,7 +198,9 @@ void uac2_device_audio_task(void *pvParameters)
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents?
 		if (dac_must_clear == DAC_MUST_CLEAR) {
-			// print_dbg_char_char('7');
+			#ifdef USB_STATE_MACHINE_DEBUG
+				print_dbg_char_char('7');
+			#endif
 			mobo_clear_dac_channel();
 			dac_must_clear = DAC_CLEARED;
 		}
@@ -718,7 +720,9 @@ void uac2_device_audio_task(void *pvParameters)
 						#endif
 
 						// Clear buffers before give
-						// print_dbg_char_char('8');
+						#ifdef USB_STATE_MACHINE_DEBUG
+							print_dbg_char_char('8');
+						#endif
 						mobo_clear_dac_channel();
 						// mobodebug Could this be the spot which sucks up CPU time with input_select == MOBO_SRC_UAC2
 
@@ -883,7 +887,9 @@ void uac2_device_audio_task(void *pvParameters)
 					#endif
 
 					// Clear buffers before give
-					// print_dbg_char_char('9');
+					#ifdef USB_STATE_MACHINE_DEBUG
+						print_dbg_char_char('9');
+					#endif
 					mobo_clear_dac_channel();
 					// mobodebug is this another scheduler thief?
 

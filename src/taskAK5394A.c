@@ -265,7 +265,9 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 
-	// print_dbg_char_char('0');
+	#ifdef USB_STATE_MACHINE_DEBUG
+		print_dbg_char_char('0');
+	#endif
 	mobo_clear_dac_channel(); // To avoid odd spurs which some times occur
 
    	taskENTER_CRITICAL();
