@@ -839,7 +839,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 #ifdef USB_STATE_MACHINE_DEBUG
     		else {
     			// print_dbg_char_char(',');
-    			print_dbg_char_nibble(input_select);
+    			// print_dbg_char_nibble(input_select);
     		}
 #endif
 
