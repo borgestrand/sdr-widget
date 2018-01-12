@@ -677,6 +677,9 @@ void audio_set_cur(void)
 		}
 #else
 		spk_mute = TRUE; // mute speaker while changing frequency and oscillator
+		#ifdef USB_STATE_MACHINE_DEBUG
+			print_dbg_char_char('=');
+		#endif
 		mobo_clear_dac_channel();
 
 		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC1); // GPIO XO control and frequency indication

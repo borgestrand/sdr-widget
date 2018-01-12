@@ -202,6 +202,9 @@ void uac1_device_audio_task(void *pvParameters)
 
 		// Must we clear the DAC buffer contents?
 		if (dac_must_clear == DAC_MUST_CLEAR) {
+			#ifdef USB_STATE_MACHINE_DEBUG
+				print_dbg_char_char('7');
+			#endif
 			mobo_clear_dac_channel();
 			dac_must_clear = DAC_CLEARED;
 		}
@@ -652,6 +655,9 @@ void uac1_device_audio_task(void *pvParameters)
 							#endif
 
 							// Clear buffers for good measure! That may offload uac1_AK5394A_task() ?? and present a good mute to WM8805
+							#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char_char('8');
+							#endif
 							mobo_clear_dac_channel();
 							// mobodebug possible cycle thief ???
 
@@ -814,6 +820,9 @@ void uac1_device_audio_task(void *pvParameters)
 						#endif
 
 						// Clear buffers before give
+						#ifdef USB_STATE_MACHINE_DEBUG
+							print_dbg_char_char('9');
+						#endif
 						mobo_clear_dac_channel();					// Silencing incoming (OUT endpoint) audio buffer for good measure.
 						// mobodebug is this another scheduler thief?
 
