@@ -522,9 +522,8 @@ up if things are tricky the first time!
 2  - May be omitted depending on your setup: Install C++ runtime from Microsoft:
      http://www.microsoft.com/en-us/download/details.aspx?id=5555
 
-3  - Install Atmel Flip 3.4.7 from http://www.atmel.com/tools/FLIP.aspx and 
-     choose the version which requires Java Runtime Environment to be pre-
-     installed. (You want your Java from Oracle, not from Atmel!)
+3  - Install Atmel Flip 3.4.7 from 
+     https://www.ha-cache.eu/uploads/Flip_Installer_3.4.7.112.zip 
      This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.7"
 
 4  - Copy files from Add_to_flip345_bin.zip from
