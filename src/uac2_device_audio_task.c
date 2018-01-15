@@ -458,6 +458,11 @@ void uac2_device_audio_task(void *pvParameters)
 #endif
 
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
+
+#ifdef USB_STATE_MACHINE_DEBUG
+					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
+#endif
+
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);

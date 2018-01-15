@@ -419,7 +419,12 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 
 					if (Is_usb_out_received(EP_AUDIO_OUT)) {
-						spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
+
+#ifdef USB_STATE_MACHINE_DEBUG
+					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
+#endif
+
+					spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
