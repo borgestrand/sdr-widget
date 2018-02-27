@@ -75,7 +75,11 @@
 #define STD_AS_INTERFACE_OUT			0x03
 
 // IAD for Audio
-#define FIRST_INTERFACE1	2
+#ifdef FEATURE_CFG_INTERFACE
+	#define FIRST_INTERFACE1	2
+#else
+	#define FIRST_INTERFACE1	1 // Nope, that did not do the trick
+#endif
 // BSB 20130604 disabling UAC1 IN #define INTERFACE_COUNT1	3
 #define INTERFACE_COUNT1	2
 
