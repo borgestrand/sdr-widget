@@ -354,7 +354,7 @@ void audio_get_min(void)
          switch (wValue_msb) {
          case CS_MUTE:
             if( length==1 ) {
-               Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+               Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute);
             }
             break;
          case CS_VOLUME:
@@ -415,7 +415,7 @@ void audio_get_max(void) {
 	     switch (wValue_msb) {
 	      case CS_MUTE:
 	         if( length==1 ) {
-	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+	            Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute);
 	         }
 	         break;
 	      case CS_VOLUME:
@@ -476,7 +476,7 @@ void audio_get_res(void)
 	     switch (wValue_msb) {
 	      case CS_MUTE:
 	         if( length==1 ) {
-	            Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+	            Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute);
 	         }
 	         break;
 	      case CS_VOLUME:
@@ -573,7 +573,7 @@ void audio_get_cur(void) {
 		switch (wValue_msb) {
 			case CS_MUTE:
 				if (length == 1) {
-					Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+					Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute);
 				}
 				break;
 			case CS_VOLUME:
@@ -700,7 +700,7 @@ void audio_set_cur(void)
 	   if (wValue_msb == CS_MUTE) {
 		   if (length == 1) {
 			   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
-			   spk_mute = temp1;
+			   usb_spk_mute = temp1;
 		   }
 	   }
 	   else if (wValue_msb == CS_VOLUME) {

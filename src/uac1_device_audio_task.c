@@ -119,7 +119,7 @@ void uac1_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	ADC_buf_USB_IN = 0;
 	spk_index = 0;
 	DAC_buf_USB_OUT = 0;
-	mute = FALSE;
+	mute = FALSE; // Applies to ADC OUT endpoint
 	spk_mute = FALSE;
 
 	// With working volume flash
@@ -589,20 +589,27 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 	#ifdef FEATURE_VOLUME_CTRL
-							if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-								// 24-bit data words. First shift up to 32 bit. Do math and shift down
-								sample_L <<= 8;
-								sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
-								sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-								sample_L >>= 8;
-							}
 
-							if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-								// 24-bit data words. First shift up to 32 bit. Do math and shift down
-								sample_R <<= 8;
-								sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
-								sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
-								sample_R >>= 8;
+							if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
+								sample_L = 0;
+								sample_R = 0;
+							}
+							else {
+								if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+									// 24-bit data words. First shift up to 32 bit. Do math and shift down
+									sample_L <<= 8;
+									sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+									sample_L += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+									sample_L >>= 8;
+								}
+
+								if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+									// 24-bit data words. First shift up to 32 bit. Do math and shift down
+									sample_R <<= 8;
+									sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+									sample_R += rand8(); // dither in bits 7:0, will this be optimized away due to next line?
+									sample_R >>= 8;
+								}
 							}
 	#endif
 

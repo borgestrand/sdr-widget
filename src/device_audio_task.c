@@ -8,7 +8,9 @@
 //! mute is set to TRUE when ACTIVE
 //! mute is set to FALSE otherwise
 //!/
-volatile Bool mute, spk_mute;
+volatile Bool mute, spk_mute;	// These variables are written to extensively but not heeded in playback
+volatile uint8_t usb_spk_mute = 0; // This variable is written to by usb subsystem and heeded in playback
+
 volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal; // BSB 20131031 FB_rate_initial and FB_rate_nominal added and changed to S32
 // With working volume flash:
 // S16 spk_vol_usb_L = VOL_INVALID;			// BSB 20160320 Added stereo volume control

@@ -117,7 +117,7 @@ void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	ADC_buf_USB_IN = 0;
 	spk_index = 0;
 	DAC_buf_USB_OUT = 0;
-	mute = FALSE;
+	mute = FALSE; // applies to ADC OUT endpoint
 	spk_mute = FALSE;
 	ep_audio_in = ep_in;
 	ep_audio_out = ep_out;
@@ -646,18 +646,24 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 	#ifdef FEATURE_VOLUME_CTRL
-						if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-							// 32-bit data words volume control
-							sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
-							// rand8() too expensive at 192ksps
-							// sample_L += rand8(); // dither in bits 7:0
+						if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
+							sample_L = 0;
+							sample_R = 0;
 						}
+						else {
+							if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+								// 32-bit data words volume control
+								sample_L = (S32)( (int64_t)( (int64_t)(sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+								// rand8() too expensive at 192ksps
+								// sample_L += rand8(); // dither in bits 7:0
+							}
 
-						if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-							// 32-bit data words volume control
-							sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
-							// rand8() too expensive at 192ksps
-							// sample_R += rand8(); // dither in bits 7:0
+							if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+								// 32-bit data words volume control
+								sample_R = (S32)( (int64_t)( (int64_t)(sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+								// rand8() too expensive at 192ksps
+								// sample_R += rand8(); // dither in bits 7:0
+							}
 						}
 	#endif
 

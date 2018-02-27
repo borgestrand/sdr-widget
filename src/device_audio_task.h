@@ -86,6 +86,8 @@
 
 extern volatile S32 FB_rate, FB_rate_initial, FB_rate_nominal; // BSB 20131031 FB_rate_initial and FB_rate_nominal added and changed to S32
 extern volatile Bool mute, spk_mute;
+extern volatile uint8_t usb_spk_mute; // This variable is written to by usb subsystem and heeded in playback
+
 extern S16 spk_vol_usb_L, spk_vol_usb_R;			// BSB 20160320 added stereo volume control
 extern S32 spk_vol_mult_L, spk_vol_mult_R;
 

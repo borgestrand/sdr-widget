@@ -1010,16 +1010,16 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
 						if (wLength == 1)
-							Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+							Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute);
 						else if (wLength > 1) { // Linux seems to require 2 bytes of mute control
-							Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute);
+							Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute);
 							for (i = 0; i < (wLength - 1); i++)
-								Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute); // or 0
+								Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute); // or 0
 						}
 
 						// Trying to catch Win10 mute event
 						print_dbg_char('M');
-						print_dbg_char_hex(spk_mute);
+						print_dbg_char_hex(usb_spk_mute);
 						print_dbg_char(' ');
 
 
@@ -1291,11 +1291,11 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
 							}
 						}
-						spk_mute = temp1;
+						usb_spk_mute = temp1;
 
 						// Trying to catch Win10 mute event
 						print_dbg_char('m');
-						print_dbg_char_hex(temp1);
+						print_dbg_char_hex(usb_spk_mute);
 						print_dbg_char(' ');
 
 
