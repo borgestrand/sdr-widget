@@ -72,28 +72,38 @@
 
 //Audio Streaming (AS) interface descriptor
 // BSB 20130604 disabling UAC1 IN #define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
-#define STD_AS_INTERFACE_OUT			0x03
+#ifdef FEATURE_CFG_INTERFACE
+	#define STD_AS_INTERFACE_OUT			0x03
+#else
+	#define STD_AS_INTERFACE_OUT			0x03 // 0x02 changes startup to "FDqBEEEEEEEED"
+#endif
 
 // IAD for Audio
 #ifdef FEATURE_CFG_INTERFACE
 	#define FIRST_INTERFACE1	2
 #else
-	#define FIRST_INTERFACE1	1 // Nope, that did not do the trick
+	#define FIRST_INTERFACE1	2 // 1 Doesn't seem to do a lot
 #endif
 // BSB 20130604 disabling UAC1 IN #define INTERFACE_COUNT1	3
-#define INTERFACE_COUNT1	2
 
-// USB DG8SAQ Interface descriptor
-#define INTERFACE_NB0			    0
-#define ALTERNATE_NB0	            0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT0			    0                  //! The number of endpoints this interface has
-#define INTERFACE_CLASS0		    NO_CLASS          //! No Class
-#define INTERFACE_SUB_CLASS0        NO_SUBCLASS        //! No Subclass
-#define INTERFACE_PROTOCOL0    		NO_PROTOCOL		   //! No Protocol
-#define INTERFACE_INDEX0       		0
+#ifdef FEATURE_CFG_INTERFACE
+	#define INTERFACE_COUNT1	2
+#else
+	#define INTERFACE_COUNT1	2 // 1 Doesn't seem to do a lot
+#endif
 
-#define DSC_INTERFACE_DG8SAQ		INTERFACE_NB0
+#ifdef FEATURE_CFG_INTERFACE
+	// USB DG8SAQ Interface descriptor
+	#define INTERFACE_NB0			    0
+	#define ALTERNATE_NB0	            0                  //! The alt setting nb of this interface
+	#define NB_ENDPOINT0			    0                  //! The number of endpoints this interface has
+	#define INTERFACE_CLASS0		    NO_CLASS          //! No Class
+	#define INTERFACE_SUB_CLASS0        NO_SUBCLASS        //! No Subclass
+	#define INTERFACE_PROTOCOL0    		NO_PROTOCOL		   //! No Protocol
+	#define INTERFACE_INDEX0       		0
 
+	#define DSC_INTERFACE_DG8SAQ		INTERFACE_NB0
+#endif
 
 // USB HID Interface descriptor
 #define INTERFACE_NB1			    1

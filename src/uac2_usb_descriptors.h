@@ -71,17 +71,18 @@
 #define FUNCTION_PROTOCOL				IP_VERSION_02_00
 #define FUNCTION_INDEX					0
 
+#ifdef FEATURE_CFG_INTERFACE
+	// USB DG8SAQ Interface descriptor
+	#define INTERFACE_NB0			    	0
+	#define ALTERNATE_NB0	            	0                  //! The alt setting nb of this interface
+	#define NB_ENDPOINT0			    	0                  //! The number of endpoints this interface has
+	#define INTERFACE_CLASS0		    	NO_CLASS           //! No Class
+	#define INTERFACE_SUB_CLASS0        	NO_SUBCLASS        //! No Subclass
+	#define INTERFACE_PROTOCOL0    			NO_PROTOCOL		   //! No Protocol
+	#define INTERFACE_INDEX0       			0
 
-// USB DG8SAQ Interface descriptor
-#define INTERFACE_NB0			    	0
-#define ALTERNATE_NB0	            	0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT0			    	0                  //! The number of endpoints this interface has
-#define INTERFACE_CLASS0		    	NO_CLASS           //! No Class
-#define INTERFACE_SUB_CLASS0        	NO_SUBCLASS        //! No Subclass
-#define INTERFACE_PROTOCOL0    			NO_PROTOCOL		   //! No Protocol
-#define INTERFACE_INDEX0       			0
-
-#define DSC_INTERFACE_DG8SAQ			INTERFACE_NB0
+	#define DSC_INTERFACE_DG8SAQ			INTERFACE_NB0
+#endif
 
 // BSB 20120719 HID insertion begin
 // In most cases: translation from uac1 code follows pattern of NB1 -> NB4, NB2 -> NB5
