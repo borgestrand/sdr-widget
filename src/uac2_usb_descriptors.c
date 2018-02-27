@@ -109,7 +109,10 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     MAX_POWER
   }
 
-// Interface used by Widget-Control. No endpoints. Comes up as "Other device" in Windows
+
+// Config interface at endpoint 0
+  // Interface used by Widget-Control. No endpoints. Comes up as "Other device" in Windows
+#ifdef FEATURE_CFG_INTERFACE
   ,
 	{
 	sizeof(S_usb_interface_descriptor),
@@ -122,6 +125,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 	INTERFACE_PROTOCOL0,
 	INTERFACE_INDEX0
 	}
+#endif
 
   ,
   { sizeof(S_usb_interface_association_descriptor)
@@ -355,7 +359,9 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     MAX_POWER
   }
 
-  // Interface used by Widget-Control. No endpoints. Comes up as "Other device" in Windows
+// Interface used by Widget-Control. No endpoints. Comes up as "Other device" in Windows
+// Config interface at endpoint 0
+#ifdef FEATURE_CFG_INTERFACE
   ,
   {
     sizeof(S_usb_interface_descriptor),
@@ -368,7 +374,9 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     INTERFACE_PROTOCOL0,
     INTERFACE_INDEX0
   }
- ,
+#endif
+
+  ,
 
 //! Here is where Audio Class 2 specific stuff is
 

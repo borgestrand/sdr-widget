@@ -44,6 +44,7 @@ SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
+	-DFEATURE_CFG_INTERFACE \
 	-DFEATURE_PRODUCT_SDR_WIDGET 
 
 # These defaults are compiled into code, not necessarily forced
@@ -75,6 +76,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 # 	-DHW_GEN_DIN20 \
 #	-DUSB_STATE_MACHINE_DEBUG \
 #	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
+#	-DFEATURE_CFG_INTERFACE \						Enable the configuration interface at Endpoint 0
 
 
 ## Boot up with this code, reboot with feature_quirk_ptest set
@@ -94,6 +96,7 @@ PROD_TEST_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest \
 	-DVDD_SENSE \
 	-DHW_GEN_AB1X \
+	-DFEATURE_CFG_INTERFACE \
 	-DFEATURE_PRODUCT_AB1x
 
 all:: Release/widget.elf widget-control

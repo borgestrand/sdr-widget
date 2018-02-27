@@ -114,8 +114,9 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		MAX_POWER
 	}
 
-
- 	,
+	// Config interface at endpoint 0
+	#ifdef FEATURE_CFG_INTERFACE
+	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -127,6 +128,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
+	#endif
 
 	,
 	{
@@ -443,6 +445,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		MAX_POWER
 	}
 
+// Config interface at endpoint 0
+#ifdef FEATURE_CFG_INTERFACE
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -455,7 +459,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
-
+#endif
 
 	,
 	{
@@ -769,7 +773,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		MAX_POWER
 	}
 
-
+// Config interface at endpoint 0
+#ifdef FEATURE_CFG_INTERFACE
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -782,6 +787,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
+#endif
 
 	,
 	{
@@ -1090,6 +1096,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		MAX_POWER
 	}
 
+// Config interface at endpoint 0
+#ifdef FEATURE_CFG_INTERFACE
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -1102,6 +1110,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		INTERFACE_PROTOCOL0,
 		INTERFACE_INDEX0
 	}
+#endif
 
 	,
 	{

@@ -57,11 +57,18 @@
 
 // CONFIGURATION
 // BSB 20130604 disabling UAC1 IN #define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
-#define NB_INTERFACE	   4	//!  DG8SAQ, HID, Audio (2) OR 3 // HID, Audio (2)
-#define CONF_NB            1	//! Number of this configuration
-#define CONF_INDEX         0
-#define CONF_ATTRIBUTES    USB_CONFIG_BUSPOWERED  // default is bus-powered
-#define MAX_POWER          250  // 500mA for bus-powered operation
+
+// Config interface at endpoint 0
+#ifdef FEATURE_CFG_INTERFACE
+	#define NB_INTERFACE	4	//!  DG8SAQ, HID, Audio (2) OR 3 // HID, Audio (2)
+#else
+	#define NB_INTERFACE	3 // HID, Audio (2)
+#endif
+
+#define CONF_NB         	1	//! Number of this configuration
+#define CONF_INDEX        	0
+#define CONF_ATTRIBUTES   	USB_CONFIG_BUSPOWERED  // default is bus-powered FIX: make dynamic for USB-C applications!
+#define MAX_POWER         	250  // 500mA for bus-powered operation
 
 //Audio Streaming (AS) interface descriptor
 // BSB 20130604 disabling UAC1 IN #define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
@@ -291,7 +298,10 @@ __attribute__((__packed__))
 #endif
 {
 	  S_usb_configuration_descriptor cfg;
+// Config interface at endpoint 0
+#ifdef FEATURE_CFG_INTERFACE
 	  S_usb_interface_descriptor	 ifc0;
+#endif
 	  S_usb_interface_descriptor	ifc1;
 	  S_usb_hid_descriptor           hid;
 	  S_usb_endpoint_descriptor      ep1;

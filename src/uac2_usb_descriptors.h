@@ -51,7 +51,13 @@
 
 
 // CONFIGURATION
-#define NB_INTERFACE	   				4  // 4: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+// Config interface at endpoint 0
+#ifdef FEATURE_CFG_INTERFACE
+	#define NB_INTERFACE	4  // 4: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+#else
+	#define NB_INTERFACE	3  // 3: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+#endif
+
 #define CONF_NB            				1	//! Number of this configuration
 #define CONF_INDEX         				0
 #define CONF_ATTRIBUTES    				USB_CONFIG_BUSPOWERED  // default is bus-powered
@@ -310,7 +316,9 @@ __attribute__((__packed__))
 #endif
 {
 	S_usb_configuration_descriptor			cfg;
+#ifdef FEATURE_CFG_INTERFACE
 	S_usb_interface_descriptor	 			ifc0;			// Widget-Control endpoint
+#endif
 
 	//! Audio descriptors Class 2
 	S_usb_interface_association_descriptor	iad1;
