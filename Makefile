@@ -93,7 +93,7 @@ PROD_TEST_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_DAC_DEFAULT=feature_dac_generic \
 	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
-	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
+	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \ 
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_ptest \
 	-DVDD_SENSE \
 	-DHW_GEN_AB1X \
