@@ -622,6 +622,10 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	wLength
 			= usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
+	// Mute button push
+	// R2101.0114 type=OUT_CL_INTERFACE request=1 wIndex = 0x1401
+	// RA101.0114 type=IN_CL_INTERFACE request=1 wIndex = 0x1401
+
 	// BSB 20120720 copy from uac1_usb_specific_request begin
 
 	// It may look like the  OS is pulling the RX endpoint...
@@ -999,6 +1003,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return FALSE;
 #ifdef FEATURE_VOLUME_CTRL
 				case SPK_FEATURE_UNIT_ID:
+
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
 						Usb_ack_setup_received_free();
@@ -1011,6 +1016,12 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							for (i = 0; i < (wLength - 1); i++)
 								Usb_write_endpoint_data(EP_CONTROL, 8, spk_mute); // or 0
 						}
+
+						// Trying to catch Win10 mute event
+						print_dbg_char('M');
+						print_dbg_char_hex(spk_mute);
+						print_dbg_char(' ');
+
 
 						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
@@ -1150,7 +1161,8 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 				default:
 					return FALSE;
 				} // end switch EntityID
-			} else if (type == OUT_CL_INTERFACE) { // set controls
+			}
+			else if (type == OUT_CL_INTERFACE) { // set controls
 				switch (wIndex / 256) {
 				case CSD_ID_1: // set CUR freq of Mic
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -1263,8 +1275,10 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 #ifdef FEATURE_VOLUME_CTRL
 				case SPK_FEATURE_UNIT_ID:
+
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
+
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received())
 							;
@@ -1278,6 +1292,12 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							}
 						}
 						spk_mute = temp1;
+
+						// Trying to catch Win10 mute event
+						print_dbg_char('m');
+						print_dbg_char_hex(temp1);
+						print_dbg_char(' ');
+
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase

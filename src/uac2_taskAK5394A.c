@@ -121,7 +121,7 @@ void uac2_AK5394A_task(void *pvParameters) {
 
 				// This is quite busy while idle
 				#ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char_char('?');
+//					print_dbg_char_char('?');
 				#endif
 				mobo_clear_dac_channel();
 			}

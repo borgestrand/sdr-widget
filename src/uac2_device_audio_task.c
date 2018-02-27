@@ -726,7 +726,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// Clear buffers before give
 						#ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char_char('8');
+//							print_dbg_char_char('8');
 						#endif
 						mobo_clear_dac_channel();
 						// mobodebug Could this be the spot which sucks up CPU time with input_select == MOBO_SRC_UAC2

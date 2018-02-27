@@ -160,7 +160,7 @@ void uac1_AK5394A_task(void *pvParameters) {
 		if (old_spk_usb_heart_beat == spk_usb_heart_beat){
 			if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_NONE) ) {
 				#ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char_char('?');
+//					print_dbg_char_char('?');
 				#endif
 				mobo_clear_dac_channel();
 			}
