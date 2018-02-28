@@ -65,6 +65,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DVDD_SENSE \
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_VOLUME_CTRL \
+	-DFEATURE_CFG_INTERFACE \
 	-DHW_GEN_AB1X
 
 # Choose wisely:
@@ -76,7 +77,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 # 	-DHW_GEN_DIN20 \
 #	-DUSB_STATE_MACHINE_DEBUG \
 #	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
-#	-DFEATURE_CFG_INTERFACE \						Enable the configuration interface at Endpoint 0
+#	-DFEATURE_CFG_INTERFACE \						Enable the configuration interface at Endpoint 0. Disabling breaks UAC1
 
 
 ## Boot up with this code, reboot with feature_quirk_ptest set
