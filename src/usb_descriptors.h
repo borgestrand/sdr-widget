@@ -1490,7 +1490,7 @@ __attribute__((__packed__))
 	U8 	bDescriptorType;        /* CS_INTERFACE descriptor type */
 	U8 	bDescriptorSubType; 	/* FEATURE_UNIT  subtype */
 	U8		bUnitID;			/* Feature unit ID */
-	U8		bSourceID;			/* ID of the Unit or Terminal to which this teminal is connected to */
+	U8		bSourceID;			/* ID of the Unit or Terminal to which this terminal is connected to */
 	U32		bmaControls;	/* Master Channel 0*/
 	U32	    bmaControls_1;  // Channel 1
 	U32     bmaControls_2;  // Channel 2
