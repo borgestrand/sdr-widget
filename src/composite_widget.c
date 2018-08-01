@@ -247,6 +247,19 @@ int i;
 		return 42;
 
 
+
+	// Low power sleep test start
+	while (1) {
+		mobo_sleep_rtc_ms(500);
+		mobo_led(FLED_GREEN);
+		mobo_sleep_rtc_ms(500);
+		mobo_led(FLED_DARK);
+	}
+	// Low power sleep test end
+
+
+
+
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_AB1X)
 	gpio_set_gpio_pin(AVR32_PIN_PX51);						// Enables power to XO and DAC in USBI2C AB-1.X and USB DAC 128
 #endif

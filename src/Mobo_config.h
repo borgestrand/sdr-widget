@@ -22,6 +22,10 @@
 
 // Hardware control functions
 
+// Low-power sleep for a number of milliseconds by means of RTC
+// Use only during init, before any MCU hardware (including application use of RTC) is enabled.
+void mobo_sleep_rtc_ms(uint16_t time_ms);
+
 // Audio Widget select oscillator
 void mobo_xo_select(U32 frequency, uint8_t source);
 
@@ -128,6 +132,9 @@ void  mobo_i2s_enable(uint8_t i2s_mode);
 											// even if the LCD is set to display temp in deg F
 
 #define RTC_COUNTER_MAX		1150000			// Max count for the 115kHz Real Time Counter (10 seconds)
+#define RTC_COUNTER_FREQ	115000			// Nominal frequency of Real Time Counter in Hz
+
+
 
 //
 //-----------------------------------------------------------------------------

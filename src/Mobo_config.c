@@ -17,6 +17,9 @@
 // Power module and clock control
 #include "pm.h"
 
+// Real-time counter management
+#include "rtc.h"
+
 // To access global input source variable
 #include "device_audio_task.h"
 
@@ -32,6 +35,29 @@
 #include "PCF8574.h"
 #include "TMP100.h"
 */
+
+
+// Low-power sleep for a number of milliseconds by means of RTC
+// Use only during init, before any MCU hardware (including application use of RTC) is enabled.
+
+void mobo_rtc_waken(volatile avr32_rtc_t *rtc, uint8_t enable) {
+	while (rtc_is_busy(rtc));
+	if (enable)
+		rtc->ctrl |= AVR32_RTC_WAKE_EN_MASK;		// Set waken
+	else
+		rtc->ctrl &= ~AVR32_RTC_WAKE_EN_MASK;		// Clear waken
+}
+
+void mobo_sleep_rtc_ms(uint16_t time_ms) {
+	mobo_rtc_waken(&AVR32_RTC, 0);								// Clear waken before sleeping
+	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);			// RC clock at 115kHz, clear RTC
+	rtc_disable_interrupt(&AVR32_RTC);				// For good measure
+	rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_FREQ / 1000 * time_ms);	// Counter reset after time_ms ms
+	mobo_rtc_waken(&AVR32_RTC, 1);								// Set waken before sleeping
+	rtc_enable(&AVR32_RTC);
+	SLEEP(AVR32_PM_SMODE_DEEP_STOP);				// Disable all but RC clock
+}
+
 
 #ifdef HW_GEN_AB1X
 	void mobo_led(uint8_t fled) {

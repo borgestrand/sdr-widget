@@ -83,6 +83,8 @@ int rtc_init(volatile avr32_rtc_t *rtc, unsigned char osc_type, unsigned char ps
               psel << AVR32_RTC_CTRL_PSEL_OFFSET |
               AVR32_RTC_CTRL_CLKEN_MASK;
 
+  // BSB: For definitions see C:\Program Files (x86)\Atmel\AVR Tools\AVR Toolchain\avr32\include\avr32\rtc_231.h
+
   // Wait until write is done
   while (rtc_is_busy(rtc));
 
