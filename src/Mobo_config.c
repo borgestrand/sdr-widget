@@ -49,11 +49,11 @@ void mobo_rtc_waken(volatile avr32_rtc_t *rtc, uint8_t enable) {
 }
 
 void mobo_sleep_rtc_ms(uint16_t time_ms) {
-	mobo_rtc_waken(&AVR32_RTC, 0);								// Clear waken before sleeping
-	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);			// RC clock at 115kHz, clear RTC
+	mobo_rtc_waken(&AVR32_RTC, 0);					// Clear waken before sleeping
+	rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);			// RC clock at 115kHz, clear RTC, prescaler n=0 encoding freq/=2^(n+1)
 	rtc_disable_interrupt(&AVR32_RTC);				// For good measure
-	rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_FREQ / 1000 * time_ms);	// Counter reset after time_ms ms
-	mobo_rtc_waken(&AVR32_RTC, 1);								// Set waken before sleeping
+	rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_FREQ / 1000 / 2 * time_ms);	// Counter reset after time_ms ms, accounting for prescaler n=0 encoding freq/=2^(n+1)
+	mobo_rtc_waken(&AVR32_RTC, 1);					// Set waken before sleeping
 	rtc_enable(&AVR32_RTC);
 	SLEEP(AVR32_PM_SMODE_DEEP_STOP);				// Disable all but RC clock
 }
