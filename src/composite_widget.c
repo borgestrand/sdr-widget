@@ -247,7 +247,7 @@ int i;
 		return 42;
 
 
-
+/*
 	// Low power sleep test start
 	while (1) {
 		mobo_sleep_rtc_ms(500); // Hm, it seems to be running for twice as long as desired...
@@ -256,7 +256,7 @@ int i;
 		mobo_led(FLED_DARK);
 	}
 	// Low power sleep test end
-
+*/
 
 
 
