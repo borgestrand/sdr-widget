@@ -437,7 +437,7 @@ void uac1_device_audio_task(void *pvParameters)
 							old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
 							skip_enable = 0;					// BSB 20131115 Not skipping yet...
 							skip_indicate = 0;
-							usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
+							usb_buffer_toggle = 0;		   		// BSB 20131201 Attempting improved playerstarted detection
 							dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
 							// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF
