@@ -1100,7 +1100,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
 						}
 
-						else if (wLength == 0x10) { // Is this ever used? Some weird Linux state? Filling it with 0x10 entries confused Win10 in UAC2
+						// Is this ever used? Some weird Linux state? Filling it with 0x10 entries confused Win10 in UAC2
+						// I believe Sue's phone may be doing this....
+						else if (wLength == 0x10) {
 //							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, 1));
 //							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
 //							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
