@@ -354,10 +354,10 @@
   Usb_unicode('0'),\
   Usb_unicode('1'),\
   Usb_unicode('8'),\
-  Usb_unicode('0'),\
-  Usb_unicode('4'),\
+  Usb_unicode('1'),\
+  Usb_unicode('1'),\
+  Usb_unicode('1'),\
   Usb_unicode('2'),\
-  Usb_unicode('4'),\
   Usb_unicode('0'),\
   Usb_unicode('0'),\
   Usb_unicode('B'),\
