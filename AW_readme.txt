@@ -21,6 +21,7 @@ Version 20120807 BSB initial
         20121004 Added Nikolay's recipe on firmware builds
         20121208 Updated Flip version
         20121215 Adding to UAC2 feedback
+        20181113 Adding Win10 firmware update information508
 
 You should read this file from the top without skipping too much. Depending on 
 your ambition level you may finish it sooner or later. More and more complex
@@ -522,53 +523,47 @@ up if things are tricky the first time!
 2  - May be omitted depending on your setup: Install C++ runtime from Microsoft:
      http://www.microsoft.com/en-us/download/details.aspx?id=5555
 
-3  - Install Atmel Flip 3.4.7 from 
-     https://www.ha-cache.eu/uploads/Flip_Installer_3.4.7.112.zip 
+3  - Install Atmel Flip 3.4.7.112 from 
+     https://www.microchip.com/developmenttools/ProductDetails/FLIP 
+     Choose the version which requires Java Runtime. 
      This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.7"
 
-4  - Copy files from Add_to_flip345_bin.zip from
-     https://github.com/borgestrand/widget_binaries/blob/master/Add_to_flip345_bin.zip?raw=true
-     to folder 
-     "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
+4  - Download 
+     https://github.com/borgestrand/widget_binaries/blob/master/Add_to_flip347_bin.zip?raw=true
+     and copy the contents of the zip file to folder "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
 
-5  - Download the latest firmware from 
-     https://github.com/borgestrand/widget_binaries
-     or
-     http://code.google.com/p/sdr-widget/downloads/list
-     or from the /Release folder of locally compiled firmware. Save it to 
-     somewhere convenient, for example
-     "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
-     For volume control in the Henry Audio USB DAC 128 mkII use this file:
-     https://github.com/borgestrand/widget_binaries/blob/master/awx_20160323_volume_control.elf?raw=true
+5  - Download the latest firmware in the form of an .elf file. 
+     Use an .elf file from https://github.com/borgestrand/widget_binaries
+     or use one you received in email. The rest of this text assumes the file 
+     is named "widget.elf". In reality it has a more elaborate file name.      
 
-6  - Do the following. Ignore and approve any messages about driver not being 
-     signed. Start, Run, hdwwiz.exe, Next, Install the hardware ... manually, 
-     Next, Show All, Next, Have Disk, Browse to 
-     "C:\Program Files (x86)\Atmel\Flip 3.4.7\usb", Choose "atmel_usb_dfu.inf",
-     Open, OK, Select "AT32UC3A3", Next, Next, Finish
+6  - Plug in your DAC and place it in update mode:
+     Hold Prog - Click Reset - Release Reset - Release Prog
+     Windows will try to make sense of it, and will likely not find it the first
+     time you do this.
+     
+7  - Install the driver:
+     Click the Start button, type "devmgmt.msc" to open Device Manager, search 
+     for "Other Devices", right-click on "AT32UC3A3 DFU", left-click on 
+     "Update Driver", left-click on "Browse my computer...", browse to 
+     "C:\Program Files (x86)\Atmel\Flip 3.4.7\usb",
+     **finish driver installation**
 
-7  - Reboot (may or may not be necessary)
+8  - Device Manager should now show the category "Atmel USB Devices" with 
+     "AT32UC3A3" as its member. If this is not the case, reboot the computer.
 
-8  - Plug in Audio Widget USB Device. 
-
-9  - Hold Prog, click and release Rest, release Prog. The first time you do this
-     Windows will do a fair bit of driver housekeeping.
-
-10 - You may or may not receive messages about lacking drivers for "DG8SAQ-I2C".
+9  - You may or may not receive messages about lacking drivers for "DG8SAQ-I2C".
      Please ignore them if they show up.
 
-11 - Windows should now be able to find the boot loader in the MCU. To verify:
-     Start, Run, devmgmt.msc, look for Atmel USB Devices
-
-12 - To program the Audio Widget use the Flip installation and the 
-     Add_to_flip345_bin.zip package. Things may take extra time and require up
+10 - To program the Audio Widget use the command line Flip installation and 
+     Add_to_flip347_bin.zip package. Things may take extra time and require up
      to five attempts the first time: Start, Run, cmd.exe, 
      cd "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin", "prog widget.elf" 
      Substitute "widget.elf" with the compiled firmware file you wish to to use
      in your Audio Widget. This is the file from step 5. (If you saved the .elf
      file to C:\foo\widget.elf, use "prog C:\foo\widget.elf" instead.)
 
-13 - Expect an output like this in your cmd window:
+11 - Expect an output like this in your cmd window:
 
 --------------------------------------------------------------------------------
 C:\Program Files (x86)\Atmel\Flip 3.4.7\bin>batchisp -device at32uc3a3256 -hardw
@@ -604,7 +599,7 @@ following methods:
      the firmware. You will need this log if you need to contact other Audio 
      Widget owners or Atmel support.
 
-1 -  Instead of prog.bat, try prog_noerase.bat from the Add_to_flip345_bin.zip
+1 -  Instead of prog.bat, try prog_noerase.bat from the Add_to_flip347_bin.zip
      file. prog_noerase.bat comes without the "erase f" part of the command. You
      may also try omitting other parts of the command in prog.bat. 
      
