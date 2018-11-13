@@ -551,6 +551,7 @@ up if things are tricky the first time!
 
 8  - Device Manager should now show the category "Atmel USB Devices" with 
      "AT32UC3A3" as its member. If this is not the case, reboot the computer.
+     After reboot, repeat stage 6, placing DAC in update mode.
 
 9  - You may or may not receive messages about lacking drivers for "DG8SAQ-I2C".
      Please ignore them if they show up.
