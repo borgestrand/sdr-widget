@@ -504,7 +504,7 @@ void uac1_device_audio_task(void *pvParameters)
 								LED_On(LED0);							// Indicate skipping on module LED
 
 	#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('s');
+//								print_dbg_char('s');
 	#endif
 
 							}
@@ -516,7 +516,7 @@ void uac1_device_audio_task(void *pvParameters)
 								LED_On(LED1);							// Indicate skipping on module LED
 
 	#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('i');
+//								print_dbg_char('i');
 	#endif
 							}
 						}
