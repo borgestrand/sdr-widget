@@ -933,8 +933,7 @@ void uac2_device_audio_task(void *pvParameters)
 		}
 		else {
 #else
-//		if (1) {
-		if (0) {	// Sue - disabled for testing with Huawei Android phone
+		if (1) {
 #endif
 			if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA and uacX_taskAK5394A.c, decreased by seq. code
 				usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism

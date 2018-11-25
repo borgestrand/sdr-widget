@@ -54,7 +54,7 @@
 
 
 // BSB 20131201 attempting improved playerstarted detection.
-#define USB_BUFFER_TOGGLE_LIM 2		// DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
+#define USB_BUFFER_TOGGLE_LIM 3		// Changed from 2 to 3 after hassle with Sue's phone. DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
 #define USB_BUFFER_TOGGLE_PARK 10	// The error is detected in sequential code
 
 // Available digital audio sources, 3 and 4 only available in HW_GEN_DIN10 and ..20. Source 5 only available in HW_GEN_DIN20
