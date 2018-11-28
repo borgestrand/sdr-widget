@@ -1105,13 +1105,20 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						// or should we send two triplets, one for L and one for R? N triplets take up 2(N+1) bytes
 						// This code works on Win10/UAC2 Todo: Linux, Android, Mac
 						else if (wLength == 0x10) {
-							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, 2));
+							// Same as above
+							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, 1));
+							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
+							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
+							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
+/*
+							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, 2));	// Two triplets
 							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
 							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
 							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
 							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MIN));
 							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_MAX));
 							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
+*/
 						}
 
 						Usb_ack_control_in_ready_send();
