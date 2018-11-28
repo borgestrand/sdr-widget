@@ -263,12 +263,8 @@ void usb_user_set_interface(U8 wIndex, U8 wValue) {
 Bool usb_user_read_request(U8 type, U8 request)
 {
   // Test for Vendor specific request - DG8SAQ type of request
-
-// xperia
-//  if ( (type & DRT_MASK) == DRT_VENDOR )
-//	  return usb_user_DG8SAQ (type, request);
-
-
+  if ( (type & DRT_MASK) == DRT_VENDOR )
+	  return usb_user_DG8SAQ (type, request);
   return image_user_read_request(type, request);
 }
 
