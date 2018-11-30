@@ -155,7 +155,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 // To fix -that- search for "triplets" in the ASIO driver code and change the array size from 64 to 128.
 //const U8 Speedx[38] = { // 74
 const U8 Speedx[74] = {
-	0x06, 0x00, // Number of sample rate triplets
+	0x05, 0x00, // Number of sample rate triplets
 
 	0x44,0xac,0x00,0x00,	//44.1k Min
 	0x44,0xac,0x00,0x00,	//44.1k Max
