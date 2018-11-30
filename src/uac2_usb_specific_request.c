@@ -154,21 +154,13 @@ void send_descriptor(U16 wLength, Bool zlp) {
 // This will cause the ASIO driver to not see the 196ksps definition.
 // To fix -that- search for "triplets" in the ASIO driver code and change the array size from 64 to 128.
 //const U8 Speedx[38] = { // 74
-// const U8 Speedx[74] = {
-
-const U8 Speedx[14] = {// Only one single triplet
-
-//	0x06, 0x00, // Number of sample rate triplets
-//	0x03, 0x00, // Number of sample rate triplets
-
-	0x01, 0x00, // Number of sample rate triplets
-
+const U8 Speedx[74] = {
+	0x06, 0x00, // Number of sample rate triplets
 
 	0x44,0xac,0x00,0x00,	//44.1k Min
 	0x44,0xac,0x00,0x00,	//44.1k Max
 	0x00,0x00,0x00,0x00,	// 0 Res
 
-/*
 	0x80,0xbb,0x00,0x00,	//48k Min
 	0x80,0xbb,0x00,0x00,	//48k Max
 	0x00,0x00,0x00,0x00,	// 0 Res
@@ -188,7 +180,6 @@ const U8 Speedx[14] = {// Only one single triplet
 	0x00,0xee,0x02,0x00,	//192k Min
 	0x00,0xee,0x02,0x00,	//192k Max
 	0x00,0x00,0x00,0x00,	// 0 Res
-*/
 };
 
 
