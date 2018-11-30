@@ -182,7 +182,7 @@
 
 // Clock Source descriptor - not used
 #define CSD_ID_1						0x04
-#define CSD_ID_1_TYPE					0b00000001	// Was: 01 fixed freq internal clock. Is: 10 var. int.
+#define CSD_ID_1_TYPE					0b00000010	// Was: 01 fixed freq internal clock. Is: 10 var. int.
 #define CSD_ID_1_CONTROL				0b00000111	// freq r/w, validity r
 #define CSD_ID_2						0x05
 #define CSD_ID_2_TYPE					0b00000011	// Was: 01 fixed freq internal clock. Or: 10 var. int. Is: 11 programmable
@@ -243,7 +243,7 @@
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID			0x13
-#define SPK_OUTPUT_TERMINAL_TYPE		0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE		0x0302 // 0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00   	// No association
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_FEATURE_UNIT_ID
