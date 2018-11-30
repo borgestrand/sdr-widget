@@ -257,7 +257,7 @@
 //Audio Streaming (AS) interface descriptor
 #define STD_AS_INTERFACE_OUT			0x02   // Index of Std AS Interface for Audio Out
 
-#define DSC_INTERFACE_AS				STD_AS_INTERFACE_IN
+//#define DSC_INTERFACE_AS				STD_AS_INTERFACE_IN
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
 
 //Alternate O Audio Streaming (AS) interface descriptor
