@@ -609,10 +609,11 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	uint8_t temp1 = 0;
 	uint8_t temp2 = 0;
 
+#ifdef USB_STATE_MACHINE_DEBUG
 	print_dbg_char('t'); // xperia
 	print_dbg_char_hex(type); // xperia
 	print_dbg_char_hex(request); // xperia
-
+#endif
 
 	// BSB 20120720 added
 	// this should vector to specified interface handler
@@ -628,6 +629,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	wLength
 			= usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
+#ifdef USB_STATE_MACHINE_DEBUG
 	print_dbg_char('w'); // xperia
 	print_dbg_char_hex(wValue_lsb); // xperia
 	print_dbg_char_hex(wValue_msb); // xperia
@@ -636,7 +638,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	print_dbg_char_hex(wIndex % 256); // xperia LSB
 	print_dbg_char_hex(wLength); // xperia
 	print_dbg_char('\n'); // xperia
-
+#endif
 
 
 	// Mute button push
@@ -711,7 +713,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 				case HID_REPORT_INPUT:
 					Usb_ack_setup_received_free();
 
-					Usb_reset_endpoint_fifo_access(EP_CONTROL);
+					Usb_reset_endpoint_fifo_access(EP_CONTROL); // Does Xperia expect 12 bytes?
 					Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[0]);
 					Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[1]);
 					Usb_ack_control_in_ready_send();

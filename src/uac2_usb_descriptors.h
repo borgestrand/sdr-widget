@@ -60,7 +60,7 @@
 
 #define CONF_NB            				1	//! Number of this configuration
 #define CONF_INDEX         				0
-#define CONF_ATTRIBUTES    				USB_CONFIG_BUSPOWERED  // default is bus-powered
+#define CONF_ATTRIBUTES    				USB_CONFIG_SELFPOWERED // Xperia USB_CONFIG_BUSPOWERED  // default is bus-powered
 #define MAX_POWER          				250 // 500mA
 
 // IAD for Audio
@@ -90,7 +90,7 @@
 // USB HID Interface descriptor
 #define INTERFACE_NB3			    	3
 #define ALTERNATE_NB3	            	0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT3			    	1 // 2                  //! The number of endpoints this interface has
+#define NB_ENDPOINT3			    	1 // 2             //! The number of endpoints this interface has
 #define INTERFACE_CLASS3		    	HID_CLASS          //! HID Class
 #define INTERFACE_SUB_CLASS3        	NO_SUBCLASS        //! No Subclass
 #define INTERFACE_PROTOCOL3    			NO_PROTOCOL		   //! No Protocol
@@ -168,7 +168,7 @@
 #define ENDPOINT_NB_3       			( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x81
 #define EP_ATTRIBUTES_3     			0b00010001      // ISOCHRONOUS FEEDBACK
 #define EP_IN_LENGTH_3_FS   			4 //64				//   BSB 20170703 Is this really correct? Never tested in FS
-#define EP_IN_LENGTH_3_HS				4 //64				//
+#define EP_IN_LENGTH_3_HS				4 //64				// Xperia, changing to 64 did not help
 #define EP_SIZE_3_FS					EP_IN_LENGTH_3_FS
 #define EP_SIZE_3_HS        			EP_IN_LENGTH_3_HS
 #define EP_INTERVAL_3_FS				0x01
@@ -243,7 +243,7 @@
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID			0x13
-#define SPK_OUTPUT_TERMINAL_TYPE		0x0302 // 0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE		0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00   	// No association
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_FEATURE_UNIT_ID
