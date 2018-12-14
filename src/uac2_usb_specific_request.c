@@ -1036,11 +1036,12 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute); // or 0
 						}
 
+#ifdef USB_STATE_MACHINE_DEBUG
 						// Trying to catch Win10 mute event
 						print_dbg_char('M');
 						print_dbg_char_hex(usb_spk_mute);
 						print_dbg_char(' ');
-
+#endif
 
 						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
