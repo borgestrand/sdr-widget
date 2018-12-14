@@ -1341,10 +1341,12 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						}
 						usb_spk_mute = temp1;
 
+#ifdef USB_STATE_MACHINE_DEBUG
 						// Trying to catch Win10 mute event
 						print_dbg_char('m');
 						print_dbg_char_hex(usb_spk_mute);
 						print_dbg_char(' ');
+#endif
 
 
 						Usb_ack_control_out_received_free();
