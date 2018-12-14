@@ -420,7 +420,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 					if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
-#ifdef USB_STATE_MACHINE_DEBUG
+#ifdef USB_STATE_MACHINE_GPIO
 					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
 #endif
 
@@ -454,7 +454,7 @@ void uac1_device_audio_task(void *pvParameters)
 							LED_Off(LED0);							// The LEDs on the PCB near the MCU
 							LED_Off(LED1);
 
-	#ifdef USB_STATE_MACHINE_DEBUG
+	#ifdef USB_STATE_MACHINE_GPIO
 							if (DAC_buf_USB_OUT == 1)
 								gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 							else
@@ -632,7 +632,7 @@ void uac1_device_audio_task(void *pvParameters)
 										spk_index = 0;
 										DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
 
-	#ifdef USB_STATE_MACHINE_DEBUG
+	#ifdef USB_STATE_MACHINE_GPIO
 										if (DAC_buf_USB_OUT == 1)
 											gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 										else

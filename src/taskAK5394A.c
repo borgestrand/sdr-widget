@@ -130,14 +130,14 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		// we choose the same buffer number here as in the seq. code
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 1;
-#ifdef USB_STATE_MACHINE_DEBUG
+#ifdef USB_STATE_MACHINE_GPIO
     	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	}
 	else if (ADC_buf_DMA_write == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
-#ifdef USB_STATE_MACHINE_DEBUG
+#ifdef USB_STATE_MACHINE_GPIO
    	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83
 #endif
 	}
@@ -156,7 +156,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		DAC_buf_DMA_read = 1;
 
 
-#ifdef USB_STATE_MACHINE_DEBUG
+#ifdef USB_STATE_MACHINE_GPIO
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
@@ -168,7 +168,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
 
-#ifdef USB_STATE_MACHINE_DEBUG
+#ifdef USB_STATE_MACHINE_GPIO
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else

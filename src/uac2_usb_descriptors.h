@@ -60,7 +60,7 @@
 
 #define CONF_NB            				1	//! Number of this configuration
 #define CONF_INDEX         				0
-#define CONF_ATTRIBUTES    				USB_CONFIG_SELFPOWERED // Xperia USB_CONFIG_BUSPOWERED  // default is bus-powered
+#define CONF_ATTRIBUTES    				USB_CONFIG_BUSPOWERED  // default is bus-powered
 #define MAX_POWER          				250 // 500mA
 
 // IAD for Audio
