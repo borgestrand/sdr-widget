@@ -291,7 +291,8 @@
       Usb_unicode('.'), Usb_unicode('2')\
     }
   #else
-	// Mk II:
+/*
+// Mk II:
     #define USB_PN_LENGTH         28
     #define USB_PRODUCT_NAME {\
       Usb_unicode('H'), Usb_unicode('e'), Usb_unicode('n'), Usb_unicode('r'), Usb_unicode('y'), Usb_unicode(' '), \
@@ -300,7 +301,8 @@
       Usb_unicode('C'), Usb_unicode(' '), Usb_unicode('1'), Usb_unicode('2'), Usb_unicode('8'), Usb_unicode(' '), \
       Usb_unicode('M'), Usb_unicode('k'), Usb_unicode('I'), Usb_unicode('I') \
 	  }
-/*// Mk 3:
+*/
+// Mk 3:
     #define USB_PN_LENGTH         28
     #define USB_PRODUCT_NAME {\
       Usb_unicode('H'), Usb_unicode('e'), Usb_unicode('n'), Usb_unicode('r'), Usb_unicode('y'), Usb_unicode(' '), \
@@ -309,7 +311,7 @@
       Usb_unicode('C'), Usb_unicode(' '), Usb_unicode('1'), Usb_unicode('2'), Usb_unicode('8'), Usb_unicode(' '), \
       Usb_unicode('M'), Usb_unicode('k'), Usb_unicode(' '), Usb_unicode('3') \
 	  }
-	  */
+
   #endif
 #elif defined (FEATURE_PRODUCT_AMB)  // AUDIO_PRODUCT_ID_13 and _14
     #define USB_PN_LENGTH         30
