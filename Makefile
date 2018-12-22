@@ -44,6 +44,7 @@ SDR_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_widget \
 	-DFEATURE_LOG_DEFAULT=feature_log_500ms \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
+	-DFEATURE_CFG_INTERFACE \
 	-DFEATURE_PRODUCT_SDR_WIDGET 
 
 # These defaults are compiled into code, not necessarily forced
@@ -63,7 +64,6 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_PRODUCT_AB1x \
 	-DFEATURE_VOLUME_CTRL \
 	-DVDD_SENSE \
-	-DFEATURE_CFG_INTERFACE \
 	-DUSB_STATE_MACHINE_GPIO \
 	-DHW_GEN_AB1X
 
