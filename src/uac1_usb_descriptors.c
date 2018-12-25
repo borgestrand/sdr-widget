@@ -159,7 +159,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 		ENDPOINT_NB_1,
 		EP_ATTRIBUTES_1,
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
-		EP_INTERVAL_1
+		EP_INTERVAL_1_FS
 	},
 /*
 	{
@@ -490,7 +490,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 		ENDPOINT_NB_1,
 		EP_ATTRIBUTES_1,
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS),
-		EP_INTERVAL_1
+		EP_INTERVAL_1_HS
 	},
 /*
 	{
@@ -818,7 +818,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 		ENDPOINT_NB_1,
 		EP_ATTRIBUTES_1,
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS),
-		EP_INTERVAL_1
+		EP_INTERVAL_1_HS
 	},
 /*
 	{
@@ -1141,7 +1141,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		ENDPOINT_NB_1,
 		EP_ATTRIBUTES_1,
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
-		EP_INTERVAL_1
+		EP_INTERVAL_1_FS
 	},
 
 /*
