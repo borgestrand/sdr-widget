@@ -321,7 +321,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   	ENDPOINT_NB_4,
   	EP_ATTRIBUTES_4,
   	Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS),
-  	EP_INTERVAL_4
+  	EP_INTERVAL_4_FS
   }
 /*// Unused HID RX endpoint
   ,
@@ -571,7 +571,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   	ENDPOINT_NB_4,
   	EP_ATTRIBUTES_4,
   	Usb_format_mcu_to_usb_data(16, EP_SIZE_4_HS),
-  	EP_INTERVAL_4
+  	EP_INTERVAL_4_HS
   }
 
 /*// Removed idle HID EP

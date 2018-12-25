@@ -130,6 +130,7 @@
 #define EP_SIZE_1_HS            EP_IN_LENGTH_1_HS
 #define EP_INTERVAL_1           5               //! Interrupt polling interval from host
 
+/*
 // USB Endpoint 2 descriptor - not used
 #define ENDPOINT_NB_2           (UAC1_EP_HID_RX)
 #define EP_ATTRIBUTES_2         TYPE_INTERRUPT
@@ -138,6 +139,7 @@
 #define EP_OUT_LENGTH_2_HS       8
 #define EP_SIZE_2_HS            EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2           5               //! Interrupt polling interval from host
+*/
 
 // Standard Audio Control (AC) interface descriptor
 #define INTERFACE_NB2       2

@@ -110,8 +110,10 @@
 #define EP_SIZE_4_FS            		EP_IN_LENGTH_4_FS
 #define EP_IN_LENGTH_4_HS       		8
 #define EP_SIZE_4_HS            		EP_IN_LENGTH_4_HS
-#define EP_INTERVAL_4           		5               //! Interrupt polling interval from host
+#define EP_INTERVAL_4_FS           		16 // frames = 16ms was: 5    //! Interrupt polling interval from host
+#define EP_INTERVAL_4_HS           		128 // microframes = 16ms was: 5    //! Interrupt polling interval from host
 
+/*
 // USB Endpoint 5 descriptor - not used
 #define ENDPOINT_NB_5           		(UAC2_EP_HID_RX)
 #define EP_ATTRIBUTES_5         		TYPE_INTERRUPT
@@ -120,6 +122,7 @@
 #define EP_OUT_LENGTH_5_HS      		8
 #define EP_SIZE_5_HS            		EP_OUT_LENGTH_5_HS
 #define EP_INTERVAL_5           		5               //! Interrupt polling interval from host
+*/
 
 // BSB 20120719 HID insertion end
 

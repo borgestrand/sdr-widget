@@ -144,7 +144,7 @@
 
 // UAC1 endpoints
 #define UAC1_EP_HID_TX			1
-#define UAC1_EP_HID_RX			2
+// #define UAC1_EP_HID_RX			2
 #define UAC1_EP_AUDIO_OUT		4
 #define UAC1_EP_AUDIO_IN		5
 #define UAC1_EP_AUDIO_OUT_FB	3
