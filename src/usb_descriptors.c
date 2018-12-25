@@ -250,16 +250,17 @@ const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 
 // usb_hid_report_descriptor
 // BSB 20120711: Changed according to BasicAudioDevice-10.pdf table 8-4
+// BSB 20181226: Touched up according to https://www.silabs.com/documents/public/application-notes/AN249.pdf
 const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 {
 		0x05, 0x0C, // Usage page (Consumer Devices) // still holding in there
 	  	0x09, 0x01, // Usage ID (Consumer Remote Control)
 	  	0xA1, 0x01, // Collection (Application)
 	  	0x85, 0x01, // Report ID (0x01) - Byte 0 in report - Match or coincidence??
-        0x15, 0x00, // Logical Minimum (0)
-        0x25, 0x01,	// Logical Maximum (255)
-        0x75, 0x01, // Report Size (8 bits) 08 works, 01 in document
-        0x95, 0x01, // Report Count (2 fields) 02 works, 01 in document
+        0x15, 0x00, // Logical Minimum (0) Button pressed or not, 2 values
+        0x25, 0x01,	// Logical Maximum (1)
+        0x75, 0x01, // Report Size (1 bit)
+        0x95, 0x01, // Report Count
 
 		0x09, 0xE9, // USAGE (Volume Up) - LSB of ReportByte1 (XX in uart HID protocol)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
@@ -274,11 +275,12 @@ const U8 usb_hid_report_descriptor[USB_HID_REPORT_DESC] =
 		0x09, 0xB7, // USAGE (Stop)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
 		0x09, 0xB3, // USAGE (Fast Forward)
-		0x81, 0x02, // INPUT (Data, Var, Abs)
+ 		0x81, 0x02, // INPUT (Data, Var, Abs)
 		0x09, 0xB4, // USAGE (Rewind) - MSB of ReportByte1 (XX in uart HID protocol)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
+
 		0x05, 0x0B, // USAGE_PAGE (Telephony Devices) - Start of byte 2 in report ??
-		0x09, 0x24, // USAGE (Redail) - LSB of ReportByte2 (YY in uart HID protocol)
+		0x09, 0x24, // USAGE (Re-dial) - LSB of ReportByte2 (YY in uart HID protocol)
 		0x81, 0x02, // INPUT (Data, Var, Abs)
 		0x09, 0x20, // USAGE (Hook Switch)
 		0x81, 0x02, // INPUT (Data, Var, Abs)

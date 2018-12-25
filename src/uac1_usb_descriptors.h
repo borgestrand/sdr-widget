@@ -129,7 +129,7 @@
 #define EP_IN_LENGTH_1_HS       8
 #define EP_SIZE_1_HS            EP_IN_LENGTH_1_HS
 #define EP_INTERVAL_1_FS        16 // frames = 16ms was: 5    //! Interrupt polling interval from host
-#define EP_INTERVAL_1_HS        128 // microframes = 16ms was: 5    //! Interrupt polling interval from host
+#define EP_INTERVAL_1_HS        16 // microframes = 2ms, here: 4ms was: 0x05    //! Interrupt polling interval from host
 
 
 
