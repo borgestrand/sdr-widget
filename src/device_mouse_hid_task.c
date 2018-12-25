@@ -623,7 +623,7 @@ void device_mouse_hid_task(void)
 
     	if (gotcmd == 0)									// Nothing recorded:
 			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS. WM8805 needs that, HID doesn't
-    }
+    } //while (gotcmd == 0)
 
 //  Tested ReportByte1 content with JRiver and VLC on Win7-32
 //  ReportByte1 = 0b00000001; // Encode volup according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works!

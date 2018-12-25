@@ -177,7 +177,7 @@
 // AC interface descriptor Audio specific
 #define AUDIO_CLASS_REVISION_2          0x0200
 #define MIC_CATEGORY					AUDIO_FUNCTION_SUBCLASS_MICROPHONE
-#define HEADSET_CATEGORY 				0x04
+#define HEADSET_CATEGORY 				AUDIO_FUNCTION_SUBCLASS_HEADSET // Was hard-coded 0x04
 #define MIC_LATENCY_CONTROL				0b00000000
 
 // Clock Source descriptor - not used
