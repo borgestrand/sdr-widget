@@ -116,7 +116,8 @@ static void x_image_task_init(void) {
 	vStartTaskMoboCtrl();
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
 	uac2_AK5394A_task_init();
-	device_mouse_hid_task_init(UAC2_EP_HID_RX, UAC2_EP_HID_TX); // Added BSB 20120719
+//	device_mouse_hid_task_init(UAC2_EP_HID_RX, UAC2_EP_HID_TX); // Added BSB 20120719
+	device_mouse_hid_task_init(UAC2_EP_HID_TX); // Added BSB 20120719
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
 #endif
 #if LCD_DISPLAY						// Multi-line LCD display

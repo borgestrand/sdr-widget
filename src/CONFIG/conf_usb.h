@@ -154,7 +154,7 @@
 #define UAC2_EP_AUDIO_OUT		2
 #define UAC2_EP_AUDIO_OUT_FB	1
 #define UAC2_EP_HID_TX			4
-#define UAC2_EP_HID_RX			5
+// #define UAC2_EP_HID_RX			5
 
 // HPSDR endpoints
 #define HPSDR_EP_RF_IN			4

@@ -127,7 +127,8 @@
 //! @brief This function initializes the hardware/software resources
 //! required for device HID task.
 //!
-void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
+// void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
+void device_mouse_hid_task_init(U8 ep_tx)
 {
 
 #if BOARD == EVK1101
