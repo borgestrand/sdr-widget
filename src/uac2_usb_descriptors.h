@@ -53,9 +53,9 @@
 // CONFIGURATION
 // Config interface at endpoint 0
 #ifdef FEATURE_CFG_INTERFACE
-	#define NB_INTERFACE	4  // 4: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+	#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID     4: Was: Counting endpoints: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
 #else
-	#define NB_INTERFACE	3  // 3: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+	#define NB_INTERFACE	3  //         Audio control, audio streaming, HID     3: Was: Counting endpoints: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
 #endif
 
 #define CONF_NB            				1	//! Number of this configuration
@@ -64,7 +64,11 @@
 #define MAX_POWER          				250 // 500mA
 
 // IAD for Audio
-#define FIRST_INTERFACE1				1
+#ifdef FEATURE_CFG_INTERFACE
+	#define FIRST_INTERFACE1			1
+#else
+	#define FIRST_INTERFACE1			0	// No config interface, bFirstInterface = 0
+#endif
 #define INTERFACE_COUNT1				2						//!  Audio Control, Audio Out, what about feedback?
 #define FUNCTION_CLASS					AUDIO_CLASS
 #define FUNCTION_SUB_CLASS  			0
@@ -87,8 +91,12 @@
 // BSB 20120719 HID insertion begin
 // In most cases: translation from uac1 code follows pattern of NB1 -> NB4, NB2 -> NB5
 
-// USB HID Interface descriptor
-#define INTERFACE_NB3			    	3
+// USB HID Interface descriptor, this is the last USB interface!
+#ifdef FEATURE_CFG_INTERFACE
+	#define INTERFACE_NB3			    3
+#else
+	#define INTERFACE_NB3			    2	// No config interface, HID interface = 2
+#endif
 #define ALTERNATE_NB3	            	0                  //! The alt setting nb of this interface
 #define NB_ENDPOINT3			    	1 // 2             //! The number of endpoints this interface has
 #define INTERFACE_CLASS3		    	HID_CLASS          //! HID Class
@@ -103,7 +111,7 @@
 #define HID_COUNTRY_CODE            	0x00    //! Hardware target country
 #define HID_NUM_DESCRIPTORS				0x01    //! Number of HID class descriptors to follow
 
-// USB Endpoint 4 descriptor
+// USB Endpoint 4 descriptor for HID TX
 #define ENDPOINT_NB_4           		(UAC2_EP_HID_TX| MSK_EP_DIR)
 #define EP_ATTRIBUTES_4         		TYPE_INTERRUPT
 #define EP_IN_LENGTH_4_FS       		8
@@ -114,7 +122,7 @@
 #define EP_INTERVAL_4_HS        		16 // microframes = 2ms, here: 4ms was: 0x05    //! Interrupt polling interval from host
 
 /*
-// USB Endpoint 5 descriptor - not used
+// USB Endpoint 5 descriptor for HID RX - not used
 #define ENDPOINT_NB_5           		(UAC2_EP_HID_RX)
 #define EP_ATTRIBUTES_5         		TYPE_INTERRUPT
 #define EP_OUT_LENGTH_5_FS      		8
@@ -130,7 +138,11 @@
 // Audio Class V2.0 descriptor values
 
 // Standard Audio Control (AC) interface descriptor
-#define INTERFACE_NB1       			1
+#ifdef FEATURE_CFG_INTERFACE
+	#define INTERFACE_NB1       		1
+#else
+	#define INTERFACE_NB1       		0	// No config interface, Audio control interface = 0
+#endif
 #define ALTERNATE_NB1       			0
 #define NB_ENDPOINT1        			0			     //! No endpoint for AC interface
 #define INTERFACE_CLASS1    			AUDIO_CLASS  	 //! Audio Class
@@ -258,10 +270,16 @@
 #define SPK_OUTPUT_TERMINAL_CONTROLS	0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
-#define STD_AS_INTERFACE_OUT			0x02   // Index of Std AS Interface for Audio Out
+#ifdef FEATURE_CFG_INTERFACE
+	#define STD_AS_INTERFACE_OUT		0x02   // Index of Std AS Interface for Audio Out
+#else
+	#define STD_AS_INTERFACE_OUT		0x01   // Index of Std AS Interface for Audio Out
+#endif
 
 //#define DSC_INTERFACE_AS				STD_AS_INTERFACE_IN
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
+
+// Also mix in FEATURE_CFG_INTERFACE in Alternate interfaces?
 
 //Alternate O Audio Streaming (AS) interface descriptor
 #define ALT0_AS_INTERFACE_INDEX			0x00   // Index of Std AS interface Alt0
