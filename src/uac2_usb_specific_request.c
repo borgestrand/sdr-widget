@@ -713,9 +713,12 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 				case HID_REPORT_INPUT:
 					Usb_ack_setup_received_free();
 
-					Usb_reset_endpoint_fifo_access(EP_CONTROL); // Does Xperia expect 12 bytes?
-					Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[0]);
-					Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[1]);
+					Usb_reset_endpoint_fifo_access(EP_CONTROL);
+					Usb_write_endpoint_data(EP_CONTROL, 8, 0x01); // Hard-coded HID report # 1
+					Usb_write_endpoint_data(EP_CONTROL, 8, 0x00); // Hard-coded HID no button
+					Usb_write_endpoint_data(EP_CONTROL, 8, 0x00); // Hard-coded HID no button
+//					Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[0]);
+//					Usb_write_endpoint_data(EP_CONTROL, 8, usb_report[1]);
 					Usb_ack_control_in_ready_send();
 
 					while (!Is_usb_control_out_received())
@@ -1298,8 +1301,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready())
 							; //!< waits for status phase done
-						if (clock_selected < 1 || clock_selected
-								> CSX_INPUT_PINS)
+						if (clock_selected < 1 || clock_selected > CSX_INPUT_PINS)
 							clock_selected = 1;
 						return TRUE;
 					} else
