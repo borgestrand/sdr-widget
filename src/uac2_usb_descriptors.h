@@ -246,8 +246,7 @@
 
 // SPK Output Terminal descriptor
 #define SPK_OUTPUT_TERMINAL_ID			0x13
-//#define SPK_OUTPUT_TERMINAL_TYPE		0x0301 // Speakers. Was: 0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
-#define SPK_OUTPUT_TERMINAL_TYPE		0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE		AUDIO_TE_TYPE_OUTPUT_SPEAKER // Speakers. Was: 0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00   	// No association
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_FEATURE_UNIT_ID
@@ -330,7 +329,9 @@ __attribute__((__packed__))
 	S_usb_interface_descriptor				ifc1;
 	S_usb_ac_interface_descriptor_2			audioac;
 	S_usb_clock_source_descriptor			audio_cs2;
+#ifdef FEATURE_CLOCK_SELECTOR				// Only if clock selector is compiled in do we expose it in the feature unit
 	S_usb_clock_selector_descriptor			audio_csel; // ClockSelector
+#endif
 	S_usb_in_ter_descriptor_2				spk_in_ter;
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	S_usb_feature_unit_descriptor_2			spk_fea_unit;

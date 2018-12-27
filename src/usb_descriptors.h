@@ -1396,6 +1396,8 @@ __attribute__((__packed__))
 } S_usb_clock_source_descriptor;
 
 
+#ifdef FEATURE_CLOCK_SELECTOR				// Only if clock selector is compiled in do we expose it in the feature unit
+
 //! Clock Selector descriptor pp 4.7.2.2
 typedef
 #if (defined __ICCAVR32__)
@@ -1416,6 +1418,8 @@ __attribute__((__packed__))
   U8  bmControls;			/* Clock selector control bitmap  */
   U8  iClockSelector;			/* String descriptor of this clock selector */
 } S_usb_clock_selector_descriptor;
+
+#endif
 
 
 //! Clock Multiplier descriptor pp 4.7.2.3
