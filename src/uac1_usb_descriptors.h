@@ -265,7 +265,7 @@
 #endif
 
 #define SPK_ALT1_AS_NB_ENDPOINT			0x02	// OUT EP and FB EP
-//#define SPK_ALT1_AS_NB_ENDPOINT		0x01	// OUT EP adf
+//#define SPK_ALT1_AS_NB_ENDPOINT		0x01	// OUT EP
 
 #define SPK_AS_TERMINAL_LINK			0x11	// Unit Id of the speaker input terminal
 #define SPK_AS_DELAY					0x04	// Interface delay
