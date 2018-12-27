@@ -196,7 +196,7 @@
 #define CSX_ID							0x06
 #define CSX_INPUT_PINS					0x02
 #define CSX_SOURCE_1					CSD_ID_1
-#define CSX_SOURCE_2					CSD_ID_2
+//#define CSX_SOURCE_2					CSD_ID_2
 #define CSX_CONTROL						0b00000011	// clock selector is readable and writable
 
 
@@ -329,6 +329,7 @@ __attribute__((__packed__))
 	S_usb_interface_descriptor				ifc1;
 	S_usb_ac_interface_descriptor_2			audioac;
 	S_usb_clock_source_descriptor			audio_cs2;
+	S_usb_clock_selector_descriptor			audio_csel; // ClockSelector
 	S_usb_in_ter_descriptor_2				spk_in_ter;
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	S_usb_feature_unit_descriptor_2			spk_fea_unit;

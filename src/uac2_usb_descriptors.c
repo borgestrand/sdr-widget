@@ -159,7 +159,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  HEADSET_CATEGORY
     ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_2)
 			+ /*2* */sizeof(S_usb_clock_source_descriptor)
-    		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
+	   		+ /*2* */sizeof(S_usb_clock_selector_descriptor) // ClockSelector
+			+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
     		+ /*2* */sizeof(S_usb_feature_unit_descriptor_2)
 #endif
@@ -177,15 +178,26 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
      ,  0x00 // no association or SPK_INPUT_TERMINAL_ID	// Was: INPUT_TERMINAL_ID
      ,  CLOCK_SOURCE_2_INDEX   //   Was: 0x00 BSB UAC2 debug WHY?
      }
-
    ,
-  {  sizeof(S_usb_in_ter_descriptor_2)
+
+   {  sizeof (S_usb_clock_selector_descriptor) // ClockSelector
+      ,  CS_INTERFACE
+      ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR
+      ,  CSX_ID
+      ,  0x01 					// 1 pins
+      ,  CSD_ID_2 				// the only input pin
+      ,  CSX_CONTROL			// clock selector is readable and writable
+      ,  0x00					// No string descriptor
+      }
+    ,
+
+   {  sizeof(S_usb_in_ter_descriptor_2)
    ,  CS_INTERFACE
    ,  INPUT_TERMINAL_SUB_TYPE
    ,  SPK_INPUT_TERMINAL_ID
    ,  Usb_format_mcu_to_usb_data(16, SPK_INPUT_TERMINAL_TYPE)
    ,  SPK_INPUT_TERMINAL_ASSOCIATION
-   ,  CSD_ID_2
+   ,  CSX_ID // CSD_ID_2 ClockSelector
    ,  SPK_INPUT_TERMINAL_NB_CHANNELS
    ,  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF) // 0 in Pro-Ject
    ,  SPK_INPUT_TERMINAL_CH_NAME_ID
@@ -214,7 +226,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  Usb_format_mcu_to_usb_data(16, SPK_OUTPUT_TERMINAL_TYPE)
   ,  SPK_OUTPUT_TERMINAL_ASSOCIATION
   ,  SPK_OUTPUT_TERMINAL_SOURCE_ID
-  ,  CSD_ID_2
+  ,  CSX_ID // CSD_ID_2 ClockSelector
   ,  Usb_format_mcu_to_usb_data(16,SPK_OUTPUT_TERMINAL_CONTROLS)
   ,  0x00
   }
@@ -412,6 +424,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
    ,  HEADSET_CATEGORY
    ,  Usb_format_mcu_to_usb_data(16, sizeof(S_usb_ac_interface_descriptor_2)
    		+ /*2* */sizeof(S_usb_clock_source_descriptor)
+   		+ /*2* */sizeof(S_usb_clock_selector_descriptor) // ClockSelector
    		+ /*2* */sizeof(S_usb_in_ter_descriptor_2)
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
    		+ /*2* */sizeof(S_usb_feature_unit_descriptor_2)
@@ -428,16 +441,24 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  0x00 // no association SPK_INPUT_TERMINAL_ID	// Was: OUTPUT_TERMINAL_ID
     ,  CLOCK_SOURCE_2_INDEX
     }
-
-
- ,
+  ,
+  {  sizeof (S_usb_clock_selector_descriptor) // ClockSelector
+     ,  CS_INTERFACE
+     ,  DESCRIPTOR_SUBTYPE_AUDIO_AC_CLOCK_SELECTOR
+     ,  CSX_ID
+     ,  0x01 					// 1 pins
+     ,  CSD_ID_2 				// the only input pin
+     ,  CSX_CONTROL			// clock selector is readable and writable
+     ,  0x00					// No string descriptor
+     }
+   ,
  {  sizeof(S_usb_in_ter_descriptor_2)
   ,  CS_INTERFACE
   ,  INPUT_TERMINAL_SUB_TYPE
   ,  SPK_INPUT_TERMINAL_ID
   ,  Usb_format_mcu_to_usb_data(16, SPK_INPUT_TERMINAL_TYPE)
   ,  SPK_INPUT_TERMINAL_ASSOCIATION
-  ,  CSD_ID_2
+  ,  CSX_ID // CSD_ID_2 ClockSelector
   ,  SPK_INPUT_TERMINAL_NB_CHANNELS
   ,  Usb_format_mcu_to_usb_data(32, SPK_INPUT_TERMINAL_CHANNEL_CONF) // 0 in Pro-Ject
   ,  SPK_INPUT_TERMINAL_CH_NAME_ID
@@ -465,7 +486,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   ,  Usb_format_mcu_to_usb_data(16, SPK_OUTPUT_TERMINAL_TYPE)
   ,  SPK_OUTPUT_TERMINAL_ASSOCIATION
   ,  SPK_OUTPUT_TERMINAL_SOURCE_ID
-  ,  CSD_ID_2
+  ,  CSX_ID // CSD_ID_2 ClockSelector
   ,  Usb_format_mcu_to_usb_data(16,SPK_OUTPUT_TERMINAL_CONTROLS)
   ,  0x00
   },
