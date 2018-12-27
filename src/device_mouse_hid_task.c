@@ -649,7 +649,7 @@ void device_mouse_hid_task(void)
     if ( Is_usb_in_ready(EP_HID_TX) )
     {
        Usb_reset_endpoint_fifo_access(EP_HID_TX);
-//       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte0); // HID report number, hard-coded to 0x01
+       Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte0); // HID report number, hard-coded to 0x01
        Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte1);
        Usb_write_endpoint_data(EP_HID_TX, 8, ReportByte2);
        Usb_ack_in_ready_send(EP_HID_TX);
