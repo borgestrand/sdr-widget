@@ -59,10 +59,19 @@
 // BSB 20130604 disabling UAC1 IN #define NB_INTERFACE	   5	//!  DG8SAQ, HID, Audio (3)
 
 // Config interface at endpoint 0
-#ifdef FEATURE_CFG_INTERFACE
-	#define NB_INTERFACE	4	//!  DG8SAQ, HID, Audio (2) OR 3 // HID, Audio (2)
+
+#ifdef FEATURE_HID
+	#ifdef FEATURE_CFG_INTERFACE
+		#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID     4: Was: Counting endpoints: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+	#else
+		#define NB_INTERFACE	3  //         Audio control, audio streaming, HID     3: Was: Counting endpoints: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+	#endif
 #else
-	#define NB_INTERFACE	3 // HID, Audio (2)
+	#ifdef FEATURE_CFG_INTERFACE
+		#define NB_INTERFACE	3  // Config, Audio control, audio streaming
+	#else
+		#define NB_INTERFACE	2  //         Audio control, audio streaming
+	#endif
 #endif
 
 #define CONF_NB         	1	//! Number of this configuration
@@ -105,6 +114,8 @@
 	#define DSC_INTERFACE_DG8SAQ		INTERFACE_NB0
 #endif
 
+#ifdef FEATURE_HID
+
 // USB HID Interface descriptor
 #define INTERFACE_NB1			    1
 #define ALTERNATE_NB1	            0                  //! The alt setting nb of this interface
@@ -131,7 +142,7 @@
 #define EP_INTERVAL_1_FS        16 // frames = 16ms was: 5    //! Interrupt polling interval from host
 #define EP_INTERVAL_1_HS        16 // microframes = 2ms, here: 4ms was: 0x05    //! Interrupt polling interval from host
 
-
+#endif
 
 /*
 // USB Endpoint 2 descriptor - not used
@@ -321,10 +332,6 @@ __attribute__((__packed__))
 #ifdef FEATURE_CFG_INTERFACE
 	  S_usb_interface_descriptor	 ifc0;
 #endif
-	  S_usb_interface_descriptor	ifc1;
-	  S_usb_hid_descriptor           hid;
-	  S_usb_endpoint_descriptor      ep1;
-//	  S_usb_endpoint_descriptor		 ep2;
 	  S_usb_interface_association_descriptor iad1;
 	  S_usb_interface_descriptor     	ifc2;
 	  S_usb_ac_interface_descriptor_1  	audioac;
@@ -349,6 +356,12 @@ __attribute__((__packed__))
 	  // BSB 20130604 disabling UAC1 IN   S_usb_format_type_1				mic_format_type;
 	  // BSB 20130604 disabling UAC1 IN   S_usb_endpoint_audio_descriptor_1	ep4;
 	  // BSB 20130604 disabling UAC1 IN   S_usb_endpoint_audio_specific_1 	ep4_s;
+#ifdef FEATURE_HID
+	  S_usb_interface_descriptor	ifc1;
+	  S_usb_hid_descriptor           hid;
+	  S_usb_endpoint_descriptor      ep1;
+//	  S_usb_endpoint_descriptor		 ep2;
+#endif
 }
 #if (defined __ICCAVR32__)
 #pragma pack()

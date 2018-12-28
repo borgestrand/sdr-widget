@@ -131,48 +131,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	#endif
 
 	,
-	{
-		sizeof(S_usb_interface_descriptor),
-		INTERFACE_DESCRIPTOR,
-		INTERFACE_NB1,
-		ALTERNATE_NB1,
-		NB_ENDPOINT1,
-		INTERFACE_CLASS1,
-		INTERFACE_SUB_CLASS1,
-		INTERFACE_PROTOCOL1,
-		INTERFACE_INDEX1
-	},
-
-	{
-		sizeof(S_usb_hid_descriptor),
-		HID_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, HID_VERSION),
-		HID_COUNTRY_CODE,
-		HID_NUM_DESCRIPTORS,
-		HID_REPORT_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
-	},
-
-	{
-		sizeof(S_usb_endpoint_descriptor),
-		ENDPOINT_DESCRIPTOR,
-		ENDPOINT_NB_1,
-		EP_ATTRIBUTES_1,
-		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
-		EP_INTERVAL_1_FS
-	},
-/*
-	{
-		sizeof(S_usb_endpoint_descriptor),
-		ENDPOINT_DESCRIPTOR,
-		ENDPOINT_NB_2,
-		EP_ATTRIBUTES_2,
-		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS),
-		EP_INTERVAL_2
-	}
-	,
-*/
-
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
 	  ,  FIRST_INTERFACE1					// bFirstInterface
@@ -360,9 +318,11 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
       ,   EP_REFRESH_5_FS
       ,   0x00
       }
-//	,
+
 	// BSB 20130604 disabling UAC1 IN
-	/*{  sizeof(S_usb_as_interface_descriptor)
+	/*
+	 ,
+	 {  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
 	   ,  STD_AS_INTERFACE_IN
 	   ,  ALT0_AS_INTERFACE_INDEX
@@ -423,6 +383,51 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
 	}*/
+
+#ifdef FEATURE_HID
+	,
+	{
+		sizeof(S_usb_interface_descriptor),
+		INTERFACE_DESCRIPTOR,
+		INTERFACE_NB1,
+		ALTERNATE_NB1,
+		NB_ENDPOINT1,
+		INTERFACE_CLASS1,
+		INTERFACE_SUB_CLASS1,
+		INTERFACE_PROTOCOL1,
+		INTERFACE_INDEX1
+	}
+	,
+	{
+		sizeof(S_usb_hid_descriptor),
+		HID_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, HID_VERSION),
+		HID_COUNTRY_CODE,
+		HID_NUM_DESCRIPTORS,
+		HID_REPORT_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
+	},
+
+	{
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_1,
+		EP_ATTRIBUTES_1,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
+		EP_INTERVAL_1_FS
+	}
+/*
+	,
+	{
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_2,
+		EP_ATTRIBUTES_2,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS),
+		EP_INTERVAL_2
+	}
+*/
+#endif
 };
 
 
@@ -462,48 +467,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 #endif
 
 	,
-	{
-		sizeof(S_usb_interface_descriptor),
-		INTERFACE_DESCRIPTOR,
-		INTERFACE_NB1,
-		ALTERNATE_NB1,
-		NB_ENDPOINT1,
-		INTERFACE_CLASS1,
-		INTERFACE_SUB_CLASS1,
-		INTERFACE_PROTOCOL1,
-		INTERFACE_INDEX1
-	},
-
-	{
-		sizeof(S_usb_hid_descriptor),
-		HID_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, HID_VERSION),
-		HID_COUNTRY_CODE,
-		HID_NUM_DESCRIPTORS,
-		HID_REPORT_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
-	},
-
-	{
-		sizeof(S_usb_endpoint_descriptor),
-		ENDPOINT_DESCRIPTOR,
-		ENDPOINT_NB_1,
-		EP_ATTRIBUTES_1,
-		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS),
-		EP_INTERVAL_1_HS
-	},
-/*
-	{
-		sizeof(S_usb_endpoint_descriptor),
-		ENDPOINT_DESCRIPTOR,
-		ENDPOINT_NB_2,
-		EP_ATTRIBUTES_2,
-		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS),
-		EP_INTERVAL_2
-	}
-	,
-	*/
-
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
 	  ,  FIRST_INTERFACE1					// bFirstInterface
@@ -752,6 +715,50 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
 	}*/
+#ifdef FEATURE_HID
+	,
+	{
+		sizeof(S_usb_interface_descriptor),
+		INTERFACE_DESCRIPTOR,
+		INTERFACE_NB1,
+		ALTERNATE_NB1,
+		NB_ENDPOINT1,
+		INTERFACE_CLASS1,
+		INTERFACE_SUB_CLASS1,
+		INTERFACE_PROTOCOL1,
+		INTERFACE_INDEX1
+	}
+	,
+	{
+		sizeof(S_usb_hid_descriptor),
+		HID_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, HID_VERSION),
+		HID_COUNTRY_CODE,
+		HID_NUM_DESCRIPTORS,
+		HID_REPORT_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
+	},
+
+	{
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_1,
+		EP_ATTRIBUTES_1,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS),
+		EP_INTERVAL_1_HS
+	}
+/*
+  ,
+	{
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_2,
+		EP_ATTRIBUTES_2,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS),
+		EP_INTERVAL_2
+	}
+	*/
+#endif
 
 };
 
@@ -790,47 +797,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 #endif
 
 	,
-	{
-		sizeof(S_usb_interface_descriptor),
-		INTERFACE_DESCRIPTOR,
-		INTERFACE_NB1,
-		ALTERNATE_NB1,
-		NB_ENDPOINT1,
-		INTERFACE_CLASS1,
-		INTERFACE_SUB_CLASS1,
-		INTERFACE_PROTOCOL1,
-		INTERFACE_INDEX1
-	},
-
-	{
-		sizeof(S_usb_hid_descriptor),
-		HID_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, HID_VERSION),
-		HID_COUNTRY_CODE,
-		HID_NUM_DESCRIPTORS,
-		HID_REPORT_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
-	},
-
-	{
-		sizeof(S_usb_endpoint_descriptor),
-		ENDPOINT_DESCRIPTOR,
-		ENDPOINT_NB_1,
-		EP_ATTRIBUTES_1,
-		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS),
-		EP_INTERVAL_1_HS
-	},
-/*
-	{
-		sizeof(S_usb_endpoint_descriptor),
-		ENDPOINT_DESCRIPTOR,
-		ENDPOINT_NB_2,
-		EP_ATTRIBUTES_2,
-		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS),
-		EP_INTERVAL_2
-	}
-	,
-*/
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
 	  ,  FIRST_INTERFACE1					// bFirstInterface
@@ -1076,6 +1042,49 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
 	}*/
+#ifdef FEATURE_HID
+	,
+	{
+		sizeof(S_usb_interface_descriptor),
+		INTERFACE_DESCRIPTOR,
+		INTERFACE_NB1,
+		ALTERNATE_NB1,
+		NB_ENDPOINT1,
+		INTERFACE_CLASS1,
+		INTERFACE_SUB_CLASS1,
+		INTERFACE_PROTOCOL1,
+		INTERFACE_INDEX1
+	},
+	{
+		sizeof(S_usb_hid_descriptor),
+		HID_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, HID_VERSION),
+		HID_COUNTRY_CODE,
+		HID_NUM_DESCRIPTORS,
+		HID_REPORT_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
+	},
+
+	{
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_1,
+		EP_ATTRIBUTES_1,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_HS),
+		EP_INTERVAL_1_HS
+	}
+/*
+	 ,
+	{
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_2,
+		EP_ATTRIBUTES_2,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS),
+		EP_INTERVAL_2
+	}
+*/
+#endif
 
 };
 #endif
@@ -1112,6 +1121,7 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	}
 #endif
 
+#ifdef FEATURE_HID
 	,
 	{
 		sizeof(S_usb_interface_descriptor),
@@ -1142,9 +1152,10 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		EP_ATTRIBUTES_1,
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
 		EP_INTERVAL_1_FS
-	},
+	}
 
 /*
+    ,
 	{
 		sizeof(S_usb_endpoint_descriptor),
 		ENDPOINT_DESCRIPTOR,
@@ -1153,10 +1164,9 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS),
 		EP_INTERVAL_2
 	}
+*/
+#endif
 	,
-
-	*/
-
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
 	  ,  FIRST_INTERFACE1					// bFirstInterface

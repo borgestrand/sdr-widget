@@ -172,6 +172,8 @@ void uac1_user_set_interface(U8 wIndex, U8 wValue) {
 }
 
 static Bool uac1_user_get_interface_descriptor() {
+#ifdef FEATURE_HID		// This function relates only to HID reports
+
 	Bool    zlp;
 	U16     wLength;
 	U16		wIndex;
@@ -305,15 +307,20 @@ static Bool uac1_user_get_interface_descriptor() {
 #endif
 
 	return TRUE;
+
+#else
+	return TRUE;
+#endif // FEATURE_HID
 }
+
 
 //! @brief This function manages hid set idle request.
 //!
 //! @param Duration     When the upper byte of wValue is 0 (zero), the duration is indefinite else from 0.004 to 1.020 seconds
 //! @param Report ID    0 the idle rate applies to all input reports, else only applies to the Report ID
 //!
-void uac1_usb_hid_set_idle (U8 u8_report_id, U8 u8_duration ) // BSB 20120710 prefix "uac1_" added
-{
+void uac1_usb_hid_set_idle (U8 u8_report_id, U8 u8_duration ) { // BSB 20120710 prefix "uac1_" added
+#ifdef FEATURE_HID
    Usb_ack_setup_received_free();
   
    if( wIndex == DSC_INTERFACE_HID )
@@ -321,6 +328,7 @@ void uac1_usb_hid_set_idle (U8 u8_report_id, U8 u8_duration ) // BSB 20120710 pr
    
    Usb_ack_control_in_ready_send();
    while (!Is_usb_control_in_ready());
+#endif
 }
 
 
@@ -328,8 +336,8 @@ void uac1_usb_hid_set_idle (U8 u8_report_id, U8 u8_duration ) // BSB 20120710 pr
 //!
 //! @param Report ID    0 the idle rate applies to all input reports, else only applies to the Report ID
 //!
-void uac1_usb_hid_get_idle (U8 u8_report_id) // BSB 20120710 prefix "uac1_" added
-{
+void uac1_usb_hid_get_idle (U8 u8_report_id) { // BSB 20120710 prefix "uac1_" added
+#ifdef FEATURE_HID
 	Usb_ack_setup_received_free();
    
    if( (wLength != 0) && (wIndex == DSC_INTERFACE_HID) )
@@ -340,6 +348,7 @@ void uac1_usb_hid_get_idle (U8 u8_report_id) // BSB 20120710 prefix "uac1_" adde
    
    while (!Is_usb_control_out_received());
    Usb_ack_control_out_received_free();
+#endif
 }
 
 #ifdef FEATURE_VOLUME_CTRL
@@ -790,6 +799,7 @@ Bool uac1_user_read_request(U8 type, U8 request)
 
 	//** Specific request from Class HID
 	// this should vector to specified interface handler
+#ifdef FEATURE_HID
 	if( wIndex == DSC_INTERFACE_HID )   // Interface number of HID
 		{
 
@@ -888,7 +898,8 @@ Bool uac1_user_read_request(U8 type, U8 request)
 							break;
 						}
 				}
-		}  // if wIndex ==  HID Interface
+	} // if wIndex ==  HID Interface
+#endif
 
 
 	//  assume all other requests are for AUDIO interface
