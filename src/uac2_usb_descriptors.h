@@ -51,11 +51,19 @@
 
 
 // CONFIGURATION
-// Config interface at endpoint 0
-#ifdef FEATURE_CFG_INTERFACE
-	#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID     4: Was: Counting endpoints: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+
+#ifdef FEATURE_HID
+	#ifdef FEATURE_CFG_INTERFACE
+		#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID     4: Was: Counting endpoints: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+	#else
+		#define NB_INTERFACE	3  //         Audio control, audio streaming, HID     3: Was: Counting endpoints: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+	#endif
 #else
-	#define NB_INTERFACE	3  //         Audio control, audio streaming, HID     3: Was: Counting endpoints: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+	#ifdef FEATURE_CFG_INTERFACE
+		#define NB_INTERFACE	3  // Config, Audio control, audio streaming
+	#else
+		#define NB_INTERFACE	2  //         Audio control, audio streaming
+	#endif
 #endif
 
 #define CONF_NB            				1	//! Number of this configuration
@@ -92,46 +100,48 @@
 // In most cases: translation from uac1 code follows pattern of NB1 -> NB4, NB2 -> NB5
 
 // USB HID Interface descriptor, this is the last USB interface!
-#ifdef FEATURE_CFG_INTERFACE
-	#define INTERFACE_NB3			    3
-#else
-	#define INTERFACE_NB3			    2	// No config interface, HID interface = 2
+#ifdef FEATURE_HID
+	#ifdef FEATURE_CFG_INTERFACE
+		#define INTERFACE_NB3			    3
+	#else
+		#define INTERFACE_NB3			    2	// No config interface, HID interface = 2
+	#endif
+
+	#define ALTERNATE_NB3	            	0                  //! The alt setting nb of this interface
+	#define NB_ENDPOINT3			    	1 // 2             //! The number of endpoints this interface has
+	#define INTERFACE_CLASS3		    	HID_CLASS          //! HID Class
+	#define INTERFACE_SUB_CLASS3        	NO_SUBCLASS        //! No Subclass
+	#define INTERFACE_PROTOCOL3    			NO_PROTOCOL		   //! No Protocol
+	#define INTERFACE_INDEX3       			0
+
+	#define DSC_INTERFACE_HID				INTERFACE_NB3
+
+	// HID descriptor
+	#define HID_VERSION                 	0x0111  //! HID Class Specification release number
+	#define HID_COUNTRY_CODE            	0x00    //! Hardware target country
+	#define HID_NUM_DESCRIPTORS				0x01    //! Number of HID class descriptors to follow
+
+	// USB Endpoint 4 descriptor for HID TX
+	#define ENDPOINT_NB_4           		(UAC2_EP_HID_TX| MSK_EP_DIR)
+	#define EP_ATTRIBUTES_4         		TYPE_INTERRUPT
+	#define EP_IN_LENGTH_4_FS       		8
+	#define EP_SIZE_4_FS            		EP_IN_LENGTH_4_FS
+	#define EP_IN_LENGTH_4_HS       		8
+	#define EP_SIZE_4_HS            		EP_IN_LENGTH_4_HS
+	#define EP_INTERVAL_4_FS           		16 // frames = 16ms was: 5    //! Interrupt polling interval from host
+	#define EP_INTERVAL_4_HS        		16 // microframes = 2ms, here: 4ms was: 0x05    //! Interrupt polling interval from host
+
+	/*
+	// USB Endpoint 5 descriptor for HID RX - not used
+	#define ENDPOINT_NB_5           		(UAC2_EP_HID_RX)
+	#define EP_ATTRIBUTES_5         		TYPE_INTERRUPT
+	#define EP_OUT_LENGTH_5_FS      		8
+	#define EP_SIZE_5_FS            		EP_OUT_LENGTH_5_FS
+	#define EP_OUT_LENGTH_5_HS      		8
+	#define EP_SIZE_5_HS            		EP_OUT_LENGTH_5_HS
+	#define EP_INTERVAL_5           		5               //! Interrupt polling interval from host
+	*/
 #endif
-#define ALTERNATE_NB3	            	0                  //! The alt setting nb of this interface
-#define NB_ENDPOINT3			    	1 // 2             //! The number of endpoints this interface has
-#define INTERFACE_CLASS3		    	HID_CLASS          //! HID Class
-#define INTERFACE_SUB_CLASS3        	NO_SUBCLASS        //! No Subclass
-#define INTERFACE_PROTOCOL3    			NO_PROTOCOL		   //! No Protocol
-#define INTERFACE_INDEX3       			0
-
-#define DSC_INTERFACE_HID				INTERFACE_NB3
-
-// HID descriptor
-#define HID_VERSION                 	0x0111  //! HID Class Specification release number
-#define HID_COUNTRY_CODE            	0x00    //! Hardware target country
-#define HID_NUM_DESCRIPTORS				0x01    //! Number of HID class descriptors to follow
-
-// USB Endpoint 4 descriptor for HID TX
-#define ENDPOINT_NB_4           		(UAC2_EP_HID_TX| MSK_EP_DIR)
-#define EP_ATTRIBUTES_4         		TYPE_INTERRUPT
-#define EP_IN_LENGTH_4_FS       		8
-#define EP_SIZE_4_FS            		EP_IN_LENGTH_4_FS
-#define EP_IN_LENGTH_4_HS       		8
-#define EP_SIZE_4_HS            		EP_IN_LENGTH_4_HS
-#define EP_INTERVAL_4_FS           		16 // frames = 16ms was: 5    //! Interrupt polling interval from host
-#define EP_INTERVAL_4_HS        		16 // microframes = 2ms, here: 4ms was: 0x05    //! Interrupt polling interval from host
-
-/*
-// USB Endpoint 5 descriptor for HID RX - not used
-#define ENDPOINT_NB_5           		(UAC2_EP_HID_RX)
-#define EP_ATTRIBUTES_5         		TYPE_INTERRUPT
-#define EP_OUT_LENGTH_5_FS      		8
-#define EP_SIZE_5_FS            		EP_OUT_LENGTH_5_FS
-#define EP_OUT_LENGTH_5_HS      		8
-#define EP_SIZE_5_HS            		EP_OUT_LENGTH_5_HS
-#define EP_INTERVAL_5           		5               //! Interrupt polling interval from host
-*/
-
 // BSB 20120719 HID insertion end
 
 
@@ -366,9 +376,11 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_descriptor_2 		ep3;
 
 	// BSB 20120720 Added, reduced to ONE TX endpoint
+#ifdef FEATURE_HID
 	S_usb_interface_descriptor				ifc3;
 	S_usb_hid_descriptor           			hid;
 	S_usb_endpoint_descriptor     		 	ep4;
+#endif
 }
 #if (defined __ICCAVR32__)
 #pragma pack()

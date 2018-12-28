@@ -63,6 +63,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
 	-DFEATURE_PRODUCT_AB1x \
 	-DVDD_SENSE \
+	-DFEATURE_HID \
 	-DFEATURE_VOLUME_CTRL \
 	-DFEATURE_CLOCK_SELECTOR \
 	-DUSB_STATE_MACHINE_GPIO \
@@ -80,6 +81,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 #	-DUSB_STATE_MACHINE_GPIO \  - Used for 'scope debugging of state machine timing
 #	-DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 \
 #	-DFEATURE_CFG_INTERFACE \						Enable the configuration interface at Endpoint 0. Disabling breaks UAC1
+#	-DFEATURE_HID \
 
 
 ## Boot up with this code, reboot with feature_quirk_ptest set

@@ -311,53 +311,53 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
        ,   EP_INTERVAL_3_FS
        }
-
   // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
-  ,
-  {
-  	sizeof(S_usb_interface_descriptor),
-  	INTERFACE_DESCRIPTOR,
-  	INTERFACE_NB3,
-  	ALTERNATE_NB3,
-  	NB_ENDPOINT3,
-  	INTERFACE_CLASS3,
-  	INTERFACE_SUB_CLASS3,
-  	INTERFACE_PROTOCOL3,
-  	INTERFACE_INDEX3
-  }
-  ,
-  {
-  	sizeof(S_usb_hid_descriptor),
-  	HID_DESCRIPTOR,
-  	Usb_format_mcu_to_usb_data(16, HID_VERSION),
-  	HID_COUNTRY_CODE,
-  	HID_NUM_DESCRIPTORS,
-  	HID_REPORT_DESCRIPTOR,
-  	Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
-  }
-  ,
-  {
-  	sizeof(S_usb_endpoint_descriptor),
-  	ENDPOINT_DESCRIPTOR,
-  	ENDPOINT_NB_4,
-  	EP_ATTRIBUTES_4,
-  	Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS),
-  	EP_INTERVAL_4_FS
-  }
-/*// Unused HID RX endpoint
-  ,
-  {
-  	sizeof(S_usb_endpoint_descriptor),
-  	ENDPOINT_DESCRIPTOR,
-  	ENDPOINT_NB_5,
-  	EP_ATTRIBUTES_5,
-  	Usb_format_mcu_to_usb_data(16, EP_SIZE_5_FS),
-  	EP_INTERVAL_5
-  }
+#ifdef FEATURE_HID
+	,
+	{
+		sizeof(S_usb_interface_descriptor),
+		INTERFACE_DESCRIPTOR,
+		INTERFACE_NB3,
+		ALTERNATE_NB3,
+		NB_ENDPOINT3,
+		INTERFACE_CLASS3,
+		INTERFACE_SUB_CLASS3,
+		INTERFACE_PROTOCOL3,
+		INTERFACE_INDEX3
+	  }
+	  ,
+	  {
+		sizeof(S_usb_hid_descriptor),
+		HID_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, HID_VERSION),
+		HID_COUNTRY_CODE,
+		HID_NUM_DESCRIPTORS,
+		HID_REPORT_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
+	  }
+	  ,
+	  {
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_4,
+		EP_ATTRIBUTES_4,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_4_FS),
+		EP_INTERVAL_4_FS
+	  }
+	/*// Unused HID RX endpoint
+	  ,
+	  {
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_5,
+		EP_ATTRIBUTES_5,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_5_FS),
+		EP_INTERVAL_5
+	  }
 
-  */
-
-  // BSB 20120720 Insert EP 4 and 5, HID TX and RX end
+	  */
+#endif
+// BSB 20120720 Insert EP 4 and 5, HID TX and RX end
 };
 
 
@@ -584,9 +584,9 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
       ,   EP_INTERVAL_3_HS
       }
 
-  // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
+// BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
+#ifdef FEATURE_HID
   ,
-
   {
   	sizeof(S_usb_interface_descriptor),
   	INTERFACE_DESCRIPTOR,
@@ -628,10 +628,9 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
   	Usb_format_mcu_to_usb_data(16, EP_SIZE_5_HS),
   	EP_INTERVAL_5
   }
-
 */
-
-  // BSB 20120720 Insert EP 4 and 5, HID TX and RX end
+#endif
+// BSB 20120720 Insert EP 4 and 5, HID TX and RX end
 };
 
 // usb_qualifier_desc FS
