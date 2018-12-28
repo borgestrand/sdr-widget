@@ -79,27 +79,24 @@
 #define CONF_ATTRIBUTES   	USB_CONFIG_BUSPOWERED  // default is bus-powered FIX: make dynamic for USB-C applications!
 #define MAX_POWER         	250  // 500mA for bus-powered operation
 
+
 //Audio Streaming (AS) interface descriptor
-// BSB 20130604 disabling UAC1 IN #define STD_AS_INTERFACE_IN				0x04   // Index of Std AS Interface
 #ifdef FEATURE_CFG_INTERFACE
-	#define STD_AS_INTERFACE_OUT			0x03
+	#define STD_AS_INTERFACE_OUT		0x02   // Index of Std AS Interface for Audio Out
 #else
-	#define STD_AS_INTERFACE_OUT			0x03 // 0x02 changes startup to "FDqBEEEEEEEED"
+	#define STD_AS_INTERFACE_OUT		0x01   // Index of Std AS Interface for Audio Out
 #endif
+
 
 // IAD for Audio
 #ifdef FEATURE_CFG_INTERFACE
-	#define FIRST_INTERFACE1	2
+	#define FIRST_INTERFACE1	1
 #else
-	#define FIRST_INTERFACE1	2 // 1 Doesn't seem to do a lot
+	#define FIRST_INTERFACE1	0
 #endif
 // BSB 20130604 disabling UAC1 IN #define INTERFACE_COUNT1	3
+#define INTERFACE_COUNT1	2
 
-#ifdef FEATURE_CFG_INTERFACE
-	#define INTERFACE_COUNT1	2
-#else
-	#define INTERFACE_COUNT1	2 // 1 Doesn't seem to do a lot
-#endif
 
 #ifdef FEATURE_CFG_INTERFACE
 	// USB DG8SAQ Interface descriptor
@@ -117,7 +114,11 @@
 #ifdef FEATURE_HID
 
 // USB HID Interface descriptor
-#define INTERFACE_NB1			    1
+#ifdef FEATURE_CFG_INTERFACE
+	#define INTERFACE_NB1			    3
+#else
+	#define INTERFACE_NB1			    2	// No config interface, HID interface = 2
+#endif
 #define ALTERNATE_NB1	            0                  //! The alt setting nb of this interface
 #define NB_ENDPOINT1			    1 // Was: 2                  //! The number of endpoints this interface has
 #define INTERFACE_CLASS1		    HID_CLASS          //! HID Class
@@ -142,8 +143,6 @@
 #define EP_INTERVAL_1_FS        16 // frames = 16ms was: 5    //! Interrupt polling interval from host
 #define EP_INTERVAL_1_HS        16 // microframes = 2ms, here: 4ms was: 0x05    //! Interrupt polling interval from host
 
-#endif
-
 /*
 // USB Endpoint 2 descriptor - not used
 #define ENDPOINT_NB_2           (UAC1_EP_HID_RX)
@@ -154,9 +153,15 @@
 #define EP_SIZE_2_HS            EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2           5               //! Interrupt polling interval from host
 */
+#endif
+
 
 // Standard Audio Control (AC) interface descriptor
-#define INTERFACE_NB2       2
+#ifdef FEATURE_CFG_INTERFACE
+	#define INTERFACE_NB2       		1
+#else
+	#define INTERFACE_NB2       		0	// No config interface, Audio control interface = 0
+#endif
 #define ALTERNATE_NB2       0
 #define NB_ENDPOINT2        0			     //! No endpoint for AC interface
 #define INTERFACE_CLASS2    AUDIO_CLASS  	//! Audio Class
