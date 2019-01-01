@@ -278,13 +278,14 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   }
 
  ,
-    {  sizeof(S_usb_format_type_2)
-    ,  CS_INTERFACE
-    ,  FORMAT_SUB_TYPE
-    ,  FORMAT_TYPE_1
-    ,  FORMAT_SUBSLOT_SIZE_1
-    ,  FORMAT_BIT_RESOLUTION_1
-    }
+
+ {  sizeof(S_usb_format_type_2)
+ ,  CS_INTERFACE
+ ,  FORMAT_SUB_TYPE
+ ,  FORMAT_TYPE_1
+ ,  2 // bBitResolution FORMAT_SUBSLOT_SIZE_1
+ ,  16 // bBitResolution FORMAT_BIT_RESOLUTION_1
+ }
 
  ,
       {   sizeof(S_usb_endpoint_audio_descriptor_2)
@@ -554,8 +555,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
     ,  CS_INTERFACE
     ,  FORMAT_SUB_TYPE
     ,  FORMAT_TYPE_1
-    ,  FORMAT_SUBSLOT_SIZE_1
-    ,  FORMAT_BIT_RESOLUTION_1
+    ,  2 // bBitResolution FORMAT_SUBSLOT_SIZE_1
+    ,  16 // bBitResolution FORMAT_BIT_RESOLUTION_1
     }
 
  ,

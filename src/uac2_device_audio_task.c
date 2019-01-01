@@ -466,7 +466,12 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);
-					num_samples = num_samples / 8;
+
+					// num_samples = num_samples / 8;
+
+					// bBitResolution, 2 bytes per sample, 4 bytes per stereo sample
+					num_samples = num_samples / 4;
+
 
 					xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
 					spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
@@ -590,6 +595,21 @@ void uac2_device_audio_task(void *pvParameters)
 					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
 
 					for (i = 0; i < num_samples; i++) {
+						// bBitResolution
+						// 16-bit code
+						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
+						silence_det_L |= sample_L;
+
+						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+						sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
+						silence_det_R |= sample_R;
+
+
+						// 24-bit code
+						/*
 						sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes?
 						sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -603,6 +623,7 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
 						silence_det_R |= sample_R;
+						*/
 
 						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
 							silence_det = 1;
