@@ -460,6 +460,10 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
 
+		// bBitResolution
+		print_dbg_char('A');
+		print_dbg_char_hex(wValue);
+
 		/*	   // BSB 20121222 to debug sequence on various OSes
 		 if (usb_alternate_setting_out == 0)
 		 print_dbg_char('0');
@@ -1050,9 +1054,12 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute); // or 0
 						}
 
+						print_dbg_char('m'); // bBitResolution
+
+
 #ifdef USB_STATE_MACHINE_DEBUG
 						// Trying to catch Win10 mute event
-						print_dbg_char('M');
+						print_dbg_char('m');
 						print_dbg_char_hex(usb_spk_mute);
 						print_dbg_char(' ');
 #endif
@@ -1082,6 +1089,8 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 											spk_vol_usb_L);
 								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
+
+								print_dbg_char('l'); // bBitResolution
 
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('g');
@@ -1354,9 +1363,12 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						}
 						usb_spk_mute = temp1;
 
+						print_dbg_char('M'); // bBitResolution
+
+
 #ifdef USB_STATE_MACHINE_DEBUG
 						// Trying to catch Win10 mute event
-						print_dbg_char('m');
+						print_dbg_char('M');
 						print_dbg_char_hex(usb_spk_mute);
 						print_dbg_char(' ');
 #endif
@@ -1385,6 +1397,8 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								MSB( spk_vol_usb_L) = temp2;
 								spk_vol_mult_L = usb_volume_format(
 										spk_vol_usb_L);
+
+								print_dbg_char('L'); // bBitResolution
 
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('s');

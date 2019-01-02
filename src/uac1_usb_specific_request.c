@@ -163,6 +163,11 @@ void uac1_user_set_interface(U8 wIndex, U8 wValue) {
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
 	}
+
+	// bBitResolution
+	print_dbg_char('A');
+	print_dbg_char_hex(wValue);
+
 	// BSB 20130604 disabling UAC1 IN
 	/*
 	else if (usb_interface_nb == STD_AS_INTERFACE_IN) {
@@ -601,6 +606,7 @@ void audio_get_cur(void) {
 							spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 						}
 						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
+					   print_dbg_char('l'); // bBitResolution
 
 #ifdef USB_STATE_MACHINE_DEBUG
 					   print_dbg_char('g');
@@ -725,6 +731,7 @@ void audio_set_cur(void)
 				   MSB(spk_vol_usb_L)= temp2;
 				   spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 
+				   print_dbg_char('L'); // bBitResolution
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				   print_dbg_char('s');
