@@ -318,7 +318,7 @@
 #define FORMAT_NB_CHANNELS					0x02	// Two Channels
 #define FORMAT_FRAME_SIZE_ALT1				0x03	// 3 bytes per audio sample
 #define FORMAT_BIT_RESOLUTION_ALT1			0x18	// 24 bits per sample
-#define FORMAT_FRAME_SIZE_ALT2				0x03	// 2 bytes per audio sample
+#define FORMAT_FRAME_SIZE_ALT2				0x02	// 2 bytes per audio sample
 #define FORMAT_BIT_RESOLUTION_ALT2			0x10	// 16 bits per sample
 #define FORMAT_SAMPLE_FREQ_NB				0x02	// Two frequency supported
 #define FORMAT_LSBYTE_SAMPLE_FREQ_441		0xac44	// 44.1khz
