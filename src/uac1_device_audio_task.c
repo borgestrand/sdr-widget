@@ -427,7 +427,9 @@ void uac1_device_audio_task(void *pvParameters)
 					spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
+						// bBitResolution
+						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 4; // Hardcoded 16-bit mono samples, 4 bytes for stereo
+//						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
 
 						if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 							time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
@@ -537,6 +539,20 @@ void uac1_device_audio_task(void *pvParameters)
 						silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
 						silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
 						for (i = 0; i < num_samples; i++) {
+							// bBitResolution
+							// 16-bit support
+
+							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_LSB) << 8);
+							silence_det_L |= sample_L;
+
+							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+							sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_LSB) << 8);
+							silence_det_R |= sample_R;
+
+/* 24-bit support
 							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -548,6 +564,7 @@ void uac1_device_audio_task(void *pvParameters)
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
 							silence_det_R |= sample_R;
+*/
 
 							if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
 								silence_det = 1;

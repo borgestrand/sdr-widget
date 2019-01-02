@@ -282,8 +282,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
 	   ,  FORMAT_NB_CHANNELS
-	   ,  FORMAT_FRAME_SIZE
-	   ,  FORMAT_BIT_RESOLUTION
+	   ,  2 // bBitResolution FORMAT_FRAME_SIZE
+	   ,  16 // bBitResolution FORMAT_BIT_RESOLUTION
 	   ,  FORMAT_SAMPLE_FREQ_NB
 	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_441)
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
@@ -616,8 +616,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
 	   ,  FORMAT_NB_CHANNELS
-	   ,  FORMAT_FRAME_SIZE
-	   ,  FORMAT_BIT_RESOLUTION
+	   ,  2 // bBitResolution FORMAT_FRAME_SIZE
+	   ,  16 // bBitResolution FORMAT_BIT_RESOLUTION
 	   ,  FORMAT_SAMPLE_FREQ_NB
 	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_441)
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
@@ -945,8 +945,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
 	   ,  FORMAT_NB_CHANNELS
-	   ,  FORMAT_FRAME_SIZE
-	   ,  FORMAT_BIT_RESOLUTION
+	   ,  2 // bBitResolution FORMAT_FRAME_SIZE
+	   ,  16 // bBitResolution FORMAT_BIT_RESOLUTION
 	   ,  0x01
 	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_48)
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
@@ -1316,8 +1316,8 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE
 	   ,  FORMAT_NB_CHANNELS
-	   ,  FORMAT_FRAME_SIZE
-	   ,  FORMAT_BIT_RESOLUTION
+	   ,  2 // bBitResolution FORMAT_FRAME_SIZE
+	   ,  16 // bBitResolution FORMAT_BIT_RESOLUTION
 	   ,  0x01
 	   ,  Usb_format_mcu_to_usb_data(16, FORMAT_LSBYTE_SAMPLE_FREQ_48)
 	   ,  FORMAT_MSBYTE_SAMPLE_FREQ
