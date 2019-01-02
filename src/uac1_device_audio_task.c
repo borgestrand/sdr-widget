@@ -323,9 +323,11 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 #ifdef HW_GEN_DIN20
-			if ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) ) {
+			if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
+//			if ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) ) {
 #else
-			if (usb_alternate_setting_out == 1) {
+				if (usb_alternate_setting_out >= 1) { // bBitResolution
+//				if (usb_alternate_setting_out == 1) {
 #endif
 				// BSB 20131031 actual gap calculation moved to after OUT data processing
 
@@ -718,7 +720,8 @@ void uac1_device_audio_task(void *pvParameters)
 								time_to_calculate_gap = SPK_PACKETS_PER_GAP_SKIP - 1;
 							else									// Initially and a while after any skip/insert
 								time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
-							if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
+							if (usb_alternate_setting_out >= 1) {	// bBitResolution // Used with explicit feedback and not ADC data
+//							if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
 								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 								num_remaining = spk_pdca_channel->tcr;
@@ -807,7 +810,7 @@ void uac1_device_audio_task(void *pvParameters)
 										LED_Off(LED1);
 									}
 								} // end if(playerStarted)
-							} // end if (usb_alternate_setting_out == 1)
+							} // end if (usb_alternate_setting_out >= 1)
 
 						} // end if time_to_calculate_gap == 0
 
@@ -817,10 +820,10 @@ void uac1_device_audio_task(void *pvParameters)
 
 				} // end if(1) / input_select on RX chip
 
-			} // end usb_alternate_setting_out == 1
+			} // end usb_alternate_setting_out >= 1
 
 
-			else { // opposite of ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) )
+			else { // opposite of ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) )
 
 				/* SPDIF reduced */
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
@@ -873,7 +876,7 @@ void uac1_device_audio_task(void *pvParameters)
 						#endif
 					}
 				}
-			} // end opposite of usb_alternate_setting_out == 1
+			} // end opposite of usb_alternate_setting_out >= 1
 
 
 			// BSB 20131201 attempting improved playerstarted detection

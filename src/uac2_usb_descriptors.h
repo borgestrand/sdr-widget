@@ -305,7 +305,7 @@
 #define ALT1_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
 #define ALT1_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
 
-//Alternate 2 Audio Streaming (AS) interface descriptor
+//Alternate 2 Audio Streaming (AS) interface descriptor // bBitResolution
 #define ALT2_AS_INTERFACE_INDEX			0x02   // Index of Std AS interface Alt2
 #define ALT2_AS_NB_ENDPOINT				0x01   // Nb of endpoints for alt2 interface
 #define ALT2_AS_INTERFACE_CLASS			0x01   // Audio class
@@ -326,6 +326,11 @@
 #define FORMAT_SUBSLOT_SIZE_1			0x04	// Number of bytes per subslot
 #define FORMAT_BIT_RESOLUTION_1			0x18	// 24 bits per sample
 
+// Format type for ALT2 // bBitResolution
+#define FORMAT_TYPE_2					0x01	// Format TypeI
+#define FORMAT_SUBSLOT_SIZE_2			0x02	// Number of bytes per subslot
+#define FORMAT_BIT_RESOLUTION_2			0x10	// 16 bits per sample
+
 //Audio endpoint specific descriptor field
 #define AUDIO_EP_ATRIBUTES				0b00000000	 	// No sampling freq, no pitch, no pading
 #define AUDIO_EP_CONTROLS				0b00000000
@@ -334,6 +339,7 @@
 
 //For playback
 #define ALT1_AS_NB_ENDPOINT_OUT			0x02   // two EP,  OUT and OUT_FB
+#define ALT2_AS_NB_ENDPOINT_OUT			0x02   // two EP,  OUT and OUT_FB
 #define AS_TERMINAL_LINK_OUT		    SPK_INPUT_TERMINAL_ID
 
 //! Usb Class-Specific AS Isochronous Feedback Endpoint Descriptors pp 4.10.2.2 (none)
@@ -365,15 +371,25 @@ __attribute__((__packed__))
 	S_usb_feature_unit_descriptor_2			spk_fea_unit;
 #endif
 	S_usb_out_ter_descriptor_2				spk_out_ter;
+
+	// alt0
 	S_usb_as_interface_descriptor	 		spk_as_alt0;
+
+	// alt1
 	S_usb_as_interface_descriptor	 		spk_as_alt1;
 	S_usb_as_g_interface_descriptor_2		spk_g_as;
 	S_usb_format_type_2						spk_format_type;
-
-
 	S_usb_endpoint_audio_descriptor_2 		ep2;
 	S_usb_endpoint_audio_specific_2			ep2_s;
 	S_usb_endpoint_audio_descriptor_2 		ep3;
+
+	// bBitResolution added alt2 for 16-bit audio streaming
+	S_usb_as_interface_descriptor	 		spk_as_alt2;
+	S_usb_as_g_interface_descriptor_2		spk_g_as_alt2;
+	S_usb_format_type_2						spk_format_type_alt2;
+	S_usb_endpoint_audio_descriptor_2 		ep2_alt2;
+	S_usb_endpoint_audio_specific_2			ep2_s_alt2;
+	S_usb_endpoint_audio_descriptor_2 		ep3_alt2;
 
 	// BSB 20120720 Added, reduced to ONE TX endpoint
 #ifdef FEATURE_HID

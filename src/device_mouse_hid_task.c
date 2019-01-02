@@ -645,7 +645,7 @@ void device_mouse_hid_task(void)
 
 
 	// Send the HID report over USB
-
+#ifdef FEATURE_HID
     if ( Is_usb_in_ready(EP_HID_TX) )
     {
        Usb_reset_endpoint_fifo_access(EP_HID_TX);
@@ -661,6 +661,9 @@ void device_mouse_hid_task(void)
        // usb_state = 'r'; // May we ignore usb_state for HID TX ??
     }
     else { // Failure
+#else
+    if (1) {
+#endif
         print_dbg_char('-');					// NO HID command forwarded to HOST
         print_dbg_char('\n');					// NO HID command forwarded to HOST
         #ifdef HID2LCD

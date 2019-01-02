@@ -852,7 +852,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						&& wValue_lsb == 0 && request == AUDIO_CS_REQUEST_CUR) {
 					Usb_ack_setup_received_free();
 					Usb_reset_endpoint_fifo_access(EP_CONTROL);
-					Usb_write_endpoint_data(EP_CONTROL, 8, usb_alternate_setting_out);
+					Usb_write_endpoint_data(EP_CONTROL, 8, usb_alternate_setting_out); // bBitResolution not touched
 					Usb_ack_control_in_ready_send();
 					while (!Is_usb_control_out_received())
 						;
@@ -881,8 +881,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					while (!Is_usb_control_out_received())
 						;
 					Usb_reset_endpoint_fifo_access(EP_CONTROL);
-					usb_alternate_setting_out
-							= Usb_read_endpoint_data(EP_CONTROL, 8);
+					usb_alternate_setting_out = Usb_read_endpoint_data(EP_CONTROL, 8); // bBitResolution not touched
 					usb_alternate_setting_out_changed = TRUE;
 					Usb_ack_control_out_received_free();
 					Usb_ack_control_in_ready_send();  //!< send a ZLP for STATUS phase
@@ -1206,7 +1205,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_CUR) {
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						if (usb_alternate_setting_out == 1) {
+
+						if (usb_alternate_setting_out >= 1) { // bBitResolution
+//						if (usb_alternate_setting_out == 1) {
 							Usb_write_endpoint_data(EP_CONTROL, 8, SPK_INPUT_TERMINAL_NB_CHANNELS);
 							Usb_write_endpoint_data(EP_CONTROL, 8, (U8) SPK_INPUT_TERMINAL_CHANNEL_CONF);
 							Usb_write_endpoint_data(EP_CONTROL, 8, 0x00);

@@ -241,6 +241,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   }
 
  ,
+ // ALT0 has no endpoints
+
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
      ,  STD_AS_INTERFACE_OUT
@@ -252,6 +254,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     ,  0x00
     }
  ,
+ // ALT1 is for 24-bit audio streaming
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
      ,  STD_AS_INTERFACE_OUT
@@ -283,8 +286,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
  ,  CS_INTERFACE
  ,  FORMAT_SUB_TYPE
  ,  FORMAT_TYPE_1
- ,  2 // bBitResolution FORMAT_SUBSLOT_SIZE_1
- ,  16 // bBitResolution FORMAT_BIT_RESOLUTION_1
+ ,  FORMAT_SUBSLOT_SIZE_1
+ ,  FORMAT_BIT_RESOLUTION_1
  }
 
  ,
@@ -312,6 +315,73 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
        ,   EP_INTERVAL_3_FS
        }
+  ,
+  // ALT2 is for 16-bit audio streaming, otherwise identical to ALT1
+
+  {  sizeof(S_usb_as_interface_descriptor)
+   ,  INTERFACE_DESCRIPTOR
+    ,  STD_AS_INTERFACE_OUT
+   ,  ALT2_AS_INTERFACE_INDEX
+    ,  ALT2_AS_NB_ENDPOINT_OUT
+   ,  ALT2_AS_INTERFACE_CLASS
+   ,  ALT2_AS_INTERFACE_SUB_CLASS
+   ,  ALT2_AS_INTERFACE_PROTOCOL
+   ,  0x00
+   }
+,
+
+
+{  sizeof(S_usb_as_g_interface_descriptor_2)
+ ,  CS_INTERFACE
+ ,  GENERAL_SUB_TYPE
+ ,  SPK_INPUT_TERMINAL_ID
+ ,  AS_CONTROLS
+ ,  AS_FORMAT_TYPE
+ ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
+ ,  AS_NB_CHANNELS
+ ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
+ ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
+ }
+
+,
+
+{  sizeof(S_usb_format_type_2)
+,  CS_INTERFACE
+,  FORMAT_SUB_TYPE
+,  FORMAT_TYPE_2
+,  FORMAT_SUBSLOT_SIZE_2  // bBitResolution
+,  FORMAT_BIT_RESOLUTION_2  // bBitResolution
+}
+
+,
+     {   sizeof(S_usb_endpoint_audio_descriptor_2)
+     ,   ENDPOINT_DESCRIPTOR
+      ,   ENDPOINT_NB_2
+      ,   EP_ATTRIBUTES_2
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS)
+      ,   EP_INTERVAL_2_FS
+     }
+  ,
+     {  sizeof(S_usb_endpoint_audio_specific_2)
+     ,  CS_ENDPOINT
+     ,  GENERAL_SUB_TYPE
+     ,  AUDIO_EP_ATRIBUTES
+      ,  AUDIO_EP_CONTROLS
+     ,  AUDIO_EP_DELAY_UNIT
+     ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
+     }
+ ,
+      {   sizeof(S_usb_endpoint_audio_descriptor_2)
+      ,   ENDPOINT_DESCRIPTOR
+      ,   ENDPOINT_NB_3
+      ,   EP_ATTRIBUTES_3
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
+      ,   EP_INTERVAL_3_FS
+      }
+
+  // End of audio streaming interface and its ALTs
+
+
   // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
 #ifdef FEATURE_HID
 	,
@@ -513,8 +583,10 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 #endif
   ,  Usb_format_mcu_to_usb_data(16,SPK_OUTPUT_TERMINAL_CONTROLS)
   ,  0x00
-  },
+  }
+  ,
 
+// ALT0 has no endpoints
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
       ,  STD_AS_INTERFACE_OUT
@@ -526,64 +598,127 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
       ,  0x00
     }
  ,
-    {  sizeof(S_usb_as_interface_descriptor)
-    ,  INTERFACE_DESCRIPTOR
-      ,  STD_AS_INTERFACE_OUT
-    ,  ALT1_AS_INTERFACE_INDEX
-      ,  ALT1_AS_NB_ENDPOINT_OUT
-    ,  ALT1_AS_INTERFACE_CLASS
-    ,  ALT1_AS_INTERFACE_SUB_CLASS
-    ,  ALT1_AS_INTERFACE_PROTOCOL
-      ,  0x00
-    }
- ,
-    {  sizeof(S_usb_as_g_interface_descriptor_2)
-    ,  CS_INTERFACE
-    ,  GENERAL_SUB_TYPE
-    ,  SPK_INPUT_TERMINAL_ID
-    ,  AS_CONTROLS
-    ,  AS_FORMAT_TYPE
-    ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
-    ,  AS_NB_CHANNELS
-    ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
-    ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
-    }
- ,
-
-
-    {  sizeof(S_usb_format_type_2)
-    ,  CS_INTERFACE
-    ,  FORMAT_SUB_TYPE
-    ,  FORMAT_TYPE_1
-    ,  2 // bBitResolution FORMAT_SUBSLOT_SIZE_1
-    ,  16 // bBitResolution FORMAT_BIT_RESOLUTION_1
-    }
-
- ,
-    {   sizeof(S_usb_endpoint_audio_descriptor_2)
-    ,   ENDPOINT_DESCRIPTOR
-        ,   ENDPOINT_NB_2
-        ,   EP_ATTRIBUTES_2
-        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS)
-        ,   EP_INTERVAL_2_HS
-    }
- ,
-    {  sizeof(S_usb_endpoint_audio_specific_2)
-    ,  CS_ENDPOINT
-    ,  GENERAL_SUB_TYPE
-    ,  AUDIO_EP_ATRIBUTES
-    ,  AUDIO_EP_CONTROLS
-    ,  AUDIO_EP_DELAY_UNIT
-    ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
-    }
+ // ALT1 is for 24-bit audio streaming
+     {  sizeof(S_usb_as_interface_descriptor)
+     ,  INTERFACE_DESCRIPTOR
+       ,  STD_AS_INTERFACE_OUT
+     ,  ALT1_AS_INTERFACE_INDEX
+       ,  ALT1_AS_NB_ENDPOINT_OUT
+     ,  ALT1_AS_INTERFACE_CLASS
+     ,  ALT1_AS_INTERFACE_SUB_CLASS
+     ,  ALT1_AS_INTERFACE_PROTOCOL
+       ,  0x00
+     }
   ,
+     {  sizeof(S_usb_as_g_interface_descriptor_2)
+     ,  CS_INTERFACE
+     ,  GENERAL_SUB_TYPE
+     ,  SPK_INPUT_TERMINAL_ID
+     ,  AS_CONTROLS
+     ,  AS_FORMAT_TYPE
+     ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
+     ,  AS_NB_CHANNELS
+     ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
+     ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
+     }
+  ,
+
+
+     {  sizeof(S_usb_format_type_2)
+     ,  CS_INTERFACE
+     ,  FORMAT_SUB_TYPE
+     ,  FORMAT_TYPE_1
+     ,  FORMAT_SUBSLOT_SIZE_1
+     ,  FORMAT_BIT_RESOLUTION_1
+     }
+
+  ,
+     {   sizeof(S_usb_endpoint_audio_descriptor_2)
+     ,   ENDPOINT_DESCRIPTOR
+         ,   ENDPOINT_NB_2
+         ,   EP_ATTRIBUTES_2
+         ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS)
+         ,   EP_INTERVAL_2_HS
+     }
+  ,
+     {  sizeof(S_usb_endpoint_audio_specific_2)
+     ,  CS_ENDPOINT
+     ,  GENERAL_SUB_TYPE
+     ,  AUDIO_EP_ATRIBUTES
+     ,  AUDIO_EP_CONTROLS
+     ,  AUDIO_EP_DELAY_UNIT
+     ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
+     }
+   ,
+       {   sizeof(S_usb_endpoint_audio_descriptor_2)
+       ,   ENDPOINT_DESCRIPTOR
+       ,   ENDPOINT_NB_3
+       ,   EP_ATTRIBUTES_3
+       ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
+       ,   EP_INTERVAL_3_HS
+       }
+,
+
+  // ALT2 is for 16-bit audio streaming, otherwise identical to ALT1
+      {  sizeof(S_usb_as_interface_descriptor)
+      ,  INTERFACE_DESCRIPTOR
+        ,  STD_AS_INTERFACE_OUT
+      ,  ALT2_AS_INTERFACE_INDEX
+        ,  ALT2_AS_NB_ENDPOINT_OUT
+      ,  ALT2_AS_INTERFACE_CLASS
+      ,  ALT2_AS_INTERFACE_SUB_CLASS
+      ,  ALT2_AS_INTERFACE_PROTOCOL
+        ,  0x00
+      }
+   ,
+      {  sizeof(S_usb_as_g_interface_descriptor_2)
+      ,  CS_INTERFACE
+      ,  GENERAL_SUB_TYPE
+      ,  SPK_INPUT_TERMINAL_ID
+      ,  AS_CONTROLS
+      ,  AS_FORMAT_TYPE
+      ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
+      ,  AS_NB_CHANNELS
+      ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
+      ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
+      }
+   ,
+
+      {  sizeof(S_usb_format_type_2)
+      ,  CS_INTERFACE
+      ,  FORMAT_SUB_TYPE
+      ,  FORMAT_TYPE_2
+      ,  FORMAT_SUBSLOT_SIZE_2 // bBitResolution
+      ,  FORMAT_BIT_RESOLUTION_2 // bBitResolution
+      }
+
+   ,
       {   sizeof(S_usb_endpoint_audio_descriptor_2)
       ,   ENDPOINT_DESCRIPTOR
-      ,   ENDPOINT_NB_3
-      ,   EP_ATTRIBUTES_3
-      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
-      ,   EP_INTERVAL_3_HS
+          ,   ENDPOINT_NB_2
+          ,   EP_ATTRIBUTES_2
+          ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS)
+          ,   EP_INTERVAL_2_HS
       }
+   ,
+      {  sizeof(S_usb_endpoint_audio_specific_2)
+      ,  CS_ENDPOINT
+      ,  GENERAL_SUB_TYPE
+      ,  AUDIO_EP_ATRIBUTES
+      ,  AUDIO_EP_CONTROLS
+      ,  AUDIO_EP_DELAY_UNIT
+      ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
+      }
+    ,
+        {   sizeof(S_usb_endpoint_audio_descriptor_2)
+        ,   ENDPOINT_DESCRIPTOR
+        ,   ENDPOINT_NB_3
+        ,   EP_ATTRIBUTES_3
+        ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
+        ,   EP_INTERVAL_3_HS
+        }
+
+// End of audio streaming interface and its ALTs
 
 // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
 #ifdef FEATURE_HID
