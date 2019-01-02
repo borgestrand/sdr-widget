@@ -272,7 +272,7 @@
 
 // SPK Output Terminal
 #define SPK_OUTPUT_TERMINAL_ID			0x13
-#define SPK_OUTPUT_TERMINAL_TYPE		AUDIO_TE_TYPE_OUTPUT_SPEAKER //Speakers. Was: 0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
+#define SPK_OUTPUT_TERMINAL_TYPE		AUDIO_TE_TYPE_EXTERNAL_LINE_CONNECTOR // AUDIO_TE_TYPE_OUTPUT_SPEAKER //Speakers. Was: 0x0603 // Analog line out. Was: 0x0602	// 0x0302 for Headphones. Alternatively, 0x0602, "Digital Audio Interface" }Headphones or AUDIO_TE_TYPE_EXTERNAL_DIGITAL_AUDIO_INTERFACE
 #define SPK_OUTPUT_TERMINAL_ASSOCIATION	0x00	// No association
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_FEATURE_UNIT_ID	// From Feature Unit
@@ -281,6 +281,7 @@
 #endif
 
 #define SPK_ALT1_AS_NB_ENDPOINT			0x02	// OUT EP and FB EP
+#define SPK_ALT2_AS_NB_ENDPOINT			0x02	// OUT EP and FB EP
 //#define SPK_ALT1_AS_NB_ENDPOINT		0x01	// OUT EP
 
 #define SPK_AS_TERMINAL_LINK			0x11	// Unit Id of the speaker input terminal
@@ -301,6 +302,13 @@
 #define ALT1_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
 #define ALT1_AS_INTERFACE_PROTOCOL		0x00   // Unused
 
+//Alternate 2 Audio Streaming (AS) interface descriptor
+#define ALT2_AS_INTERFACE_INDEX			0x02   // Index of Std AS interface Alt2
+#define ALT2_AS_NB_ENDPOINT				0x01   // Nb of endpoints for alt2 interface
+#define ALT2_AS_INTERFACE_CLASS			0x01   // Audio class
+#define ALT2_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
+#define ALT2_AS_INTERFACE_PROTOCOL		0x00   // Unused
+
 //AS general Interface descriptor
 #define AS_TERMINAL_LINK					0x03   // Unit Id of the output terminal
 #define AS_DELAY							0x01   // Interface delay
@@ -308,8 +316,10 @@
 // Format type for ALT1
 #define FORMAT_TYPE							0x01	// Format TypeI
 #define FORMAT_NB_CHANNELS					0x02	// Two Channels
-#define FORMAT_FRAME_SIZE					0x03	// 3 bytes per audio sample
-#define FORMAT_BIT_RESOLUTION				0x18	// 24 bits per sample
+#define FORMAT_FRAME_SIZE_ALT1				0x03	// 3 bytes per audio sample
+#define FORMAT_BIT_RESOLUTION_ALT1			0x18	// 24 bits per sample
+#define FORMAT_FRAME_SIZE_ALT2				0x03	// 2 bytes per audio sample
+#define FORMAT_BIT_RESOLUTION_ALT2			0x10	// 16 bits per sample
 #define FORMAT_SAMPLE_FREQ_NB				0x02	// Two frequency supported
 #define FORMAT_LSBYTE_SAMPLE_FREQ_441		0xac44	// 44.1khz
 #define FORMAT_LSBYTE_SAMPLE_FREQ_48		0xbb80	// 48khz
@@ -348,13 +358,26 @@ __attribute__((__packed__))
 	  S_usb_feature_unit_descriptor_1	spk_fea_unit;
 #endif
 	  S_usb_out_ter_descriptor_1		spk_out_ter;
+
+	  // alt0
 	  S_usb_as_interface_descriptor 	spk_as_alt0;
+
+	  // alt1
 	  S_usb_as_interface_descriptor 	spk_as_alt1;
 	  S_usb_as_g_interface_descriptor_1	spk_g_as;
 	  S_usb_format_type_1				spk_format_type;
 	  S_usb_endpoint_audio_descriptor_1	ep3;
 	  S_usb_endpoint_audio_specific_1 	ep3_s;
 	  S_usb_endpoint_audio_descriptor_1	ep5;
+
+	  // alt2
+	  S_usb_as_interface_descriptor 	spk_as_alt2;
+	  S_usb_as_g_interface_descriptor_1	spk_g_as_alt2;
+	  S_usb_format_type_1				spk_format_type_alt2;
+	  S_usb_endpoint_audio_descriptor_1	ep3_alt2;
+	  S_usb_endpoint_audio_specific_1 	ep3_s_alt2;
+	  S_usb_endpoint_audio_descriptor_1	ep5_alt2;
+
 	  // BSB 20130604 disabling UAC1 IN   S_usb_as_interface_descriptor 	mic_as_alt0;
 	  // BSB 20130604 disabling UAC1 IN   S_usb_as_interface_descriptor 	mic_as_alt1;
 	  // BSB 20130604 disabling UAC1 IN   S_usb_as_g_interface_descriptor_1	mic_g_as;

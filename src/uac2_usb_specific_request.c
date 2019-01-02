@@ -154,8 +154,8 @@ void send_descriptor(U16 wLength, Bool zlp) {
 // This will cause the ASIO driver to not see the 196ksps definition.
 // To fix -that- search for "triplets" in the ASIO driver code and change the array size from 64 to 128.
 //const U8 Speedx[38] = { // 74
-const U8 Speedx[74] = {
-	0x06, 0x00, // Number of sample rate triplets
+const U8 Speedx_hs[74] = {
+	0x06, 0x00, // Number of sample rate triplets with UAC2 over USB 2.0
 
 	0x44,0xac,0x00,0x00,	//44.1k Min
 	0x44,0xac,0x00,0x00,	//44.1k Max
@@ -181,6 +181,19 @@ const U8 Speedx[74] = {
 	0x00,0xee,0x02,0x00,	//192k Max
 	0x00,0x00,0x00,0x00,	// 0 Res
 };
+
+const U8 Speedx_fs[26] = {
+	0x02, 0x00, // Number of sample rate triplets with UAC2 over USB 1.1 (not tested!)
+
+	0x44,0xac,0x00,0x00,	//44.1k Min
+	0x44,0xac,0x00,0x00,	//44.1k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
+
+	0x80,0xbb,0x00,0x00,	//48k Min
+	0x80,0xbb,0x00,0x00,	//48k Max
+	0x00,0x00,0x00,0x00,	// 0 Res
+};
+
 
 
 /*
@@ -932,9 +945,16 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-						data_to_transfer = sizeof(Speedx);
-						pbuffer = (const U8*)Speedx;
-						send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
+						if (Is_usb_full_speed_mode()) { // UAC2 over USB 1.1 Not tested
+							data_to_transfer = sizeof(Speedx_fs);
+							pbuffer = (const U8*)Speedx_fs;
+							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
+						}
+						else { // UAC2 over USB 2.0
+							data_to_transfer = sizeof(Speedx_hs);
+							pbuffer = (const U8*)Speedx_hs;
+							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
+						}
 
 						Usb_ack_control_in_ready_send();
 
@@ -994,9 +1014,16 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-						data_to_transfer = sizeof(Speedx);
-						pbuffer = (const U8*)Speedx;
-						send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
+						if (Is_usb_full_speed_mode()) { // UAC2 over USB 1.1 Not tested
+							data_to_transfer = sizeof(Speedx_fs);
+							pbuffer = (const U8*)Speedx_fs;
+							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
+						}
+						else { // UAC2 over USB 2.0
+							data_to_transfer = sizeof(Speedx_hs);
+							pbuffer = (const U8*)Speedx_hs;
+							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
+						}
 
 						return TRUE;
 					} else

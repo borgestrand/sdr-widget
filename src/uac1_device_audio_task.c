@@ -429,9 +429,15 @@ void uac1_device_audio_task(void *pvParameters)
 					spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
+						num_samples = Usb_byte_count(EP_AUDIO_OUT);
+
 						// bBitResolution
-						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 4; // Hardcoded 16-bit mono samples, 4 bytes for stereo
-//						num_samples = Usb_byte_count(EP_AUDIO_OUT) / 6; // Hardcoded 24-bit mono samples, 6 bytes for stereo
+						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX)		// Alternate 1 24 bits/sample, 6 bytes per stereo sample
+							num_samples = num_samples / 6;
+						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX)	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
+							num_samples = num_samples / 4;
+						else
+							num_samples = 0;											// Should never get here...
 
 						if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 							time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
@@ -541,32 +547,36 @@ void uac1_device_audio_task(void *pvParameters)
 						silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
 						silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
 						for (i = 0; i < num_samples; i++) {
-							// bBitResolution
-							// 16-bit support
 
-							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_LSB) << 8);
-							silence_det_L |= sample_L;
 
-							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_LSB) << 8);
-							silence_det_R |= sample_R;
 
-/* 24-bit support
-							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-							silence_det_L |= sample_L;
+							if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+								// 24-bit code
+								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+								silence_det_L |= sample_L;
 
-							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-							silence_det_R |= sample_R;
-*/
+								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
+								silence_det_R |= sample_R;
+							}
+							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
+								// 16-bit code
+								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_L = (((U32) sample_MSB) << 16) + (((U32)sample_LSB) << 8);
+								silence_det_L |= sample_L;
+
+								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_R = (((U32) sample_MSB) << 16) + (((U32)sample_LSB) << 8);
+								silence_det_R |= sample_R;
+							}
+
 
 							if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
 								silence_det = 1;

@@ -242,7 +242,6 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 
  ,
  // ALT0 has no endpoints
-
     {  sizeof(S_usb_as_interface_descriptor)
     ,  INTERFACE_DESCRIPTOR
      ,  STD_AS_INTERFACE_OUT
@@ -267,7 +266,6 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     }
  ,
 
-
  {  sizeof(S_usb_as_g_interface_descriptor_2)
   ,  CS_INTERFACE
   ,  GENERAL_SUB_TYPE
@@ -279,9 +277,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
   ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
   }
-
  ,
-
  {  sizeof(S_usb_format_type_2)
  ,  CS_INTERFACE
  ,  FORMAT_SUB_TYPE
