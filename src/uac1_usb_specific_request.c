@@ -164,10 +164,6 @@ void uac1_user_set_interface(U8 wIndex, U8 wValue) {
 		usb_alternate_setting_out_changed = TRUE;
 	}
 
-	// bBitResolution
-	print_dbg_char('A');
-	print_dbg_char_hex(wValue);
-
 	// BSB 20130604 disabling UAC1 IN
 	/*
 	else if (usb_interface_nb == STD_AS_INTERFACE_IN) {
@@ -590,10 +586,10 @@ void audio_get_cur(void) {
 	else if (i_unit==SPK_FEATURE_UNIT_ID) {
 		switch (wValue_msb) {
 			case CS_MUTE:
-				if (length == 1) {
+//		   		if (length == 1) { // Don't lock onto set mute status length 1 byte. Not 100% sure if Linux uses ==1 byte
 					Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute);
-				}
-				break;
+//				}
+			break;
 			case CS_VOLUME:
 				if (length == 2) {
 					if (wValue_lsb == CH_LEFT) {
@@ -606,11 +602,10 @@ void audio_get_cur(void) {
 							spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
 						}
 						Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
-					   print_dbg_char('l'); // bBitResolution
 
 #ifdef USB_STATE_MACHINE_DEBUG
 					   print_dbg_char('g');
-					   print_dbg_char('L');
+					   print_dbg_char('l');
 					   print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
 					   print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 					   print_dbg_char('\n');
@@ -717,10 +712,11 @@ void audio_set_cur(void)
 		uint8_t temp2 = 0;
 
 	   if (wValue_msb == CS_MUTE) {
-		   if (length == 1) {
+//		   if (length == 1) { // Don't lock onto set mute status length 1 byte. Not 100% sure if Linux uses ==1 byte
 			   temp1 = Usb_read_endpoint_data(EP_CONTROL, 8);
 			   usb_spk_mute = temp1;
-		   }
+
+//		   }
 	   }
 	   else if (wValue_msb == CS_VOLUME) {
 		   if (length == 2) {
@@ -730,8 +726,6 @@ void audio_set_cur(void)
 				   LSB(spk_vol_usb_L)= temp1;
 				   MSB(spk_vol_usb_L)= temp2;
 				   spk_vol_mult_L = usb_volume_format(spk_vol_usb_L);
-
-				   print_dbg_char('L'); // bBitResolution
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				   print_dbg_char('s');
