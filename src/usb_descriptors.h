@@ -372,7 +372,7 @@
   Usb_unicode('0'),\
   Usb_unicode('3'),\
   Usb_unicode('0'),\
-  Usb_unicode('O'),\
+  Usb_unicode('V'),\
   Usb_unicode('B'),\
   Usb_unicode('S'),\
   Usb_unicode('B') \
