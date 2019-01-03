@@ -1319,52 +1319,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 		INTERFACE_INDEX0
 	}
 #endif
-
-#ifdef FEATURE_HID
-	,
-	{
-		sizeof(S_usb_interface_descriptor),
-		INTERFACE_DESCRIPTOR,
-		INTERFACE_NB1,
-		ALTERNATE_NB1,
-		NB_ENDPOINT1,
-		INTERFACE_CLASS1,
-		INTERFACE_SUB_CLASS1,
-		INTERFACE_PROTOCOL1,
-		INTERFACE_INDEX1
-	},
-
-	{
-		sizeof(S_usb_hid_descriptor),
-		HID_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, HID_VERSION),
-		HID_COUNTRY_CODE,
-		HID_NUM_DESCRIPTORS,
-		HID_REPORT_DESCRIPTOR,
-		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
-	},
-
-	{
-		sizeof(S_usb_endpoint_descriptor),
-		ENDPOINT_DESCRIPTOR,
-		ENDPOINT_NB_1,
-		EP_ATTRIBUTES_1,
-		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
-		EP_INTERVAL_1_FS
-	}
-
-/*
-    ,
-	{
-		sizeof(S_usb_endpoint_descriptor),
-		ENDPOINT_DESCRIPTOR,
-		ENDPOINT_NB_2,
-		EP_ATTRIBUTES_2,
-		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS),
-		EP_INTERVAL_2
-	}
-*/
-#endif
 	,
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
@@ -1677,6 +1631,54 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
 	}*/
+
+#ifdef FEATURE_HID
+	,
+	{
+		sizeof(S_usb_interface_descriptor),
+		INTERFACE_DESCRIPTOR,
+		INTERFACE_NB1,
+		ALTERNATE_NB1,
+		NB_ENDPOINT1,
+		INTERFACE_CLASS1,
+		INTERFACE_SUB_CLASS1,
+		INTERFACE_PROTOCOL1,
+		INTERFACE_INDEX1
+	},
+
+	{
+		sizeof(S_usb_hid_descriptor),
+		HID_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, HID_VERSION),
+		HID_COUNTRY_CODE,
+		HID_NUM_DESCRIPTORS,
+		HID_REPORT_DESCRIPTOR,
+		Usb_format_mcu_to_usb_data(16, sizeof(usb_hid_report_descriptor))
+	},
+
+	{
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_1,
+		EP_ATTRIBUTES_1,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_1_FS),
+		EP_INTERVAL_1_FS
+	}
+
+/*
+    ,
+	{
+		sizeof(S_usb_endpoint_descriptor),
+		ENDPOINT_DESCRIPTOR,
+		ENDPOINT_NB_2,
+		EP_ATTRIBUTES_2,
+		Usb_format_mcu_to_usb_data(16, EP_SIZE_2_FS),
+		EP_INTERVAL_2
+	}
+*/
+#endif
+
+
 };
 
 
