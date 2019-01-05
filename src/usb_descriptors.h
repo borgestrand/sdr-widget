@@ -376,7 +376,7 @@
   Usb_unicode('B'),\
   Usb_unicode('S'),\
   Usb_unicode('B') \
-}
+} //
 #else
 #define USB_SN_LENGTH		13		// Encode the build date and user prefix
 #define USB_SERIAL_NUMBER \
