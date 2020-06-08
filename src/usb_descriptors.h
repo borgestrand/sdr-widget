@@ -173,6 +173,10 @@
     #define AUDIO_VENDOR_ID       0x16d0	//!  AMB	VID
     #define AUDIO_PRODUCT_ID_13   0x098b	//!  AMB	UAC1 PID
     #define AUDIO_PRODUCT_ID_14   0x098c	//!  AMB	UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_MADA))
+    #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
+    #define AUDIO_PRODUCT_ID_11   0x075e	//!  QNKTC future use UAC1 PID
+    #define AUDIO_PRODUCT_ID_12   0x075f	//!  QNKTC future use UAC2 PID
   #else
     #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
   #endif
@@ -234,10 +238,13 @@
   Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
 }
 #elif defined (FEATURE_PRODUCT_AB1x)  // AUDIO_PRODUCT_ID_9 and _10
-#define USB_MN_LENGTH         12
+#define USB_MN_LENGTH         28
 #define USB_MANUFACTURER_NAME {\
-  Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
-  Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
+  Usb_unicode('H'), Usb_unicode('e'), Usb_unicode('n'), Usb_unicode('r'), Usb_unicode('y'), Usb_unicode(' '), \
+  Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), \
+  Usb_unicode('U'), Usb_unicode('S'), Usb_unicode('B'), Usb_unicode(' '), Usb_unicode('D'), Usb_unicode('A'), \
+  Usb_unicode('C'), Usb_unicode(' '), Usb_unicode('1'), Usb_unicode('2'), Usb_unicode('8'), Usb_unicode(' '), \
+  Usb_unicode('M'), Usb_unicode('k'), Usb_unicode(' '), Usb_unicode('3') \
 }
 #elif defined (FEATURE_PRODUCT_AMB)  // AUDIO_PRODUCT_ID_13 and _14
 #define USB_MN_LENGTH         16
@@ -246,6 +253,18 @@
   Usb_unicode('b'), Usb_unicode('o'), Usb_unicode('r'), Usb_unicode('a'), Usb_unicode('t'), Usb_unicode('o'), \
   Usb_unicode('r'), Usb_unicode('i'), Usb_unicode('e'), Usb_unicode('s')\
 }
+#elif defined (FEATURE_PRODUCT_MADA)  // AUDIO_PRODUCT_ID_9 and _10
+#define USB_MN_LENGTH         20
+#define USB_MANUFACTURER_NAME {\
+      Usb_unicode('M'), Usb_unicode('a'), Usb_unicode('d'), Usb_unicode('a'), Usb_unicode(' '), Usb_unicode('A'), \
+      Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), Usb_unicode('M'), \
+      Usb_unicode('u'), Usb_unicode('l'), Usb_unicode('t'), Usb_unicode('i'), Usb_unicode(' '), Usb_unicode('D'), \
+      Usb_unicode('A'), Usb_unicode('C')\
+    }
+#else
+
+
+
 #else
 #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
 #endif
@@ -322,6 +341,14 @@
       Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode('-'), \
       Usb_unicode('W'), Usb_unicode('i'), Usb_unicode('d'), Usb_unicode('g'), Usb_unicode('e'), Usb_unicode('t')\
     }
+#elif defined (FEATURE_PRODUCT_MADA)
+    #define USB_PN_LENGTH         20
+    #define USB_PRODUCT_NAME {\
+      Usb_unicode('M'), Usb_unicode('a'), Usb_unicode('d'), Usb_unicode('a'), Usb_unicode(' '), Usb_unicode('A'), \
+      Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), Usb_unicode('M'), \
+      Usb_unicode('u'), Usb_unicode('l'), Usb_unicode('t'), Usb_unicode('i'), Usb_unicode(' '), Usb_unicode('D'), \
+      Usb_unicode('A'), Usb_unicode('C')\
+    }
 #else
 #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
 #endif
@@ -341,6 +368,7 @@
   Usb_unicode('E')\
 }
 
+/*
 #if defined(FEATURE_PRODUCT_AMB)
 #define USB_SN_LENGTH		13		// Encode the build date and user prefix
 #define USB_SERIAL_NUMBER \
@@ -378,17 +406,18 @@
   Usb_unicode('B') \
 } //
 #else
+*/
 #define USB_SN_LENGTH		13		// Encode the build date and user prefix
 #define USB_SERIAL_NUMBER \
 {\
   Usb_unicode('2'),\
   Usb_unicode('0'),\
-  Usb_unicode('1'),\
+  Usb_unicode('2'),\
+  Usb_unicode('0'),\
+  Usb_unicode('0'),\
+  Usb_unicode('6'),\
+  Usb_unicode('0'),\
   Usb_unicode('8'),\
-  Usb_unicode('1'),\
-  Usb_unicode('1'),\
-  Usb_unicode('1'),\
-  Usb_unicode('1'),\
   Usb_unicode('0'),\
   Usb_unicode('0'),\
   Usb_unicode('B'),\
