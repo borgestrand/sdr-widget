@@ -52,7 +52,7 @@
 # feature_quirk_ptest set in flash, which will lead to flash being
 # overwritten with defaults
 AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
-	-DFEATURE_IMAGE_DEFAULT=feature_image_uac1_audio \
+	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_audio \
 	-DFEATURE_IN_DEFAULT=feature_in_normal \
 	-DFEATURE_OUT_DEFAULT=feature_out_normal \
 	-DFEATURE_ADC_DEFAULT=feature_adc_none \
