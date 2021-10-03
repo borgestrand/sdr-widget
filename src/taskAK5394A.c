@@ -398,7 +398,7 @@ void AK5394A_task_init(const Bool uac1) {
 
 
 #ifdef HW_GEN_RXMOD
-// RXMODFIX port above section
+// No such power control yet
 #endif
 
 

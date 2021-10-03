@@ -603,17 +603,17 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 
 		#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-		// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
-		wm8805_init();							// Start up the WM8805 in a fairly dead mode
-		wm8805_sleep();
-		input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
+			// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
+			wm8805_init();							// Start up the WM8805 in a fairly dead mode
+			wm8805_sleep();
+			input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
 		#endif
 
 		#if ((defined HW_GEN_RXMOD)
-		// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
-		wm8804_init();							// Start up the WM8805 in a fairly dead mode
-		wm8804_sleep();
-		input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
+			// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
+			wm8804_init();							// Start up the WM8805 in a fairly dead mode
+			wm8804_sleep();
+			input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
 		#endif
 
 	#endif
@@ -784,8 +784,12 @@ static void vtaskMoboCtrl( void * pcParameters )
 						mobo_led(FLED_DARK, FLED_DARK, FLED_RED);	// With UAC1
 					else
 						mobo_led(FLED_DARK, FLED_DARK, FLED_GREEN);	// With UAC != 1
+						
 				#elif ((defined HW_GEN_RXMOD)
-				// RXMODFIX port above functionality
+					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+						mobo_led(FLED_RED);							// With UAC1
+					else
+						mobo_led(FLED_GREEN);						// With UAC != 1
 				
 				#else
 				#error undefined hardware
@@ -812,9 +816,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 							mobo_led(FLED_DARK);
 						#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 							mobo_led(FLED_DARK, FLED_DARK, FLED_DARK); // Dark after performed change in nvram
-							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
 						#elif ((defined HW_GEN_RXMOD)
-						// RXMODFIX port above functionality
+							mobo_led(FLED_DARK);
+							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
 
 						#else
 						#error undefined hardware
@@ -848,7 +852,13 @@ static void vtaskMoboCtrl( void * pcParameters )
 							mobo_led(FLED_DARK, FLED_DARK, FLED_PURPLE);	// With UAC != 1
 						}
 					#elif ((defined HW_GEN_RXMOD)
-						// RXMODFIX port above functionality
+						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio) {
+							mobo_led(FLED_YELLOW);	// With UAC1:
+						}
+						else {
+							mobo_led(FLED_PURPLE);	// With UAC != 1
+						}
+						// RXMODFIX what is the purpose just here?
 
 					#else
 					#error undefined hardware
@@ -1065,20 +1075,16 @@ static void vtaskMoboCtrl( void * pcParameters )
 				{						// also present, then we can use Widget PTT_1
 										// for additional PTT control
 //					#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
-					#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 (PX45) line recycled in HW_GEN_DIN10
+					#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)) // PTT_1 (PX45) line recycled
 						gpio_set_gpio_pin(PTT_1);
-					// RXMODFIX what is going on here?
-					
 					#endif
 				}
    	    	}
 			else
 			#endif
 //				#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
-				#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
+				#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)|| (defined HW_GEN_RXMOD)) // PTT_1 line recycled
 					gpio_set_gpio_pin(PTT_1);
-				// RXMODFIX what is going on here?
-
 				#endif
 
 			#if LCD_DISPLAY				// Multi-line LCD display
@@ -1106,19 +1112,15 @@ static void vtaskMoboCtrl( void * pcParameters )
 				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
 				{						// also present, then we can use Widget PTT_1
 										// for additional PTT control
-					#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
+					#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)) // PTT_1 line recycled
 						gpio_clr_gpio_pin(PTT_1);
-					// RXMODFIX what is going on here?
-
 					#endif
 				}
    	    	}
 			else
 			#endif
-				#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
+				#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)) // PTT_1 line recycled
 					gpio_clr_gpio_pin(PTT_1);
-				// RXMODFIX what is going on here?
-
 				#endif
 
    	    	if (!MENU_mode)
