@@ -414,16 +414,16 @@ void mobo_handle_spdif(uint8_t width) {
 		ADC_buf_USB_IN = -2;
 	}
 
-	if (wm8805_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
-		wm8805_status.silent = 1;
+	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
+		spdif_rx_status.silent = 1;
 		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;			// Respond as soon as .reliable is set
 	}
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
 	// If so, check it for silence. If selected as source, copy all of producer's data. (And perform skip/insert.)
 	// Only bother if .reliable != 0
-	else if (wm8805_status.buffered == 0) {
-		wm8805_status.silent = 0;
+	else if (spdif_rx_status.buffered == 0) {
+		spdif_rx_status.silent = 0;
 	}
 	else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
 		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
@@ -436,7 +436,7 @@ void mobo_handle_spdif(uint8_t width) {
 		}
 
 		// Silence / DC detector 2.0
-//			if (wm8805_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
+//			if (spdif_rx_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
 				if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
 					sample_temp = audio_buffer_0[i] & 0x00FFFF00;
@@ -448,10 +448,10 @@ void mobo_handle_spdif(uint8_t width) {
 			}
 
 			if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
-				wm8805_status.silent = 0;
+				spdif_rx_status.silent = 0;
 			}
 			else {									// Silence was detected, update flag to SPDIF RX code
-				wm8805_status.silent = 1;
+				spdif_rx_status.silent = 1;
 			}
 //			}
 
@@ -605,7 +605,7 @@ void mobo_handle_spdif(uint8_t width) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 			// Apply megaskip when DC or zero is detected
-			if (wm8805_status.silent == 1) {				// Silence was detected
+			if (spdif_rx_status.silent == 1) {				// Silence was detected
 				if (gap < SPK_GAP_LM ) {					// Are we close or past the limit for having to skip?
 					megaskip = SPK_GAP_UD - gap;			// This is as far as we can safely skip, one ADC package at a time
 				}
@@ -622,7 +622,7 @@ void mobo_handle_spdif(uint8_t width) {
 			if (megaskip >= ADC_BUFFER_SIZE) {
 
 				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
-				mobo_xo_select(wm8805_status.frequency, input_select);
+				mobo_xo_select(spdif_rx_status.frequency, input_select);
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('S');
@@ -635,7 +635,7 @@ void mobo_handle_spdif(uint8_t width) {
 			else if (megaskip <= -ADC_BUFFER_SIZE) {
 
 				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
-				mobo_xo_select(wm8805_status.frequency, input_select);
+				mobo_xo_select(spdif_rx_status.frequency, input_select);
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('I');
@@ -800,7 +800,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 	// NB: updated to support SPDIF buffering in MCU. That is highly experimental code!
 	#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 
-		if (wm8805_status.buffered == 0) {
+		if (spdif_rx_status.buffered == 0) {
 		// Old version with I2S mux
 			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
 			if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {

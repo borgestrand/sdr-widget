@@ -100,7 +100,7 @@ extern volatile uint8_t usb_ch_swap;				// Front or rear USB channel
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio channel selection semaphore
-extern volatile wm8805_status_t wm8805_status;
+extern volatile spdif_rx_status_t spdif_rx_status;
 #endif
 
 //_____ M A C R O S ________________________________________________________

@@ -155,7 +155,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 // Global status variable
-volatile wm8805_status_t wm8805_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8805_PLL_NONE, 1};
+volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8805_PLL_NONE, 1};
 
 //!
 //! @brief Polling routine for WM8805 hardware
@@ -218,7 +218,7 @@ void wm8805_poll(void) {
 /*
 	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-			wm8805_status.reliable = 0;					// Something went wrong, we're not reliable
+			spdif_rx_status.reliable = 0;					// Something went wrong, we're not reliable
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
 		}
 	}
@@ -228,14 +228,14 @@ void wm8805_poll(void) {
 /*
 	// Check frequency status. Halt operation if frequency has changed. Don't change source
 	freq_temp = wm8805_srd();
-	if ( (wm8805_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ) {	// Do we have time for this?
+	if ( (spdif_rx_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ) {	// Do we have time for this?
 		print_dbg_char('\\');
 
-		wm8805_status.frequency = freq_temp;
+		spdif_rx_status.frequency = freq_temp;
 
-		wm8805_status.reliable = 0;
+		spdif_rx_status.reliable = 0;
 		wm8805_mute();
-		wm8805_status.muted = 1;
+		spdif_rx_status.muted = 1;
 		lockcounter = 0;
 		unlockcounter = 0;
 	}
@@ -243,18 +243,18 @@ void wm8805_poll(void) {
 
 	// USB is giving away control,
 	if (input_select == MOBO_SRC_NONE) {
-		if (wm8805_status.powered == 0) {
+		if (spdif_rx_status.powered == 0) {
 			wm8805_init();								// WM8805 was probably put to sleep before this. Hence re-init
-			wm8805_status.pllmode = WM8805_PLL_NONE;	// Force PLL re-init
+			spdif_rx_status.pllmode = WM8805_PLL_NONE;	// Force PLL re-init
 //			print_dbg_char('0');
-			wm8805_status.powered = 1;
-			wm8805_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
+			spdif_rx_status.powered = 1;
+			spdif_rx_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
 
 			pausecounter = 0;
 			unlockcounter = 0;
 			lockcounter = 0;
 
-			wm8805_status.reliable = 0;					// Because of input change
+			spdif_rx_status.reliable = 0;					// Because of input change
 			wm8805_input(input_select_wm8805_next);		// Try next input source
 //			print_dbg_char('a');
 
@@ -264,9 +264,9 @@ void wm8805_poll(void) {
 	}
 	// USB has assumed control, power down WM8805 if it was on
 	else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
-		if (wm8805_status.powered == 1) {
-			wm8805_status.powered = 0;
-			wm8805_status.reliable = 0;					// Because of power down
+		if (spdif_rx_status.powered == 1) {
+			spdif_rx_status.powered = 0;
+			spdif_rx_status.reliable = 0;					// Because of power down
 			wm8805_sleep();
 		}
 	}
@@ -285,11 +285,11 @@ void wm8805_poll(void) {
 		pausecounter_temp = WM8805_SILENCE_LIM;
 	}
 
-	if ( (wm8805_status.powered == 1) && ( (unlockcounter >= unlockcounter_temp) || (pausecounter >= pausecounter_temp) ) ) {
+	if ( (spdif_rx_status.powered == 1) && ( (unlockcounter >= unlockcounter_temp) || (pausecounter >= pausecounter_temp) ) ) {
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 
 			wm8805_mute();
-			wm8805_status.muted = 1;
+			spdif_rx_status.muted = 1;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
@@ -333,7 +333,7 @@ void wm8805_poll(void) {
 			#endif
 
 			// FIX: disable and re-enable ADC DMA around here?
-			wm8805_status.reliable = 0;						// Because of input change
+			spdif_rx_status.reliable = 0;						// Because of input change
 			wm8805_input(input_select_wm8805_next);			// Try next input source
 //			print_dbg_char('c');
 
@@ -348,7 +348,7 @@ void wm8805_poll(void) {
 
 
 	// Check if WM8805 is able to lock and hence play music, only use when WM8805 is powered
-	if ( (wm8805_status.muted == 1) && (wm8805_status.reliable == 1) && (pausecounter == 0)) {
+	if ( (spdif_rx_status.muted == 1) && (spdif_rx_status.reliable == 1) && (pausecounter == 0)) {
 
 		if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
 #ifdef USB_STATE_MACHINE_DEBUG
@@ -378,16 +378,16 @@ void wm8805_poll(void) {
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 			wm8805_clkdiv();						// Configure MCLK division
 			wm8805_unmute();						// Reconfigure DAC-side I2S and LEDs
-			wm8805_status.muted = 0;
+			spdif_rx_status.muted = 0;
 		}
 	}
 
 	// Polling interrupt monitor, only use when WM8805 is on
-	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (wm8805_status.powered == 1) ) {
-		wm8805_status.reliable = 0;					// RX is not stable
-		if (wm8805_status.muted == 0) {				// Mute audio
+	if ( (gpio_get_pin_value(WM8805_INT_N_PIN) == 0) && (spdif_rx_status.powered == 1) ) {
+		spdif_rx_status.reliable = 0;					// RX is not stable
+		if (spdif_rx_status.muted == 0) {				// Mute audio
 			wm8805_mute();
-			wm8805_status.muted = 1;
+			spdif_rx_status.muted = 1;
 		}
 
 
@@ -414,9 +414,9 @@ void wm8805_poll(void) {
 
 
 	// Monitor silent or disconnected WM8805 input
-	if (wm8805_status.powered == 1) {
+	if (spdif_rx_status.powered == 1) {
 		if (gpio_get_pin_value(WM8805_CSB_PIN) == 1) {	// Not locked!
-			wm8805_status.reliable = 0;					// Duplication of code from the top of this section, bad style!
+			spdif_rx_status.reliable = 0;					// Duplication of code from the top of this section, bad style!
 			lockcounter = 0;
 			if (unlockcounter < WM8805_HICKUP_LIM) {
 				unlockcounter++;
@@ -428,36 +428,36 @@ void wm8805_poll(void) {
 				lockcounter++;
 			}
 			else {
-				if (wm8805_status.reliable == 0) {		// Only once at this spot
+				if (spdif_rx_status.reliable == 0) {		// Only once at this spot
 /*
 					#define sdr_poll_repetitions 10
 					int i = sdr_poll_repetitions;		// N, number of successful polls required
-					wm8805_status.frequency = wm8805_srd();
+					spdif_rx_status.frequency = wm8805_srd();
 
 					while (i > 0) {						// Must verify N times
 						vTaskDelay(10);					// 1ms poll
-						if (wm8805_status.frequency == wm8805_srd())
+						if (spdif_rx_status.frequency == wm8805_srd())
 							i--;
 						else {							// New baseline to be verified
-							wm8805_status.frequency = wm8805_srd();
+							spdif_rx_status.frequency = wm8805_srd();
 							i = sdr_poll_repetitions;
 						}
 
 					}
 */
-					wm8805_status.frequency = wm8805_srd();
+					spdif_rx_status.frequency = wm8805_srd();
 
-					if (wm8805_status.frequency != FREQ_TIMEOUT) {
+					if (spdif_rx_status.frequency != FREQ_TIMEOUT) {
 //						print_dbg_char('r');
-						wm8805_status.reliable = 1;
+						spdif_rx_status.reliable = 1;
 					}
 				}
 			}
 		}
 
 // 		SW zero detector depends on uacX_device_audio_task to update .silent
-//		if ( (wm8805_status.silent == 1) || (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) ) {
-		if ( (wm8805_status.silent == 1)  ) {
+//		if ( (spdif_rx_status.silent == 1) || (gpio_get_pin_value(WM8805_ZERO_PIN) == 1) ) {
+		if ( (spdif_rx_status.silent == 1)  ) {
 			if (pausecounter < WM8805_PAUSE_LIM)
 				pausecounter++;
 		}
@@ -573,16 +573,16 @@ void wm8805_input(uint8_t input_sel) {
 
 void wm8805_pll(void) {
 	uint8_t pll_sel = WM8805_PLL_NONE;
-	wm8805_status.frequency = wm8805_srd();
+	spdif_rx_status.frequency = wm8805_srd();
 
-	if (  ( (wm8805_status.frequency == FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_192) ) ||
-		  ( (wm8805_status.frequency != FREQ_192) && (wm8805_status.pllmode != WM8805_PLL_NORMAL) ) ) {
-		if (wm8805_status.frequency == FREQ_192)
-			wm8805_status.pllmode = WM8805_PLL_192;
+	if (  ( (spdif_rx_status.frequency == FREQ_192) && (spdif_rx_status.pllmode != WM8805_PLL_192) ) ||
+		  ( (spdif_rx_status.frequency != FREQ_192) && (spdif_rx_status.pllmode != WM8805_PLL_NORMAL) ) ) {
+		if (spdif_rx_status.frequency == FREQ_192)
+			spdif_rx_status.pllmode = WM8805_PLL_192;
 		else
-			wm8805_status.pllmode = WM8805_PLL_NORMAL;
+			spdif_rx_status.pllmode = WM8805_PLL_NORMAL;
 
-		pll_sel = wm8805_status.pllmode;
+		pll_sel = spdif_rx_status.pllmode;
 	}
 
 	// NO need for new PLL setup
@@ -664,11 +664,11 @@ void wm8805_mute(void) {
 void wm8805_unmute(void) {
 //	print_dbg_char('U');
 
-	mobo_xo_select(wm8805_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
-	mobo_led_select(wm8805_status.frequency, input_select);	// User interface channel indicator
-	mobo_clock_division(wm8805_status.frequency);			// Outgoing I2S clock division selector
+	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
+	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator
+	mobo_clock_division(spdif_rx_status.frequency);			// Outgoing I2S clock division selector
 
-	AK5394A_pdca_rx_enable(wm8805_status.frequency);		// New code to test for L/R swap
+	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
 
 
 	ADC_buf_USB_IN = -1;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..

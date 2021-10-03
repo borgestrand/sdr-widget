@@ -47,7 +47,7 @@
 #define WM8805_SILENCE_LIM	20	//40			// Poll cycles to wait for a mute input to produce audio
 #define WM8805_LOCK_LIM		3					// Poll cycles to verify lock
 
-typedef struct wm8805_status {					// Definition of global variable
+typedef struct spdif_rx_status {					// Definition of global variable
 	uint8_t powered;
 	uint8_t muted;
 	uint8_t silent;
@@ -55,7 +55,7 @@ typedef struct wm8805_status {					// Definition of global variable
 	uint32_t frequency;
 	uint8_t pllmode;
 	uint8_t buffered;
-} wm8805_status_t;
+} spdif_rx_status_t;
 
 // Regular polling of WM8805 hardware
 void wm8805_poll(void);

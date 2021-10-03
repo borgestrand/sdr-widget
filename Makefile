@@ -75,6 +75,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 #	-DHW_GEN_AB1X \
 # 	-DHW_GEN_DIN10 \
 # 	-DHW_GEN_DIN20 \
+#	-DHW_GEN_RXMOD \
 #	-DFEATURE_CLOCK_SELECTOR \ - Build UAC2 with clock selector
 #	-DUSB_STATE_MACHINE_DEBUG \ - Used for verbose RS232 debugging
 #	-DUSB_STATE_MACHINE_GPIO \  - Used for 'scope debugging of state machine timing
