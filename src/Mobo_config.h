@@ -42,7 +42,6 @@ void mobo_clear_dac_channel(void);
 
 
 #ifdef HW_GEN_DIN20
-
 // USB multiplexer definitions
 #define USB_DATA_ENABLE_PIN_INV		AVR32_PIN_PA30		// USB_OE0, inverted MUX output enable pin
 #define USB_DATA_A0_B1_PIN			AVR32_PIN_PA02		// USB_A0_B1, MUX address control
@@ -64,7 +63,26 @@ uint8_t mobo_usb_detect(void);
 #endif
 
 #ifdef HW_GEN_RXMOD
-// RXMODFIX port above section
+// USB multiplexer definitions
+#define USB_DATA_ENABLE_PIN_INV		AVR32_PIN_PA31		// USB_OE0, inverted MUX output enable pin
+#define USB_DATA_C0_B1_PIN			AVR32_PIN_PA02		// USB_C0_B1, MUX address control
+#define USB_VBUS_C_PIN				AVR32_PIN_PB06		// Active high enable A's VBUS
+#define USB_VBUS_B_PIN				AVR32_PIN_PA28		// Active high enable B's VBUS
+#define	MOBO_I2S_ENABLE				1
+#define MOBO_I2S_DISABLE			0
+// RXMODFIX IO is available on TP, currently not in use
+/*
+#define MOBO_HP_KM_ENABLE			1					// Enable power to headphones
+#define MOBO_HP_KM_DISABLE			0					// Disable power to headphones
+
+void mobo_km(uint8_t enable);
+*/
+
+// Control USB multiplexer in HW_GEN_DIN20
+void mobo_usb_select(uint8_t usb_ch);
+
+// Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
+uint8_t mobo_usb_detect(void);
 #endif
 
 
@@ -75,24 +93,28 @@ void mobo_led(uint8_t fled);
 
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+// LED control
+void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
+#endif
 
+#ifdef HW_GEN_RXMOD
+// LED control
+void mobo_led(uint8_t fled0);
+#endif
+
+
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 // Process spdif and toslink inputs
 void mobo_handle_spdif(uint8_t width);
 
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source);
 
-// LED control
-void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
-
 // I2S hard mute control
 void  mobo_i2s_enable(uint8_t i2s_mode);
 
 #endif // HW_GEN_DIN10 || HW_GEN_20
 
-#ifdef HW_GEN_RXMOD
-// RXMODFIX port above section
-#endif
 
 
 

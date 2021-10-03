@@ -79,8 +79,9 @@
 
 // USB channels
 #define USB_CH_NONE			0
-#define USB_CH_A			1
+#define USB_CH_A			1		// Name used in HW_GEN_DIN20 for front USB-C plug
 #define USB_CH_B			2
+#define USB_CH_C			3		// Name used in HW_GEN_RXMOD for front USB-C plug
 #define USB_CH_NOSWAP		0		// NO USB channel swapping happening
 #define USB_CH_SWAPDET		1		// Need for channel swap detected
 #define USB_CH_SWAPACK		2		// Channel swap detect acknowledged by uac?_device_audio_task

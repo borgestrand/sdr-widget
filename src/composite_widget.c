@@ -377,13 +377,99 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 		cpu_delay_ms(1, FCPU_HZ_SLOW);
 	}
 */
-
-
 #endif														//      Later: Maybe make front USB constantly UAC2...
 
 
 #ifdef HW_GEN_RXMOD
-// RXMODFIX Port above section to new IO pins
+	gpio_set_gpio_pin(AVR32_PIN_PA25);						// Reset pin override inactive. Should have external pull-up!
+
+	// Disable all power supplies
+	// Shouldn't be needed with pull-down
+	// mobo_km(MOBO_HP_KM_DISABLE);							// Disabled for now in HW_GEN_RXMOD
+	// gpio_clr_gpio_pin(AVR32_PIN_PX31);					// Available test pont
+	// gpio_clr_gpio_pin(AVR32_PIN_PA27);					// Unconnected pin
+	// gpio_set_gpio_pin(AVR32_PIN_PA22); // TP18			// Available test pont
+
+	gpio_clr_gpio_pin(AVR32_PIN_PB04);						// Disable SPDIF receiver counters
+
+//	gpio_clr_gpio_pin(USB_VBUS_C_PIN);						// NO USB C to MCU's VBUS pin
+//	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
+//	gpio_set_gpio_pin(USB_DATA_C0_B1_PIN);					// Select USB B to MCU's USB data pins
+//	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
+	usb_ch = mobo_usb_detect();								// Detect which USB plug to use. C has priority if present
+	mobo_usb_select(usb_ch);								// Connect USB plug
+	usb_ch_swap = USB_CH_NOSWAP;							// No swapping detected yet
+
+	// Try to remove this function. It is currently empty.
+	mobo_i2s_enable(MOBO_I2S_DISABLE);						// Disable here and enable with audio on.
+
+	// Just keep I2S on, mobo_i2s_enable() does nothing for now
+	gpio_set_gpio_pin(AVR32_PIN_PX58); 						// Enable I2S data
+
+
+	// At default, one channel of current limiter is active. That charges digital side OS-CON and
+	// OS-CON of step up's positive side (through the inductor).
+
+	// TODO: Find a 100mA and up current limiter with controllable bias resistor
+
+	// Q:How much does board burn during this kind of wait? A: Roughly 30mA
+	cpu_delay_ms(2, FCPU_HZ_SLOW);
+
+
+	// 3: Turn on analog part of current limiter and step-up converter.
+	gpio_set_gpio_pin(AVR32_PIN_PA27);
+
+
+	// Turn off clock controls to establish starting point
+	gpio_set_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 1. No pull-down or pull-up
+	gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// Disable XOs 44.1 control
+	gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// Disable XOs 48 control
+
+	cpu_delay_ms(80, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
+
+
+	// Turn on all KMs by enabling pass transistors. FIX: add to board design!
+	// Analog KM charges LDOs through shared 22R FIX: add to board as 13R + 13R or something like that.
+	mobo_km(MOBO_HP_KM_ENABLE);
+
+
+	// Wait for analog KM output to settle.
+	cpu_delay_ms(600, FCPU_HZ_SLOW); // 600 worked, but that was without considering the DAC charge pumps
+
+
+
+	// Moved to I2S init code
+	// Wait for some time
+
+	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
+//	gpio_set_gpio_pin(AVR32_PIN_PX31);
+
+	// Wait for some time
+
+
+	// Short the shared 22R resistor at charge pump inputs. FIX: add board design!
+//	gpio_clr_gpio_pin(AVR32_PIN_PA22); // TP18
+
+
+	// Let things settle a bit
+	cpu_delay_ms(200, FCPU_HZ_SLOW);
+
+/* Not tied to MCLK and not yet a working solution
+	// Generate a super-slow SCLK/LRCK pair to try to fool DAC into super slow startup sequence
+	int count = 0;
+	gpio_clr_gpio_pin(AVR32_PIN_PX23); // SCLK
+	gpio_clr_gpio_pin(AVR32_PIN_PX27); // LRCK
+	while (1) {
+		gpio_tgl_gpio_pin(AVR32_PIN_PX23);
+		count ++;
+		if (count == 64) {
+			count = 0;
+			gpio_tgl_gpio_pin(AVR32_PIN_PX27);
+		}
+		cpu_delay_ms(1, FCPU_HZ_SLOW);
+	}
+*/
+
 #endif
 
 

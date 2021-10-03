@@ -122,11 +122,19 @@ void uac1_AK5394A_task(void *pvParameters) {
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 			#endif
 
+
+/* Was here for all cases
 			// L L  -> 48khz   L H  -> 96khz
 			gpio_clr_gpio_pin(AK5394_DFS0);
 			gpio_clr_gpio_pin(AK5394_DFS1);
+*/
 
 			if (FEATURE_ADC_AK5394A) {
+				/* Moved here from above */
+				// L L  -> 48khz   L H  -> 96khz
+				gpio_clr_gpio_pin(AK5394_DFS0);
+				gpio_clr_gpio_pin(AK5394_DFS1);
+				
 				// re-sync SSC to LRCK
 				// Wait for the next frame synchronization event
 				// to avoid channel inversion.  Start with left channel - FS goes low

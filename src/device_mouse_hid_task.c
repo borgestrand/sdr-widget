@@ -372,7 +372,42 @@ void device_mouse_hid_task(void)
 
 
 #ifdef HW_GEN_RXMOD
-// RXMODFIX port above section to new GPIO and USB channel naming
+            else if (a == '0') {							// Digit 0
+	            usb_ch = USB_CH_NONE;
+	            mobo_usb_select(usb_ch);
+            }
+            else if (a == 'C') {							// Uppercase C
+	            usb_ch = USB_CH_C;
+	            mobo_usb_select(usb_ch);
+            }
+            else if (a == 'B') {							// Uppercase B
+	            usb_ch = USB_CH_B;
+	            mobo_usb_select(usb_ch);
+            }
+            else if (a == 'D') {							// Uppercase D
+	            if (mobo_usb_detect() == USB_CH_C)
+	            print_dbg_char('C');
+	            else
+	            print_dbg_char('B');
+            }
+
+            else if (a == 'Y') {							// Uppercase Y
+	            mobo_i2s_enable(MOBO_I2S_ENABLE);
+            }
+
+            else if (a == 'y') {							// Lowercase y
+	            mobo_i2s_enable(MOBO_I2S_DISABLE);
+            }
+
+            else if (a == 'R') {							// Uppercase R
+	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
+            }
+
+            else if (a == 'P') {							// Uppercase P
+	            gpio_clr_gpio_pin(AVR32_PIN_PB10); 			// PROG = 0
+	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
+            }
+
 #endif
 
 
@@ -391,7 +426,7 @@ void device_mouse_hid_task(void)
             }
 
             // Select RXs's outgoing I2S bus
-            else if (a == 'c') {							// Lowercase b
+            else if (a == 'c') {							// Lowercase c
             	gpio_set_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 1
        			gpio_clr_gpio_pin(AVR32_PIN_PX58); 			// 44.1 control
        			gpio_clr_gpio_pin(AVR32_PIN_PX45); 			// 48 control

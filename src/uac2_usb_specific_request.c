@@ -325,8 +325,10 @@ void uac2_freq_change_handler() {
 			pdca_disable(PDCA_CHANNEL_SSC_RX);
 #endif
 
-			gpio_clr_gpio_pin(AK5394_DFS0); // H L -> 192khz
-			gpio_set_gpio_pin(AK5394_DFS1);
+			if (FEATURE_ADC_AK5394A) {
+				gpio_clr_gpio_pin(AK5394_DFS0); // H L -> 192khz
+				gpio_set_gpio_pin(AK5394_DFS1);
+			}
 
 			FB_rate = (176 << 14) + ((1 << 14) * 4) / 10;
 			FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system

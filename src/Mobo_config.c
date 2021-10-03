@@ -145,30 +145,94 @@ uint8_t mobo_usb_detect(void) {
 	return USB_CH_B;
 }
 
-void  mobo_i2s_enable(uint8_t i2s_mode) {
-	if (i2s_mode == MOBO_I2S_ENABLE) {
-//		gpio_set_gpio_pin(AVR32_PIN_PX11); 					// Enable I2S data
-#ifdef USB_STATE_MACHINE_DEBUG
-//		print_dbg_char('m');								// Indicate unmute
-#endif
-	}
-	else if (i2s_mode == MOBO_I2S_DISABLE) {
-//		gpio_clr_gpio_pin(AVR32_PIN_PX11); 					// Disable I2S data pin
-#ifdef USB_STATE_MACHINE_DEBUG
-//		print_dbg_char('M');								// Indicate mute
-#endif
-	}
-}
-
 #endif
 
 
 #ifdef HW_GEN_RXMOD
-// RXMODFIX port above section to new GPIO and USB channel naming
+// Control headphone amp power supply (K-mult) turn-on time, for now main VDD turn on/off!
+
+// RXMODFIX IO is available on TP, currently not in use
+/*
+void mobo_km(uint8_t enable) {
+	if (enable == MOBO_HP_KM_ENABLE)
+	gpio_set_gpio_pin(AVR32_PIN_PX55);				// Clear PX55 to no longer short the KM capacitors
+	else
+	gpio_clr_gpio_pin(AVR32_PIN_PX55);				// Set PX55 to short the KM capacitors (pulled up on HW)
+}
+*/
+
+// Control USB multiplexer in HW_GEN_DIN20
+void mobo_usb_select(uint8_t usb_ch) {
+	if (usb_ch == USB_CH_NONE) {
+		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
+		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB C to MCU's VBUS pin
+	}
+	if (usb_ch == USB_CH_C) {
+		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+		gpio_clr_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB C to MCU's USB data pins
+		gpio_set_gpio_pin(USB_VBUS_C_PIN);				// Select USB C to MCU's VBUS pin
+	}
+	if (usb_ch == USB_CH_B) {
+		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB A to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+		gpio_set_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB B to MCU's USB data pins
+		gpio_set_gpio_pin(USB_VBUS_B_PIN);				// Select USB B to MCU's VBUS pin
+	}
+}
+
+
+
+// Quick and dirty detect of whether front USB (C) is plugged in. No debounce here!
+uint8_t mobo_usb_detect(void) {
+	if  (gpio_get_pin_value(AVR32_PIN_PA07) == 1)
+	return USB_CH_C;
+
+	return USB_CH_B;
+}
 #endif
 
 
-// RXMODFIX where is the end of this next 'if' ? Line 728! Port everything in between!
+#if (defined HW_GEN_DIN20)
+void  mobo_i2s_enable(uint8_t i2s_mode) {
+	if (i2s_mode == MOBO_I2S_ENABLE) {
+		//		gpio_set_gpio_pin(AVR32_PIN_PX11); 					// Enable I2S data
+		#ifdef USB_STATE_MACHINE_DEBUG
+		//		print_dbg_char('m');								// Indicate unmute
+		#endif
+	}
+	else if (i2s_mode == MOBO_I2S_DISABLE) {
+		//		gpio_clr_gpio_pin(AVR32_PIN_PX11); 					// Disable I2S data pin
+		#ifdef USB_STATE_MACHINE_DEBUG
+		//		print_dbg_char('M');								// Indicate mute
+		#endif
+	}
+}
+#endif
+
+
+// For the moment do nothing!
+#if (defined HW_GEN_RXMOD)
+void  mobo_i2s_enable(uint8_t i2s_mode) {
+	if (i2s_mode == MOBO_I2S_ENABLE) {
+		//		gpio_set_gpio_pin(AVR32_PIN_PX58); 					// Enable I2S data
+		#ifdef USB_STATE_MACHINE_DEBUG
+		//		print_dbg_char('m');								// Indicate unmute
+		#endif
+	}
+	else if (i2s_mode == MOBO_I2S_DISABLE) {
+		//		gpio_clr_gpio_pin(AVR32_PIN_PX58); 					// Disable I2S data pin
+		#ifdef USB_STATE_MACHINE_DEBUG
+		//		print_dbg_char('M');								// Indicate mute
+		#endif
+	}
+}
+#endif
+
+
+
+
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 
@@ -362,7 +426,71 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 	}
 }
 
+#endif // LED for HW_GEN_DIN10 and HW_GEN_DIN20
 
+
+#if (defined HW_GEN_RXMOD)
+
+// Audio Widget HW_GEN_RXMOD LED control
+void mobo_led(uint8_t fled0) {
+	// red:1, green:2, blue:4
+	// fled2 is towards center of box, fled0 towards right-hand edge of front view
+
+	if (fled0 & FLED_RED)
+	gpio_clr_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
+	else
+	gpio_set_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
+	if (fled0 & FLED_GREEN)
+	gpio_clr_gpio_pin(AVR32_PIN_PA20); 	// FLED0_G
+	else
+	gpio_set_gpio_pin(AVR32_PIN_PA20); 	// FLED0_G
+	if (fled0 & FLED_BLUE)
+	gpio_clr_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
+	else
+	gpio_set_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
+}
+
+// Front panel RGB LED control
+void mobo_led_select(U32 frequency, uint8_t source) {
+
+	// No source is indicated as USB audio
+	if (source == MOBO_SRC_NONE) {
+		if (FEATURE_IMAGE_UAC1_AUDIO)
+		source = MOBO_SRC_UAC1;
+		else if (FEATURE_IMAGE_UAC2_AUDIO)
+		source = MOBO_SRC_UAC2;
+	}
+
+	// No sample rate indication on LEDs for now
+	switch (frequency) {
+
+		case FREQ_44:
+		break;
+
+		case FREQ_48:
+		break;
+
+		case FREQ_88:
+		break;
+
+		case FREQ_96:
+		break;
+
+		case FREQ_176:
+		break;
+
+		case FREQ_192:
+		break;
+
+		default:
+		break;
+	}
+}
+
+#endif // LED for HW_GEN_RXMOD
+
+
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD)
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
 	static int ADC_buf_DMA_write_prev = -1;
@@ -804,7 +932,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		// Old version with I2S mux
 			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
 			if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
-				gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 defaults to USB
+				gpio_clr_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0 defaults to USB
 
 				// Clock source control
 				if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
@@ -817,7 +945,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				}
 			}
 			else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOS2)  || (source == MOBO_SRC_TOS1) ) {
-				gpio_set_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0 defaults to USB
+				gpio_set_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 1 defaults to RX-I2S // FIX: presumably! Comment updated from code review, not tested
 				gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
 				gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
 			}
@@ -827,23 +955,66 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 USB version in all cases
 
 			// Clock source control
-			if (frequency == FREQ_RXNATIVE) {		// Use MCLK from SPDIF RX
+			if (frequency == FREQ_RXNATIVE) {			// Use MCLK from SPDIF RX
 				// Explicitly turn on MCLK generation in SPDIF RX?
-				gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+				gpio_clr_gpio_pin(AVR32_PIN_PX58);		// 44.1 control
+				gpio_clr_gpio_pin(AVR32_PIN_PX45);		// 48 control
 			}
 			else if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
-				gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+				gpio_set_gpio_pin(AVR32_PIN_PX58);		// 44.1 control
+				gpio_clr_gpio_pin(AVR32_PIN_PX45);		// 48 control
 			}
 			else {
-				gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-				gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
+				gpio_clr_gpio_pin(AVR32_PIN_PX58);		// 44.1 control
+				gpio_set_gpio_pin(AVR32_PIN_PX45); 		// 48 control
 			}
 		}
 
-	#elif (defined HW_GEN_DIN10) 
-	// RXMODFIX port above section
+	#elif (defined HW_GEN_RXMOD) 
+
+		if (spdif_rx_status.buffered == 0) {
+			// Old version with I2S mux
+			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
+			if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
+				gpio_set_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 1 defaults to USB
+
+				// Clock source control
+				if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
+					gpio_set_gpio_pin(AVR32_PIN_PA23); 	// 44.1 control
+					gpio_clr_gpio_pin(AVR32_PIN_PA21); 	// 48 control
+				}
+				else {
+					gpio_clr_gpio_pin(AVR32_PIN_PA23); 	// 44.1 control
+					gpio_set_gpio_pin(AVR32_PIN_PA21); 	// 48 control
+				}
+			}
+			else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOS2)  || (source == MOBO_SRC_TOS1) ) {
+				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// Disable XOs 44.1 control
+				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// Disable XOs 48 control
+				gpio_clr_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 0 defaults to RX-I2S
+			}
+		}
+		else {
+			// New version without I2S mux, with buffering via MCU's ADC interface
+			// RXMODFIX verify ADC vs. mux! What is the test code for this?
+			gpio_set_gpio_pin(AVR32_PIN_PC01); 			// SEL_USBP_RXN = 1 defaults to USB
+
+			// Clock source control
+			if (frequency == FREQ_RXNATIVE) {			// Use MCLK from SPDIF RX
+				// Explicitly turn on MCLK generation in SPDIF RX?
+				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
+				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
+				gpio_clr_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 0 defaults to RX-I2S
+			}
+			else if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
+				gpio_set_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
+				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
+			}
+			else {
+				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
+				gpio_set_gpio_pin(AVR32_PIN_PA21); 		// 48 control
+			}
+		}
 
 	#else
 		#error undefined hardware
