@@ -422,6 +422,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 	// Turn off clock controls to establish starting point
 	gpio_set_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 1. No pull-down or pull-up
+	gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 	gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// Disable XOs 44.1 control
 	gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// Disable XOs 48 control
 

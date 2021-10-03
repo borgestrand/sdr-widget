@@ -976,7 +976,8 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			// Old version with I2S mux
 			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
 			if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
-				gpio_set_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 1 defaults to USB
+					gpio_clr_gpio_pin(AVR32_PIN_PX22); 	// Disable RX recovered MCLK
+					gpio_set_gpio_pin(AVR32_PIN_PC01); 	// SEL_USBP_RXN = 1 defaults to USB
 
 				// Clock source control
 				if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
@@ -991,12 +992,14 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOS2)  || (source == MOBO_SRC_TOS1) ) {
 				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// Disable XOs 44.1 control
 				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// Disable XOs 48 control
+				gpio_set_gpio_pin(AVR32_PIN_PX22); 		// Enable RX recovered MCLK
 				gpio_clr_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 0 defaults to RX-I2S
 			}
 		}
 		else {
 			// New version without I2S mux, with buffering via MCU's ADC interface
 			// RXMODFIX verify ADC vs. mux! What is the test code for this?
+			gpio_clr_gpio_pin(AVR32_PIN_PX22); 			// Disable RX recovered MCLK
 			gpio_set_gpio_pin(AVR32_PIN_PC01); 			// SEL_USBP_RXN = 1 defaults to USB
 
 			// Clock source control
@@ -1004,6 +1007,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				// Explicitly turn on MCLK generation in SPDIF RX?
 				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
 				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
+				gpio_set_gpio_pin(AVR32_PIN_PX22); 		// Enable RX recovered MCLK
 				gpio_clr_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 0 defaults to RX-I2S
 			}
 			else if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
