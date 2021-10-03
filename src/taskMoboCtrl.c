@@ -53,6 +53,11 @@
 #include "device_audio_task.h"
 #endif
 
+#if (defined  HW_GEN_RXMOD)
+#include "wm8804.h"
+#include "device_audio_task.h"
+#endif
+
 //#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
 
 // Set up NVRAM (EEPROM) storage
@@ -93,7 +98,7 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
 #if I2C
 
 // The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD)
 #else
 
 static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
@@ -527,7 +532,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	uint32_t time, ten_s_counter=0;					// Time management
 	uint32_t lastIteration=0, Timerval;				// Counters to keep track of time
 
-#ifdef HW_GEN_DIN20
+#if (defined HW_GEN_DIN20) || (defined  HW_GEN_RXMOD)
 	uint8_t usb_ch_counter = 0;						// How many poll periods have passed since a USB change detection?
 #endif
 
@@ -587,22 +592,29 @@ static void vtaskMoboCtrl( void * pcParameters )
 
  	// Initialize I2C communications
 	#if I2C
-	twi_init();
+	twi_init(); // RXMODFIX vs. WM8804 config!!
 
-	// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
-	#else
-		// Probe for I2C devices present and report on LCD
-		i2c_device_scan();
-	#endif
+		// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
+		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD)
+		#else
+			// Probe for I2C devices present and report on LCD
+			i2c_device_scan();
+		#endif
 
 
-#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
-// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
-	wm8805_init();							// Start up the WM8805 in a fairly dead mode
-	wm8805_sleep();
-	input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
-#endif
+		#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+		// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
+		wm8805_init();							// Start up the WM8805 in a fairly dead mode
+		wm8805_sleep();
+		input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
+		#endif
+
+		#if ((defined HW_GEN_RXMOD)
+		// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
+		wm8804_init();							// Start up the WM8805 in a fairly dead mode
+		wm8804_sleep();
+		input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
+		#endif
 
 	#endif
 
@@ -772,6 +784,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 						mobo_led(FLED_DARK, FLED_DARK, FLED_RED);	// With UAC1
 					else
 						mobo_led(FLED_DARK, FLED_DARK, FLED_GREEN);	// With UAC != 1
+				#elif ((defined HW_GEN_RXMOD)
+				// RXMODFIX port above functionality
+				
 				#else
 				#error undefined hardware
 				#endif
@@ -798,6 +813,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 						#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 							mobo_led(FLED_DARK, FLED_DARK, FLED_DARK); // Dark after performed change in nvram
 							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
+						#elif ((defined HW_GEN_RXMOD)
+						// RXMODFIX port above functionality
+
 						#else
 						#error undefined hardware
 						#endif
@@ -815,19 +833,23 @@ static void vtaskMoboCtrl( void * pcParameters )
     			{								// Keep front LEDs dark after nvram change
 
 					#if defined(HW_GEN_AB1X)
-						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-						{										// With UAC1:
-							mobo_led(FLED_GREEN);						}
-						else
-						{										// With UAC != 1
+						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio) {
+							mobo_led(FLED_GREEN);					// With UAC1
+						}
+						else {										// With UAC != 1
 							mobo_led(FLED_RED);
 						}
 					#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 						// FIX: Resort to defaults according to playback mode and source. That will require some global vars or other mess
-						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio) {
 							mobo_led(FLED_DARK, FLED_DARK, FLED_YELLOW);	// With UAC1:
-						else
+						}
+						else {
 							mobo_led(FLED_DARK, FLED_DARK, FLED_PURPLE);	// With UAC != 1
+						}
+					#elif ((defined HW_GEN_RXMOD)
+						// RXMODFIX port above functionality
+
 					#else
 					#error undefined hardware
 					#endif
@@ -1045,6 +1067,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 //					#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
 					#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 (PX45) line recycled in HW_GEN_DIN10
 						gpio_set_gpio_pin(PTT_1);
+					// RXMODFIX what is going on here?
+					
 					#endif
 				}
    	    	}
@@ -1053,6 +1077,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 //				#if !defined(HW_GEN_DIN10) // PTT_1 line recycled in HW_GEN_DIN10
 				#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
 					gpio_set_gpio_pin(PTT_1);
+				// RXMODFIX what is going on here?
+
 				#endif
 
 			#if LCD_DISPLAY				// Multi-line LCD display
@@ -1082,6 +1108,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 										// for additional PTT control
 					#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
 						gpio_clr_gpio_pin(PTT_1);
+					// RXMODFIX what is going on here?
+
 					#endif
 				}
    	    	}
@@ -1089,6 +1117,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 			#endif
 				#if !((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) // PTT_1 line recycled in HW_GEN_DIN10
 					gpio_clr_gpio_pin(PTT_1);
+				// RXMODFIX what is going on here?
+
 				#endif
 
    	    	if (!MENU_mode)
@@ -1121,7 +1151,10 @@ static void vtaskMoboCtrl( void * pcParameters )
         LED_Toggle(LED2); // FIX: Needed???
 		
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-		wm8805_poll();									// Handle WM8805's various hardware needs
+wm8805_poll();									// Handle WM8805's various hardware needs
+#endif
+#if (defined HW_GEN_RXMOD)
+wm8804_poll();									// Handle WM8804's various hardware needs
 #endif
 
 #ifdef HW_GEN_DIN20
@@ -1153,6 +1186,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 				usb_ch_counter = 0;
 			}
 		}
+#endif
+
+#ifdef HW_GEN_RXMOD
+// Port above functionality
 #endif
 		
 //        vTaskDelay(120);						// Changed from 100 to 120 to match device_mouse_hid_task and wm8805_poll()

@@ -172,12 +172,12 @@ void uac2_device_audio_task(void *pvParameters)
 	uint8_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 		Bool ledSet = FALSE;
 	#endif
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
 		#define IN_LEFT 0
 		#define IN_RIGHT 1
 		#define OUT_LEFT 0
@@ -207,7 +207,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 		// Process digital input
-		#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+		#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD)
 			mobo_handle_spdif(32); // UAC2 uses 32-bit data
 
 			static uint8_t prev_input_select = MOBO_SRC_NONE;
@@ -322,7 +322,7 @@ void uac2_device_audio_task(void *pvParameters)
 		} // end alt setting 1
 
 
-#ifdef HW_GEN_DIN20
+#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD) 
 		if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
 //		if ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) ) {
 #else
@@ -356,7 +356,7 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_MSB = FB_rate_nominal >> 16;
 					}
 #else
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 					if ( (input_select != MOBO_SRC_UAC2) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {
 	#else
 					if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {
@@ -391,7 +391,7 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_HSB = FB_rate_nominal >> 24;
 					}
 #else
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 					if ( (input_select != MOBO_SRC_UAC2) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {
 	#else
 					if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {
@@ -437,7 +437,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 				/* SPDIF reduced */
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
 
 				// Do minimal USB action to make Host believe Device is actually receiving
@@ -637,14 +637,14 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// New site for setting playerStarted and aligning buffers
 						if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
-							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
+							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
 								#ifdef USB_STATE_MACHINE_DEBUG
 									print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 										print_dbg_char('[');
 										mobo_led_select(current_freq.frequency, input_select);
 										input_select = MOBO_SRC_UAC2;
-										#ifdef HW_GEN_DIN20
+										#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD) 
 											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 										#endif
 									}													// Hopefully, this code won't be called repeatedly. Would there be time??
@@ -654,7 +654,7 @@ void uac2_device_audio_task(void *pvParameters)
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 										mobo_led_select(current_freq.frequency, input_select);
 										input_select = MOBO_SRC_UAC2;
-										#ifdef HW_GEN_DIN20
+										#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD) 
 											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 										#endif
 								#endif
@@ -663,7 +663,7 @@ void uac2_device_audio_task(void *pvParameters)
 							#endif
 						}
 
-						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD
 							if ( (!ledSet) && (input_select == MOBO_SRC_UAC2) ) {
 								ledSet = TRUE;
 								mobo_led_select(current_freq.frequency, input_select);
@@ -752,7 +752,7 @@ void uac2_device_audio_task(void *pvParameters)
 					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) && (playerStarted != FALSE) ) { // Oops, we just went silent, probably from pause
 						playerStarted = FALSE;
 
-						#ifdef HW_GEN_DIN20						// Dedicated mute pin
+						#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD) 					// Dedicated mute pin
 							mobo_i2s_enable(MOBO_I2S_DISABLE);	// Hard-mute of I2S pin
 						#endif
 
@@ -763,7 +763,7 @@ void uac2_device_audio_task(void *pvParameters)
 						mobo_clear_dac_channel();
 						// mobodebug Could this be the spot which sucks up CPU time with input_select == MOBO_SRC_UAC2
 
-						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
+						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
 							ledSet = FALSE;
 							#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
@@ -899,7 +899,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		else { // ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) )
 			/* SPDIF reduced */
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
 				// Do nothing at this stage
 			}
@@ -910,7 +910,7 @@ void uac2_device_audio_task(void *pvParameters)
 //				playerStarted = FALSE;  // mobodebug, commented out here and included below
 				silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
-				#ifdef HW_GEN_DIN20								// Dedicated mute pin
+				#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD)	// Dedicated mute pin
 					if (usb_ch_swap == USB_CH_SWAPDET)
 						usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
 				#endif
@@ -920,7 +920,7 @@ void uac2_device_audio_task(void *pvParameters)
 				if ( (input_select == MOBO_SRC_UAC2) && (playerStarted != FALSE) ) {			// Set from playing nonzero USB
 					playerStarted = FALSE;	// Inserted here in mobodebug untested fix, removed above
 
-					#ifdef HW_GEN_DIN20							// Dedicated mute pin
+					#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD)	// Dedicated mute pin
 						mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
 					#endif
 
@@ -931,7 +931,7 @@ void uac2_device_audio_task(void *pvParameters)
 					mobo_clear_dac_channel();
 					// mobodebug is this another scheduler thief?
 
-					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)		// With WM8805 present, handle semaphores
+					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
 						ledSet = FALSE;
 						#ifdef USB_STATE_MACHINE_DEBUG
 							print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
@@ -954,7 +954,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		// BSB 20131201 attempting improved playerstarted detection
 			/* SPDIF reduced */
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
 			// Do nothing at this stage
 		}

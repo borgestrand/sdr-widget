@@ -358,7 +358,7 @@ void AK5394A_task_init(const Bool uac1) {
 	pdca_set_irq();
 
 	// Init ADC channel for SPDIF buffering
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 	/*  Empty for now....
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 //		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -394,6 +394,11 @@ void AK5394A_task_init(const Bool uac1) {
 	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
 	gpio_set_gpio_pin(AVR32_PIN_PX31);
 
+#endif
+
+
+#ifdef HW_GEN_RXMOD
+// RXMODFIX port above section
 #endif
 
 

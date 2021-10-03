@@ -370,6 +370,12 @@ void device_mouse_hid_task(void)
 
 #endif
 
+
+#ifdef HW_GEN_RXMOD
+// RXMODFIX port above section to new GPIO and USB channel naming
+#endif
+
+
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
             // Start messing with ADC!
 
@@ -574,6 +580,12 @@ void device_mouse_hid_task(void)
             	mobo_led_select(FREQ_44, input_select);
             }
 #endif
+
+
+#ifdef HW_GEN_RXMOD
+// RXMODFIX port above section to new GPIO and USB channel naming
+#endif
+
 
             else if (a == 'v') {
             	static S16 temp = VOL_MIN;

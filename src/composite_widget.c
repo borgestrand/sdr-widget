@@ -192,6 +192,10 @@
 #include "wm8805.h"
 #endif
 
+#if (defined HW_GEN_RXMOD)
+#include "wm8804.h"
+#endif
+
 
 xSemaphoreHandle mutexEP_IN;
 
@@ -267,10 +271,21 @@ int i;
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 //	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
-	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
+wm8805_reset(WM8805_RESET_START);							// Early hardware reset of WM8805 because GPIO is interpreted for config
 
-	// NB: No I2C activity until WM8805_RESET_END !
+// NB: No I2C activity until WM8805_RESET_END !
 #endif
+
+#if (HW_GEN_RXMOD)
+//	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
+wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 because GPIO is interpreted for config
+
+// NB: No I2C activity until WM8804_RESET_END !
+#endif
+
+
+
+
 
 
 #ifdef HW_GEN_DIN20
@@ -367,6 +382,11 @@ int i;
 #endif														//      Later: Maybe make front USB constantly UAC2...
 
 
+#ifdef HW_GEN_RXMOD
+// RXMODFIX Port above section to new IO pins
+#endif
+
+
 	// Set CPU and PBA clock
 	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
 		return 42;
@@ -390,13 +410,12 @@ int i;
 //	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
 //	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 
 	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
 	// mobodebug
-
 #endif
 
 
@@ -458,6 +477,11 @@ int i;
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 	wm8805_reset(WM8805_RESET_END);			// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
+
+#if (defined HW_GEN_RXMOD)
+wm8804_reset(WM8804_RESET_END);				// Early hardware reset of WM8804 because GPIO is interpreted for config
+#endif
+
 
 
 	if (FEATURE_FILTER_FIR) gpio_clr_gpio_pin(GPIO_PCM5102_FILTER);

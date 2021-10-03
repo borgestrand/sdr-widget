@@ -63,6 +63,10 @@ void mobo_usb_select(uint8_t usb_ch);
 uint8_t mobo_usb_detect(void);
 #endif
 
+#ifdef HW_GEN_RXMOD
+// RXMODFIX port above section
+#endif
+
 
 #ifdef HW_GEN_AB1X
 // Front panel RG LED control
@@ -85,6 +89,10 @@ void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0);
 void  mobo_i2s_enable(uint8_t i2s_mode);
 
 #endif // HW_GEN_DIN10 || HW_GEN_20
+
+#ifdef HW_GEN_RXMOD
+// RXMODFIX port above section
+#endif
 
 
 

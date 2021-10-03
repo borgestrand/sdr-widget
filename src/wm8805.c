@@ -138,6 +138,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 
 */
 
+// RXMODFIX port to wm8804.c / wm8804.h
 
 
 // #if defined(HW_GEN_DIN10)									// Functions here only make sense for WM8805
@@ -175,7 +176,7 @@ void wm8805_poll(void) {
 
     uint8_t wm8805_int = 0;										// WM8805 interrupt status
     static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
-	static int16_t pausecounter = pausecounter_initial;						// Initiated to a value much larger than what is seen in practical use
+	static int16_t pausecounter = pausecounter_initial;			// Initiated to a value much larger than what is seen in practical use
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
 	int16_t pausecounter_temp;

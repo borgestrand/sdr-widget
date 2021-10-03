@@ -93,12 +93,12 @@ extern S32 spk_vol_mult_L, spk_vol_mult_R;
 
 extern volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
 
-#ifdef HW_GEN_DIN20
+#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 extern volatile uint8_t usb_ch;						// Front or rear USB channel
 extern volatile uint8_t usb_ch_swap;				// Front or rear USB channel
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio channel selection semaphore
 extern volatile wm8805_status_t wm8805_status;
 #endif

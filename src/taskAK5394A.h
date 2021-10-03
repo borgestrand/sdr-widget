@@ -34,7 +34,7 @@
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
 // Keep buffer sizes belov 2^14
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
 // Nominal values
 	#define ADC_BUFFER_SIZE	(8*2*24)
 	#define DAC_BUFFER_SIZE (32*2*24)
@@ -57,7 +57,7 @@
 #define USB_BUFFER_TOGGLE_LIM 4		// Changed from 2 to 4 after hassle with Sue's phone. DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
 #define USB_BUFFER_TOGGLE_PARK 10	// The error is detected in sequential code
 
-// Available digital audio sources, 3 and 4 only available in HW_GEN_DIN10 and ..20. Source 5 only available in HW_GEN_DIN20
+// Available digital audio sources, 3 and 4 only available in HW_GEN_DIN10 and ..20. Source 5 only available in HW_GEN_DIN20n and HW_GEN_RXMOD
 #define MOBO_SRC_NONE		0
 #define MOBO_SRC_UAC1		1
 #define MOBO_SRC_UAC2		2

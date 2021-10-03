@@ -163,6 +163,13 @@ void  mobo_i2s_enable(uint8_t i2s_mode) {
 #endif
 
 
+#ifdef HW_GEN_RXMOD
+// RXMODFIX port above section to new GPIO and USB channel naming
+#endif
+
+
+// RXMODFIX where is the end of this next 'if' ? Line 728! Port everything in between!
+
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 
 // Audio Widget HW_GEN_DIN10 / DIN20 LED control
@@ -791,7 +798,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 
 	// XO control and I2S muxing on Digital Input 1.0 / 2.0 generation
 	// NB: updated to support SPDIF buffering in MCU. That is highly experimental code!
-#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+	#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
 
 		if (wm8805_status.buffered == 0) {
 		// Old version with I2S mux
@@ -834,6 +841,9 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 			}
 		}
+
+	#elif (defined HW_GEN_DIN10) 
+	// RXMODFIX port above section
 
 	#else
 		#error undefined hardware
