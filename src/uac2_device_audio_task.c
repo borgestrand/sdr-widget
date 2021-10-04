@@ -207,7 +207,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 		// Process digital input
-		#if ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD)
+		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 			mobo_handle_spdif(32); // UAC2 uses 32-bit data
 
 			static uint8_t prev_input_select = MOBO_SRC_NONE;
@@ -322,7 +322,7 @@ void uac2_device_audio_task(void *pvParameters)
 		} // end alt setting 1
 
 
-#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD) 
+#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 
 		if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
 //		if ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) ) {
 #else
@@ -644,7 +644,7 @@ void uac2_device_audio_task(void *pvParameters)
 										print_dbg_char('[');
 										mobo_led_select(current_freq.frequency, input_select);
 										input_select = MOBO_SRC_UAC2;
-										#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD) 
+										#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 
 											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 										#endif
 									}													// Hopefully, this code won't be called repeatedly. Would there be time??
@@ -654,7 +654,7 @@ void uac2_device_audio_task(void *pvParameters)
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 										mobo_led_select(current_freq.frequency, input_select);
 										input_select = MOBO_SRC_UAC2;
-										#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD) 
+										#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 
 											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 										#endif
 								#endif
@@ -663,7 +663,7 @@ void uac2_device_audio_task(void *pvParameters)
 							#endif
 						}
 
-						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD
+						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 							if ( (!ledSet) && (input_select == MOBO_SRC_UAC2) ) {
 								ledSet = TRUE;
 								mobo_led_select(current_freq.frequency, input_select);
@@ -752,7 +752,7 @@ void uac2_device_audio_task(void *pvParameters)
 					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) && (playerStarted != FALSE) ) { // Oops, we just went silent, probably from pause
 						playerStarted = FALSE;
 
-						#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD) 					// Dedicated mute pin
+						#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 					// Dedicated mute pin
 							mobo_i2s_enable(MOBO_I2S_DISABLE);	// Hard-mute of I2S pin
 						#endif
 
@@ -910,7 +910,7 @@ void uac2_device_audio_task(void *pvParameters)
 //				playerStarted = FALSE;  // mobodebug, commented out here and included below
 				silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
-				#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD)	// Dedicated mute pin
+				#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)	// Dedicated mute pin
 					if (usb_ch_swap == USB_CH_SWAPDET)
 						usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
 				#endif
@@ -920,7 +920,7 @@ void uac2_device_audio_task(void *pvParameters)
 				if ( (input_select == MOBO_SRC_UAC2) && (playerStarted != FALSE) ) {			// Set from playing nonzero USB
 					playerStarted = FALSE;	// Inserted here in mobodebug untested fix, removed above
 
-					#if (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD)	// Dedicated mute pin
+					#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)	// Dedicated mute pin
 						mobo_i2s_enable(MOBO_I2S_DISABLE);		// Hard-mute of I2S pin
 					#endif
 

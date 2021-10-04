@@ -109,7 +109,7 @@ int foo(void) {
 		"ssrf	16				\n\t"	// Disable global interrupt
 		"mov	%0, 	8000	\n\t"	// Load timeout
 		"mov	r9,		-61440	\n\t"	// Immediate load, set up pointer to PA04, (0xFFFF1000) recompile C for other IO pin, do once
-		"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PB11, (0XFFFF1100) recompile C for other IO pin, do once ???
+		"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PB11, (0XFFFF1100) recompile C for other IO pin, do once. Is comment correct???
 		
 		"L0:					\n\t"	// Loop while PA04 is 1
 		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin

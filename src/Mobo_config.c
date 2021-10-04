@@ -490,7 +490,7 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 #endif // LED for HW_GEN_RXMOD
 
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)) || (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
 	static int ADC_buf_DMA_write_prev = -1;
@@ -864,7 +864,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 	static U32 prev_frequency = FREQ_INVALID;
 
 	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
-	#if defined(HW_GEN_AB1X)
+	#if (defined HW_GEN_AB1X)
 		switch (frequency) {
 			case FREQ_44:
 				if (FEATURE_BOARD_USBI2S)
@@ -926,7 +926,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 
 	// XO control and I2S muxing on Digital Input 1.0 / 2.0 generation
 	// NB: updated to support SPDIF buffering in MCU. That is highly experimental code!
-	#elif ((defined HW_GEN_DIN10) || (defined HW_GEN_DIN20))
+	#elif (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 
 		if (spdif_rx_status.buffered == 0) {
 		// Old version with I2S mux
