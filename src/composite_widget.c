@@ -559,14 +559,16 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 		if (counter >= COUNTER_TIME_OUT) features[feature_adc_index] = feature_adc_none;
 	}
 
-	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);
+#if !(defined HW_GEN_RXMOD)
+	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);	// HW_GEN_DIN20 PX02 = SP_SEL1, SPDIF selector
+#endif
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 	wm8805_reset(WM8805_RESET_END);			// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 
 #if (defined HW_GEN_RXMOD)
-wm8804_reset(WM8804_RESET_END);				// Early hardware reset of WM8804 because GPIO is interpreted for config
+	wm8804_reset(WM8804_RESET_END);			// Early hardware reset of WM8804 because GPIO is interpreted for config
 #endif
 
 
