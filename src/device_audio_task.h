@@ -69,7 +69,14 @@
 #include "gpio.h"
 
 // To access SPDIF RX status
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 #include "wm8805.h"
+#endif
+
+#if (defined HW_GEN_RXMOD)
+#include "wm8804.h"
+#endif
+
 
 #if USB_DEVICE_FEATURE == DISABLED
   #error device_audio_task.h is #included although USB_DEVICE_FEATURE is disabled

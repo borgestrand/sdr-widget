@@ -431,7 +431,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 	// Turn on all KMs by enabling pass transistors. FIX: add to board design!
 	// Analog KM charges LDOs through shared 22R FIX: add to board as 13R + 13R or something like that.
-	mobo_km(MOBO_HP_KM_ENABLE);
+	// mobo_km(MOBO_HP_KM_ENABLE); // Not patched up on HW_GEN_RXMOD
 
 
 	// Wait for analog KM output to settle.

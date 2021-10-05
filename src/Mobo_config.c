@@ -187,7 +187,7 @@ void mobo_usb_select(uint8_t usb_ch) {
 // Quick and dirty detect of whether front USB (C) is plugged in. No debounce here!
 uint8_t mobo_usb_detect(void) {
 	if  (gpio_get_pin_value(AVR32_PIN_PA07) == 1)
-	return USB_CH_C;
+		return USB_CH_C;
 
 	return USB_CH_B;
 }
