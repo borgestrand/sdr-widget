@@ -406,6 +406,8 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	// Just keep I2S on, mobo_i2s_enable() does nothing for now
 	gpio_set_gpio_pin(AVR32_PIN_PX58); 						// Enable I2S data
 
+	// RXMODFIX Enable power regulators. In the future, do this after enumeration or some time out while monitoring load switch status!
+	gpio_set_gpio_pin(AVR32_PIN_PA24);
 
 	// At default, one channel of current limiter is active. That charges digital side OS-CON and
 	// OS-CON of step up's positive side (through the inductor).

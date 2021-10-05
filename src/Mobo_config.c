@@ -1035,66 +1035,74 @@ void mobo_clock_division(U32 frequency) {
 	static U32 prev_frequency = FREQ_INVALID;
 
 	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
-		gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
-
+		#if (defined HW_GEN_RXMOD) 
+			// RXMODFIX implement clock division and config pin
+		#else
+			gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
+		#endif
+	
 		pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-		// External /2 variety, unmodded hardware with floating, pulled-up PA03 interpreted as 1
-		if (gpio_get_pin_value(AVR32_PIN_PA03) == 1) {
-			switch (frequency) {
-				case FREQ_192 :
-					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-								0,                  // diven - disabled
-								0);                 // not divided
-				break;
-				case FREQ_176 :
-					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-								0,        			// osc_or_pll: use Osc (if 0) or PLL (if 1)
-								1,        			// pll_osc: select Osc0/PLL0 or Osc1/PLL1
-								0,        			// diven - disabled
-								0);                 // not divided
-				break;
-				case FREQ_96 :
-					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-								1,                  // diven - enabled
-								0);                 // divided by 2
-				break;
-				case FREQ_88 :
-					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-								1,                  // diven - enabled
-								0);                 // divided by 2
-				break;
-				case FREQ_48 :
-					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-								1,                  // diven - enabled
-								1);                 // divided by 4
-				break;
-				case FREQ_44 :
-					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-								1,                  // diven - enabled
-								1);                 // divided by 4
-				default : // Treated as 44.1
-					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
-								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
-								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
-								1,                  // diven - enabled
-								1);                 // divided by 4
-				break;
+		#if (defined HW_GEN_RXMOD)					// RXMODFIX implement clock division and config pin
+			if (0) {
+		#else
+			// External /2 variety, unmodded hardware with floating, pulled-up PA03 interpreted as 1
+			if (gpio_get_pin_value(AVR32_PIN_PA03) == 1) {
+		#endif
+				switch (frequency) {
+					case FREQ_192 :
+						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+									0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+									1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+									0,                  // diven - disabled
+									0);                 // not divided
+					break;
+					case FREQ_176 :
+						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+									0,        			// osc_or_pll: use Osc (if 0) or PLL (if 1)
+									1,        			// pll_osc: select Osc0/PLL0 or Osc1/PLL1
+									0,        			// diven - disabled
+									0);                 // not divided
+					break;
+					case FREQ_96 :
+						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+									0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+									1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+									1,                  // diven - enabled
+									0);                 // divided by 2
+					break;
+					case FREQ_88 :
+						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+									0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+									1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+									1,                  // diven - enabled
+									0);                 // divided by 2
+					break;
+					case FREQ_48 :
+						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+									0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+									1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+									1,                  // diven - enabled
+									1);                 // divided by 4
+					break;
+					case FREQ_44 :
+						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+									0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+									1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+									1,                  // diven - enabled
+									1);                 // divided by 4
+					default : // Treated as 44.1
+						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+									0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+									1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+									1,                  // diven - enabled
+									1);                 // divided by 4
+					break;
+				}
 			}
-		}
 
 		// No external /2 variety, modded hardware with resistor tying PA03 to 0
-		else {
+		else {	// HW_GEN_RXMOD only follows this branch
 			switch (frequency) {
 				case FREQ_192 :
 					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
