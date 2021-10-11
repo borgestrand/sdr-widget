@@ -415,13 +415,13 @@ void device_mouse_hid_task(void)
             // Start messing with ADC!
 
             else if (a == 'a') {							// Lowercase a
-            	spdif_rx_status.buffered = 0;					// Use regenerated clock
+            	spdif_rx_status.buffered = 0;				// Use regenerated clock
             	mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
 
             // Select MCU's outgoing I2S bus
             else if (a == 'b') {							// Lowercase b
-            	spdif_rx_status.buffered = 1;					// Use precision clock and buffering
+            	spdif_rx_status.buffered = 1;				// Use precision clock and buffering
             	mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
 
@@ -619,7 +619,37 @@ void device_mouse_hid_task(void)
 
 #ifdef HW_GEN_RXMOD
 // RXMODFIX port above section to new GPIO and USB channel naming
-#endif
+
+
+
+
+
+// Attempts to access PCB5142
+
+			#define PCM5142_DEV_ADR	0x4C					// Both adr pins set to 0 in hardware
+            else if (a == 'w') {							// Lowercase w - read (silly!)
+	            uint8_t dev_datar[1];
+	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+	            twi_write_out(PCM5142_DEV_ADR, dev_datar, 1);
+	            twi_read_in(PCM5142_DEV_ADR, dev_datar, 1);
+				print_dbg_char('.');
+	            print_dbg_char_hex(dev_datar[0]);
+				print_dbg_char('.');
+            }
+
+            else if (a == 'W') {							// Uppercase W - write
+				uint8_t dev_dataw[2];
+				uint8_t status;
+				dev_dataw[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+				dev_dataw[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
+				status = twi_write_out(PCM5142_DEV_ADR, dev_dataw, 2);
+				print_dbg_char(',');
+	            print_dbg_char_hex(status);
+				print_dbg_char(',');
+            }
+
+
+#endif // HW_GEN_RXMOD
 
 
             else if (a == 'v') {
