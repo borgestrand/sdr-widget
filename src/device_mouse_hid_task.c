@@ -123,6 +123,10 @@
 // static U8 usb_state = 'r'; // BSB 20120718 unused variable, sane?
 // static U8 ep_hid_rx; // BSB 20120718 unused variable, sane?
    static U8 ep_hid_tx;
+   
+   
+static uint8_t I2C_device_address = 0;   // RXMODFIX I2C debug
+   
 //!
 //! @brief This function initializes the hardware/software resources
 //! required for device HID task.
@@ -624,14 +628,20 @@ void device_mouse_hid_task(void)
 
 
 
-// Attempts to access PCB5142
+// Attempts to access PCM5142
 
-			#define PCM5142_DEV_ADR	0x4C					// Both adr pins set to 0 in hardware
+			// 0x3A							// Assumed WM8804 address, it responds with local address byte coming back
+			// 0x4C							// Both adr pins set to 0 in hardware
+            else if (a == 'r') {
+				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+			}
+
             else if (a == 'w') {							// Lowercase w - read (silly!)
 	            uint8_t dev_datar[1];
 	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-	            twi_write_out(PCM5142_DEV_ADR, dev_datar, 1);
-	            twi_read_in(PCM5142_DEV_ADR, dev_datar, 1);
+				print_dbg_char_hex(dev_datar[0]); // Write back
+	            twi_write_out(I2C_device_address, dev_datar, 1);
+	            twi_read_in(I2C_device_address, dev_datar, 1);
 				print_dbg_char('.');
 	            print_dbg_char_hex(dev_datar[0]);
 				print_dbg_char('.');
@@ -642,7 +652,9 @@ void device_mouse_hid_task(void)
 				uint8_t status;
 				dev_dataw[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
 				dev_dataw[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
-				status = twi_write_out(PCM5142_DEV_ADR, dev_dataw, 2);
+				print_dbg_char_hex(dev_dataw[0]); // Write back, where is the delay?
+				print_dbg_char_hex(dev_dataw[1]); // Write back
+				status = twi_write_out(I2C_device_address, dev_dataw, 2);
 				print_dbg_char(',');
 	            print_dbg_char_hex(status);
 				print_dbg_char(',');
