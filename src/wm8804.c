@@ -690,22 +690,30 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
     uint8_t dev_data[2];
     uint8_t status;
 
+	return 0;
+
+	/* Disable for now RXMODFIX
 	dev_data[0] = int_adr;
 	dev_data[1] = int_data;
 
 	status = twi_write_out(WM8804_DEV_ADR, dev_data, 2);
 	return status;
+	*/
 }
 
 
 // Read a single byte from WM8804
 uint8_t wm8804_read_byte(uint8_t int_adr) {
+	
+	return 0;
+	/* Disable for now RXMODFIX
 	uint8_t dev_data[1];
 
 	dev_data[0] = int_adr;
 	twi_write_out(WM8804_DEV_ADR, dev_data, 1);
 	twi_read_in(WM8804_DEV_ADR, dev_data, 1);
 	return dev_data[0];
+	*/
 }
 
 

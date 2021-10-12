@@ -639,12 +639,16 @@ void device_mouse_hid_task(void)
             else if (a == 'w') {							// Lowercase w - read (silly!)
 	            uint8_t dev_datar[1];
 	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-				print_dbg_char_hex(dev_datar[0]); // Write back
 	            twi_write_out(I2C_device_address, dev_datar, 1);
-	            twi_read_in(I2C_device_address, dev_datar, 1);
-				print_dbg_char('.');
-	            print_dbg_char_hex(dev_datar[0]);
-				print_dbg_char('.');
+	            if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
+					print_dbg_char('.');
+		            print_dbg_char_hex(dev_datar[0]);			// Returns device address if transfer failed
+					print_dbg_char('.');
+				}
+				else {
+					print_dbg_char('-');
+				}
+				
             }
 
             else if (a == 'W') {							// Uppercase W - write
@@ -652,8 +656,6 @@ void device_mouse_hid_task(void)
 				uint8_t status;
 				dev_dataw[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
 				dev_dataw[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
-				print_dbg_char_hex(dev_dataw[0]); // Write back, where is the delay?
-				print_dbg_char_hex(dev_dataw[1]); // Write back
 				status = twi_write_out(I2C_device_address, dev_dataw, 2);
 				print_dbg_char(',');
 	            print_dbg_char_hex(status);

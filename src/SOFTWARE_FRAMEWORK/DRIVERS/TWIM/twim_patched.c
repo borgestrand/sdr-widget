@@ -503,6 +503,8 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
 #ifdef AVR32_TWIM_101_H_INCLUDED
      if( twim_nack ) {
        return TWI_RECEIVE_NACK;
+	   
+	   // This does not get triggered in build #error X
      }
 #else
      if( twi->sr & AVR32_TWIM_SR_ANAK_MASK ) {
@@ -516,6 +518,9 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
        // // subsequent TWI writes being screwed up, containing garbage.
        // // The below is a brute force hack to prevent this condition
        // twi->cr = AVR32_TWIM_CR_SWRST;	// Do a TWI Soft Reset
+	   // twi->cr = AVR32_TWIM_CR_SWRST;	// RXMODFIX do or don't?
+
+		// This does get triggered in build #error Y
 
        return TWI_RECEIVE_NACK;
      }
