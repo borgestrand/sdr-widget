@@ -693,7 +693,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
 //	return 0;	// Disabling temporarily for RXMODFIX
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
-	print_dbg_char('a');
+	print_dbg_char('a'); 
 	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 		print_dbg_char('A');
 
