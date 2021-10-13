@@ -688,32 +688,67 @@ void wm8804_unmute(void) {
 // Write a single byte to WM8804
 uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
     uint8_t dev_data[2];
-    uint8_t status;
+    uint8_t status = 0xFF;							// Far from 0 reported as I2C success
 
-	return 0;
+//	return 0;	// Disabling temporarily for RXMODFIX
 
-	/* Disable for now RXMODFIX
-	dev_data[0] = int_adr;
-	dev_data[1] = int_data;
+	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
+	print_dbg_char('a');
+	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+		print_dbg_char('A');
 
-	status = twi_write_out(WM8804_DEV_ADR, dev_data, 2);
+		// Start of blocking code
+		dev_data[0] = int_adr;
+		dev_data[1] = int_data;
+		status = twi_write_out(WM8804_DEV_ADR, dev_data, 2);
+		// End of blocking code
+
+//		print_dbg_char('g');
+		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+//			print_dbg_char(60); // '<'
+		}
+		else {
+			print_dbg_char('P');
+		}
+	}
+	else {
+		print_dbg_char('Q');
+	}
+
 	return status;
-	*/
 }
 
 
 // Read a single byte from WM8804
 uint8_t wm8804_read_byte(uint8_t int_adr) {
-	
-	return 0;
-	/* Disable for now RXMODFIX
 	uint8_t dev_data[1];
+	
+//	return 0;	// Disabling temporarily for RXMODFIX
 
-	dev_data[0] = int_adr;
-	twi_write_out(WM8804_DEV_ADR, dev_data, 1);
-	twi_read_in(WM8804_DEV_ADR, dev_data, 1);
+	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
+	print_dbg_char('b');
+	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+		print_dbg_char('B');
+
+		// Start of blocking code
+		dev_data[0] = int_adr;
+		twi_write_out(WM8804_DEV_ADR, dev_data, 1);
+		twi_read_in(WM8804_DEV_ADR, dev_data, 1);
+		// End of blocking code
+
+//		print_dbg_char('g');
+		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+//			print_dbg_char(60); // '<'
+		}
+		else {
+			print_dbg_char('R');
+		}
+	}
+	else {
+		print_dbg_char('S');
+	}
+
 	return dev_data[0];
-	*/
 }
 
 

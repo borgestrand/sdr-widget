@@ -639,15 +639,48 @@ void device_mouse_hid_task(void)
             else if (a == 'w') {							// Lowercase w - read (silly!)
 	            uint8_t dev_datar[1];
 	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-	            twi_write_out(I2C_device_address, dev_datar, 1);
+
+				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
+				if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+					print_dbg_char('[');
+
+					// Start of blocking code
+					twi_write_out(I2C_device_address, dev_datar, 1);		// This line lever returns failure, even if device is not present
+					if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
+						print_dbg_char('.');
+						print_dbg_char_hex(dev_datar[0]);
+						print_dbg_char('.');
+					}
+					else {
+						print_dbg_char('-');					// Secondary write part failed
+					}
+					// End of blocking code
+
+					print_dbg_char('g');
+					if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+						print_dbg_char(60); // '<'
+					}
+					else
+					print_dbg_char(62); // '>'
+				}												// Hopefully, this code won't be called repeatedly. Would there be time??
+				else {
+					print_dbg_char(']');
+				}
+				
+				
+				
+
+/* moved inside take
+	            twi_write_out(I2C_device_address, dev_datar, 1);		// This line lever returns failure, even if device is not present
 	            if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
 					print_dbg_char('.');
-		            print_dbg_char_hex(dev_datar[0]);			// Returns device address if transfer failed
+		            print_dbg_char_hex(dev_datar[0]);
 					print_dbg_char('.');
 				}
 				else {
-					print_dbg_char('-');
+					print_dbg_char('-');					// Secondary write part failed
 				}
+*/				
 				
             }
 
@@ -656,10 +689,37 @@ void device_mouse_hid_task(void)
 				uint8_t status;
 				dev_dataw[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
 				dev_dataw[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
-				status = twi_write_out(I2C_device_address, dev_dataw, 2);
-				print_dbg_char(',');
-	            print_dbg_char_hex(status);
-				print_dbg_char(',');
+				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
+				if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+					print_dbg_char('[');
+
+					// Start of blocking code
+					status = twi_write_out(I2C_device_address, dev_dataw, 2);
+					print_dbg_char(',');
+					print_dbg_char_hex(status);
+					print_dbg_char(',');
+					// End of blocking code
+
+					print_dbg_char('g');
+					if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+						print_dbg_char(60); // '<'
+					}
+					else
+					print_dbg_char(62); // '>'
+
+				}												// Hopefully, this code won't be called repeatedly. Would there be time??
+				else {
+					print_dbg_char(']');
+				}
+
+
+/* Moved inside take				
+					twi_write_out(I2C_device_address, dev_datar, 1);		// This line lever returns failure, even if device is not present
+					print_dbg_char(',');
+					print_dbg_char_hex(status);
+					print_dbg_char(',');
+*/
+
             }
 
 

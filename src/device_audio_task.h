@@ -110,6 +110,11 @@ extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio cha
 extern volatile spdif_rx_status_t spdif_rx_status;
 #endif
 
+#if (defined HW_GEN_RXMOD)
+extern volatile xSemaphoreHandle I2C_busy; 			// One semaphore covers entire I2C message, not just function calls. Not yet ported to all I2C callers
+#endif
+
+
 //_____ M A C R O S ________________________________________________________
 
 
