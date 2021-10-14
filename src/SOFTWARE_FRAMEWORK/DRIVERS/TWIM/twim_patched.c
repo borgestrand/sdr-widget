@@ -90,7 +90,9 @@ static void twi_master_interrupt_handler(void)
       //if we get a nak, clear the valid bit in cmdr, otherwise the command will be resent.
       twim_inst->cmdr = twim_inst->cmdr ^ AVR32_TWIM_CMDR_VALID_MASK;
       twim_inst->scr = AVR32_TWIM_SCR_ANAK_MASK;
-      goto nack;
+	  
+	  // RXMODFIX Do we ever get here? Reset the transfer after a nack and return?
+      goto nack; 
     }
     // this is a RXRDY
     else if (status & AVR32_TWIM_SR_RXRDY_MASK)
@@ -305,6 +307,7 @@ int twim_read_packet(volatile avr32_twim_t *twi, const twi_package_t *package) {
     if( twim_nack )
     {
       return TWI_RECEIVE_NACK;
+	  // RXMODFIX Do we ever get here? Whould happen when device address gets NACKed
     }
 
     return TWI_SUCCESS;
@@ -376,6 +379,7 @@ int twim_read(volatile avr32_twim_t *twi, unsigned char *buffer, int nbytes,
     if( twim_nack )
     {
       return TWI_RECEIVE_NACK;
+	  // RXMODFIX Do we ever get here? Would happen when device address gets NACKed?
     }
 
   return TWI_SUCCESS;
@@ -392,8 +396,10 @@ int twi_master_read(volatile avr32_twim_t *twi, const twi_package_t *package) {
         for (i=0; i<package->addr_length; i++)
           twi_register[i] = (unsigned char) (package->addr >> (8*i));
 #ifdef AVR32_TWIM_101_H_INCLUDED
+		// NOt called in build: #error X
         while(twim_write(twi, twi_register,package->addr_length, package->chip,0)!=TWI_SUCCESS);
-#else        
+#else   
+		// This gets called in AT32UC3A3 buid: #error Y     
         twim_write(twi, twi_register,package->addr_length, package->chip,0);
 #endif
     }
@@ -485,10 +491,15 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
      twi->cr =  AVR32_TWIM_CR_MEN_MASK;
 
 #ifdef AVR32_TWIM_101_H_INCLUDED
+	// #error AVR32_TWIM_101_H_INCLUDED Not built
+	
      // put the byte in the Transmit Holding Register
      twim_inst->thr = *twim_tx_data++;
      // decrease transmited bytes number
      twim_tx_nb_bytes--;
+	 
+#else
+	// #error not(AVR32_TWIM_101_H_INCLUDED) BUILT
 #endif
 
      // Enable all interrupts
@@ -507,6 +518,8 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
 	   // This does NOT get triggered in build #error X
      }
 #else
+	// This gets triggered in AT32UC3A3 build
+	
      if( twi->sr & AVR32_TWIM_SR_ANAK_MASK ) {
        twi->scr = AVR32_TWIM_SCR_ANAK_MASK;
 
@@ -521,7 +534,7 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
 
 		// This does get triggered in build #error Y
 
-       return TWI_RECEIVE_NACK;
+       return TWI_RECEIVE_NACK;	// RXMODFIX is this ever returned???
      }
 #endif     
 
