@@ -53,6 +53,8 @@
 #include "intc.h"
 //#include "twim.h"
 #include "twim_patched.h"
+#include "gpio.h" // For GPIO debug
+
 
 //! Pointer to the instance 1 of the TWIM registers for IT.
 static volatile avr32_twim_t *twim_inst;
@@ -126,12 +128,19 @@ static void twi_master_interrupt_handler(void)
       }
 
     }
+
+	// RXMODFIX ACK detector debug for chip address Ch4 - red
+	gpio_tgl_gpio_pin(AVR32_PIN_PX33);
+
     return;
 
   nack:
-    twim_nack = TRUE;
-
-  return;
+  
+// RXMODFIX NACK detector debug for chip address Ch3 - blue
+	gpio_tgl_gpio_pin(AVR32_PIN_PX55);
+  
+	twim_nack = TRUE;
+	return;
 }
 
 
@@ -547,8 +556,7 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
      // // The below is a brute force hack to prevent this condition
      twi->cr = AVR32_TWIM_CR_SWRST;	// Do a TWI Soft Reset
 
-
-     return TWI_SUCCESS;
+	return TWI_SUCCESS;
 }
 
 int twim_chained_transfer(volatile avr32_twim_t *twi,

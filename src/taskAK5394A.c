@@ -160,7 +160,8 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+		// RXMODFIX This particular debug is disabled for now
+		// gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 #endif
 	}
@@ -172,7 +173,8 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+		// RXMODFIX This particular debug is disabled for now
+		// gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 #endif
 	}
@@ -282,13 +284,15 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
 		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
 
-		gpio_clr_gpio_pin(AVR32_PIN_PX33);
+		// RXMODFIX This particular debug is disabled for now
+		// gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 	else {	// No known frequency, don't halt system while polling for LRCK edge
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
 		DAC_buf_DMA_read = 0;
 
-		gpio_clr_gpio_pin(AVR32_PIN_PX33);
+		// RXMODFIX This particular debug is disabled for now
+		// gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 
 	// What is the optimal sequence?
