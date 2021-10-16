@@ -624,15 +624,12 @@ void device_mouse_hid_task(void)
 #ifdef HW_GEN_RXMOD
 // RXMODFIX port above section to new GPIO and USB channel naming
 
-
-
-
-
 // Attempts to access PCM5142
 
 			// 0x3A							// Assumed WM8804 address, it responds with local address byte coming back
 			// 0x4C							// Both adr pins set to 0 in hardware
-            else if (a == 'r') {
+
+            else if (a == 'r') {			// Static debug device address
 				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 			}
 
@@ -640,48 +637,37 @@ void device_mouse_hid_task(void)
 	            uint8_t dev_datar[1];
 	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
 
-				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
+//				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
 				if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-					print_dbg_char('[');
+//					print_dbg_char('[');
 
 					// Start of blocking code
-					twi_write_out(I2C_device_address, dev_datar, 1);		// This line lever returns failure, even if device is not present
-					if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
-						print_dbg_char('.');
-						print_dbg_char_hex(dev_datar[0]);
-						print_dbg_char('.');
+					if (twi_write_out(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
+						if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
+							print_dbg_char('.');
+							print_dbg_char_hex(dev_datar[0]);
+							print_dbg_char('.');
+						}
+						else {
+							print_dbg_char('-');				// Secondary read part failed
+						}
 					}
 					else {
-						print_dbg_char('-');					// Secondary write part failed
+						print_dbg_char(':');					// Primary write part failed
 					}
 					// End of blocking code
 
-					print_dbg_char('g');
+//					print_dbg_char('g');
 					if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
-						print_dbg_char(60); // '<'
+//						print_dbg_char(60); // '<'
 					}
-					else
-					print_dbg_char(62); // '>'
-				}												// Hopefully, this code won't be called repeatedly. Would there be time??
+					else {
+//						print_dbg_char(62); // '>'
+					}
+				} // Take OK
 				else {
-					print_dbg_char(']');
-				}
-				
-				
-				
-
-/* moved inside take
-	            twi_write_out(I2C_device_address, dev_datar, 1);		// This line lever returns failure, even if device is not present
-	            if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
-					print_dbg_char('.');
-		            print_dbg_char_hex(dev_datar[0]);
-					print_dbg_char('.');
-				}
-				else {
-					print_dbg_char('-');					// Secondary write part failed
-				}
-*/				
-				
+//					print_dbg_char(']');
+				} // Take not OK
             }
 
             else if (a == 'W') {							// Uppercase W - write
@@ -689,9 +675,9 @@ void device_mouse_hid_task(void)
 				uint8_t status;
 				dev_dataw[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
 				dev_dataw[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
-				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
+//				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
 				if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-					print_dbg_char('[');
+//					print_dbg_char('[');
 
 					// Start of blocking code
 					status = twi_write_out(I2C_device_address, dev_dataw, 2);
@@ -700,26 +686,17 @@ void device_mouse_hid_task(void)
 					print_dbg_char(',');
 					// End of blocking code
 
-					print_dbg_char('g');
+//					print_dbg_char('g');
 					if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
-						print_dbg_char(60); // '<'
+//						print_dbg_char(60); // '<'
 					}
-					else
-					print_dbg_char(62); // '>'
-
-				}												// Hopefully, this code won't be called repeatedly. Would there be time??
+					else {
+//						print_dbg_char(62); // '>'
+					}
+				} // Take OK
 				else {
-					print_dbg_char(']');
-				}
-
-
-/* Moved inside take				
-					twi_write_out(I2C_device_address, dev_datar, 1);		// This line lever returns failure, even if device is not present
-					print_dbg_char(',');
-					print_dbg_char_hex(status);
-					print_dbg_char(',');
-*/
-
+//					print_dbg_char(']');
+				} // Take not OK
             }
 
 

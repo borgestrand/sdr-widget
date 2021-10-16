@@ -690,7 +690,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
     uint8_t dev_data[2];
     uint8_t status = 0xFF;							// Far from 0 reported as I2C success
 
-	return 0;	// Disabling temporarily for RXMODFIX
+//	return 0;	// Disabling temporarily for RXMODFIX
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('a'); 
@@ -723,7 +723,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
 uint8_t wm8804_read_byte(uint8_t int_adr) {
 	uint8_t dev_data[1];
 	
-	return 0;	// Disabling temporarily for RXMODFIX
+//	return 0;	// Disabling temporarily for RXMODFIX
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('b');
@@ -732,8 +732,11 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 
 		// Start of blocking code
 		dev_data[0] = int_adr;
-		twi_write_out(WM8804_DEV_ADR, dev_data, 1);
-		twi_read_in(WM8804_DEV_ADR, dev_data, 1);
+		if (twi_write_out(WM8804_DEV_ADR, dev_data, 1) == TWI_SUCCESS) {
+			twi_read_in(WM8804_DEV_ADR, dev_data, 1);
+		}
+		else
+			dev_data[0] = 0 ;	// Randomly chosen failure state
 		// End of blocking code
 
 //		print_dbg_char('g');

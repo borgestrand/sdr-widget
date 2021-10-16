@@ -94,6 +94,9 @@ static void twi_master_interrupt_handler(void)
       twim_inst->scr = AVR32_TWIM_SCR_ANAK_MASK;
 	  
 	  twim_nack = TRUE;
+	  // RXMODFIX NACK detector debug for chip address
+	  gpio_tgl_gpio_pin(AVR32_PIN_PX55);
+	  
 	  return;
     }
     // this is a RXRDY
@@ -123,7 +126,7 @@ static void twi_master_interrupt_handler(void)
       {
         // put the byte in the Transmit Holding Register
         twim_inst->thr = *twim_tx_data++;
-        // decrease transmited bytes number
+        // decrease transmitted bytes number
         twim_tx_nb_bytes--;
       }
 
@@ -380,8 +383,8 @@ int twim_read(volatile avr32_twim_t *twi, unsigned char *buffer, int nbytes,
     }
 
   return TWI_SUCCESS;
-
 }
+
 
 int twi_master_read(volatile avr32_twim_t *twi, const twi_package_t *package) {
     unsigned char twi_register[4]; // the most address length will not longer than 4 bytes
@@ -396,12 +399,13 @@ int twi_master_read(volatile avr32_twim_t *twi, const twi_package_t *package) {
 		// NOt called in build: #error X
         while(twim_write(twi, twi_register,package->addr_length, package->chip,0)!=TWI_SUCCESS);
 #else   
-		// This gets called in AT32UC3A3 buid: #error Y     
+		// This gets called in AT32UC3A3 build: #error Y     
         twim_write(twi, twi_register,package->addr_length, package->chip,0);
 #endif
     }
     return twim_read(twi, package->buffer, package->length,package->chip, 0);
 }
+
 
 int twim_write_packet(volatile avr32_twim_t *twi, const twi_package_t *package) {
 
