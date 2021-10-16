@@ -528,7 +528,7 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
 
 
      // Disable master transfer
-     twi->cr =  AVR32_TWIM_CR_MDIS_MASK;
+//     twi->cr =  AVR32_TWIM_CR_MDIS_MASK; // BSB moved down
 
 
 	if (twim_nack) {
@@ -537,6 +537,19 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
 	}
 
 
+// BSB experimental code for UC2A3 start
+
+	twi->cr = AVR32_TWIM_CR_SWRST;				// Attempt a TWI soft reset for good measure
+	twi->cr = AVR32_TWIM_CR_MDIS_MASK;			// Attempt master interface disable for good measure
+
+	if (twim_nack) {
+		return TWI_RECEIVE_NACK;
+	}
+	return TWI_SUCCESS;
+	
+// BSB experimental code end	
+
+// Void from here on out
 
 #ifdef AVR32_TWIM_101_H_INCLUDED
      if( twim_nack ) {
@@ -547,7 +560,7 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
 #else
 	// This gets triggered in AT32UC3A3 build
 	
-     if( twi->sr & AVR32_TWIM_SR_ANAK_MASK ) {
+     if( twi->sr & AVR32_TWIM_SR_ANAK_MASK ) {	// 0x00000100
        twi->scr = AVR32_TWIM_SCR_ANAK_MASK;
 
        // Does not work
