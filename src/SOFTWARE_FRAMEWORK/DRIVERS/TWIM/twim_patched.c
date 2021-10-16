@@ -93,8 +93,8 @@ static void twi_master_interrupt_handler(void)
       twim_inst->cmdr = twim_inst->cmdr ^ AVR32_TWIM_CMDR_VALID_MASK;
       twim_inst->scr = AVR32_TWIM_SCR_ANAK_MASK;
 	  
-	  // RXMODFIX Do we ever get here? Reset the transfer after a nack and return?
-      goto nack; 
+	  twim_nack = TRUE;
+	  return;
     }
     // this is a RXRDY
     else if (status & AVR32_TWIM_SR_RXRDY_MASK)
@@ -130,13 +130,6 @@ static void twi_master_interrupt_handler(void)
     }
 
     return;
-
-	nack:
-  // RXMODFIX NACK detector debug for chip address Ch3 - blue
-	gpio_tgl_gpio_pin(AVR32_PIN_PX55);
-  
-	twim_nack = TRUE;
-	return;
 }
 
 
@@ -381,8 +374,7 @@ int twim_read(volatile avr32_twim_t *twi, unsigned char *buffer, int nbytes,
     twi->cr =  AVR32_TWIM_CR_MDIS_MASK;
 
 
-    if( twim_nack )
-    {
+    if( twim_nack ) {
       return TWI_RECEIVE_NACK;
 	  // RXMODFIX Do we ever get here? Would happen when device address gets NACKed?
     }
@@ -496,60 +488,36 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
      twi->cr =  AVR32_TWIM_CR_MEN_MASK;
 
 #ifdef AVR32_TWIM_101_H_INCLUDED
-	// #error AVR32_TWIM_101_H_INCLUDED Not built
+	// #error AVR32_TWIM_101_H_INCLUDED Not built in UC3A3
 	
      // put the byte in the Transmit Holding Register
      twim_inst->thr = *twim_tx_data++;
      // decrease transmited bytes number
      twim_tx_nb_bytes--;
-	 
-#else
-	// #error not(AVR32_TWIM_101_H_INCLUDED) BUILT
 #endif
 
      // Enable all interrupts
      Enable_global_interrupt();
 
-
-	if (twim_nack) {
-		// Not detected
-//		gpio_tgl_gpio_pin(AVR32_PIN_PX33);		// RXMODFIX NACK detector one level above interrupt handler
-	}
-
      
-     // wait until Nack or IDLE in SR
+     // wait until Nack or IDLE in SR. Dude, we're polling an interrupt handler's output here!
      while (!twim_nack && !(twi->sr & AVR32_TWIM_SR_IDLE_MASK));
 
 
-	if (twim_nack) {
-		// Detected!
-//		gpio_tgl_gpio_pin(AVR32_PIN_PX33);		// RXMODFIX NACK detector one level above interrupt handler
-	}
+//  Disable master transfer
+//  twi->cr =  AVR32_TWIM_CR_MDIS_MASK;		// BSB skipped
 
+// BSB 20211016 alternative return code for UC2A3
 
-     // Disable master transfer
-//     twi->cr =  AVR32_TWIM_CR_MDIS_MASK; // BSB moved down
-
-
-	if (twim_nack) {
-		// Detected!
-		gpio_tgl_gpio_pin(AVR32_PIN_PX33);		// RXMODFIX NACK detector one level above interrupt handler
-	}
-
-
-// BSB experimental code for UC2A3 start
-
-	twi->cr = AVR32_TWIM_CR_SWRST;				// Attempt a TWI soft reset for good measure
-	twi->cr = AVR32_TWIM_CR_MDIS_MASK;			// Attempt master interface disable for good measure
+twi->cr = AVR32_TWIM_CR_SWRST_MASK;				// Actual TWI soft reset
 
 	if (twim_nack) {
 		return TWI_RECEIVE_NACK;
 	}
 	return TWI_SUCCESS;
-	
-// BSB experimental code end	
 
-// Void from here on out
+// Void from here on out. This code is buggy with AVR32_TWIM_CR_SWRST where it should say AVR32_TWIM_CR_SWRST_MASK
+/*
 
 #ifdef AVR32_TWIM_101_H_INCLUDED
      if( twim_nack ) {
@@ -571,7 +539,8 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
        // // subsequent TWI writes being screwed up, containing garbage.
        // // The below is a brute force hack to prevent this condition
        // twi->cr = AVR32_TWIM_CR_SWRST;	// Do a TWI Soft Reset, RXMODFIX don't enable this line, it breaks normal I2C reads
-
+		// BSB: Guess AVR32_TWIM_CR_SWRST_MASK;	 is more relevant..
+		
 		// This does get triggered in build #error Y
 
 		// NOT detected
@@ -588,9 +557,11 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
      // // TWI, resulting in junk being left in the THR and all
      // // subsequent TWI writes being screwed up, containing garbage.
      // // The below is a brute force hack to prevent this condition
-     twi->cr = AVR32_TWIM_CR_SWRST;	// Do a TWI Soft Reset
+     twi->cr = AVR32_TWIM_CR_SWRST;	// Do a TWI Soft Reset BSB guess AVR32_TWIM_CR_SWRST_MASK is more relevant
 
 	return TWI_SUCCESS;
+	
+*/	
 }
 
 int twim_chained_transfer(volatile avr32_twim_t *twi,
