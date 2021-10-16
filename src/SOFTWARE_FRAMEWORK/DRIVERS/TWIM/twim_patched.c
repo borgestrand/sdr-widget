@@ -129,14 +129,10 @@ static void twi_master_interrupt_handler(void)
 
     }
 
-	// RXMODFIX ACK detector debug for chip address Ch4 - red
-	gpio_tgl_gpio_pin(AVR32_PIN_PX33);
-
     return;
 
-  nack:
-  
-// RXMODFIX NACK detector debug for chip address Ch3 - blue
+	nack:
+  // RXMODFIX NACK detector debug for chip address Ch3 - blue
 	gpio_tgl_gpio_pin(AVR32_PIN_PX55);
   
 	twim_nack = TRUE;
@@ -513,12 +509,34 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
 
      // Enable all interrupts
      Enable_global_interrupt();
+
+
+	if (twim_nack) {
+		// Not detected
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX33);		// RXMODFIX NACK detector one level above interrupt handler
+	}
+
      
      // wait until Nack or IDLE in SR
      while (!twim_nack && !(twi->sr & AVR32_TWIM_SR_IDLE_MASK));
 
+
+	if (twim_nack) {
+		// Detected!
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX33);		// RXMODFIX NACK detector one level above interrupt handler
+	}
+
+
      // Disable master transfer
      twi->cr =  AVR32_TWIM_CR_MDIS_MASK;
+
+
+	if (twim_nack) {
+		// Detected!
+		gpio_tgl_gpio_pin(AVR32_PIN_PX33);		// RXMODFIX NACK detector one level above interrupt handler
+	}
+
+
 
 #ifdef AVR32_TWIM_101_H_INCLUDED
      if( twim_nack ) {
@@ -542,6 +560,9 @@ int twim_write(volatile avr32_twim_t *twi, unsigned const char *buffer,
        // twi->cr = AVR32_TWIM_CR_SWRST;	// Do a TWI Soft Reset, RXMODFIX don't enable this line, it breaks normal I2C reads
 
 		// This does get triggered in build #error Y
+
+		// NOT detected
+		// gpio_tgl_gpio_pin(AVR32_PIN_PX33);		// RXMODFIX NACK detector one level above interrupt handler
 
        return TWI_RECEIVE_NACK;	// RXMODFIX is this ever returned???
      }
