@@ -95,7 +95,7 @@ static void twi_master_interrupt_handler(void)
 	  
 	  twim_nack = TRUE;
 	  // RXMODFIX NACK detector debug for chip address
-	  gpio_tgl_gpio_pin(AVR32_PIN_PX55);
+	  // gpio_tgl_gpio_pin(AVR32_PIN_PX55);
 	  
 	  return;
     }
