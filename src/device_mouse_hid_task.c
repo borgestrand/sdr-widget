@@ -642,7 +642,7 @@ void device_mouse_hid_task(void)
 //					print_dbg_char('[');
 
 					// Start of blocking code
-					if (twi_write_out(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
+					if (twi_write_out(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) { 
 						if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
 							print_dbg_char('.');
 							print_dbg_char_hex(dev_datar[0]);
