@@ -456,20 +456,18 @@ void mobo_led(uint8_t fled0) {
 
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source) {
+	// Don't assign BLUE, future MQA implementations may crave that one. 
 
-/*
-	// Source indication on single LED for now
+	// Source indication on single LED
 	switch (source) {
 		case MOBO_SRC_NONE: {
 			mobo_led(FLED_WHITE);	// Indicate fault for now
-			
 					
 			// No source is indicated as USB audio
 			// if (FEATURE_IMAGE_UAC1_AUDIO)
 			//		source = MOBO_SRC_UAC1;
 			// else if (FEATURE_IMAGE_UAC2_AUDIO)
 			//		source = MOBO_SRC_UAC2;
-			
 		}
 		break;
 
@@ -498,8 +496,8 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 		break;
 	}
 
-*/
-			
+
+/*
 	// Sample rate indication on single LED for now
 	switch (frequency) {
 
@@ -531,6 +529,7 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			mobo_led(FLED_DARK);
 		break;
 	}
+*/
 }
 
 #endif // LED for HW_GEN_RXMOD
