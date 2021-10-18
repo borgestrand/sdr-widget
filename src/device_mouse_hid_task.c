@@ -714,7 +714,8 @@ void device_mouse_hid_task(void)
 	            mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
             }
 
-            else if (a == 'm') {
+            // Check source and rate, output to LED and terminal
+			else if (a == 'm') {
 				print_dbg_char_hex(input_select);			// Is source known?
 				print_dbg_char_hex( (uint8_t)(current_freq.frequency/1000) );			// Is rate known?
             	mobo_led_select(current_freq.frequency, input_select);
