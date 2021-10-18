@@ -698,6 +698,27 @@ void device_mouse_hid_task(void)
 //					print_dbg_char(']');
 				} // Take not OK
             }
+			
+			
+            // LED debug
+            else if (a == 'L') {							// Uppercase L
+	            // 3 hex characters to LEDs. Punched as 2 nibbles. 0x00-0x07 are valid.
+	            // RED			1
+	            // GREEN		2
+	            // YELLOW		3
+	            // BLUE			4
+	            // PURPLE		5
+	            // CYAN			6
+	            // WHITE		7
+	            // DARK			0
+	            mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
+            }
+
+            else if (a == 'm') {
+				print_dbg_char_hex(input_select);			// Is source known?
+	            mobo_led_select(FREQ_44, input_select);
+            }
+			
 
 
 #endif // HW_GEN_RXMOD

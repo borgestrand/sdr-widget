@@ -434,34 +434,57 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 // Audio Widget HW_GEN_RXMOD LED control
 void mobo_led(uint8_t fled0) {
 	// red:1, green:2, blue:4
-	// fled2 is towards center of box, fled0 towards right-hand edge of front view
+
+	if (fled0 == FLED_NO_CHG)				// No change
+		return;
 
 	if (fled0 & FLED_RED)
-	gpio_clr_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
+		gpio_clr_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
 	else
-	gpio_set_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
+		gpio_set_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
+	
 	if (fled0 & FLED_GREEN)
-	gpio_clr_gpio_pin(AVR32_PIN_PA20); 	// FLED0_G
+		gpio_clr_gpio_pin(AVR32_PIN_PA20); 	// FLED0_G
 	else
-	gpio_set_gpio_pin(AVR32_PIN_PA20); 	// FLED0_G
+		gpio_set_gpio_pin(AVR32_PIN_PA20); 	// FLED0_G
+		
 	if (fled0 & FLED_BLUE)
-	gpio_clr_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
+		gpio_clr_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
 	else
-	gpio_set_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
+		gpio_set_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
 }
 
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source) {
 
-	// No source is indicated as USB audio
-	if (source == MOBO_SRC_NONE) {
-		if (FEATURE_IMAGE_UAC1_AUDIO)
-		source = MOBO_SRC_UAC1;
-		else if (FEATURE_IMAGE_UAC2_AUDIO)
-		source = MOBO_SRC_UAC2;
+	switch (source) {
+		case MOBO_SRC_NONE: {
+			mobo_led(FLED_WHITE);	// Indicate fault for now
+			
+			/* 			
+			// No source is indicated as USB audio
+			if (FEATURE_IMAGE_UAC1_AUDIO)
+			source = MOBO_SRC_UAC1;
+			else if (FEATURE_IMAGE_UAC2_AUDIO)
+			source = MOBO_SRC_UAC2;
+			*/			
+		}
+		case MOBO_SRC_UAC1:
+			mobo_led(FLED_GREEN);	// Classical color UAC1
+		case MOBO_SRC_UAC2:
+			mobo_led(FLED_RED);		// Classical color UAC2
+		case MOBO_SRC_SPDIF:
+			mobo_led(FLED_YELLOW);
+		case MOBO_SRC_TOS2:
+			mobo_led(FLED_PURPLE);
+		case MOBO_SRC_TOS1:
+			mobo_led(FLED_CYAN);
+		default:
+			mobo_led(FLED_DARK);	// Indicate fault for now
 	}
 
-	// No sample rate indication on LEDs for now
+
+	// No sample rate indication on single LED for now
 	switch (frequency) {
 
 		case FREQ_44:
