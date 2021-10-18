@@ -498,7 +498,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	U16 wInterface;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('a'); // xperia
+//	print_dbg_char('a'); // xperia
 #endif
 
 	zlp = FALSE; /* no zero length packet */
@@ -510,14 +510,14 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('b'); // xperia
+//		print_dbg_char('b'); // xperia
 #endif
 
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char('c'); // xperia
+//			print_dbg_char('c'); // xperia
 #endif
 
 			data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
@@ -526,7 +526,7 @@ static Bool uac2_user_get_interface_descriptor() {
 #else
 
 #ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char('d'); // xperia
+//			print_dbg_char('d'); // xperia
 #endif
 
 			if (Is_usb_full_speed_mode()) {
@@ -543,7 +543,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_REPORT_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('e'); // xperia
+//		print_dbg_char('e'); // xperia
 #endif
 
 		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
@@ -553,14 +553,14 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_PHYSICAL_DESCRIPTOR:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('f'); // xperia
+//		print_dbg_char('f'); // xperia
 #endif
 		// TODO
 		return FALSE;
 	default:
 
 #ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('g'); // xperia
+//		print_dbg_char('g'); // xperia
 #endif
 
 		return FALSE;
@@ -574,7 +574,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	send_descriptor(wLength, zlp); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('h'); // xperia
+//	print_dbg_char('h'); // xperia
 #endif
 
 	return TRUE;
@@ -636,12 +636,13 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	uint8_t temp1 = 0;
 	uint8_t temp2 = 0;
 
+/*
 #ifdef USB_STATE_MACHINE_DEBUG
 	print_dbg_char('t'); // xperia
 	print_dbg_char_hex(type); // xperia
 	print_dbg_char_hex(request); // xperia
 #endif
-
+*/
 	// BSB 20120720 added
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR)
@@ -656,6 +657,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	wLength
 			= usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
+/*
 #ifdef USB_STATE_MACHINE_DEBUG
 	print_dbg_char('w'); // xperia
 	print_dbg_char_hex(wValue_lsb); // xperia
@@ -666,7 +668,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	print_dbg_char_hex(wLength); // xperia
 	print_dbg_char('\n'); // xperia
 #endif
-
+*/
 
 	// Mute button push
 	// R2101.0114 type=OUT_CL_INTERFACE request=1 wIndex = 0x1401
@@ -970,7 +972,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char('k'); // BSB debug 20120910 Xperia
+//						print_dbg_char('k'); // BSB debug 20120910 Xperia
 #endif
 
 						Usb_ack_setup_received_free();
@@ -988,7 +990,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char('i'); // BSB debug 20120910 Xperia
+//						print_dbg_char('i'); // BSB debug 20120910 Xperia
 #endif
 
 						Usb_ack_setup_received_free();
@@ -1007,7 +1009,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_RANGE) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char('j'); // BSB debug 20120910 Xperia
+//						print_dbg_char('j'); // BSB debug 20120910 Xperia
 #endif
 
 						Usb_ack_setup_received_free();
@@ -1114,6 +1116,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
 
+/*
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('g');
 								print_dbg_char('L');
@@ -1121,6 +1124,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 								print_dbg_char('\n');
 #endif
+*/
 
 							} else if (wValue_lsb == CH_RIGHT) {
 								// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init

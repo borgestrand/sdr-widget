@@ -500,6 +500,10 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+
+	print_dbg_char_hex('s');								// RXMODFIX input_select debug
+	print_dbg_char_hex(input_select);
+	
 	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
 //	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
 

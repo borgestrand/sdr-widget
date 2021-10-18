@@ -469,18 +469,31 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			source = MOBO_SRC_UAC2;
 			*/			
 		}
+		break;
+
 		case MOBO_SRC_UAC1:
 			mobo_led(FLED_GREEN);	// Classical color UAC1
+		break;
+
 		case MOBO_SRC_UAC2:
 			mobo_led(FLED_RED);		// Classical color UAC2
+		break;
+
 		case MOBO_SRC_SPDIF:
 			mobo_led(FLED_YELLOW);
+		break;
+
 		case MOBO_SRC_TOS2:
 			mobo_led(FLED_PURPLE);
+		break;
+
 		case MOBO_SRC_TOS1:
 			mobo_led(FLED_CYAN);
+		break;
+
 		default:
 			mobo_led(FLED_DARK);	// Indicate fault for now
+		break;
 	}
 
 
