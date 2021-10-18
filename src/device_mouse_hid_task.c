@@ -716,7 +716,8 @@ void device_mouse_hid_task(void)
 
             else if (a == 'm') {
 				print_dbg_char_hex(input_select);			// Is source known?
-	            mobo_led_select(FREQ_44, input_select);
+				print_dbg_char_hex( (uint8_t)(current_freq.frequency/10000) );			// Is rate known?
+            	mobo_led_select(current_freq.frequency, input_select);
             }
 			
 

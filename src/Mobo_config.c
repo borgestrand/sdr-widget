@@ -457,17 +457,19 @@ void mobo_led(uint8_t fled0) {
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source) {
 
+/*
+	// Source indication on single LED for now
 	switch (source) {
 		case MOBO_SRC_NONE: {
 			mobo_led(FLED_WHITE);	// Indicate fault for now
 			
-			/* 			
+					
 			// No source is indicated as USB audio
-			if (FEATURE_IMAGE_UAC1_AUDIO)
-			source = MOBO_SRC_UAC1;
-			else if (FEATURE_IMAGE_UAC2_AUDIO)
-			source = MOBO_SRC_UAC2;
-			*/			
+			// if (FEATURE_IMAGE_UAC1_AUDIO)
+			//		source = MOBO_SRC_UAC1;
+			// else if (FEATURE_IMAGE_UAC2_AUDIO)
+			//		source = MOBO_SRC_UAC2;
+			
 		}
 		break;
 
@@ -496,29 +498,37 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 		break;
 	}
 
-
-	// No sample rate indication on single LED for now
+*/
+			
+	// Sample rate indication on single LED for now
 	switch (frequency) {
 
 		case FREQ_44:
+			mobo_led(FLED_GREEN);
 		break;
 
 		case FREQ_48:
+			mobo_led(FLED_RED);
 		break;
 
 		case FREQ_88:
+			mobo_led(FLED_YELLOW);
 		break;
 
 		case FREQ_96:
+			mobo_led(FLED_PURPLE);
 		break;
 
 		case FREQ_176:
+			mobo_led(FLED_CYAN);
 		break;
 
 		case FREQ_192:
+			mobo_led(FLED_BLUE);
 		break;
 
 		default:
+			mobo_led(FLED_DARK);
 		break;
 	}
 }

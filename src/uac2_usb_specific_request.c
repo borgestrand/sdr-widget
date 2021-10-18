@@ -1081,13 +1081,13 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								Usb_write_endpoint_data(EP_CONTROL, 8, usb_spk_mute); // or 0
 						}
 
-						print_dbg_char('m'); // bBitResolution
+//						print_dbg_char('m'); // bBitResolution
 
 #ifdef USB_STATE_MACHINE_DEBUG
 						// Trying to catch mute event
-						print_dbg_char('m');
-						print_dbg_char_hex(usb_spk_mute);
-						print_dbg_char(' ');
+//						print_dbg_char('m');
+//						print_dbg_char_hex(usb_spk_mute);
+//						print_dbg_char(' ');
 #endif
 
 						Usb_ack_control_in_ready_send();
@@ -1425,7 +1425,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								MSB( spk_vol_usb_L) = temp2;
 								spk_vol_mult_L = usb_volume_format(
 										spk_vol_usb_L);
-
+/*
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('s');
 								print_dbg_char('L');
@@ -1433,7 +1433,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 								print_dbg_char('\n');
 #endif
-
+*/
 							} else if (wValue_lsb == CH_RIGHT) {
 								LSB( spk_vol_usb_R) = temp1;
 								MSB( spk_vol_usb_R) = temp2;
