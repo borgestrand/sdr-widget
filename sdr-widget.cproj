@@ -15323,15 +15323,6 @@
     <Compile Include="src\uac1_device_audio_task.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\uac1_device_audio_task.c_awx_pre_volume">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\uac1_device_audio_task.c_new">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\uac1_device_audio_task.c_poll_consumer">
-      <SubType>compile</SubType>
-    </None>
     <None Include="src\uac1_device_audio_task.d">
       <SubType>compile</SubType>
     </None>

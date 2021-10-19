@@ -173,7 +173,7 @@ void wm8804_poll(void) {
 	 */
 
     uint8_t wm8804_int = 0;										// WM8804 interrupt status
-    static uint8_t input_select_wm8804_next = MOBO_SRC_TOS2;	// Try TOSLINK first
+    static uint8_t input_select_wm8804_next = MOBO_SRC_TOS2;	// Try TOSLINK first-first
 	static int16_t pausecounter = pausecounter_initial;			// Initiated to a value much larger than what is seen in practical use
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
@@ -254,10 +254,10 @@ void wm8804_poll(void) {
 
 			spdif_rx_status.reliable = 0;				// Because of input change
 			wm8804_input(input_select_wm8804_next);		// Try next input source
-//			print_dbg_char('a');
+			print_dbg_char('a');
 
 			wm8804_pll();
-//			print_dbg_char('b');
+			print_dbg_char('b');
 		}
 	}
 	// USB has assumed control, power down WM8804 if it was on
@@ -329,14 +329,22 @@ void wm8804_poll(void) {
 				else
 					input_select_wm8804_next = MOBO_SRC_TOS2;
 			#endif
+			#ifdef HW_GEN_RXMOD									// SPDIF, TOS2 and TOS1 available. Try to rewrite priorities according to SPDIF counter NB: schematic counts TOS0 and TOS1
+				if (input_select_wm8804_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
+					input_select_wm8804_next = MOBO_SRC_TOS1;
+				else if (input_select_wm8804_next == MOBO_SRC_TOS1)	// Prepare to probe other WM channel next time we're here
+					input_select_wm8804_next = MOBO_SRC_SPDIF;
+				else
+					input_select_wm8804_next = MOBO_SRC_TOS2;
+			#endif
 
 			// FIX: disable and re-enable ADC DMA around here?
 			spdif_rx_status.reliable = 0;						// Because of input change
 			wm8804_input(input_select_wm8804_next);			// Try next input source
-//			print_dbg_char('c');
+			print_dbg_char('c');
 
 			wm8804_pll();
-//			print_dbg_char('d');
+			print_dbg_char('d');
 
 			lockcounter = 0;
 			unlockcounter = 0;
@@ -544,6 +552,8 @@ void wm8804_input(uint8_t input_sel) {
 
 //	print_dbg_char(0x30 + input_sel);
 
+	print_dbg_char_hex(input_sel);
+
 	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 
 	if (input_sel == MOBO_SRC_TOS2) {		// Controlling MUX chip
@@ -561,6 +571,9 @@ void wm8804_input(uint8_t input_sel) {
 
 	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
 	vTaskDelay(600);						// Allow for stability. 500 gives much better performance than 200.
+
+	print_dbg_char('.');
+
 }
 
 // Delays of:

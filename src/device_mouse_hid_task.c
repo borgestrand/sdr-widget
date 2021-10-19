@@ -409,6 +409,7 @@ void device_mouse_hid_task(void)
 
             else if (a == 'P') {							// Uppercase P
 	            gpio_clr_gpio_pin(AVR32_PIN_PB10); 			// PROG = 0
+				vTaskDelay(600);							// How long time is this really?
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
             }
 
