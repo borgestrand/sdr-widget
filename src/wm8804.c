@@ -550,7 +550,7 @@ void wm8804_input(uint8_t input_sel) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
 	}
-	if (input_sel == MOBO_SRC_TOS1) {
+	else if (input_sel == MOBO_SRC_TOS1) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
 	}

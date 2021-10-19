@@ -715,12 +715,91 @@ void device_mouse_hid_task(void)
             }
 
             // Check source and rate, output to LED and terminal
-			else if (a == 'm') {
-				print_dbg_char_hex(input_select);			// Is source known?
-				print_dbg_char_hex( (uint8_t)(current_freq.frequency/1000) );			// Is rate known?
-            	mobo_led_select(current_freq.frequency, input_select);
+            else if (a == 'm') {
+	            print_dbg_char_hex(input_select);			// Is source known?
+	            print_dbg_char_hex( (uint8_t)(current_freq.frequency/1000) );			// Is rate known? Yes
+	            mobo_led_select(current_freq.frequency, input_select);
             }
 			
+			
+            // Analog MUX 
+			/* Use LSB:
+			MOBO_SRC_SPDIF		3
+			MOBO_SRC_TOS2		4
+			MOBO_SRC_TOS1		5
+			*/
+            else if (a == 'n') {
+				uint8_t mux_cmd;
+				mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				wm8804_input(mux_cmd & 0x0F);				// LSBs to analog mux select pin, with some wm8804 enable/disable
+				if ( (mux_cmd & 0xF0) != 0) {				// Control SPDIF_COUNT_EN - PB04
+					gpio_set_gpio_pin(AVR32_PIN_PB04);
+				}
+				else {
+					gpio_clr_gpio_pin(AVR32_PIN_PB04);
+				}
+            }
+			
+			
+
+			// WM8804 SRC check
+			/* Expect
+			44	2C
+			48	30
+			88	58
+			92	5C
+			176	B0
+			192	C0
+			*/
+			else if (a == 's') {
+				print_dbg_char_hex( (uint8_t)(wm8804_srd()/1000) );		// Is rate known? 
+			}
+			
+
+            // WM8804 GPIO control check
+			else if (a == '4') {
+				//7 - SP_SEL1 - PX02
+				if (gpio_get_pin_value(AVR32_PIN_PX02))
+					print_dbg_char('1');
+				else
+					print_dbg_char('0');
+					
+				//6 - SP_SEL0 - PX03
+				if (gpio_get_pin_value(AVR32_PIN_PX03))
+					print_dbg_char('1');
+				else
+					print_dbg_char('0');
+				
+				//5 - SPIO_05_GPO1 - PX15
+				if (gpio_get_pin_value(AVR32_PIN_PX15))
+					print_dbg_char('1');
+				else
+					print_dbg_char('0');
+				
+				//4 - SPIO_04_GPO2 - PA04
+				if (gpio_get_pin_value(AVR32_PIN_PA04))
+					print_dbg_char('1');
+				else
+					print_dbg_char('0');
+				
+				//3 - SPIO_03_DAC_RST - PX10
+				if (gpio_get_pin_value(AVR32_PIN_PX10))
+					print_dbg_char('1');
+				else
+					print_dbg_char('0');
+				
+				//2 - x
+				print_dbg_char('0');
+
+				//1 - x
+				print_dbg_char('0');
+
+				//0 - SPIO_00_SPO0 - PX54
+				if (gpio_get_pin_value(AVR32_PIN_PX54))
+					print_dbg_char('1');
+				else
+					print_dbg_char('0');
+            }
 
 
 #endif // HW_GEN_RXMOD
