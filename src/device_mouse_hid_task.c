@@ -742,6 +742,11 @@ void device_mouse_hid_task(void)
             }
 			
 			
+			// Try to interact with wm8804 pll
+            else if (a == 'o') {
+				wm8804_pll();
+			}
+
 
 			// WM8804 SRC check
 			/* Expect
@@ -753,12 +758,12 @@ void device_mouse_hid_task(void)
 			192	C0
 			*/
 			else if (a == 's') {
-				uin32_t srd;
+				uint32_t srd;
 				srd = wm8804_srd_asm2();	// with no decoding for now
-				print_dbg_char_hex( (uint8_t)((srd & 0xFF000000) >> 24 );
-				print_dbg_char_hex( (uint8_t)((srd & 0xFF0000)   >> 16 );
-				print_dbg_char_hex( (uint8_t)((srd & 0xFF00)     >>  8 );
-				print_dbg_char_hex( (uint8_t)((srd & 0xFF)       >>  0 );
+				print_dbg_char_hex( (uint8_t)((srd & 0xFF000000) >> 24 ));
+				print_dbg_char_hex( (uint8_t)((srd & 0xFF0000)   >> 16 ));
+				print_dbg_char_hex( (uint8_t)((srd & 0xFF00)     >>  8 ));
+				print_dbg_char_hex( (uint8_t)((srd & 0xFF)       >>  0 ));
 			}
 			
 

@@ -341,13 +341,15 @@ void wm8804_poll(void) {
 			#endif
 
 			// FIX: disable and re-enable ADC DMA around here?
+			
+/*			
 			spdif_rx_status.reliable = 0;						// Because of input change
 			wm8804_input(input_select_wm8804_next);				// Try next input source
 			print_dbg_char('c');
 
 			wm8804_pll();
 			print_dbg_char('d');
-
+*/
 			lockcounter = 0;
 			unlockcounter = 0;
 			pausecounter = 0;
