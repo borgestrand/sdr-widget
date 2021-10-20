@@ -753,7 +753,12 @@ void device_mouse_hid_task(void)
 			192	C0
 			*/
 			else if (a == 's') {
-				print_dbg_char_hex( (uint8_t)(wm8804_srd()/1000) );		// Is rate known? 
+				uin32_t srd;
+				srd = wm8804_srd_asm2();	// with no decoding for now
+				print_dbg_char_hex( (uint8_t)((srd & 0xFF000000) >> 24 );
+				print_dbg_char_hex( (uint8_t)((srd & 0xFF0000)   >> 16 );
+				print_dbg_char_hex( (uint8_t)((srd & 0xFF00)     >>  8 );
+				print_dbg_char_hex( (uint8_t)((srd & 0xFF)       >>  0 );
 			}
 			
 

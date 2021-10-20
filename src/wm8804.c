@@ -253,11 +253,13 @@ void wm8804_poll(void) {
 			lockcounter = 0;
 
 			spdif_rx_status.reliable = 0;				// Because of input change
+/* 	Debugging SRD, no scanning for now
 			wm8804_input(input_select_wm8804_next);		// Try next input source
 			print_dbg_char('a');
 
 			wm8804_pll();
 			print_dbg_char('b');
+*/
 		}
 	}
 	// USB has assumed control, power down WM8804 if it was on
@@ -870,13 +872,13 @@ uint32_t wm8804_srd_asm2(void) {
 		"mov	r9,		-61440	\n\t"	// Immediate load, set up pointer to PA05, recompile C for other IO pin, do once
 
 		// If bit is 0, branch to loop while 0. If bit was 1, continue to loop while 1
-		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PA05 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	5		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"brne	S3				\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 
 		// Wait while bit is 1, then count two half periods
-		"S0:					\n\t"	// Loop while PA04 is 1
-		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"S0:					\n\t"	// Loop while PA05 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PA05 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	5		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"brne	S0_done			\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
@@ -886,8 +888,8 @@ uint32_t wm8804_srd_asm2(void) {
 
 		"mfsr	r10, 264		\n\t"	// Load 1st cycle counter into r10
 
-		"S1:					\n\t"	// Loop while PA04 is 0
-		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"S1:					\n\t"	// Loop while PA05 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PA05 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	5		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"breq	S1_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
@@ -895,8 +897,8 @@ uint32_t wm8804_srd_asm2(void) {
 		"rjmp	SCOUNTD			\n\t"	// Countdown reached
 		"S1_done:				\n\t"
 
-		"S2:					\n\t"	// Loop while PBA04 is 1
-		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"S2:					\n\t"	// Loop while PA05 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PA05 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	5		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"brne	S2_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
@@ -908,8 +910,8 @@ uint32_t wm8804_srd_asm2(void) {
 
 
 		// Wait while bit is 0, then count two half periods
-		"S3:					\n\t"	// Loop while PA04 is 0
-		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"S3:					\n\t"	// Loop while PA05 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PA05 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	5		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"breq	S3_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
@@ -919,8 +921,8 @@ uint32_t wm8804_srd_asm2(void) {
 
 		"mfsr	r10, 264		\n\t"	// Load 1st cycle counter into r10
 
-		"S4:					\n\t"	// Loop while PBA04 is 1
-		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"S4:					\n\t"	// Loop while PA05 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PA05 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	5		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"brne	S4_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
@@ -928,8 +930,8 @@ uint32_t wm8804_srd_asm2(void) {
 		"rjmp	SCOUNTD			\n\t"	// Countdown reached
 		"S4_done:				\n\t"
 
-		"S5:					\n\t"	// Loop while PA04 is 0
-		"ld.w	r8, 	r9[96]	\n\t"	// Load PX09 (and surroundings?) into r8, 		recompile C for other IO pin
+		"S5:					\n\t"	// Loop while PA05 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PA05 (and surroundings?) into r8, 		recompile C for other IO pin
 		"bld	r8, 	5		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"breq	S5_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
@@ -955,6 +957,9 @@ uint32_t wm8804_srd_asm2(void) {
 
 
 //	timeout = 150 - timeout;
+
+// Bugfix:
+return timeout;
 
 	// It looks like we have approx. With 66MHz CPU clock it looks like 1 ticks
 	// Results from measurements and math:
