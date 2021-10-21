@@ -253,7 +253,7 @@ void wm8804_poll(void) {
 			lockcounter = 0;
 
 			spdif_rx_status.reliable = 0;				// Because of input change
-/* 	Debugging SRD, no scanning for now
+/* 	Debugging SRD, no scanning for now FIX
 			wm8804_input(input_select_wm8804_next);		// Try next input source
 			print_dbg_char('a');
 
@@ -342,7 +342,7 @@ void wm8804_poll(void) {
 
 			// FIX: disable and re-enable ADC DMA around here?
 			
-/*			
+/*			FIX
 			spdif_rx_status.reliable = 0;						// Because of input change
 			wm8804_input(input_select_wm8804_next);				// Try next input source
 			print_dbg_char('c');
@@ -708,7 +708,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
     uint8_t dev_data[2];
     uint8_t status = 0xFF;							// Far from 0 reported as I2C success
 
-//	return 0;	// Disabling temporarily for RXMODFIX
+	return 0;	// Disabling temporarily for RXMODFIX
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('a'); 
@@ -741,7 +741,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
 uint8_t wm8804_read_byte(uint8_t int_adr) {
 	uint8_t dev_data[1];
 	
-//	return 0;	// Disabling temporarily for RXMODFIX
+	return 0;	// Disabling temporarily for RXMODFIX
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('b');
