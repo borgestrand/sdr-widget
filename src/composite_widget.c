@@ -278,6 +278,7 @@ wm8805_reset(WM8805_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #if (HW_GEN_RXMOD)
 //	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
+print_dbg_char('j');
 wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 because GPIO is interpreted for config
 
 // NB: No I2C activity until WM8804_RESET_END !
@@ -407,7 +408,10 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	gpio_set_gpio_pin(AVR32_PIN_PX58); 						// Enable I2S data
 
 	// RXMODFIX Enable power regulators. In the future, do this after enumeration or some time out while monitoring load switch status!
+	print_dbg_char('l');
 	gpio_set_gpio_pin(AVR32_PIN_PA24);
+	print_dbg_char('m');
+
 
 	// At default, one channel of current limiter is active. That charges digital side OS-CON and
 	// OS-CON of step up's positive side (through the inductor).
@@ -575,6 +579,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #if (defined HW_GEN_RXMOD)
 	wm8804_reset(WM8804_RESET_END);			// Early hardware reset of WM8804 because GPIO is interpreted for config
+	print_dbg_char('k');
 #endif
 
 

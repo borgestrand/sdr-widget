@@ -733,11 +733,19 @@ void device_mouse_hid_task(void)
 				uint8_t mux_cmd;
 				mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				wm8804_input(mux_cmd & 0x0F);				// LSBs to analog mux select pin, with some wm8804 enable/disable
-				if ( (mux_cmd & 0xF0) != 0) {				// Control SPDIF_COUNT_EN - PB04
+				if ( (mux_cmd & 0x10) != 0) {				// Control SPDIF_COUNT_EN - PB04
 					gpio_set_gpio_pin(AVR32_PIN_PB04);
 				}
 				else {
 					gpio_clr_gpio_pin(AVR32_PIN_PB04);
+				}
+
+				
+				if ( (mux_cmd & 0x20) != 0) {				// Control SEL_USBP_RXN - PC01
+					gpio_set_gpio_pin(AVR32_PIN_PC01);
+				}
+				else {
+					gpio_clr_gpio_pin(AVR32_PIN_PC01);
 				}
             }
 			

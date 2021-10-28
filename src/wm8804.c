@@ -499,7 +499,7 @@ void wm8804_reset(uint8_t reset_type) {
 		gpio_enable_gpio_pin(WM8804_SWIFMODE_PIN);	// HW_GEN_RXMOD new feature under software control, should now be an MCU input
 
 		// 20170423 new
-		gpio_enable_gpio_pin(AVR32_PIN_PA15);		// SDA should now be an MCU input...
+		gpio_enable_gpio_pin(AVR32_PIN_PA15);		// SDA should now be an MCU input... Or functional I2C or something....
 	}
 }
 
