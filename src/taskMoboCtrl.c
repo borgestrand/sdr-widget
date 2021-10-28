@@ -618,7 +618,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 			print_dbg_char('p');
 			wm8804_init();							// Start up the WM8805 in a fairly dead mode
 			wm8804_sleep();
-			print_dbg_char('q');
+			print_dbg_char('r'); // Skipping 'q'
 		#endif
 
 	#endif

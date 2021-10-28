@@ -488,7 +488,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	init_dbg_rs232(pm_freq_param.pba_f);
 
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware
+	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware Verified HW_GEN_RXMOD
 
 
 // Get going from known default state.
@@ -505,7 +505,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 
-	print_dbg_char_hex('s');								// RXMODFIX input_select debug
+	print_dbg_char('s');									// RXMODFIX input_select debug
 	print_dbg_char_hex(input_select);
 	
 	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
