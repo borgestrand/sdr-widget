@@ -353,7 +353,6 @@ void wm8804_poll(void) {
 			lockcounter = 0;
 			unlockcounter = 0;
 			pausecounter = 0;
-
 		}
 	}
 
