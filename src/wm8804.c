@@ -500,7 +500,7 @@ void wm8804_reset(uint8_t reset_type) {
 
 		// 20170423 new
 		gpio_enable_gpio_pin(AVR32_PIN_PA15);		// SDA should now be an MCU input... Or functional I2C or something....
-	}
+	} 
 }
 
 // Start up the WM8804
