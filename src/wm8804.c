@@ -252,12 +252,15 @@ void wm8804_poll(void) {
 			unlockcounter = 0;
 			lockcounter = 0;
 
+
 			spdif_rx_status.reliable = 0;				// Because of input change
 			wm8804_input(input_select_wm8804_next);		// Try next input source
 //			print_dbg_char('a');
 
 			wm8804_pll();
 //			print_dbg_char('b');
+
+
 		}
 	}
 	// USB has assumed control, power down WM8804 if it was on
@@ -350,6 +353,7 @@ void wm8804_poll(void) {
 			lockcounter = 0;
 			unlockcounter = 0;
 			pausecounter = 0;
+
 		}
 	}
 
@@ -950,7 +954,7 @@ uint32_t wm8804_srd_asm2(void) {
 	);
 
 
-	timeout = 150 - timeout;
+// 	timeout = 150 - timeout;
 
 	// It looks like we have approx. With 66MHz CPU clock it looks like 1 ticks
 	// Results from measurements and math:
