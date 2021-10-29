@@ -592,9 +592,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 
  	// Initialize I2C communications
 	#if I2C
-	print_dbg_char('n');
+//	print_dbg_char('n');
 	twi_init(); // RXMODFIX vs. WM8804 config!!
-	print_dbg_char('o');
+//	print_dbg_char('o');
 
 		// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
 		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD)
@@ -615,10 +615,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 			input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
 			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
 			// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
-			print_dbg_char('p');
+//			print_dbg_char('p');
 			wm8804_init();							// Start up the WM8805 in a fairly dead mode
 			wm8804_sleep();
-			print_dbg_char('r'); // Skipping 'q'
+//			print_dbg_char('r'); // Skipping 'q'
 		#endif
 
 	#endif

@@ -253,13 +253,11 @@ void wm8804_poll(void) {
 			lockcounter = 0;
 
 			spdif_rx_status.reliable = 0;				// Because of input change
-/* 	Debugging SRD, no scanning for now FIX
 			wm8804_input(input_select_wm8804_next);		// Try next input source
-			print_dbg_char('a');
+//			print_dbg_char('a');
 
 			wm8804_pll();
-			print_dbg_char('b');
-*/
+//			print_dbg_char('b');
 		}
 	}
 	// USB has assumed control, power down WM8804 if it was on
@@ -342,14 +340,13 @@ void wm8804_poll(void) {
 
 			// FIX: disable and re-enable ADC DMA around here?
 			
-/*			FIX
 			spdif_rx_status.reliable = 0;						// Because of input change
 			wm8804_input(input_select_wm8804_next);				// Try next input source
-			print_dbg_char('c');
+//			print_dbg_char('c');
 
 			wm8804_pll();
-			print_dbg_char('d');
-*/
+//			print_dbg_char('d');
+
 			lockcounter = 0;
 			unlockcounter = 0;
 			pausecounter = 0;
@@ -417,9 +414,9 @@ void wm8804_poll(void) {
 //		print_dbg_char('!');
 //		print_dbg_char_hex(wm8804_int);
 
-		print_dbg_char('e');
+//		print_dbg_char('e');
 		wm8804_pll();
-		print_dbg_char('f');
+//		print_dbg_char('f');
 
 	}	// Done handling interrupt
 
@@ -557,7 +554,7 @@ void wm8804_input(uint8_t input_sel) {
 
 //	print_dbg_char(0x30 + input_sel);
 
-	print_dbg_char_hex(input_sel);
+//	print_dbg_char_hex(input_sel);
 
 	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 
@@ -577,8 +574,7 @@ void wm8804_input(uint8_t input_sel) {
 	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
 	vTaskDelay(600);						// Allow for stability. 500 gives much better performance than 200.
 
-	print_dbg_char('.');
-
+//	print_dbg_char('.');
 }
 
 // Delays of:
@@ -708,8 +704,6 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
     uint8_t dev_data[2];
     uint8_t status = 0xFF;							// Far from 0 reported as I2C success
 
-	return 0;	// Disabling temporarily for RXMODFIX
-
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('a'); 
 	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
@@ -741,8 +735,6 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
 uint8_t wm8804_read_byte(uint8_t int_adr) {
 	uint8_t dev_data[1];
 	
-	return 0;	// Disabling temporarily for RXMODFIX
-
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('b');
 	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
@@ -812,7 +804,7 @@ uint32_t wm8804_srd(void) {
 		print_dbg_char('U');
 */
 
-	print_dbg_char_hex( (uint8_t)(freq/1000) );		// Is rate known? 
+//	print_dbg_char_hex( (uint8_t)(freq/1000) );		// Is rate known? 
 
 	return freq;
 }
@@ -958,10 +950,7 @@ uint32_t wm8804_srd_asm2(void) {
 	);
 
 
-//	timeout = 150 - timeout;
-
-// Bugfix:
-return timeout;
+	timeout = 150 - timeout;
 
 	// It looks like we have approx. With 66MHz CPU clock it looks like 1 ticks
 	// Results from measurements and math:
