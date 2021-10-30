@@ -318,20 +318,6 @@ void wm8804_poll(void) {
 		// Try other WM8804 channel
 		if (input_select == MOBO_SRC_NONE) {
 
-			#ifdef HW_GEN_DIN10									// Only SPDIF and TOS2 available
-				if (input_select_wm8804_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8804_next = MOBO_SRC_SPDIF;
-				else
-					input_select_wm8804_next = MOBO_SRC_TOS2;
-			#endif
-			#ifdef HW_GEN_DIN20									// SPDIF, TOS2 and TOS1 available
-				if (input_select_wm8804_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8804_next = MOBO_SRC_TOS1;
-				else if (input_select_wm8804_next == MOBO_SRC_TOS1)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8804_next = MOBO_SRC_SPDIF;
-				else
-					input_select_wm8804_next = MOBO_SRC_TOS2;
-			#endif
 			#ifdef HW_GEN_RXMOD									// SPDIF, TOS2 and TOS1 available. Try to rewrite priorities according to SPDIF counter NB: schematic counts TOS0 and TOS1
 				if (input_select_wm8804_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
 					input_select_wm8804_next = MOBO_SRC_TOS1;
@@ -392,6 +378,8 @@ void wm8804_poll(void) {
 		}
 	}
 
+	// RXMODFIX Verify pin !
+
 	// Polling interrupt monitor, only use when WM8804 is on
 	if ( (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) && (spdif_rx_status.powered == 1) ) {
 		spdif_rx_status.reliable = 0;					// RX is not stable
@@ -426,6 +414,9 @@ void wm8804_poll(void) {
 
 	// Monitor silent or disconnected WM8804 input
 	if (spdif_rx_status.powered == 1) {
+		
+		// RXMODFIX Verify pin !
+			
 		if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Not locked!
 			spdif_rx_status.reliable = 0;				// Duplication of code from the top of this section, bad style!
 			lockcounter = 0;
