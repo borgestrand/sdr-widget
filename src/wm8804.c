@@ -392,15 +392,21 @@ void wm8804_poll(void) {
 		while (i > 0) {
 			vTaskDelay(30);
 
-			if (gpio_get_pin_value(WM8804_CSB_PIN) == 1)
+			if (gpio_get_pin_value(WM8804_CSB_PIN) == 1)	// Not locked
 				i--;
-			else
+			else 											// Locked
 				i-=10;
 		}
 
 		wm8804_int = wm8804_read_byte(0x0B);		// Record interrupt status and clear pin, configured in 0x0A // Same in WM8804 and WM8805
 
-		print_dbg_char('!');
+		if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {
+			print_dbg_char('l');					// Not locked
+		}
+		else {
+			print_dbg_char('L');					// Locked
+		}
+			
 		print_dbg_char_hex(wm8804_int);				// 0b REC_FREQ | UPD_DEEMPH | UPD_CPY_Y | UPD_NON_AUDIO | INT_TRANS_ERR | INT_CSUD | INT_INVALID | UPD_UNLOCK
 
 		print_dbg_char('e');
@@ -413,7 +419,7 @@ void wm8804_poll(void) {
 	// Monitor silent or disconnected WM8804 input
 	if (spdif_rx_status.powered == 1) {
 		
-		// RXMODFIX Verify pin !
+		// RXMODFIX Verify pin ! 
 			
 		if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Not locked!
 			spdif_rx_status.reliable = 0;				// Duplication of code from the top of this section, bad style!
@@ -445,6 +451,7 @@ void wm8804_poll(void) {
 
 					}
 */
+					print_dbg_char(';');
 					spdif_rx_status.frequency = wm8804_srd();
 
 					if (spdif_rx_status.frequency != FREQ_TIMEOUT) {
@@ -594,6 +601,7 @@ void wm8804_input(uint8_t input_sel) {
 
 void wm8804_pll(void) {
 	uint8_t pll_sel = WM8804_PLL_NONE;
+	print_dbg_char(':');
 	spdif_rx_status.frequency = wm8804_srd();
 
 	if (  ( (spdif_rx_status.frequency == FREQ_192) && (spdif_rx_status.pllmode != WM8804_PLL_192) ) ||
@@ -628,7 +636,7 @@ void wm8804_pll(void) {
 
 	// Special PLL setup for 192
 	else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-		print_dbg_char(169);			// High line
+		print_dbg_char('h');
 
 		wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
@@ -772,6 +780,59 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 
 // Wrapper test code
 uint32_t wm8804_srd(void) {
+	uint32_t temp;
+	uint8_t freqs[6];
+	uint8_t attempts = 0;
+	freqs[0] = 1;					// 44.1 hits
+	freqs[1] = 1;					// 48 hits
+	freqs[2] = 1;					// 88.2 hits
+	freqs[3] = 1;					// 96 hits
+	freqs[4] = 1;					// 176.4 hits
+	freqs[5] = 1;					// 196 hits
+
+	#define MAX_ATTEMPTS	5		// How many total attempts
+	#define SAFE_DETECTS	3		// How many attempts to declare a safe detection?
+
+	while (attempts++ < MAX_ATTEMPTS) {
+		temp = wm8804_srd_asm2();
+		switch (temp) {
+			case FREQ_44:
+				if (freqs[0]++ >= SAFE_DETECTS) {
+					return FREQ_44;
+				}
+			break;
+			case FREQ_48:
+				if (freqs[1]++ >= SAFE_DETECTS) {
+					return FREQ_48;
+				}
+			break;
+			case FREQ_88:
+				if (freqs[2]++ >= SAFE_DETECTS) {
+					return FREQ_88;
+				}
+			break;
+			case FREQ_96:
+				if (freqs[3]++ >= SAFE_DETECTS) {
+					return FREQ_96;
+				}
+			break;
+			case FREQ_176:
+				if (freqs[4]++ >= SAFE_DETECTS) {
+					return FREQ_176;
+				}
+			break;
+			case FREQ_192:
+				if (freqs[5]++ >= SAFE_DETECTS) {
+					return FREQ_192;
+				}
+			break;
+		}
+		
+	}
+	
+	return FREQ_TIMEOUT;
+
+/* Old version
 	U32 freq = FREQ_44;
 	U32 freq_prev = FREQ_INVALID;
 	int timeouts = 0;
@@ -792,27 +853,10 @@ uint32_t wm8804_srd(void) {
 	if (timeouts >= 4)
 		freq = FREQ_TIMEOUT;
 
-/*
-	if (freq == FREQ_44)
-		print_dbg_char('1');
-	else if (freq == FREQ_48)
-		print_dbg_char('2');
-	else if (freq == FREQ_88)
-		print_dbg_char('3');
-	else if (freq == FREQ_96)
-		print_dbg_char('4');
-	else if (freq == FREQ_176)
-		print_dbg_char('5');
-	else if (freq == FREQ_192)
-		print_dbg_char('6');
-	else
-		print_dbg_char('U');
-*/
-
-	print_dbg_char(':');	
 	print_dbg_char_hex( (uint8_t)(freq/1000) );		// 0,2C,30,58,60,B0,C0 Is rate known? 
 
 	return freq;
+*/
 }
 
 // Sample rate detection test
@@ -975,10 +1019,19 @@ uint32_t wm8804_srd_asm2(void) {
 	#define SLIM_88_HIGH	790
 	#define SLIM_96_LOW		679
 	#define SLIM_96_HIGH	726
-	#define SLIM_176_LOW	369		// Add margin??
+	#define SLIM_176_LOW	369			// Add margin??
 	#define SLIM_176_HIGH	396
 	#define SLIM_192_LOW	339
-	#define SLIM_192_HIGH	363
+	#define SLIM_192_HIGH	367			// Analysis saw up to 366
+	
+	// Limits range from 0x0153 to 0x062C. If timeout & 0x0000F000 isn't 0 then something went wrong and result should be ignored
+	
+/*	
+	print_dbg_char('-');
+	print_dbg_char_hex( (uint8_t)((timeout & 0xFF00)     >>  8 ));
+	print_dbg_char_hex( (uint8_t)((timeout & 0xFF)       >>  0 ));
+	print_dbg_char('-');
+*/	
 
 	if ( (timeout >= SLIM_44_LOW) && (timeout <= SLIM_44_HIGH) ) {
 //		print_dbg_char('1');
@@ -997,13 +1050,18 @@ uint32_t wm8804_srd_asm2(void) {
 		return FREQ_96;
 	}
 	if ( (timeout >= SLIM_176_LOW) && (timeout <= SLIM_176_HIGH) ) {
-//		print_dbg_char('6');
+//		print_dbg_char('5');
 		return FREQ_176;
 	}
 	if ( (timeout >= SLIM_192_LOW) && (timeout <= SLIM_192_HIGH) ) {
 //		print_dbg_char('6');
 		return FREQ_192;
 	}
+	if (timeout & 0x0000F000) {		// According to tests done. This may be the signature of the RTOS
+//		print_dbg_char('I');
+		return FREQ_INVALID;
+	}
+		
 	else {
 //		print_dbg_char('F');
 		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
