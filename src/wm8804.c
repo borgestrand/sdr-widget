@@ -255,12 +255,10 @@ void wm8804_poll(void) {
 
 			spdif_rx_status.reliable = 0;				// Because of input change
 			wm8804_input(input_select_wm8804_next);		// Try next input source
-//			print_dbg_char('a');
+			print_dbg_char('a');
 
 			wm8804_pll();
-//			print_dbg_char('b');
-
-
+			print_dbg_char('b');
 		}
 	}
 	// USB has assumed control, power down WM8804 if it was on
@@ -331,10 +329,10 @@ void wm8804_poll(void) {
 			
 			spdif_rx_status.reliable = 0;						// Because of input change
 			wm8804_input(input_select_wm8804_next);				// Try next input source
-//			print_dbg_char('c');
+			print_dbg_char('c');
 
 			wm8804_pll();
-//			print_dbg_char('d');
+			print_dbg_char('d');
 
 			lockcounter = 0;
 			unlockcounter = 0;
@@ -400,14 +398,14 @@ void wm8804_poll(void) {
 				i-=10;
 		}
 
-		wm8804_int = wm8804_read_byte(0x0B);		// Record interrupt status and clear pin // Same in WM8804 and WM8805
+		wm8804_int = wm8804_read_byte(0x0B);		// Record interrupt status and clear pin, configured in 0x0A // Same in WM8804 and WM8805
 
-//		print_dbg_char('!');
-//		print_dbg_char_hex(wm8804_int);
+		print_dbg_char('!');
+		print_dbg_char_hex(wm8804_int);				// 0b REC_FREQ | UPD_DEEMPH | UPD_CPY_Y | UPD_NON_AUDIO | INT_TRANS_ERR | INT_CSUD | INT_INVALID | UPD_UNLOCK
 
-//		print_dbg_char('e');
+		print_dbg_char('e');
 		wm8804_pll();
-//		print_dbg_char('f');
+		print_dbg_char('f');
 
 	}	// Done handling interrupt
 
@@ -555,18 +553,31 @@ void wm8804_input(uint8_t input_sel) {
 	if (input_sel == MOBO_SRC_TOS2) {		// Controlling MUX chip
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
+		print_dbg_char('T');
 	}
 	else if (input_sel == MOBO_SRC_TOS1) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+		print_dbg_char('O');
 	}
  	else if (input_sel == MOBO_SRC_SPDIF) {
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
+		print_dbg_char('Z');
  	}
+	else if (input_sel == MOBO_SRC_NONE) {
+		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
+		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+		print_dbg_char('0');
+	}
+
 
 	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
 	vTaskDelay(600);						// Allow for stability. 500 gives much better performance than 200.
+
+// RXMODFIX extra delay
+	vTaskDelay(600);						// Allow for stability. 500 gives much better performance than 200.
+
 
 //	print_dbg_char('.');
 }
@@ -607,7 +618,7 @@ void wm8804_pll(void) {
 
 	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 	if (pll_sel == WM8804_PLL_NORMAL) {
-//		print_dbg_char('_');
+		print_dbg_char('_');
 
 		wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 		wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
@@ -617,7 +628,7 @@ void wm8804_pll(void) {
 
 	// Special PLL setup for 192
 	else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-//		print_dbg_char(169);			// High line
+		print_dbg_char(169);			// High line
 
 		wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
@@ -798,7 +809,8 @@ uint32_t wm8804_srd(void) {
 		print_dbg_char('U');
 */
 
-//	print_dbg_char_hex( (uint8_t)(freq/1000) );		// Is rate known? 
+	print_dbg_char(':');	
+	print_dbg_char_hex( (uint8_t)(freq/1000) );		// 0,2C,30,58,60,B0,C0 Is rate known? 
 
 	return freq;
 }

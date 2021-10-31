@@ -730,25 +730,67 @@ void device_mouse_hid_task(void)
 			MOBO_SRC_TOS1		5
 			*/
             else if (a == 'n') {
-				uint8_t mux_cmd;
-				mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				wm8804_input(mux_cmd & 0x0F);				// LSBs to analog mux select pin, with some wm8804 enable/disable
-				if ( (mux_cmd & 0x10) != 0) {				// Control SPDIF_COUNT_EN - PB04
-					gpio_set_gpio_pin(AVR32_PIN_PB04);
-				}
-				else {
-					gpio_clr_gpio_pin(AVR32_PIN_PB04);
-				}
-
-				
-				if ( (mux_cmd & 0x20) != 0) {				// Control SEL_USBP_RXN - PC01
-					gpio_set_gpio_pin(AVR32_PIN_PC01);
-				}
-				else {
-					gpio_clr_gpio_pin(AVR32_PIN_PC01);
-				}
+	            uint8_t mux_cmd;
+	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+	            wm8804_input(mux_cmd & 0x0F);				// LSBs to analog mux select pin, with some wm8804 enable/disable
+	            
+				// Control SPDIF_COUNT_EN - PB04
+				if ( (mux_cmd & 0x10) != 0) {				
+		            gpio_set_gpio_pin(AVR32_PIN_PB04);
+	            }
+	            else {
+		            gpio_clr_gpio_pin(AVR32_PIN_PB04);
+	            }
+	            
+	            // Control SEL_USBP_RXN - PC01
+				if ( (mux_cmd & 0x20) != 0) {				
+		            gpio_set_gpio_pin(AVR32_PIN_PC01);
+	            }
+	            else {
+		            gpio_clr_gpio_pin(AVR32_PIN_PC01);
+	            }
             }
-			
+            
+            else if (a == 'N') {
+	            uint8_t mux_cmd;
+	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				
+				// Hard override of mux outside WM8804, trigger loss of sync etc.
+				if (mux_cmd == MOBO_SRC_TOS2) {		// Controlling MUX chip
+					gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
+					gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
+				}
+				else if (mux_cmd == MOBO_SRC_TOS1) {
+					gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
+					gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+				}
+				else if (mux_cmd == MOBO_SRC_SPDIF) {
+					gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
+					gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
+				}
+				else if (mux_cmd == MOBO_SRC_NONE) {
+					gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
+					gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+				}
+				
+				
+	            // Control SPDIF_COUNT_EN - PB04
+				if ( (mux_cmd & 0x10) != 0) {				
+		            gpio_set_gpio_pin(AVR32_PIN_PB04);
+	            }
+	            else {
+		            gpio_clr_gpio_pin(AVR32_PIN_PB04);
+	            }
+	            
+	            // Control SEL_USBP_RXN - PC01
+				if ( (mux_cmd & 0x20) != 0) {				
+		            gpio_set_gpio_pin(AVR32_PIN_PC01);
+	            }
+	            else {
+		            gpio_clr_gpio_pin(AVR32_PIN_PC01);
+	            }
+            }
+            
 			
 			// Try to interact with wm8804 pll
             else if (a == 'o') {
