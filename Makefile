@@ -6,7 +6,8 @@
 
 PARTNAME=-mpart=uc3a3256
 
-AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
+AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
+	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_audio \
 	-DFEATURE_IN_DEFAULT=feature_in_normal \
 	-DFEATURE_OUT_DEFAULT=feature_out_normal \
