@@ -3,6 +3,9 @@
 # into flash. To force them into flash, reboot with 
 # feature_quirk_ptest set in flash, which will lead to flash being
 # overwritten with defaults
+
+PARTNAME=-mpart=uc3a3256
+
 AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_audio \
 	-DFEATURE_IN_DEFAULT=feature_in_normal \
@@ -23,7 +26,7 @@ AUDIO_WIDGET_DEFAULTS=-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o
-	CFLAGS="$(AUDIO_WIDGET_DEFAULTS)" ASFLAGS="-mpart=uc3a3256" ./make-widget
+	CFLAGS="$(AUDIO_WIDGET_DEFAULTS)" ASFLAGS="$(PARTNAME)" ./make-widget
 
 clean::
 	rm -f widget-control widget-control.exe
