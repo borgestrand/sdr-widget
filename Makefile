@@ -4,7 +4,7 @@
 # feature_quirk_ptest set in flash, which will lead to flash being
 # overwritten with defaults
 
-PARTNAME=-mpart=uc3a3256
+PARTNAME=-mpart=uc3a3128
 
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
