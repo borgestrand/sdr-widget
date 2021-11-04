@@ -4,6 +4,7 @@
 # feature_quirk_ptest set in flash, which will lead to flash being
 # overwritten with defaults
 
+<<<<<<< HEAD
 # The target part '256 for Henry Audio USB DAC series
 # -mpart=uc3a3256
 # -mpart=uc3a3128
@@ -11,6 +12,11 @@
 PARTNAME=-mpart=uc3a3256
 
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME) \
+=======
+PARTNAME=-mpart=uc3a3256
+
+AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
+>>>>>>> before-mpart
 	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_audio \
 	-DFEATURE_IN_DEFAULT=feature_in_normal \
@@ -28,6 +34,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME) \
 	-DHW_GEN_RXMOD \
 	-DFEATURE_PRODUCT_AB1x
 
+<<<<<<< HEAD
 # Choose wisely:
 #   -DFEATURE_PRODUCT_AMB
 #   -DFEATURE_PRODUCT_MADA
@@ -49,6 +56,12 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME) \
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o
 	CFLAGS="$(AUDIO_WIDGET_DEFAULTS)" ./make-widget
+=======
+
+audio-widget::
+	rm -f Release/widget.elf Release/src/features.o
+	CFLAGS="$(AUDIO_WIDGET_DEFAULTS)" ASFLAGS="$(PARTNAME)" ./make-widget
+>>>>>>> before-mpart
 
 clean::
 	rm -f widget-control widget-control.exe
