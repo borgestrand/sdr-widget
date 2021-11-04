@@ -258,7 +258,6 @@ void wm8804_poll(void) {
 			print_dbg_char('a');
 
 			wm8804_pll();
-			print_dbg_char('b');
 		}
 	}
 	// USB has assumed control, power down WM8804 if it was on
@@ -332,7 +331,6 @@ void wm8804_poll(void) {
 			print_dbg_char('c');
 
 			wm8804_pll();
-			print_dbg_char('d');
 
 			lockcounter = 0;
 			unlockcounter = 0;
@@ -411,7 +409,6 @@ void wm8804_poll(void) {
 
 		print_dbg_char('e');
 		wm8804_pll();
-		print_dbg_char('f');
 
 	}	// Done handling interrupt
 
@@ -580,10 +577,11 @@ void wm8804_input(uint8_t input_sel) {
 
 
 	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+
+	// Was 600
 	vTaskDelay(600);						// Allow for stability. 500 gives much better performance than 200.
 
-// RXMODFIX extra delay
-	vTaskDelay(600);						// Allow for stability. 500 gives much better performance than 200.
+	// RXMODFIX extra delay. Poll for stability instead?
 
 
 //	print_dbg_char('.');
@@ -654,7 +652,10 @@ void wm8804_pll(void) {
 */
 	wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
 
-	vTaskDelay(1500);	//500, 1000  bad start 3000, 2000, 1500 good start				// Let WM8804 PLL try to settle for some time (300-ish ms) FIX: too long?
+	// was 1500
+	vTaskDelay(4500);	//500, 1000  bad start 3000, 2000, 1500 good start				// Let WM8804 PLL try to settle for some time (300-ish ms) FIX: too long?
+	
+	// RXMODFIX Rather than delay, poll for lock and stability!
 }
 
 
@@ -687,7 +688,7 @@ void wm8804_mute(void) {
 	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
 		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin, try to avoid using this hardware!
 	#endif
-	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear ouggoing DAC data
+	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear outgoing DAC data
 
 	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
 }
