@@ -407,7 +407,7 @@ void device_mouse_hid_task(void)
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
             }
 
-            else if (a == 'P') {							// Uppercase P
+            else if (a == 'P') {							// Uppercase P - doesn't work, needs larger capacitor?
 	            gpio_clr_gpio_pin(AVR32_PIN_PB10); 			// PROG = 0
 				vTaskDelay(6000);							// How long time is this really? 600 and sch's original cap don't work
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
@@ -504,7 +504,7 @@ void device_mouse_hid_task(void)
 //            	ssc_i2s_init(ssc, 48000, 24, 32, SSC_I2S_MODE_STEREO_OUT_STEREO_IN, FPBA_HZ);
 
 
-            	while (gpio_get_pin_value(AVR32_PIN_PX27))  ;
+            	while (gpio_get_pin_value(AVR32_PIN_PX27))  ; // DA_LRCK
             	while (!gpio_get_pin_value(AVR32_PIN_PX27));
 
             	static const pdca_channel_options_t PDCA_OPTIONS = {
@@ -703,7 +703,7 @@ void device_mouse_hid_task(void)
 			
             // LED debug
             else if (a == 'L') {							// Uppercase L
-	            // 3 hex characters to LEDs. Punched as 2 nibbles. 0x00-0x07 are valid.
+	            // 1 hex characters to LED. 0x00-0x07 are valid.
 	            // RED			1
 	            // GREEN		2
 	            // YELLOW		3
@@ -718,12 +718,12 @@ void device_mouse_hid_task(void)
             // Check source and rate, output to LED and terminal
             else if (a == 'm') {
 	            print_dbg_char_hex(input_select);			// Is source known?
-	            print_dbg_char_hex( (uint8_t)(current_freq.frequency/1000) );			// Is rate known? Yes
+	            print_dbg_char_hex( (uint8_t)(current_freq.frequency/1000) );			// Is rate known? 
 	            mobo_led_select(current_freq.frequency, input_select);
             }
 			
 			
-            // Analog MUX 
+            // Analog MUX on WM8804 input, high level function call
 			/* Use LSB:
 			MOBO_SRC_SPDIF		3
 			MOBO_SRC_TOS2		4
@@ -733,24 +733,9 @@ void device_mouse_hid_task(void)
 	            uint8_t mux_cmd;
 	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 	            wm8804_input(mux_cmd & 0x0F);				// LSBs to analog mux select pin, with some wm8804 enable/disable
-	            
-				// Control SPDIF_COUNT_EN - PB04
-				if ( (mux_cmd & 0x10) != 0) {				
-		            gpio_set_gpio_pin(AVR32_PIN_PB04);
-	            }
-	            else {
-		            gpio_clr_gpio_pin(AVR32_PIN_PB04);
-	            }
-	            
-	            // Control SEL_USBP_RXN - PC01
-				if ( (mux_cmd & 0x20) != 0) {				
-		            gpio_set_gpio_pin(AVR32_PIN_PC01);
-	            }
-	            else {
-		            gpio_clr_gpio_pin(AVR32_PIN_PC01);
-	            }
             }
             
+			// Low-level mux control
             else if (a == 'N') {
 	            uint8_t mux_cmd;
 	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
@@ -782,12 +767,34 @@ void device_mouse_hid_task(void)
 		            gpio_clr_gpio_pin(AVR32_PIN_PB04);
 	            }
 	            
-	            // Control SEL_USBP_RXN - PC01
+	            // Control SEL_USBP_RXN - PC01, I2S mux to DAC
 				if ( (mux_cmd & 0x20) != 0) {				
 		            gpio_set_gpio_pin(AVR32_PIN_PC01);
 	            }
 	            else {
 		            gpio_clr_gpio_pin(AVR32_PIN_PC01);
+	            }
+
+	            // Control MCLK_RX_EN - PX22
+	            if ( (mux_cmd & 0x40) != 0) {					
+					gpio_clr_gpio_pin(AVR32_PIN_PA21);	// Disable MCLK_48_EN XO
+					gpio_clr_gpio_pin(AVR32_PIN_PA23);	// Disable MCLK_441_EN XO
+		            gpio_set_gpio_pin(AVR32_PIN_PX22);	// Enable regenerated MCLK_RX_EN
+	            }
+	            else { 
+					// mobo_xo_select(current_freq.frequency, input_select);	// Return to default clock settings, overwrites PC01 as well
+		            gpio_clr_gpio_pin(AVR32_PIN_PX22);	// Disable MCLK_RX_EN
+					
+					// Enable XOs based on current_freq.frequency
+					if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
+						gpio_set_gpio_pin(AVR32_PIN_PA23); 	// 44.1 control
+						gpio_clr_gpio_pin(AVR32_PIN_PA21); 	// 48 control
+					}
+					else {
+						gpio_clr_gpio_pin(AVR32_PIN_PA23); 	// 44.1 control
+						gpio_set_gpio_pin(AVR32_PIN_PA21); 	// 48 control
+					}
+					
 	            }
             }
             
