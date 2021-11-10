@@ -555,24 +555,32 @@ void wm8804_input(uint8_t input_sel) {
 	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 
 	if (input_sel == MOBO_SRC_TOS2) {		// Controlling MUX chip
+		taskENTER_CRITICAL();
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
-		print_dbg_char('T');
+		taskEXIT_CRITICAL();
+		print_dbg_char('u');
 	}
 	else if (input_sel == MOBO_SRC_TOS1) {
+		taskENTER_CRITICAL();
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
-		print_dbg_char('O');
+		taskEXIT_CRITICAL();
+		print_dbg_char('v');
 	}
  	else if (input_sel == MOBO_SRC_SPDIF) {
+		taskENTER_CRITICAL();
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
-		print_dbg_char('Z');
+		taskEXIT_CRITICAL();
+		print_dbg_char('w');
  	}
 	else if (input_sel == MOBO_SRC_NONE) {
+		taskENTER_CRITICAL();
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
-		print_dbg_char('0');
+		taskEXIT_CRITICAL();
+		print_dbg_char('y');
 	}
 
 

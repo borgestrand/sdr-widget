@@ -535,7 +535,6 @@ void device_mouse_hid_task(void)
             	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
             	pdca_enable(PDCA_CHANNEL_SSC_TX);
 
-
             	taskEXIT_CRITICAL();
 
 //            	print_dbg_char_hex(t);
@@ -741,21 +740,29 @@ void device_mouse_hid_task(void)
 	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				
 				// Hard override of mux outside WM8804, trigger loss of sync etc.
-				if (mux_cmd == MOBO_SRC_TOS2) {		// Controlling MUX chip
+				if ((mux_cmd & 0x0F) == MOBO_SRC_TOS2) {		// Controlling MUX chip
+					taskENTER_CRITICAL();
 					gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 					gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
+					taskEXIT_CRITICAL();
 				}
-				else if (mux_cmd == MOBO_SRC_TOS1) {
+				else if ((mux_cmd & 0x0F) == MOBO_SRC_TOS1) {
+					taskENTER_CRITICAL();
 					gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 					gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+					taskEXIT_CRITICAL();
 				}
-				else if (mux_cmd == MOBO_SRC_SPDIF) {
+				else if ((mux_cmd & 0x0F) == MOBO_SRC_SPDIF) {
+					taskENTER_CRITICAL();
 					gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 					gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
+					taskEXIT_CRITICAL();
 				}
-				else if (mux_cmd == MOBO_SRC_NONE) {
+				else if ((mux_cmd & 0x0F) == MOBO_SRC_NONE) {
+					taskENTER_CRITICAL();
 					gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 					gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+					taskEXIT_CRITICAL();
 				}
 				
 				
