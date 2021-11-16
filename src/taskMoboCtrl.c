@@ -55,6 +55,7 @@
 
 #if (defined  HW_GEN_RXMOD)
 #include "wm8804.h"
+#include "pcm5142.h"
 #include "device_audio_task.h"
 #endif
 

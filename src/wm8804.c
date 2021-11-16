@@ -153,7 +153,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 // Global status variable
-volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, 1};
+volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, 1}; // Last parameter sets .buffered to 1
 
 //!
 //! @brief Polling routine for WM8804 hardware
@@ -1079,4 +1079,4 @@ uint32_t wm8804_srd_asm2(void) {
 }
 
 
-#endif  // HW_GEN_DIN10 or HW_GEN_DIN20
+#endif  // HW_GEN_RXMOD

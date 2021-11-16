@@ -624,6 +624,18 @@ void device_mouse_hid_task(void)
 #ifdef HW_GEN_RXMOD
 // RXMODFIX port above section to new GPIO and USB channel naming
 
+
+/* Changing filters. TI says:
+Hello, This is the information you needed: The interpolation filter can be changed with just 3 steps.
+
+Enter standby mode 
+Change the filter (W2b07)
+Exit standby mode.
+Kind Regards,
+
+Arash
+*/
+
 // Attempts to access PCM5142
 
 			// 0x3A							// Assumed WM8804 address, it responds with local address byte coming back
@@ -632,6 +644,13 @@ void device_mouse_hid_task(void)
             else if (a == 'r') {			// Static debug device address
 				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 			}
+
+            else if (a == 'k') {			// PCM5142 filter selection. Valid: 01, 02, 03, 07
+	            uint8_t temp;
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				pcm5142_filter(temp);
+            }
+
 
             else if (a == 'w') {							// Lowercase w - read (silly!)
 	            uint8_t dev_datar[1];
@@ -722,6 +741,18 @@ void device_mouse_hid_task(void)
             }
 			
 			
+			// High-level I2S & MCLK MUX control
+            else if (a == 'a') {							// Lowercase a
+	            spdif_rx_status.buffered = 0;				// Use regenerated clock
+	            mobo_xo_select(spdif_rx_status.frequency, input_select);
+            }
+
+            // Select MCU's outgoing I2S bus
+            else if (a == 'b') {							// Lowercase b
+	            spdif_rx_status.buffered = 1;				// Use precision clock and buffering
+	            mobo_xo_select(spdif_rx_status.frequency, input_select);
+            }
+
             // Analog MUX on WM8804 input, high level function call
 			/* Use LSB:
 			MOBO_SRC_SPDIF		3
@@ -734,7 +765,7 @@ void device_mouse_hid_task(void)
 	            wm8804_input(mux_cmd & 0x0F);				// LSBs to analog mux select pin, with some wm8804 enable/disable
             }
             
-			// Low-level mux control
+			// Low-level mux control, tends to mess things up too much
             else if (a == 'N') {
 	            uint8_t mux_cmd;
 	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
