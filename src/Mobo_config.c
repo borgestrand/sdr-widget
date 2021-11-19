@@ -542,34 +542,29 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 void mobo_rxmod_input(uint8_t input_sel) {
 	//	print_dbg_char_hex(input_sel);
 
+	taskENTER_CRITICAL();					// Don't let OS interrupt MUX control!
+
 	if (input_sel == MOBO_SRC_TOS2) {		// Controlling MUX chip
-		taskENTER_CRITICAL();
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
-		taskEXIT_CRITICAL();
-		print_dbg_char('u');
 	}
 	else if (input_sel == MOBO_SRC_TOS1) {
-		taskENTER_CRITICAL();
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
-		taskEXIT_CRITICAL();
-		print_dbg_char('v');
 	}
 	else if (input_sel == MOBO_SRC_SPDIF) {
-		taskENTER_CRITICAL();
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
-		taskEXIT_CRITICAL();
-		print_dbg_char('w');
 	}
 	else if (input_sel == MOBO_SRC_NONE) {
-		taskENTER_CRITICAL();
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
-		taskEXIT_CRITICAL();
-		print_dbg_char('y');
 	}
+	
+	taskEXIT_CRITICAL();
+
+	print_dbg_char('u');					// Report what just happened
+	print_dbg_char_hex(input_sel);
 }
 
 #endif // RXmod hardware controls

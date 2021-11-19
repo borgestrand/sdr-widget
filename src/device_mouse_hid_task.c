@@ -762,10 +762,16 @@ Arash
             else if (a == 'n') {
 	            uint8_t mux_cmd;
 	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-	            wm8804_input(mux_cmd & 0x0F);				// LSBs to analog mux select pin, with some wm8804 enable/disable
+				
+				if (mux_cmd & 0xF0) {					// != 0 in upper nibble -> raw hardware mux control. Should have no influence as long as same channel is re-selected
+					mobo_rxmod_input(mux_cmd & 0x0F);	// Hardware MUX control
+				}										// 0 in upper nibble -> use WM8804 control to power stuff down and up. Should lead to all sorts of instabilities
+				else {
+					wm8804_input(mux_cmd & 0x0F);		// LSBs to analog mux select pin, with some wm8804 enable/disable
+				}
             }
             
-			// Low-level mux control, tends to mess things up too much
+			// Low-level mux control, does it still mess things up? tends to mess things up too much
             else if (a == 'N') {
 	            uint8_t mux_cmd;
 	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);

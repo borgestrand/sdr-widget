@@ -563,7 +563,6 @@ void wm8804_input(uint8_t input_sel) {
 
 	// RXMODFIX extra delay. Poll for stability instead?
 
-
 //	print_dbg_char('.');
 }
 
