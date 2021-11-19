@@ -17,5 +17,4 @@ extern uint16_t measured_Power(uint16_t voltage);
 extern void 	vStartTaskMoboCtrl(void);
 
 
-
 #endif

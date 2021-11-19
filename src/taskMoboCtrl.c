@@ -186,6 +186,7 @@ static void i2c_device_scan(void)
 #endif // Henry Audio device
 
 
+
 /*! \brief Print stuff in the second line of the LCD
  *
  * \retval nothing returned.
