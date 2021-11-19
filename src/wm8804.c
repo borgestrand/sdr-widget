@@ -554,7 +554,15 @@ void wm8804_input(uint8_t input_sel) {
 
 	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 	
-	mobo_rxmod_input(input_sel);			// Hardware MUX control
+	mobo_rxmod_input(input_sel);			// Hardware MUX control, should be possible to re-run this from CLI on same channel, with no effect
+
+
+// VS WM8805 code:
+// What is missing in '04?			
+// wm8805_write_byte(0x08, 0x34);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
+
+	// Is this needed in WM8804 where it does not select input channel?
+	wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
 
 	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
 
