@@ -759,7 +759,7 @@ Arash
 			MOBO_SRC_TOS2		4
 			MOBO_SRC_TOS1		5
 			*/
-            else if (a == 'n') {
+            else if (a == 'n') { 
 	            uint8_t mux_cmd;
 	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				
