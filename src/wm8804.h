@@ -80,6 +80,7 @@ void wm8804_input(uint8_t input_sel);
 
 // Select PLL setting for the WM8804
 void wm8804_pll(void);
+void wm8804_pllnew(uint8_t pll_sel);			// For manual control
 
 // Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
 void wm8804_clkdiv(void);

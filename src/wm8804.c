@@ -159,6 +159,8 @@ volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_P
 //! @brief Polling routine for WM8804 hardware
 //!
 void wm8804_poll(void) {
+	
+	return; // RXMODFIX skip polling while exploring manual control
 
 	// Arbitrary startup delay ATD
 	#define pausecounter_initial 20000
@@ -534,6 +536,7 @@ void wm8804_init(void) {
 
 //	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
 //  pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+
 }
 
 // Turn off wm8804, why can't we just run init again?
@@ -574,6 +577,40 @@ void wm8804_input(uint8_t input_sel) {
 //	print_dbg_char('.');
 }
 
+
+
+
+void wm8804_pllnew(uint8_t pll_sel) {
+	
+	// PLL setup will change
+	wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
+
+	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
+	if (pll_sel == WM8804_PLL_NORMAL) {
+		print_dbg_char('_');
+
+		wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
+		wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
+		wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
+		wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
+	}
+
+	// Special PLL setup for 192
+	else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
+		print_dbg_char('#');
+
+		wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
+		wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
+		wm8804_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
+		wm8804_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
+	}
+	
+	wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+}
+
+
+
+// Old WM8805 results 
 // Delays of:
 // 400 / 1200	Poor cold start
 // 600 / 1200	Warm start OK. Cold start failed
@@ -621,7 +658,7 @@ void wm8804_pll(void) {
 
 	// Special PLL setup for 192
 	else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-		print_dbg_char('h');
+		print_dbg_char('#');
 
 		wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 		wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
@@ -672,9 +709,9 @@ void wm8804_mute(void) {
 	}
 
 
-	#ifdef HW_GEN_DIN20								// Dedicated mute pin, leaves clocks etc intact
-		mobo_i2s_enable(MOBO_I2S_DISABLE);			// Hard-mute of I2S pin, try to avoid using this hardware!
-	#endif
+													// Dedicated mute pin, leaves clocks etc intact
+	mobo_i2s_enable(MOBO_I2S_DISABLE);				// Hard-mute of I2S pin, try to avoid using this hardware!
+
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear outgoing DAC data
 
 	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
@@ -694,9 +731,7 @@ void wm8804_unmute(void) {
 
 	ADC_buf_USB_IN = -1;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 
-	#ifdef HW_GEN_DIN20
-		mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
-	#endif
+	mobo_i2s_enable(MOBO_I2S_ENABLE);				// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 }
 
 

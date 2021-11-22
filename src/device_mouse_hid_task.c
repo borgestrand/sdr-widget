@@ -758,93 +758,104 @@ Arash
 			MOBO_SRC_SPDIF		3
 			MOBO_SRC_TOS2		4
 			MOBO_SRC_TOS1		5
-			*/
-            else if (a == 'n') { 
-	            uint8_t mux_cmd;
-	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				
-				if (mux_cmd & 0xF0) {					// != 0 in upper nibble -> raw hardware mux control. Should have no influence as long as same channel is re-selected
-					mobo_rxmod_input(mux_cmd & 0x0F);	// Hardware MUX control
-				}										// 0 in upper nibble -> use WM8804 control to power stuff down and up. Should lead to all sorts of instabilities
-				else {
-					wm8804_input(mux_cmd & 0x0F);		// LSBs to analog mux select pin, with some wm8804 enable/disable
-				}
-            }
-            
-			// Low-level mux control, does it still mess things up? tends to mess things up too much
-            else if (a == 'N') {
-	            uint8_t mux_cmd;
-	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				
-				mobo_rxmod_input(mux_cmd & 0x0F);	// Hardware MUX control
-				
-	            // Control SPDIF_COUNT_EN - PB04
-				if ( (mux_cmd & 0x10) != 0) {				
-		            gpio_set_gpio_pin(AVR32_PIN_PB04);
-	            }
-	            else {
-		            gpio_clr_gpio_pin(AVR32_PIN_PB04);
-	            }
-	            
-	            // Control SEL_USBP_RXN - PC01, I2S mux to DAC
-				if ( (mux_cmd & 0x20) != 0) {				
-		            gpio_set_gpio_pin(AVR32_PIN_PC01);
-	            }
-	            else {
-		            gpio_clr_gpio_pin(AVR32_PIN_PC01);
-	            }
-
-	            // Control MCLK_RX_EN - PX22
-	            if ( (mux_cmd & 0x40) != 0) {					
-					gpio_clr_gpio_pin(AVR32_PIN_PA21);	// Disable MCLK_48_EN XO
-					gpio_clr_gpio_pin(AVR32_PIN_PA23);	// Disable MCLK_441_EN XO
-		            gpio_set_gpio_pin(AVR32_PIN_PX22);	// Enable regenerated MCLK_RX_EN
-	            }
-	            else { 
-					// mobo_xo_select(current_freq.frequency, input_select);	// Return to default clock settings, overwrites PC01 as well
-		            gpio_clr_gpio_pin(AVR32_PIN_PX22);	// Disable MCLK_RX_EN
-					
-					// Enable XOs based on current_freq.frequency
-					if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
-						gpio_set_gpio_pin(AVR32_PIN_PA23); 	// 44.1 control
-						gpio_clr_gpio_pin(AVR32_PIN_PA21); 	// 48 control
-					}
-					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PA23); 	// 44.1 control
-						gpio_set_gpio_pin(AVR32_PIN_PA21); 	// 48 control
-					}
-					
-	            }
-            }
-            
 			
-			// Try to interact with wm8804 pll
-            else if (a == 'o') {
-				wm8804_pll();
-			}
-
+			n31 init
+			n20 no input
+			n24 tos by buttons <- Study this transition on scope!
+			s   srd
+			t   GPIO status
+			u   Interrupt report 8 is TRANS_ERR, 1 is UPD_UNLOCK
+			n32 clkdiv
+			n33 pll != 192
+			n34 pll 192
+			n35 take
+			n36 give
+			n37 unmute
+			n38 mute
+						
+			*/
+            else if (a == 'n') {
+	            uint8_t mux_cmd;
+				static uint8_t input_select_debug = MOBO_SRC_TOS2;
+	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				
+				if ( (mux_cmd & 0xF0) == 0x10 ) {			// 1 in upper nibble -> raw hardware mux control. Should have no influence as long as same channel is re-selected
+					mobo_rxmod_input(mux_cmd & 0x0F);		// Hardware MUX control
+				}
+				else if ( (mux_cmd & 0xF0) == 0x20 ) {		// 2 in upper nibble -> WM8804 IO control
+					input_select_debug = mux_cmd & 0x0F;	// Store for audio enable
+					wm8804_input(input_select_debug);		// LSBs to analog mux select pin, with some wm8804 enable/disable
+				}
+				else if ( (mux_cmd & 0xF0) == 0x30) {		// 3 in upper nibble init functions
+					if ( (mux_cmd & 0x0F) == 0x00) {		// 30 -> sleep
+						wm8804_sleep();
+					}
+					else if ( (mux_cmd & 0x0F) == 0x01) {	// 31 -> init
+						wm8804_init();
+					}
+					else if ( (mux_cmd & 0x0F) == 0x02) {	// 32 -> clkdiv
+						wm8804_clkdiv();
+					}
+					else if ( (mux_cmd & 0x0F) == 0x03) {	// 33 -> PLL !192
+						wm8804_pllnew(WM8804_PLL_NORMAL);
+					}
+					else if ( (mux_cmd & 0x0F) == 0x04) {	// 34 -> PLL 192
+						wm8804_pllnew(WM8804_PLL_192);
+					}
+					else if ( (mux_cmd & 0x0F) == 0x05) {	// 35 -> Take and swap channel out
+						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+							print_dbg_char('[');
+							input_select = input_select_debug;	// Owning semaphore we may write to input_select
+						}
+						else {
+							print_dbg_char(']');
+						}
+					}
+					else if ( (mux_cmd & 0x0F) == 0x06) {	// 36 -> Give
+						if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+							input_select = MOBO_SRC_NONE;	// Indicate USB may  over control, but don't power down!
+							print_dbg_char(60); // '<'
+						}
+						else {
+							print_dbg_char(62); // '>'
+						}
+					}
+					else if ( (mux_cmd & 0x0F) == 0x07) {	// 37 -> Unmute
+						spdif_rx_status.frequency = wm8804_srd();	// Update some spdif systems variables before continuing
+						spdif_rx_status.powered == 1;
+						spdif_rx_status.reliable = 1;
+						spdif_rx_status.muted = 0;
+						spdif_rx_status.silent = 0;
+						spdif_rx_status.pllmode = WM8804_PLL_NORMAL;
+						spdif_rx_status.buffered = 1;
+						wm8804_unmute();
+					}
+					else if ( (mux_cmd & 0x0F) == 0x08) {	// 38 -> Mute
+						wm8804_mute();
+					}
+					
+				} // 3 in upper nibble
+				print_dbg_char('\n');
+            }
+            
 
 			// WM8804 SRC check
 			/* Expect
 			44	2C
 			48	30
 			88	58
-			92	5C
+			92	60
 			176	B0
 			192	C0
 			*/
 			else if (a == 's') {
-				uint32_t srd;
-				srd = wm8804_srd_asm2();	// with no decoding for now
-				print_dbg_char_hex( (uint8_t)((srd & 0xFF000000) >> 24 ));
-				print_dbg_char_hex( (uint8_t)((srd & 0xFF0000)   >> 16 ));
-				print_dbg_char_hex( (uint8_t)((srd & 0xFF00)     >>  8 ));
-				print_dbg_char_hex( (uint8_t)((srd & 0xFF)       >>  0 ));
+				print_dbg_char_hex( (uint8_t)(wm8804_srd() / 1000) );
+				print_dbg_char('\n');
 			}
 			
 
             // WM8804 GPIO control check
-			else if (a == '4') {
+			else if (a == 't') {
 				//7 - SP_SEL1 - PX02
 				if (gpio_get_pin_value(AVR32_PIN_PX02))
 					print_dbg_char('1');
@@ -857,36 +868,45 @@ Arash
 				else
 					print_dbg_char('0');
 				
-				//5 - SPIO_05_GPO1 - PX15
+				//5 - SPIO_05_GPO1 - PX15 - WM8804_CSB_PIN
 				if (gpio_get_pin_value(AVR32_PIN_PX15))
-					print_dbg_char('1');
+					print_dbg_char('l');
 				else
-					print_dbg_char('0');
+					print_dbg_char('L');	// Active low lock
 				
-				//4 - SPIO_04_GPO2 - PA04
+				//4 - SPIO_04_GPO2 - PA04 - WM8804_INT_N_PIN
 				if (gpio_get_pin_value(AVR32_PIN_PA04))
-					print_dbg_char('1');
+					print_dbg_char('i');
 				else
-					print_dbg_char('0');
+					print_dbg_char('I');	// Active low interrupt
 				
 				//3 - SPIO_03_DAC_RST - PX10
 				if (gpio_get_pin_value(AVR32_PIN_PX10))
-					print_dbg_char('1');
+					print_dbg_char('r');
 				else
-					print_dbg_char('0');
+					print_dbg_char('R');	// Active low reset
 				
 				//2 - x
-				print_dbg_char('0');
+				print_dbg_char('.');
 
 				//1 - x
-				print_dbg_char('0');
+				print_dbg_char('.');
 
-				//0 - SPIO_00_SPO0 - PX54
+				//0 - SPIO_00_SPO0 - PX54 - WM8804_ZERO_PIN
 				if (gpio_get_pin_value(AVR32_PIN_PX54))
-					print_dbg_char('1');
+					print_dbg_char('Z');	// Active high zero detect
 				else
-					print_dbg_char('0');
+					print_dbg_char('z');
+
+				print_dbg_char('\n');
             }
+			
+			// WM8804 interrupt status
+			else if (a == 'u') {
+				print_dbg_char_hex(wm8804_read_byte(0x0B));	// Read, clear and report interrupts
+				print_dbg_char('\n');
+			}
+			
 
 
 #endif // HW_GEN_RXMOD

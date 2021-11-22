@@ -597,7 +597,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
 	#define IN_LEFT 0
 	#define IN_RIGHT 1
 	#define OUT_LEFT 0
