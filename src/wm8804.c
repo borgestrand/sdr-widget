@@ -584,10 +584,10 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint8_t link_detect = 0;
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
-	#define LINK_MAX_ATTEMPTS 50			// 250 ms before giving up on this channel
+	#define LINK_MAX_ATTEMPTS 28			// 140 ms before giving up on this channel
 	#define LINK_DETECTS_OK 5				// 5 consecutive detects at some ms apart. Must be able to allow for at least 12ms of dithering link pin in 192 mode and glitching in 176.4 mode
-	#define TRANS_ERR_FAILURE 20			// After 20 consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
-	
+	#define TRANS_ERR_FAILURE 17			// After some consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
+	// 8 14 17 | 17 20						// Heavily based on trial and error! Should be retested
 	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 	mobo_rxmod_input(input_sel);			// Hardware MUX control, should be possible to re-run this from CLI on same channel, with no effect
 	// Is this needed in WM8804 where it does not select input channel?
