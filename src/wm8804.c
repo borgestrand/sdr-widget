@@ -578,35 +578,106 @@ void wm8804_input(uint8_t input_sel) {
 }
 
 
+// Select input channel of the multiplexer preceding WM8804. NB: this is outside the scope fo the chip itself!
+// Naming convention: TOSLINK0 on schematic is TOSLINK1 in code etc.
+uint32_t wm8804_inputnew(uint8_t input_sel) {
+	uint8_t link_detect = 0;
+	uint8_t link_attempts = 0;
+	uint8_t trans_err_detect = 0;
+	#define LINK_MAX_ATTEMPTS 50			// 250 ms before giving up on this channel
+	#define LINK_DETECTS_OK 5				// 5 consecutive detects at some ms apart. Must be able to allow for at least 12ms of dithering link pin in 192 mode and glitching in 176.4 mode
+	#define TRANS_ERR_FAILURE 20			// After 20 consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
+	
+	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
+	mobo_rxmod_input(input_sel);			// Hardware MUX control, should be possible to re-run this from CLI on same channel, with no effect
+	// Is this needed in WM8804 where it does not select input channel?
+	wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
+	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+
+
+	while (link_attempts++ < LINK_MAX_ATTEMPTS) {		// Repeat until timeout
+
+		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug
+
+
+		// Check UNLOCK bit if everything is OK and we can leave this function
+//		if ( (wm8804_read_byte(0x0C) & 0x40) == 0 ) {	// UNLOCK bit. Does much the same job but takes a few µs longer than GPIO read. Not fully verified in 192ksps
+		if (gpio_get_pin_value(WM8804_CSB_PIN) == 0) {	// Got link!
+			if (link_detect++ == LINK_DETECTS_OK-1) {
+				return (wm8804_srd());		// Got link enough times, detect frequency and return
+			}
+		}
+		else {								// No link, temporary, glitch or permanent. Forget detections until now
+			link_detect = 0;				// Consecutive good detects are needed!
+		}
+		
+		// Check TRANS_ERR bit to determine if we must change PLL settings
+		if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
+			if (trans_err_detect++ == TRANS_ERR_FAILURE-1) {
+				wm8804_pllnew(WM8804_PLL_TOGGLE);
+				trans_err_detect = 0;		// New try with new setting!
+			}
+		}
+		else {								// No link, temporary, glitch or permanent. Forget detections until now
+			trans_err_detect = 0;			// Consecutive error detects are needed! We assume the interrupt generator is faster than vTaskDelay() below
+		}
+
+		
+		vTaskDelay(50);						// How long time does this take? 50 -> 5.00ms
+	}
+
+	return (FREQ_TIMEOUT);					// Couldn't get lock = timeout Maybe return FREQ_INVALID for unstable PLL?
+}
+
+
+
+
 
 
 void wm8804_pllnew(uint8_t pll_sel) {
+	static uint8_t pll_sel_prev = WM8804_PLL_NONE;	// Undefined at boot
 	
-	// PLL setup will change
-	wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
-
-	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
-	if (pll_sel == WM8804_PLL_NORMAL) {
-		print_dbg_char('_');
-
-		wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
-		wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
-		wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
-		wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
+	if (pll_sel == pll_sel_prev) {
+		print_dbg_char('.');				// No change -> do nothing
 	}
+	else {									// Implement change
+		if (pll_sel == WM8804_PLL_TOGGLE) {
+			if (pll_sel_prev == WM8804_PLL_NORMAL) {
+				pll_sel = WM8804_PLL_192;
+			}
+			else if (pll_sel_prev == WM8804_PLL_192) {
+				pll_sel = WM8804_PLL_NORMAL;
+			}
+		}
 
-	// Special PLL setup for 192
-	else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-		print_dbg_char('#');
+		// PLL setup will change
+		wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
 
-		wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
-		wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
-		wm8804_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
-		wm8804_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
-	}
+		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
+		if (pll_sel == WM8804_PLL_NORMAL) {
+			print_dbg_char('_');
+
+			wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
+			wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
+			wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
+			wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
+		}
+
+		// Special PLL setup for 192
+		else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
+			print_dbg_char('#');
+
+			wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
+			wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
+			wm8804_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
+			wm8804_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
+		}
 	
-	wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
-}
+		wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+
+		pll_sel_prev = pll_sel;				// Record history
+	}
+}	// wm8804_pllnew()
 
 
 

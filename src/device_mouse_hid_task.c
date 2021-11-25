@@ -784,7 +784,7 @@ Arash
 				}
 				else if ( (mux_cmd & 0xF0) == 0x20 ) {		// 2 in upper nibble -> WM8804 IO control
 					input_select_debug = mux_cmd & 0x0F;	// Store for audio enable
-					wm8804_input(input_select_debug);		// LSBs to analog mux select pin, with some wm8804 enable/disable
+					wm8804_inputnew(input_select_debug);	// LSBs to analog mux select pin, with some wm8804 enable/disable Testing new link check code!
 				}
 				else if ( (mux_cmd & 0xF0) == 0x30) {		// 3 in upper nibble init functions
 					if ( (mux_cmd & 0x0F) == 0x00) {		// 30 -> sleep

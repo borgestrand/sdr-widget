@@ -47,6 +47,7 @@
 #define WM8804_PLL_NORMAL	1					// PLL mode is normal 32-96 and 176.4ksps
 #define WM8804_PLL_192		2					// PLL mode is for 192ksps
 #define WM8804_PLL_EXP		2					// Experimental PLL mode
+#define WM8804_PLL_TOGGLE	3					// Switch to opposite PLL mode
 #define WM8804_UNLOCK_LIM	2					// Number of poll cycles to determine that an unlock has taken place, in order to start searching
 #define WM8804_HICKUP_LIM	6 // 6				// Number of poll cycles to permit hickups in selected audio channel before searching
 #define WM8804_PAUSE_LIM	350	// 400 // 200	// Poll cycles to determine that a currently  playing input is silent. NB: Signed 16-bit number!
@@ -77,6 +78,7 @@ void wm8804_sleep(void);
 
 // Select input channel of the WM8804
 void wm8804_input(uint8_t input_sel);
+uint32_t wm8804_inputnew(uint8_t input_sel);
 
 // Select PLL setting for the WM8804
 void wm8804_pll(void);
