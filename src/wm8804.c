@@ -584,6 +584,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint8_t link_detect = 0;
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
+	uint32_t freq;
 	#define LINK_MAX_ATTEMPTS 38			// 18 is a good value below, allow for two toggles before giving up on this channel
 	#define LINK_DETECTS_OK 5				// 5 consecutive detects at some ms apart. Must be able to allow for at least 12ms of dithering link pin in 192 mode and glitching in 176.4 mode
 	#define TRANS_ERR_FAILURE 18			// After some consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
@@ -603,12 +604,15 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 		// Check UNLOCK bit if everything is OK and we can leave this function
 //		if ( (wm8804_read_byte(0x0C) & 0x40) == 0 ) {	// UNLOCK bit. Does much the same job but takes a few µs longer than GPIO read. Not fully verified in 192ksps
 		if (gpio_get_pin_value(WM8804_CSB_PIN) == 0) {	// Got link!
-			if (link_detect++ == LINK_DETECTS_OK-1) {
-				return (wm8804_srd());		// Got link enough times, detect frequency and return
+			if (link_detect++ == LINK_DETECTS_OK-1) {	// We have a valid link!
+				freq = wm8804_srd();					// Now that we have link, measure the received sample rate
+				if (wm8804_clkdivnew(freq) == WM8804_CLK_SUCCESS) {	// Compare to WM8804's frequency detector and set up clock division for MCLK export
+					return freq;						// Got link enough times, wm8804_srd() and WM8804 agree on clock configuration -> return detected frequency
+				}
 			}
 		}
-		else {								// No link, temporary, glitch or permanent. Forget detections until now
-			link_detect = 0;				// Consecutive good detects are needed!
+		else {											// No link, temporary, glitch or permanent. Forget detections until now
+			link_detect = 0;							// Consecutive good detects are needed!
 		}
 		
 		// Check TRANS_ERR bit to determine if we must change PLL settings
@@ -635,7 +639,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 
 
 void wm8804_pllnew(uint8_t pll_sel) {
-	static uint8_t pll_sel_prev = WM8804_PLL_NONE;	// Undefined at boot
+	static uint8_t pll_sel_prev = WM8804_PLL_NORMAL;	// Chip default value
 	
 	if (pll_sel == pll_sel_prev) {
 		print_dbg_char('.');				// No change -> do nothing
@@ -762,11 +766,41 @@ void wm8804_clkdiv(void) {
 	temp = temp & 0x30;					// Consider bits 5-4
 
 	if ( (temp == 0x20) || (temp == 0x30) )	// 44.1, 48, or 32
-		wm8804_write_byte(0x07, 0x0C);	// 7:0 , 6:0, 5-4:MCLK=512fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+	wm8804_write_byte(0x07, 0x0C);	// 7:0 , 6:0, 5-4:MCLK=512fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
 	else if (temp == 0x10)				// 88.2 or 96
-		wm8804_write_byte(0x07, 0x1C);	// 7:0 , 6:0, 5-4:MCLK=256fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+	wm8804_write_byte(0x07, 0x1C);	// 7:0 , 6:0, 5-4:MCLK=256fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
 	else								// 176.4 or 192
-		wm8804_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+	wm8804_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+}
+
+
+// Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
+// Compare expected frequency (typically measured by wm8804_srd() to WM8804's internally registered frequency)
+uint8_t wm8804_clkdivnew(uint32_t freq) {
+	uint8_t temp;
+	temp = wm8804_read_byte(0x0C);		// Read SPDSTAT
+	temp = temp & 0x30;					// Consider bits 5-4
+
+	if ( (freq == FREQ_44) || (freq == FREQ_48) ) {			// 44.1 or 48 from srd() AND... 
+		if ( (temp == 0x20) || (temp == 0x30) )	{			// 44.1, 48, or 32 from chip
+			wm8804_write_byte(0x07, 0x0C);					// 7:0 , 6:0, 5-4:MCLK=512fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+			return WM8804_CLK_SUCCESS;
+		}
+	}
+	else if ( (freq == FREQ_88) || (freq == FREQ_96) ) {	// 88.2 or 96 from srd() AND...
+		if (temp == 0x10) {									// 88.2 or 96 from chip
+			wm8804_write_byte(0x07, 0x1C);					// 7:0 , 6:0, 5-4:MCLK=256fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+			return WM8804_CLK_SUCCESS;
+		}
+	}
+	else if ( (freq == FREQ_176) || (freq == FREQ_192) ) {	// 176.4 or 192 from srd() AND...
+		if (temp == 0x10) {									// 192 from chip, NB: 176.4 not described in datasheet!
+			wm8804_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+			return WM8804_CLK_SUCCESS;
+		}
+	}
+	
+	return WM8804_CLK_FAILURE;								// Mismatch between input freq and WM8804's freq
 }
 
 

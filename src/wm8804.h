@@ -53,8 +53,10 @@
 #define WM8804_PAUSE_LIM	350	// 400 // 200	// Poll cycles to determine that a currently  playing input is silent. NB: Signed 16-bit number!
 #define WM8804_SILENCE_LIM	20	//40			// Poll cycles to wait for a mute input to produce audio
 #define WM8804_LOCK_LIM		3					// Poll cycles to verify lock
+#define WM8804_CLK_FAILURE	0					// Failed setting of internal clock division
+#define WM8804_CLK_SUCCESS	1					// Successful setting of internal clock division
 
-typedef struct spdif_rx_status {					// Definition of global variable
+typedef struct spdif_rx_status {				// Definition of global variable
 	uint8_t powered;
 	uint8_t muted;
 	uint8_t silent;
@@ -86,6 +88,7 @@ void wm8804_pllnew(uint8_t pll_sel);			// For manual control
 
 // Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
 void wm8804_clkdiv(void);
+uint8_t wm8804_clkdivnew(uint32_t freq);
 
 // Mute the WM8804 output by means of other hardware
 void wm8804_mute(void);
