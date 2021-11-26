@@ -24,7 +24,15 @@ S16 spk_vol_usb_R = VOL_DEFAULT;			// Forced to default value
 S32 spk_vol_mult_L = 0;						// Full mute for now, re-formated in uac?_device_audio_task_init
 S32 spk_vol_mult_R = 0;
 
-volatile uint8_t input_select;							// BSB 20150501 global variable for input selector
+volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
+
+
+// RXMODFIX Global variables for tuning scanning algorithm
+volatile uint8_t wm8804_LINK_MAX_ATTEMPTS = 0x64;
+volatile uint8_t wm8804_LINK_DETECTS_OK = 0x05;
+volatile uint8_t wm8804_TRANS_ERR_FAILURE = 0x1E;
+
+
 
 #if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 volatile uint8_t usb_ch;					// Front or rear USB channel

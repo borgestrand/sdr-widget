@@ -101,6 +101,15 @@ extern S32 spk_vol_mult_L, spk_vol_mult_R;
 
 extern volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
 
+
+// RXMODFIX Global variables for tuning scanning algorithm
+extern volatile uint8_t wm8804_LINK_MAX_ATTEMPTS;
+extern volatile uint8_t wm8804_LINK_DETECTS_OK;
+extern volatile uint8_t wm8804_TRANS_ERR_FAILURE;
+
+
+
+
 #if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 extern volatile uint8_t usb_ch;						// Front or rear USB channel
 extern volatile uint8_t usb_ch_swap;				// Front or rear USB channel

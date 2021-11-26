@@ -837,7 +837,7 @@ Arash
 			
             
 			// SPDIF source scan test
-            else if (a == 'o') {
+            else if (a == 'o') {		// Lowercase 'o'
 	            uint8_t mode;
 	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan sequence, low nibble is 1/4 the permitted scan attempts. For example "o04" for 16 scans of program 0
 				uint8_t	channel;
@@ -845,8 +845,6 @@ Arash
 				
 				wm8804_scannew(&channel, &freq, mode);			// Scan SPDIF inputs and report
 				if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
-					print_dbg_char('Y');
-					
 					// Take semaphore
 					if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 						print_dbg_char('[');
@@ -865,10 +863,14 @@ Arash
 					else {
 						print_dbg_char(']');
 					}
-				}
-				else {	// No success in scanning
-					print_dbg_char('N');
-				}
+				} // Scan success
+			}
+			
+			
+			// Input scan parameter fix
+            else if (a == 'O') {		// Uppercase 'O'
+				read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+
 			}
 
 			// WM8804 SRC check

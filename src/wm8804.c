@@ -644,10 +644,11 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
 	uint32_t freq;
-	#define LINK_MAX_ATTEMPTS 100 //38			// 18 is a good value below, allow for two toggles before giving up on this channel
-	#define LINK_DETECTS_OK 5				// 5 consecutive detects at some ms apart. Must be able to allow for at least 12ms of dithering link pin in 192 mode and glitching in 176.4 mode
-	#define TRANS_ERR_FAILURE 30 // 18			// After some consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
+//	#define LINK_MAX_ATTEMPTS 100 //38			// 18 is a good value below, allow for two toggles before giving up on this channel
+//	#define LINK_DETECTS_OK 5				// 5 consecutive detects at some ms apart. Must be able to allow for at least 12ms of dithering link pin in 192 mode and glitching in 176.4 mode
+//	#define TRANS_ERR_FAILURE 30 // 18			// After some consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
 	// 8 14 17 18 | 18 20					// Heavily based on trial and error! Should be retested. Changes when cold!
+
 
 	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 	mobo_rxmod_input(input_sel);			// Hardware MUX control, should be possible to re-run this from CLI on same channel, with no effect
@@ -659,7 +660,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	// The time it takes to verify a channel is very much different when the WM8804 is cold (up to 300ms seen in measurements) vs warm (70-100ms)
 	// RXMODFIX Do something about that with slow scans if fast scans fail or something
 
-	while (link_attempts++ < LINK_MAX_ATTEMPTS) {		// Repeat until timeout
+	while (link_attempts++ < wm8804_LINK_MAX_ATTEMPTS) {		// Repeat until timeout
 
 		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug
 
@@ -667,7 +668,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 		// Check UNLOCK bit if everything is OK and we can leave this function
 //		if ( (wm8804_read_byte(0x0C) & 0x40) == 0 ) {	// UNLOCK bit. Does much the same job but takes a few µs longer than GPIO read. Not fully verified in 192ksps
 		if (gpio_get_pin_value(WM8804_CSB_PIN) == 0) {	// Got link!
-			if (link_detect++ == LINK_DETECTS_OK-1) {	// We have a valid link!
+			if (link_detect++ == wm8804_LINK_DETECTS_OK-1) {	// We have a valid link!
 				freq = wm8804_srd();					// Now that we have link, measure the received sample rate
 				if (wm8804_clkdivnew(freq) == WM8804_CLK_SUCCESS) {	// Compare to WM8804's frequency detector and set up clock division for MCLK export
 					
@@ -683,7 +684,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 		
 		// Check TRANS_ERR bit to determine if we must change PLL settings
 		if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
-			if (trans_err_detect++ == TRANS_ERR_FAILURE-1) {
+			if (trans_err_detect++ == wm8804_TRANS_ERR_FAILURE-1) {
 				wm8804_pllnew(WM8804_PLL_TOGGLE);
 				trans_err_detect = 0;		// New try with new setting!
 			}
