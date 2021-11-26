@@ -615,9 +615,6 @@ void device_mouse_hid_task(void)
             	mobo_led(read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT), read_dbg_char_hex(DBG_ECHO, RTOS_WAIT));
             }
 
-            else if (a == 'm') {
-            	mobo_led_select(FREQ_44, input_select);
-            }
 #endif
 
 
@@ -784,12 +781,7 @@ Arash
 				}
 				else if ( (mux_cmd & 0xF0) == 0x20 ) {		// 2 in upper nibble -> WM8804 IO control
 					input_select_debug = mux_cmd & 0x0F;	// Store for audio enable
-					if (wm8804_inputnew(input_select_debug) == FREQ_TIMEOUT) { // Set up MUXes, PLL, clock division. Test result
-						print_dbg_char('*');
-					}
-					else {
-						print_dbg_char('&');
-					}
+					wm8804_inputnew(input_select_debug);	// Set up MUXes, PLL, clock division. Test result
 				}
 				else if ( (mux_cmd & 0xF0) == 0x30) {		// 3 in upper nibble init functions
 					if ( (mux_cmd & 0x0F) == 0x00) {		// 30 -> sleep
@@ -842,7 +834,42 @@ Arash
 				} // 3 in upper nibble
 				print_dbg_char('\n');
             }
+			
             
+			// SPDIF source scan test
+            else if (a == 'o') {
+	            uint8_t mode;
+	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan sequence, low nibble is 1/4 the permitted scan attempts. For example "o04" for 16 scans of program 0
+				uint8_t	channel;
+				uint32_t freq;
+				
+				wm8804_scannew(&channel, &freq, mode);			// Scan SPDIF inputs and report
+				if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
+					print_dbg_char('Y');
+					
+					// Take semaphore
+					if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+						print_dbg_char('[');
+						input_select = channel;					// Owning semaphore we may write to input_select and take control of hardware
+
+						// Set up and unmute
+						spdif_rx_status.frequency = freq;
+						spdif_rx_status.powered == 1;
+						spdif_rx_status.reliable = 1;
+						spdif_rx_status.muted = 0;
+						spdif_rx_status.silent = 0;
+						// spdif_rx_status.pllmode = WM8804_PLL_NORMAL;	// Currently hidden within wm8804_inputnew()
+						spdif_rx_status.buffered = 1;
+						wm8804_unmute();
+					}
+					else {
+						print_dbg_char(']');
+					}
+				}
+				else {	// No success in scanning
+					print_dbg_char('N');
+				}
+			}
 
 			// WM8804 SRC check
 			/* Expect

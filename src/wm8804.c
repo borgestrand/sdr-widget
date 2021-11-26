@@ -160,7 +160,15 @@ volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_P
 //!
 void wm8804_poll(void) {
 	
+	// Gets called every 12ms
+	static int32_t heartbeat = 0;		// Add heartbeat counters for various purposes in a struct. Decrease all when approaching some limits
+	
+	heartbeat++;						// Keep a track of time in state machine engine. Or just rewrite it as a task!
+	
 	return; // RXMODFIX skip polling while exploring manual control
+
+
+
 
 	// Arbitrary startup delay ATD
 	#define pausecounter_initial 20000
@@ -578,6 +586,57 @@ void wm8804_input(uint8_t input_sel) {
 }
 
 
+// The start of a new automated input scanner. Doesn't detect silence
+void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
+	uint8_t max_attempts = (mode & 0x0F) * 4;	// Up to 60 attempts before giving up
+	uint8_t program = (mode & 0xF0);			// Which scanning sequence to use
+	uint8_t program_index = 0;
+	uint8_t attempts = 0;
+	
+	uint32_t temp_freq = FREQ_TIMEOUT;
+	#define SCAN_PROGRAM_LENGTH	3
+	uint8_t temp_program[SCAN_PROGRAM_LENGTH];
+	
+	// Some scan sequences...  
+	if (program == 0x00) {						// TOSLINK port nearest buttons, two failed scans before getting there
+		temp_program[0] = MOBO_SRC_TOS1;
+		temp_program[1] = MOBO_SRC_SPDIF;
+		temp_program[2] = MOBO_SRC_TOS2;
+	}
+	else if (program == 0x10) {					// SPDIF port nearest buttons, two failed scans before getting there
+		temp_program[0] = MOBO_SRC_TOS2;
+		temp_program[1] = MOBO_SRC_TOS1;
+		temp_program[2] = MOBO_SRC_SPDIF;
+	}
+	else if (program == 0x20) {					// TOSLINK port in the middle, two failed scans before getting there
+		temp_program[0] = MOBO_SRC_TOS2;
+		temp_program[1] = MOBO_SRC_SPDIF;
+		temp_program[2] = MOBO_SRC_TOS1;
+	}
+	
+	
+	while (attempts++ < max_attempts) {			// Success causes function termination mid-loop
+		temp_freq = wm8804_inputnew(temp_program[program_index]);	// Check if selected channel from program is online
+		if ( (temp_freq != FREQ_TIMEOUT) && (temp_freq != FREQ_INVALID) ) {
+			*channel = temp_program[program_index];	// Tell calling function which channel works
+			*freq = temp_freq;					// ... and its sample rate
+			return;
+		}
+		else {									// Select a new channel to try
+			program_index++;
+			if (program_index == SCAN_PROGRAM_LENGTH) {
+				program_index = 0;
+			}
+		}
+	}
+	
+	// while loop above didn't terminate with success, return failure	
+	*channel = MOBO_SRC_NONE;					// No valid channel
+	*freq = temp_freq;							// The (failing!) freq reported last by wm8804_inputnew()
+	return;	
+}
+
+
 // Select input channel of the multiplexer preceding WM8804. NB: this is outside the scope fo the chip itself!
 // Naming convention: TOSLINK0 on schematic is TOSLINK1 in code etc.
 uint32_t wm8804_inputnew(uint8_t input_sel) {
@@ -585,16 +644,20 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
 	uint32_t freq;
-	#define LINK_MAX_ATTEMPTS 38			// 18 is a good value below, allow for two toggles before giving up on this channel
+	#define LINK_MAX_ATTEMPTS 100 //38			// 18 is a good value below, allow for two toggles before giving up on this channel
 	#define LINK_DETECTS_OK 5				// 5 consecutive detects at some ms apart. Must be able to allow for at least 12ms of dithering link pin in 192 mode and glitching in 176.4 mode
-	#define TRANS_ERR_FAILURE 18			// After some consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
-	// 8 14 17 18 | 18 20						// Heavily based on trial and error! Should be retested
+	#define TRANS_ERR_FAILURE 30 // 18			// After some consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
+	// 8 14 17 18 | 18 20					// Heavily based on trial and error! Should be retested. Changes when cold!
+
 	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 	mobo_rxmod_input(input_sel);			// Hardware MUX control, should be possible to re-run this from CLI on same channel, with no effect
 	// Is this needed in WM8804 where it does not select input channel?
 	wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
 	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
 
+
+	// The time it takes to verify a channel is very much different when the WM8804 is cold (up to 300ms seen in measurements) vs warm (70-100ms)
+	// RXMODFIX Do something about that with slow scans if fast scans fail or something
 
 	while (link_attempts++ < LINK_MAX_ATTEMPTS) {		// Repeat until timeout
 
@@ -607,6 +670,9 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 			if (link_detect++ == LINK_DETECTS_OK-1) {	// We have a valid link!
 				freq = wm8804_srd();					// Now that we have link, measure the received sample rate
 				if (wm8804_clkdivnew(freq) == WM8804_CLK_SUCCESS) {	// Compare to WM8804's frequency detector and set up clock division for MCLK export
+					
+					print_dbg_char('&');
+					
 					return freq;						// Got link enough times, wm8804_srd() and WM8804 agree on clock configuration -> return detected frequency
 				}
 			}
@@ -630,6 +696,8 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 		vTaskDelay(50);						// How long time does this take? 50 -> 5.00ms
 	}
 
+	print_dbg_char('*');
+	
 	return (FREQ_TIMEOUT);					// Couldn't get lock = timeout Maybe return FREQ_INVALID for unstable PLL?
 }
 
@@ -918,39 +986,39 @@ uint32_t wm8804_srd(void) {
 	freqs[4] = 1;					// 176.4 hits
 	freqs[5] = 1;					// 196 hits
 
-	#define MAX_ATTEMPTS	5		// How many total attempts
-	#define SAFE_DETECTS	3		// How many attempts to declare a safe detection?
+	#define SRD_MAX_ATTEMPTS	5		// How many total attempts
+	#define SRD_AFE_DETECTS		3		// How many attempts to declare a safe detection?
 
-	while (attempts++ < MAX_ATTEMPTS) {
+	while (attempts++ < SRD_MAX_ATTEMPTS) {
 		temp = wm8804_srd_asm2();
 		switch (temp) {
 			case FREQ_44:
-				if (freqs[0]++ >= SAFE_DETECTS) {
+				if (freqs[0]++ >= SRD_AFE_DETECTS) {
 					return FREQ_44;
 				}
 			break;
 			case FREQ_48:
-				if (freqs[1]++ >= SAFE_DETECTS) {
+				if (freqs[1]++ >= SRD_AFE_DETECTS) {
 					return FREQ_48;
 				}
 			break;
 			case FREQ_88:
-				if (freqs[2]++ >= SAFE_DETECTS) {
+				if (freqs[2]++ >= SRD_AFE_DETECTS) {
 					return FREQ_88;
 				}
 			break;
 			case FREQ_96:
-				if (freqs[3]++ >= SAFE_DETECTS) {
+				if (freqs[3]++ >= SRD_AFE_DETECTS) {
 					return FREQ_96;
 				}
 			break;
 			case FREQ_176:
-				if (freqs[4]++ >= SAFE_DETECTS) {
+				if (freqs[4]++ >= SRD_AFE_DETECTS) {
 					return FREQ_176;
 				}
 			break;
 			case FREQ_192:
-				if (freqs[5]++ >= SAFE_DETECTS) {
+				if (freqs[5]++ >= SRD_AFE_DETECTS) {
 					return FREQ_192;
 				}
 			break;
