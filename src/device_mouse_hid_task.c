@@ -864,13 +864,16 @@ Arash
 						print_dbg_char(']');
 					}
 				} // Scan success
+				print_dbg_char('\n');
 			}
 			
 			
 			// Input scan parameter fix
-            else if (a == 'O') {		// Uppercase 'O'
-				read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-
+            else if (a == 'O') {		// Uppercase 'O' typically "O64051e" Fastest to date for 3ch scan on warm chip is O200414
+				wm8804_LINK_MAX_ATTEMPTS = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				wm8804_LINK_DETECTS_OK = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				wm8804_TRANS_ERR_FAILURE = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				print_dbg_char('\n');
 			}
 
 			// WM8804 SRC check
