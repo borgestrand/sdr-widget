@@ -75,6 +75,12 @@ void wm8804_reset(uint8_t reset_type);
 // Start up the WM8804
 void wm8804_init(void);
 
+// Start up the WM8804 config task
+extern void wm8804_task_init(void);
+
+// The config task itself
+extern void wm8804_task(void *pvParameters);
+
 // Turn off wm8804, why can't we just run init again?
 void wm8804_sleep(void);
 

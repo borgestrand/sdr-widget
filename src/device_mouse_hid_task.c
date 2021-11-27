@@ -132,8 +132,7 @@ static uint8_t I2C_device_address = 0;   // RXMODFIX I2C debug
 //! required for device HID task.
 //!
 // void device_mouse_hid_task_init(U8 ep_rx, U8 ep_tx)
-void device_mouse_hid_task_init(U8 ep_tx)
-{
+void device_mouse_hid_task_init(U8 ep_tx) {
 
 #if BOARD == EVK1101
 	// Initialize accelerometer driver

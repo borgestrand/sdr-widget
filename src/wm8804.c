@@ -506,6 +506,37 @@ void wm8804_reset(uint8_t reset_type) {
 	} 
 }
 
+
+// Start up the WM8804 config task 
+void wm8804_task_init(void) {	
+	#ifdef FREERTOS_USED
+		xTaskCreate(wm8804_task,
+			configTSK_WM8804_NAME,
+			configTSK_WM8804_STACK_SIZE,
+			NULL,
+			configTSK_WM8804_PRIORITY,
+			NULL);
+	#else
+		#error No FreeRTOS. This will not work for you!
+	#endif  // FREERTOS_USED
+
+}
+
+ 
+// The config task itself
+void wm8804_task(void *pvParameters) {
+
+	portTickType xLastWakeTime;
+	xLastWakeTime = xTaskGetTickCount();
+
+	while (TRUE) {
+		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
+
+		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_inputnew()
+	}
+}
+
+
 // Start up the WM8804
 void wm8804_init(void) {
 
@@ -662,7 +693,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 
 	while (link_attempts++ < wm8804_LINK_MAX_ATTEMPTS) {		// Repeat until timeout
 
-		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug
+		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_task()
 
 
 		// Check UNLOCK bit if everything is OK and we can leave this function

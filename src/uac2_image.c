@@ -15,6 +15,10 @@
 #include <stdio.h>
 #endif
 
+#ifdef HW_GEN_RXMOD	// For WM8804 task control
+	#include "wm8804.h"
+#endif
+
 #include "compiler.h"
 #include "board.h"
 #include "print_funcs.h"
@@ -113,6 +117,11 @@ static void x_image_task_init(void) {
 //	vStartTaskPowerDisplay();		// Disable OK for Prog and Audio
 //	vStartTaskPushButtonMenu();		// Disable OK for Prog and Audio
 #endif
+
+#ifdef HW_GEN_RXMOD
+	wm8804_task_init();
+#endif
+
 	vStartTaskMoboCtrl();
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
 	uac2_AK5394A_task_init();

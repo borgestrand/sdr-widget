@@ -167,8 +167,14 @@ to exclude the API function. */
 /* USB device HID task definitions. */
 #define configTSK_USB_DHID_MOUSE_NAME			((const signed portCHAR *)"USB Device Mouse HID")
 #define configTSK_USB_DHID_MOUSE_STACK_SIZE		256
-#define configTSK_USB_DHID_MOUSE_PRIORITY     (tskIDLE_PRIORITY + 1)
-#define configTSK_USB_DHID_MOUSE_PERIOD       200
+#define configTSK_USB_DHID_MOUSE_PRIORITY		(tskIDLE_PRIORITY + 1)
+#define configTSK_USB_DHID_MOUSE_PERIOD			200
+
+/* WM8845 task definitions. */
+#define configTSK_WM8804_NAME					((const signed portCHAR *)"WM8804 Configuration")
+#define configTSK_WM8804_STACK_SIZE				256
+#define configTSK_WM8804_PRIORITY				(tskIDLE_PRIORITY + 1)
+#define configTSK_WM8804_PERIOD					200
 
 /* USB device Audio task definitions. */
 #define configTSK_USB_DAUDIO_NAME				((const signed portCHAR *)"USB Device Audio")

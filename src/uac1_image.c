@@ -8,6 +8,10 @@
 
 #include <stdio.h>
 
+#ifdef HW_GEN_RXMOD	// For WM8804 task control
+	#include "wm8804.h"
+#endif
+
 #include "compiler.h"
 #include "board.h"
 #include "print_funcs.h"
@@ -100,18 +104,23 @@ static void x_image_task_init(void) {
   mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
 #if LCD_DISPLAY						// Multi-line LCD display
-  vStartTaskLCD();
-  vStartTaskPowerDisplay();
-  vStartTaskPushButtonMenu();
+	vStartTaskLCD();
+	vStartTaskPowerDisplay();
+	vStartTaskPushButtonMenu();
 #endif
-  vStartTaskMoboCtrl();
-  // vStartTaskEXERCISE( tskIDLE_PRIORITY );
-  uac1_AK5394A_task_init();
+
+#ifdef HW_GEN_RXMOD
+	wm8804_task_init();
+#endif
+
+	vStartTaskMoboCtrl();
+	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
+	uac1_AK5394A_task_init();
 #ifdef FEATURE_HID
-  //  device_mouse_hid_task_init(UAC1_EP_HID_RX, UAC1_EP_HID_TX);
-	  device_mouse_hid_task_init(UAC1_EP_HID_TX);
+//	device_mouse_hid_task_init(UAC1_EP_HID_RX, UAC1_EP_HID_TX);
+	device_mouse_hid_task_init(UAC1_EP_HID_TX);
 #endif
-  uac1_device_audio_task_init(UAC1_EP_AUDIO_IN, UAC1_EP_AUDIO_OUT, UAC1_EP_AUDIO_OUT_FB);
+	uac1_device_audio_task_init(UAC1_EP_AUDIO_IN, UAC1_EP_AUDIO_OUT, UAC1_EP_AUDIO_OUT_FB);
 #endif
 #if LCD_DISPLAY						// Multi-line LCD display
 	if ( ! FEATURE_LOG_NONE )
