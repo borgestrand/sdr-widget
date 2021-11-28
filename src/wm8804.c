@@ -508,7 +508,11 @@ void wm8804_reset(uint8_t reset_type) {
 
 
 // Start up the WM8804 config task 
-void wm8804_task_init(void) {	
+void wm8804_task_init(void) {
+	
+	// Call all init code - wm8804_task_init now called where this used to be called
+	wm8804_init();									// Start up the WM8804 in a fairly dead mode
+	
 	#ifdef FREERTOS_USED
 		xTaskCreate(wm8804_task,
 			configTSK_WM8804_NAME,
@@ -519,7 +523,6 @@ void wm8804_task_init(void) {
 	#else
 		#error No FreeRTOS. This will not work for you!
 	#endif  // FREERTOS_USED
-
 }
 
  
@@ -527,7 +530,7 @@ void wm8804_task_init(void) {
 void wm8804_task(void *pvParameters) {
 
 	portTickType xLastWakeTime;
-	xLastWakeTime = xTaskGetTickCount();
+	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200
 
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);

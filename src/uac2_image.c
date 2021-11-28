@@ -15,9 +15,9 @@
 #include <stdio.h>
 #endif
 
-#ifdef HW_GEN_RXMOD	// For WM8804 task control
-	#include "wm8804.h"
-#endif
+// #ifdef HW_GEN_RXMOD
+// 	#include "wm8804.h"
+// #endif
 
 #include "compiler.h"
 #include "board.h"
@@ -118,9 +118,9 @@ static void x_image_task_init(void) {
 //	vStartTaskPushButtonMenu();		// Disable OK for Prog and Audio
 #endif
 
-#ifdef HW_GEN_RXMOD
-	wm8804_task_init();
-#endif
+// #ifdef HW_GEN_RXMOD
+//	wm8804_task_init();	// Rather done in controlled WM8804 startup sequence
+// #endif
 
 	vStartTaskMoboCtrl();
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );

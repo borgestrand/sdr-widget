@@ -618,7 +618,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
 			// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
 //			print_dbg_char('p');
-			wm8804_init();							// Start up the WM8805 in a fairly dead mode
+//			wm8804_init();							// Start up the WM8805 in a fairly dead mode
+			wm8804_task_init();
 			wm8804_sleep();
 //			print_dbg_char('r'); // Skipping 'q'
 		#endif
