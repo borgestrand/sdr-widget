@@ -535,7 +535,15 @@ void wm8804_task(void *pvParameters) {
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
 
-		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_inputnew()
+//		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_inputnew()
+		
+		
+		// while playing, got interrupt. Could be loss of link (monitored faster on pin) or TRANS_ERR (only visible on interrupt)
+
+		// 		if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
+		// try wm8804_pllnew(WM8804_PLL_TOGGLE);
+		// then scan inputs starting with last known good input	
+	
 	}
 }
 
@@ -642,9 +650,9 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 		temp_program[1] = MOBO_SRC_TOS1;
 		temp_program[2] = MOBO_SRC_SPDIF;
 	}
-	else if (program == 0x20) {					// TOSLINK port in the middle, two failed scans before getting there
-		temp_program[0] = MOBO_SRC_TOS2;
-		temp_program[1] = MOBO_SRC_SPDIF;
+	else if (program == 0x20) {					// Full scan to TOSLINK port in the middle, short scan to SPDIF port
+		temp_program[0] = MOBO_SRC_SPDIF;
+		temp_program[1] = MOBO_SRC_TOS2;
 		temp_program[2] = MOBO_SRC_TOS1;
 	}
 	
@@ -654,6 +662,8 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 		if ( (temp_freq != FREQ_TIMEOUT) && (temp_freq != FREQ_INVALID) ) {
 			*channel = temp_program[program_index];	// Tell calling function which channel works
 			*freq = temp_freq;					// ... and its sample rate
+			
+			print_dbg_char_hex( (uint8_t)(temp_freq/1000) );
 			return;
 		}
 		else {									// Select a new channel to try
@@ -684,6 +694,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	// 8 14 17 18 | 18 20					// Heavily based on trial and error! Should be retested. Changes when cold!
 
 
+	// RXMODFIX Also power cycle PLL?
 	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 	mobo_rxmod_input(input_sel);			// Hardware MUX control, should be possible to re-run this from CLI on same channel, with no effect
 	// Is this needed in WM8804 where it does not select input channel?
@@ -887,18 +898,21 @@ uint8_t wm8804_clkdivnew(uint32_t freq) {
 	if ( (freq == FREQ_44) || (freq == FREQ_48) ) {			// 44.1 or 48 from srd() AND... 
 		if ( (temp == 0x20) || (temp == 0x30) )	{			// 44.1, 48, or 32 from chip
 			wm8804_write_byte(0x07, 0x0C);					// 7:0 , 6:0, 5-4:MCLK=512fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+//			print_dbg_char('x');
 			return WM8804_CLK_SUCCESS;
 		}
 	}
 	else if ( (freq == FREQ_88) || (freq == FREQ_96) ) {	// 88.2 or 96 from srd() AND...
 		if (temp == 0x10) {									// 88.2 or 96 from chip
 			wm8804_write_byte(0x07, 0x1C);					// 7:0 , 6:0, 5-4:MCLK=256fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+//			print_dbg_char('y');
 			return WM8804_CLK_SUCCESS;
 		}
 	}
 	else if ( (freq == FREQ_176) || (freq == FREQ_192) ) {	// 176.4 or 192 from srd() AND...
-		if (temp == 0x10) {									// 192 from chip, NB: 176.4 not described in datasheet!
+		if (temp == 0x00) {									// 192 from chip, NB: 176.4 not described in datasheet!
 			wm8804_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+//			print_dbg_char('z');
 			return WM8804_CLK_SUCCESS;
 		}
 	}

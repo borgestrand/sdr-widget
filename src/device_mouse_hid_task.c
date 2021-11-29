@@ -786,7 +786,7 @@ Arash
 					if ( (mux_cmd & 0x0F) == 0x00) {		// 30 -> sleep
 						wm8804_sleep();
 					}
-					else if ( (mux_cmd & 0x0F) == 0x01) {	// 31 -> init
+					else if ( (mux_cmd & 0x0F) == 0x01) {	// 31 -> init = wake
 						wm8804_init();
 					}
 					else if ( (mux_cmd & 0x0F) == 0x02) {	// 32 -> clkdiv
@@ -829,6 +829,10 @@ Arash
 					else if ( (mux_cmd & 0x0F) == 0x08) {	// 38 -> Mute
 						wm8804_mute();
 					}
+					else if ( (mux_cmd & 0x0F) == 0x09) {	// 39 -> PLL mode toggle !192 <-> 192
+						wm8804_pllnew(WM8804_PLL_TOGGLE);
+					}
+					
 					
 				} // 3 in upper nibble
 				print_dbg_char('\n');
@@ -874,6 +878,14 @@ Arash
 				wm8804_TRANS_ERR_FAILURE = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				print_dbg_char('\n');
 			}
+			
+			// 3ch scan on warm chip 44.1 ch4 by buttons "n36" "o02"
+			// O64051e - ms
+			
+			
+			// 1ch frequency change on same channel spdif "n36" <rate swap> "o22"
+			//
+			
 
 			// WM8804 SRC check
 			/* Expect
