@@ -27,10 +27,10 @@ S32 spk_vol_mult_R = 0;
 volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
 
 
-// RXMODFIX Global variables for tuning scanning algorithm
-volatile uint8_t wm8804_LINK_MAX_ATTEMPTS = 0x64;
-volatile uint8_t wm8804_LINK_DETECTS_OK = 0x05;
-volatile uint8_t wm8804_TRANS_ERR_FAILURE = 0x1E;
+// RXMODFIX Global variables for tuning scanning algorithm. Optimized for warm wm8804
+volatile uint8_t wm8804_LINK_MAX_ATTEMPTS = 0x29;	// Results after 1st optimization
+volatile uint8_t wm8804_LINK_DETECTS_OK = 0x05;		// Results after 1st optimization
+volatile uint8_t wm8804_TRANS_ERR_FAILURE = 0x14;	// Results after 1st optimization
 
 
 
