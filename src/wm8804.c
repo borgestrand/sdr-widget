@@ -528,6 +528,11 @@ void wm8804_task_init(void) {
  
 // The config task itself
 void wm8804_task(void *pvParameters) {
+	static uint8_t scanmode = WM8804_SCAN_FROM_NEXT + 0x05;		// Start scanning from next channel. Run up to 5x4 scan attempts
+	uint32_t freq;
+	static uint8_t channel;	// Must be static here?
+	uint8_t wm8804_int;
+	uint8_t mustgive = 0;
 
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200
@@ -543,6 +548,117 @@ void wm8804_task(void *pvParameters) {
 		// 		if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
 		// try wm8804_pllnew(WM8804_PLL_TOGGLE);
 		// then scan inputs starting with last known good input	
+	
+	
+				
+				
+		// USB has assumed control, power down WM8804 if it was on
+		if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
+			if (spdif_rx_status.powered == 1) {
+				spdif_rx_status.powered = 0;
+				wm8804_sleep();
+			}
+		}
+				
+		// Consider what is going on with WM8804
+		else {
+
+			// Playing music from WM8804 - is everything OK?
+			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+				mustgive = 0;									// Not ready to give up playing audio just yet
+						
+				// Poll silence - must elaborate!
+				if ( (0) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
+					print_dbg_char('m');						// Dude went mummmm
+				}
+						
+				// Poll silence - must elaborate!
+				if ( (spdif_rx_status.silent == 1) || (0) ) {
+					// Count occurrences, qualify by recent linkup or the thing having been quiet for a long time
+					print_dbg_char('n');						// Dude went mummmm
+					// scanmode = WM8804_SCAN_FROM_NEXT & 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+				}
+						
+				// Poll lost lock pin
+				if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
+					// Count to more than one error?
+					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+					mustgive = 1;
+				}
+
+				// Poll interrupt pin
+				if  (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) {
+					wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
+							
+					print_dbg_char('!');
+					print_dbg_char_hex(wm8804_int);				// Report interrupts
+
+					if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
+						wm8804_pllnew(WM8804_PLL_TOGGLE);
+						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
+						mustgive = 1;
+					}
+				}
+						
+				// Give away control?
+				if (mustgive) {
+					wm8804_mute();
+					spdif_rx_status.muted = 1;
+					spdif_rx_status.reliable = 0;		// Critical for mobo_handle_spdif()
+
+					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
+						print_dbg_char(60); // '<'
+					}
+					else {
+						print_dbg_char(62); // '>'
+					}
+
+				}
+						
+			}
+
+			// USB and WM8804 have given away active control, see if WM8804 can grab it
+			if (input_select == MOBO_SRC_NONE) {
+				if (spdif_rx_status.powered == 0) {
+					wm8804_init();								// WM8804 was probably put to sleep before this. Hence re-init
+					spdif_rx_status.powered = 1;
+					spdif_rx_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
+				}
+
+				// RXMODFIX: Newly enabled WM8804 takes much longer time to lock on to audio stream!
+
+				else {											// Don't start scanning immediately after power-on
+					channel = spdif_rx_status.channel;			// Use receiver scan history if it is of any use
+					wm8804_scannew(&channel, &freq, scanmode);
+					if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
+						wm8804_read_byte(0x0B);					// Clear interrupts for good measure
+								
+						// Update status
+						spdif_rx_status.channel = channel;
+						spdif_rx_status.frequency = freq;
+						// spdif_rx_status.powered = 1;			// Written above
+						spdif_rx_status.reliable = 1;			// Critical for mobo_handle_spdif()
+						spdif_rx_status.silent = 0;				// Modified in mobo_handle_spdif()
+						spdif_rx_status.buffered = 1;
+								
+						// Take semaphore
+						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+							print_dbg_char('[');
+							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
+							wm8804_unmute();
+							spdif_rx_status.muted = 0;
+						}
+						else {
+							print_dbg_char(']');
+						}
+					} // Scan success
+				}
+			} // Done processing no selected input source
+					
+		} // Done considering what is happening to WM8804
+	
+	
 	
 	}
 }
@@ -640,10 +756,6 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 	#define SCAN_PROGRAM_LENGTH	3
 	uint8_t temp_program[SCAN_PROGRAM_LENGTH];
 	
-	
-	print_dbg_char_hex(*channel);
-	print_dbg_char_hex(mode);
-	
 	// No valid channel given, start scanning from default or user selection
 	if ( (*channel != MOBO_SRC_TOS1) && (*channel != MOBO_SRC_TOS2) && (*channel != MOBO_SRC_SPDIF) ) {
 		*channel = spdif_rx_status.preferred_channel;	// Populated with default value or user override
@@ -686,7 +798,7 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 			*channel = temp_program[program_index];	// Tell calling function which channel works
 			*freq = temp_freq;					// ... and its sample rate
 			
-			print_dbg_char_hex( (uint8_t)(temp_freq/1000) );
+//			print_dbg_char_hex( (uint8_t)(temp_freq/1000) );
 			return;
 		}
 		else {									// Select a new channel to try
@@ -740,7 +852,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 				freq = wm8804_srd();					// Now that we have link, measure the received sample rate
 				if (wm8804_clkdivnew(freq) == WM8804_CLK_SUCCESS) {	// Compare to WM8804's frequency detector and set up clock division for MCLK export
 					
-					print_dbg_char('&');
+//					print_dbg_char('&');
 					
 					return freq;						// Got link enough times, wm8804_srd() and WM8804 agree on clock configuration -> return detected frequency
 				}
@@ -765,7 +877,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 		vTaskDelay(50);						// How long time does this take? 50 -> 5.00ms
 	}
 
-	print_dbg_char('*');
+//	print_dbg_char('*');
 	
 	return (FREQ_TIMEOUT);					// Couldn't get lock = timeout Maybe return FREQ_INVALID for unstable PLL?
 }

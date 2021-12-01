@@ -563,8 +563,6 @@ void mobo_rxmod_input(uint8_t input_sel) {
 	
 	taskEXIT_CRITICAL();
 
-	print_dbg_char('u');					// Report what just happened
-	print_dbg_char_hex(input_sel);
 }
 
 #endif // RXmod hardware controls
@@ -726,25 +724,25 @@ void mobo_handle_spdif(uint8_t width) {
 				// Just don't do it right after starting playback
 				if ((gap < old_gap) && (gap < SPK_GAP_L3)) {
 					samples_to_transfer_OUT = 0;		// Do some skippin'
-// RXMODFIX temp disable #ifdef USB_STATE_MACHINE_DEBUG
-// RXMODFIX temp disable 					print_dbg_char('s');
-// RXMODFIX temp disable #endif
+#ifdef USB_STATE_MACHINE_DEBUG
+ 					print_dbg_char('s');
+#endif
 				}
 				else if ((gap > old_gap) && (gap > SPK_GAP_U3)) {
 					samples_to_transfer_OUT = 2;		// Do some insertin'
-// RXMODFIX temp disable #ifdef USB_STATE_MACHINE_DEBUG
-// RXMODFIX temp disable 					print_dbg_char('i');
-// RXMODFIX temp disable #endif
+#ifdef USB_STATE_MACHINE_DEBUG
+ 					print_dbg_char('i');
+#endif
 				}
 
 				// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
-// RXMODFIX temp disable 				if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) {
-// RXMODFIX temp disable 					// Explicitly enable receiver's MCLK generator?
-// RXMODFIX temp disable 					mobo_xo_select(FREQ_RXNATIVE, input_select);
-// RXMODFIX temp disable #ifdef USB_STATE_MACHINE_DEBUG
-// RXMODFIX temp disable 					print_dbg_char('X');
-// RXMODFIX temp disable #endif
-// RXMODFIX temp disable 				}
+				if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) {
+					// Explicitly enable receiver's MCLK generator?
+					mobo_xo_select(FREQ_RXNATIVE, input_select);
+#ifdef USB_STATE_MACHINE_DEBUG
+					print_dbg_char('X');
+#endif
+				}
 			}
 
 			// If we must skip, what is the best place to do that?

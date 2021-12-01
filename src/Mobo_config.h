@@ -109,6 +109,7 @@ void mobo_rxmod_input(uint8_t input_sel);
 #endif
 
 
+
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 // Process spdif and toslink inputs
 void mobo_handle_spdif(uint8_t width);
