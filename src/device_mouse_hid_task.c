@@ -843,9 +843,35 @@ Arash
 			// SPDIF source scan test
             else if (a == 'o') {		// Lowercase 'o'
 	            uint8_t mode;
-	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan sequence, low nibble is 1/4 the permitted scan attempts. For example "o04" for 16 scans of program 0
-				uint8_t	channel;
+				uint8_t	channel = MOBO_SRC_SPDIF;	// Default channel to start scanning, randomly chosen at coding time
 				uint32_t freq;
+				
+	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan sequence, low nibble is 1/4 the permitted scan attempts. For example "o04" for 16 scans of program 0
+				
+				// channel starts out as 1st channel to scan. After running wm8804_scannew, channel shows scan result
+				
+				
+				
+				// input_select is lost during give() !!
+				
+				// With mode = 0xFn start scanning at specified channel. Specified channel = current channel! 
+				if ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) {
+					// TRANS_ERR failure may mean rate change on current channel
+					// if (TRANS_ERR interrupt) {
+					channel = input_select;
+					wm8804_pllnew(WM8804_PLL_TOGGLE);
+				    // }
+					// else {
+					//	channel = input_select + 1;
+					//	if (channel > MOBO_SRC_HIGH) {
+					//		channel = MOBO_SRC_LOW;
+					//	}
+					// }
+					print_dbg_char('G');
+				}
+				else {
+					print_dbg_char('H');
+				}
 				
 				wm8804_scannew(&channel, &freq, mode);			// Scan SPDIF inputs and report
 				if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {

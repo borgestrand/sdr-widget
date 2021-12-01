@@ -639,6 +639,18 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 	#define SCAN_PROGRAM_LENGTH	3
 	uint8_t temp_program[SCAN_PROGRAM_LENGTH];
 	
+	if (program == 0xF0) {						// Start scanning at channel, override program for scan sequence below
+		if (*channel == MOBO_SRC_TOS1) {
+			program = 0x00;
+		}
+		else if (*channel == MOBO_SRC_TOS2) {
+			program = 0x10;
+		}
+		else {									// SPDIF is default
+			program = 0x20;
+		}
+	}
+	
 	// Some scan sequences...  
 	if (program == 0x00) {						// TOSLINK port nearest buttons, two failed scans before getting there
 		temp_program[0] = MOBO_SRC_TOS1;
