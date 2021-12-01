@@ -839,11 +839,148 @@ Arash
 				print_dbg_char('\n');
             }
 			
-            
+			
+            // Start of algorithm within wm8804 task
+			else if (a == 'N') {		// Uppercase 'N'
+				static uint8_t scanmode = WM8804_SCAN_FROM_NEXT + 0x05;		// Start scanning from next channel. Run up to 5x4 scan attempts
+				uint32_t freq;
+				static uint8_t channel;
+				uint8_t wm8804_int;
+				uint8_t mustgive = 0;
+				
+				
+				// USB has assumed control, power down WM8804 if it was on
+				if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
+					
+					print_dbg_char('U');
+					
+					if (spdif_rx_status.powered == 1) {
+						spdif_rx_status.powered = 0;
+						wm8804_sleep();
+					}
+				}
+				
+				// Consider what is going on with WM8804
+				else {
+									
+
+					// Playing music from WM8804 - is everything OK?
+					if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+						
+						print_dbg_char('W');
+						
+						mustgive = 0;									// Not ready to give up playing audio just yet
+					
+						// Poll silence - must elaborate!
+						if ( (0) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
+							print_dbg_char('m');						// Dude went mummmm
+						}
+						
+						// Poll silence - must elaborate!
+						if ( (spdif_rx_status.silent == 1) || (0) ) {
+							// Count occurrences, qualify by recent linkup or the thing having been quiet for a long time
+							print_dbg_char('n');						// Dude went mummmm
+							// scanmode = WM8804_SCAN_FROM_NEXT & 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+						}
+						
+						// Poll lost lock pin
+						if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
+							// Count to more than one error?
+							scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+							mustgive = 1;
+						}
+
+						// Poll interrupt pin
+						if  (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) {
+							wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
+						
+							print_dbg_char('!');
+							print_dbg_char_hex(wm8804_int);				// Report interrupts
+
+							if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
+								scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
+								mustgive = 1;
+							}
+						}
+						
+						// Give away control?
+						if (mustgive) {
+							wm8804_mute();
+							spdif_rx_status.muted = 1;
+							spdif_rx_status.reliable = 0;		// Critical for mobo_handle_spdif()
+
+							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+								input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
+								print_dbg_char(60); // '<'
+							}
+							else {
+								print_dbg_char(62); // '>'
+							}
+
+						}
+					
+					}
+
+					// USB and WM8804 have given away active control, see if WM8804 can grab it
+					if (input_select == MOBO_SRC_NONE) {
+						
+						print_dbg_char('N');
+						
+						if (spdif_rx_status.powered == 0) {
+
+							print_dbg_char('P');
+							
+							wm8804_init();								// WM8804 was probably put to sleep before this. Hence re-init
+							//			print_dbg_char('0');
+							spdif_rx_status.powered = 1;
+							spdif_rx_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
+						}
+
+						// FIX: Newly enabled WM8804 takes much longer time to lock on to audio stream!
+
+						else {											// Don't start scanning immediately after power-on
+							print_dbg_char('Q');
+
+							channel = spdif_rx_status.channel;			// Use receiver scan history if it is of any use
+							wm8804_scannew(&channel, &freq, scanmode);	
+							if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
+								wm8804_read_byte(0x0B);					// Clear interrupts for good measure
+								
+								// Update status
+								spdif_rx_status.channel = channel;
+								spdif_rx_status.frequency = freq;
+								// spdif_rx_status.powered = 1;			// Written above
+								spdif_rx_status.reliable = 1;			// Critical for mobo_handle_spdif()
+								spdif_rx_status.silent = 0;				// Modified in mobo_handle_spdif()
+								spdif_rx_status.buffered = 1;
+								
+								// Take semaphore
+								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+									print_dbg_char('[');
+									input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
+									wm8804_unmute();
+									spdif_rx_status.muted = 0;
+								}
+								else {
+									print_dbg_char(']');
+								}
+							} // Scan success
+							print_dbg_char('\n');
+						}
+
+					} // Done processing no selected input source
+				
+				} // Done considering what is happening to WM8804
+				
+			}
+			
+			
 			// SPDIF source scan test
             else if (a == 'o') {		// Lowercase 'o'
 	            uint8_t mode;
 				uint32_t freq;
+				uint8_t channel = spdif_rx_status.channel;
+
 				
 	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan type, low nibble is 1/4 the permitted scan attempts. For example "o14" for 16 scans of program 1
 				
@@ -865,12 +1002,13 @@ Arash
 //					print_dbg_char('H');
 //				}
 				
-				wm8804_scannew(&spdif_rx_status.channel, &freq, mode);		// Scan SPDIF inputs and report
+				wm8804_scannew(&channel, &freq, mode);						// Scan SPDIF inputs and report
 				if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (spdif_rx_status.channel != MOBO_SRC_NONE)) {
 					// Take semaphore
 					if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 						print_dbg_char('[');
-						input_select = spdif_rx_status.channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
+						spdif_rx_status.channel = channel;
+						input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 
 						// Set up and unmute
 						spdif_rx_status.frequency = freq;

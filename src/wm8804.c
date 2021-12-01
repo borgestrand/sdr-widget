@@ -640,6 +640,10 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 	#define SCAN_PROGRAM_LENGTH	3
 	uint8_t temp_program[SCAN_PROGRAM_LENGTH];
 	
+	
+	print_dbg_char_hex(*channel);
+	print_dbg_char_hex(mode);
+	
 	// No valid channel given, start scanning from default or user selection
 	if ( (*channel != MOBO_SRC_TOS1) && (*channel != MOBO_SRC_TOS2) && (*channel != MOBO_SRC_SPDIF) ) {
 		*channel = spdif_rx_status.preferred_channel;	// Populated with default value or user override
