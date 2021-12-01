@@ -153,7 +153,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 // Global status variable
-volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, 1}; // Last parameter sets .buffered to 1
+volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, 1, MOBO_SRC_NONE, MOBO_SRC_SPDIF}; // Last but s parameter sets .buffered to 1
 
 //!
 //! @brief Polling routine for WM8804 hardware
@@ -554,6 +554,8 @@ void wm8804_init(void) {
 // Arbitrary startup delay ATD
 //	static uint8_t initial = 1;
 
+	spdif_rx_status.channel = MOBO_SRC_NONE;	// Start from a known state on wakeup
+
 	wm8804_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
 
 	wm8804_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ? // WM8804 same
@@ -632,42 +634,47 @@ void wm8804_input(uint8_t input_sel) {
 void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 	uint8_t max_attempts = (mode & 0x0F) * 4;	// Up to 60 attempts before giving up
 	uint8_t program = (mode & 0xF0);			// Which scanning sequence to use
-	uint8_t program_index = 0;
-	uint8_t attempts = 0;
-	
-	uint32_t temp_freq = FREQ_TIMEOUT;
+	uint8_t program_index = 0;					// Start at the beginning of a program sequence
+	uint8_t attempts = 0;	
+	uint32_t temp_freq = FREQ_TIMEOUT;			// Valid frequency not yet detected
 	#define SCAN_PROGRAM_LENGTH	3
 	uint8_t temp_program[SCAN_PROGRAM_LENGTH];
 	
-	if (program == 0xF0) {						// Start scanning at channel, override program for scan sequence below
-		if (*channel == MOBO_SRC_TOS1) {
-			program = 0x00;
-		}
-		else if (*channel == MOBO_SRC_TOS2) {
-			program = 0x10;
-		}
-		else {									// SPDIF is default
-			program = 0x20;
-		}
+	// No valid channel given, start scanning from default or user selection
+	if ( (*channel != MOBO_SRC_TOS1) && (*channel != MOBO_SRC_TOS2) && (*channel != MOBO_SRC_SPDIF) ) {
+		*channel = spdif_rx_status.preferred_channel;	// Populated with default value or user override
 	}
 	
-	// Some scan sequences...  
-	if (program == 0x00) {						// TOSLINK port nearest buttons, two failed scans before getting there
-		temp_program[0] = MOBO_SRC_TOS1;
-		temp_program[1] = MOBO_SRC_SPDIF;
-		temp_program[2] = MOBO_SRC_TOS2;
+	// Relate to only one channel (user decision)
+	if (program == WM8804_SCAN_ONE) {
+		temp_program[0] = *channel;
+		temp_program[1] = *channel;
+		temp_program[2] = *channel;
 	}
-	else if (program == 0x10) {					// SPDIF port nearest buttons, two failed scans before getting there
-		temp_program[0] = MOBO_SRC_TOS2;
-		temp_program[1] = MOBO_SRC_TOS1;
-		temp_program[2] = MOBO_SRC_SPDIF;
+	// Start at specified channel, scan consecutives
+	else if (program == WM8804_SCAN_FROM_PRESENT) {
+		temp_program[0] = *channel;
+		temp_program[1] = *channel+1;
+		temp_program[2] = *channel+2;
 	}
-	else if (program == 0x20) {					// Full scan to TOSLINK port in the middle, short scan to SPDIF port
-		temp_program[0] = MOBO_SRC_SPDIF;
-		temp_program[1] = MOBO_SRC_TOS2;
-		temp_program[2] = MOBO_SRC_TOS1;
+	// Start one channel beyond the specified one
+	else {
+		temp_program[0] = *channel+1;
+		temp_program[1] = *channel+2;
+		temp_program[2] = *channel+3;
 	}
 	
+	// Sanitize content of program memory
+	if (temp_program[0] > MOBO_SRC_HIGH) {
+		temp_program[0] = temp_program[0] - MOBO_SRC_HIGH + MOBO_SRC_LOW - 1;
+	}
+	if (temp_program[1] > MOBO_SRC_HIGH) {
+		temp_program[1] = temp_program[1] - MOBO_SRC_HIGH + MOBO_SRC_LOW - 1;
+	}
+	if (temp_program[2] > MOBO_SRC_HIGH) {
+		temp_program[2] = temp_program[2] - MOBO_SRC_HIGH + MOBO_SRC_LOW - 1;
+	}
+
 	
 	while (attempts++ < max_attempts) {			// Success causes function termination mid-loop
 		temp_freq = wm8804_inputnew(temp_program[program_index]);	// Check if selected channel from program is online

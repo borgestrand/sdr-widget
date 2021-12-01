@@ -843,23 +843,15 @@ Arash
 			// SPDIF source scan test
             else if (a == 'o') {		// Lowercase 'o'
 	            uint8_t mode;
-				uint8_t	channel = MOBO_SRC_SPDIF;	// Default channel to start scanning, randomly chosen at coding time
 				uint32_t freq;
 				
-	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan sequence, low nibble is 1/4 the permitted scan attempts. For example "o04" for 16 scans of program 0
-				
-				// channel starts out as 1st channel to scan. After running wm8804_scannew, channel shows scan result
-				
-				
-				
-				// input_select is lost during give() !!
+	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan type, low nibble is 1/4 the permitted scan attempts. For example "o14" for 16 scans of program 1
 				
 				// With mode = 0xFn start scanning at specified channel. Specified channel = current channel! 
-				if ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) {
+//				if ( (spdif_rx_status.channel == MOBO_SRC_TOS1) || (spdif_rx_status.channel == MOBO_SRC_TOS2) || (spdif_rx_status.channel == MOBO_SRC_SPDIF) ) {
 					// TRANS_ERR failure may mean rate change on current channel
 					// if (TRANS_ERR interrupt) {
-					channel = input_select;
-					wm8804_pllnew(WM8804_PLL_TOGGLE);
+					//   wm8804_pllnew(WM8804_PLL_TOGGLE);
 				    // }
 					// else {
 					//	channel = input_select + 1;
@@ -867,18 +859,18 @@ Arash
 					//		channel = MOBO_SRC_LOW;
 					//	}
 					// }
-					print_dbg_char('G');
-				}
-				else {
-					print_dbg_char('H');
-				}
+//					print_dbg_char('G');
+//				}
+//				else {
+//					print_dbg_char('H');
+//				}
 				
-				wm8804_scannew(&channel, &freq, mode);			// Scan SPDIF inputs and report
-				if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
+				wm8804_scannew(&spdif_rx_status.channel, &freq, mode);		// Scan SPDIF inputs and report
+				if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (spdif_rx_status.channel != MOBO_SRC_NONE)) {
 					// Take semaphore
 					if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 						print_dbg_char('[');
-						input_select = channel;					// Owning semaphore we may write to input_select and take control of hardware
+						input_select = spdif_rx_status.channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 
 						// Set up and unmute
 						spdif_rx_status.frequency = freq;

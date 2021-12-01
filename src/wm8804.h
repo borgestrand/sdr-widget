@@ -55,6 +55,9 @@
 #define WM8804_LOCK_LIM		3					// Poll cycles to verify lock
 #define WM8804_CLK_FAILURE	0					// Failed setting of internal clock division
 #define WM8804_CLK_SUCCESS	1					// Successful setting of internal clock division
+#define WM8804_SCAN_ONE		0x10				// Scan only one channel
+#define WM8804_SCAN_FROM_PRESENT	0x20		// Start scanning from presented channel
+#define WM8804_SCAN_FROM_NEXT		0x30		// Start scanning from next channel in list
 
 typedef struct spdif_rx_status {				// Definition of global variable
 	uint8_t powered;
@@ -64,6 +67,8 @@ typedef struct spdif_rx_status {				// Definition of global variable
 	uint32_t frequency;
 	uint8_t pllmode;
 	uint8_t buffered;
+	uint8_t channel;
+	uint8_t preferred_channel;
 } spdif_rx_status_t;
 
 // Regular polling of WM8804 hardware
