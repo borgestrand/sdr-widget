@@ -875,7 +875,7 @@ void uac1_device_audio_task(void *pvParameters)
 								print_dbg_char('h');				// Debug semaphore, lowercase letters for USB tasks
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 									input_select = MOBO_SRC_NONE;
-									print_dbg_char(60); // '<'
+									print_dbg_char(60); // '<' 
 								}
 								else
 									print_dbg_char(62); // '>'
