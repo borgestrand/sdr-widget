@@ -572,9 +572,9 @@ void wm8804_task(void *pvParameters) {
 				// Poll two silence detectors, WM8804 and buffer transfer code
 				if ( (spdif_rx_status.silent == 1) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
 					if (silence_counter >= WM8804_SILENCE_PLAYING) {	// Source is paused, moving on
-						mustgive = 1;
 						print_dbg_char('m');
-						scanmode = WM8804_SCAN_FROM_NEXT & 0x05;		// Start scanning from next channel. Run up to 5x4 scan attempts
+						scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+						mustgive = 1;
 					}
 					else {
 						silence_counter++;							// Must be silent for a bit longer to take action
@@ -615,10 +615,11 @@ void wm8804_task(void *pvParameters) {
 					wm8804_mute();
 					spdif_rx_status.muted = 1;
 					spdif_rx_status.reliable = 0;				// Critical for mobo_handle_spdif()
-					playing_counter = 0;						// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 
 					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
+						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
+						silence_counter = 0;					// For good measure, pause not yet detected
 						print_dbg_char(60); // '<'
 					}
 					else {
