@@ -533,6 +533,8 @@ void wm8804_task(void *pvParameters) {
 	static uint8_t channel;	// Must be static here?
 	uint8_t wm8804_int;
 	uint8_t mustgive = 0;
+	uint8_t silence_counter = 0;					// How long has a channel been silent? Allow 3s for pause, 0.2s for newly locked channel
+	uint8_t playing_counter = 0;					// How long has a channel be playing music so that we'll look for pause, not newly locked-on mute?
 
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200
@@ -567,18 +569,25 @@ void wm8804_task(void *pvParameters) {
 			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
 				mustgive = 0;									// Not ready to give up playing audio just yet
 						
-				// Poll silence - must elaborate!
-				if ( (0) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
-					print_dbg_char('m');						// Dude went mummmm
+				// Poll two silence detectors, WM8804 and buffer transfer code
+				if ( (spdif_rx_status.silent == 1) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
+					if (silence_counter >= WM8804_SILENCE_PLAYING) {	// Source is paused, moving on
+						mustgive = 1;
+						scanmode = WM8804_SCAN_FROM_NEXT & 0x05;		// Start scanning from next channel. Run up to 5x4 scan attempts
+					}
+					else {
+						silence_counter++;							// Must be silent for a bit longer to take action
+					}
+				} // Silence not detected
+				else {												// Silence not detected
+					if (playing_counter >= WM8804_DETECT_MUSIC) {	// Music detected!
+						silence_counter = 0;						// Must now wait for along pause to start scanning again
+					}
+					else {
+						playing_counter++;							// Still not entirely sure we're actually playing music
+					}
 				}
-						
-				// Poll silence - must elaborate!
-				if ( (spdif_rx_status.silent == 1) || (0) ) {
-					// Count occurrences, qualify by recent linkup or the thing having been quiet for a long time
-					print_dbg_char('n');						// Dude went mummmm
-					// scanmode = WM8804_SCAN_FROM_NEXT & 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
-				}
-						
+				
 				// Poll lost lock pin
 				if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
 					// Count to more than one error?
@@ -604,7 +613,8 @@ void wm8804_task(void *pvParameters) {
 				if (mustgive) {
 					wm8804_mute();
 					spdif_rx_status.muted = 1;
-					spdif_rx_status.reliable = 0;		// Critical for mobo_handle_spdif()
+					spdif_rx_status.reliable = 0;				// Critical for mobo_handle_spdif()
+					playing_counter = 0;						// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 
 					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
@@ -648,6 +658,7 @@ void wm8804_task(void *pvParameters) {
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 							wm8804_unmute();
 							spdif_rx_status.muted = 0;
+							silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
 						}
 						else {
 							print_dbg_char(']');
