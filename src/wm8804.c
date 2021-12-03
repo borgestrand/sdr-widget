@@ -573,6 +573,7 @@ void wm8804_task(void *pvParameters) {
 				if ( (spdif_rx_status.silent == 1) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
 					if (silence_counter >= WM8804_SILENCE_PLAYING) {	// Source is paused, moving on
 						mustgive = 1;
+						print_dbg_char('m');
 						scanmode = WM8804_SCAN_FROM_NEXT & 0x05;		// Start scanning from next channel. Run up to 5x4 scan attempts
 					}
 					else {
