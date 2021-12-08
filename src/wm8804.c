@@ -588,7 +588,7 @@ void wm8804_task(void *pvParameters) {
 						playing_counter++;							// Still not entirely sure we're actually playing music
 					}
 				}
-				
+								
 				// Poll lost lock pin
 				if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
 					// Count to more than one error?

@@ -833,6 +833,12 @@ Arash
 					else if ( (mux_cmd & 0x0F) == 0x09) {	// 39 -> PLL mode toggle !192 <-> 192
 						wm8804_pllnew(WM8804_PLL_TOGGLE);
 					}
+					else if ( (mux_cmd & 0x0F) == 0x0A) {	// 3A -> Use recovered MCLK 
+						mobo_xo_select(FREQ_RXNATIVE, input_select);
+					}
+					
+					
+					
 					
 					
 				} // 3 in upper nibble
