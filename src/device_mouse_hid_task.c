@@ -833,8 +833,21 @@ Arash
 					else if ( (mux_cmd & 0x0F) == 0x09) {	// 39 -> PLL mode toggle !192 <-> 192
 						wm8804_pllnew(WM8804_PLL_TOGGLE);
 					}
-					else if ( (mux_cmd & 0x0F) == 0x0A) {	// 3A -> Use recovered MCLK 
-						mobo_xo_select(FREQ_RXNATIVE, input_select);
+					else if ( (mux_cmd & 0x0F) == 0x0A) {	// 3A -> Use recovered MCLK with unbuffered SPDIF - Must probably reset to leave test mode
+						spdif_rx_status.buffered = 0;
+						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF);
+					}
+					else if ( (mux_cmd & 0x0F) == 0x0B) {	// 3B -> Use recovered MCLK with buffered SPDIF - Must probably reset to leave test mode
+						spdif_rx_status.buffered = 1;
+						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF);
+					}
+					else if ( (mux_cmd & 0x0F) == 0x0C) {	// 3C -> Use 48kHz domain XO with buffered SPDIF - Must probably reset to leave test mode
+						spdif_rx_status.buffered = 1;
+						mobo_xo_select(FREQ_96, MOBO_SRC_SPDIF);
+					}
+					else if ( (mux_cmd & 0x0F) == 0x0D) {	// 3D -> Use 44.1kHz domain XO with buffered SPDIF - Must probably reset to leave test mode
+						spdif_rx_status.buffered = 1;
+						mobo_xo_select(FREQ_88, MOBO_SRC_SPDIF);
 					}
 					
 					
