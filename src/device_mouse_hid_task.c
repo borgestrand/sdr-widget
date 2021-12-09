@@ -851,9 +851,6 @@ Arash
 					}
 					
 					
-					
-					
-					
 				} // 3 in upper nibble
 				print_dbg_char('\n');
             }

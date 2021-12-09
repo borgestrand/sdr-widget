@@ -738,7 +738,7 @@ void mobo_handle_spdif(uint8_t width) {
 				// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
 				if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) {
 					// Explicitly enable receiver's MCLK generator?
-					mobo_xo_select(FREQ_RXNATIVE, input_select);
+//					mobo_xo_select(FREQ_RXNATIVE, input_select);
 #ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('X');
 #endif
@@ -830,7 +830,7 @@ void mobo_handle_spdif(uint8_t width) {
 			if (megaskip >= ADC_BUFFER_SIZE) {
 
 				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
-				mobo_xo_select(spdif_rx_status.frequency, input_select);
+//				mobo_xo_select(spdif_rx_status.frequency, input_select);
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('S');
@@ -843,7 +843,7 @@ void mobo_handle_spdif(uint8_t width) {
 			else if (megaskip <= -ADC_BUFFER_SIZE) {
 
 				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
-				mobo_xo_select(spdif_rx_status.frequency, input_select);
+//				mobo_xo_select(spdif_rx_status.frequency, input_select);
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('I');
