@@ -75,9 +75,6 @@ typedef struct spdif_rx_status {				// Definition of global variable
 	uint8_t preferred_channel;
 } spdif_rx_status_t;
 
-// Regular polling of WM8804 hardware
-void wm8804_poll(void);
-
 // Reset the WM8804 via hardware pin
 void wm8804_reset(uint8_t reset_type);
 
@@ -98,15 +95,12 @@ void wm8804_sleep(void);
 void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode);
 
 // Select input channel of the WM8804
-void wm8804_input(uint8_t input_sel);
 uint32_t wm8804_inputnew(uint8_t input_sel);
 
 // Select PLL setting for the WM8804
-void wm8804_pll(void);
 void wm8804_pllnew(uint8_t pll_sel);			// For manual control
 
 // Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
-void wm8804_clkdiv(void);
 uint8_t wm8804_clkdivnew(uint32_t freq);
 
 // Mute the WM8804 output by means of other hardware
@@ -123,7 +117,6 @@ uint8_t wm8804_read_byte(uint8_t int_adr);
 
 // Sample rate detection test
 uint32_t wm8804_srd(void);
-uint32_t wm8804_srd_asm(void);
 uint32_t wm8804_srd_asm2(void);		// For test and evaluation
 
 

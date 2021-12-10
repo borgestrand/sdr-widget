@@ -761,7 +761,6 @@ Arash
 			s   srd
 			t   GPIO status
 			u   Interrupt report 8 is TRANS_ERR, 1 is UPD_UNLOCK
-			n32 clkdiv
 			n33 pll != 192
 			n34 pll 192
 			n35 take
@@ -789,9 +788,6 @@ Arash
 					}
 					else if ( (mux_cmd & 0x0F) == 0x01) {	// 31 -> init = wake
 						wm8804_init();
-					}
-					else if ( (mux_cmd & 0x0F) == 0x02) {	// 32 -> clkdiv
-						wm8804_clkdiv();
 					}
 					else if ( (mux_cmd & 0x0F) == 0x03) {	// 33 -> PLL !192
 						wm8804_pllnew(WM8804_PLL_NORMAL);
@@ -833,19 +829,19 @@ Arash
 					else if ( (mux_cmd & 0x0F) == 0x09) {	// 39 -> PLL mode toggle !192 <-> 192
 						wm8804_pllnew(WM8804_PLL_TOGGLE);
 					}
-					else if ( (mux_cmd & 0x0F) == 0x0A) {	// 3A -> Use recovered MCLK with unbuffered SPDIF - Must probably reset to leave test mode
+					else if ( (mux_cmd & 0x0F) == 0x0A) {	// 3A -> Use recovered MCLK with unbuffered SPDIF - Requires disable of automatic mobo_xo_select() calls
 						spdif_rx_status.buffered = 0;
 						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF);
 					}
-					else if ( (mux_cmd & 0x0F) == 0x0B) {	// 3B -> Use recovered MCLK with buffered SPDIF - Must probably reset to leave test mode
+					else if ( (mux_cmd & 0x0F) == 0x0B) {	// 3B -> Use recovered MCLK with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
 						spdif_rx_status.buffered = 1;
 						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF);
 					}
-					else if ( (mux_cmd & 0x0F) == 0x0C) {	// 3C -> Use 48kHz domain XO with buffered SPDIF - Must probably reset to leave test mode
+					else if ( (mux_cmd & 0x0F) == 0x0C) {	// 3C -> Use 48kHz domain XO with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
 						spdif_rx_status.buffered = 1;
 						mobo_xo_select(FREQ_96, MOBO_SRC_SPDIF);
 					}
-					else if ( (mux_cmd & 0x0F) == 0x0D) {	// 3D -> Use 44.1kHz domain XO with buffered SPDIF - Must probably reset to leave test mode
+					else if ( (mux_cmd & 0x0F) == 0x0D) {	// 3D -> Use 44.1kHz domain XO with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
 						spdif_rx_status.buffered = 1;
 						mobo_xo_select(FREQ_88, MOBO_SRC_SPDIF);
 					}

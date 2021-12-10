@@ -24,6 +24,8 @@
 /*
 Using the WM8805 as an SPDIF receiver in software control mode
 
+NB: This is valid for WM8805 code baese, not for new WM8804 implementation! Rewrite!
+
 Here is an engineer's viewpoint and experience on programming the WM8805. I've decided
 to share how I got this chip to work well on all relevant audio sample rates (including
 176.4 and 192ksps). Hopefully, this will be a good complement to the datasheet. You may
@@ -155,333 +157,6 @@ If this project is of interest to you, please let me know! I hope to see you at 
 // Global status variable
 volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, 1, MOBO_SRC_NONE, MOBO_SRC_SPDIF}; // Last but s parameter sets .buffered to 1
 
-//!
-//! @brief Polling routine for WM8804 hardware
-//!
-void wm8804_poll(void) {
-	
-	// Gets called every 12ms
-	static int32_t heartbeat = 0;		// Add heartbeat counters for various purposes in a struct. Decrease all when approaching some limits
-	
-	heartbeat++;						// Keep a track of time in state machine engine. Or just rewrite it as a task!
-	
-	return; // RXMODFIX skip polling while exploring manual control
-
-
-
-
-	// Arbitrary startup delay ATD
-	#define pausecounter_initial 20000
-	#define startup_empty_runs 40 // Was 40 // Will this help for cold boot?
-
-	/* Probably not the cause of initial startup hassle
-	 * 400 - 32s
-	 * Brief power down
-	 * 400 - 18s
-	 * 400 - 14s
-	 *
-	 */
-
-    uint8_t wm8804_int = 0;										// WM8804 interrupt status
-    static uint8_t input_select_wm8804_next = MOBO_SRC_TOS2;	// Try TOSLINK first-first
-	static int16_t pausecounter = pausecounter_initial;			// Initiated to a value much larger than what is seen in practical use
-	static int16_t unlockcounter = 0;
-	static int16_t lockcounter = 0;
-	int16_t pausecounter_temp;
-	int16_t unlockcounter_temp;
-
-	// Run the first 40 iterations without starting up. (40*120/10 = 480ms)
-	if (pausecounter >= pausecounter_initial - startup_empty_runs) {
-		pausecounter--;
-		if (pausecounter == pausecounter_initial - startup_empty_runs)
-			pausecounter = 0;
-		return;
-	}
-
-
-	/* NEXT:
-	 * + Decide on which interrupts to enable
-	 * + Do some clever bits with silencing
-	 * + Prevent USB engine from going bonkers when playing on the WM (buffer zeros and send nominal sample rate...)
-	 * + Update USB silence detector timeouts
-	 * + Test UAC2 code and port to UAC1
-	 * - Tasks to be eliminated, particularly uacX_taskAK5394A.c?
-	 * + Test code base on legacy hardware
-	 * - Check if WM is really 24 bits
-	 * + Test SPDIF
-	 * + Structure code away from mobo_config.c/h, device_mouse_hid_task.c etc.
-	 * + Is spk_mute ever used in uac2_d_a_t? Yes, for volume control!
-	 * + Think about some automatic silence detecting software!
-	 * - Long-term testing
-	 * + Categorize sample rate detector with proper signal generator, +-2%, reduce timeout constant everywhere
-	 * + Determine correct GPIO pin for SRD, recompile for asm constants
-	 * + Test USB music playback with SRD running continuously
-	 * + Get hardware capable of generating all SPDIF sample rates
-	 * + Make state machine for WM8804 sample rate detection
-	 * + Make state machine for source selection
-	 * + Figure out ADC interface
-	 * + Make silence detector (use 1024 silent block detector in WM?)
-	 */
-
-/*
-	if (gpio_get_pin_value(WM8804_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-			spdif_rx_status.reliable = 0;					// Something went wrong, we're not reliable
-			wm8804_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
-		}
-	}
-*/
-
-
-/*
-	// Check frequency status. Halt operation if frequency has changed. Don't change source
-	freq_temp = wm8804_srd();
-	if ( (spdif_rx_status.frequency != freq_temp) && (freq_temp != FREQ_TIMEOUT) ) {	// Do we have time for this?
-		print_dbg_char('\\');
-
-		spdif_rx_status.frequency = freq_temp;
-
-		spdif_rx_status.reliable = 0;
-		wm8804_mute();
-		spdif_rx_status.muted = 1;
-		lockcounter = 0;
-		unlockcounter = 0;
-	}
-*/
-
-	// USB is giving away control,
-	if (input_select == MOBO_SRC_NONE) {
-		if (spdif_rx_status.powered == 0) {
-			wm8804_init();								// WM8804 was probably put to sleep before this. Hence re-init
-			spdif_rx_status.pllmode = WM8804_PLL_NONE;	// Force PLL re-init
-//			print_dbg_char('0');
-			spdif_rx_status.powered = 1;
-			spdif_rx_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
-
-			pausecounter = 0;
-			unlockcounter = 0;
-			lockcounter = 0;
-
-
-			spdif_rx_status.reliable = 0;				// Because of input change
-			wm8804_input(input_select_wm8804_next);		// Try next input source
-			print_dbg_char('a');
-
-			wm8804_pll();
-		}
-	}
-	// USB has assumed control, power down WM8804 if it was on
-	else if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
-		if (spdif_rx_status.powered == 1) {
-			spdif_rx_status.powered = 0;
-			spdif_rx_status.reliable = 0;					// Because of power down
-			wm8804_sleep();
-		}
-	}
-
-
-	// Current WM8804 input is silent or unavailable. When WM is selected, wait for a long time (paused).
-	// When WM is not selected, scan WM inputs for a short time (unlinked)
-	// Playing input: Tolerate WM8804_PAUSE_LIM of silence before searching for other input.
-	// Scanning inputs: Tolerate WM8804_SILENCE_LIM before searching on
-	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-		unlockcounter_temp = WM8804_HICKUP_LIM;
-		pausecounter_temp = WM8804_PAUSE_LIM;
-	}
-	else {
-		unlockcounter_temp = WM8804_UNLOCK_LIM;
-		pausecounter_temp = WM8804_SILENCE_LIM;
-	}
-
-	if ( (spdif_rx_status.powered == 1) && ( (unlockcounter >= unlockcounter_temp) || (pausecounter >= pausecounter_temp) ) ) {
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-
-			wm8804_mute();
-			spdif_rx_status.muted = 1;
-
-#ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char('G');						// Debug semaphore, capital letters for WM8804 task
-			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-
-				// Highly experimental
-//				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
-
-				input_select = MOBO_SRC_NONE;				// Indicate USB may  over control, but don't power down!
-				print_dbg_char(60); // '<'
-			}
-			else
-				print_dbg_char(62); // '>'
-#else
-			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-
-				// Highly experimental
-//				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
-
-				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
-			}
-#endif
-		}
-
-		// Try other WM8804 channel
-		if (input_select == MOBO_SRC_NONE) {
-
-			#ifdef HW_GEN_RXMOD									// SPDIF, TOS2 and TOS1 available. Try to rewrite priorities according to SPDIF counter NB: schematic counts TOS0 and TOS1
-				if (input_select_wm8804_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8804_next = MOBO_SRC_TOS1;
-				else if (input_select_wm8804_next == MOBO_SRC_TOS1)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8804_next = MOBO_SRC_SPDIF;
-				else
-					input_select_wm8804_next = MOBO_SRC_TOS2;
-			#endif
-
-			// FIX: disable and re-enable ADC DMA around here?
-			
-			spdif_rx_status.reliable = 0;						// Because of input change
-			wm8804_input(input_select_wm8804_next);				// Try next input source
-			print_dbg_char('c');
-
-			wm8804_pll();
-
-			lockcounter = 0;
-			unlockcounter = 0;
-			pausecounter = 0;
-		}
-	}
-
-
-	// Check if WM8804 is able to lock and hence play music, only use when WM8804 is powered
-	if ( (spdif_rx_status.muted == 1) && (spdif_rx_status.reliable == 1) && (pausecounter == 0)) {
-
-		if (input_select == MOBO_SRC_NONE) {		// Semaphore is untaken, try to take it
-#ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char('T');					// Debug semaphore, capital letters for WM8804 task
-			if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-				print_dbg_char('[');
-				input_select = input_select_wm8804_next;	// Owning semaphore we may write to input_select
-
-				// Highly experimental
-//				gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
-
-			}
-			else
-				print_dbg_char(']');
-#else // not debug
-			if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) { // Re-take of taken semaphore returns false
-
-				// Highly experimental
-//				gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
-
-				input_select = input_select_wm8804_next;	// Owning semaphore we may write to input_select
-			}
-#endif
-		}
-
-		// Do we own semaphore? If so, change I2S setting
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
-			wm8804_clkdiv();						// Configure MCLK division
-			wm8804_unmute();						// Reconfigure DAC-side I2S and LEDs
-			spdif_rx_status.muted = 0;
-		}
-	}
-
-	// RXMODFIX Verify pin !
-
-	// Polling interrupt monitor, only use when WM8804 is on
-	if ( (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) && (spdif_rx_status.powered == 1) ) {
-		spdif_rx_status.reliable = 0;					// RX is not stable
-		if (spdif_rx_status.muted == 0) {				// Mute audio
-			wm8804_mute();
-			spdif_rx_status.muted = 1;
-		}
-
-
-		// 2*30 if clean, up to 20*30 if not clean. PLL change typically uses two interrupts
-		int i = 20;
-		while (i > 0) {
-			vTaskDelay(30);
-
-			if (gpio_get_pin_value(WM8804_CSB_PIN) == 1)	// Not locked
-				i--;
-			else 											// Locked
-				i-=10;
-		}
-
-		wm8804_int = wm8804_read_byte(0x0B);		// Record interrupt status and clear pin, configured in 0x0A // Same in WM8804 and WM8805
-
-		if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {
-			print_dbg_char('l');					// Not locked
-		}
-		else {
-			print_dbg_char('L');					// Locked
-		}
-			
-		print_dbg_char_hex(wm8804_int);				// 0b REC_FREQ | UPD_DEEMPH | UPD_CPY_Y | UPD_NON_AUDIO | INT_TRANS_ERR | INT_CSUD | INT_INVALID | UPD_UNLOCK
-
-		print_dbg_char('e');
-		wm8804_pll();
-
-	}	// Done handling interrupt
-
-
-	// Monitor silent or disconnected WM8804 input
-	if (spdif_rx_status.powered == 1) {
-		
-		// RXMODFIX Verify pin ! 
-			
-		if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Not locked!
-			spdif_rx_status.reliable = 0;				// Duplication of code from the top of this section, bad style!
-			lockcounter = 0;
-			if (unlockcounter < WM8804_HICKUP_LIM) {
-				unlockcounter++;
-			}
-		}
-		else {											// Lock indication
-			unlockcounter = 0;
-			if (lockcounter < WM8804_LOCK_LIM) {
-				lockcounter++;
-			}
-			else {
-				if (spdif_rx_status.reliable == 0) {		// Only once at this spot
-/*
-					#define sdr_poll_repetitions 10
-					int i = sdr_poll_repetitions;		// N, number of successful polls required
-					spdif_rx_status.frequency = wm8804_srd();
-
-					while (i > 0) {						// Must verify N times
-						vTaskDelay(10);					// 1ms poll
-						if (spdif_rx_status.frequency == wm8804_srd())
-							i--;
-						else {							// New baseline to be verified
-							spdif_rx_status.frequency = wm8804_srd();
-							i = sdr_poll_repetitions;
-						}
-
-					}
-*/
-					print_dbg_char(';');
-					spdif_rx_status.frequency = wm8804_srd();
-
-					if (spdif_rx_status.frequency != FREQ_TIMEOUT) {
-//						print_dbg_char('r');
-						spdif_rx_status.reliable = 1;
-					}
-				}
-			}
-		}
-
-// 		SW zero detector depends on uacX_device_audio_task to update .silent
-//		if ( (spdif_rx_status.silent == 1) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
-		if ( (spdif_rx_status.silent == 1)  ) {
-			if (pausecounter < WM8804_PAUSE_LIM)
-				pausecounter++;
-		}
-		else {
-			pausecounter = 0;
-		}
-	}
-
-} // wm8804_poll
-
 
 // Using the WM8804 requires intimate knowledge of the chip and its datasheet. For this
 // reason we use a lot of raw hex rather than naming of its internal registers.
@@ -535,12 +210,15 @@ void wm8804_task(void *pvParameters) {
 	uint8_t mustgive = 0;
 	uint8_t silence_counter = 0;					// How long has a channel been silent? Allow 3s for pause, 0.2s for newly locked channel
 	uint8_t playing_counter = 0;					// How long has a channel be playing music so that we'll look for pause, not newly locked-on mute?
+	uint8_t poll_counter = 0;
 
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200
 
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
+		
+		poll_counter ++;							// Don't always do everything
 
 //		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_inputnew()
 		
@@ -609,6 +287,19 @@ void wm8804_task(void *pvParameters) {
 						mustgive = 1;
 					}
 				}
+				
+				// Sometimes poll sample rate - dude, this happens a lot!
+				if ( (poll_counter & 0x03) == 0) {				// Once every 80ms while playing check if sample rate is correct
+					freq = wm8804_srd();
+
+					// If srd() returned a valid frequency that is different from the one we believe we're at, do something!					
+					if ( ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) || (freq == FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
+						print_dbg_char('?');					// Sample rate mismatch!
+						// wm8804_pllnew(WM8804_PLL_TOGGLE);		// No PLL toggle -> quick to return to present setting
+						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel to prevent consequences of false detects. Run up to 5x4 scan attempts
+						mustgive = 1;
+					}
+				}
 						
 				// Give away control?
 				if (mustgive) {
@@ -646,7 +337,6 @@ void wm8804_task(void *pvParameters) {
 					if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
 						wm8804_read_byte(0x0B);					// Clear interrupts for good measure
 								
-						// Update status
 						spdif_rx_status.channel = channel;
 						spdif_rx_status.frequency = freq;
 						// spdif_rx_status.powered = 1;			// Written above
@@ -654,8 +344,14 @@ void wm8804_task(void *pvParameters) {
 						spdif_rx_status.silent = 0;				// Modified in mobo_handle_spdif()
 						spdif_rx_status.buffered = 1;
 								
-						// Take semaphore
+						// Take semaphore, update status if that went well
 						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+							spdif_rx_status.channel = channel;
+							spdif_rx_status.frequency = freq;
+							// spdif_rx_status.powered = 1;		// Written above
+							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
+							spdif_rx_status.silent = 0;			// Modified in mobo_handle_spdif()
+							spdif_rx_status.buffered = 1;
 							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 							wm8804_unmute();
@@ -726,36 +422,6 @@ void wm8804_sleep(void) {
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 	wm8804_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL // WM8804 same
-}
-
-// Select input channel of the multiplexer preceding WM8804. NB: this is outside the scope fo the chip itself!
-// Naming convention: TOSLINK0 on schematic is TOSLINK1 in code etc. 
-void wm8804_input(uint8_t input_sel) {
-
-//	print_dbg_char(0x30 + input_sel);
-
-//	print_dbg_char_hex(input_sel);
-
-	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
-	
-	mobo_rxmod_input(input_sel);			// Hardware MUX control, should be possible to re-run this from CLI on same channel, with no effect
-
-
-// VS WM8805 code:
-// What is missing in '04?			
-// wm8805_write_byte(0x08, 0x34);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
-
-	// Is this needed in WM8804 where it does not select input channel?
-	wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
-
-	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
-
-	// Was 600
-	vTaskDelay(600);						// Allow for stability. 500 gives much better performance than 200.
-
-	// RXMODFIX extra delay. Poll for stability instead?
-
-//	print_dbg_char('.');
 }
 
 
@@ -897,9 +563,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 
 
 
-
-
-
+// Pll setting for WM8804
 void wm8804_pllnew(uint8_t pll_sel) {
 	static uint8_t pll_sel_prev = WM8804_PLL_NORMAL;	// Chip default value
 	
@@ -954,86 +618,6 @@ void wm8804_pllnew(uint8_t pll_sel) {
 // 600 / 3000	Warm start OK. Cold start OK
 // 600 / 2000	Warm start OK. Cold start OK
 // 600 / 1500	Warm start OK. Cold start OK
-
-
-// Select PLL setting of the WM8804
-
-void wm8804_pll(void) {
-	uint8_t pll_sel = WM8804_PLL_NONE;
-	print_dbg_char(':');
-	spdif_rx_status.frequency = wm8804_srd();
-
-	if (  ( (spdif_rx_status.frequency == FREQ_192) && (spdif_rx_status.pllmode != WM8804_PLL_192) ) ||
-		  ( (spdif_rx_status.frequency != FREQ_192) && (spdif_rx_status.pllmode != WM8804_PLL_NORMAL) ) ) {
-		if (spdif_rx_status.frequency == FREQ_192)
-			spdif_rx_status.pllmode = WM8804_PLL_192;
-		else
-			spdif_rx_status.pllmode = WM8804_PLL_NORMAL;
-
-		pll_sel = spdif_rx_status.pllmode;
-	}
-
-	// NO need for new PLL setup
-	if (pll_sel == WM8804_PLL_NONE)
-		return;
-
-	// PLL setup has changed
-	wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
-
-	 // WM8804 adr. 0x03, 0x04, 0x05, 0x06 same bit use, not verified here
-
-
-	// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
-	if (pll_sel == WM8804_PLL_NORMAL) {
-		print_dbg_char('_');
-
-		wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
-		wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
-		wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
-		wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
-	}
-
-	// Special PLL setup for 192
-	else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-		print_dbg_char('#');
-
-		wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
-		wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
-		wm8804_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
-		wm8804_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
-	}
-
-/* // Bad news: unified PLL setting doesn't work!
-	else if (pll_sel == WM8804_PLL_EXP) { 	// Experimental PLL setting 8.0247 failed 192, 8.1 failed 176 and 192. Forget it!
-		wm8804_write_byte(0x03, 0x66);	// PLL_K[7:0]
-		wm8804_write_byte(0x04, 0x66);	// PLL_K[15:8]
-		wm8804_write_byte(0x05, 0x06);	// 7:0,  6:0, 5-0:PLL_K[21:16]
-		wm8804_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
-	}
-*/
-	wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
-
-	// was 1500
-	vTaskDelay(4500);	//500, 1000  bad start 3000, 2000, 1500 good start				// Let WM8804 PLL try to settle for some time (300-ish ms) FIX: too long?
-	
-	// RXMODFIX Rather than delay, poll for lock and stability!
-}
-
-
-// Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
-// WM8804 adr. 0x07, 0x0C same bit use, not verified here
-void wm8804_clkdiv(void) {
-	uint8_t temp;
-	temp = wm8804_read_byte(0x0C);		// Read SPDSTAT
-	temp = temp & 0x30;					// Consider bits 5-4
-
-	if ( (temp == 0x20) || (temp == 0x30) )	// 44.1, 48, or 32
-	wm8804_write_byte(0x07, 0x0C);	// 7:0 , 6:0, 5-4:MCLK=512fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
-	else if (temp == 0x10)				// 88.2 or 96
-	wm8804_write_byte(0x07, 0x1C);	// 7:0 , 6:0, 5-4:MCLK=256fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
-	else								// 176.4 or 192
-	wm8804_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
-}
 
 
 // Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range

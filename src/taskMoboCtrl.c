@@ -1163,9 +1163,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
 wm8805_poll();									// Handle WM8805's various hardware needs
 #endif
-#if (defined HW_GEN_RXMOD)
-wm8804_poll();									// Handle WM8804's various hardware needs
-#endif
 
 #ifdef HW_GEN_DIN20
 		if (mobo_usb_detect() != usb_ch) {
