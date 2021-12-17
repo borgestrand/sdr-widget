@@ -3,6 +3,8 @@
 # into flash. To force them into flash, reboot with 
 # feature_quirk_ptest set in flash, which will lead to flash being
 # overwritten with defaults
+#
+# -DFEATURE_PRODUCT_AB1x
 
 # PARTNAME=-mpart=uc3a3256
 PARTNAME=-mpart=uc3a3128
@@ -23,8 +25,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_VOLUME_CTRL \
 	-DHW_GEN_RXMOD \
-	-DFEATURE_PRODUCT_AB1x
-
+	-DFEATURE_PRODUCT_BOEC1
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o

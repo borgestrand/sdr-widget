@@ -175,8 +175,12 @@
     #define AUDIO_PRODUCT_ID_14   0x098c	//!  AMB	UAC2 PID
   #elif (defined(FEATURE_PRODUCT_MADA))
     #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
-    #define AUDIO_PRODUCT_ID_11   0x075e	//!  QNKTC future use UAC1 PID
-    #define AUDIO_PRODUCT_ID_12   0x075f	//!  QNKTC future use UAC2 PID
+	#define AUDIO_PRODUCT_ID_11   0x075e	//!  QNKTC future use UAC1 PID
+	#define AUDIO_PRODUCT_ID_12   0x075f	//!  QNKTC future use UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_BOEC1))
+    #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
+    #define AUDIO_PRODUCT_ID_9    0x075c	//!  AB-1.x	UAC1 PID
+    #define AUDIO_PRODUCT_ID_10   0x075d	//!  AB-1.x	UAC2 PID
   #else
     #error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
   #endif
@@ -254,13 +258,19 @@
 	  Usb_unicode('r'), Usb_unicode('i'), Usb_unicode('e'), Usb_unicode('s')\
 	}
 #elif defined (FEATURE_PRODUCT_MADA)  // AUDIO_PRODUCT_ID_9 and _10
-	#define USB_MN_LENGTH         20
-	#define USB_MANUFACTURER_NAME {\
-		  Usb_unicode('M'), Usb_unicode('a'), Usb_unicode('d'), Usb_unicode('a'), Usb_unicode(' '), Usb_unicode('A'), \
-		  Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), Usb_unicode('M'), \
-		  Usb_unicode('u'), Usb_unicode('l'), Usb_unicode('t'), Usb_unicode('i'), Usb_unicode(' '), Usb_unicode('D'), \
-		  Usb_unicode('A'), Usb_unicode('C')\
-		}
+#define USB_MN_LENGTH         20
+#define USB_MANUFACTURER_NAME {\
+	Usb_unicode('M'), Usb_unicode('a'), Usb_unicode('d'), Usb_unicode('a'), Usb_unicode(' '), Usb_unicode('A'), \
+	Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), Usb_unicode('M'), \
+	Usb_unicode('u'), Usb_unicode('l'), Usb_unicode('t'), Usb_unicode('i'), Usb_unicode(' '), Usb_unicode('D'), \
+	Usb_unicode('A'), Usb_unicode('C')\
+}
+#elif defined (FEATURE_PRODUCT_BOEC1)  // AUDIO_PRODUCT_ID_9 and _10
+#define USB_MN_LENGTH         11
+#define USB_MANUFACTURER_NAME {\
+	Usb_unicode('B'), Usb_unicode('O'), Usb_unicode('E'), Usb_unicode('N'), Usb_unicode('I'), Usb_unicode('C'), \
+	Usb_unicode('K'), Usb_unicode('E'), Usb_unicode(' '), Usb_unicode('c'), Usb_unicode('1')\
+}
 #else
 	#error No recognized FEATURE_PRODUCT... is defined in Makefile, aborting.
 #endif
@@ -324,6 +334,12 @@
       Usb_unicode('u'), Usb_unicode('l'), Usb_unicode('t'), Usb_unicode('i'), Usb_unicode(' '), Usb_unicode('D'), \
       Usb_unicode('A'), Usb_unicode('C')\
     }
+#elif defined (FEATURE_PRODUCT_BOEC1)
+	#define USB_PN_LENGTH         11
+	#define USB_PRODUCT_NAME {\
+  	  Usb_unicode('B'), Usb_unicode('O'), Usb_unicode('E'), Usb_unicode('N'), Usb_unicode('I'), Usb_unicode('C'), \
+	  Usb_unicode('K'), Usb_unicode('E'), Usb_unicode(' '), Usb_unicode('c'), Usb_unicode('1')\
+	}
 #elif defined (FEATURE_PRODUCT_AB1x)  // AUDIO_PRODUCT_ID_9 and _10
   #ifdef COMPILING_FOR_DRIVER_DEVELOPMENT
     #define USB_PN_LENGTH         20
@@ -422,12 +438,12 @@
   Usb_unicode('0'),\
   Usb_unicode('2'),\
   Usb_unicode('1'),\
-  Usb_unicode('0'),\
   Usb_unicode('1'),\
+  Usb_unicode('2'),\
   Usb_unicode('1'),\
   Usb_unicode('7'),\
   Usb_unicode('0'),\
-  Usb_unicode('1'),\
+  Usb_unicode('3'),\
   Usb_unicode('B'),\
   Usb_unicode('S'),\
   Usb_unicode('B') \
