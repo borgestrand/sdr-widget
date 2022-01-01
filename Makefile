@@ -5,6 +5,8 @@
 # overwritten with defaults
 #
 # -DFEATURE_PRODUCT_AB1x
+# -DFEATURE_PRODUCT_HA256
+# -DFEATURE_PRODUCT_BOEC1
 
 # PARTNAME=-mpart=uc3a3256
 PARTNAME=-mpart=uc3a3128
@@ -25,7 +27,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_VOLUME_CTRL \
 	-DHW_GEN_RXMOD \
-	-DFEATURE_PRODUCT_BOEC1
+	-DFEATURE_PRODUCT_HA256
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o
