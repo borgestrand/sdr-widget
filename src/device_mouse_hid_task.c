@@ -845,8 +845,13 @@ Arash
 						spdif_rx_status.buffered = 1;
 						mobo_xo_select(FREQ_88, MOBO_SRC_SPDIF);
 					}
-					
-					
+					else if ( (mux_cmd & 0x0F) == 0x0E) {	// 3E -> Disable SPDIF_COUNTers
+						gpio_clr_gpio_pin(AVR32_PIN_PB04);
+					}
+					else if ( (mux_cmd & 0x0F) == 0x0F) {	// 3F -> Enable SPDIF_COUNTers
+						gpio_set_gpio_pin(AVR32_PIN_PB04);
+					}
+										
 				} // 3 in upper nibble
 				print_dbg_char('\n');
             }
