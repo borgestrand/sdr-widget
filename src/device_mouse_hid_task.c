@@ -830,7 +830,7 @@ Arash
 						wm8804_pllnew(WM8804_PLL_TOGGLE);
 					}
 					else if ( (mux_cmd & 0x0F) == 0x0A) {	// 3A -> Use recovered MCLK with unbuffered SPDIF - Requires disable of automatic mobo_xo_select() calls
-						spdif_rx_status.buffered = 0;
+						spdif_rx_status.buffered = 0;		// NB: will be discontinued in hardware!
 						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF);
 					}
 					else if ( (mux_cmd & 0x0F) == 0x0B) {	// 3B -> Use recovered MCLK with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls

@@ -1052,7 +1052,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 
 	#elif (defined HW_GEN_RXMOD) 
 
-		if (spdif_rx_status.buffered == 0) {
+		if (spdif_rx_status.buffered == 0) { // NB will be discontinued in hardware!
 			// Old version with I2S mux
 			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
 			if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
