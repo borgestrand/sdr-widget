@@ -1071,8 +1071,8 @@ Arash
 			192	C0
 			*/
 			else if (a == 's') {
-				print_dbg_char_hex( (uint8_t)(wm8804_srd() / 1000) );
-				print_dbg_char('\n');
+				print_dbg_char_hex( (uint8_t)(wm8804_srd() / 1000) );		// Report sample rate
+				void wm8804_linkstats(void);								// Report linkup status
 			}
 			
 

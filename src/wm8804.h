@@ -97,6 +97,9 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode);
 // Select input channel of the WM8804
 uint32_t wm8804_inputnew(uint8_t input_sel);
 
+// Report link statistics
+void wm8804_linkstats(void);
+
 // Select PLL setting for the WM8804
 void wm8804_pllnew(uint8_t pll_sel);			// For manual control
 
