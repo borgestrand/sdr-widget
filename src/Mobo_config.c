@@ -434,6 +434,10 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 // Audio Widget HW_GEN_RXMOD LED control
 void mobo_led(uint8_t fled0) {
 	// red:1, green:2, blue:4
+	
+	print_dbg_char('l');
+	print_dbg_char_hex(fled0);
+
 
 	if (fled0 == FLED_NO_CHG)				// No change
 		return;
@@ -457,11 +461,20 @@ void mobo_led(uint8_t fled0) {
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source) {
 	// Don't assign BLUE, future MQA implementations may crave that one. 
+	
+	
+	print_dbg_char('L');
+	print_dbg_char_hex(source);
 
 	// Source indication on single LED
 	switch (source) {
 		case MOBO_SRC_NONE: {
-			mobo_led(FLED_WHITE);	// Indicate fault for now
+			
+			#ifdef FLED_SCANNING	// Indicate scanning or fault
+				mobo_led(FLED_SCANNING);
+			#else
+				mobo_led(FLED_WHITE);	// Indicate fault for now
+			#endif
 					
 			// No source is indicated as USB audio
 			// if (FEATURE_IMAGE_UAC1_AUDIO)

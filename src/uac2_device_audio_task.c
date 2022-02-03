@@ -642,8 +642,8 @@ void uac2_device_audio_task(void *pvParameters)
 									print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 										print_dbg_char('[');
-										mobo_led_select(current_freq.frequency, input_select);
 										input_select = MOBO_SRC_UAC2;
+										mobo_led_select(current_freq.frequency, input_select);
 										#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 
 											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 										#endif
@@ -652,8 +652,8 @@ void uac2_device_audio_task(void *pvParameters)
 										print_dbg_char(']');
 								#else // not debug
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
-										mobo_led_select(current_freq.frequency, input_select);
 										input_select = MOBO_SRC_UAC2;
+										mobo_led_select(current_freq.frequency, input_select);
 										#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 
 											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 										#endif
@@ -663,12 +663,16 @@ void uac2_device_audio_task(void *pvParameters)
 							#endif
 						}
 
+/* Needed?
+
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
 							if ( (!ledSet) && (input_select == MOBO_SRC_UAC2) ) {
 								ledSet = TRUE;
 								mobo_led_select(current_freq.frequency, input_select);
 							}
 						#endif
+						
+*/					
 
 
 	#ifdef FEATURE_VOLUME_CTRL

@@ -702,8 +702,14 @@ static void vtaskMoboCtrl( void * pcParameters )
 	// Indicate new frequency for Si570
 	FRQ_fromusb = TRUE;
 
+	
+	// The Henry Audio and QNKTC series of hardware doesn't use the rotary encoder
+	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD)
+	#else
 	// Initialise Rotary Encoder Function
-	encoder_init();
+		encoder_init();
+	#endif
+	
 
 	// Force an initial reading of AD7991 etc
 	#if I2C
