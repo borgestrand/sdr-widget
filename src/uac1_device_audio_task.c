@@ -708,12 +708,25 @@ void uac1_device_audio_task(void *pvParameters)
 									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 										input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 										print_dbg_char(60); // '<'
+										
+										#ifdef HW_GEN_RXMOD
+										#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+											mobo_led(FLED_SCANNING);
+										#endif
+										#endif
 									}
 									else
 										print_dbg_char(62); // '>'
 								#else
-									if( xSemaphoreGive(input_select_semphr) == pdTRUE )
+									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 										input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+
+										#ifdef HW_GEN_RXMOD
+										#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+											mobo_led(FLED_SCANNING);
+										#endif
+										#endif
+									}
 								#endif
 	//			    			mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
 							#endif
@@ -876,12 +889,25 @@ void uac1_device_audio_task(void *pvParameters)
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 									input_select = MOBO_SRC_NONE;
 									print_dbg_char(60); // '<' 
+
+									#ifdef HW_GEN_RXMOD
+									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+										mobo_led(FLED_SCANNING);
+									#endif
+									#endif
 								}
 								else
 									print_dbg_char(62); // '>'
 							#else
-								if (xSemaphoreGive(input_select_semphr) == pdTRUE)
+								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 									input_select = MOBO_SRC_NONE;
+
+									#ifdef HW_GEN_RXMOD
+									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+										mobo_led(FLED_SCANNING);
+									#endif
+									#endif
+								}
 							#endif
 //			 			   		mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
 						#endif

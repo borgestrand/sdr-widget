@@ -78,6 +78,7 @@
 #define FLED_WHITE			7
 #define FLED_DARK			0
 #define FLED_NO_CHG			9
+#define FLED_SCANNING		FLED_WHITE	// While scanning for an input, should there be a default light? Implemented only on HW_GEN_RXMOD
 
 // USB channels
 #define USB_CH_NONE			0

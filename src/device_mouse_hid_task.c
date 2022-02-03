@@ -808,6 +808,12 @@ Arash
 						if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 							input_select = MOBO_SRC_NONE;	// Indicate USB may  over control, but don't power down!
 							print_dbg_char(60); // '<'
+							
+							#ifdef HW_GEN_RXMOD
+							#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+								mobo_led(FLED_SCANNING);
+							#endif
+							#endif
 						}
 						else {
 							print_dbg_char(62); // '>'
@@ -929,6 +935,12 @@ Arash
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 								input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 								print_dbg_char(60); // '<'
+								
+								#ifdef HW_GEN_RXMOD
+								#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+									mobo_led(FLED_SCANNING);
+								#endif
+								#endif
 							}
 							else {
 								print_dbg_char(62); // '>'
@@ -1072,7 +1084,7 @@ Arash
 			*/
 			else if (a == 's') {
 				print_dbg_char_hex( (uint8_t)(wm8804_srd() / 1000) );		// Report sample rate
-				void wm8804_linkstats(void);								// Report linkup status
+				wm8804_linkstats();											// Report linkup status
 			}
 			
 

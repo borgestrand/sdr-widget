@@ -209,6 +209,10 @@ void wm8804_task(void *pvParameters) {
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 						silence_counter = 0;					// For good measure, pause not yet detected
 						print_dbg_char(60); // '<'
+						
+						#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+							mobo_led(FLED_SCANNING);
+						#endif
 					}
 					else {
 						print_dbg_char(62); // '>'
