@@ -1213,10 +1213,10 @@ wm8805_poll();									// Handle WM8805's various hardware needs
 				usb_ch = mobo_usb_detect();
 
 				#ifdef USB_STATE_MACHINE_DEBUG			// Report what just happened
-				if (usb_ch == USB_CH_C)
-				print_dbg_char('c');
-				else if (usb_ch == USB_CH_B)
-				print_dbg_char('b');
+					if (usb_ch == USB_CH_C)
+						print_dbg_char('c');
+					else if (usb_ch == USB_CH_B)
+						print_dbg_char('b');
 				#endif
 
 				mobo_usb_select(usb_ch);
