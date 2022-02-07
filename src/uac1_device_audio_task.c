@@ -966,7 +966,7 @@ void uac1_device_audio_task(void *pvParameters)
 	} // end while vTask
 }
 
-#endif  // USB_DEVICE_FEATURE == ENABLED
+#endif  // USB_DEVICE_FEATURE == ENABLED 
 
 
 
