@@ -440,10 +440,6 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 void mobo_led(uint8_t fled0) {
 	// red:1, green:2, blue:4
 	
-	print_dbg_char('l');
-	print_dbg_char_hex(fled0);
-
-
 	if (fled0 == FLED_NO_CHG)				// No change
 		return;
 
@@ -466,10 +462,6 @@ void mobo_led(uint8_t fled0) {
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source) {
 	// Don't assign BLUE, future MQA implementations may crave that one. 
-	
-	
-	print_dbg_char('L');
-	print_dbg_char_hex(source);
 
 	// Source indication on single LED
 	switch (source) {
