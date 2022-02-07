@@ -770,7 +770,7 @@ void uac2_device_audio_task(void *pvParameters)
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
 							ledSet = FALSE;
 							#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('g');					// Debug semaphore, lowercase letters for USB tasks
+								print_dbg_char('k');					// Debug semaphore, lowercase letters for USB tasks
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 									print_dbg_char(60); // '<'
