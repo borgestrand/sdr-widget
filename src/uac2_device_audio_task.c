@@ -172,10 +172,6 @@ void uac2_device_audio_task(void *pvParameters)
 	uint8_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
-		Bool ledSet = FALSE;
-	#endif
-
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
 		#define IN_LEFT 0
@@ -663,18 +659,6 @@ void uac2_device_audio_task(void *pvParameters)
 							#endif
 						}
 
-/* Needed?
-
-						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
-							if ( (!ledSet) && (input_select == MOBO_SRC_UAC2) ) {
-								ledSet = TRUE;
-								mobo_led_select(current_freq.frequency, input_select);
-							}
-						#endif
-						
-*/					
-
-
 	#ifdef FEATURE_VOLUME_CTRL
 						if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
 							sample_L = 0;
@@ -768,7 +752,6 @@ void uac2_device_audio_task(void *pvParameters)
 						// mobodebug Could this be the spot which sucks up CPU time with input_select == MOBO_SRC_UAC2
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
-							ledSet = FALSE;
 							#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('k');					// Debug semaphore, lowercase letters for USB tasks
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -794,7 +777,6 @@ void uac2_device_audio_task(void *pvParameters)
 									#endif
 								}
 							#endif
-	//	 		           	mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// Indicate silence detected by USB subsystem
 						#endif
 					}
 
@@ -949,7 +931,6 @@ void uac2_device_audio_task(void *pvParameters)
 					// mobodebug is this another scheduler thief?
 
 					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
-						ledSet = FALSE;
 						#ifdef USB_STATE_MACHINE_DEBUG
 							print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {

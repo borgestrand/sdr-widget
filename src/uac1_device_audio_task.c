@@ -172,10 +172,6 @@ void uac1_device_audio_task(void *pvParameters)
 	uint8_t silence_det = 0;
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
-		Bool ledSet = FALSE;
-	#endif
-
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
 	#define IN_LEFT 0
@@ -610,15 +606,6 @@ void uac1_device_audio_task(void *pvParameters)
 								#endif
 							}
 
-/* Needed?
-							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
-								if ( (!ledSet) && (input_select == MOBO_SRC_UAC1) ) {
-									ledSet = TRUE;
-									mobo_led_select(current_freq.frequency, input_select);
-								}
-							#endif
-*/							
-
 
 	#ifdef FEATURE_VOLUME_CTRL
 
@@ -706,7 +693,6 @@ void uac1_device_audio_task(void *pvParameters)
 							// mobodebug possible cycle thief ???
 
 							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
-								ledSet = FALSE;
 								#ifdef USB_STATE_MACHINE_DEBUG
 									print_dbg_char('k');						// Debug semaphore, lowercase letters for USB tasks
 									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -887,7 +873,6 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
-							ledSet = FALSE;
 							#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('h');				// Debug semaphore, lowercase letters for USB tasks
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
