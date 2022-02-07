@@ -906,37 +906,67 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 			// BSB 20131201 attempting improved playerstarted detection
-				/* SPDIF reduced */
+
+
+			// BSB 20131201 attempting improved playerstarted detection
+			/* SPDIF reduced */
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
-			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
-				// Do nothing at this stage
-			}
-			else {
+		// On new hardware, don't do this if spdif is playing
+		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
+			// Do nothing at this stage
+		}
+		else {
 #else
-				if (1) {
+		// On old hardware always do this for USB inputs
+		if (1) {
 #endif
-				if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA, decreased by seq. code
-					usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
-					playerStarted = FALSE;
+
+			// Execute here if input is any USB input or no input at all
+
+			if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA and uacX_taskAK5394A.c, decreased by seq. code
+				usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
+				playerStarted = FALSE;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char('q');
+				print_dbg_char('q');
 #endif
+
+				// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
+				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
+				#ifdef USB_STATE_MACHINE_DEBUG
+				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
+				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+					print_dbg_char(60); // '<'
+						
+					#ifdef HW_GEN_RXMOD
+					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+					mobo_led(FLED_SCANNING);
+					#endif
+					#endif
 				}
-			}
+				else
+					print_dbg_char(62); // '>'
+				#else
+				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+						
+					#ifdef HW_GEN_RXMOD
+					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+					mobo_led(FLED_SCANNING);
+					#endif
+					#endif
+				}
+				#endif
+				#endif
+
+			} // end if usb buffer toggle limit reach
+		} // end if USB playback or no playback
 
 	} // end while vTask
-
 }
 
 #endif  // USB_DEVICE_FEATURE == ENABLED
-
-
-
-
-
-
-
 
 
 
