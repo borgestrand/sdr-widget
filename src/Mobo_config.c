@@ -116,22 +116,22 @@ void mobo_km(uint8_t enable) {
 
 // Control USB multiplexer in HW_GEN_DIN20
 void mobo_usb_select(uint8_t usb_ch) {
-	if (usb_ch == USB_CH_NONE) {
-		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
-		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
-		gpio_clr_gpio_pin(USB_VBUS_A_PIN);				// NO USB A to MCU's VBUS pin
-	}
 	if (usb_ch == USB_CH_A) {
 		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_clr_gpio_pin(USB_DATA_A0_B1_PIN);			// Select USB A to MCU's USB data pins
 		gpio_set_gpio_pin(USB_VBUS_A_PIN);				// Select USB A to MCU's VBUS pin
 	}
-	if (usb_ch == USB_CH_B) {
+	else if (usb_ch == USB_CH_B) {
 		gpio_clr_gpio_pin(USB_VBUS_A_PIN);				// NO USB A to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);			// Select USB B to MCU's USB data pins
 		gpio_set_gpio_pin(USB_VBUS_B_PIN);				// Select USB B to MCU's VBUS pin
+	}
+	else {												// NB untested to cover all vague USB channel detections
+		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
+		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_VBUS_A_PIN);				// NO USB A to MCU's VBUS pin
 	}
 }
 
@@ -163,22 +163,22 @@ void mobo_km(uint8_t enable) {
 
 // Control USB multiplexer in HW_GEN_DIN20
 void mobo_usb_select(uint8_t usb_ch) {
-	if (usb_ch == USB_CH_NONE) {
-		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
-		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
-		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB C to MCU's VBUS pin
-	}
 	if (usb_ch == USB_CH_C) {
 		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_clr_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB C to MCU's USB data pins
 		gpio_set_gpio_pin(USB_VBUS_C_PIN);				// Select USB C to MCU's VBUS pin
 	}
-	if (usb_ch == USB_CH_B) {
+	else if (usb_ch == USB_CH_B) {
 		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB A to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_set_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB B to MCU's USB data pins
 		gpio_set_gpio_pin(USB_VBUS_B_PIN);				// Select USB B to MCU's VBUS pin
+	}
+	else {												// All vauge or undetected USB conditions
+		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
+		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB C to MCU's VBUS pin
 	}
 }
 
@@ -186,12 +186,14 @@ void mobo_usb_select(uint8_t usb_ch) {
 
 // Quick and dirty detect of whether front USB (C) is plugged in. No debounce here!
 uint8_t mobo_usb_detect(void) {
-	if (usb_ch == USB_CH_NONE)							// RXMODFIX are we currently debugging what happens with USB cable detatched, with '0' ?
-		return USB_CH_NONE;
+	if (usb_ch == USB_CH_DEACTIVATE)
+		return USB_CH_DEACTIVATE;						// RXMODFIX are we currently debugging what happens with USB cable detatched, with '0' ?
 		
 	if  (gpio_get_pin_value(AVR32_PIN_PA07) == 1)
 		return USB_CH_C;
 
+
+	// RXMODFIX We need a USB B detect!! Can that be done by turning VBUS_B_SEL into an input for a while? It requires the R1506=100k and R1507=200k and can only be done while VBUS_CLSEL is low
 	return USB_CH_B;
 }
 #endif

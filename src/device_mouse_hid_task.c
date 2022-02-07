@@ -376,7 +376,8 @@ void device_mouse_hid_task(void)
 
 #ifdef HW_GEN_RXMOD
             else if (a == '0') {							// Digit 0
-	            usb_ch = USB_CH_NONE;
+	            // usb_ch = USB_CH_NONE;
+				usb_ch = USB_CH_DEACTIVATE;					// Debugging disconnected USB cable
 	            mobo_usb_select(usb_ch);
             }
             else if (a == 'C') {							// Uppercase C

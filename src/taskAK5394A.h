@@ -81,10 +81,11 @@
 #define FLED_SCANNING		FLED_WHITE	// While scanning for an input, should there be a default light? Implemented only on HW_GEN_RXMOD
 
 // USB channels
-#define USB_CH_NONE			0
-#define USB_CH_A			1		// Name used in HW_GEN_DIN20 for front USB-C plug
-#define USB_CH_B			2
-#define USB_CH_C			3		// Name used in HW_GEN_RXMOD for front USB-C plug
+#define USB_CH_NONE			0		// No USB port has been detected
+#define USB_CH_DEACTIVATE	1		// Actively disconnecting USB mux for debug purposes
+#define USB_CH_A			2		// Name used in HW_GEN_DIN20 for front USB-C plug
+#define USB_CH_B			3
+#define USB_CH_C			4		// Name used in HW_GEN_RXMOD for front USB-C plug
 #define USB_CH_NOSWAP		0		// NO USB channel swapping happening
 #define USB_CH_SWAPDET		1		// Need for channel swap detected
 #define USB_CH_SWAPACK		2		// Channel swap detect acknowledged by uac?_device_audio_task
