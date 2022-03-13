@@ -749,6 +749,115 @@ Arash
 	            spdif_rx_status.buffered = 1;				// Use precision clock and buffering
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
+			
+            else if (a == 'l') {							// Lowercase l
+				
+				/* Investigate whether long I2C accesses alone cause impulse noise
+				1) Does toggle alone cause impulse noise? Up? Down? NO!
+				2) If not, does toggle with I2C access always cause impulse noise?
+				   8x wm8804_read_byte(0x0B); does not give a particularly strong reading
+				   1x wm8804_pllnew(WM8804_PLL_NORMAL); YES, particularly with "// Always write to pll!	"
+				   8x wm8804_write_byte(0x1E, 0x04); is more I2C traffic. It too generates impulse noise but less than PLL command does
+				3) Does any other I2C write do the same, or is this an effect of wm8804_pllnew() ?
+
+				
+				4) Does a particular part of wm8804_pllnew() cause impulse?
+				   
+				   
+				X) If not, what else happens during the I2C accesses that do coincide with impulse noise?
+				   Void...
+				   
+				   Multiple writes... setting the CONT bit high
+				   See modified  wm8804_init(void) {
+					   
+					   
+				   All I2C transfers create noise. But between "wm8804_write_byte(0x1E, 0x06);" and "wm8804_write_byte(0x1E, 0x04);" the pulse persists. Tested for 2ms
+				   
+				   
+				*/
+				
+               	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+				   
+				// I2C accesses
+
+				// wm8804_pllnew(WM8804_PLL_NORMAL); 
+				// split into its constituent parts:
+				wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
+				wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
+				wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
+				wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
+				wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
+				wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+
+
+				// last part of wm8804_pllnew
+//				wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+
+				
+				// Interrupt mask word, only written during setup
+//				wm8804_write_byte(0x0A, 0b11100100);
+
+				
+              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+
+			}
+
+            else if (a == 'p') {							// Lowercase p
+				
+				
+				// Emulate wm8804_pllnew(WM8804_PLL_NORMAL); 
+				
+              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+
+
+
+				// beginning of pll config
+				// wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
+
+				// Interrupt mask word, only written during setup
+				wm8804_write_byte(0x0A, 0b11100100);
+
+
+				vTaskDelay(10); // supposedly 1ms
+
+/*				
+				// Drafting multi-byte write
+				if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+					uint8_t dev_data[5];
+					
+					// Start of blocking code
+					dev_data[0] = 0x03;
+					dev_data[1] = 0x21; // 0x03 data
+					dev_data[2] = 0xFD; // 0x04
+					dev_data[3] = 0x36; // 0x05
+					dev_data[4] = 0x07; // 0x06
+					twi_write_out(WM8804_DEV_ADR, dev_data, 5);
+					// End of blocking code
+
+					if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+					}
+					else {
+						print_dbg_char('P');
+					}
+				}
+				else {
+					print_dbg_char('Q');
+				}
+
+*/
+
+				vTaskDelay(10); // supposedly 1ms
+
+				// Interrupt mask word, only written during setup
+				wm8804_write_byte(0x0A, 0b11100100);
+
+				// end of pll config
+				// wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+
+              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+				
+			}
+			
 
             // Analog MUX on WM8804 input, high level function call
 			/* Use LSB:

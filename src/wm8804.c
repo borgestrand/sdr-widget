@@ -286,7 +286,8 @@ void wm8804_init(void) {
 
 	wm8804_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ? // WM8804 same
 
-	wm8804_write_byte(0x1D, 0xC0);	// 7 SPD_192K_EN = 1, Change 6:1, disable data truncation, run on 24 bit I2S // WM8804 ignores bit 5
+//	wm8804_write_byte(0x1D, 0xC0);	// 7 SPD_192K_EN = 1, Change 6:1, disable data truncation, run on 24 bit I2S // WM8804 ignores bit 5
+	wm8804_write_byte(0x1D, 0b11001000); // Same as above, with CONT enabled
 
 	wm8804_write_byte(0x18, 0x07);	// 3:0 GPO1=UNLOCK (=SPIO_05_GPO1, PX15, WM8804_CSB_PIN) // WM8804 ported
 
@@ -485,11 +486,18 @@ void wm8804_linkstats(void) {
 // Pll setting for WM8804
 void wm8804_pllnew(uint8_t pll_sel) {
 	static uint8_t pll_sel_prev = WM8804_PLL_NORMAL;	// Chip default value
-	
+
+/*	// Ignore no change 
 	if (pll_sel == pll_sel_prev) {
 		print_dbg_char('.');				// No change -> do nothing
 	}
 	else {									// Implement change
+*/
+
+	// Always write to pll!		
+    if (1) {		
+		
+		
 		if (pll_sel == WM8804_PLL_TOGGLE) {
 			if (pll_sel_prev == WM8804_PLL_NORMAL) {
 				pll_sel = WM8804_PLL_192;
@@ -504,7 +512,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 		if (pll_sel == WM8804_PLL_NORMAL) {
-			print_dbg_char('_');
+//			print_dbg_char('_');
 
 			wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 			wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
@@ -514,7 +522,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 		// Special PLL setup for 192
 		else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-			print_dbg_char('#');
+//			print_dbg_char('#');
 
 			wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 			wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
