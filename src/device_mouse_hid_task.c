@@ -759,9 +759,17 @@ Arash
 				   1x wm8804_pllnew(WM8804_PLL_NORMAL); YES, particularly with "// Always write to pll!	"
 				   8x wm8804_write_byte(0x1E, 0x04); is more I2C traffic. It too generates impulse noise but less than PLL command does
 				3) Does any other I2C write do the same, or is this an effect of wm8804_pllnew() ?
-
+				   It happens with other writes, but wm8804_pllnew() is dominated by it!
 				
 				4) Does a particular part of wm8804_pllnew() cause impulse?
+				   Yes, it mainly comes between
+				   wm8804_write_byte(0x1E, 0x06);
+				   and
+				   wm8804_write_byte(0x1E, 0x04);
+				   
+				   a) Try the improved (?) wm8804_write_byte(0x1E, 0x07); that also disables PLL
+				   b) Monitor other activities between these two commands!
+
 				   
 				   
 				X) If not, what else happens during the I2C accesses that do coincide with impulse noise?
@@ -782,7 +790,14 @@ Arash
 
 				// wm8804_pllnew(WM8804_PLL_NORMAL); 
 				// split into its constituent parts:
+
+				// Implemented code does not match comments!
 				wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
+
+				// Match comments, turn off both RX and PLL
+				// Try disabling the oscillator as well....
+				wm8804_write_byte(0x1E, 0x07);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
+
 				wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 				wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
 				wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
