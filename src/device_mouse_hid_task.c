@@ -750,6 +750,29 @@ Arash
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
 			
+
+			// Are SPDIF/TOSLINK inputs alive and not static? Use a timer for deep analysis, use this code for live/dead detect
+            else if (a == 'c') {							// Lowercase c
+				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+				uint8_t temp = wm8804_live_detect();
+				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+				
+				// Report Live / Dead
+				if ( temp & MOBO_SRC_TOS2_MASK )
+					print_dbg_char('L');	
+				else
+					print_dbg_char('D');
+				if ( temp & MOBO_SRC_TOS1_MASK )
+					print_dbg_char('L');
+				else
+					print_dbg_char('D');
+				if ( temp & MOBO_SRC_SPDIF_MASK )
+					print_dbg_char('L');
+				else
+					print_dbg_char('D');
+			}
+			
+
             else if (a == 'l') {							// Lowercase l
 				
 				/* Investigate whether long I2C accesses alone cause impulse noise
@@ -767,7 +790,7 @@ Arash
 				   and
 				   wm8804_write_byte(0x1E, 0x04);
 				   
-				   a) Try the improved (?) wm8804_write_byte(0x1E, 0x07); that also disables PLL
+				   a) Try the improved (?) wm8804_write_byte(0x1E, 0x07); that also disables PLL, as stated in comments
 				   b) Monitor other activities between these two commands!
 
 				   

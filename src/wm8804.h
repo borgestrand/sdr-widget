@@ -90,6 +90,8 @@ extern void wm8804_task(void *pvParameters);
 // Turn off wm8804, why can't we just run init again?
 void wm8804_sleep(void);
 
+// Course detection of AC vs. DC on SPDIF input lines
+uint8_t wm8804_live_detect(void);
 
 // Scan inputs, start of new scanning algorithm. Doesn't detect silence
 void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode);

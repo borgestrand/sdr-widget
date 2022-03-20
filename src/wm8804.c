@@ -327,6 +327,49 @@ void wm8804_sleep(void) {
 }
 
 
+// Course detection of AC vs. DC on SPDIF input lines
+uint8_t wm8804_live_detect(void){
+	#define WM8804_SPDIF_LIVE_COUNT	0x20			// Detection takes about 50µs
+	uint8_t counter = WM8804_SPDIF_LIVE_COUNT;
+	uint8_t ch0 = 0;
+	uint8_t ch1 = 0;
+	uint8_t ch2 = 0;
+
+	// Time consumption of polling vs. 3-pulse period on slowest 44.1 ksps input. Must count for more than a 3-pulse period!
+	gpio_set_gpio_pin(AVR32_PIN_PB04);			// Count enable
+
+	while (counter--) {
+		if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOS2
+			ch0++;
+		}
+		if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOS1
+			ch1++;
+		}
+		if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// Schematic net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
+			ch2++;
+		}
+	}
+	gpio_clr_gpio_pin(AVR32_PIN_PB04);			// Count disable
+
+	// Report Live / Dead as binary code with TOSLINK1 in LSB, TOSLINK0 in bit 1, SPDIF in bit 2
+	// A static SPDIF signal means the counter is either at 0 or at full value
+	if ( (ch0 != 0) && (ch0 != WM8804_SPDIF_LIVE_COUNT) )
+		ch0 = MOBO_SRC_TOS2_MASK;
+	else
+		ch0 = 0;
+	if ( (ch1 != 0) && (ch1 != WM8804_SPDIF_LIVE_COUNT) )
+		ch1 = MOBO_SRC_TOS1_MASK;
+	else
+		ch1 = 0;
+	if ( (ch2 != 0) && (ch2 != WM8804_SPDIF_LIVE_COUNT) )
+		ch2 = MOBO_SRC_SPDIF_MASK;
+	else
+		ch2 = 0;
+	
+	return (ch0 + ch1 + ch2);
+}
+
+
 // The start of a new automated input scanner. Doesn't detect silence
 void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 	uint8_t max_attempts = (mode & 0x0F) * 4;	// Up to 60 attempts before giving up

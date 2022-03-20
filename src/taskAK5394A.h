@@ -62,8 +62,11 @@
 #define MOBO_SRC_UAC1		1
 #define MOBO_SRC_UAC2		2
 #define MOBO_SRC_SPDIF		3
+#define MOBO_SRC_SPDIF_MASK 0b00000001
 #define MOBO_SRC_TOS2		4
+#define MOBO_SRC_TOS2_MASK  0b00000010
 #define MOBO_SRC_TOS1		5
+#define MOBO_SRC_TOS1_MASK  0b00000100
 #define MOBO_SRC_HIGH		5		// Highest source indicator for SPDIF/TOSLINK RX
 #define MOBO_SRC_LOW		3		// Lowest source indicator for SPDIF/TOSLINK RX
 
