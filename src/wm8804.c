@@ -445,7 +445,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint8_t link_detect = 0;
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
-	uint32_t freq;
+	uint32_t freq; 
 	uint32_t clkdiv_temp = 0;
 
 	// If given input is not alive, terminate
