@@ -55,6 +55,7 @@
 #define WM8804_LOCK_LIM		3					// Poll cycles to verify lock
 #define WM8804_CLK_FAILURE	0					// Failed setting of internal clock division
 #define WM8804_CLK_SUCCESS	1					// Successful setting of internal clock division
+#define WM8804_CLK_PLLMISS  2					// Mismatch between detected frequency and PLL configuration
 #define WM8804_SCAN_ONE		0x10				// Scan only one channel
 #define WM8804_SCAN_FROM_PRESENT	0x20		// Start scanning from presented channel
 #define WM8804_SCAN_FROM_NEXT		0x30		// Start scanning from next channel in list

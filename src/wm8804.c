@@ -413,13 +413,17 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 	
 	while (attempts++ < max_attempts) {			// Success causes function termination mid-loop
 		temp_freq = wm8804_inputnew(temp_program[program_index]);	// Check if selected channel from program is online
-		if ( (temp_freq != FREQ_TIMEOUT) && (temp_freq != FREQ_INVALID) ) {
+		if ( (temp_freq != FREQ_PLLMISS) && (temp_freq != FREQ_TIMEOUT) && (temp_freq != FREQ_INVALID) ) {
 			*channel = temp_program[program_index];	// Tell calling function which channel works
 			*freq = temp_freq;					// ... and its sample rate
 			
 //			print_dbg_char_hex( (uint8_t)(temp_freq/1000) );
 			return;
 		}
+		else if (temp_freq == FREQ_PLLMISS) {	// Linkup but PLL mismatch: try same channel again after toggling PLL setting
+			wm8804_pllnew(WM8804_PLL_TOGGLE);
+		}
+		
 		else {									// Select a new channel to try
 			program_index++;
 			if (program_index == SCAN_PROGRAM_LENGTH) {
@@ -442,6 +446,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
 	uint32_t freq;
+	uint32_t clkdiv_temp = 0;
 
 	// If given input is not alive, terminate
 	if (!(wm8804_live_detect(input_sel))) {
@@ -478,13 +483,17 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 			
 				if (link_detect++ == wm8804_LINK_DETECTS_OK-1) {	// We have a valid link!
 					freq = wm8804_srd();					// Now that we have link, measure the received sample rate
-					if (wm8804_clkdivnew(freq) == WM8804_CLK_SUCCESS) {	// Compare to WM8804's frequency detector and set up clock division for MCLK export
+					clkdiv_temp = wm8804_clkdivnew(freq);	// Compare to WM8804's PLL setting and frequency detector and set up clock division for MCLK export
 					
-						//					print_dbg_char('&');
-
+					if (clkdiv_temp == WM8804_CLK_SUCCESS) {	
+				
 						// RXMODFIX Also power cycle PLL? Also verify that detected sample rate matches present PLL configuration?					
 						return freq;						// Got link enough times, wm8804_srd() and WM8804 agree on clock configuration -> return detected frequency
 					}
+					else if (clkdiv_temp == WM8804_CLK_PLLMISS) {
+						return FREQ_PLLMISS;
+					}
+					
 				}
 			}
 			else {											// No link, temporary, glitch or permanent. Forget detections until now
@@ -602,12 +611,12 @@ uint8_t wm8804_clkdivnew(uint32_t freq) {
 	
 	if ( (spdif_rx_status.pllmode != WM8804_PLL_192) && (freq == FREQ_192) ) {
 		print_dbg_char('z');
-		return WM8804_CLK_FAILURE;							// Mismatch between input freq and PLL configuration
+		return WM8804_CLK_PLLMISS;							// Mismatch between input freq and PLL configuration
 	}
 	
 	if ( (spdif_rx_status.pllmode != WM8804_PLL_NORMAL) && ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) ) ) {
 		print_dbg_char('y');
-		return WM8804_CLK_FAILURE;							// Mismatch between input freq and PLL configuration
+		return WM8804_CLK_PLLMISS;							// Mismatch between input freq and PLL configuration
 	}
 	
 
