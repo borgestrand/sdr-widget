@@ -69,7 +69,7 @@ typedef struct spdif_rx_status {				// Definition of global variable
 	uint8_t silent;
 	uint8_t reliable;
 	uint32_t frequency;
-	uint8_t pllmode;		// Up for deletion
+	uint8_t pllmode;
 	uint8_t buffered;
 	uint8_t channel;
 	uint8_t preferred_channel;

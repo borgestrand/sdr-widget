@@ -547,7 +547,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			}
 		}
 
-		// PLL setup will change
+		// PLL setup will change FIX: comment doesn't match code!
 		wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
 
 		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
@@ -558,6 +558,8 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
 			wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
 			wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
+			
+			spdif_rx_status.pllmode = pll_sel; 
 		}
 
 		// Special PLL setup for 192
@@ -568,6 +570,8 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
 			wm8804_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
 			wm8804_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
+
+			spdif_rx_status.pllmode = pll_sel;
 		}
 	
 		wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
@@ -588,11 +592,24 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 
 // Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
-// Compare expected frequency (typically measured by wm8804_srd() to WM8804's internally registered frequency)
+// Compare expected frequency (typically measured by wm8804_srd() to WM8804's internally registered frequency
+// Also verify that PLL has been configured correctly
 uint8_t wm8804_clkdivnew(uint32_t freq) {
 	uint8_t temp;
 	temp = wm8804_read_byte(0x0C);		// Read SPDSTAT
 	temp = temp & 0x30;					// Consider bits 5-4
+	
+	
+	if ( (spdif_rx_status.pllmode != WM8804_PLL_192) && (freq == FREQ_192) ) {
+		print_dbg_char('z');
+		return WM8804_CLK_FAILURE;							// Mismatch between input freq and PLL configuration
+	}
+	
+	if ( (spdif_rx_status.pllmode != WM8804_PLL_NORMAL) && ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) ) ) {
+		print_dbg_char('y');
+		return WM8804_CLK_FAILURE;							// Mismatch between input freq and PLL configuration
+	}
+	
 
 	if ( (freq == FREQ_44) || (freq == FREQ_48) ) {			// 44.1 or 48 from srd() AND... 
 		if ( (temp == 0x20) || (temp == 0x30) )	{			// 44.1, 48, or 32 from chip
