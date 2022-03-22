@@ -328,45 +328,40 @@ void wm8804_sleep(void) {
 
 
 // Course detection of AC vs. DC on SPDIF input lines
-uint8_t wm8804_live_detect(void){
+uint8_t wm8804_live_detect(uint8_t input_sel) {
 	#define WM8804_SPDIF_LIVE_COUNT	0x20			// Detection takes about 50µs
 	uint8_t counter = WM8804_SPDIF_LIVE_COUNT;
-	uint8_t ch0 = 0;
-	uint8_t ch1 = 0;
-	uint8_t ch2 = 0;
+	uint8_t chx = 0;
 
 	// Time consumption of polling vs. 3-pulse period on slowest 44.1 ksps input. Must count for more than a 3-pulse period!
 	gpio_set_gpio_pin(AVR32_PIN_PB04);			// Count enable
 
+	// Poll SPDIF/TOSLINK data signal a number of times. Only bother with one of them in shared counter
 	while (counter--) {
-		if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOS2
-			ch0++;
+		if (input_sel == MOBO_SRC_TOS2) {
+			if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOS2
+				chx++;
+			}
 		}
-		if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOS1
-			ch1++;
+		else if (input_sel == MOBO_SRC_TOS1) {
+			if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOS1
+				chx++;
+			}
 		}
-		if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// Schematic net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
-			ch2++;
+		else if (input_sel == MOBO_SRC_SPDIF) {
+			if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// Schematic net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
+				chx++;
+			}
 		}
 	}
 	gpio_clr_gpio_pin(AVR32_PIN_PB04);			// Count disable
 
-	// Report Live / Dead as binary code with TOSLINK1 in LSB, TOSLINK0 in bit 1, SPDIF in bit 2
+	// Report Live / Dead as binary code
 	// A static SPDIF signal means the counter is either at 0 or at full value
-	if ( (ch0 != 0) && (ch0 != WM8804_SPDIF_LIVE_COUNT) )
-		ch0 = MOBO_SRC_TOS2_MASK;
+	if ( (chx != 0) && (chx != WM8804_SPDIF_LIVE_COUNT) )
+		return 1;
 	else
-		ch0 = 0;
-	if ( (ch1 != 0) && (ch1 != WM8804_SPDIF_LIVE_COUNT) )
-		ch1 = MOBO_SRC_TOS1_MASK;
-	else
-		ch1 = 0;
-	if ( (ch2 != 0) && (ch2 != WM8804_SPDIF_LIVE_COUNT) )
-		ch2 = MOBO_SRC_SPDIF_MASK;
-	else
-		ch2 = 0;
-	
-	return (ch0 + ch1 + ch2);
+		return 0;
 }
 
 
@@ -447,72 +442,74 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
 	uint32_t freq;
-//	#define LINK_MAX_ATTEMPTS 100 //38			// 18 is a good value below, allow for two toggles before giving up on this channel
-//	#define LINK_DETECTS_OK 5				// 5 consecutive detects at some ms apart. Must be able to allow for at least 12ms of dithering link pin in 192 mode and glitching in 176.4 mode
-//	#define TRANS_ERR_FAILURE 30 // 18			// After some consecutive TRANS_ERROR bit readouts, do something about DLL. 1st read probably contains old interrupt status and should be discarded
-	// 8 14 17 18 | 18 20					// Heavily based on trial and error! Should be retested. Changes when cold!
+
+	// If given input is not alive, terminate
+	if (!(wm8804_live_detect(input_sel))) {
+		return (FREQ_INVALID);	
+	}
+	// If given input is alive, do things
+	else {
+		mobo_rxmod_input(input_sel);			// Hardware MUX control
+		// RXMODFIX Also power cycle PLL? Also verify that detected sample rate matches present PLL configuration?
+		wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
+		// Is this needed in WM8804 where it does not select input channel?
+		wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
+		wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+
+		// The time it takes to verify a channel is very much different when the WM8804 is cold (up to 300ms seen in measurements) vs warm (70-100ms)
+		// RXMODFIX Do something about that with slow scans if fast scans fail or something
+
+		while (link_attempts++ < wm8804_LINK_MAX_ATTEMPTS) {		// Repeat until timeout
+
+			gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_task()
 
 
-	// RXMODFIX Also power cycle PLL?
-	wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
-	mobo_rxmod_input(input_sel);			// Hardware MUX control, should be possible to re-run this from CLI on same channel, with no effect
-	// Is this needed in WM8804 where it does not select input channel?
-	wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
-	wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
-
-
-	// The time it takes to verify a channel is very much different when the WM8804 is cold (up to 300ms seen in measurements) vs warm (70-100ms)
-	// RXMODFIX Do something about that with slow scans if fast scans fail or something
-
-	while (link_attempts++ < wm8804_LINK_MAX_ATTEMPTS) {		// Repeat until timeout
-
-		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_task()
-
-
-		// Check UNLOCK bit if everything is OK and we can leave this function
-//		if ( (wm8804_read_byte(0x0C) & 0x40) == 0 ) {	// UNLOCK bit. Does much the same job but takes a few µs longer than GPIO read. Not fully verified in 192ksps
-		if (gpio_get_pin_value(WM8804_CSB_PIN) == 0) {	// Got link!
+			// Check UNLOCK bit if everything is OK and we can leave this function
+			//		if ( (wm8804_read_byte(0x0C) & 0x40) == 0 ) {	// UNLOCK bit. Does much the same job but takes a few µs longer than GPIO read. Not fully verified in 192ksps
+			if (gpio_get_pin_value(WM8804_CSB_PIN) == 0) {	// Got link!
 			
-			// Make a log of how many poll cycles were needed to establish link
-			if (link_attempts > link_attempts_max) {
-				link_attempts_max = link_attempts;
-			}
-			if (link_attempts < link_attempts_min) {
-				link_attempts_min = link_attempts;
-			}
+				// Make a log of how many poll cycles were needed to establish link
+				if (link_attempts > link_attempts_max) {
+					link_attempts_max = link_attempts;
+				}
+				if (link_attempts < link_attempts_min) {
+					link_attempts_min = link_attempts;
+				}
 			
-			if (link_detect++ == wm8804_LINK_DETECTS_OK-1) {	// We have a valid link!
-				freq = wm8804_srd();					// Now that we have link, measure the received sample rate
-				if (wm8804_clkdivnew(freq) == WM8804_CLK_SUCCESS) {	// Compare to WM8804's frequency detector and set up clock division for MCLK export
+				if (link_detect++ == wm8804_LINK_DETECTS_OK-1) {	// We have a valid link!
+					freq = wm8804_srd();					// Now that we have link, measure the received sample rate
+					if (wm8804_clkdivnew(freq) == WM8804_CLK_SUCCESS) {	// Compare to WM8804's frequency detector and set up clock division for MCLK export
 					
-//					print_dbg_char('&');
-					
-					return freq;						// Got link enough times, wm8804_srd() and WM8804 agree on clock configuration -> return detected frequency
+						//					print_dbg_char('&');
+
+						// RXMODFIX Also power cycle PLL? Also verify that detected sample rate matches present PLL configuration?					
+						return freq;						// Got link enough times, wm8804_srd() and WM8804 agree on clock configuration -> return detected frequency
+					}
 				}
 			}
-		}
-		else {											// No link, temporary, glitch or permanent. Forget detections until now
-			link_detect = 0;							// Consecutive good detects are needed!
-		}
-		
-		// Check TRANS_ERR bit to determine if we must change PLL settings
-		if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
-			if (trans_err_detect++ == wm8804_TRANS_ERR_FAILURE-1) {
-				wm8804_pllnew(WM8804_PLL_TOGGLE);
-				trans_err_detect = 0;		// New try with new setting!
+			else {											// No link, temporary, glitch or permanent. Forget detections until now
+				link_detect = 0;							// Consecutive good detects are needed!
 			}
-		}
-		else {											// No link, temporary, glitch or permanent. Forget detections until now
-			trans_err_detect = 0;						// Consecutive error detects are needed! We assume the interrupt generator is faster than vTaskDelay() below
-		}
-
 		
-		vTaskDelay(50);									// How long time does this take? 50 -> 5.00ms
-	}
+			// Check TRANS_ERR bit to determine if we must change PLL settings
+			if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
+				if (trans_err_detect++ == wm8804_TRANS_ERR_FAILURE-1) {
+					wm8804_pllnew(WM8804_PLL_TOGGLE);
+					trans_err_detect = 0;		// New try with new setting!
+				}
+			}
+			else {											// No link, temporary, glitch or permanent. Forget detections until now
+				trans_err_detect = 0;						// Consecutive error detects are needed! We assume the interrupt generator is faster than vTaskDelay() below
+			}
+		
+			vTaskDelay(50);									// How long time does this take? 50 -> 5.00ms
+		}
 
-//	print_dbg_char('*');
+		//	print_dbg_char('*');
 	
-	return (FREQ_TIMEOUT);					// Couldn't get lock = timeout Maybe return FREQ_INVALID for unstable PLL?
+		return (FREQ_TIMEOUT);					// Couldn't get lock = timeout Maybe return FREQ_INVALID for unstable PLL?
+	}	// End of do-stuff-if-alive
+
 }
 
 

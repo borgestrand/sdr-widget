@@ -91,7 +91,7 @@ extern void wm8804_task(void *pvParameters);
 void wm8804_sleep(void);
 
 // Course detection of AC vs. DC on SPDIF input lines
-uint8_t wm8804_live_detect(void);
+uint8_t wm8804_live_detect(uint8_t input_sel);
 
 // Scan inputs, start of new scanning algorithm. Doesn't detect silence
 void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode);

@@ -753,23 +753,24 @@ Arash
 
 			// Are SPDIF/TOSLINK inputs alive and not static? Use a timer for deep analysis, use this code for live/dead detect
             else if (a == 'c') {							// Lowercase c
+
+				// Time keeper code to see how long time it takes
 				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-				uint8_t temp = wm8804_live_detect();
+				wm8804_live_detect(MOBO_SRC_TOS2);
 				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 				
-				// Report Live / Dead
-				if ( temp & MOBO_SRC_TOS2_MASK )
-					print_dbg_char('L');	
+				if (wm8804_live_detect(MOBO_SRC_TOS2))
+					print_dbg_char('l');
 				else
-					print_dbg_char('D');
-				if ( temp & MOBO_SRC_TOS1_MASK )
-					print_dbg_char('L');
+					print_dbg_char('d');
+				if (wm8804_live_detect(MOBO_SRC_TOS1))
+					print_dbg_char('l');
 				else
-					print_dbg_char('D');
-				if ( temp & MOBO_SRC_SPDIF_MASK )
-					print_dbg_char('L');
+					print_dbg_char('d');
+				if (wm8804_live_detect(MOBO_SRC_SPDIF))
+					print_dbg_char('l');
 				else
-					print_dbg_char('D');
+					print_dbg_char('d');
 			}
 			
 
