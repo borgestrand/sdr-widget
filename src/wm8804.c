@@ -541,17 +541,11 @@ void wm8804_pllnew(uint8_t pll_sel) {
 	static uint8_t pll_sel_prev = WM8804_PLL_NORMAL;	// Chip default value
 	uint8_t dev_data[5];
 
-/*	// Ignore no change 
+	// Ignore no change 
 	if (pll_sel == pll_sel_prev) {
-		print_dbg_char('.');				// No change -> do nothing
+//		print_dbg_char('.');				// No change -> do nothing
 	}
 	else {									// Implement change
-*/
-
-	// Always write to pll!		
-    if (1) {		
-		
-		
 		if (pll_sel == WM8804_PLL_TOGGLE) {
 			if (pll_sel_prev == WM8804_PLL_NORMAL) {
 				pll_sel = WM8804_PLL_192;
