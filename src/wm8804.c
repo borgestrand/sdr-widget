@@ -301,7 +301,7 @@ void wm8804_init(void) {
 
 	wm8804_read_byte(0x0B);			// Clear interrupts // WM8804 same
 
-	wm8804_write_byte(0x1E, 0x1B);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 TX, 1:1 _RX, 0:1 _PLL // WM8804 same
+	wm8804_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:0 _TX, 1:1 _RX, 0:1 _PLL
 
 // Arbitrary startup delay ATD
 //	if (initial == 1) {
@@ -455,9 +455,13 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	// If given input is alive, do things
 	else {
 		mobo_rxmod_input(input_sel);			// Hardware MUX control
+
 		// RXMODFIX Also power cycle PLL? Also verify that detected sample rate matches present PLL configuration?
-		wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
+//LeavePLL		wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
+
+
 		// Is this needed in WM8804 where it does not select input channel?
+		// When input is selected, turn on executive functions in WM8804
 		wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
 		wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
 
@@ -556,8 +560,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			}
 		}
 
-		// PLL setup will change FIX: comment doesn't match code!
-		wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
+//LeavePLL			wm8804_write_byte(0x1E, 0x07);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
 
 		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 		if (pll_sel == WM8804_PLL_NORMAL) {

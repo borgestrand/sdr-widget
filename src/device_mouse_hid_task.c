@@ -658,6 +658,8 @@ Arash
 //					print_dbg_char('[');
 
 					// Start of blocking code
+					gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Indicate on pin 95
+
 					if (twi_write_out(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) { 
 						if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
 							print_dbg_char('.');
@@ -816,11 +818,13 @@ Arash
 				// split into its constituent parts:
 
 				// Implemented code does not match comments!
-				wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
+//				wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
+
+
+//LeavePLL				wm8804_write_byte(0x1E, 0x0F); // Analog disturbance is the same with 0x05, 0x06, 0x07! 0x0D and 0x0F are similar with slower onset, 0x0E lasts longer
 
 				// Match comments, turn off both RX and PLL
 				// Try disabling the oscillator as well....
-				wm8804_write_byte(0x1E, 0x07);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
 
 				wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 				wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
