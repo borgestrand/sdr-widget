@@ -115,6 +115,9 @@ void wm8804_mute(void);
 // Un-mute the WM8804 output by means of other hardware
 void wm8804_unmute(void);
 
+// Write multiple bytes to WM8804
+uint8_t wm8804_multiwrite(uint8_t no_bytes, uint8_t *int_data);
+
 // Write a single byte to WM8804
 uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t data);
 

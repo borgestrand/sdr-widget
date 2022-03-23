@@ -539,6 +539,7 @@ void wm8804_linkstats(void) {
 // Pll setting for WM8804
 void wm8804_pllnew(uint8_t pll_sel) {
 	static uint8_t pll_sel_prev = WM8804_PLL_NORMAL;	// Chip default value
+	uint8_t dev_data[5];
 
 /*	// Ignore no change 
 	if (pll_sel == pll_sel_prev) {
@@ -560,16 +561,26 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			}
 		}
 
+
 //LeavePLL			wm8804_write_byte(0x1E, 0x07);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
 
 		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 		if (pll_sel == WM8804_PLL_NORMAL) {
 //			print_dbg_char('_');
 
+			dev_data[0] = 0x03;
+			dev_data[1] = 0x21; // 0x03 data PLL_K[7:0] 21
+			dev_data[2] = 0xFD; // 0x04      PLL_K[15:8] FD
+			dev_data[3] = 0x36; // 0x05      7:0 , 6:0, 5-0:PLL_K[21:16] 36
+			dev_data[4] = 0x07; // 0x06      7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
+			wm8804_multiwrite(5, dev_data);
+
+/*
 			wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 			wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
 			wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
 			wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
+*/			
 			
 			spdif_rx_status.pllmode = pll_sel; 
 		}
@@ -578,15 +589,24 @@ void wm8804_pllnew(uint8_t pll_sel) {
 		else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
 //			print_dbg_char('#');
 
+			dev_data[0] = 0x03;
+			dev_data[1] = 0xBA; // 0x03 data PLL_K[7:0] BA
+			dev_data[2] = 0x49; // 0x04      PLL_K[15:8] 49
+			dev_data[3] = 0x0C; // 0x05      7:0,  6:0, 5-0:PLL_K[21:16] 0C
+			dev_data[4] = 0x08; // 0x06      7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
+			wm8804_multiwrite(5, dev_data);
+			
+/*
 			wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 			wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
 			wm8804_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
 			wm8804_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
+*/
 
 			spdif_rx_status.pllmode = pll_sel;
 		}
 	
-		wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+		wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL
 
 		pll_sel_prev = pll_sel;				// Record history
 	}
@@ -684,6 +704,28 @@ void wm8804_unmute(void) {
 	mobo_i2s_enable(MOBO_I2S_ENABLE);				// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 }
 
+// Write multiple bytes to WM8804
+uint8_t wm8804_multiwrite(uint8_t no_bytes, uint8_t *int_data) {
+    uint8_t status = 0xFF;							// Far from 0 reported as I2C success
+
+	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
+	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+		// Start of blocking code
+		status = twi_write_out(WM8804_DEV_ADR, int_data, no_bytes);
+		// End of blocking code
+
+		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+		}
+		else {
+			print_dbg_char('P');
+		}
+	}
+	else {
+		print_dbg_char('Q');
+	}
+	return status;
+}
+
 
 // Write a single byte to WM8804
 uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
@@ -691,9 +733,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
     uint8_t status = 0xFF;							// Far from 0 reported as I2C success
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
-//	print_dbg_char('a'); 
 	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-//		print_dbg_char('A');
 
 		// Start of blocking code
 		dev_data[0] = int_adr;
@@ -701,9 +741,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
 		status = twi_write_out(WM8804_DEV_ADR, dev_data, 2);
 		// End of blocking code
 
-//		print_dbg_char('g');
 		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
-//			print_dbg_char(60); // '<'
 		}
 		else {
 			print_dbg_char('P');

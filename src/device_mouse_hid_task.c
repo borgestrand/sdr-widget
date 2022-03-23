@@ -851,51 +851,14 @@ Arash
 				// Emulate wm8804_pllnew(WM8804_PLL_NORMAL); 
 				
               	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-
-
-
-				// beginning of pll config
-				// wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
-
-				// Interrupt mask word, only written during setup
-				wm8804_write_byte(0x0A, 0b11100100);
-
-
-				vTaskDelay(10); // supposedly 1ms
-
-/*				
-				// Drafting multi-byte write
-				if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-					uint8_t dev_data[5];
-					
-					// Start of blocking code
-					dev_data[0] = 0x03;
-					dev_data[1] = 0x21; // 0x03 data
-					dev_data[2] = 0xFD; // 0x04
-					dev_data[3] = 0x36; // 0x05
-					dev_data[4] = 0x07; // 0x06
-					twi_write_out(WM8804_DEV_ADR, dev_data, 5);
-					// End of blocking code
-
-					if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
-					}
-					else {
-						print_dbg_char('P');
-					}
-				}
-				else {
-					print_dbg_char('Q');
-				}
-
-*/
-
-				vTaskDelay(10); // supposedly 1ms
-
-				// Interrupt mask word, only written during setup
-				wm8804_write_byte(0x0A, 0b11100100);
-
-				// end of pll config
-				// wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
+				uint8_t dev_data[5];
+				dev_data[0] = 0x03;
+				dev_data[1] = 0x21; // 0x03 data
+				dev_data[2] = 0xFD; // 0x04
+				dev_data[3] = 0x36; // 0x05
+				dev_data[4] = 0x07; // 0x06
+				wm8804_multiwrite(5, dev_data);
+				wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL
 
               	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 				
