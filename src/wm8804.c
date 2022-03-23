@@ -569,7 +569,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			dev_data[4] = 0x07; // 0x06      7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
 			wm8804_multiwrite(5, dev_data);
 
-/*
+/*			Old single-write code
 			wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
 			wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
 			wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
@@ -590,7 +590,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			dev_data[4] = 0x08; // 0x06      7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
 			wm8804_multiwrite(5, dev_data);
 			
-/*
+/*			Old single-write code
 			wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
 			wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
 			wm8804_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
