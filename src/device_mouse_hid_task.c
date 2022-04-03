@@ -1054,7 +1054,8 @@ Arash
 								
 								#ifdef HW_GEN_RXMOD
 								#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-									mobo_led(FLED_SCANNING);
+									// mobo_led(FLED_SCANNING);
+									mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
 								#endif
 								#endif
 							}

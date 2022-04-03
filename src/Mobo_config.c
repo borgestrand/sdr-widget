@@ -463,6 +463,25 @@ void mobo_led(uint8_t fled0) {
 void mobo_led_select(U32 frequency, uint8_t source) {
 	// Don't assign BLUE, future MQA implementations may crave that one. 
 
+/*	
+	static U32 prev_frequency = FREQ_INVALID;
+	static uint8_t prev_source = MOBO_SRC_INVALID;
+	
+	if (frequency == FREQ_NOCHANGE) {
+		frequency = prev_frequency;
+	}
+	
+	// Are we changing anything in hardware? If not, just exit 
+	if ( (frequency == prev_frequency) && (source == prev_source) ) {
+		return;
+	}
+
+	// else, since we didn't return
+	prev_source = source;
+	prev_frequency = frequency;
+
+*/
+
 	// Source indication on single LED
 	switch (source) {
 		case MOBO_SRC_NONE: {
@@ -500,7 +519,7 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 		case MOBO_SRC_TOS1:
 			mobo_led(FLED_CYAN);
 		break;
-
+		
 		default:
 			mobo_led(FLED_DARK);	// Indicate fault for now
 		break;

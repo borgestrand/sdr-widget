@@ -106,7 +106,7 @@ void wm8804_task(void *pvParameters) {
 	static uint8_t channel;	// Must be static here?
 	uint8_t wm8804_int;
 	uint8_t mustgive = 0;
-	uint8_t silence_counter = 0;					// How long has a channel been silent? Allow 3s for pause, 0.2s for newly locked channel
+	uint8_t silence_counter = 0;					// How long has a channel been silent? Allow 3s for pause, 0.2s for newly locked channel. Also track LED updates
 	uint8_t playing_counter = 0;					// How long has a channel be playing music so that we'll look for pause, not newly locked-on mute?
 	uint8_t poll_counter = 0;
 
@@ -156,8 +156,15 @@ void wm8804_task(void *pvParameters) {
 					}
 				} // Silence not detected
 				else {												// Silence not detected
-					if (playing_counter >= WM8804_DETECT_MUSIC) {	// Music detected!
+					if (playing_counter == WM8804_LED_UPDATED) {	// Non-silence detected, LEDs updated => do nothing!
+						
+					}
+					else if (playing_counter == WM8804_DETECT_MUSIC) {	// Music detected!
 						silence_counter = 0;						// Must now wait for along pause to start scanning again
+						
+						// Update LEDs here, after music was detected. Mobo_led_select only triggers HW update when given new config
+						mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
+						playing_counter = WM8804_LED_UPDATED;
 					}
 					else {
 						playing_counter++;							// Still not entirely sure we're actually playing music
@@ -211,7 +218,8 @@ void wm8804_task(void *pvParameters) {
 						print_dbg_char(60); // '<'
 						
 						#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-							mobo_led(FLED_SCANNING);
+							// mobo_led(FLED_SCANNING);			// Avoid raw LED-control!
+							mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
 						#endif
 					}
 					else {
@@ -255,7 +263,7 @@ void wm8804_task(void *pvParameters) {
 							spdif_rx_status.buffered = 1;
 							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
-							wm8804_unmute();
+							wm8804_unmute();					// No longer including LED change on this TAKE event
 							spdif_rx_status.muted = 0;
 							silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
 						}
@@ -687,7 +695,7 @@ void wm8804_unmute(void) {
 //	print_dbg_char('U');
 
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
-	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator
+//	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);			// Outgoing I2S clock division selector
 
 	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
