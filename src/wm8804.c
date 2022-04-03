@@ -157,7 +157,6 @@ void wm8804_task(void *pvParameters) {
 				} // Silence not detected
 				else {												// Silence not detected
 					if (playing_counter == WM8804_LED_UPDATED) {	// Non-silence detected, LEDs updated => do nothing!
-						
 					}
 					else if (playing_counter == WM8804_DETECT_MUSIC) {	// Music detected!
 						silence_counter = 0;						// Must now wait for along pause to start scanning again
