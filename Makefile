@@ -4,12 +4,23 @@
 # feature_quirk_ptest set in flash, which will lead to flash being
 # overwritten with defaults
 #
-# -DFEATURE_PRODUCT_AB1x
-# -DFEATURE_PRODUCT_HA256
-# -DFEATURE_PRODUCT_BOEC1
+# -DFEATURE_PRODUCT_AB1x		Henry Audio USB DAC 128 and QNKTC series of DACs
+# -DFEATURE_PRODUCT_HA256		Henry Audio experimental product
+# -DFEATURE_PRODUCT_BOEC1		Boenicke experimental product
+#
+# -DHW_GEN_AB1X					Pure USB DAC - all hardware revisions
+# -DHW_GEN_RXMOD				Latest revision of SPDIF receiver
+# -DHW_GEN_DIN20				Second revision of SPDIF receiver - two prototypes are built - remove from codebase
+# -DHW_GEN_DIN10				First revision of SPDIF receiver - one delivered to Per - remove from codebase
 
-# PARTNAME=-mpart=uc3a3256
-PARTNAME=-mpart=uc3a3128
+
+PARTNAME=-mpart=uc3a3256
+# Use "prog.bat" or RATHER "prog256.bat"
+# NB: the use of "prog128.bat" may brick the processor!!
+
+# PARTNAME=-mpart=uc3a3128
+# Use "prog128.bat"
+# NB: the use of "prog256.bat" or "prog.bat" may brick the processor!!
 
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
@@ -26,7 +37,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_GPIO \
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_VOLUME_CTRL \
-	-DHW_GEN_RXMOD \
+	-DHW_GEN_AB1X \
 	-DFEATURE_PRODUCT_BOEC1
 
 audio-widget::
