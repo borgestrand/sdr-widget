@@ -103,7 +103,7 @@ static void x_image_task_init(void) {
 #ifdef FEATURE_PRODUCT_AMB
 	gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-//	gpio_clr_gpio_pin(AVR32_PIN_PX33); // Set GPIO_09/TP70 during usb interrupt handling
+	gpio_clr_gpio_pin(AVR32_PIN_PX33); // Set GPIO_09/TP70 during usb interrupt handling
 #endif
 #endif	// USB_STATE_MACHINE_DEBUG
 
@@ -125,8 +125,11 @@ static void x_image_task_init(void) {
 	vStartTaskMoboCtrl();
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
 	uac2_AK5394A_task_init();
-//	device_mouse_hid_task_init(UAC2_EP_HID_RX, UAC2_EP_HID_TX); // Added BSB 20120719
+
+#ifdef FEATURE_HID
 	device_mouse_hid_task_init(UAC2_EP_HID_TX); // Added BSB 20120719
+#endif
+
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
 #endif
 #if LCD_DISPLAY						// Multi-line LCD display

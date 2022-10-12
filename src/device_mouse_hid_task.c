@@ -160,7 +160,7 @@ void device_mouse_hid_task_init(U8 ep_tx) {
 #endif  // FREERTOS_USED
 
 	// Added BSB 20120718
-	print_dbg("\nHID ready\n"); // usart is ready to receive HID commands!
+	print_dbg("\nHID ready\n"); // usart is ready to receive HID commands! 2022-10-13 doesn't appear in UAC1, only in UAC2
 
 	// Added BSB 20120719
 #if LCD_DISPLAY
@@ -658,7 +658,7 @@ Arash
 //					print_dbg_char('[');
 
 					// Start of blocking code
-					gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Indicate on pin 95
+// 					gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Indicate on pin 95
 
 					if (twi_write_out(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) { 
 						if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
@@ -757,9 +757,9 @@ Arash
             else if (a == 'c') {							// Lowercase c
 
 				// Time keeper code to see how long time it takes
-				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+//				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 				wm8804_live_detect(MOBO_SRC_TOS2);
-				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+//				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 				
 				if (wm8804_live_detect(MOBO_SRC_TOS2))
 					print_dbg_char('l');
@@ -810,7 +810,7 @@ Arash
 				   
 				*/
 				
-               	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+//               	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 				   
 				// I2C accesses
 
@@ -841,7 +841,7 @@ Arash
 //				wm8804_write_byte(0x0A, 0b11100100);
 
 				
-              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+//              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 
 			}
 
@@ -850,7 +850,7 @@ Arash
 				
 				// Emulate wm8804_pllnew(WM8804_PLL_NORMAL); 
 				
-              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+//              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 				uint8_t dev_data[5];
 				dev_data[0] = 0x03;
 				dev_data[1] = 0x21; // 0x03 data
@@ -860,7 +860,7 @@ Arash
 				wm8804_multiwrite(5, dev_data);
 				wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL
 
-              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
+//              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 				
 			}
 			

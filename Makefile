@@ -12,6 +12,8 @@
 # -DHW_GEN_RXMOD				Latest revision of SPDIF receiver
 # -DHW_GEN_DIN20				Second revision of SPDIF receiver - two prototypes are built - remove from codebase
 # -DHW_GEN_DIN10				First revision of SPDIF receiver - one delivered to Per - remove from codebase
+#
+# -DFEATURE_HID					USB HID functions AND debug development system - FIX: split them in two... 
 
 
 PARTNAME=-mpart=uc3a3256
@@ -38,7 +40,8 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_VOLUME_CTRL \
 	-DHW_GEN_AB1X \
-	-DFEATURE_PRODUCT_BOEC1
+	-DFEATURE_HID \
+	-DFEATURE_PRODUCT_AB1x
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o

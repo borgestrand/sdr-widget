@@ -161,7 +161,8 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
 		// RXMODFIX This particular debug is disabled for now
-		// gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+		// 20221013 re-enabled
+		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 #endif
 	}
@@ -174,7 +175,8 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
 		// RXMODFIX This particular debug is disabled for now
-		// gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+		// 20221013 re-enabled
+		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 #endif
 	}
@@ -285,14 +287,16 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
 
 		// RXMODFIX This particular debug is disabled for now
-		// gpio_clr_gpio_pin(AVR32_PIN_PX33);
+		// 2022-10-13 re-enabled
+		gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 	else {	// No known frequency, don't halt system while polling for LRCK edge
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
 		DAC_buf_DMA_read = 0;
 
 		// RXMODFIX This particular debug is disabled for now
-		// gpio_clr_gpio_pin(AVR32_PIN_PX33);
+		// 2022-10-13 re-enabled
+		gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 
 	// What is the optimal sequence?
