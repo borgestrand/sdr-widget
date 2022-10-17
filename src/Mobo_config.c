@@ -977,7 +977,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		switch (frequency) {
 			case FREQ_44:
 				if (FEATURE_BOARD_USBI2S)
-					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+					gpio_clr_gpio_pin(AVR32_PIN_PX10; // HACK! 6); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 				else if (FEATURE_BOARD_USBDAC)
 					gpio_clr_gpio_pin(AVR32_PIN_PX51);
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
@@ -985,7 +985,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			break;
 			case FREQ_48:
 				if (FEATURE_BOARD_USBI2S)
-					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+					gpio_set_gpio_pin(AVR32_PIN_PX10; // HACK! 6); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 				else if (FEATURE_BOARD_USBDAC)
 					gpio_set_gpio_pin(AVR32_PIN_PX51);
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
@@ -993,7 +993,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			break;
 			case FREQ_88:
 				if (FEATURE_BOARD_USBI2S)
-					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+					gpio_clr_gpio_pin(AVR32_PIN_PX10; // HACK! 6); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 				else if (FEATURE_BOARD_USBDAC)
 					gpio_clr_gpio_pin(AVR32_PIN_PX51);
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
@@ -1001,7 +1001,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			break;
 			case FREQ_96:
 				if (FEATURE_BOARD_USBI2S)
-					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+					gpio_set_gpio_pin(AVR32_PIN_PX10; // HACK! 6); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 				else if (FEATURE_BOARD_USBDAC)
 					gpio_set_gpio_pin(AVR32_PIN_PX51);
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
@@ -1009,7 +1009,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			break;
 			case FREQ_176:
 				if (FEATURE_BOARD_USBI2S)
-					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+					gpio_clr_gpio_pin(AVR32_PIN_PX10; // HACK! 6); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 				else if (FEATURE_BOARD_USBDAC)
 					gpio_clr_gpio_pin(AVR32_PIN_PX51);
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
@@ -1017,7 +1017,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			break;
 			case FREQ_192:
 				if (FEATURE_BOARD_USBI2S)
-					gpio_set_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
+					gpio_set_gpio_pin(AVR32_PIN_PX10; // HACK! 6); // BSB 20110301 MUX in 24.576MHz/2 for AB-1
 				else if (FEATURE_BOARD_USBDAC)
 					gpio_set_gpio_pin(AVR32_PIN_PX51);
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
@@ -1025,7 +1025,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			break;
 			default: // same as 44.1
 				if (FEATURE_BOARD_USBI2S)
-					gpio_clr_gpio_pin(AVR32_PIN_PX16); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
+					gpio_clr_gpio_pin(AVR32_PIN_PX10; // HACK! 6); // BSB 20110301 MUX in 22.5792MHz/2 for AB-1
 				else if (FEATURE_BOARD_USBDAC)
 					gpio_clr_gpio_pin(AVR32_PIN_PX51);
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
