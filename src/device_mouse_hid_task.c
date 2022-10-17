@@ -474,7 +474,7 @@ void device_mouse_hid_task(void)
             	// mobo_clock_division(current_freq.frequency);
 
 
-               	gpio_tgl_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+               	// gpio_tgl_gpio_pin(AVR32_PIN_PX17);			// Pin 83 repurposed in HW_GEN_RXMOD
 
             	taskENTER_CRITICAL();
 
@@ -542,7 +542,7 @@ void device_mouse_hid_task(void)
 
             // Restart I2S
             else if (a == 'j') {							// Lowercase i
-//               	gpio_tgl_gpio_pin(AVR32_PIN_PX17);			// Pin 83
+//               	gpio_tgl_gpio_pin(AVR32_PIN_PX17);			// Pin 83 repurposed in HW_GEN_RXMOD
 
 //            	pdca_disable(PDCA_CHANNEL_SSC_RX);
 
