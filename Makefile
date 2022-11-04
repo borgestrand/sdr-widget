@@ -16,11 +16,11 @@
 # -DFEATURE_HID					USB HID functions AND debug development system - FIX: split them in two... 
 
 
-PARTNAME=-mpart=uc3a3256
+# PARTNAME=-mpart=uc3a3256
 # Use "prog.bat" or RATHER "prog256.bat"
 # NB: the use of "prog128.bat" may brick the processor!!
 
-# PARTNAME=-mpart=uc3a3128
+PARTNAME=-mpart=uc3a3128
 # Use "prog128.bat"
 # NB: the use of "prog256.bat" or "prog.bat" may brick the processor!!
 
@@ -39,7 +39,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_GPIO \
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_VOLUME_CTRL \
-	-DHW_GEN_AB1X \
+	-DHW_GEN_RXMOD \
 	-DFEATURE_HID \
 	-DFEATURE_PRODUCT_AB1x
 

@@ -350,13 +350,19 @@ uint8_t wm8804_live_detect(uint8_t input_sel) {
 				chx++;
 			}
 		}
-		else if (input_sel == MOBO_SRC_TOS1) {
+		if (input_sel == MOBO_SRC_TOS1) {					// No else! Equal execution time!
 			if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOS1
 				chx++;
 			}
 		}
-		else if (input_sel == MOBO_SRC_SPDIF) {
+		if (input_sel == MOBO_SRC_SPDIF) {					// No else! Equal execution time!
 			if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// Schematic net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
+				chx++;
+			}
+		}
+		// Future unified approach, one flip-flop after MUX		
+		if (input_sel == MOBO_SRC_MUXED) {					// No else! Equal execution time!
+			if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// PCB patch from MUX output to net TOSLINK1_TO_MCU / input MOBO_SRC_SPDIF
 				chx++;
 			}
 		}
@@ -455,17 +461,44 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint32_t freq; 
 	uint32_t clkdiv_temp = 0;
 
+
+// Existing code will check first and MUX later
+/*
 	// If given input is not alive, terminate
 	if (!(wm8804_live_detect(input_sel))) {
-		return (FREQ_INVALID);	
+		return (FREQ_INVALID);
 	}
 	// If given input is alive, do things
 	else {
 		mobo_rxmod_input(input_sel);			// Hardware MUX control
+*/
+// End of existing code
+
+
+// Experimental code will multiplex first and then check if MUX output is alive. This saves two flip-flops and a shitload of routing
+// FIX: remove R457 from U343
+// FIX: patch U1:13 to R457 remaining side
+// FIX: remove R459
+// If this all works, change code for fourth digital input. Rewrite variables to match schematic
+
+// If given input is not alive, terminate
+mobo_rxmod_input(input_sel);			// Hardware MUX control
+
+if (!(wm8804_live_detect(MOBO_SRC_MUXED))) {
+	return (FREQ_INVALID);
+}
+// If given input is alive, do things
+else {
+
+// End experimental code
+
+
+
+	
+
 
 		// RXMODFIX Also power cycle PLL? Also verify that detected sample rate matches present PLL configuration?
 //LeavePLL		wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
-
 
 		// Is this needed in WM8804 where it does not select input channel?
 		// When input is selected, turn on executive functions in WM8804
