@@ -335,6 +335,9 @@ void wm8804_sleep(void) {
 
 
 // Course detection of AC vs. DC on SPDIF input lines
+// Sequential code supports both baseline HW_GEN_RXMOD = initial build 
+// of RXmod_t1_A, and HW_GEN_RXMOD_PATCH_01 = strap from U1:13 to U6:CP via R117
+// whcih enables only a single live detection flip-flop
 uint8_t wm8804_live_detect(uint8_t input_sel) {
 	#define WM8804_SPDIF_LIVE_COUNT	0x20			// Detection takes about 50µs
 	uint8_t counter = WM8804_SPDIF_LIVE_COUNT;
@@ -345,27 +348,31 @@ uint8_t wm8804_live_detect(uint8_t input_sel) {
 
 	// Poll SPDIF/TOSLINK data signal a number of times. Only bother with one of them in shared counter
 	while (counter--) {
-		if (input_sel == MOBO_SRC_TOS2) {
-			if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOS2
-				chx++;
-			}
-		}
-		if (input_sel == MOBO_SRC_TOS1) {					// No else! Equal execution time!
-			if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOS1
-				chx++;
-			}
-		}
-		if (input_sel == MOBO_SRC_SPDIF) {					// No else! Equal execution time!
-			if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// Schematic net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
-				chx++;
-			}
-		}
-		// Future unified approach, one flip-flop after MUX		
+		// Unified approach in PATCH_01, one flip-flop after MUX
 		if (input_sel == MOBO_SRC_MUXED) {					// No else! Equal execution time!
-			if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// PCB patch from MUX output to net TOSLINK1_TO_MCU / input MOBO_SRC_SPDIF
+			if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// PCB patch from MUX output to net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
 				chx++;
 			}
 		}
+		// Initial approach in RXmod_t1_A, one detector for each source
+		else {
+			if (input_sel == MOBO_SRC_TOS2) {
+				if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOS2
+					chx++;
+				}
+			}
+			if (input_sel == MOBO_SRC_TOS1) {					// No else! Equal execution time!
+				if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOS1
+					chx++;
+				}
+			}
+			if (input_sel == MOBO_SRC_SPDIF) {					// No else! Equal execution time!
+				if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// Schematic net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
+					chx++;
+				}
+			}
+		}
+
 	}
 	gpio_clr_gpio_pin(AVR32_PIN_PB04);			// Count disable
 
@@ -462,23 +469,16 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 	uint32_t clkdiv_temp = 0;
 
 
-// Existing code will check first and MUX later
-/*
-	// If given input is not alive, terminate
-	if (!(wm8804_live_detect(input_sel))) {
-		return (FREQ_INVALID);
-	}
-	// If given input is alive, do things
-	else {
-		mobo_rxmod_input(input_sel);			// Hardware MUX control
-*/
-// End of existing code
 
 
-// Experimental code will multiplex first and then check if MUX output is alive. This saves two flip-flops and a shitload of routing
-// FIX: remove R457 from U343
-// FIX: patch U1:13 to R457 remaining side
-// FIX: remove R459
+
+#ifdef HW_GEN_RXMOD_PATCH_01
+// PATCH_01 of RXmod_t1_A and RXmod_t1_C will multiplex first and then check if MUX output is alive. 
+// This saves two flip-flops and a shitload of routing
+// PATCH_01 consists of:
+// FIX: remove R117 from U3
+// FIX: patch U1:13 to R11 remaining side
+// FIX: remove R116
 // If this all works, change code for fourth digital input. Rewrite variables to match schematic
 
 // If given input is not alive, terminate
@@ -490,9 +490,16 @@ if (!(wm8804_live_detect(MOBO_SRC_MUXED))) {
 // If given input is alive, do things
 else {
 
-// End experimental code
-
-
+#else
+// Initial build of RXmod_t1_A will check multiple channels first and MUX later
+	// If given input is not alive, terminate
+	if (!(wm8804_live_detect(input_sel))) {
+		return (FREQ_INVALID);
+	}
+	// If given input is alive, do things
+	else {
+		mobo_rxmod_input(input_sel);			// Hardware MUX control
+#endif
 
 	
 
@@ -655,7 +662,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 // 600 / 3000	Warm start OK. Cold start OK
 // 600 / 2000	Warm start OK. Cold start OK
 // 600 / 1500	Warm start OK. Cold start OK
-
+ 
 
 // Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
 // Compare expected frequency (typically measured by wm8804_srd() to WM8804's internally registered frequency
