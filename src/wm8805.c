@@ -127,7 +127,7 @@ This mechanism also extends to the USB interface. With input_select == MOBO_SRC_
 MOBO_SRC_UAC1 the WM8805 is powered down and the USB receiver owns the DAC's I2S interface.
 When the USB audio is muted or halted, input_select is set to MOBO_SRC_NONE and the WM8805
 is powered up to start scanning its inputs. When it finds a valid one, input_select is set
-to MOBO_SRC_SPDIF or MOBO_SRC_TOS2, and the I2S interface is switched over to the WM8805.
+to MOBO_SRC_SPDIF0 or MOBO_SRC_TOSLINK1, and the I2S interface is switched over to the WM8805.
 And when the WM8805 is muted or looses link, the I2S is once again handed over to the USB
 system. At first, with input_select == MOBO_SRC_NONE, this is done to mute the DAC.
 
@@ -175,7 +175,7 @@ void wm8805_poll(void) {
 	 */
 
     uint8_t wm8805_int = 0;										// WM8805 interrupt status
-    static uint8_t input_select_wm8805_next = MOBO_SRC_TOS2;	// Try TOSLINK first
+    static uint8_t input_select_wm8805_next = MOBO_SRC_TOSLINK1;	// Try TOSLINK first
 	static int16_t pausecounter = pausecounter_initial;			// Initiated to a value much larger than what is seen in practical use
 	static int16_t unlockcounter = 0;
 	static int16_t lockcounter = 0;
@@ -217,7 +217,7 @@ void wm8805_poll(void) {
 
 /*
 	if (gpio_get_pin_value(WM8805_CSB_PIN) == 1)	{	// Not locked! NB: We're considering an init pull-down here...
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 			spdif_rx_status.reliable = 0;					// Something went wrong, we're not reliable
 			wm8805_mute();								// Semi-immediate software-mute? Or almost-immediate hardware mute?
 		}
@@ -276,7 +276,7 @@ void wm8805_poll(void) {
 	// When WM is not selected, scan WM inputs for a short time (unlinked)
 	// Playing input: Tolerate WM8805_PAUSE_LIM of silence before searching for other input.
 	// Scanning inputs: Tolerate WM8805_SILENCE_LIM before searching on
-	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+	if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 		unlockcounter_temp = WM8805_HICKUP_LIM;
 		pausecounter_temp = WM8805_PAUSE_LIM;
 	}
@@ -286,7 +286,7 @@ void wm8805_poll(void) {
 	}
 
 	if ( (spdif_rx_status.powered == 1) && ( (unlockcounter >= unlockcounter_temp) || (pausecounter >= pausecounter_temp) ) ) {
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 
 			wm8805_mute();
 			spdif_rx_status.muted = 1;
@@ -318,18 +318,18 @@ void wm8805_poll(void) {
 		if (input_select == MOBO_SRC_NONE) {
 
 			#ifdef HW_GEN_DIN10									// Only SPDIF and TOS2 available
-				if (input_select_wm8805_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8805_next = MOBO_SRC_SPDIF;
+				if (input_select_wm8805_next == MOBO_SRC_TOSLINK1)	// Prepare to probe other WM channel next time we're here
+					input_select_wm8805_next = MOBO_SRC_SPDIF0;
 				else
-					input_select_wm8805_next = MOBO_SRC_TOS2;
+					input_select_wm8805_next = MOBO_SRC_TOSLINK1;
 			#endif
 			#ifdef HW_GEN_DIN20									// SPDIF, TOS2 and TOS1 available
-				if (input_select_wm8805_next == MOBO_SRC_TOS2)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8805_next = MOBO_SRC_TOS1;
-				else if (input_select_wm8805_next == MOBO_SRC_TOS1)	// Prepare to probe other WM channel next time we're here
-					input_select_wm8805_next = MOBO_SRC_SPDIF;
+				if (input_select_wm8805_next == MOBO_SRC_TOSLINK1)	// Prepare to probe other WM channel next time we're here
+					input_select_wm8805_next = MOBO_SRC_TOSLINK0;
+				else if (input_select_wm8805_next == MOBO_SRC_TOSLINK0)	// Prepare to probe other WM channel next time we're here
+					input_select_wm8805_next = MOBO_SRC_SPDIF0;
 				else
-					input_select_wm8805_next = MOBO_SRC_TOS2;
+					input_select_wm8805_next = MOBO_SRC_TOSLINK1;
 			#endif
 
 			// FIX: disable and re-enable ADC DMA around here?
@@ -375,7 +375,7 @@ void wm8805_poll(void) {
 		}
 
 		// Do we own semaphore? If so, change I2S setting
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 			wm8805_clkdiv();						// Configure MCLK division
 			wm8805_unmute();						// Reconfigure DAC-side I2S and LEDs
 			spdif_rx_status.muted = 0;
@@ -547,13 +547,13 @@ void wm8805_input(uint8_t input_sel) {
 
 	wm8805_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL,
 
-	if (input_sel == MOBO_SRC_TOS2) {
+	if (input_sel == MOBO_SRC_TOSLINK1) {
 		wm8805_write_byte(0x08, 0x34);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:4 RX4
 	}
-	if (input_sel == MOBO_SRC_TOS1) {
+	if (input_sel == MOBO_SRC_TOSLINK0) {
 		wm8805_write_byte(0x08, 0x36);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:6 RX6
 	}
- 	else if (input_sel == MOBO_SRC_SPDIF) {
+ 	else if (input_sel == MOBO_SRC_SPDIF0) {
 		wm8805_write_byte(0x08, 0x35);	// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:5 RX5
  	}
 
@@ -646,7 +646,7 @@ void wm8805_mute(void) {
 //	print_dbg_char('M');
 
 	// Empty outgoing buffers if owned by WM8805 code
-	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+	if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 		mobo_clear_dac_channel();
 	}
 

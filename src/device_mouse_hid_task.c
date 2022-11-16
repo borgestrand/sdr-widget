@@ -758,18 +758,18 @@ Arash
 
 				// Time keeper code to see how long time it takes
 //				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-				wm8804_live_detect(MOBO_SRC_TOS2);
+				wm8804_live_detect(MOBO_SRC_TOSLINK1);
 //				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
 				
-				if (wm8804_live_detect(MOBO_SRC_TOS2))
+				if (wm8804_live_detect(MOBO_SRC_TOSLINK1))
 					print_dbg_char('l');
 				else
 					print_dbg_char('d');
-				if (wm8804_live_detect(MOBO_SRC_TOS1))
+				if (wm8804_live_detect(MOBO_SRC_TOSLINK0))
 					print_dbg_char('l');
 				else
 					print_dbg_char('d');
-				if (wm8804_live_detect(MOBO_SRC_SPDIF))
+				if (wm8804_live_detect(MOBO_SRC_SPDIF0))
 					print_dbg_char('l');
 				else
 					print_dbg_char('d');
@@ -867,9 +867,9 @@ Arash
 
             // Analog MUX on WM8804 input, high level function call
 			/* Use LSB:
-			MOBO_SRC_SPDIF		3
-			MOBO_SRC_TOS2		4
-			MOBO_SRC_TOS1		5
+			MOBO_SRC_SPDIF0			3
+			MOBO_SRC_TOSLINK1		4
+			MOBO_SRC_TOSLINK0		5
 			
 			n31 init
 			n20 no input
@@ -888,7 +888,7 @@ Arash
 			*/
             else if (a == 'n') {
 	            uint8_t mux_cmd;
-				static uint8_t input_select_debug = MOBO_SRC_TOS2;
+				static uint8_t input_select_debug = MOBO_SRC_TOSLINK1;
 	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				
 				if ( (mux_cmd & 0xF0) == 0x10 ) {			// 1 in upper nibble -> raw hardware mux control. Should have no influence as long as same channel is re-selected
@@ -953,19 +953,19 @@ Arash
 					}
 					else if ( (mux_cmd & 0x0F) == 0x0A) {	// 3A -> Use recovered MCLK with unbuffered SPDIF - Requires disable of automatic mobo_xo_select() calls
 						spdif_rx_status.buffered = 0;		// NB: will be discontinued in hardware!
-						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF);
+						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF0);
 					}
 					else if ( (mux_cmd & 0x0F) == 0x0B) {	// 3B -> Use recovered MCLK with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
 						spdif_rx_status.buffered = 1;
-						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF);
+						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF0);
 					}
 					else if ( (mux_cmd & 0x0F) == 0x0C) {	// 3C -> Use 48kHz domain XO with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
 						spdif_rx_status.buffered = 1;
-						mobo_xo_select(FREQ_96, MOBO_SRC_SPDIF);
+						mobo_xo_select(FREQ_96, MOBO_SRC_SPDIF0);
 					}
 					else if ( (mux_cmd & 0x0F) == 0x0D) {	// 3D -> Use 44.1kHz domain XO with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
 						spdif_rx_status.buffered = 1;
-						mobo_xo_select(FREQ_88, MOBO_SRC_SPDIF);
+						mobo_xo_select(FREQ_88, MOBO_SRC_SPDIF0);
 					}
 					else if ( (mux_cmd & 0x0F) == 0x0E) {	// 3E -> Disable SPDIF_COUNTers
 						gpio_clr_gpio_pin(AVR32_PIN_PB04);
@@ -1004,7 +1004,7 @@ Arash
 									
 
 					// Playing music from WM8804 - is everything OK?
-					if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+					if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 						
 						print_dbg_char('W');
 						
@@ -1131,7 +1131,7 @@ Arash
 	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan type, low nibble is 1/4 the permitted scan attempts. For example "o14" for 16 scans of program 1
 				
 				// With mode = 0xFn start scanning at specified channel. Specified channel = current channel! 
-//				if ( (spdif_rx_status.channel == MOBO_SRC_TOS1) || (spdif_rx_status.channel == MOBO_SRC_TOS2) || (spdif_rx_status.channel == MOBO_SRC_SPDIF) ) {
+//				if ( (spdif_rx_status.channel == MOBO_SRC_TOSLINK0) || (spdif_rx_status.channel == MOBO_SRC_TOSLINK1) || (spdif_rx_status.channel == MOBO_SRC_SPDIF0) ) {
 					// TRANS_ERR failure may mean rate change on current channel
 					// if (TRANS_ERR interrupt) {
 					//   wm8804_pllnew(WM8804_PLL_TOGGLE);

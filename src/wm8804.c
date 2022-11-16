@@ -49,7 +49,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 // Global status variable
-volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, 1, MOBO_SRC_NONE, MOBO_SRC_SPDIF}; // Last but s parameter sets .buffered to 1
+volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, 1, MOBO_SRC_NONE, MOBO_SRC_SPDIF0}; // Last but s parameter sets .buffered to 1
 	
 // Linkup monitoring variables, available for debug
 volatile uint8_t link_attempts_max = 0;				// Counting up to determine max poll cycles for linkup success
@@ -141,7 +141,7 @@ void wm8804_task(void *pvParameters) {
 		else {
 
 			// Playing music from WM8804 - is everything OK?
-			if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 				mustgive = 0;									// Not ready to give up playing audio just yet
 						
 				// Poll two silence detectors, WM8804 and buffer transfer code
@@ -350,24 +350,24 @@ uint8_t wm8804_live_detect(uint8_t input_sel) {
 	while (counter--) {
 		// Unified approach in PATCH_01, one flip-flop after MUX
 		if (input_sel == MOBO_SRC_MUXED) {					// No else! Equal execution time!
-			if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// PCB patch from MUX output to net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
+			if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// PCB patch from MUX output to net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF0
 				chx++;
 			}
 		}
 		// Initial approach in RXmod_t1_A, one detector for each source
 		else {
-			if (input_sel == MOBO_SRC_TOS2) {
-				if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOS2
+			if (input_sel == MOBO_SRC_TOSLINK1) {
+				if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOSLINK1
 					chx++;
 				}
 			}
-			if (input_sel == MOBO_SRC_TOS1) {					// No else! Equal execution time!
-				if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOS1
+			if (input_sel == MOBO_SRC_TOSLINK0) {					// No else! Equal execution time!
+				if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOSLINK0
 					chx++;
 				}
 			}
-			if (input_sel == MOBO_SRC_SPDIF) {					// No else! Equal execution time!
-				if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// Schematic net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF
+			if (input_sel == MOBO_SRC_SPDIF0) {					// No else! Equal execution time!
+				if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// Schematic net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF0
 					chx++;
 				}
 			}
@@ -396,7 +396,7 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 	uint8_t temp_program[SCAN_PROGRAM_LENGTH];
 	
 	// No valid channel given, start scanning from default or user selection
-	if ( (*channel != MOBO_SRC_TOS1) && (*channel != MOBO_SRC_TOS2) && (*channel != MOBO_SRC_SPDIF) ) {
+	if ( (*channel != MOBO_SRC_TOSLINK0) && (*channel != MOBO_SRC_TOSLINK1) && (*channel != MOBO_SRC_SPDIF0) ) {
 		*channel = spdif_rx_status.preferred_channel;	// Populated with default value or user override
 	}
 	
@@ -715,7 +715,7 @@ void wm8804_mute(void) {
 //	print_dbg_char('M');
 
 	// Empty outgoing buffers if owned by WM8804 code
-	if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_TOS1) ) {
+	if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 		mobo_clear_dac_channel();
 	}
 

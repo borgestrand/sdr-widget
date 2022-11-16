@@ -316,11 +316,11 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_DARK, FLED_WHITE, FLED_DARK);		// UAC2 front white 010
 #endif
-			else if (source == MOBO_SRC_SPDIF)
+			else if (source == MOBO_SRC_SPDIF0)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);	// SPDIF purple 010
-			else if (source == MOBO_SRC_TOS2)
+			else if (source == MOBO_SRC_TOSLINK1)
 				mobo_led(FLED_DARK, FLED_CYAN, FLED_DARK);		// TOS2 cyan 010
-			else if (source == MOBO_SRC_TOS1)
+			else if (source == MOBO_SRC_TOSLINK0)
 				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// TOS1 yellow 010
 		break;
 
@@ -341,11 +341,11 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_DARK, FLED_WHITE, FLED_WHITE);	// UAC2 front white 011
 #endif
-			else if (source == MOBO_SRC_SPDIF)
+			else if (source == MOBO_SRC_SPDIF0)
 				mobo_led(FLED_DARK, FLED_PURPLE, FLED_PURPLE);	// SPDIF purple 011
-			else if (source == MOBO_SRC_TOS2)
+			else if (source == MOBO_SRC_TOSLINK1)
 				mobo_led(FLED_DARK, FLED_CYAN, FLED_CYAN);		// TOS2 cyan 011
-			else if (source == MOBO_SRC_TOS1)
+			else if (source == MOBO_SRC_TOSLINK0)
 				mobo_led(FLED_DARK, FLED_YELLOW, FLED_YELLOW);	// TOS1 yellow 011
 		break;
 
@@ -360,11 +360,11 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_WHITE, FLED_DARK, FLED_DARK);		// UAC2 front white 100
 #endif
-			else if (source == MOBO_SRC_SPDIF)
+			else if (source == MOBO_SRC_SPDIF0)
 				mobo_led(FLED_PURPLE, FLED_DARK, FLED_DARK);	// SPDIF purple 100
-			else if (source == MOBO_SRC_TOS2)
+			else if (source == MOBO_SRC_TOSLINK1)
 				mobo_led(FLED_CYAN, FLED_DARK, FLED_DARK);		// TOS2 cyan 100
-			else if (source == MOBO_SRC_TOS1)
+			else if (source == MOBO_SRC_TOSLINK0)
 				mobo_led(FLED_YELLOW, FLED_DARK, FLED_DARK);	// TOS1 yellow 100
 		break;
 
@@ -379,11 +379,11 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_WHITE, FLED_DARK, FLED_WHITE);	// UAC2 front white 101
 #endif
-			else if (source == MOBO_SRC_SPDIF)
+			else if (source == MOBO_SRC_SPDIF0)
 				mobo_led(FLED_PURPLE, FLED_DARK, FLED_PURPLE);	// SPDIF purple 101
-			else if (source == MOBO_SRC_TOS2)
+			else if (source == MOBO_SRC_TOSLINK1)
 				mobo_led(FLED_CYAN, FLED_DARK, FLED_CYAN);		// TOS2 cyan 101
-			else if (source == MOBO_SRC_TOS1)
+			else if (source == MOBO_SRC_TOSLINK0)
 				mobo_led(FLED_YELLOW, FLED_DARK, FLED_YELLOW);	// TOS1 yellow 101
 		break;
 
@@ -398,11 +398,11 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_WHITE, FLED_WHITE, FLED_DARK);	// UAC2 front white 110
 #endif
-			else if (source == MOBO_SRC_SPDIF)
+			else if (source == MOBO_SRC_SPDIF0)
 				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_DARK);	// SPDIF purple 110
-			else if (source == MOBO_SRC_TOS2)
+			else if (source == MOBO_SRC_TOSLINK1)
 				mobo_led(FLED_CYAN, FLED_CYAN, FLED_DARK);		// TOS2 cyan 110
-			else if (source == MOBO_SRC_TOS1)
+			else if (source == MOBO_SRC_TOSLINK0)
 				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_DARK);	// TOS1 yellow 110
 		break;
 
@@ -417,11 +417,11 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
 				mobo_led(FLED_WHITE, FLED_WHITE, FLED_WHITE);		// UAC2 front white 111
 #endif
-			else if (source == MOBO_SRC_SPDIF)
+			else if (source == MOBO_SRC_SPDIF0)
 				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_PURPLE);	// SPDIF purple 111
-			else if (source == MOBO_SRC_TOS2)
+			else if (source == MOBO_SRC_TOSLINK1)
 				mobo_led(FLED_CYAN, FLED_CYAN, FLED_CYAN);			// TOS2 cyan 111
-			else if (source == MOBO_SRC_TOS1)
+			else if (source == MOBO_SRC_TOSLINK0)
 				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_YELLOW);	// TOS1 yellow 111
 		break;
 
@@ -508,15 +508,15 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 			mobo_led(FLED_RED);		// Classical color UAC2
 		break;
 
-		case MOBO_SRC_SPDIF:
+		case MOBO_SRC_SPDIF0:
 			mobo_led(FLED_YELLOW);
 		break;
 
-		case MOBO_SRC_TOS2:
+		case MOBO_SRC_TOSLINK1:
 			mobo_led(FLED_PURPLE);
 		break;
 
-		case MOBO_SRC_TOS1:
+		case MOBO_SRC_TOSLINK0:
 			mobo_led(FLED_CYAN);
 		break;
 		
@@ -573,15 +573,15 @@ void mobo_rxmod_input(uint8_t input_sel) {
 
 	taskENTER_CRITICAL();					// Don't let OS interrupt MUX control!
 
-	if (input_sel == MOBO_SRC_TOS2) {		// Controlling MUX chip
+	if (input_sel == MOBO_SRC_TOSLINK1) {		// Controlling MUX chip
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
 	}
-	else if (input_sel == MOBO_SRC_TOS1) {
+	else if (input_sel == MOBO_SRC_TOSLINK0) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
 	}
-	else if (input_sel == MOBO_SRC_SPDIF) {
+	else if (input_sel == MOBO_SRC_SPDIF0) {
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
 	}
@@ -667,7 +667,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 		if (input_select == MOBO_SRC_NONE)
 			iterations = 0;
-		else if ( ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) ) {
+		else if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 			if (iterations < 100)
 				iterations++;
 		}
@@ -692,7 +692,7 @@ void mobo_handle_spdif(uint8_t width) {
 			}
 //			}
 
-		if ( ( (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) || (input_select == MOBO_SRC_SPDIF) ) ) {
+		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 			if (ADC_buf_USB_IN == -2) {
@@ -1053,7 +1053,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 					gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
 				}
 			}
-			else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOS2)  || (source == MOBO_SRC_TOS1) ) {
+			else if ( (source == MOBO_SRC_SPDIF0) || (source == MOBO_SRC_TOSLINK1)  || (source == MOBO_SRC_TOSLINK0) ) {
 				gpio_set_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 1 defaults to RX-I2S // FIX: presumably! Comment updated from code review, not tested
 				gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
 				gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
@@ -1099,7 +1099,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 					gpio_clr_gpio_pin(AVR32_PIN_PX22); 	// Disable RX recovered MCLK
 				}
 			}
-			else if ( (source == MOBO_SRC_SPDIF) || (source == MOBO_SRC_TOS2)  || (source == MOBO_SRC_TOS1) ) {
+			else if ( (source == MOBO_SRC_SPDIF0) || (source == MOBO_SRC_TOSLINK1)  || (source == MOBO_SRC_TOSLINK0) ) {
 				gpio_clr_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 0 defaults to RX-I2S with digital inputs because spdif_rx_status.buffered == 0
 				gpio_set_gpio_pin(AVR32_PIN_PX22); 		// Enable RX recovered MCLK
 				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// Disable XOs 44.1 control

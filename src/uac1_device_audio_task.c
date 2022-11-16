@@ -214,9 +214,9 @@ void uac1_device_audio_task(void *pvParameters)
 
 				// Did SPDIF system just give up I2S control? If get onto the sample rate of the USB system ASAP
 				if (input_select == MOBO_SRC_NONE) {
-					if ( (prev_input_select == MOBO_SRC_SPDIF) ||
-						 (prev_input_select == MOBO_SRC_TOS1) ||
-						 (prev_input_select == MOBO_SRC_TOS2) ) {
+					if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
+						 (prev_input_select == MOBO_SRC_TOSLINK0) ||
+						 (prev_input_select == MOBO_SRC_TOSLINK1) ) {
 
 						mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
 						mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
@@ -393,7 +393,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 				/* SPDIF reduced */
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
-				if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
+				if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 
 					// Do minimal USB action to make Host believe Device is actually receiving
 					if (Is_usb_out_received(EP_AUDIO_OUT)) {
@@ -841,7 +841,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 				/* SPDIF reduced */
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
-				if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
+				if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 					// Do nothing at this stage
 				}
 				else {
@@ -916,7 +916,7 @@ void uac1_device_audio_task(void *pvParameters)
 			/* SPDIF reduced */
 #if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 		// On new hardware, don't do this if spdif is playing
-		if ( (input_select == MOBO_SRC_SPDIF) || (input_select == MOBO_SRC_TOS1) || (input_select == MOBO_SRC_TOS2) ) {
+		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 			// Do nothing at this stage
 		}
 		else {
