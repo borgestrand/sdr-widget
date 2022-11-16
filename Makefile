@@ -25,8 +25,9 @@
 # NB: the use of "prog128.bat" may brick the processor!!
 
 PARTNAME=-mpart=uc3a3128
+# This HW target seems to work on uc3a3256 hardware as well
 # Use "prog128.bat"
-# NB: the use of "prog256.bat" or "prog.bat" may brick the processor!!
+# NB: the use of "prog256.bat" or "prog.bat" will positively brick a '128 processor!!
 
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
@@ -40,7 +41,12 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
 	-DVDD_SENSE \
-	-DHW_GEN_AB1X \
+	-DUSB_STATE_MACHINE_GPIO \
+	-DUSB_STATE_MACHINE_DEBUG \
+	-DFEATURE_VOLUME_CTRL \
+	-DHW_GEN_RXMOD \
+	-DFEATURE_HID \
+	-DHW_GEN_RXMOD_PATCH_01 \
 	-DFEATURE_PRODUCT_AB1x
 
 audio-widget::
