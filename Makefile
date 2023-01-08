@@ -17,7 +17,7 @@
 #
 #
 # 
-# -DHW_GEN_RXMOD_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2
+# -DHW_GEN_RXMOD_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
 
 
 # PARTNAME=-mpart=uc3a3256
