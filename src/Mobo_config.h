@@ -57,7 +57,7 @@ void mobo_clear_dac_channel(void);
 void mobo_km(uint8_t enable);
 */
 
-// Control USB multiplexer in HW_GEN_DIN20
+// Control USB multiplexer in HW_GEN_RXMOD
 void mobo_usb_select(uint8_t usb_ch);
 
 // Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!

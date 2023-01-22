@@ -117,7 +117,7 @@ void mobo_km(uint8_t enable) {
 }
 */
 
-// Control USB multiplexer in HW_GEN_DIN20 and HW_GEN_RXMOD 
+// Control USB multiplexer in HW_GEN_RXMOD 
 void mobo_usb_select(uint8_t usb_ch) {
 	if (usb_ch == USB_CH_C) {
 		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin

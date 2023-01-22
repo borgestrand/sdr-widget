@@ -188,10 +188,6 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)  // 00014A97 difference
-#include "wm8805.h"
-#endif
-
 #if (defined HW_GEN_RXMOD)
 #include "wm8804.h"
 #include "pcm5142.h"
@@ -270,116 +266,13 @@ int i;
 #endif
 
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)  // 00014A97 difference
-//	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
-wm8805_reset(WM8805_RESET_START);							// Early hardware reset of WM8805 because GPIO is interpreted for config
-
-// NB: No I2C activity until WM8805_RESET_END !
-#endif
-
-#if (HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 //	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
 // print_dbg_char('j');
 wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 because GPIO is interpreted for config
 
 // NB: No I2C activity until WM8804_RESET_END !
 #endif
-
-
-
-
-
-
-#ifdef HW_GEN_DIN20 // 0014A96 difference 
-	gpio_set_gpio_pin(AVR32_PIN_PX13);						// Reset pin override inactive. Should have external pull-up!
-
-	// Disable all power supplies
-	// Shouldn't be needed with pull-down
-	mobo_km(MOBO_HP_KM_DISABLE);
-	gpio_clr_gpio_pin(AVR32_PIN_PX31);
-	gpio_clr_gpio_pin(AVR32_PIN_PA27);
-
-	gpio_set_gpio_pin(AVR32_PIN_PA22); // TP18				// Disable pass transistor at DAC's charge pump input
-
-
-//	gpio_clr_gpio_pin(USB_VBUS_A_PIN);						// NO USB A to MCU's VBUS pin
-//	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);				// Enable USB MUX
-//	gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);					// Select USB B to MCU's USB data pins
-//	gpio_set_gpio_pin(USB_VBUS_B_PIN);						// Select USB B to MCU's VBUS pin
-	usb_ch = mobo_usb_detect();								// Detect which USB plug to use. A has priority if present
-	mobo_usb_select(usb_ch);								// Connect USB plug
-	usb_ch_swap = USB_CH_NOSWAP;							// No swapping detected yet
-
-	// Try to remove this function. It is currently empty.
-	mobo_i2s_enable(MOBO_I2S_DISABLE);	// Disable here and enable with audio on.
-
-	// Just keep I2S on...
-	gpio_set_gpio_pin(AVR32_PIN_PX11); 						// Enable I2S data
-
-
-	// At default, one channel of current limiter is active. That charges digital side OS-CON and
-	// OS-CON of step up's positive side (through the inductor).
-
-	// TODO: Find a 100mA and up current limiter with controllable bias resistor
-
-	// Q:How much does board burn during this kind of wait? A: Roughly 30mA
-	cpu_delay_ms(2, FCPU_HZ_SLOW);
-
-
-	// 3: Turn on analog part of current limiter and step-up converter.
-	gpio_set_gpio_pin(AVR32_PIN_PA27);
-
-
-	// Turn off clock controls to establish starting point
-	gpio_clr_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0. No pull-down or pull-up
-	gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
-	gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
-
-	cpu_delay_ms(80, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
-
-
-	// Turn on all KMs by enabling pass transistors. FIX: add to board design!
-	// Analog KM charges LDOs through shared 22R FIX: add to board as 13R + 13R or something like that.
-	mobo_km(MOBO_HP_KM_ENABLE);
-
-
-	// Wait for analog KM output to settle.
-	cpu_delay_ms(600, FCPU_HZ_SLOW); // 600 worked, but that was without considering the DAC charge pumps
-
-
-
-	// Moved to I2S init code
-	// Wait for some time
-
-	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
-//	gpio_set_gpio_pin(AVR32_PIN_PX31);
-
-	// Wait for some time
-
-
-	// Short the shared 22R resistor at charge pump inputs. FIX: add board design!
-//	gpio_clr_gpio_pin(AVR32_PIN_PA22); // TP18
-
-
-	// Let things settle a bit
-	cpu_delay_ms(200, FCPU_HZ_SLOW);
-
-/* Not tied to MCLK and not yet a working solution
-	// Generate a super-slow SCLK/LRCK pair to try to fool DAC into super slow startup sequence
-	int count = 0;
-	gpio_clr_gpio_pin(AVR32_PIN_PX23); // SCLK
-	gpio_clr_gpio_pin(AVR32_PIN_PX27); // LRCK
-	while (1) {
-		gpio_tgl_gpio_pin(AVR32_PIN_PX23);
-		count ++;
-		if (count == 64) {
-			count = 0;
-			gpio_tgl_gpio_pin(AVR32_PIN_PX27);
-		}
-		cpu_delay_ms(1, FCPU_HZ_SLOW);
-	}
-*/
-#endif														//      Later: Maybe make front USB constantly UAC2...
 
 
 #ifdef HW_GEN_RXMOD
@@ -582,10 +475,6 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #if !(defined HW_GEN_RXMOD)
 	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);	// HW_GEN_DIN20 PX02 = SP_SEL1, SPDIF selector
-#endif
-
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // 00014A97 difference
-	wm8805_reset(WM8805_RESET_END);			// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 
 #if (defined HW_GEN_RXMOD)
