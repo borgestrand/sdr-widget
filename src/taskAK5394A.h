@@ -34,7 +34,7 @@
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
 // Keep buffer sizes belov 2^14
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
+#ifdef HW_GEN_RXMOD // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
 // Nominal values
 	#define ADC_BUFFER_SIZE	(8*2*24)
 	#define DAC_BUFFER_SIZE (32*2*24)

@@ -69,10 +69,6 @@
 #include "gpio.h"
 
 // To access SPDIF RX status
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-#include "wm8805.h"
-#endif
-
 #if (defined HW_GEN_RXMOD)
 #include "wm8804.h"
 #include "pcm5142.h"
@@ -110,12 +106,12 @@ extern volatile uint8_t wm8804_TRANS_ERR_FAILURE;
 
 
 
-#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 extern volatile uint8_t usb_ch;						// Front or rear USB channel
 extern volatile uint8_t usb_ch_swap;				// Front or rear USB channel
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio channel selection semaphore
 extern volatile spdif_rx_status_t spdif_rx_status;
 #endif

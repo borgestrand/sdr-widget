@@ -173,7 +173,7 @@ void uac2_device_audio_task(void *pvParameters)
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
+	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
 		#define IN_LEFT 0
 		#define IN_RIGHT 1
 		#define OUT_LEFT 0
@@ -203,7 +203,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 		// Process digital input
-		#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+		#ifdef HW_GEN_RXMOD
 			mobo_handle_spdif(32); // UAC2 uses 32-bit data
 
 			static uint8_t prev_input_select = MOBO_SRC_NONE;
@@ -352,7 +352,7 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_MSB = FB_rate_nominal >> 16;
 					}
 #else
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+	#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 					if ( (input_select != MOBO_SRC_UAC2) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {
 	#else
 					if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {
@@ -387,7 +387,7 @@ void uac2_device_audio_task(void *pvParameters)
 						sample_HSB = FB_rate_nominal >> 24;
 					}
 #else
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+	#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 					if ( (input_select != MOBO_SRC_UAC2) || (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {
 	#else
 					if ( (FEATURE_HSTUPID_ON) || (FEATURE_HDEAD_ON) ) {
@@ -433,7 +433,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 				/* SPDIF reduced */
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 
 				// Do minimal USB action to make Host believe Device is actually receiving
@@ -633,7 +633,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// New site for setting playerStarted and aligning buffers
 						if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
-							#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
+							#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 								#ifdef USB_STATE_MACHINE_DEBUG
 									print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
@@ -654,7 +654,7 @@ void uac2_device_audio_task(void *pvParameters)
 											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 										#endif
 								#endif
-							#else // not HW_GEN_DIN10/20								// No WM8805, take control
+							#else // not HW_GEN_RXMOD		// No WM8804, take control
 								input_select = MOBO_SRC_UAC2;
 							#endif
 						}
@@ -751,7 +751,7 @@ void uac2_device_audio_task(void *pvParameters)
 						mobo_clear_dac_channel();
 						// mobodebug Could this be the spot which sucks up CPU time with input_select == MOBO_SRC_UAC2
 
-						#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
+						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('k');					// Debug semaphore, lowercase letters for USB tasks
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -900,7 +900,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		else { // ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) )
 			/* SPDIF reduced */
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+#ifdef HW_GEN_RXMOD	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 				// Do nothing at this stage
 			}
@@ -935,7 +935,7 @@ void uac2_device_audio_task(void *pvParameters)
 					mobo_clear_dac_channel();
 					// mobodebug is this another scheduler thief?
 
-					#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
+					#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 						#ifdef USB_STATE_MACHINE_DEBUG
 							print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
@@ -972,7 +972,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		// BSB 20131201 attempting improved playerstarted detection
 			/* SPDIF reduced */
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 		// On new hardware, don't do this if spdif is playing
 		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 			// Do nothing at this stage
@@ -994,7 +994,7 @@ void uac2_device_audio_task(void *pvParameters)
 #endif
 
 				// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
-				#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)		// With WM8805/WM8804 present, handle semaphores
+				#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 				#ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {

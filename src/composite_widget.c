@@ -188,7 +188,7 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)  // 00014A97 difference
 #include "wm8805.h"
 #endif
 
@@ -265,12 +265,12 @@ int i;
 
 
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_AB1X)
+#if (defined HW_GEN_AB1X)
 	gpio_set_gpio_pin(AVR32_PIN_PX51);						// Enables power to XO and DAC in USBI2C AB-1.X and USB DAC 128
 #endif
 
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)  // 00014A97 difference
 //	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
 wm8805_reset(WM8805_RESET_START);							// Early hardware reset of WM8805 because GPIO is interpreted for config
 
@@ -290,7 +290,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 
 
-#ifdef HW_GEN_DIN20
+#ifdef HW_GEN_DIN20 // 0014A96 difference 
 	gpio_set_gpio_pin(AVR32_PIN_PX13);						// Reset pin override inactive. Should have external pull-up!
 
 	// Disable all power supplies
@@ -504,7 +504,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 //	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_RXMOD)
 
 	print_dbg_char('s');									// RXMODFIX input_select debug
 	print_dbg_char_hex(input_select);
@@ -584,7 +584,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);	// HW_GEN_DIN20 PX02 = SP_SEL1, SPDIF selector
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
+#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) // 00014A97 difference
 	wm8805_reset(WM8805_RESET_END);			// Early hardware reset of WM8805 because GPIO is interpreted for config
 #endif
 

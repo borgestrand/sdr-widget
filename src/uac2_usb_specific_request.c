@@ -223,7 +223,7 @@ void uac2_freq_change_handler() {
 
 	if (freq_changed) {
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 		if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
 			spk_mute = TRUE; // mute speaker while changing frequency and oscillator
 			mobo_clear_dac_channel();
@@ -260,7 +260,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('4'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -289,7 +289,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('3'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -318,7 +318,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('5'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -340,7 +340,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('6'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -362,7 +362,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('2'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -384,7 +384,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('1'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -402,7 +402,7 @@ void uac2_freq_change_handler() {
 		}
 
 		if (FEATURE_ADC_AK5394A) {
-			#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD) // Just to be on the safe side
+			#ifdef HW_GEN_RXMOD // Just to be on the safe side
 			#else
 				// re-sync SSC to LRCK
 				// Wait for the next frame synchronization event

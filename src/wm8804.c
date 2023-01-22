@@ -956,8 +956,6 @@ uint32_t wm8804_srd_asm2(void) {
 	// Recompile prototype c to change io pin!
 	// Test is done for up to 1 half period, then 2 full periods
 
-	// HW_GEN_DIN10 gets patched to become like HW_GEN_DIN20 in this repect
-
 	gpio_enable_gpio_pin(AVR32_PIN_PA05);	// Enable GPIO pin, not special IO (also for input). Needed?
 	
 	// PA05 is GPIO. PX26 and PX36 are special purpose clock pins

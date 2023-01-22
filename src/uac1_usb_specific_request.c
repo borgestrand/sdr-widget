@@ -677,7 +677,7 @@ void audio_set_cur(void)
 			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;		// BSB 20131115 Record FB_rate as it was set by control system;
 		}
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 		if (input_select == MOBO_SRC_UAC1) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
 			spk_mute = TRUE; // mute speaker while changing frequency and oscillator
 			mobo_clear_dac_channel();

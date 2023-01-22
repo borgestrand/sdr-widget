@@ -104,50 +104,6 @@ void mobo_sleep_rtc_ms(uint16_t time_ms) {
 #endif
 
 
-#ifdef HW_GEN_DIN20
-
-// Control headphone amp power supply (K-mult) turn-on time, for now main VDD turn on/off!
-void mobo_km(uint8_t enable) {
-	if (enable == MOBO_HP_KM_ENABLE)
-		gpio_set_gpio_pin(AVR32_PIN_PX55);				// Clear PX55 to no longer short the KM capacitors
-	else
-		gpio_clr_gpio_pin(AVR32_PIN_PX55);				// Set PX55 to short the KM capacitors (pulled up on HW)
-}
-
-// Control USB multiplexer in HW_GEN_DIN20
-void mobo_usb_select(uint8_t usb_ch) {
-	if (usb_ch == USB_CH_A) {
-		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
-		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
-		gpio_clr_gpio_pin(USB_DATA_A0_B1_PIN);			// Select USB A to MCU's USB data pins
-		gpio_set_gpio_pin(USB_VBUS_A_PIN);				// Select USB A to MCU's VBUS pin
-	}
-	else if (usb_ch == USB_CH_B) {
-		gpio_clr_gpio_pin(USB_VBUS_A_PIN);				// NO USB A to MCU's VBUS pin
-		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
-		gpio_set_gpio_pin(USB_DATA_A0_B1_PIN);			// Select USB B to MCU's USB data pins
-		gpio_set_gpio_pin(USB_VBUS_B_PIN);				// Select USB B to MCU's VBUS pin
-	}
-	else {												// NB untested to cover all vague USB channel detections
-		gpio_set_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Disable USB MUX
-		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
-		gpio_clr_gpio_pin(USB_VBUS_A_PIN);				// NO USB A to MCU's VBUS pin
-	}
-}
-
-
-
-// Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
-uint8_t mobo_usb_detect(void) {
-	if  (gpio_get_pin_value(AVR32_PIN_PB11) == 1)
-		return USB_CH_A;
-
-	return USB_CH_B;
-}
-
-#endif
-
-
 #ifdef HW_GEN_RXMOD
 // Control headphone amp power supply (K-mult) turn-on time, for now main VDD turn on/off!
 
@@ -199,24 +155,6 @@ uint8_t mobo_usb_detect(void) {
 #endif
 
 
-#if (defined HW_GEN_DIN20)
-void  mobo_i2s_enable(uint8_t i2s_mode) {
-	if (i2s_mode == MOBO_I2S_ENABLE) {
-		//		gpio_set_gpio_pin(AVR32_PIN_PX11); 					// Enable I2S data
-		#ifdef USB_STATE_MACHINE_DEBUG
-		//		print_dbg_char('m');								// Indicate unmute
-		#endif
-	}
-	else if (i2s_mode == MOBO_I2S_DISABLE) {
-		//		gpio_clr_gpio_pin(AVR32_PIN_PX11); 					// Disable I2S data pin
-		#ifdef USB_STATE_MACHINE_DEBUG
-		//		print_dbg_char('M');								// Indicate mute
-		#endif
-	}
-}
-#endif
-
-
 // For the moment do nothing!
 #if (defined HW_GEN_RXMOD)
 void  mobo_i2s_enable(uint8_t i2s_mode) {
@@ -235,203 +173,6 @@ void  mobo_i2s_enable(uint8_t i2s_mode) {
 }
 #endif
 
-
-
-
-
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-
-// Audio Widget HW_GEN_DIN10 / DIN20 LED control
-void mobo_led(uint8_t fled2, uint8_t fled1, uint8_t fled0) {
-	// red:1, green:2, blue:4
-	// fled2 is towards center of box, fled0 towards right-hand edge of front view
-
-	if (fled0 & FLED_RED)
-		gpio_clr_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PA17); 	// FLED0_R
-	if (fled0 & FLED_GREEN)
-		gpio_clr_gpio_pin(AVR32_PIN_PA24); 	// FLED0_G
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PA24); 	// FLED0_G
-	if (fled0 & FLED_BLUE)
-		gpio_clr_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PA18); 	// FLED0_B
-
-	if (fled1 & FLED_RED)
-		gpio_clr_gpio_pin(AVR32_PIN_PA23); 	// FLED1_R
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PA23); 	// FLED1_R
-	if (fled1 & FLED_GREEN)
-		gpio_clr_gpio_pin(AVR32_PIN_PC01); 	// FLED1_G
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PC01); 	// FLED1_G
-	if (fled1 & FLED_BLUE)
-		gpio_clr_gpio_pin(AVR32_PIN_PA21); 	// FLED1_B
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PA21); 	// FLED1_B
-
-	if (fled2 & FLED_RED)
-		gpio_clr_gpio_pin(AVR32_PIN_PX29); 	// FLED2_R
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PX29); 	// FLED2_R
-	if (fled2 & FLED_GREEN)
-		gpio_clr_gpio_pin(AVR32_PIN_PX32); 	// FLED2_G
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PX32); 	// FLED2_G
-	if (fled2 & FLED_BLUE)
-		gpio_clr_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
-	else
-		gpio_set_gpio_pin(AVR32_PIN_PC00); 	// FLED2_B
-}
-
-// Front panel RGB LED control
-void mobo_led_select(U32 frequency, uint8_t source) {
-
-	// No source is indicated as USB audio
-	if (source == MOBO_SRC_NONE) {
-		if (FEATURE_IMAGE_UAC1_AUDIO)
-			source = MOBO_SRC_UAC1;
-		else if (FEATURE_IMAGE_UAC2_AUDIO)
-			source = MOBO_SRC_UAC2;
-	}
-
-	switch (frequency) {
-
-		case FREQ_44:
-#ifdef HW_GEN_DIN10
-			if (source == MOBO_SRC_UAC1)
-				mobo_led(FLED_DARK, FLED_GREEN, FLED_DARK);		// UAC1 green 010
-			else if (source == MOBO_SRC_UAC2)
-				mobo_led(FLED_DARK, FLED_RED, FLED_DARK);		// UAC2 red 010
-#endif
-#ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC1) && (usb_ch == USB_CH_B) )
-				mobo_led(FLED_DARK, FLED_GREEN, FLED_DARK);		// UAC1 rear green 010
-			else if ( (source == MOBO_SRC_UAC1) && (usb_ch == USB_CH_A) )
-				mobo_led(FLED_DARK, FLED_BLUE, FLED_DARK);		// UAC1 front blue 010
-			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
-				mobo_led(FLED_DARK, FLED_RED, FLED_DARK);		// UAC2 rear red 010
-			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
-				mobo_led(FLED_DARK, FLED_WHITE, FLED_DARK);		// UAC2 front white 010
-#endif
-			else if (source == MOBO_SRC_SPDIF0)
-				mobo_led(FLED_DARK, FLED_PURPLE, FLED_DARK);	// SPDIF purple 010
-			else if (source == MOBO_SRC_TOSLINK1)
-				mobo_led(FLED_DARK, FLED_CYAN, FLED_DARK);		// TOS2 cyan 010
-			else if (source == MOBO_SRC_TOSLINK0)
-				mobo_led(FLED_DARK, FLED_YELLOW, FLED_DARK);	// TOS1 yellow 010
-		break;
-
-		case FREQ_48:
-#ifdef HW_GEN_DIN10
-			if (source == MOBO_SRC_UAC1)
-				mobo_led(FLED_DARK, FLED_GREEN, FLED_GREEN);	// UAC1 green 011
-			else if (source == MOBO_SRC_UAC2)
-				mobo_led(FLED_DARK, FLED_RED, FLED_RED);		// UAC2 red 011
-#endif
-#ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC1) && (usb_ch == USB_CH_B) )
-				mobo_led(FLED_DARK, FLED_GREEN, FLED_GREEN);	// UAC1 rear green 011
-			else if ( (source == MOBO_SRC_UAC1) && (usb_ch == USB_CH_A) )
-				mobo_led(FLED_DARK, FLED_BLUE, FLED_BLUE);		// UAC1 front blue 011
-			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
-				mobo_led(FLED_DARK, FLED_RED, FLED_RED);		// UAC2 rear red 011
-			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
-				mobo_led(FLED_DARK, FLED_WHITE, FLED_WHITE);	// UAC2 front white 011
-#endif
-			else if (source == MOBO_SRC_SPDIF0)
-				mobo_led(FLED_DARK, FLED_PURPLE, FLED_PURPLE);	// SPDIF purple 011
-			else if (source == MOBO_SRC_TOSLINK1)
-				mobo_led(FLED_DARK, FLED_CYAN, FLED_CYAN);		// TOS2 cyan 011
-			else if (source == MOBO_SRC_TOSLINK0)
-				mobo_led(FLED_DARK, FLED_YELLOW, FLED_YELLOW);	// TOS1 yellow 011
-		break;
-
-		case FREQ_88:
-#ifdef HW_GEN_DIN10
-			if (source == MOBO_SRC_UAC2)
-				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 red 100
-#endif
-#ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
-				mobo_led(FLED_RED, FLED_DARK, FLED_DARK);		// UAC2 rear red 100
-			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
-				mobo_led(FLED_WHITE, FLED_DARK, FLED_DARK);		// UAC2 front white 100
-#endif
-			else if (source == MOBO_SRC_SPDIF0)
-				mobo_led(FLED_PURPLE, FLED_DARK, FLED_DARK);	// SPDIF purple 100
-			else if (source == MOBO_SRC_TOSLINK1)
-				mobo_led(FLED_CYAN, FLED_DARK, FLED_DARK);		// TOS2 cyan 100
-			else if (source == MOBO_SRC_TOSLINK0)
-				mobo_led(FLED_YELLOW, FLED_DARK, FLED_DARK);	// TOS1 yellow 100
-		break;
-
-		case FREQ_96:
-#ifdef HW_GEN_DIN10
-			if (source == MOBO_SRC_UAC2)
-				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 red 101
-#endif
-#ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
-				mobo_led(FLED_RED, FLED_DARK, FLED_RED);		// UAC2 rear red 101
-			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
-				mobo_led(FLED_WHITE, FLED_DARK, FLED_WHITE);	// UAC2 front white 101
-#endif
-			else if (source == MOBO_SRC_SPDIF0)
-				mobo_led(FLED_PURPLE, FLED_DARK, FLED_PURPLE);	// SPDIF purple 101
-			else if (source == MOBO_SRC_TOSLINK1)
-				mobo_led(FLED_CYAN, FLED_DARK, FLED_CYAN);		// TOS2 cyan 101
-			else if (source == MOBO_SRC_TOSLINK0)
-				mobo_led(FLED_YELLOW, FLED_DARK, FLED_YELLOW);	// TOS1 yellow 101
-		break;
-
-		case FREQ_176:
-#ifdef HW_GEN_DIN10
-			if (source == MOBO_SRC_UAC2)
-				mobo_led(FLED_RED, FLED_RED, FLED_DARK);		// UAC2 red 110
-#endif
-#ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
-				mobo_led(FLED_RED, FLED_RED, FLED_DARK);		// UAC2 rear red 110
-			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
-				mobo_led(FLED_WHITE, FLED_WHITE, FLED_DARK);	// UAC2 front white 110
-#endif
-			else if (source == MOBO_SRC_SPDIF0)
-				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_DARK);	// SPDIF purple 110
-			else if (source == MOBO_SRC_TOSLINK1)
-				mobo_led(FLED_CYAN, FLED_CYAN, FLED_DARK);		// TOS2 cyan 110
-			else if (source == MOBO_SRC_TOSLINK0)
-				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_DARK);	// TOS1 yellow 110
-		break;
-
-		case FREQ_192:
-#ifdef HW_GEN_DIN10
-			if (source == MOBO_SRC_UAC2)
-				mobo_led(FLED_RED, FLED_RED, FLED_RED);				// UAC2 red 111
-#endif
-#ifdef HW_GEN_DIN20
-			if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_B) )
-				mobo_led(FLED_RED, FLED_RED, FLED_RED);				// UAC2 rear red 111
-			else if ( (source == MOBO_SRC_UAC2) && (usb_ch == USB_CH_A) )
-				mobo_led(FLED_WHITE, FLED_WHITE, FLED_WHITE);		// UAC2 front white 111
-#endif
-			else if (source == MOBO_SRC_SPDIF0)
-				mobo_led(FLED_PURPLE, FLED_PURPLE, FLED_PURPLE);	// SPDIF purple 111
-			else if (source == MOBO_SRC_TOSLINK1)
-				mobo_led(FLED_CYAN, FLED_CYAN, FLED_CYAN);			// TOS2 cyan 111
-			else if (source == MOBO_SRC_TOSLINK0)
-				mobo_led(FLED_YELLOW, FLED_YELLOW, FLED_YELLOW);	// TOS1 yellow 111
-		break;
-
-		default:
-			mobo_led(FLED_DARK, FLED_DARK, FLED_DARK);			// Invalid frequency: darkness
-		break;
-	}
-}
-
-#endif // LED for HW_GEN_DIN10 and HW_GEN_DIN20
 
 
 #if (defined HW_GEN_RXMOD)
@@ -599,7 +340,7 @@ void mobo_rxmod_input(uint8_t input_sel) {
 
 
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
 	static int ADC_buf_DMA_write_prev = -1;
@@ -624,7 +365,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
 	#define IN_LEFT 0
 	#define IN_RIGHT 1
 	#define OUT_LEFT 0
@@ -1032,52 +773,6 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			break;
 		} // switch
-
-	// XO control and I2S muxing on Digital Input 1.0 / 2.0 generation
-	// NB: updated to support SPDIF buffering in MCU. That is highly experimental code!
-	#elif (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20)
-
-		if (spdif_rx_status.buffered == 0) {
-		// Old version with I2S mux
-			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
-			if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
-				gpio_clr_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 0 defaults to USB
-
-				// Clock source control
-				if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
-					gpio_set_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-					gpio_clr_gpio_pin(AVR32_PIN_PX45); 	// 48 control
-				}
-				else {
-					gpio_clr_gpio_pin(AVR32_PIN_PX58); 	// 44.1 control
-					gpio_set_gpio_pin(AVR32_PIN_PX45); 	// 48 control
-				}
-			}
-			else if ( (source == MOBO_SRC_SPDIF0) || (source == MOBO_SRC_TOSLINK1)  || (source == MOBO_SRC_TOSLINK0) ) {
-				gpio_set_gpio_pin(AVR32_PIN_PX44); 		// SEL_USBN_RXP = 1 defaults to RX-I2S // FIX: presumably! Comment updated from code review, not tested
-				gpio_clr_gpio_pin(AVR32_PIN_PX58); 		// Disable XOs 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PX45); 		// Disable XOs 48 control
-			}
-		}
-		else {
-		// New version without I2S mux, with buffering via MCU's ADC interface
-			gpio_clr_gpio_pin(AVR32_PIN_PX44); 			// SEL_USBN_RXP = 0 USB version in all cases
-
-			// Clock source control
-			if (frequency == FREQ_RXNATIVE) {			// Use MCLK from SPDIF RX
-				// Explicitly turn on MCLK generation in SPDIF RX?
-				gpio_clr_gpio_pin(AVR32_PIN_PX58);		// 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PX45);		// 48 control
-			}
-			else if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
-				gpio_set_gpio_pin(AVR32_PIN_PX58);		// 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PX45);		// 48 control
-			}
-			else {
-				gpio_clr_gpio_pin(AVR32_PIN_PX58);		// 44.1 control
-				gpio_set_gpio_pin(AVR32_PIN_PX45); 		// 48 control
-			}
-		}
 
 	#elif (defined HW_GEN_RXMOD) 
 

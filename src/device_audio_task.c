@@ -34,12 +34,12 @@ volatile uint8_t wm8804_TRANS_ERR_FAILURE = 0x1d;	// 0x1d 14 Results after 1st o
 
 
 
-#if (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 volatile uint8_t usb_ch;					// Front or rear USB channel
 volatile uint8_t usb_ch_swap;				// USB channel is about to swap!
 #endif
 
-#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+#ifdef HW_GEN_RXMOD
 volatile xSemaphoreHandle input_select_semphr = NULL; // BSB 20150626 audio channel selection semaphore
 #endif
 

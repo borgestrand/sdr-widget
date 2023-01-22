@@ -366,7 +366,7 @@ void AK5394A_task_init(const Bool uac1) {
 	pdca_set_irq();
 
 	// Init ADC channel for SPDIF buffering
-	#if (defined HW_GEN_DIN10) || (defined HW_GEN_DIN20) || (defined HW_GEN_RXMOD)
+	#ifdef HW_GEN_RXMOD
 	/*  Empty for now....
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 //		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -385,24 +385,6 @@ void AK5394A_task_init(const Bool uac1) {
 	// Initial setup of clock and TX IO. This will cause LR inversion when called with FREQ_INVALID
 	// Therefore, call it with proper frequency when playback starts.
 	mobo_clock_division(FREQ_INVALID);
-
-
-
-#ifdef HW_GEN_DIN20
-
-	// At this point in time, the DAC's charge pump is about to start. Give it some time to
-	// pull current while the series resistor is engaged.
-	cpu_delay_ms(80, FCPU_HZ);
-
-	// Short the shared 12R resistor at charge pump inputs while 12R at LDO input is still engaged. FIX: add board design!
-	gpio_clr_gpio_pin(AVR32_PIN_PA22); // TP18
-
-	cpu_delay_ms(200, FCPU_HZ);
-
-	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
-	gpio_set_gpio_pin(AVR32_PIN_PX31);
-
-#endif
 
 
 #ifdef HW_GEN_RXMOD
