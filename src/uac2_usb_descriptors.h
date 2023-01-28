@@ -412,11 +412,11 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_specific_2			ep1_s;
 
 	// Mic alt2 - identical for now, may change bit resolution to 16 if there is a way to test it
-	S_usb_as_interface_descriptor	 		mic_as_alt1;
-	S_usb_as_g_interface_descriptor_2		mic_g_as;
-	S_usb_format_type_2						mic_format_type;
-	S_usb_endpoint_audio_descriptor_2 		ep1;
-	S_usb_endpoint_audio_specific_2			ep1_s;
+	S_usb_as_interface_descriptor	 		mic_as_alt2;
+	S_usb_as_g_interface_descriptor_2		mic_g_as_alt2;
+	S_usb_format_type_2						mic_format_type_alt2;
+	S_usb_endpoint_audio_descriptor_2 		ep1_alt2;
+	S_usb_endpoint_audio_specific_2			ep1_s_alt2;
 #endif
 
 
