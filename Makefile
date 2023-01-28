@@ -10,14 +10,13 @@
 #
 # -DHW_GEN_AB1X					Pure USB DAC - all hardware revisions
 # -DHW_GEN_RXMOD				Latest revision of SPDIF receiver
-# -DHW_GEN_DIN20				Second revision of SPDIF receiver - two prototypes are built - remove from codebase
-# -DHW_GEN_DIN10				First revision of SPDIF receiver - one delivered to Per - remove from codebase
+# -DHW_GEN_RXMOD_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
+# -DHW_GEN_RXMOD_PATCH_02		Hardware development, RXmod_T1_C boards
 #
 # -DFEATURE_HID					USB HID functions AND debug development system - FIX: split them in two... 
+# -DFEATURE_VOLUME_CTRL			Software volume control in DAC
 #
-#
-# 
-# -DHW_GEN_RXMOD_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
+# -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
 
 
 # PARTNAME=-mpart=uc3a3256
@@ -45,8 +44,11 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_GPIO \
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_VOLUME_CTRL \
-	-DFEATURE_PRODUCT_AB1x \ 
-	-DHW_GEN_AB1X
+	-DFEATURE_PRODUCT_HA256 \
+	-DHW_GEN_RXMOD \
+	-DHW_GEN_RXMOD_PATCH_01 \
+	-DHW_GEN_RXMOD_PATCH_02 \
+	-DFEATURE_ADC_EXPERIMENTAL
 
 
 

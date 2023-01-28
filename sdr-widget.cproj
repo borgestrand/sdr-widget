@@ -15407,12 +15407,6 @@
     <Compile Include="src\widget.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\wm8805.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\wm8805.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\Xhpsdr_device_audio_task.c">
       <SubType>compile</SubType>
     </Compile>

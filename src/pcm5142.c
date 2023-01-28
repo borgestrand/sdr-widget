@@ -62,11 +62,19 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 //		print_dbg_char('A');
 
+
+		// How long delay is needed? Should we bring this out of semaphore code? That might interfere with ongoing transfers, but not take up time
+		gpio_set_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC in rev. C, unused control pin in rev. A and B
+		vTaskDelay(5);							// Wait 0.5ms
+
 		// Start of blocking code
 		dev_data[0] = int_adr;
 		dev_data[1] = int_data;
 		status = twi_write_out(PCM5142_DEV_ADR, dev_data, 2);
 		// End of blocking code
+
+		gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC
+		vTaskDelay(5);							// Wait 0.5ms
 
 //		print_dbg_char('g');
 		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
@@ -79,6 +87,7 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 	else {
 		print_dbg_char('Q');
 	}
+
 
 	return status;
 }
@@ -93,6 +102,10 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 //		print_dbg_char('B');
 
+		// How long delay is needed? Should we bring this out of semaphore code? That might interfere with ongoing transfers, but not take up time
+		gpio_set_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC in rev. C, unused control pin in rev. A and B
+		vTaskDelay(5);							// Wait 0.5ms
+
 		// Start of blocking code
 		dev_data[0] = int_adr;
 		if (twi_write_out(PCM5142_DEV_ADR, dev_data, 1) == TWI_SUCCESS) {
@@ -101,6 +114,9 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 		else
 			dev_data[0] = 0 ;	// Randomly chosen failure state
 		// End of blocking code
+
+		gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC
+		vTaskDelay(5);							// Wait 0.5ms
 
 //		print_dbg_char('g');
 		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {

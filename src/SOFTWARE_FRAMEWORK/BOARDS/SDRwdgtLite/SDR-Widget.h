@@ -97,9 +97,9 @@
 								// used for the Menu Functions.
 
 // Tests and Debug ------------------------------------------------------------------------
-#define FRQ_IN_FIRST_LINE	1	// Normal Frequency display in first line of LCD. Can be disabled for Debug
-#define TMP_V_I_SECOND_LINE	1	// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
-#define DISP_RX_DB			1	// Display RX level in dB for both input channels, third line (taskPowerDisplay)
+#define FRQ_IN_FIRST_LINE	0	// Normal Frequency display in first line of LCD. Can be disabled for Debug // 20230128 removed
+#define TMP_V_I_SECOND_LINE	0	// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug // 20230128 removed
+#define DISP_RX_DB			0	// Display RX level in dB for both input channels, third line (taskPowerDisplay) // 20230128 removed
 #define DISP_RX_DB_HPF		0	// Display RX level in dB for both input channels, simple HPF, fourth line (taskPowerDisplay)
 #define ENOB_TEST			0	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
 #define	I2C_LCD_PRINT		0	// Show which values are being sent to the PCF and Si570

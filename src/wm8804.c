@@ -337,7 +337,7 @@ void wm8804_sleep(void) {
 // Course detection of AC vs. DC on SPDIF input lines
 // Sequential code supports both baseline HW_GEN_RXMOD = initial build 
 // of RXmod_t1_A, and HW_GEN_RXMOD_PATCH_01 = strap from U1:13 to U6:CP via R117
-// whcih enables only a single live detection flip-flop
+// which enables only a single live detection flip-flop
 uint8_t wm8804_live_detect(uint8_t input_sel) {
 	#define WM8804_SPDIF_LIVE_COUNT	0x20			// Detection takes about 50µs
 	uint8_t counter = WM8804_SPDIF_LIVE_COUNT;
@@ -349,19 +349,21 @@ uint8_t wm8804_live_detect(uint8_t input_sel) {
 	// Poll SPDIF/TOSLINK data signal a number of times. Only bother with one of them in shared counter
 	while (counter--) {
 		// Unified approach in PATCH_01, one flip-flop after MUX
-		if (input_sel == MOBO_SRC_MUXED) {					// No else! Equal execution time!
+		// replace by defined(HW_GEN_RXMOD_PATCH_01)
+		if (input_sel == MOBO_SRC_MUXED) {
 			if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// PCB patch from MUX output to net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF0
 				chx++;
 			}
 		}
 		// Initial approach in RXmod_t1_A, one detector for each source
+		// Replace by not defined (HW_GEN_RXMOD_PATCH_01)
 		else {
 			if (input_sel == MOBO_SRC_TOSLINK1) {
 				if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOSLINK1
 					chx++;
 				}
 			}
-			if (input_sel == MOBO_SRC_TOSLINK0) {					// No else! Equal execution time!
+			if (input_sel == MOBO_SRC_TOSLINK0) {				// No else! Equal execution time!
 				if (gpio_get_pin_value(AVR32_PIN_PA29) == 1) {	// Schematic net TOSLINK0_TO_MCU / input MOBO_SRC_TOSLINK0
 					chx++;
 				}

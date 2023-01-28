@@ -380,8 +380,6 @@ void device_mouse_hid_task(void)
 
 
 #ifdef HW_GEN_RXMOD
-// RXMODFIX port above section to new GPIO and USB channel naming
-
 
 /* Changing filters. TI says:
 Hello, This is the information you needed: The interpolation filter can be changed with just 3 steps.
