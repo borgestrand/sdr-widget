@@ -49,8 +49,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DHW_GEN_RXMOD_PATCH_01 \
 	-DHW_GEN_RXMOD_PATCH_02 \
 	-DFEATURE_ADC_EXPERIMENTAL
-
-
+	
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o
