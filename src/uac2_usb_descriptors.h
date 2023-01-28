@@ -52,6 +52,8 @@
 
 // CONFIGURATION
 
+// FEATURE_ADC_EXPERIMENTAL Add one more for Audio IN?
+
 #ifdef FEATURE_HID
 	#ifdef FEATURE_CFG_INTERFACE
 		#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID     4: Was: Counting endpoints: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
@@ -163,7 +165,7 @@
 #define DSC_INTERFACE_AUDIO				INTERFACE_NB1
 
 
-// USB Endpoint 1 descriptor - not used
+// USB Endpoint 1 descriptor - audio in not used for pure USB DACs
 #define ENDPOINT_NB_1       			( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
 #define EP_ATTRIBUTES_1					0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
 //#define EP_IN_LENGTH_1_FS				294				   // 3 bytes * 49 samples * stereo
@@ -222,30 +224,30 @@
 #define CSX_CONTROL						0b00000011	// clock selector is readable and writable
 
 
-// Input Terminal descriptor
+// Input Terminal descriptor - for ADC support
 #define INPUT_TERMINAL_ID				0x01
 #define INPUT_TERMINAL_TYPE				0x0201 	// Terminal is microphone
 #define INPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define INPUT_TERMINAL_NB_CHANNELS		0x00   	// Was: '2 // Two channels for input terminal
-#define INPUT_TERMINAL_CHANNEL_CONF		0x00000000 	// Was: '3 // Two channels at front left and front right positions
-#define INPUT_TERMINAL_CONTROLS			0x0000	// none 0x0040	// D7-6 Cluster control - readonly
+#define INPUT_TERMINAL_NB_CHANNELS		0x02   	// Was: '2 // Two channels for input terminal
+#define INPUT_TERMINAL_CHANNEL_CONF		0x00000003 	// Was: '3 // Two channels at front left and front right positions
+#define INPUT_TERMINAL_CONTROLS			0x0000	// none Was: 0x0040	// D7-6 Cluster control - readonly
 #define INPUT_TERMINAL_CH_NAME_ID		0x00	// No channel name
 #define INPUT_TERMINAL_STRING_DESC	    0x00	// No string descriptor
 
-// Output Terminal descriptor
+// Output Terminal descriptor - for ADC support
 #define OUTPUT_TERMINAL_ID				0x03
 #define OUTPUT_TERMINAL_TYPE			0x0101 	// USB Streaming
 #define OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define OUTPUT_TERMINAL_SOURCE_ID		MIC_FEATURE_UNIT_ID
+#define OUTPUT_TERMINAL_SOURCE_ID		INPUT_TERMINAL_ID // Direct IO. Was: MIC_FEATURE_UNIT_ID with volume control
 #define OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
 
-
-//MIC Feature Unit descriptor
+//MIC Feature Unit descriptor - not used for now. Present in master branch on github
 #define MIC_FEATURE_UNIT_ID            0x02
 #define MIC_FEATURE_UNIT_SOURCE_ID     INPUT_TERMINAL_ID
 #define MIC_BMA_CONTROLS               0x00000003 	// Mute readable and writable
 #define MIC_BMA_CONTROLS_CH_1		   0x00000003	//
 #define MIC_BMA_CONTROLS_CH_2		   0x00000003
+
 
 // Speaker Input Terminal
 #define SPK_INPUT_TERMINAL_ID			0x11
@@ -256,14 +258,13 @@
 #define SPK_INPUT_TERMINAL_CH_NAME_ID	LEFT_CH_INDEX // Was: 0x00
 #define SPK_INPUT_TERMINAL_STRING_DESC	AIT_INDEX
 
-
 //SPK Feature Unit descriptor
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 #define SPK_FEATURE_UNIT_ID          	0x14	// Was 0x12
 #define SPK_FEATURE_UNIT_SOURCE_ID   	SPK_INPUT_TERMINAL_ID
-#define SPK_BMA_CONTROLS           	0x00000003 	// Mute master channel. [Readable and writable ?]
-#define SPK_BMA_CONTROLS_CH_1		0x0000000C	// Volume control L
-#define SPK_BMA_CONTROLS_CH_2		0x0000000C	// Volume control R
+#define SPK_BMA_CONTROLS           		0x00000003 	// Mute master channel. [Readable and writable ?]
+#define SPK_BMA_CONTROLS_CH_1			0x0000000C	// Volume control L
+#define SPK_BMA_CONTROLS_CH_2			0x0000000C	// Volume control R
 #endif
 
 // SPK Output Terminal descriptor
@@ -286,8 +287,23 @@
 	#define STD_AS_INTERFACE_OUT		0x01   // Index of Std AS Interface for Audio Out
 #endif
 
-//#define DSC_INTERFACE_AS				STD_AS_INTERFACE_IN
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
+
+
+
+// Bringing back ADC support from main branch
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	//Audio Streaming (AS) interface descriptor
+	#ifdef FEATURE_CFG_INTERFACE
+		#define STD_AS_INTERFACE_IN		0x03   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!! FEATURE_ADC_EXPERIMENTAL_FIX
+	#else
+		#define STD_AS_INTERFACE_IN		0x02   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!!
+	#endif
+
+	#define DSC_INTERFACE_AS			STD_AS_INTERFACE_IN
+#endif
+
+
 
 // Also mix in FEATURE_CFG_INTERFACE in Alternate interfaces?
 
@@ -366,16 +382,48 @@ __attribute__((__packed__))
 #ifdef FEATURE_CLOCK_SELECTOR				// Only if clock selector is compiled in do we expose it in the feature unit
 	S_usb_clock_selector_descriptor			audio_csel; // ClockSelector
 #endif
+
+
+#ifdef FEATURE_ADC_EXPERIMENTAL		// Brought back from main branch
+	S_usb_in_ter_descriptor_2 				mic_in_ter;
+	// Removing S_usb_feature_unit_descriptor_2			mic_fea_unit;	// Is this a microphone gain control or something in main branch?
+	// implies #define OUTPUT_TERMINAL_SOURCE_ID	INPUT_TERMINAL_ID somewhere. And those IDs must be unique I guess
+	S_usb_out_ter_descriptor_2				mic_out_ter;
+#endif
+
+
+// Speaker output terminal - not changed
 	S_usb_in_ter_descriptor_2				spk_in_ter;
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
 	S_usb_feature_unit_descriptor_2			spk_fea_unit;
 #endif
 	S_usb_out_ter_descriptor_2				spk_out_ter;
 
-	// alt0
+
+#ifdef FEATURE_ADC_EXPERIMENTAL		// Brought back from main branch
+	// Mic alt0
+	S_usb_as_interface_descriptor	 		mic_as_alt0;
+
+	// Mic alt1
+	S_usb_as_interface_descriptor	 		mic_as_alt1;
+	S_usb_as_g_interface_descriptor_2		mic_g_as;
+	S_usb_format_type_2						mic_format_type;
+	S_usb_endpoint_audio_descriptor_2 		ep1;
+	S_usb_endpoint_audio_specific_2			ep1_s;
+
+	// Mic alt2 - identical for now, may change bit resolution to 16 if there is a way to test it
+	S_usb_as_interface_descriptor	 		mic_as_alt1;
+	S_usb_as_g_interface_descriptor_2		mic_g_as;
+	S_usb_format_type_2						mic_format_type;
+	S_usb_endpoint_audio_descriptor_2 		ep1;
+	S_usb_endpoint_audio_specific_2			ep1_s;
+#endif
+
+
+	// Speaker alt0
 	S_usb_as_interface_descriptor	 		spk_as_alt0;
 
-	// alt1
+	// Speaker alt1
 	S_usb_as_interface_descriptor	 		spk_as_alt1;
 	S_usb_as_g_interface_descriptor_2		spk_g_as;
 	S_usb_format_type_2						spk_format_type;
@@ -383,7 +431,7 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_specific_2			ep2_s;
 	S_usb_endpoint_audio_descriptor_2 		ep3;
 
-	// bBitResolution added alt2 for 16-bit audio streaming
+	// Speaker alt2 bBitResolution added alt2 for 16-bit audio streaming
 	S_usb_as_interface_descriptor	 		spk_as_alt2;
 	S_usb_as_g_interface_descriptor_2		spk_g_as_alt2;
 	S_usb_format_type_2						spk_format_type_alt2;
