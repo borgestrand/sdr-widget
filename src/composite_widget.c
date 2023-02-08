@@ -239,9 +239,11 @@ int i;
 	// The reason this is put as early as possible in the code
 	// is that AK5394A has to be put in reset when the clocks are not
 	// fully set up.  Otherwise the chip will overheat
-	for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up
+	if (FEATURE_ADC_AK5394A) {
+		for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up
 															// time for various voltages (eg to the XO) to stablize
 															// Not used in QNKTC / Henry Audio hardware
+	}
 
 	// Set CPU and PBA clock at slow (12MHz) frequency
 	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param_slow) )
@@ -301,10 +303,10 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	// Just keep I2S on, mobo_i2s_enable() does nothing for now
 	gpio_set_gpio_pin(AVR32_PIN_PX58); 						// Enable I2S data
 
-	// RXMODFIX Enable power regulators. In the future, do this after enumeration or some time out while monitoring load switch status!
-//	print_dbg_char('l');
+
+	// RXMODFIX Enable power regulators for DAC, receiver etc. In the future, do this after enumeration and add circuitry for 100mA limit....
+	cpu_delay_ms(50, FCPU_HZ_SLOW);
 	gpio_set_gpio_pin(AVR32_PIN_PA24);
-//	print_dbg_char('m');
 
 
 	// At default, one channel of current limiter is active. That charges digital side OS-CON and
@@ -326,34 +328,10 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// Disable XOs 44.1 control
 	gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// Disable XOs 48 control
 
-	cpu_delay_ms(80, FCPU_HZ_SLOW); // Looks like 60 is actually needed with 4uF slow start
 
+	// Wait for power supply to stabilize
+	cpu_delay_ms(100, FCPU_HZ_SLOW);			// Looks like 60 is actually needed with 4uF slow start
 
-	// Turn on all KMs by enabling pass transistors. FIX: add to board design!
-	// Analog KM charges LDOs through shared 22R FIX: add to board as 13R + 13R or something like that.
-	// mobo_km(MOBO_HP_KM_ENABLE); // Not patched up on HW_GEN_RXMOD
-
-
-	// Wait for analog KM output to settle.
-	cpu_delay_ms(600, FCPU_HZ_SLOW); // 600 worked, but that was without considering the DAC charge pumps
-
-
-
-	// Moved to I2S init code
-	// Wait for some time
-
-	// Short the shared 12R resistor at LDO inputs. FIX: add board design!
-//	gpio_set_gpio_pin(AVR32_PIN_PX31);
-
-	// Wait for some time
-
-
-	// Short the shared 22R resistor at charge pump inputs. FIX: add board design!
-//	gpio_clr_gpio_pin(AVR32_PIN_PA22); // TP18
-
-
-	// Let things settle a bit
-	cpu_delay_ms(200, FCPU_HZ_SLOW);
 
 /* Not tied to MCLK and not yet a working solution
 	// Generate a super-slow SCLK/LRCK pair to try to fool DAC into super slow startup sequence
@@ -454,7 +432,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 //		gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset
 //	}
 
-	if (FEATURE_ADC_AK5394A){
+	if (FEATURE_ADC_AK5394A) {
 		int counter;
 		// Set up AK5394A
 		gpio_clr_gpio_pin(AK5394_RSTN);		// put AK5394A in reset
