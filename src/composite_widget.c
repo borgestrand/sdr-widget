@@ -244,7 +244,7 @@ int i;
 	init_dbg_rs232(pm_freq_param.pba_f);
 	
 	print_dbg_char('j');
-	print_dbg_char('x');
+	print_dbg_char('x'); 
 	
 
 	// The reason this is put as early as possible in the code
