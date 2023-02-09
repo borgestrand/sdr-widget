@@ -55,7 +55,7 @@ const S_usb_device_descriptor uac2_dg8saq_usb_dev_desc =
   PROD_INDEX,
   SN_INDEX,
   NB_CONFIGURATION
-}; 
+};
 
 const S_usb_device_descriptor uac2_audio_usb_dev_desc =
 {

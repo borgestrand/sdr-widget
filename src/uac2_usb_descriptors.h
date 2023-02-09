@@ -417,7 +417,7 @@ __attribute__((__packed__))
 	S_usb_format_type_2						mic_format_type_alt2;
 	S_usb_endpoint_audio_descriptor_2 		ep1_alt2;
 	S_usb_endpoint_audio_specific_2			ep1_s_alt2;
-#endif 
+#endif
 
 
 	// Speaker alt0

@@ -235,42 +235,20 @@ int i;
 
 	// Make sure Watchdog timer is disabled initially (otherwise it interferes upon restart)
 	wdt_disable();
-	
-	// Set CPU and PBA clock - going right to the fast clock. What are implications for current consumption?
-	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
-		return 42;
-
-	// Initialize usart comm very, very early!
-	init_dbg_rs232(pm_freq_param.pba_f);
-	
-	print_dbg_char('j');
-	print_dbg_char('x'); 
-	
 
 	// The reason this is put as early as possible in the code
 	// is that AK5394A has to be put in reset when the clocks are not
 	// fully set up.  Otherwise the chip will overheat
 	if (FEATURE_ADC_AK5394A) {
-		for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up - this is IO PB03
-															// time for various voltages (eg to the XO) to stablize
-															// Not used in QNKTC / Henry Audio hardware
+		for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up
+																// time for various voltages (eg to the XO) to stablize
+																// Not used in QNKTC / Henry Audio hardware
 	}
-
-/* Skipping slow init clock entirely
+		
 	// Set CPU and PBA clock at slow (12MHz) frequency
-	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) ) // Was: &pm_freq_param_slow
+	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param_slow) )
 		return 42;
-*/		
 
-/*
-// Timer test for startup debug
-	while (1) {
-		cpu_delay_ms(500, FCPU_HZ); // Was: FCPU_HZ_SLOW
-		mobo_led(FLED_GREEN);
-		cpu_delay_ms(500, FCPU_HZ); // Was: FCPU_HZ_SLOW
-		mobo_led(FLED_DARK);
-	}
-*/	
 
 /*
 	// Low power sleep test start
@@ -280,7 +258,7 @@ int i;
 		mobo_sleep_rtc_ms(500);
 		mobo_led(FLED_DARK);
 	}
-	// Low power sleep test end
+	// Low power sleep test end 
 */
 
 
@@ -325,24 +303,10 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	// Just keep I2S on, mobo_i2s_enable() does nothing for now
 	gpio_set_gpio_pin(AVR32_PIN_PX58); 						// Enable I2S data
 
-
-	// RXMODFIX Enable power regulators for DAC, receiver etc. In the future, do this after enumeration and add circuitry for 100mA limit....
-	cpu_delay_ms(50, FCPU_HZ); // Was: FCPU_HZ_SLOW
+	// RXMODFIX Enable power regulators. In the future, do this after enumeration or some time out while monitoring load switch status!
 	gpio_set_gpio_pin(AVR32_PIN_PA24);
 
-
-	// At default, one channel of current limiter is active. That charges digital side OS-CON and
-	// OS-CON of step up's positive side (through the inductor).
-
-	// TODO: Find a 100mA and up current limiter with controllable bias resistor
-
-	// Q:How much does board burn during this kind of wait? A: Roughly 30mA
-	cpu_delay_ms(2, FCPU_HZ); // Was: FCPU_HZ_SLOW
-
-
-	// 3: Turn on analog part of current limiter and step-up converter.
-	gpio_set_gpio_pin(AVR32_PIN_PA27);
-
+	cpu_delay_ms(60, FCPU_HZ_SLOW);
 
 	// Turn off clock controls to establish starting point
 	gpio_set_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 1. No pull-down or pull-up
@@ -350,9 +314,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// Disable XOs 44.1 control
 	gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// Disable XOs 48 control
 
-
-	// Wait for power supply to stabilize
-	cpu_delay_ms(100, FCPU_HZ); // Was: FCPU_HZ_SLOW			// Looks like 60 is actually needed with 4uF slow start
+	cpu_delay_ms(200, FCPU_HZ_SLOW); 
 
 
 /* Not tied to MCLK and not yet a working solution
@@ -373,17 +335,17 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #endif
 
-/* Clock and uart init was here
 	// Set CPU and PBA clock
 	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
 		return 42;
 
 	// Initialize usart comm
 	init_dbg_rs232(pm_freq_param.pba_f);
-*/
 
+#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) )
+#else
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware Verified HW_GEN_RXMOD
-
+#endif
 
 // Get going from known default state.
 // It is very important to enable some sort of MCLK to the CPU, USB MCLK is the most reliable
