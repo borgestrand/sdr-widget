@@ -28,6 +28,8 @@ PARTNAME=-mpart=uc3a3128
 # Use "prog128.bat"
 # NB: the use of "prog256.bat" or "prog.bat" will positively brick a '128 processor!!
 
+# Serial number hard-coded on line 454 of usb_descriptors.h
+
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_audio \
@@ -47,7 +49,8 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_PRODUCT_HA256 \
 	-DHW_GEN_RXMOD \
 	-DHW_GEN_RXMOD_PATCH_01 \
-	-DHW_GEN_RXMOD_PATCH_02 
+	-DHW_GEN_RXMOD_PATCH_02 \
+	-DFEATURE_ADC_EXPERIMENTAL
 	
 
 audio-widget::
