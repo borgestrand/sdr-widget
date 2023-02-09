@@ -11,7 +11,7 @@
 # -DHW_GEN_AB1X					Pure USB DAC - all hardware revisions
 # -DHW_GEN_RXMOD				Latest revision of SPDIF receiver
 # -DHW_GEN_RXMOD_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
-# -DHW_GEN_RXMOD_PATCH_02		Hardware development, RXmod_T1_C boards
+# -DHW_GEN_RXMOD_PATCH_02		Hardware development, RXmod_T1_C boards, future option
 #
 # -DFEATURE_HID					USB HID functions AND debug development system - FIX: split them in two... 
 # -DFEATURE_VOLUME_CTRL			Software volume control in DAC
@@ -27,6 +27,9 @@ PARTNAME=-mpart=uc3a3128
 # This HW target seems to work on uc3a3256 hardware as well
 # Use "prog128.bat"
 # NB: the use of "prog256.bat" or "prog.bat" will positively brick a '128 processor!!
+
+# Serial number: hard-coded into usb_descriptors.h line 454
+
 
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
@@ -46,8 +49,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_VOLUME_CTRL \
 	-DFEATURE_PRODUCT_HA256 \
 	-DHW_GEN_RXMOD \
-	-DHW_GEN_RXMOD_PATCH_01 \
-	-DHW_GEN_RXMOD_PATCH_02 
+	-DHW_GEN_RXMOD_PATCH_01 
 	
 
 audio-widget::
