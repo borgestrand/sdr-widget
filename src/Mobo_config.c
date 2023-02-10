@@ -126,7 +126,7 @@ void mobo_usb_select(uint8_t usb_ch) {
 		gpio_set_gpio_pin(USB_VBUS_C_PIN);				// Select USB C to MCU's VBUS pin
 	}
 	else if (usb_ch == USB_CH_B) {
-		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB A to MCU's VBUS pin
+		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB C to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_set_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB B to MCU's USB data pins
 		gpio_set_gpio_pin(USB_VBUS_B_PIN);				// Select USB B to MCU's VBUS pin

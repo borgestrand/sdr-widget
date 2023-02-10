@@ -226,7 +226,14 @@ xSemaphoreHandle mutexEP_IN;
  */
 int main(void)
 {
-int i;
+	
+#ifdef HW_GEN_RXMOD
+	// Attempting extremely early USB configuration, B plug is prioritized
+	gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB C to MCU's VBUS pin
+	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
+	gpio_set_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB B to MCU's USB data pins
+	gpio_set_gpio_pin(USB_VBUS_B_PIN);				// Select USB B to MCU's VBUS pin
+#endif	
 
 	// Avoid burning power in LEDs next to MCU
 	LED_Off(LED0);							// The LEDs on the PCB near the MCU
@@ -240,6 +247,7 @@ int i;
 	// is that AK5394A has to be put in reset when the clocks are not
 	// fully set up.  Otherwise the chip will overheat
 	if (FEATURE_ADC_AK5394A) {
+		int i;
 		for (i=0; i< 1000; i++) gpio_clr_gpio_pin(AK5394_RSTN);	// put AK5394A in reset, and use this to delay the start up
 																// time for various voltages (eg to the XO) to stablize
 																// Not used in QNKTC / Henry Audio hardware
