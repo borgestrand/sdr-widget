@@ -79,7 +79,11 @@
 #else
 	#define FIRST_INTERFACE1			0	// No config interface, bFirstInterface = 0
 #endif
-#define INTERFACE_COUNT1				2						//!  Audio Control, Audio Out, what about feedback?
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	#define INTERFACE_COUNT1				3						//!  Audio Control, Audio In, Audio Out
+#else
+	#define INTERFACE_COUNT1				2						//!  Audio Control, Audio Out
+#endif
 #define FUNCTION_CLASS					AUDIO_CLASS
 #define FUNCTION_SUB_CLASS  			0
 #define FUNCTION_PROTOCOL				IP_VERSION_02_00
@@ -224,7 +228,7 @@
 #define CSX_CONTROL						0b00000011	// clock selector is readable and writable
 
 
-// Input Terminal descriptor - for ADC support
+// Input Terminal descriptor - for ADC_site support
 #define INPUT_TERMINAL_ID				0x01
 #define INPUT_TERMINAL_TYPE				0x0201 	// Terminal is microphone
 #define INPUT_TERMINAL_ASSOCIATION		0x00   	// No association
@@ -234,14 +238,14 @@
 #define INPUT_TERMINAL_CH_NAME_ID		0x00	// No channel name
 #define INPUT_TERMINAL_STRING_DESC	    0x00	// No string descriptor
 
-// Output Terminal descriptor - for ADC support
+// Output Terminal descriptor - for ADC_site support
 #define OUTPUT_TERMINAL_ID				0x03
 #define OUTPUT_TERMINAL_TYPE			0x0101 	// USB Streaming
 #define OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define OUTPUT_TERMINAL_SOURCE_ID		INPUT_TERMINAL_ID // Direct IO. Was: MIC_FEATURE_UNIT_ID with volume control
+#define OUTPUT_TERMINAL_SOURCE_ID		MIC_FEATURE_UNIT_ID // Does INPUT_TERMINAL_ID work?
 #define OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
 
-//MIC Feature Unit descriptor - not used for now. Present in master branch on github
+//MIC Feature Unit descriptor - reintroducing for ADC_site. Present in master branch on github
 #define MIC_FEATURE_UNIT_ID            0x02
 #define MIC_FEATURE_UNIT_SOURCE_ID     INPUT_TERMINAL_ID
 #define MIC_BMA_CONTROLS               0x00000003 	// Mute readable and writable
@@ -276,8 +280,6 @@
 #else
 	#define SPK_OUTPUT_TERMINAL_SOURCE_ID	SPK_INPUT_TERMINAL_ID
 #endif
-
-
 #define SPK_OUTPUT_TERMINAL_CONTROLS	0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
@@ -290,9 +292,10 @@
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
 
 
+// ADC_site audio streaming in interface - highly experimental
 
 // Bringing back ADC support from main branch
-#ifdef FEATURE_ADC_EXPERIMENTAL
+#ifdef FEATURE_ADC_EXPERIMENTAL		// ADC_site number of interfaces
 	//Audio Streaming (AS) interface descriptor
 	#ifdef FEATURE_CFG_INTERFACE
 		#define STD_AS_INTERFACE_IN		0x03   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!! FEATURE_ADC_EXPERIMENTAL_FIX
@@ -302,7 +305,6 @@
 
 	#define DSC_INTERFACE_AS			STD_AS_INTERFACE_IN
 #endif
-
 
 
 // Also mix in FEATURE_CFG_INTERFACE in Alternate interfaces?
@@ -316,7 +318,7 @@
 
 //Alternate 1 Audio Streaming (AS) interface descriptor
 #define ALT1_AS_INTERFACE_INDEX			0x01   // Index of Std AS interface Alt1
-#define ALT1_AS_NB_ENDPOINT				0x01   // Nb of endpoints for alt1 interface
+#define ALT1_AS_NB_ENDPOINT				0x01   // Nb of endpoints for alt1 interface, is this for Audio IN?
 #define ALT1_AS_INTERFACE_CLASS			0x01   // Audio class
 #define ALT1_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
 #define ALT1_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
@@ -360,6 +362,7 @@
 
 //! Usb Class-Specific AS Isochronous Feedback Endpoint Descriptors pp 4.10.2.2 (none)
 
+// ADC_site UAC2 descriptor
 typedef
 #if (defined __ICCAVR32__)
 #pragma pack(1)
@@ -386,8 +389,7 @@ __attribute__((__packed__))
 
 #ifdef FEATURE_ADC_EXPERIMENTAL		// Brought back from main branch
 	S_usb_in_ter_descriptor_2 				mic_in_ter;
-	// Removing S_usb_feature_unit_descriptor_2			mic_fea_unit;	// Is this a microphone gain control or something in main branch?
-	// implies #define OUTPUT_TERMINAL_SOURCE_ID	INPUT_TERMINAL_ID somewhere. And those IDs must be unique I guess
+	S_usb_feature_unit_descriptor_2			mic_fea_unit;	// Retain microphone gain / mute control from main branch	// implies #define OUTPUT_TERMINAL_SOURCE_ID	INPUT_TERMINAL_ID somewhere. And those IDs must be unique I guess
 	S_usb_out_ter_descriptor_2				mic_out_ter;
 #endif
 
@@ -412,11 +414,12 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_specific_2			ep1_s;
 
 	// Mic alt2 - identical for now, may change bit resolution to 16 if there is a way to test it
-	S_usb_as_interface_descriptor	 		mic_as_alt2;
-	S_usb_as_g_interface_descriptor_2		mic_g_as_alt2;
-	S_usb_format_type_2						mic_format_type_alt2;
-	S_usb_endpoint_audio_descriptor_2 		ep1_alt2;
-	S_usb_endpoint_audio_specific_2			ep1_s_alt2;
+// ADC_site skipping alt2 for now
+//	S_usb_as_interface_descriptor	 		mic_as_alt2;
+//	S_usb_as_g_interface_descriptor_2		mic_g_as_alt2;
+//	S_usb_format_type_2						mic_format_type_alt2;
+//	S_usb_endpoint_audio_descriptor_2 		ep1_alt2;
+//	S_usb_endpoint_audio_specific_2			ep1_s_alt2;
 #endif
 
 
@@ -432,12 +435,13 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_descriptor_2 		ep3;
 
 	// Speaker alt2 bBitResolution added alt2 for 16-bit audio streaming
-	S_usb_as_interface_descriptor	 		spk_as_alt2;
-	S_usb_as_g_interface_descriptor_2		spk_g_as_alt2;
-	S_usb_format_type_2						spk_format_type_alt2;
-	S_usb_endpoint_audio_descriptor_2 		ep2_alt2;
-	S_usb_endpoint_audio_specific_2			ep2_s_alt2;
-	S_usb_endpoint_audio_descriptor_2 		ep3_alt2;
+// ADC_site skipping alt2 for now
+//	S_usb_as_interface_descriptor	 		spk_as_alt2;
+//	S_usb_as_g_interface_descriptor_2		spk_g_as_alt2;
+//	S_usb_format_type_2						spk_format_type_alt2;
+//	S_usb_endpoint_audio_descriptor_2 		ep2_alt2;
+//	S_usb_endpoint_audio_specific_2			ep2_s_alt2;
+//	S_usb_endpoint_audio_descriptor_2 		ep3_alt2;
 
 	// BSB 20120720 Added, reduced to ONE TX endpoint
 #ifdef FEATURE_HID
@@ -454,17 +458,17 @@ S_usb_user_configuration_descriptor;
 extern const S_usb_device_descriptor uac2_dg8saq_usb_dev_desc;
 extern const S_usb_device_descriptor uac2_audio_usb_dev_desc;
 #ifdef VDD_SENSE
-extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
+	extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
 #else
-extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
+	extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
 #endif
 
 #if USB_HIGH_SPEED_SUPPORT==ENABLED
-#ifdef VDD_SENSE
-	extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;
-#else
-	extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;
-#endif
+	#ifdef VDD_SENSE
+		extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;
+	#else
+		extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;
+	#endif
 	extern const S_usb_device_qualifier_descriptor uac2_usb_qualifier_desc;
 #endif
 

@@ -172,8 +172,9 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     		+ sizeof(S_usb_feature_unit_descriptor_2)
 #endif
     		+ sizeof(S_usb_out_ter_descriptor_2)
-#ifdef FEATURE_ADC_EXPERIMENTAL
+#ifdef FEATURE_ADC_EXPERIMENTAL			// ADC_site ac interface descriptor
 			+ sizeof(S_usb_in_ter_descriptor_2)
+			+ sizeof(S_usb_feature_unit_descriptor_2)
     		+ sizeof(S_usb_out_ter_descriptor_2)
 #endif
 			)
@@ -205,7 +206,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 #endif
 
 
-#ifdef FEATURE_ADC_EXPERIMENTAL
+#ifdef FEATURE_ADC_EXPERIMENTAL	// ADC_site input and output terminals 
    {  sizeof(S_usb_in_ter_descriptor_2)
       ,  CS_INTERFACE
       ,  INPUT_TERMINAL_SUB_TYPE
@@ -222,6 +223,17 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
       ,  INPUT_TERMINAL_CH_NAME_ID
       ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
       ,  INPUT_TERMINAL_STRING_DESC
+}
+,
+{  sizeof(S_usb_feature_unit_descriptor_2)		// ADC_site including the feature unit for now
+	,  CS_INTERFACE
+	,  FEATURE_UNIT_SUB_TYPE
+	,  MIC_FEATURE_UNIT_ID
+	,  MIC_FEATURE_UNIT_SOURCE_ID
+	,  Usb_format_mcu_to_usb_data(32, MIC_BMA_CONTROLS)
+	,  Usb_format_mcu_to_usb_data(32, MIC_BMA_CONTROLS_CH_1)
+	,  Usb_format_mcu_to_usb_data(32, MIC_BMA_CONTROLS_CH_2)
+	,  0x00
 }
 ,
   {  sizeof(S_usb_out_ter_descriptor_2)
@@ -292,7 +304,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
   }
  ,
  
- #ifdef FEATURE_ADC_EXPERIMENTAL		// Brought back from main branch
+ #ifdef FEATURE_ADC_EXPERIMENTAL		// ADC_site alt0 Brought back from main branch
 	// Mic alt 0: empty
    {  sizeof(S_usb_as_interface_descriptor)
      ,  INTERFACE_DESCRIPTOR
@@ -353,7 +365,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
    }
    ,
-	// Mic alt 2, // Mic alt 2, Must implement to 16 bit format at some stage
+	// ADC_site Skipping alt 2 for now, // Mic alt 2, Must implement to 16 bit format at some stage // ADC_site alt2
+	/*
 	{  sizeof(S_usb_as_interface_descriptor)
 		,  INTERFACE_DESCRIPTOR
 		,  STD_AS_INTERFACE_IN
@@ -401,7 +414,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 		,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
 	}
 	,
-
+*/
  #endif
 
   
@@ -477,6 +490,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
        }
   ,
   // ALT2 is for 16-bit audio streaming, otherwise identical to ALT1
+  /* ADC_site skipping ALT 2 for now
 
   {  sizeof(S_usb_as_interface_descriptor)
    ,  INTERFACE_DESCRIPTOR
@@ -538,7 +552,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
       ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
       ,   EP_INTERVAL_3_FS
       }
-
+*/
   // End of audio streaming interface and its ALTs
 
 
@@ -674,6 +688,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
    		+ sizeof(S_usb_out_ter_descriptor_2)
 #ifdef FEATURE_ADC_EXPERIMENTAL
 		+ sizeof(S_usb_in_ter_descriptor_2)
+		+ sizeof(S_usb_feature_unit_descriptor_2)	// ADC_site retaining IN mute control
 		+ sizeof(S_usb_out_ter_descriptor_2)
 #endif
 		   )
@@ -852,6 +867,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	 ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
  }
  ,
+// ADC_site Skipping alt 2 for now, // Mic alt 2, Must implement to 16 bit format at some stage // ADC_site alt2
+/*
  // Mic alt 2, Must implement to 16 bit format at some stage
  {  sizeof(S_usb_as_interface_descriptor)
 	 ,  INTERFACE_DESCRIPTOR
@@ -900,7 +917,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	 ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
  }
  ,
-
+*/
  #endif
  
   
@@ -979,6 +996,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 ,
 
   // Speaker ALT2 is for 16-bit audio streaming, otherwise identical to ALT1
+  /* ADC_site skipping ALT 2 for now
+  
       {  sizeof(S_usb_as_interface_descriptor)
       ,  INTERFACE_DESCRIPTOR
         ,  STD_AS_INTERFACE_OUT
@@ -1037,6 +1056,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
         ,   EP_INTERVAL_3_HS
         }
 
+*/
 // End of audio streaming interface and its ALTs
 
 // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
