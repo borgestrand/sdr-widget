@@ -319,6 +319,9 @@ void usb_get_descriptor(void)
 	  break;
 
   case DEVICE_QUALIFIER_DESCRIPTOR:
+
+	print_dbg_char('Q'); // Is this ever requested during normal enumeration?
+	
 	  data_to_transfer = Usb_get_qualifier_desc_length();  //!< sizeof(usb_qualifier_desc);
 	  pbuffer          = Usb_get_qualifier_desc_pointer();
 	  break;

@@ -1119,7 +1119,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 // BSB 20120720 Insert EP 4 and 5, HID TX and RX end
 };
 
-// usb_qualifier_desc FS
+// usb_qualifier_desc FS // ADC_site, compiled both with and without ADC support
 const S_usb_device_qualifier_descriptor uac2_usb_qualifier_desc =
 {
   sizeof(S_usb_device_qualifier_descriptor),

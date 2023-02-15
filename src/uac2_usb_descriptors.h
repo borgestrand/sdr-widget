@@ -54,17 +54,33 @@
 
 // FEATURE_ADC_EXPERIMENTAL Add one more for Audio IN?
 
-#ifdef FEATURE_HID
-	#ifdef FEATURE_CFG_INTERFACE
-		#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID     4: Was: Counting endpoints: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
-	#else
-		#define NB_INTERFACE	3  //         Audio control, audio streaming, HID     3: Was: Counting endpoints: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	#ifdef FEATURE_HID
+		#ifdef FEATURE_CFG_INTERFACE
+			#define NB_INTERFACE	5  // Config, Audio control, audio streaming, audio recording, HID
+		#else
+			#define NB_INTERFACE	4  //         Audio control, audio streaming, audio recording, HID
+		#endif
+	#else // no HID
+		#ifdef FEATURE_CFG_INTERFACE
+			#define NB_INTERFACE	4  // Config, Audio control, audio streaming, audio recording
+		#else
+			#define NB_INTERFACE	3  //         Audio control, audio streaming, audio recording
+		#endif
 	#endif
 #else
-	#ifdef FEATURE_CFG_INTERFACE
-		#define NB_INTERFACE	3  // Config, Audio control, audio streaming
-	#else
-		#define NB_INTERFACE	2  //         Audio control, audio streaming
+	#ifdef FEATURE_HID
+		#ifdef FEATURE_CFG_INTERFACE
+			#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID
+		#else
+			#define NB_INTERFACE	3  //         Audio control, audio streaming, HID
+		#endif
+	#else // no HID
+		#ifdef FEATURE_CFG_INTERFACE
+			#define NB_INTERFACE	3  // Config, Audio control, audio streaming
+		#else
+			#define NB_INTERFACE	2  //         Audio control, audio streaming
+		#endif
 	#endif
 #endif
 
