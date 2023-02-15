@@ -552,13 +552,13 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
       ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_FS)
       ,   EP_INTERVAL_3_FS
       }
+	  ,
 */
   // End of audio streaming interface and its ALTs
 
 
   // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
 #ifdef FEATURE_HID
-	,
 	{
 		sizeof(S_usb_interface_descriptor),
 		INTERFACE_DESCRIPTOR,
@@ -736,6 +736,17 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	,  INPUT_TERMINAL_CH_NAME_ID
 	,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
 	,  INPUT_TERMINAL_STRING_DESC
+}
+,
+{  sizeof(S_usb_feature_unit_descriptor_2)
+	,  CS_INTERFACE
+	,  FEATURE_UNIT_SUB_TYPE
+	,  MIC_FEATURE_UNIT_ID
+	,  MIC_FEATURE_UNIT_SOURCE_ID
+	,  Usb_format_mcu_to_usb_data(32, MIC_BMA_CONTROLS)
+	,  Usb_format_mcu_to_usb_data(32, MIC_BMA_CONTROLS_CH_1)
+	,  Usb_format_mcu_to_usb_data(32, MIC_BMA_CONTROLS_CH_2)
+	,  0x00   //iFeature
 }
 ,
 {  sizeof(S_usb_out_ter_descriptor_2)
@@ -1055,13 +1066,13 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
         ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
         ,   EP_INTERVAL_3_HS
         }
+		,
 
 */
-// End of audio streaming interface and its ALTs
+// End of audio streaming interface and its ALTs 
 
 // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
 #ifdef FEATURE_HID
-  ,
   {
   	sizeof(S_usb_interface_descriptor),
   	INTERFACE_DESCRIPTOR,
