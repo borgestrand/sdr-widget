@@ -56,31 +56,15 @@
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	#ifdef FEATURE_HID
-		#ifdef FEATURE_CFG_INTERFACE
-			#define NB_INTERFACE	5  // Config, Audio control, audio streaming, audio recording, HID
-		#else
-			#define NB_INTERFACE	4  //         Audio control, audio streaming, audio recording, HID
-		#endif
+		#define NB_INTERFACE	4  //         Audio control, audio streaming, audio recording, HID
 	#else // no HID
-		#ifdef FEATURE_CFG_INTERFACE
-			#define NB_INTERFACE	4  // Config, Audio control, audio streaming, audio recording
-		#else
-			#define NB_INTERFACE	3  //         Audio control, audio streaming, audio recording
-		#endif
+		#define NB_INTERFACE	3  //         Audio control, audio streaming, audio recording
 	#endif
 #else
 	#ifdef FEATURE_HID
-		#ifdef FEATURE_CFG_INTERFACE
-			#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID
-		#else
-			#define NB_INTERFACE	3  //         Audio control, audio streaming, HID
-		#endif
+		#define NB_INTERFACE	3  //         Audio control, audio streaming, HID
 	#else // no HID
-		#ifdef FEATURE_CFG_INTERFACE
-			#define NB_INTERFACE	3  // Config, Audio control, audio streaming
-		#else
-			#define NB_INTERFACE	2  //         Audio control, audio streaming
-		#endif
+		#define NB_INTERFACE	2  //         Audio control, audio streaming
 	#endif
 #endif
 
@@ -90,11 +74,7 @@
 #define MAX_POWER          				250 // 500mA
 
 // IAD for Audio
-#ifdef FEATURE_CFG_INTERFACE
-	#define FIRST_INTERFACE1			1
-#else
-	#define FIRST_INTERFACE1			0	// No config interface, bFirstInterface = 0
-#endif
+#define FIRST_INTERFACE1				0	// No config interface, bFirstInterface = 0
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	#define INTERFACE_COUNT1				3						//!  Audio Control, Audio In, Audio Out
 #else
@@ -105,29 +85,13 @@
 #define FUNCTION_PROTOCOL				IP_VERSION_02_00
 #define FUNCTION_INDEX					0
 
-#ifdef FEATURE_CFG_INTERFACE
-	// USB DG8SAQ Interface descriptor
-	#define INTERFACE_NB0			    	0
-	#define ALTERNATE_NB0	            	0                  //! The alt setting nb of this interface
-	#define NB_ENDPOINT0			    	0                  //! The number of endpoints this interface has
-	#define INTERFACE_CLASS0		    	NO_CLASS           //! No Class
-	#define INTERFACE_SUB_CLASS0        	NO_SUBCLASS        //! No Subclass
-	#define INTERFACE_PROTOCOL0    			NO_PROTOCOL		   //! No Protocol
-	#define INTERFACE_INDEX0       			0
-
-	#define DSC_INTERFACE_DG8SAQ			INTERFACE_NB0
-#endif
 
 // BSB 20120719 HID insertion begin
 // In most cases: translation from uac1 code follows pattern of NB1 -> NB4, NB2 -> NB5
 
 // USB HID Interface descriptor, this is the last USB interface!
 #ifdef FEATURE_HID
-	#ifdef FEATURE_CFG_INTERFACE
-		#define INTERFACE_NB3			    3	// ADC_site: increase by 1 with ADC present?
-	#else
-		#define INTERFACE_NB3			    2	// No config interface, HID interface = 2
-	#endif
+	#define INTERFACE_NB3			    2	// No config interface, HID interface = 2
 
 	#define ALTERNATE_NB3	            	0                  //! The alt setting nb of this interface
 	#define NB_ENDPOINT3			    	1 // 2             //! The number of endpoints this interface has
@@ -170,11 +134,7 @@
 // Audio Class V2.0 descriptor values
 
 // Standard Audio Control (AC) interface descriptor
-#ifdef FEATURE_CFG_INTERFACE
-	#define INTERFACE_NB1       		1
-#else
-	#define INTERFACE_NB1       		0	// No config interface, Audio control interface = 0
-#endif
+#define INTERFACE_NB1       		0	// No config interface, Audio control interface = 0
 #define ALTERNATE_NB1       			0
 #define NB_ENDPOINT1        			0			     //! No endpoint for AC interface
 #define INTERFACE_CLASS1    			AUDIO_CLASS  	 //! Audio Class
@@ -299,11 +259,7 @@
 #define SPK_OUTPUT_TERMINAL_CONTROLS	0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
-#ifdef FEATURE_CFG_INTERFACE
-	#define STD_AS_INTERFACE_OUT		0x02   // Index of Std AS Interface for Audio Out
-#else
-	#define STD_AS_INTERFACE_OUT		0x01   // Index of Std AS Interface for Audio Out
-#endif
+#define STD_AS_INTERFACE_OUT		0x01   // Index of Std AS Interface for Audio Out
 
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
 
@@ -313,17 +269,12 @@
 // Bringing back ADC support from main branch
 #ifdef FEATURE_ADC_EXPERIMENTAL		// ADC_site number of interfaces
 	//Audio Streaming (AS) interface descriptor
-	#ifdef FEATURE_CFG_INTERFACE
-		#define STD_AS_INTERFACE_IN		0x03   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!! FEATURE_ADC_EXPERIMENTAL_FIX
-	#else
-		#define STD_AS_INTERFACE_IN		0x02   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!!
-	#endif
+	#define STD_AS_INTERFACE_IN		0x02   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!!
 
 	#define DSC_INTERFACE_AS			STD_AS_INTERFACE_IN
 #endif
 
 
-// Also mix in FEATURE_CFG_INTERFACE in Alternate interfaces?
 
 //Alternate O Audio Streaming (AS) interface descriptor
 #define ALT0_AS_INTERFACE_INDEX			0x00   // Index of Std AS interface Alt0
@@ -389,9 +340,6 @@ __attribute__((__packed__))
 #endif
 {
 	S_usb_configuration_descriptor			cfg;
-#ifdef FEATURE_CFG_INTERFACE
-	S_usb_interface_descriptor	 			ifc0;			// Widget-Control endpoint
-#endif
 
 	//! Audio descriptors Class 2
 	S_usb_interface_association_descriptor	iad1;

@@ -121,21 +121,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs =
 	}
 
 	// Config interface at endpoint 0
-	#ifdef FEATURE_CFG_INTERFACE
-	,
-	{
-		sizeof(S_usb_interface_descriptor),
-		INTERFACE_DESCRIPTOR,
-		INTERFACE_NB0,
-		ALTERNATE_NB0,
-		NB_ENDPOINT0,
-		INTERFACE_CLASS0,
-		INTERFACE_SUB_CLASS0,
-		INTERFACE_PROTOCOL0,
-		INTERFACE_INDEX0
-	}
-	#endif
-
 	,
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
@@ -523,21 +508,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs =
 	}
 
 // Config interface at endpoint 0
-#ifdef FEATURE_CFG_INTERFACE
-	,
-	{
-		sizeof(S_usb_interface_descriptor),
-		INTERFACE_DESCRIPTOR,
-		INTERFACE_NB0,
-		ALTERNATE_NB0,
-		NB_ENDPOINT0,
-		INTERFACE_CLASS0,
-		INTERFACE_SUB_CLASS0,
-		INTERFACE_PROTOCOL0,
-		INTERFACE_INDEX0
-	}
-#endif
-
 	,
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
@@ -921,21 +891,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_hs_widget =
 	}
 
 // Config interface at endpoint 0
-#ifdef FEATURE_CFG_INTERFACE
-	,
-	{
-		sizeof(S_usb_interface_descriptor),
-		INTERFACE_DESCRIPTOR,
-		INTERFACE_NB0,
-		ALTERNATE_NB0,
-		NB_ENDPOINT0,
-		INTERFACE_CLASS0,
-		INTERFACE_SUB_CLASS0,
-		INTERFACE_PROTOCOL0,
-		INTERFACE_INDEX0
-	}
-#endif
-
 	,
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD
@@ -1311,20 +1266,6 @@ S_usb_user_configuration_descriptor uac1_usb_conf_desc_fs_widget =
 	}
 
 // Config interface at endpoint 0
-#ifdef FEATURE_CFG_INTERFACE
-	,
-	{
-		sizeof(S_usb_interface_descriptor),
-		INTERFACE_DESCRIPTOR,
-		INTERFACE_NB0,
-		ALTERNATE_NB0,
-		NB_ENDPOINT0,
-		INTERFACE_CLASS0,
-		INTERFACE_SUB_CLASS0,
-		INTERFACE_PROTOCOL0,
-		INTERFACE_INDEX0
-	}
-#endif
 	,
 	{ sizeof(S_usb_interface_association_descriptor)
 	  ,  DESCRIPTOR_IAD

@@ -61,17 +61,9 @@
 // Config interface at endpoint 0
 
 #ifdef FEATURE_HID
-	#ifdef FEATURE_CFG_INTERFACE
-		#define NB_INTERFACE	4  // Config, Audio control, audio streaming, HID     4: Was: Counting endpoints: Audio(2), HID(1), Widget-Control(1) // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
-	#else
-		#define NB_INTERFACE	3  //         Audio control, audio streaming, HID     3: Was: Counting endpoints: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
-	#endif
+	#define NB_INTERFACE	3  //         Audio control, audio streaming, HID     3: Was: Counting endpoints: Audio(2), HID(1),                   // Audio (2), HID //4 !  DG8SAQ, Audio (2), HID
 #else
-	#ifdef FEATURE_CFG_INTERFACE
-		#define NB_INTERFACE	3  // Config, Audio control, audio streaming
-	#else
-		#define NB_INTERFACE	2  //         Audio control, audio streaming
-	#endif
+	#define NB_INTERFACE	2  //         Audio control, audio streaming
 #endif
 
 #define CONF_NB         	1	//! Number of this configuration
@@ -81,44 +73,20 @@
 
 
 //Audio Streaming (AS) interface descriptor
-#ifdef FEATURE_CFG_INTERFACE
-	#define STD_AS_INTERFACE_OUT		0x02   // Index of Std AS Interface for Audio Out
-#else
-	#define STD_AS_INTERFACE_OUT		0x01   // Index of Std AS Interface for Audio Out
-#endif
+#define STD_AS_INTERFACE_OUT		0x01   // Index of Std AS Interface for Audio Out
 
 
 // IAD for Audio
-#ifdef FEATURE_CFG_INTERFACE
-	#define FIRST_INTERFACE1	1
-#else
-	#define FIRST_INTERFACE1	0
-#endif
+#define FIRST_INTERFACE1	0
+
 // BSB 20130604 disabling UAC1 IN #define INTERFACE_COUNT1	3
 #define INTERFACE_COUNT1	2
 
 
-#ifdef FEATURE_CFG_INTERFACE
-	// USB DG8SAQ Interface descriptor
-	#define INTERFACE_NB0			    0
-	#define ALTERNATE_NB0	            0                  //! The alt setting nb of this interface
-	#define NB_ENDPOINT0			    0                  //! The number of endpoints this interface has
-	#define INTERFACE_CLASS0		    NO_CLASS          //! No Class
-	#define INTERFACE_SUB_CLASS0        NO_SUBCLASS        //! No Subclass
-	#define INTERFACE_PROTOCOL0    		NO_PROTOCOL		   //! No Protocol
-	#define INTERFACE_INDEX0       		0
-
-	#define DSC_INTERFACE_DG8SAQ		INTERFACE_NB0
-#endif
-
 #ifdef FEATURE_HID
 
 // USB HID Interface descriptor
-#ifdef FEATURE_CFG_INTERFACE
-	#define INTERFACE_NB1			    3
-#else
-	#define INTERFACE_NB1			    2	// No config interface, HID interface = 2
-#endif
+#define INTERFACE_NB1			    2	// No config interface, HID interface = 2
 #define ALTERNATE_NB1	            0                  //! The alt setting nb of this interface
 #define NB_ENDPOINT1			    1 // Was: 2                  //! The number of endpoints this interface has
 #define INTERFACE_CLASS1		    HID_CLASS          //! HID Class
@@ -157,11 +125,7 @@
 
 
 // Standard Audio Control (AC) interface descriptor
-#ifdef FEATURE_CFG_INTERFACE
-	#define INTERFACE_NB2       		1
-#else
-	#define INTERFACE_NB2       		0	// No config interface, Audio control interface = 0
-#endif
+#define INTERFACE_NB2       		0	// No config interface, Audio control interface = 0
 #define ALTERNATE_NB2       0
 #define NB_ENDPOINT2        0			     //! No endpoint for AC interface
 #define INTERFACE_CLASS2    AUDIO_CLASS  	//! Audio Class
@@ -344,9 +308,6 @@ __attribute__((__packed__))
 {
 	  S_usb_configuration_descriptor cfg;
 // Config interface at endpoint 0
-#ifdef FEATURE_CFG_INTERFACE
-	  S_usb_interface_descriptor	 ifc0;
-#endif
 	  S_usb_interface_association_descriptor iad1;
 	  S_usb_interface_descriptor     	ifc2;
 	  S_usb_ac_interface_descriptor_1  	audioac;
