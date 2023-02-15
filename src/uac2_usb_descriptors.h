@@ -259,7 +259,7 @@
 #define SPK_OUTPUT_TERMINAL_CONTROLS	0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
-#define STD_AS_INTERFACE_OUT		0x01   // Index of Std AS Interface for Audio Out
+#define STD_AS_INTERFACE_OUT		0x02 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
 
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
 
@@ -269,7 +269,7 @@
 // Bringing back ADC support from main branch
 #ifdef FEATURE_ADC_EXPERIMENTAL		// ADC_site number of interfaces
 	//Audio Streaming (AS) interface descriptor
-	#define STD_AS_INTERFACE_IN		0x02   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!!
+	#define STD_AS_INTERFACE_IN		0x01 // Truly experimental, OUT comes after IN in descriptors. 0x02   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!!
 
 	#define DSC_INTERFACE_AS			STD_AS_INTERFACE_IN
 #endif
