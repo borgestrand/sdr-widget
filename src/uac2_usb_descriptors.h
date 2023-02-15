@@ -124,7 +124,7 @@
 // USB HID Interface descriptor, this is the last USB interface!
 #ifdef FEATURE_HID
 	#ifdef FEATURE_CFG_INTERFACE
-		#define INTERFACE_NB3			    3
+		#define INTERFACE_NB3			    3	// ADC_site: increase by 1 with ADC present?
 	#else
 		#define INTERFACE_NB3			    2	// No config interface, HID interface = 2
 	#endif
