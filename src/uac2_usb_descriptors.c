@@ -204,7 +204,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
       }
     ,
 #endif
-
+ 
 
 #ifdef FEATURE_ADC_EXPERIMENTAL	// ADC_site input and output terminals 
    {  sizeof(S_usb_in_ter_descriptor_2)
