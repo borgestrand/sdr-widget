@@ -202,6 +202,10 @@ void uac2_device_audio_task(void *pvParameters)
 		}
 
 
+// ADC_site Disabling spdif engine for now
+
+/*
+
 		// Process digital input
 		#ifdef HW_GEN_RXMOD
 			mobo_handle_spdif(32); // UAC2 uses 32-bit data
@@ -221,14 +225,32 @@ void uac2_device_audio_task(void *pvParameters)
 			prev_input_select = input_select;
 		#endif
 
+// End of spdif disable
+
+*/ 
+
+
 
 		if ((usb_alternate_setting == 1)) {
 			if(Mic_freq_valid) {
-				if (current_freq.frequency == FREQ_96) num_samples = 24;
-				else if (current_freq.frequency == FREQ_48) num_samples = 12;
-				else num_samples = 48;	// freq 192khz
+				if (current_freq.frequency == FREQ_192) 
+					num_samples = 48;
+				else if (current_freq.frequency == FREQ_176)
+					num_samples = 44;
+				else if (current_freq.frequency == FREQ_96)
+					num_samples = 24;
+				else if (current_freq.frequency == FREQ_88)
+					num_samples = 22;
+				else if (current_freq.frequency == FREQ_48)
+					num_samples = 12;
+				else 
+					num_samples = 11;	// freq 44.1khz
 
-				if (!FEATURE_ADC_NONE) {
+// ADC_site was: sequential code				if (!FEATURE_ADC_NONE) {
+// is: ifdef
+			#ifdef FEATURE_ADC_EXPERIMENTAL
+
+					
 					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
@@ -313,7 +335,12 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						Usb_send_in(EP_AUDIO_IN);		// send the current bank
 					}
-				} // end FEATURE_ADC
+				
+				// ADC_site end: sequential code } // end FEATURE_ADC
+				// is: ifdef
+				#endif
+				
+				
 			}
 		} // end alt setting 1
 

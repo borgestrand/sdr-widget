@@ -187,7 +187,7 @@
 #define HEADSET_CATEGORY 				AUDIO_FUNCTION_SUBCLASS_IO_BOX // Was: AUDIO_FUNCTION_SUBCLASS_HEADSET // Was hard-coded 0x04
 #define MIC_LATENCY_CONTROL				0b00000000
 
-// Clock Source descriptor - not used
+// Clock Source descriptor - CSD_ID_1 not used
 #define CSD_ID_1						0x04
 #define CSD_ID_1_TYPE					0b00000010	// Was: 01 fixed freq internal clock. Is: 10 var. int.
 #define CSD_ID_1_CONTROL				0b00000111	// freq r/w, validity r

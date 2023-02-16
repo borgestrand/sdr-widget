@@ -660,24 +660,23 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	// why are these file statics?
 	wValue_lsb = Usb_read_endpoint_data(EP_CONTROL, 8);
 	wValue_msb = Usb_read_endpoint_data(EP_CONTROL, 8);
-	wIndex
-			= usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
-	wLength
-			= usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
+	wIndex     = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
+	wLength    = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
 /*
 #ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('w'); // xperia
+	print_dbg_char('v'); // xperia / ADC_site
 	print_dbg_char_hex(wValue_lsb); // xperia
 	print_dbg_char_hex(wValue_msb); // xperia
-	print_dbg_char('v'); // xperia
+	print_dbg_char('i'); // xperia
 	print_dbg_char_hex(wIndex / 256); // xperia MSB
 	print_dbg_char_hex(wIndex % 256); // xperia LSB
 	print_dbg_char_hex(wLength); // xperia
+	print_dbg_char('t'); // xperia
+	print_dbg_char_hex(type); // xperia MSB
 	print_dbg_char('\n'); // xperia
 #endif
 */
-
 	// Mute button push
 	// R2101.0114 type=OUT_CL_INTERFACE request=1 wIndex = 0x1401
 	// RA101.0114 type=IN_CL_INTERFACE request=1 wIndex = 0x1401
@@ -788,7 +787,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 			}
 		}
 	} // if wIndex ==  HID Interface
-#endif
+#endif // FEATURE_HID
 
 	// BSB 20120720 copy from uac1_usb_specific_request end
 
@@ -799,6 +798,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 		#ifdef FEATURE_ADC_EXPERIMENTAL // Bringingn ADC back from main branch...
 		if (wIndex == DSC_INTERFACE_AS) {				// Audio Streaming Interface
+
 			if (type == IN_CL_INTERFACE) {			// get controls
 
 				if (wValue_msb == AUDIO_AS_VAL_ALT_SETTINGS && wValue_lsb == 0
@@ -807,7 +807,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 					Usb_reset_endpoint_fifo_access(EP_CONTROL);
 					Usb_write_endpoint_data(EP_CONTROL, 8, 0x01);
-					Usb_write_endpoint_data(EP_CONTROL, 8, 0b00000011); // alt 0 and 1 valid
+					Usb_write_endpoint_data(EP_CONTROL, 8, 0b00000011); // alt 0 and 1 valid ADC_site : expand for more valid Alts?
 					Usb_ack_control_in_ready_send();
 
 					while (!Is_usb_control_out_received())
@@ -863,7 +863,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 		#endif // ADC code brought back
 
 		if (wIndex == DSC_INTERFACE_AS_OUT) { // Playback Audio Streaming Interface
-
+			
 			if (type == IN_CL_INTERFACE) { // get controls
 
 				if (wValue_msb == AUDIO_AS_VAL_ALT_SETTINGS && wValue_lsb == 0
@@ -929,7 +929,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 			// high byte is for EntityID
 			if (type == IN_CL_INTERFACE) { // get controls
 				switch (wIndex / 256) {
-				case CSD_ID_1:
+				case CSD_ID_1: // Unused clock generator
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_CUR) {
 						Usb_ack_setup_received_free();
@@ -961,6 +961,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_RANGE) {
+								
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -986,13 +987,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else
 						return FALSE;
 
-				case CSD_ID_2:
+				case CSD_ID_2: // Actual clock generator
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_CUR) {
-
-#ifdef USB_STATE_MACHINE_DEBUG
-//						print_dbg_char('k'); // BSB debug 20120910 Xperia
-#endif
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1008,10 +1005,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else if (wValue_msb == AUDIO_CS_CONTROL_CLOCK_VALID //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
-#ifdef USB_STATE_MACHINE_DEBUG
-//						print_dbg_char('i'); // BSB debug 20120910 Xperia
-#endif
-
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 						Usb_write_endpoint_data(EP_CONTROL, 8, TRUE); // always valid
@@ -1026,10 +1019,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_RANGE) {
-
-#ifdef USB_STATE_MACHINE_DEBUG
-//						print_dbg_char('j'); // BSB debug 20120910 Xperia
-#endif
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1282,11 +1271,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 			}
 			else if (type == OUT_CL_INTERFACE) { // set controls
 				switch (wIndex / 256) {
-				case CSD_ID_1: // set CUR freq of Mic
-#ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char('F'); // BSB debug 20121212
-#endif
-
+				case CSD_ID_1:
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
@@ -1319,10 +1304,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return FALSE;
 
 				case CSD_ID_2: // set CUR freq
-#ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char('K'); // BSB debug 20121212
-#endif
-
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
