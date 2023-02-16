@@ -231,9 +231,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 
-		if ((usb_alternate_setting == 1)) {
-			if(Mic_freq_valid) {
-				if (current_freq.frequency == FREQ_192) 
+		if ((usb_alternate_setting == 1)) {							// ADC_site fix for alt 2 as well, that is 16 bits
+			if(Mic_freq_valid) {									// What sets this one?
+				if (current_freq.frequency == FREQ_192)				// Nominal buffer lengths, modulated by +-1 according to buffer status
 					num_samples = 48;
 				else if (current_freq.frequency == FREQ_176)
 					num_samples = 44;
@@ -287,6 +287,9 @@ void uac2_device_audio_task(void *pvParameters)
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						for( i=0 ; i < num_samples ; i++ ) {
 							   // Fill endpoint with samples
+							   
+							   
+/* ADC_site: was fill from indata							   
 							if (!mute) {
 								if (ADC_buf_USB_IN == 0) {
 									sample_LSB = audio_buffer_0[index+IN_LEFT];
@@ -332,7 +335,20 @@ void uac2_device_audio_task(void *pvParameters)
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 							}
-						}
+ADC_site was fill from indata*/							
+
+// Experimental: fill with junk
+static uint8_t junk_adc_data = 0;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, junk_adc_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, junk_adc_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, junk_adc_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, junk_adc_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, junk_adc_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, junk_adc_data++);
+
+							
+						} // for 
+						print_dbg_char('a');
 						Usb_send_in(EP_AUDIO_IN);		// send the current bank
 					}
 				
