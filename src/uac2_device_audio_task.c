@@ -241,9 +241,6 @@ void uac2_device_audio_task(void *pvParameters)
 //				if (!FEATURE_ADC_NONE) { 
 				#ifdef FEATURE_ADC_EXPERIMENTAL
 					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
-						
-						print_dbg_char('p');
-
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 						// Sync AK data stream with USB data stream
