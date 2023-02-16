@@ -374,7 +374,7 @@ void AK5394A_task_init(const Bool uac1) {
 	 */
 	#else
 		// Init PDCA channel with the pdca_options.
-		// REMOVE! The ADC should be designed out completely
+		// REMOVE! The ADC should be designed out completely, this is taken over by SPDIF reception sub system ADC_site
 		if (!FEATURE_ADC_NONE) {
 			pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);

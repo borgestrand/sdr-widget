@@ -420,10 +420,10 @@ void uac2_freq_change_handler() {
 					while (gpio_get_pin_value(AK5394_LRCK))
 						; // exit when FS goes low
 				}
-				// Enable now the transfer.
+				// Enable now the transfer. Taken over by spdif subsystem
 				pdca_enable(PDCA_CHANNEL_SSC_RX);
 
-				// Init PDCA channel with the pdca_options.
+				// Init PDCA channel with the pdca_options. Taken over by spdif subsystem
 				AK5394A_pdca_enable();
 			#endif
 		}
@@ -474,23 +474,19 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 //! in case there are side effects of the interface change to be handled.
 void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	//* Check whether it is the audio streaming interface and Alternate Setting that is being set
-	usb_interface_nb = wIndex;
-	//   if (usb_interface_nb == STD_AS_INTERFACE_IN) {
-	//	   usb_alternate_setting = wValue;
-	//	   usb_alternate_setting_changed = TRUE;
-	//   } else if (usb_interface_nb == STD_AS_INTERFACE_OUT) {
+
 	if (usb_interface_nb == STD_AS_INTERFACE_OUT) {
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
 	}
 
-	// BSB 20130604 disabling UAC1 IN
-	/*
-	else if (usb_interface_nb == STD_AS_INTERFACE_IN) {
-		usb_alternate_setting = wValue;
-		usb_alternate_setting_changed = TRUE;
-	} */
-
+	#ifdef FEATURE_ADC_EXPERIMENTAL
+		// ADC_site removed comments from 20130604
+		else if (usb_interface_nb == STD_AS_INTERFACE_IN) {
+			usb_alternate_setting = wValue;
+			usb_alternate_setting_changed = TRUE;
+		}
+	#endif
 }
 
 // BSB 20120720 copy from uac1_usb_specific_request.c insert
@@ -1271,7 +1267,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 			}
 			else if (type == OUT_CL_INTERFACE) { // set controls
 				switch (wIndex / 256) {
-				case CSD_ID_1:
+				case CSD_ID_1:	// Unused clock source
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
@@ -1303,7 +1299,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else
 						return FALSE;
 
-				case CSD_ID_2: // set CUR freq
+				case CSD_ID_2: // set CUR freq actually used clock source
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;

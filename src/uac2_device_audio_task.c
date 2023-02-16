@@ -231,8 +231,14 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 
+
 		if ((usb_alternate_setting == 1)) {							// ADC_site fix for alt 2 as well, that is 16 bits
-			if(Mic_freq_valid) {									// What sets this one?
+			
+print_dbg_char('q');
+			
+			
+//			if (Mic_freq_valid) {									// Clock config sets it
+			if (1) {												// ADC_site override
 				if (current_freq.frequency == FREQ_192)				// Nominal buffer lengths, modulated by +-1 according to buffer status
 					num_samples = 48;
 				else if (current_freq.frequency == FREQ_176)
