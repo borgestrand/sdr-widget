@@ -223,14 +223,26 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 		if ((usb_alternate_setting == 1)) {
-			if(Mic_freq_valid) {
-				if (current_freq.frequency == FREQ_96) num_samples = 24;
+//			if(Mic_freq_valid) {
+			if(1) {
+
+				if (current_freq.frequency == FREQ_44) num_samples = 11;
 				else if (current_freq.frequency == FREQ_48) num_samples = 12;
-				else num_samples = 48;	// freq 192khz
+				else if (current_freq.frequency == FREQ_88) num_samples = 22;
+				else if (current_freq.frequency == FREQ_96) num_samples = 24;
+				else if (current_freq.frequency == FREQ_176) num_samples = 44;
+				else if (current_freq.frequency == FREQ_192) num_samples = 48;
+
+
+//				if (current_freq.frequency == FREQ_96) num_samples = 24;
+//				else if (current_freq.frequency == FREQ_48) num_samples = 12;
+//				else num_samples = 48;	// freq 192khz
 
 //				if (!FEATURE_ADC_NONE) { 
 				#ifdef FEATURE_ADC_EXPERIMENTAL
 					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
+						
+						print_dbg_char('p');
 
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
@@ -264,7 +276,12 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
+						
+						
 						for( i=0 ; i < num_samples ; i++ ) {
+
+/* Start removal for dummy data insert
+
 							   // Fill endpoint with samples
 							if (!mute) {
 								if (ADC_buf_USB_IN == 0) {
@@ -311,7 +328,21 @@ void uac2_device_audio_task(void *pvParameters)
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 							}
+							
+end removal for dummy data insert*/
+
+	static uint8_t dummy_data = 0;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+
 						}
+						
+						
+						
 						Usb_send_in(EP_AUDIO_IN);		// send the current bank
 					}
 //				} // end FEATURE_ADC
