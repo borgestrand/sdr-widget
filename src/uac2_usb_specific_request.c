@@ -478,16 +478,16 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	if (usb_interface_nb == STD_AS_INTERFACE_OUT) {
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
-		print_dbg_char('a');
-		print_dbg_char('a');
+		print_dbg_char('o');
+		print_dbg_char_hex(wValue);
 	}
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
 		else if (usb_interface_nb == STD_AS_INTERFACE_IN) {
 			usb_alternate_setting = wValue;
 			usb_alternate_setting_changed = TRUE;
-			print_dbg_char('b');
-			print_dbg_char('b');
+			print_dbg_char('i');
+			print_dbg_char_hex(wValue);
 		}
 	#endif
 }
