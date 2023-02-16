@@ -476,6 +476,9 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	//* Check whether it is the audio streaming interface and Alternate Setting that is being set
 
 	if (usb_interface_nb == STD_AS_INTERFACE_OUT) {
+		print_dbg_char('o');
+		print_dbg_char('o');
+
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
 	}
@@ -483,6 +486,9 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	#ifdef FEATURE_ADC_EXPERIMENTAL
 		// ADC_site removed comments from 20130604
 		else if (usb_interface_nb == STD_AS_INTERFACE_IN) {
+			print_dbg_char('o');
+			print_dbg_char('o');
+
 			usb_alternate_setting = wValue;
 			usb_alternate_setting_changed = TRUE;
 		}
