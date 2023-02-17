@@ -239,7 +239,7 @@ void uac2_device_audio_task(void *pvParameters)
 //				else num_samples = 48;	// freq 192khz
 
 //				if (!FEATURE_ADC_NONE) { 
-				#ifdef FEATURE_ADC_EXPERIMENTAL
+				#ifdef FEATURE_ADC_EXPERIMENTAL 
 					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
