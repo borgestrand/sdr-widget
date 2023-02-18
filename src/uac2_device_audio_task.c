@@ -223,7 +223,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 		if ((usb_alternate_setting == 1)) {
-//			if(Mic_freq_valid) {
+
+			// ADC_site make some mic state machine hereabouts...
 			if(1) {
 
 				if (current_freq.frequency == FREQ_44) num_samples = 11;

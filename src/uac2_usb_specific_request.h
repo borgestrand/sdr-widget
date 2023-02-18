@@ -48,8 +48,6 @@
 //! configuration).
 //!
 
-extern Bool Mic_freq_valid;
-
 extern void uac2_user_endpoint_init(U8);
 
 extern void uac2_user_set_interface(U8 wIndex, U8 wValue);

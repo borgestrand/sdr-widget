@@ -103,9 +103,6 @@ static U8 wValue_lsb;
 static U16 wIndex;
 static U16 wLength;
 
-Bool Mic_freq_valid = FALSE;
-S_freq Mic_freq;
-
 extern const void *pbuffer;
 extern U16 data_to_transfer;
 
@@ -1283,11 +1280,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 			}
 			else if (type == OUT_CL_INTERFACE) { // set controls
 				switch (wIndex / 256) {
-				case CSD_ID_1: // set CUR freq of Mic
-#ifdef USB_STATE_MACHINE_DEBUG
-//					print_dbg_char('f'); // BSB debug 20121212
-#endif
-
+				case CSD_ID_1: // set CUR freq of Mic - UNUSED clock generator!
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
@@ -1304,12 +1297,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
 						current_freq.freq_bytes[0]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
-						Mic_freq.freq_bytes[3] = current_freq.freq_bytes[3];
-						Mic_freq.freq_bytes[2] = current_freq.freq_bytes[2];
-						Mic_freq.freq_bytes[1] = current_freq.freq_bytes[1];
-						Mic_freq.freq_bytes[0] = current_freq.freq_bytes[0];
 						uac2_freq_change_handler();
-						Mic_freq_valid = TRUE;
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
@@ -1319,7 +1307,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else
 						return FALSE;
 
-				case CSD_ID_2: // set CUR freq 
+				case CSD_ID_2: // set CUR freq - Actual clock generator, merge with above code! ADC_site
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
@@ -1336,17 +1324,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						current_freq.freq_bytes[0]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
 						uac2_freq_change_handler();
-
-						// some freq only applies to playback
-						// may need better checking algorithm
-						if (current_freq.frequency == Mic_freq.frequency) { // What would make this false?
-							Mic_freq_valid = TRUE;
-							print_dbg_char('T');
-						}
-						else {
-							Mic_freq_valid = FALSE;
-							print_dbg_char('F');
-						}
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
