@@ -274,7 +274,7 @@ RATE_LED0 PA01
 RATE_LED1 PA00
 RATE_LED2 PA26
 On revision A board and Henry Audio boards, pins are not connected.
-We set them regardless.
+We set them regardless. We could wrap them in #ifdef FEATURE_PRODUCT_BOEC1 if that were important
 
 RATE_LED[2 1 0] = 0 0 0 44.1
 RATE_LED[2 1 0] = 0 0 1 48

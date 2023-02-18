@@ -1319,7 +1319,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else
 						return FALSE;
 
-				case CSD_ID_2: // set CUR freq
+				case CSD_ID_2: // set CUR freq 
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
