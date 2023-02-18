@@ -409,7 +409,7 @@ void uac2_freq_change_handler() {
 				// to avoid channel inversion.  Start with left channel - FS goes low
 				// However, the channels are reversed at 192khz
 
-				if (current_freq.frequency == 192000) {
+				if (current_freq.frequency == FREQ_192) {
 					while (gpio_get_pin_value(AK5394_LRCK))
 						;
 					while (!gpio_get_pin_value(AK5394_LRCK))
@@ -1048,6 +1048,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else
 						return FALSE;
 
+#ifdef	FEATURE_CLOCK_SELECTOR
 				case CSX_ID:
 					if (wValue_msb == AUDIO_CX_CLOCK_SELECTOR //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_CUR) {
@@ -1064,6 +1065,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else
 						return FALSE;
+#endif						
 
 				case MIC_FEATURE_UNIT_ID:
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
@@ -1318,10 +1320,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return FALSE;
 
 				case CSD_ID_2: // set CUR freq
-#ifdef USB_STATE_MACHINE_DEBUG
-//					print_dbg_char('K'); // BSB debug 20121212
-#endif
-
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
 						freq_changed = TRUE;
@@ -1341,10 +1339,14 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						// some freq only applies to playback
 						// may need better checking algorithm
-						if (current_freq.frequency == Mic_freq.frequency)
+						if (current_freq.frequency == Mic_freq.frequency) { // What would make this false?
 							Mic_freq_valid = TRUE;
-						else
+							print_dbg_char('T');
+						}
+						else {
 							Mic_freq_valid = FALSE;
+							print_dbg_char('F');
+						}
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
@@ -1353,7 +1355,8 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else
 						return FALSE;
-
+						
+#ifdef FEATURE_CLOCK_SELECTOR
 				case CSX_ID:
 					if ((wValue_msb == AUDIO_CX_CLOCK_SELECTOR) && (wValue_lsb
 							== 0) && (request == AUDIO_CS_REQUEST_CUR)) {
@@ -1372,6 +1375,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else
 						return FALSE;
+#endif						
 
 				case MIC_FEATURE_UNIT_ID:
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request

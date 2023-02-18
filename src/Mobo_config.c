@@ -268,38 +268,69 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 
 
 /*
-	// Sample rate indication on single LED for now
+
+On revision C board for Boenicke, these pins are connected:
+RATE_LED0 PA01
+RATE_LED1 PA00
+RATE_LED2 PA26
+On revision A board and Henry Audio boards, pins are not connected.
+We set them regardless.
+
+RATE_LED[2 1 0] = 0 0 0 44.1
+RATE_LED[2 1 0] = 0 0 1 48
+RATE_LED[2 1 0] = 0 1 0 88.2
+RATE_LED[2 1 0] = 0 1 1 96
+RATE_LED[2 1 0] = 1 0 0 176.4
+RATE_LED[2 1 0] = 1 0 1 192
+RATE_LED[2 1 0] = 1 1 0 TBD
+RATE_LED[2 1 0] = 1 1 1 TBD
+
+*/
+
 	switch (frequency) {
 
 		case FREQ_44:
-			mobo_led(FLED_GREEN);
+			    gpio_clr_gpio_pin(AVR32_PIN_PA00);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_48:
-			mobo_led(FLED_RED);
+			    gpio_set_gpio_pin(AVR32_PIN_PA00);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_88:
-			mobo_led(FLED_YELLOW);
+			    gpio_clr_gpio_pin(AVR32_PIN_PA00);
+			  gpio_set_gpio_pin(AVR32_PIN_PA01);
+			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_96:
-			mobo_led(FLED_PURPLE);
+			    gpio_set_gpio_pin(AVR32_PIN_PA00);
+			  gpio_set_gpio_pin(AVR32_PIN_PA01);
+			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_176:
-			mobo_led(FLED_CYAN);
+			    gpio_clr_gpio_pin(AVR32_PIN_PA00);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			gpio_set_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_192:
-			mobo_led(FLED_BLUE);
+			    gpio_set_gpio_pin(AVR32_PIN_PA00);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			gpio_set_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		default:
-			mobo_led(FLED_DARK);
+			    gpio_clr_gpio_pin(AVR32_PIN_PA00);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 	}
-*/
 }
 
 #endif // LED for HW_GEN_RXMOD

@@ -15,6 +15,7 @@
 #
 # -DFEATURE_HID					USB HID functions AND debug development system - FIX: split them in two... 
 # -DFEATURE_VOLUME_CTRL			Software volume control in DAC
+# -DFEATURE_CLOCK_SELECTOR		Clock selector, what is the reason for retaining this?
 #
 # -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
 

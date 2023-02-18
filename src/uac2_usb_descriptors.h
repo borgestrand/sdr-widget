@@ -197,12 +197,13 @@
 
 
 // Clock Selector descriptor - not used
-#define CSX_ID							0x06
-#define CSX_INPUT_PINS					0x02
-#define CSX_SOURCE_1					CSD_ID_1
-//#define CSX_SOURCE_2					CSD_ID_2
-#define CSX_CONTROL						0b00000011	// clock selector is readable and writable
-
+#ifdef FEATURE_CLOCK_SELECTOR				// Only if clock selector is compiled in do we expose it in the feature unit
+	#define CSX_ID							0x06
+	#define CSX_INPUT_PINS					0x01		// This must match the single clock source being used!
+	#define CSX_SOURCE_1					CSD_ID_1
+	//#define CSX_SOURCE_2					CSD_ID_2	// Only a single clock source going into clock selector
+	#define CSX_CONTROL						0b00000011	// clock selector is readable and writable
+#endif
 
 // Input Terminal descriptor - for ADC_site support
 #define INPUT_TERMINAL_ID				0x01
