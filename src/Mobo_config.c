@@ -290,44 +290,44 @@ RATE_LED[2 1 0] = 1 1 1 TBD
 	switch (frequency) {
 
 		case FREQ_44:
-			    gpio_clr_gpio_pin(AVR32_PIN_PA00);
-			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			    gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA00);
 			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_48:
-			    gpio_set_gpio_pin(AVR32_PIN_PA00);
-			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			    gpio_set_gpio_pin(AVR32_PIN_PA01);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA00);
 			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_88:
-			    gpio_clr_gpio_pin(AVR32_PIN_PA00);
-			  gpio_set_gpio_pin(AVR32_PIN_PA01);
+			    gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			  gpio_set_gpio_pin(AVR32_PIN_PA00);
 			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_96:
-			    gpio_set_gpio_pin(AVR32_PIN_PA00);
-			  gpio_set_gpio_pin(AVR32_PIN_PA01);
+			    gpio_set_gpio_pin(AVR32_PIN_PA01);
+			  gpio_set_gpio_pin(AVR32_PIN_PA00);
 			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_176:
-			    gpio_clr_gpio_pin(AVR32_PIN_PA00);
-			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			    gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA00);
 			gpio_set_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		case FREQ_192:
-			    gpio_set_gpio_pin(AVR32_PIN_PA00);
-			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			    gpio_set_gpio_pin(AVR32_PIN_PA01);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA00);
 			gpio_set_gpio_pin(AVR32_PIN_PA26);
 		break;
 
 		default:
-			    gpio_clr_gpio_pin(AVR32_PIN_PA00);
-			  gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			    gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			  gpio_clr_gpio_pin(AVR32_PIN_PA00);
 			gpio_clr_gpio_pin(AVR32_PIN_PA26);
 		break;
 	}

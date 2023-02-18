@@ -372,15 +372,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	print_dbg_char('s');									// RXMODFIX input_select debug
 	print_dbg_char_hex(input_select);
 	
-	#ifdef HW_GEN_RXMOD
-		#ifdef FLED_SCANNING								// Should we default to some color while waiting for an input?
-			mobo_led(FLED_SCANNING);
-		#else
-			mobo_led_select(FREQ_44, input_select);			// Front RGB LED
-		#endif
-	#else
-		mobo_led_select(FREQ_44, input_select);				// Front RGB LED
-	#endif
+	mobo_led_select(FREQ_44, MOBO_SRC_NONE);				// Front RGB LED, default indication of 44.1kHz and scanning
 	
 	
 //	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
