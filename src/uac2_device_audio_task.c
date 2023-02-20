@@ -262,6 +262,11 @@ void uac2_device_audio_task(void *pvParameters)
 				else if (current_freq.frequency == FREQ_192) {
 					num_samples = 48;
 				}
+
+
+				else {
+					print_dbg_char_char('='); // This doesn't print... 
+				}
 				
 				
 				if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
@@ -291,6 +296,11 @@ void uac2_device_audio_task(void *pvParameters)
 						// find out the current status of PDCA transfer
 						// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
 
+
+// Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
+// Why on earth must this code be present for 44.1 operation??
+/*
+
 						num_remaining = pdca_channel->tcr;
 						if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 							// AK and USB using same buffer
@@ -310,6 +320,11 @@ void uac2_device_audio_task(void *pvParameters)
 							// transfer more
 							num_samples++;
 						}
+
+*/
+
+// This is not enough to save us:
+// num_samples = 11;
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
