@@ -316,11 +316,11 @@ void uac2_device_audio_task(void *pvParameters)
 							// throttle back, transfer less
 							num_samples--;
 						}
-						else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
+/*						else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
 							// transfer more
 							num_samples++;
 						}
-
+*/
 
 
 // This is not enough to save us:
