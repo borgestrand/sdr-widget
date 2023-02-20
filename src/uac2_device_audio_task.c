@@ -300,7 +300,7 @@ void uac2_device_audio_task(void *pvParameters)
 // Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
 // Why on earth must this code be present for 44.1 operation??
 
-
+/*
 						num_remaining = pdca_channel->tcr;
 						if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 							// AK and USB using same buffer
@@ -314,17 +314,22 @@ void uac2_device_audio_task(void *pvParameters)
 
 						if ( gap < ADC_BUFFER_SIZE/2 ) {
 							// throttle back, transfer less
-//							num_samples--;
+							num_samples--; // This one can be omitted... 
 						}
 						else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
 							// transfer more
 							num_samples++;
 						}
 
+*/
 
+// num_samples = 1; // 0%
+// num_samples = 12; // 99%
+// num_samples = 22; // 0%
+// num_samples = 13; // 0%
+// num_samples = 11; // 0%
+num_samples = 12;
 
-// This is not enough to save us:
-// num_samples = 11;
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
