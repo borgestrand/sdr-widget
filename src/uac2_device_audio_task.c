@@ -150,7 +150,9 @@ void uac2_device_audio_task(void *pvParameters)
 //	static Bool startup=TRUE;
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i;
-	U16 num_samples, num_remaining, gap;
+	U16 num_samples = 0;
+	U16 num_remaining = 0;
+	U16 gap = 0;
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
 	U16 packets_since_feedback = 0;
 	U8 skip_enable = 0;
@@ -291,6 +293,8 @@ void uac2_device_audio_task(void *pvParameters)
 						// find out the current status of PDCA transfer
 						// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
 
+
+/* Old synchronization data written for direct ADC access and no SPFIF RX
 						num_remaining = pdca_channel->tcr;
 						if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 							// AK and USB using same buffer
@@ -312,7 +316,7 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
-						
+*/						
 						
 						for( i=0 ; i < num_samples ; i++ ) {
 
