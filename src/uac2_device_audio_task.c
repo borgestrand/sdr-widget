@@ -299,7 +299,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
 // Why on earth must this code be present for 44.1 operation??
-/*
+
 
 						num_remaining = pdca_channel->tcr;
 						if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
@@ -321,7 +321,7 @@ void uac2_device_audio_task(void *pvParameters)
 							num_samples++;
 						}
 
-*/
+
 
 // This is not enough to save us:
 // num_samples = 11;
