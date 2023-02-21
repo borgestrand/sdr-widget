@@ -287,6 +287,11 @@ void uac2_device_audio_task(void *pvParameters)
 					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
+						
+						// Toggling FLED0_B / PA18 to switch between white and yellow - probably visible on J7:18 on Boenicke build
+						gpio_tgl_gpio_pin(AVR32_PIN_PA18);
+						
+
 						// Sync AK data stream with USB data stream
 						// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
 						// buffer 0 is set in the reload register of the pdca
@@ -328,7 +333,7 @@ void uac2_device_audio_task(void *pvParameters)
 // num_samples = 22; // 0%
 // num_samples = 13; // 0%
 // num_samples = 11; // 0%
-num_samples = 12;
+num_samples = 12; // Only 12 will work, and only at 44.1 setting, and even that has gaps in the recording. What is going on? The above code must have made it ever so slightly above 12. Try disabling DAC interface in descriptors...
 
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
@@ -387,14 +392,20 @@ num_samples = 12;
 							
 end removal for dummy data insert*/
 
-	static uint8_t dummy_data = 0;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-
+	static uint8_t dummy_data = 1; // let it never be 0
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data);	// L: MSB = 1, 5, 9, 13 ... 121, 125, -127, -123
+								dummy_data += 2;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data);	// R: MSB = 3, 7, 11, 15 ... 123, 127, -125, -121
+								dummy_data += 2;
+								
+								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+									// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - probably visible on J7:1 on Boenicke build
+									gpio_tgl_gpio_pin(AVR32_PIN_PA01);
+								}
 						}
 						
 						
