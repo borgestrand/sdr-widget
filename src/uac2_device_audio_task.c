@@ -287,10 +287,12 @@ void uac2_device_audio_task(void *pvParameters)
 					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
-						
-						// Toggling FLED0_B / PA18 to switch between white and yellow - probably visible on J7:18 on Boenicke build
-						gpio_tgl_gpio_pin(AVR32_PIN_PA18);
-						
+											
+						// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - probably visible on J7:1 on Boenicke build
+						gpio_tgl_gpio_pin(AVR32_PIN_PA01);
+						// visible
+
+
 
 						// Sync AK data stream with USB data stream
 						// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
@@ -394,18 +396,23 @@ end removal for dummy data insert*/
 
 	static uint8_t dummy_data = 1; // let it never be 0
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data);	// L: MSB = 1, 5, 9, 13 ... 121, 125, -127, -123
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								
+								
+
+
+								// dummy_data not yet used... 								
 								dummy_data += 2;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data);	// R: MSB = 3, 7, 11, 15 ... 123, 127, -125, -121
 								dummy_data += 2;
 								
 								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
-									// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - probably visible on J7:1 on Boenicke build
-									gpio_tgl_gpio_pin(AVR32_PIN_PA01);
 								}
+								
+								// Toggling FLED0_B / PA18 to switch between white and yellow - probably visible on J7:18 on Boenicke build
+								gpio_tgl_gpio_pin(AVR32_PIN_PA18);
+								// invisible
 						}
 						
 						
