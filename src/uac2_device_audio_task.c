@@ -396,7 +396,12 @@ end removal for dummy data insert*/
 
 	static uint8_t dummy_data = 1; // let it never be 0
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								
