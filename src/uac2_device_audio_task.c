@@ -398,10 +398,8 @@ end removal for dummy data insert*/
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								
