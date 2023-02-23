@@ -185,11 +185,27 @@ void uac2_device_audio_task(void *pvParameters)
 		const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 	#endif
 
+
+
+
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
+		
+		
+		
+
+			print_dbg_char('I');
+			print_dbg_char_hex(ep_audio_in);
+			print_dbg_char('O');
+			print_dbg_char_hex(ep_audio_out);
+			print_dbg_char('B');
+			print_dbg_char_hex(ep_audio_out_fb);
+
+		
+		
 
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents?
