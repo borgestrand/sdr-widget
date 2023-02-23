@@ -314,7 +314,7 @@
 
 // Format type for ALT1
 #define FORMAT_TYPE_1					0x01	// Format TypeI
-#define FORMAT_SUBSLOT_SIZE_1			0x04	// Number of bytes per subslot
+#define FORMAT_SUBSLOT_SIZE_1			0x03	// ADC_site // Number of bytes per subslot 20230223 why was this 4 ???
 #define FORMAT_BIT_RESOLUTION_1			0x18	// 24 bits per sample
 
 // Format type for ALT2 // bBitResolution
