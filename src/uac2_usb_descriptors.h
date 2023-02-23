@@ -217,7 +217,7 @@
 #define OUTPUT_TERMINAL_ID				0x03
 #define OUTPUT_TERMINAL_TYPE			0x0101 	// USB Streaming
 #define OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define OUTPUT_TERMINAL_SOURCE_ID		MIC_FEATURE_UNIT_ID // Does INPUT_TERMINAL_ID work?
+#define OUTPUT_TERMINAL_SOURCE_ID		INPUT_TERMINAL_ID // ADC_site trying to disable MIC_FEATURE_UNIT was: MIC_FEATURE_UNIT_ID // Does INPUT_TERMINAL_ID work?
 #define OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
 
 //MIC Feature Unit descriptor - reintroducing for ADC_site. Present in master branch on github
@@ -359,7 +359,7 @@ __attribute__((__packed__))
 
 #ifdef FEATURE_ADC_EXPERIMENTAL		// Brought back from main branch
 	S_usb_in_ter_descriptor_2 				mic_in_ter;
-	S_usb_feature_unit_descriptor_2			mic_fea_unit;	// Retain microphone gain / mute control from main branch	// implies #define OUTPUT_TERMINAL_SOURCE_ID	INPUT_TERMINAL_ID somewhere. And those IDs must be unique I guess
+//	S_usb_feature_unit_descriptor_2			mic_fea_unit;	// Retain microphone gain / mute control from main branch	// implies #define OUTPUT_TERMINAL_SOURCE_ID	INPUT_TERMINAL_ID somewhere. And those IDs must be unique I guess
 	S_usb_out_ter_descriptor_2				mic_out_ter;
 #endif
 
