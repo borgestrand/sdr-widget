@@ -396,11 +396,11 @@ end removal for dummy data insert*/
 								static uint8_t dummy_data = 0;
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x04); // L:MSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x10); // L:MSB
 
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x08); // R:MSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x20); // R:MSB
 								
 								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
 								
@@ -409,6 +409,9 @@ end removal for dummy data insert*/
 								// 0x00 0x10 0x00 / 0x00 0x20 0x00 must multiply by 2^18 to get corresponding value in Octave. Expected 2^23
 								// 0x00 0x00 0x01 / 0x00 0x00 0x02 reported as "49%" by Windows, multiply by 2^18 to get 64768 129520 - full-scale 24-bit is +-8388607
 								// 0x00 0x00 0x04 / 0x00 0x00 0x08 reported as "100%" by Windows, multiply by 2^18 to get clipping at 259056   262136. In comparison, 2^18 is 262144. So gain is 2^5 too high here somewhere!
+								// Removed mic feature unit
+								// 0x00 0x00 0x04 / 0x00 0x00 0x08 multiply by 2^23 to get 262144 524032, 2^18 and 2^19, just as expected from 24-bit data!
+								// 0x00 0x00 0x10 / 0x00 0x00 0x20 
 								
 
 
