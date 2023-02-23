@@ -413,8 +413,8 @@ end removal for dummy data insert*/
 								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
 								}
 								
-								// Toggling FLED0_B / PA18 to switch between white and yellow - probably visible on J7:18 on Boenicke build
-								gpio_tgl_gpio_pin(AVR32_PIN_PA18);
+								// Toggling FLED0_B / PA18 to switch between white and yellow - probably visible on J7:13 and J7:15 on Boenicke build
+								gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
 								// invisible
 						}
 						
