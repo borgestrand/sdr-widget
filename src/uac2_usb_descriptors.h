@@ -134,7 +134,7 @@
 // Audio Class V2.0 descriptor values
 
 // Standard Audio Control (AC) interface descriptor
-#define INTERFACE_NB1       		0	// No config interface, Audio control interface = 0
+#define INTERFACE_NB1       			0				// No config interface, Audio control interface = 0
 #define ALTERNATE_NB1       			0
 #define NB_ENDPOINT1        			0			     //! No endpoint for AC interface
 #define INTERFACE_CLASS1    			AUDIO_CLASS  	 //! Audio Class
@@ -145,7 +145,7 @@
 #define DSC_INTERFACE_AUDIO				INTERFACE_NB1
 
 
-// USB Endpoint 1 descriptor - audio in not used for pure USB DACs
+// USB Endpoint 1 descriptor - audio in - not used for pure USB DACs
 #define ENDPOINT_NB_1       			( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
 #define EP_ATTRIBUTES_1					0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
 //#define EP_IN_LENGTH_1_FS				294				   // 3 bytes * 49 samples * stereo
@@ -156,7 +156,6 @@
 #define EP_SIZE_1_HS        			EP_IN_LENGTH_1_HS
 #define EP_INTERVAL_1_FS				0x01			   // one packet per uframe, each uF 1ms, so only 48khz
 #define EP_INTERVAL_1_HS    			0x02			   // One packet per 2 uframe, each uF 125us, so 192khz
-
 
 // USB Endpoint 2 descriptor
 #define ENDPOINT_NB_2       			( UAC2_EP_AUDIO_OUT )	// 0x02
@@ -169,7 +168,6 @@
 #define EP_SIZE_2_HS        			EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2_FS				0x01			 // one packet per frame
 #define EP_INTERVAL_2_HS    			0x02			 // One packet per 2 uframe
-
 
 // USB Endpoint 3 descriptor
 #define ENDPOINT_NB_3       			( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x81

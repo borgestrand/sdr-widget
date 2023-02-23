@@ -302,7 +302,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
      ,  0x00
    }
    ,
-	// Mic alt 1 24 bit format
+	// Mic alt 1 24 bit format - ADC_site hardcoded to 32 bits
    {  sizeof(S_usb_as_interface_descriptor)
 	   ,  INTERFACE_DESCRIPTOR
 	   ,  STD_AS_INTERFACE_IN
@@ -331,7 +331,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 	   ,  FORMAT_SUB_TYPE
 	   ,  FORMAT_TYPE_1
 	   ,  FORMAT_SUBSLOT_SIZE_1
-	   ,  FORMAT_BIT_RESOLUTION_1
+	   ,  32 // FORMAT_BIT_RESOLUTION_1 // ADC_site
    }
    ,
    {   sizeof(S_usb_endpoint_audio_descriptor_2)
@@ -829,7 +829,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	 ,  FORMAT_SUB_TYPE
 	 ,  FORMAT_TYPE_1
 	 ,  FORMAT_SUBSLOT_SIZE_1
-	 ,  FORMAT_BIT_RESOLUTION_1
+	 ,  32 // hard-coded to 32 bits for now FORMAT_BIT_RESOLUTION_1 // ADC_site
  }
  ,
  {   sizeof(S_usb_endpoint_audio_descriptor_2)

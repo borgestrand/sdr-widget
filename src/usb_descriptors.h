@@ -462,8 +462,8 @@
   Usb_unicode('2'),\
   Usb_unicode('2'),\
   Usb_unicode('3'),\
-  Usb_unicode('0'),\
-  Usb_unicode('e'),\
+  Usb_unicode('1'),\
+  Usb_unicode('2'),\
   Usb_unicode('B'),\
   Usb_unicode('S'),\
   Usb_unicode('B') \

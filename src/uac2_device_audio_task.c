@@ -194,19 +194,6 @@ void uac2_device_audio_task(void *pvParameters)
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 		
-		
-		
-
-			print_dbg_char('I');
-			print_dbg_char_hex(ep_audio_in);
-			print_dbg_char('O');
-			print_dbg_char_hex(ep_audio_out);
-			print_dbg_char('B');
-			print_dbg_char_hex(ep_audio_out_fb);
-
-		
-		
-
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents?
 		if (dac_must_clear == DAC_MUST_CLEAR) {
@@ -411,15 +398,17 @@ num_samples = 12; // Only 12 will work, and only at 44.1 setting, and even that 
 end removal for dummy data insert*/
 
 	static uint8_t dummy_data = 1; // let it never be 0
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 2);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 3);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 4);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 5);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 6);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								
-								
+								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 32-bit ADC samples
 
 
 								// dummy_data not yet used... 								
