@@ -260,7 +260,8 @@
 #define SPK_OUTPUT_TERMINAL_CONTROLS	0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
-#define STD_AS_INTERFACE_OUT		0x02 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
+
+#define STD_AS_INTERFACE_OUT			 0x02 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
 
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
 
