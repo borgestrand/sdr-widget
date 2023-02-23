@@ -415,7 +415,7 @@ end removal for dummy data insert*/
 								// 0x00 0x00 0x40 / 0x00 0x00 0x7F multiply by 2^23 got us just shy of 2^22 and 2^23
 								// 0x01 0x00 0x00 / 0x02 0x00 0x00 
 								// 0x01 / 0x02 LSB measurements are too noisy to see in time domain, but there is some sanity in their average
-								// 0x04 / 0x08 LSB measurements drowned in noise
+								// 0x04 / 0x08 LSB measurements drowned in noise - Chose wrong ADC device in Audacity! Dummy!
 								
 
 
