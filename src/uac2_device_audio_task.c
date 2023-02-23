@@ -291,7 +291,7 @@ void uac2_device_audio_task(void *pvParameters)
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 											
-						// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - probably visible on J7:1 on Boenicke build
+						// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - visible on J7:1 on Boenicke build
 						gpio_tgl_gpio_pin(AVR32_PIN_PA01);
 						// visible
 
@@ -414,7 +414,7 @@ end removal for dummy data insert*/
 								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
 								}
 								
-								// Toggling FLED0_B / PA18 to switch between white and yellow - probably visible on J7:13 and J7:15 on Boenicke build
+								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
 								gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
 								// invisible
 						}
