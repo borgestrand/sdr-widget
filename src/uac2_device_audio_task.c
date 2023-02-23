@@ -400,15 +400,11 @@ end removal for dummy data insert*/
 	static uint8_t dummy_data = 1; // let it never be 0
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 2);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 3);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 3);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 4);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 5);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 6);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								
-								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 32-bit ADC samples
+								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
 
 
 								// dummy_data not yet used... 								
