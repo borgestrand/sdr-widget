@@ -702,14 +702,14 @@ end removal for dummy data insert*/
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 							// 24-bit code
-							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes?
+//							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
 							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); //  + sample_HSB; // bBitResolution
 							silence_det_L |= sample_L;
 
-							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes?
+//							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
 							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
