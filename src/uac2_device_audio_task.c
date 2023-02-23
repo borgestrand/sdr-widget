@@ -151,6 +151,13 @@ void uac2_device_audio_task(void *pvParameters)
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i;
 	U16 num_samples, num_remaining, gap;
+
+	#ifdef FEATURE_ADC_EXPERIMENTAL
+		U16 num_samples_adc = 0;
+		U8 counter_44k = 0;
+		U8 limit_44k = 11;	// Default setting for 44.1 rounding off into average packet length
+	#endif
+	
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
 	U16 packets_since_feedback = 0;
 	U8 skip_enable = 0;
@@ -240,30 +247,27 @@ void uac2_device_audio_task(void *pvParameters)
 				//  48   / 4 = 12
 				//  44.1 / 4 = 11.025
 				// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
-				
-				static uint8_t counter_44k = 0;
-				uint8_t limit_44k = 11;	// Default setting for 44.1 rounding off into average packet length
 
 				if (current_freq.frequency == FREQ_44) {
-					num_samples = 11;
+					num_samples_adc = 11;
 					limit_44k = 40;
 				}
 				else if (current_freq.frequency == FREQ_48) {
-					num_samples = 12;
+					num_samples_adc = 12;
 				}
 				else if (current_freq.frequency == FREQ_88) {
-					num_samples = 22;
+					num_samples_adc = 22;
 					limit_44k = 20;
 				}
 				else if (current_freq.frequency == FREQ_96) {
-					num_samples = 24;
+					num_samples_adc = 24;
 				}
 				else if (current_freq.frequency == FREQ_176) {
-					num_samples = 44;
+					num_samples_adc = 44;
 					limit_44k = 10;
 				}
 				else if (current_freq.frequency == FREQ_192) {
-					num_samples = 48;
+					num_samples_adc = 48;
 				}
 
 				
@@ -271,7 +275,7 @@ void uac2_device_audio_task(void *pvParameters)
 					counter_44k++;
 					if (counter_44k == limit_44k) { 
 						counter_44k = 0;
-						num_samples++;
+						num_samples_adc++;
 					}
 				}
 				// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
@@ -569,8 +573,8 @@ end removal for dummy data insert*/
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);
 
 					// bBitResolution
-					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX)		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
-						num_samples = num_samples / 8;
+					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX)		// Alternate 1 24 bits/sample, 8 bytes per stereo sample with FORMAT_SUBSLOT_SIZE_1 = 4. Must use /6 with FORMAT_SUBSLOT_SIZE_1 = 3
+						num_samples = num_samples / 6;
 					else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX)	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
 						num_samples = num_samples / 4;
 					else
