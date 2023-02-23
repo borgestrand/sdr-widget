@@ -150,9 +150,9 @@
 #define UAC1_EP_AUDIO_OUT_FB	3
 
 // UAC2 endpoints
-#define UAC2_EP_AUDIO_IN		1 // 20230222 was:3
-#define UAC2_EP_AUDIO_OUT		2 // 20230222 was:2
-#define UAC2_EP_AUDIO_OUT_FB	3 // 20230222 was:1
+#define UAC2_EP_AUDIO_IN		1 // 20230222 was:3 master: 1
+#define UAC2_EP_AUDIO_OUT		2 // 20230222 was:2 master: 2
+#define UAC2_EP_AUDIO_OUT_FB	3 // 20230222 was:1 master: 3
 #define UAC2_EP_HID_TX			4
 // #define UAC2_EP_HID_RX			5
 
