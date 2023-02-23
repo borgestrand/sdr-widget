@@ -340,7 +340,7 @@ void uac2_device_audio_task(void *pvParameters)
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
 						
-						for( i=0 ; i < num_samples ; i++ ) {
+						for( i=0 ; i < num_samples_adc ; i++ ) {
 
 /* Start removal for dummy data insert
 
@@ -394,15 +394,22 @@ void uac2_device_audio_task(void *pvParameters)
 end removal for dummy data insert*/
 
 								static uint8_t dummy_data = 0;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 4);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x04); // L:MSB
 
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x08); // R:MSB
 								
 								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
+								
+								// 0x00 0x01 0x00 / 0x00 0x02 0x00
+								// 0x00 0x04 0x00 / 0x00 0x08 0x00
+								// 0x00 0x10 0x00 / 0x00 0x20 0x00 must multiply by 2^18 to get corresponding value in Octave. Expected 2^23
+								// 0x00 0x00 0x01 / 0x00 0x00 0x02 reported as "49%" by Windows, multiply by 2^18 to get 64768 129520 - full-scale 24-bit is +-8388607
+								// 0x00 0x00 0x04 / 0x00 0x00 0x08 reported as "100%" by Windows, multiply by 2^18 to get clipping at 259056   262136. In comparison, 2^18 is 262144. So gain is 2^5 too high here somewhere!
+								
 
 
 								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
