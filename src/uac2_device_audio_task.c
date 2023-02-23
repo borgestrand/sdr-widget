@@ -274,6 +274,7 @@ void uac2_device_audio_task(void *pvParameters)
 						num_samples++;
 					}
 				}
+				// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
 
 
 //				if (!FEATURE_ADC_NONE) { 
@@ -388,22 +389,18 @@ void uac2_device_audio_task(void *pvParameters)
 							
 end removal for dummy data insert*/
 
-	static uint8_t dummy_data = 1; // let it never be 0
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 2);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 3);
+								static uint8_t dummy_data = 0;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
 
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 4);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 5);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 6);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
 								
 								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
 
 
-								// dummy_data not yet used... 								
-								dummy_data += 2;
-								dummy_data += 2;
-								
 								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
 								}
 								
