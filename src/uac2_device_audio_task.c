@@ -266,11 +266,6 @@ void uac2_device_audio_task(void *pvParameters)
 					num_samples = 48;
 				}
 
-
-				else {
-					print_dbg_char_char('='); // This doesn't print... 
-				}
-				
 				
 				if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
 					counter_44k++;
@@ -280,10 +275,6 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 				}
 
-
-//				if (current_freq.frequency == FREQ_96) num_samples = 24;
-//				else if (current_freq.frequency == FREQ_48) num_samples = 12;
-//				else num_samples = 48;	// freq 192khz
 
 //				if (!FEATURE_ADC_NONE) { 
 				#ifdef FEATURE_ADC_EXPERIMENTAL 
@@ -338,7 +329,7 @@ void uac2_device_audio_task(void *pvParameters)
 // num_samples = 22; // 0%
 // num_samples = 13; // 0%
 // num_samples = 11; // 0%
-num_samples = 12; // Only 12 will work, and only at 44.1 setting, and even that has gaps in the recording. What is going on? The above code must have made it ever so slightly above 12. Try disabling DAC interface in descriptors...
+// num_samples = 12; // Only 12 will work, and only at 44.1 setting, and even that has gaps in the recording. What is going on? The above code must have made it ever so slightly above 12. Try disabling DAC interface in descriptors...
 
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
@@ -400,9 +391,11 @@ end removal for dummy data insert*/
 	static uint8_t dummy_data = 1; // let it never be 0
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 1);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 2);
-
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 3);
+
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 4);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 5);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 6);
 								
 								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
 
