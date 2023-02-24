@@ -394,11 +394,11 @@ void uac2_device_audio_task(void *pvParameters)
 end removal for dummy data insert*/
 
 								static uint8_t dummy_data = 0;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x10); // L:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x06); // L:LSB
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:MSB
 
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x20); // R:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x07); // R:LSB
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:MSB
 								
