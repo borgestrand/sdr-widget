@@ -240,11 +240,11 @@
 
 //SPK Feature Unit descriptor
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
-#define SPK_FEATURE_UNIT_ID          	0x14	// Was 0x12
-#define SPK_FEATURE_UNIT_SOURCE_ID   	SPK_INPUT_TERMINAL_ID
-#define SPK_BMA_CONTROLS           		0x00000003 	// Mute master channel. [Readable and writable ?]
-#define SPK_BMA_CONTROLS_CH_1			0x0000000C	// Volume control L
-#define SPK_BMA_CONTROLS_CH_2			0x0000000C	// Volume control R
+	#define SPK_FEATURE_UNIT_ID         0x14	// Was 0x12
+	#define SPK_FEATURE_UNIT_SOURCE_ID  SPK_INPUT_TERMINAL_ID
+	#define SPK_BMA_CONTROLS           	0x00000003 	// Mute master channel. [Readable and writable ?]
+	#define SPK_BMA_CONTROLS_CH_1		0x0000000C	// Volume control L
+	#define SPK_BMA_CONTROLS_CH_2		0x0000000C	// Volume control R
 #endif
 
 // SPK Output Terminal descriptor

@@ -1210,7 +1210,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 					else
 						return FALSE;
-#endif 
+#endif // FEATURE_VOLUME_CTRL
 
 				case INPUT_TERMINAL_ID:
 					if (wValue_msb == AUDIO_TE_CONTROL_CS_CLUSTER //&& wValue_lsb == 0
