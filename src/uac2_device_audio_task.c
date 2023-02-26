@@ -403,21 +403,6 @@ end removal for dummy data insert*/
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:MSB
 								
 								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
-								
-								// 0x00 0x01 0x00 / 0x00 0x02 0x00
-								// 0x00 0x04 0x00 / 0x00 0x08 0x00
-								// 0x00 0x10 0x00 / 0x00 0x20 0x00 must multiply by 2^18 to get corresponding value in Octave. Expected 2^23
-								// 0x00 0x00 0x01 / 0x00 0x00 0x02 reported as "49%" by Windows, multiply by 2^18 to get 64768 129520 - full-scale 24-bit is +-8388607
-								// 0x00 0x00 0x04 / 0x00 0x00 0x08 reported as "100%" by Windows, multiply by 2^18 to get clipping at 259056   262136. In comparison, 2^18 is 262144. So gain is 2^5 too high here somewhere!
-								// Removed mic feature unit
-								// 0x00 0x00 0x04 / 0x00 0x00 0x08 multiply by 2^23 to get 262144 524032, 2^18 and 2^19, just as expected from 24-bit data!
-								// 0x00 0x00 0x10 / 0x00 0x00 0x20 multiply by 2^23 got us just shy of 2^20 and 2^21
-								// 0x00 0x00 0x40 / 0x00 0x00 0x7F multiply by 2^23 got us just shy of 2^22 and 2^23
-								// 0x01 0x00 0x00 / 0x02 0x00 0x00 
-								// 0x01 / 0x02 LSB measurements are too noisy to see in time domain, but there is some sanity in their average
-								// 0x04 / 0x08 LSB measurements drowned in noise - Chose wrong ADC device in Audacity! Dummy!
-								
-
 
 								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
 								}
