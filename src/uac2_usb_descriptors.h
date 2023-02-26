@@ -91,7 +91,15 @@
 
 // USB HID Interface descriptor, this is the last USB interface!
 #ifdef FEATURE_HID
+
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	#define INTERFACE_NB3			    3	// No config interface, ADC interface, HID interface = 3
+#else
 	#define INTERFACE_NB3			    2	// No config interface, HID interface = 2
+#endif
+
+// ADC_site is this setting ADC dependent??
+
 
 	#define ALTERNATE_NB3	            	0                  //! The alt setting nb of this interface
 	#define NB_ENDPOINT3			    	1 // 2             //! The number of endpoints this interface has
