@@ -47,16 +47,12 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_PRODUCT_HA256 \
 	-DFEATURE_VOLUME_CTRL \
+	-DFEATURE_HID \
 	-DHW_GEN_RXMOD \
 	-DHW_GEN_RXMOD_PATCH_01 \
 	-DHW_GEN_RXMOD_PATCH_02 \
 	-DFEATURE_ADC_EXPERIMENTAL
 	
-
-#disabled for ADC debug:
-#	-DFEATURE_HID \
-
-
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o

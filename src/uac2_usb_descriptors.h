@@ -60,7 +60,7 @@
 	#else // no HID
 		#define NB_INTERFACE	3  //         Audio control, audio streaming, audio recording
 	#endif
-#else
+#else // no ADC
 	#ifdef FEATURE_HID
 		#define NB_INTERFACE	3  //         Audio control, audio streaming, HID
 	#else // no HID
@@ -148,22 +148,22 @@
 // USB Endpoint 1 descriptor - audio in - not used for pure USB DACs
 #define ENDPOINT_NB_1       			( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
 #define EP_ATTRIBUTES_1					0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
-//#define EP_IN_LENGTH_1_FS				294				   // 3 bytes * 49 samples * stereo
-//#define EP_IN_LENGTH_1_HS				294
-#define EP_IN_LENGTH_1_FS				392				   // 4 bytes * 49 samples * stereo
-#define EP_IN_LENGTH_1_HS				392
+#define EP_IN_LENGTH_1_FS				300				   // 3 bytes * 49+1 samples * stereo
+#define EP_IN_LENGTH_1_HS				399				   // Matches FORMAT_SUBSLOT_SIZE_1	0x03
+//#define EP_IN_LENGTH_1_FS				392				   // 4 bytes * 49 samples * stereo
+//#define EP_IN_LENGTH_1_HS				392				   // Matches FORMAT_SUBSLOT_SIZE_1	0x04
 #define EP_SIZE_1_FS					EP_IN_LENGTH_1_FS
 #define EP_SIZE_1_HS        			EP_IN_LENGTH_1_HS
 #define EP_INTERVAL_1_FS				0x01			   // one packet per uframe, each uF 1ms, so only 48khz
 #define EP_INTERVAL_1_HS    			0x02			   // One packet per 2 uframe, each uF 125us, so 192khz
 
-// USB Endpoint 2 descriptor
+// USB Endpoint 2 descriptor (for EP numbering see conf_usb.h)
 #define ENDPOINT_NB_2       			( UAC2_EP_AUDIO_OUT )	// 0x02
 #define EP_ATTRIBUTES_2     			0b00000101			// ISOCHRONOUS ASYNC
-//#define EP_OUT_LENGTH_2_HS  			294				// 3 bytes * 49 samples * stereo
-//#define EP_OUT_LENGTH_2_FS			294
-#define EP_OUT_LENGTH_2_HS  			392				   // 4 bytes * 49 samples * stereo
-#define EP_OUT_LENGTH_2_FS				392
+#define EP_OUT_LENGTH_2_FS				300				   // 3 bytes * 49+1 samples * stereo
+#define EP_OUT_LENGTH_2_HS				300				   // Matches FORMAT_SUBSLOT_SIZE_1	0x03, it is larger than FORMAT_SUBSLOT_SIZE_2 anyway
+//#define EP_OUT_LENGTH_2_FS			392				   // 4 bytes * 49 samples * stereo
+//#define EP_OUT_LENGTH_2_HS			392				   // Matches FORMAT_SUBSLOT_SIZE_1	0x04
 #define EP_SIZE_2_FS					EP_OUT_LENGTH_2_FS
 #define EP_SIZE_2_HS        			EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2_FS				0x01			 // one packet per frame
@@ -261,9 +261,9 @@
 //Audio Streaming (AS) interface descriptor
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
-	#define STD_AS_INTERFACE_OUT		 0x02 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
+	#define STD_AS_INTERFACE_OUT		 0x02 // Was: 0x01 OUT comes after IN in descriptors, but before it in endponts. 0x01   // Index of Std AS Interface for Audio Out
 #else
-	#define STD_AS_INTERFACE_OUT		 0x01 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
+	#define STD_AS_INTERFACE_OUT		 0x01
 #endif
 
 
@@ -315,7 +315,7 @@
 
 // Format type for ALT1
 #define FORMAT_TYPE_1					0x01	// Format TypeI
-#define FORMAT_SUBSLOT_SIZE_1			0x03	// ADC_site // Number of bytes per subslot 20230223 why was this 4 ???
+#define FORMAT_SUBSLOT_SIZE_1			0x03	// ADC_site // Number of bytes per subslot 20230223 why was this 4? Keeping it at 4 breaks ADC functionality on Win10
 #define FORMAT_BIT_RESOLUTION_1			0x18	// 24 bits per sample
 
 // Format type for ALT2 // bBitResolution
