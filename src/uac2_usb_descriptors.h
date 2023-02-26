@@ -217,16 +217,17 @@
 #define OUTPUT_TERMINAL_ID				0x03
 #define OUTPUT_TERMINAL_TYPE			0x0101 	// USB Streaming
 #define OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define OUTPUT_TERMINAL_SOURCE_ID		INPUT_TERMINAL_ID // ADC_site trying to disable MIC_FEATURE_UNIT was: MIC_FEATURE_UNIT_ID // Does INPUT_TERMINAL_ID work?
+#define OUTPUT_TERMINAL_SOURCE_ID		INPUT_TERMINAL_ID // was: MIC_FEATURE_UNIT_ID // Does INPUT_TERMINAL_ID work?
 #define OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
 
+/* mic_feature_unit removed from code here
 //MIC Feature Unit descriptor - reintroducing for ADC_site. Present in master branch on github
 #define MIC_FEATURE_UNIT_ID            0x02
 #define MIC_FEATURE_UNIT_SOURCE_ID     INPUT_TERMINAL_ID
 #define MIC_BMA_CONTROLS               0x00000003 	// Mute readable and writable
 #define MIC_BMA_CONTROLS_CH_1		   0x00000003	//
 #define MIC_BMA_CONTROLS_CH_2		   0x00000003
-
+*/
 
 // Speaker Input Terminal
 #define SPK_INPUT_TERMINAL_ID			0x11

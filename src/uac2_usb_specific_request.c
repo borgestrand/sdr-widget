@@ -1064,6 +1064,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return FALSE;
 #endif						
 
+				/* mic_feature_unit removed from code here
 				case MIC_FEATURE_UNIT_ID:
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
@@ -1082,6 +1083,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else
 						return FALSE;
+					*/						
 #ifdef FEATURE_VOLUME_CTRL
 				case SPK_FEATURE_UNIT_ID:
 
@@ -1352,7 +1354,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else
 						return FALSE;
 #endif						
-
+/* mic_feature_unit removed from code here
 				case MIC_FEATURE_UNIT_ID:
 					if ((wValue_msb == AUDIO_FU_CONTROL_CS_MUTE) && (request
 							== AUDIO_CS_REQUEST_CUR)) {
@@ -1368,6 +1370,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else
 						return FALSE;
+*/						
 
 #ifdef FEATURE_VOLUME_CTRL
 				case SPK_FEATURE_UNIT_ID:
