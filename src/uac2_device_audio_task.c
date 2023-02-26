@@ -150,9 +150,20 @@ void uac2_device_audio_task(void *pvParameters)
 //	static Bool startup=TRUE;
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i;
+<<<<<<< HEAD
 	U16 num_samples = 0;
 	U16 num_remaining = 0;
 	U16 gap = 0;
+=======
+	U16 num_samples, num_remaining, gap;
+
+	#ifdef FEATURE_ADC_EXPERIMENTAL
+		U16 num_samples_adc = 0;
+		U8 counter_44k = 0;
+		U8 limit_44k = 11;	// Default setting for 44.1 rounding off into average packet length
+	#endif
+	
+>>>>>>> revert02
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
 	U16 packets_since_feedback = 0;
 	U8 skip_enable = 0;
@@ -187,12 +198,15 @@ void uac2_device_audio_task(void *pvParameters)
 		const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 	#endif
 
+
+
+
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
-
+		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents?
 		if (dac_must_clear == DAC_MUST_CLEAR) {
@@ -239,50 +253,51 @@ void uac2_device_audio_task(void *pvParameters)
 				//  48   / 4 = 12
 				//  44.1 / 4 = 11.025
 				// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
-				
-				static uint8_t counter_44k = 0;
-				uint8_t limit_44k = 11;	// Default setting for 44.1 rounding off into average packet length
 
 				if (current_freq.frequency == FREQ_44) {
-					num_samples = 11;
+					num_samples_adc = 11;
 					limit_44k = 40;
 				}
 				else if (current_freq.frequency == FREQ_48) {
-					num_samples = 12;
+					num_samples_adc = 12;
 				}
 				else if (current_freq.frequency == FREQ_88) {
-					num_samples = 22;
+					num_samples_adc = 22;
 					limit_44k = 20;
 				}
 				else if (current_freq.frequency == FREQ_96) {
-					num_samples = 24;
+					num_samples_adc = 24;
 				}
 				else if (current_freq.frequency == FREQ_176) {
-					num_samples = 44;
+					num_samples_adc = 44;
 					limit_44k = 10;
 				}
 				else if (current_freq.frequency == FREQ_192) {
-					num_samples = 48;
+					num_samples_adc = 48;
 				}
-				
+
 				
 				if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
 					counter_44k++;
 					if (counter_44k == limit_44k) { 
 						counter_44k = 0;
-						num_samples++;
+						num_samples_adc++;
 					}
 				}
+				// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
 
-
-//				if (current_freq.frequency == FREQ_96) num_samples = 24;
-//				else if (current_freq.frequency == FREQ_48) num_samples = 12;
-//				else num_samples = 48;	// freq 192khz
 
 //				if (!FEATURE_ADC_NONE) { 
 				#ifdef FEATURE_ADC_EXPERIMENTAL 
 					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
+
+											
+						// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - visible on J7:1 on Boenicke build
+						gpio_tgl_gpio_pin(AVR32_PIN_PA01);
+						// visible
+
+
 
 						// Sync AK data stream with USB data stream
 						// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
@@ -294,7 +309,14 @@ void uac2_device_audio_task(void *pvParameters)
 						// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
 
 
+<<<<<<< HEAD
 /* Old synchronization data written for direct ADC access and no SPFIF RX
+=======
+// Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
+// Why on earth must this code be present for 44.1 operation??
+
+/*
+>>>>>>> revert02
 						num_remaining = pdca_channel->tcr;
 						if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 							// AK and USB using same buffer
@@ -308,17 +330,27 @@ void uac2_device_audio_task(void *pvParameters)
 
 						if ( gap < ADC_BUFFER_SIZE/2 ) {
 							// throttle back, transfer less
-							num_samples--;
+							num_samples--; // This one can be omitted... 
 						}
 						else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
 							// transfer more
 							num_samples++;
 						}
 
+*/
+
+// num_samples = 1; // 0%
+// num_samples = 12; // 99%
+// num_samples = 22; // 0%
+// num_samples = 13; // 0%
+// num_samples = 11; // 0%
+// num_samples = 12; // Only 12 will work, and only at 44.1 setting, and even that has gaps in the recording. What is going on? The above code must have made it ever so slightly above 12. Try disabling DAC interface in descriptors...
+
+
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 */						
 						
-						for( i=0 ; i < num_samples ; i++ ) {
+						for( i=0 ; i < num_samples_adc ; i++ ) {
 
 /* Start removal for dummy data insert
 
@@ -371,14 +403,38 @@ void uac2_device_audio_task(void *pvParameters)
 							
 end removal for dummy data insert*/
 
-	static uint8_t dummy_data = 0;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, dummy_data++);
+								static uint8_t dummy_data = 0;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x06); // L:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:MSB
 
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x07); // R:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:MSB
+								
+								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
+								
+								// 0x00 0x01 0x00 / 0x00 0x02 0x00
+								// 0x00 0x04 0x00 / 0x00 0x08 0x00
+								// 0x00 0x10 0x00 / 0x00 0x20 0x00 must multiply by 2^18 to get corresponding value in Octave. Expected 2^23
+								// 0x00 0x00 0x01 / 0x00 0x00 0x02 reported as "49%" by Windows, multiply by 2^18 to get 64768 129520 - full-scale 24-bit is +-8388607
+								// 0x00 0x00 0x04 / 0x00 0x00 0x08 reported as "100%" by Windows, multiply by 2^18 to get clipping at 259056   262136. In comparison, 2^18 is 262144. So gain is 2^5 too high here somewhere!
+								// Removed mic feature unit
+								// 0x00 0x00 0x04 / 0x00 0x00 0x08 multiply by 2^23 to get 262144 524032, 2^18 and 2^19, just as expected from 24-bit data!
+								// 0x00 0x00 0x10 / 0x00 0x00 0x20 multiply by 2^23 got us just shy of 2^20 and 2^21
+								// 0x00 0x00 0x40 / 0x00 0x00 0x7F multiply by 2^23 got us just shy of 2^22 and 2^23
+								// 0x01 0x00 0x00 / 0x02 0x00 0x00 
+								// 0x01 / 0x02 LSB measurements are too noisy to see in time domain, but there is some sanity in their average
+								// 0x04 / 0x08 LSB measurements drowned in noise - Chose wrong ADC device in Audacity! Dummy!
+								
+
+
+								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+								}
+								
+								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
+								gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
+								// invisible
 						}
 						
 						
@@ -541,8 +597,8 @@ end removal for dummy data insert*/
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);
 
 					// bBitResolution
-					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX)		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
-						num_samples = num_samples / 8;
+					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX)		// Alternate 1 24 bits/sample, 8 bytes per stereo sample with FORMAT_SUBSLOT_SIZE_1 = 4. Must use /6 with FORMAT_SUBSLOT_SIZE_1 = 3
+						num_samples = num_samples / 6;
 					else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX)	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
 						num_samples = num_samples / 4;
 					else
@@ -674,14 +730,14 @@ end removal for dummy data insert*/
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 							// 24-bit code
-							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes?
+//							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
 							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); //  + sample_HSB; // bBitResolution
 							silence_det_L |= sample_L;
 
-							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes?
+//							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
 							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);

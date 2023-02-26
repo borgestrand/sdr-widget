@@ -134,7 +134,7 @@
 // Audio Class V2.0 descriptor values
 
 // Standard Audio Control (AC) interface descriptor
-#define INTERFACE_NB1       		0	// No config interface, Audio control interface = 0
+#define INTERFACE_NB1       			0				// No config interface, Audio control interface = 0
 #define ALTERNATE_NB1       			0
 #define NB_ENDPOINT1        			0			     //! No endpoint for AC interface
 #define INTERFACE_CLASS1    			AUDIO_CLASS  	 //! Audio Class
@@ -145,7 +145,7 @@
 #define DSC_INTERFACE_AUDIO				INTERFACE_NB1
 
 
-// USB Endpoint 1 descriptor - audio in not used for pure USB DACs
+// USB Endpoint 1 descriptor - audio in - not used for pure USB DACs
 #define ENDPOINT_NB_1       			( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
 #define EP_ATTRIBUTES_1					0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
 //#define EP_IN_LENGTH_1_FS				294				   // 3 bytes * 49 samples * stereo
@@ -156,7 +156,6 @@
 #define EP_SIZE_1_HS        			EP_IN_LENGTH_1_HS
 #define EP_INTERVAL_1_FS				0x01			   // one packet per uframe, each uF 1ms, so only 48khz
 #define EP_INTERVAL_1_HS    			0x02			   // One packet per 2 uframe, each uF 125us, so 192khz
-
 
 // USB Endpoint 2 descriptor
 #define ENDPOINT_NB_2       			( UAC2_EP_AUDIO_OUT )	// 0x02
@@ -169,7 +168,6 @@
 #define EP_SIZE_2_HS        			EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2_FS				0x01			 // one packet per frame
 #define EP_INTERVAL_2_HS    			0x02			 // One packet per 2 uframe
-
 
 // USB Endpoint 3 descriptor
 #define ENDPOINT_NB_3       			( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x81
@@ -219,7 +217,7 @@
 #define OUTPUT_TERMINAL_ID				0x03
 #define OUTPUT_TERMINAL_TYPE			0x0101 	// USB Streaming
 #define OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define OUTPUT_TERMINAL_SOURCE_ID		MIC_FEATURE_UNIT_ID // Does INPUT_TERMINAL_ID work?
+#define OUTPUT_TERMINAL_SOURCE_ID		INPUT_TERMINAL_ID // ADC_site trying to disable MIC_FEATURE_UNIT was: MIC_FEATURE_UNIT_ID // Does INPUT_TERMINAL_ID work?
 #define OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
 
 //MIC Feature Unit descriptor - reintroducing for ADC_site. Present in master branch on github
@@ -260,17 +258,24 @@
 #define SPK_OUTPUT_TERMINAL_CONTROLS	0x0000	// no controls
 
 //Audio Streaming (AS) interface descriptor
-#define STD_AS_INTERFACE_OUT		0x02 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
+
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	#define STD_AS_INTERFACE_OUT		 0x02 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
+#else
+	#define STD_AS_INTERFACE_OUT		 0x01 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
+#endif
+
+
+//#define STD_AS_INTERFACE_OUT		 0x01 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
 
 #define DSC_INTERFACE_AS_OUT			STD_AS_INTERFACE_OUT
-
 
 // ADC_site audio streaming in interface - highly experimental
 
 // Bringing back ADC support from main branch
 #ifdef FEATURE_ADC_EXPERIMENTAL		// ADC_site number of interfaces
 	//Audio Streaming (AS) interface descriptor
-	#define STD_AS_INTERFACE_IN		0x01 // Truly experimental, OUT comes after IN in descriptors. 0x02   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!!
+	#define STD_AS_INTERFACE_IN			0x01 // Truly experimental, OUT comes after IN in descriptors. 0x02   // Index of Std AS Interface for Audio In, one more than the Audio Out one. That's a gamble!!
 
 	#define DSC_INTERFACE_AS			STD_AS_INTERFACE_IN
 #endif
@@ -309,7 +314,7 @@
 
 // Format type for ALT1
 #define FORMAT_TYPE_1					0x01	// Format TypeI
-#define FORMAT_SUBSLOT_SIZE_1			0x04	// Number of bytes per subslot
+#define FORMAT_SUBSLOT_SIZE_1			0x03	// ADC_site // Number of bytes per subslot 20230223 why was this 4 ???
 #define FORMAT_BIT_RESOLUTION_1			0x18	// 24 bits per sample
 
 // Format type for ALT2 // bBitResolution
@@ -354,7 +359,7 @@ __attribute__((__packed__))
 
 #ifdef FEATURE_ADC_EXPERIMENTAL		// Brought back from main branch
 	S_usb_in_ter_descriptor_2 				mic_in_ter;
-	S_usb_feature_unit_descriptor_2			mic_fea_unit;	// Retain microphone gain / mute control from main branch	// implies #define OUTPUT_TERMINAL_SOURCE_ID	INPUT_TERMINAL_ID somewhere. And those IDs must be unique I guess
+//	S_usb_feature_unit_descriptor_2			mic_fea_unit;	// Retain microphone gain / mute control from main branch	// implies #define OUTPUT_TERMINAL_SOURCE_ID	INPUT_TERMINAL_ID somewhere. And those IDs must be unique I guess
 	S_usb_out_ter_descriptor_2				mic_out_ter;
 #endif
 

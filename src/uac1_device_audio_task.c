@@ -189,7 +189,6 @@ void uac1_device_audio_task(void *pvParameters)
 	// if (current_freq.frequency == FREQ_48) FB_rate = 48 << 14;
 	// else FB_rate = (44 << 14) + (1 << 14)/10;
 
-
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();
 

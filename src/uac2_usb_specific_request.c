@@ -475,16 +475,16 @@ void uac2_user_set_interface(U8 wIndex, U8 wValue) {
 	if (usb_interface_nb == STD_AS_INTERFACE_OUT) {
 		usb_alternate_setting_out = wValue;
 		usb_alternate_setting_out_changed = TRUE;
-		print_dbg_char('o');
-		print_dbg_char_hex(wValue);
+//		print_dbg_char('o');
+//		print_dbg_char_hex(wValue);
 	}
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
 		else if (usb_interface_nb == STD_AS_INTERFACE_IN) {
 			usb_alternate_setting = wValue;
 			usb_alternate_setting_changed = TRUE;
-			print_dbg_char('i');
-			print_dbg_char_hex(wValue);
+//			print_dbg_char('i');
+//			print_dbg_char_hex(wValue);
 		}
 	#endif
 }
@@ -987,7 +987,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-//						print_dbg_char('k'); // BSB debug 20120910 Xperia
+						print_dbg_char('k'); // BSB debug 20120910 Xperia
 #endif
 
 						Usb_ack_setup_received_free();
@@ -1005,7 +1005,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-//						print_dbg_char('i'); // BSB debug 20120910 Xperia
+						print_dbg_char('i'); // BSB debug 20120910 Xperia
 #endif
 
 						Usb_ack_setup_received_free();
@@ -1024,7 +1024,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							&& request == AUDIO_CS_REQUEST_RANGE) {
 
 #ifdef USB_STATE_MACHINE_DEBUG
-//						print_dbg_char('j'); // BSB debug 20120910 Xperia
+						print_dbg_char('j'); // BSB debug 20120910 Xperia
 #endif
 
 						Usb_ack_setup_received_free();
@@ -1169,12 +1169,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							== AUDIO_CS_REQUEST_RANGE)) {
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-
-#ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char_char('x');
-	print_dbg_char_hex(wLength);
-#endif
-
 
 						if (wLength == 8) {
 //							Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, VOL_RES));
@@ -1324,6 +1318,11 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						current_freq.freq_bytes[0]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
 						uac2_freq_change_handler();
+						
+#ifdef USB_STATE_MACHINE_DEBUG
+		print_dbg_char('m');
+#endif
+
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase

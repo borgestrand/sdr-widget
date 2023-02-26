@@ -611,7 +611,7 @@
   //! Bounds given integer size to allowed range and rounds it up to the nearest
   //! available greater size, then applies register format of USBB controller
   //! for endpoint size bit-field.
-#define Usb_format_endpoint_size(size)            (32 - clz(((U32)min(max(size, 8), 1024) << 1) - 1) - 1 - 3)
+#define Usb_format_endpoint_size(size)            (32 - clz(((U32)min(max(size, 8), 1024) << 1) - 1) - 1 - 3) // Tested 20230223 - dependable with datasheet p. 699
   //! configures the selected endpoint size
 #define Usb_configure_endpoint_size(ep, size)     (Wr_bitfield(AVR32_USBB_uecfgx(ep), AVR32_USBB_UECFGX_EPSIZE_MASK, Usb_format_endpoint_size(size)))
   //! gets the configured selected endpoint size
