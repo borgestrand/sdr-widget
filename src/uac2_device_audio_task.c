@@ -394,13 +394,13 @@ void uac2_device_audio_task(void *pvParameters)
 end removal for dummy data insert*/
 
 								static uint8_t dummy_data = 0;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x06); // L:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:MSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40); // L:MSB
 
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x07); // R:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:MSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30); // R:MSB
 								
 								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
 

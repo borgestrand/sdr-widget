@@ -1426,6 +1426,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								MSB( spk_vol_usb_L) = temp2;
 								spk_vol_mult_L = usb_volume_format(
 										spk_vol_usb_L);
+
 /*
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('s');
@@ -1435,6 +1436,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								print_dbg_char('\n');
 #endif
 */
+
 							} else if (wValue_lsb == CH_RIGHT) {
 								LSB( spk_vol_usb_R) = temp1;
 								MSB( spk_vol_usb_R) = temp2;
