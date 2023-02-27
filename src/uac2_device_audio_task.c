@@ -232,57 +232,55 @@ void uac2_device_audio_task(void *pvParameters)
 		#endif
 
 
-		if ((usb_alternate_setting == 1)) {	// For IN endpoint / ADC
+		if ((usb_alternate_setting == 1)) {	// For IN endpoint
 
+			#ifdef FEATURE_ADC_EXPERIMENTAL
 			// ADC_site make some mic state machine hereabouts...
-/*
 
-*/
-			if(1) {
-				// First of all, how many stereo samples are present in a 1/4ms USB period? 
-				// 192   / 4 = 48
-				// 176.4 / 4 = 44.1
-				//  96   / 4 = 24
-				//  88.2 / 4 = 22.05
-				//  48   / 4 = 12
-				//  44.1 / 4 = 11.025
-				// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
+//				if (!FEATURE_ADC_NONE) {
+				if(1) {	// No longer testing for runtime feature
+					// First of all, how many stereo samples are present in a 1/4ms USB period? 
+					// 192   / 4 = 48
+					// 176.4 / 4 = 44.1
+					//  96   / 4 = 24
+					//  88.2 / 4 = 22.05
+					//  48   / 4 = 12
+					//  44.1 / 4 = 11.025
+					// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
 
-				if (current_freq.frequency == FREQ_44) {
-					num_samples_adc = 11;
-					limit_44k = 40;
-				}
-				else if (current_freq.frequency == FREQ_48) {
-					num_samples_adc = 12;
-				}
-				else if (current_freq.frequency == FREQ_88) {
-					num_samples_adc = 22;
-					limit_44k = 20;
-				}
-				else if (current_freq.frequency == FREQ_96) {
-					num_samples_adc = 24;
-				}
-				else if (current_freq.frequency == FREQ_176) {
-					num_samples_adc = 44;
-					limit_44k = 10;
-				}
-				else if (current_freq.frequency == FREQ_192) {
-					num_samples_adc = 48;
-				}
+					if (current_freq.frequency == FREQ_44) {
+						num_samples_adc = 11;
+						limit_44k = 40;
+					}
+					else if (current_freq.frequency == FREQ_48) {
+						num_samples_adc = 12;
+					}
+					else if (current_freq.frequency == FREQ_88) {
+						num_samples_adc = 22;
+						limit_44k = 20;
+					}
+					else if (current_freq.frequency == FREQ_96) {
+						num_samples_adc = 24;
+					}
+					else if (current_freq.frequency == FREQ_176) {
+						num_samples_adc = 44;
+						limit_44k = 10;
+					}
+					else if (current_freq.frequency == FREQ_192) {
+						num_samples_adc = 48;
+					}
 
 				
-				if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
-					counter_44k++;
-					if (counter_44k == limit_44k) { 
-						counter_44k = 0;
-						num_samples_adc++;
+					if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
+						counter_44k++;
+						if (counter_44k == limit_44k) { 
+							counter_44k = 0;
+							num_samples_adc++;
+						}
 					}
-				}
-				// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
+					// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
 
 
-//				if (!FEATURE_ADC_NONE) { 
-				#ifdef FEATURE_ADC_EXPERIMENTAL 
 					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
@@ -393,34 +391,31 @@ void uac2_device_audio_task(void *pvParameters)
 							
 end removal for dummy data insert*/
 
-								static uint8_t dummy_data = 0;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40); // L:MSB
+							static uint8_t dummy_data = 0;
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40); // L:MSB
 
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30); // R:MSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30); // R:MSB
 								
-								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
+							// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
 
-								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
-								}
+							if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+							}
 								
-								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
-								gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
-								// invisible
+							// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
+							gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
 						}
 						
 						
 						
 						Usb_send_in(EP_AUDIO_IN);		// send the current bank
-					}
-//				} // end FEATURE_ADC
-				#endif
+					} // end if Is_usb_in_ready(EP_AUDIO_IN)
+				} // end if FEATURE_ADC / 81)
+			#endif
 				
-				
-			}
 		} // end alt setting 1
 
 
