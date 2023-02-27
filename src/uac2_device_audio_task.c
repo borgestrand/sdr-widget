@@ -393,14 +393,16 @@ end removal for dummy data insert*/
 
 							static uint8_t dummy_data = 0;
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40); // L:MSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:MSB
 
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30); // R:MSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:MSB
 								
 							// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
+							
+							// ADC_site The gain error of 32 seems to be back! It was not there at Forskningsparken. What's up?
 
 							if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
 							}
