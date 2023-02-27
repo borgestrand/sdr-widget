@@ -1137,7 +1137,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
 
-
+/*
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('g');
 								print_dbg_char('L');
@@ -1145,7 +1145,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 								print_dbg_char('\n');
 #endif
-
+*/
 
 							} else if (wValue_lsb == CH_RIGHT) {
 								// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
@@ -1430,7 +1430,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								MSB( spk_vol_usb_L) = temp2;
 								spk_vol_mult_L = usb_volume_format(
 										spk_vol_usb_L);
-
+/*
 #ifdef USB_STATE_MACHINE_DEBUG
 								print_dbg_char('s');
 								print_dbg_char('L');
@@ -1438,7 +1438,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
 								print_dbg_char('\n');
 #endif
-
+*/
 							} else if (wValue_lsb == CH_RIGHT) {
 								LSB( spk_vol_usb_R) = temp1;
 								MSB( spk_vol_usb_R) = temp2;
