@@ -157,7 +157,7 @@
 #define ENDPOINT_NB_1       			( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
 #define EP_ATTRIBUTES_1					0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
 #define EP_IN_LENGTH_1_FS				300				   // 3 bytes * 49+1 samples * stereo
-#define EP_IN_LENGTH_1_HS				399				   // Matches FORMAT_SUBSLOT_SIZE_1	0x03
+#define EP_IN_LENGTH_1_HS				300				   // Matches FORMAT_SUBSLOT_SIZE_1	0x03
 //#define EP_IN_LENGTH_1_FS				392				   // 4 bytes * 49 samples * stereo
 //#define EP_IN_LENGTH_1_HS				392				   // Matches FORMAT_SUBSLOT_SIZE_1	0x04
 #define EP_SIZE_1_FS					EP_IN_LENGTH_1_FS
