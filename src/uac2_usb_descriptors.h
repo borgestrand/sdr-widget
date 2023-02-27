@@ -60,7 +60,7 @@
 	#else // no HID
 		#define NB_INTERFACE	3  //         Audio control, audio streaming, audio recording
 	#endif
-#else // no ADC
+#else
 	#ifdef FEATURE_HID
 		#define NB_INTERFACE	3  //         Audio control, audio streaming, HID
 	#else // no HID
@@ -91,15 +91,11 @@
 
 // USB HID Interface descriptor, this is the last USB interface!
 #ifdef FEATURE_HID
-
 #ifdef FEATURE_ADC_EXPERIMENTAL
-	#define INTERFACE_NB3			    3	// No config interface, ADC interface, HID interface = 3
+	#define INTERFACE_NB3					3	// No config interface, audio playback, audio record HID interface = 3
 #else
-	#define INTERFACE_NB3			    2	// No config interface, HID interface = 2
+	#define INTERFACE_NB3					2	// No config interface, audio playback, SHID interface = 2
 #endif
-
-// ADC_site is this setting ADC dependent??
-
 
 	#define ALTERNATE_NB3	            	0                  //! The alt setting nb of this interface
 	#define NB_ENDPOINT3			    	1 // 2             //! The number of endpoints this interface has
@@ -156,22 +152,22 @@
 // USB Endpoint 1 descriptor - audio in - not used for pure USB DACs
 #define ENDPOINT_NB_1       			( UAC2_EP_AUDIO_IN | MSK_EP_DIR ) // 0x83
 #define EP_ATTRIBUTES_1					0b00100101         // ISOCHROUNOUS ASYNCHRONOUS IMPLICIT FEEDBACK
-#define EP_IN_LENGTH_1_FS				300				   // 3 bytes * 49+1 samples * stereo
-#define EP_IN_LENGTH_1_HS				300				   // Matches FORMAT_SUBSLOT_SIZE_1	0x03
-//#define EP_IN_LENGTH_1_FS				392				   // 4 bytes * 49 samples * stereo
-//#define EP_IN_LENGTH_1_HS				392				   // Matches FORMAT_SUBSLOT_SIZE_1	0x04
+//#define EP_IN_LENGTH_1_FS				294				   // 3 bytes * 49 samples * stereo
+//#define EP_IN_LENGTH_1_HS				294
+#define EP_IN_LENGTH_1_FS				392				   // 4 bytes * 49 samples * stereo
+#define EP_IN_LENGTH_1_HS				392
 #define EP_SIZE_1_FS					EP_IN_LENGTH_1_FS
 #define EP_SIZE_1_HS        			EP_IN_LENGTH_1_HS
 #define EP_INTERVAL_1_FS				0x01			   // one packet per uframe, each uF 1ms, so only 48khz
 #define EP_INTERVAL_1_HS    			0x02			   // One packet per 2 uframe, each uF 125us, so 192khz
 
-// USB Endpoint 2 descriptor (for EP numbering see conf_usb.h)
+// USB Endpoint 2 descriptor
 #define ENDPOINT_NB_2       			( UAC2_EP_AUDIO_OUT )	// 0x02
 #define EP_ATTRIBUTES_2     			0b00000101			// ISOCHRONOUS ASYNC
-#define EP_OUT_LENGTH_2_FS				300				   // 3 bytes * 49+1 samples * stereo
-#define EP_OUT_LENGTH_2_HS				300				   // Matches FORMAT_SUBSLOT_SIZE_1	0x03, it is larger than FORMAT_SUBSLOT_SIZE_2 anyway
-//#define EP_OUT_LENGTH_2_FS			392				   // 4 bytes * 49 samples * stereo
-//#define EP_OUT_LENGTH_2_HS			392				   // Matches FORMAT_SUBSLOT_SIZE_1	0x04
+//#define EP_OUT_LENGTH_2_HS  			294				// 3 bytes * 49 samples * stereo
+//#define EP_OUT_LENGTH_2_FS			294
+#define EP_OUT_LENGTH_2_HS  			392				   // 4 bytes * 49 samples * stereo
+#define EP_OUT_LENGTH_2_FS				392
 #define EP_SIZE_2_FS					EP_OUT_LENGTH_2_FS
 #define EP_SIZE_2_HS        			EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2_FS				0x01			 // one packet per frame
@@ -225,10 +221,11 @@
 #define OUTPUT_TERMINAL_ID				0x03
 #define OUTPUT_TERMINAL_TYPE			0x0101 	// USB Streaming
 #define OUTPUT_TERMINAL_ASSOCIATION		0x00   	// No association
-#define OUTPUT_TERMINAL_SOURCE_ID		INPUT_TERMINAL_ID // was: MIC_FEATURE_UNIT_ID // Does INPUT_TERMINAL_ID work?
+#define OUTPUT_TERMINAL_SOURCE_ID		INPUT_TERMINAL_ID // ADC_site trying to disable MIC_FEATURE_UNIT was: MIC_FEATURE_UNIT_ID
 #define OUTPUT_TERMINAL_CONTROLS		0x0000	// no controls
 
-/* mic_feature_unit removed from code here
+// mic_feature_unit removed from code here
+/*
 //MIC Feature Unit descriptor - reintroducing for ADC_site. Present in master branch on github
 #define MIC_FEATURE_UNIT_ID            0x02
 #define MIC_FEATURE_UNIT_SOURCE_ID     INPUT_TERMINAL_ID
@@ -248,11 +245,11 @@
 
 //SPK Feature Unit descriptor
 #ifdef FEATURE_VOLUME_CTRL				// Only if volume control is compiled in do we expose it in the feature unit
-	#define SPK_FEATURE_UNIT_ID         0x14	// Was 0x12
-	#define SPK_FEATURE_UNIT_SOURCE_ID  SPK_INPUT_TERMINAL_ID
-	#define SPK_BMA_CONTROLS           	0x00000003 	// Mute master channel. [Readable and writable ?]
-	#define SPK_BMA_CONTROLS_CH_1		0x0000000C	// Volume control L
-	#define SPK_BMA_CONTROLS_CH_2		0x0000000C	// Volume control R
+#define SPK_FEATURE_UNIT_ID          	0x14	// Was 0x12
+#define SPK_FEATURE_UNIT_SOURCE_ID   	SPK_INPUT_TERMINAL_ID
+#define SPK_BMA_CONTROLS           		0x00000003 	// Mute master channel. [Readable and writable ?]
+#define SPK_BMA_CONTROLS_CH_1			0x0000000C	// Volume control L
+#define SPK_BMA_CONTROLS_CH_2			0x0000000C	// Volume control R
 #endif
 
 // SPK Output Terminal descriptor
@@ -269,9 +266,9 @@
 //Audio Streaming (AS) interface descriptor
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
-	#define STD_AS_INTERFACE_OUT		 0x02 // Was: 0x01 OUT comes after IN in descriptors, but before it in endponts. 0x01   // Index of Std AS Interface for Audio Out
+	#define STD_AS_INTERFACE_OUT		 0x02 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
 #else
-	#define STD_AS_INTERFACE_OUT		 0x01
+	#define STD_AS_INTERFACE_OUT		 0x01 // Truly experimental, OUT comes after IN in descriptors. 0x01   // Index of Std AS Interface for Audio Out
 #endif
 
 
@@ -323,7 +320,7 @@
 
 // Format type for ALT1
 #define FORMAT_TYPE_1					0x01	// Format TypeI
-#define FORMAT_SUBSLOT_SIZE_1			0x03	// ADC_site // Number of bytes per subslot 20230223 why was this 4? Keeping it at 4 breaks ADC functionality on Win10
+#define FORMAT_SUBSLOT_SIZE_1			0x03	// ADC_site // Number of bytes per subslot 20230223 why was this 4 ???
 #define FORMAT_BIT_RESOLUTION_1			0x18	// 24 bits per sample
 
 // Format type for ALT2 // bBitResolution

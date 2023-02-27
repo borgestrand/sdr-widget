@@ -159,7 +159,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
     		+ sizeof(S_usb_out_ter_descriptor_2)
 #ifdef FEATURE_ADC_EXPERIMENTAL			// ADC_site ac interface descriptor
 			+ sizeof(S_usb_in_ter_descriptor_2)
-// mic_feature_unit removed from code here			
+// mic_feature_unit removed from code here
 //			+ sizeof(S_usb_feature_unit_descriptor_2) // no MIC_FEATURE_UNIT
     		+ sizeof(S_usb_out_ter_descriptor_2)
 #endif
@@ -210,7 +210,8 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
       ,  Usb_format_mcu_to_usb_data(16, INPUT_TERMINAL_CONTROLS)
       ,  INPUT_TERMINAL_STRING_DESC
 }
-/* mic_feature_unit removed from code here
+/* 
+// mic_feature_unit removed from code here
 ,
 {  sizeof(S_usb_feature_unit_descriptor_2)		// ADC_site including the feature unit for now
 	,  CS_INTERFACE
@@ -712,6 +713,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	,  INPUT_TERMINAL_STRING_DESC
 }
 /* no MIC_FEATURE_UNIT
+// mic_feature_unit removed from code here
 ,
 {  sizeof(S_usb_feature_unit_descriptor_2)
 	,  CS_INTERFACE

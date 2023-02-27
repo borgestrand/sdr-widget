@@ -232,13 +232,14 @@ void uac2_device_audio_task(void *pvParameters)
 		#endif
 
 
-		if ((usb_alternate_setting == 1)) {	// For IN endpoint
+		if ((usb_alternate_setting == 1)) {	// For IN endpoint / ADC
 
-			#ifdef FEATURE_ADC_EXPERIMENTAL
 			// ADC_site make some mic state machine hereabouts...
 
+			#ifdef FEATURE_ADC_EXPERIMENTAL
+
 //				if (!FEATURE_ADC_NONE) {
-				if(1) {	// No longer testing for runtime feature
+				if(1) {
 					// First of all, how many stereo samples are present in a 1/4ms USB period? 
 					// 192   / 4 = 48
 					// 176.4 / 4 = 44.1
@@ -391,32 +392,36 @@ void uac2_device_audio_task(void *pvParameters)
 							
 end removal for dummy data insert*/
 
-							static uint8_t dummy_data = 0;
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:MSB
+								static uint8_t dummy_data = 0;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30); // L:MSB
 
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:MSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40); // R:MSB
 								
-							// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
-							
-							// ADC_site The gain error of 32 seems to be back! It was not there at Forskningsparken. What's up?
+								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
 
-							if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
-							}
+								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+								}
 								
-							// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
-							gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
+								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
+								gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
+								// invisible
 						}
 						
 						
 						
 						Usb_send_in(EP_AUDIO_IN);		// send the current bank
-					} // end if Is_usb_in_ready(EP_AUDIO_IN)
-				} // end if FEATURE_ADC / 81)
+					} // end Is_usb_in_ready(EP_AUDIO_IN)
+//				} // end FEATURE_ADC / (1)
+
+			}
+
+
 			#endif
+				
 				
 		} // end alt setting 1
 
