@@ -393,10 +393,10 @@ end removal for dummy data insert*/
 							}
 							else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) { // Stereo 16-bit data
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// L:MSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x20);	// L:MSB
 
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);	// R:MSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// R:MSB
 							}
 								
 

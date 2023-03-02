@@ -292,21 +292,21 @@
 #define ALT0_AS_INTERFACE_INDEX			0x00   // Index of Std AS interface Alt0
 #define ALT0_AS_NB_ENDPOINT				0x00   // Nb of endpoints for alt0 interface
 #define ALT0_AS_INTERFACE_CLASS			0x01   // Audio class
-#define ALT0_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
+#define ALT0_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streaming sub class
 #define ALT0_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
 
 //Alternate 1 Audio Streaming (AS) interface descriptor
 #define ALT1_AS_INTERFACE_INDEX			0x01   // Index of Std AS interface Alt1
 #define ALT1_AS_NB_ENDPOINT				0x01   // Nb of endpoints for alt1 interface, is this for Audio IN?
 #define ALT1_AS_INTERFACE_CLASS			0x01   // Audio class
-#define ALT1_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
+#define ALT1_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streaming sub class
 #define ALT1_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
 
 //Alternate 2 Audio Streaming (AS) interface descriptor // bBitResolution
 #define ALT2_AS_INTERFACE_INDEX			0x02   // Index of Std AS interface Alt2
 #define ALT2_AS_NB_ENDPOINT				0x01   // Nb of endpoints for alt2 interface
 #define ALT2_AS_INTERFACE_CLASS			0x01   // Audio class
-#define ALT2_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streamn sub class
+#define ALT2_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streaming sub class
 #define ALT2_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
 
 //Class Specific AS (general) Interface descriptor
