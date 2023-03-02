@@ -671,7 +671,7 @@ void mobo_handle_spdif(uint8_t width) {
 				megaskip = 0;					// Normal operation
 
 //				print_dbg_char_hex(target);
-//				print_dbg_char('\n');
+//				print_dbg_char('\n'); 
 
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					// Fill endpoint with sample raw
