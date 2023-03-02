@@ -423,7 +423,7 @@ end removal for dummy data insert*/
 			#endif
 				
 				
-		} // end alt setting 1
+		} // end alt setting 1 
 
 
 #ifdef HW_GEN_RXMOD 
