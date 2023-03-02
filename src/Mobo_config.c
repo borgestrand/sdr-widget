@@ -478,7 +478,7 @@ void mobo_handle_spdif(uint8_t width) {
 					DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 					num_remaining = spk_pdca_channel->tcr;
 				}
-				DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
+				DAC_buf_OUT = DAC_buf_DMA_read_local;
 
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
 //				spk_index = DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE * 0.9/4; // Nasty offset to put on skips sooner
@@ -500,7 +500,7 @@ void mobo_handle_spdif(uint8_t width) {
 				num_remaining = spk_pdca_channel->tcr;
 			}
 
-			if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// DAC DMA and seq. code using same buffer
+			if (DAC_buf_OUT != DAC_buf_DMA_read_local) { 	// DAC DMA and seq. code using same buffer
 				if (spk_index < (DAC_BUFFER_SIZE - num_remaining))
 					gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
 				else
@@ -648,11 +648,11 @@ void mobo_handle_spdif(uint8_t width) {
 
 				for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
 					if (dac_must_clear == DAC_READY) {
-						if (DAC_buf_USB_OUT == 0) {
+						if (DAC_buf_OUT == 0) {
 							spk_buffer_0[spk_index+OUT_LEFT] = 0;
 							spk_buffer_0[spk_index+OUT_RIGHT] = 0;
 						}
-						else if (DAC_buf_USB_OUT == 1) {
+						else if (DAC_buf_OUT == 1) {
 							spk_buffer_1[spk_index+OUT_LEFT] = 0;
 							spk_buffer_1[spk_index+OUT_RIGHT] = 0;
 						}
@@ -661,7 +661,7 @@ void mobo_handle_spdif(uint8_t width) {
 					spk_index += 2;
 					if (spk_index >= DAC_BUFFER_SIZE) {
 						spk_index -= DAC_BUFFER_SIZE;
-						DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+						DAC_buf_OUT = 1 - DAC_buf_OUT;
 					}
 				} // for i..
 
@@ -695,11 +695,11 @@ void mobo_handle_spdif(uint8_t width) {
 
 					while (p-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 						if (dac_must_clear == DAC_READY) {
-							if (DAC_buf_USB_OUT == 0) {
+							if (DAC_buf_OUT == 0) {
 								spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
 								spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 							}
-							else if (DAC_buf_USB_OUT == 1) {
+							else if (DAC_buf_OUT == 1) {
 								spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
 								spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
 							}
@@ -708,10 +708,10 @@ void mobo_handle_spdif(uint8_t width) {
 						spk_index += 2;
 						if (spk_index >= DAC_BUFFER_SIZE) {
 							spk_index -= DAC_BUFFER_SIZE;
-							DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+							DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-							if (DAC_buf_USB_OUT == 1)
+							if (DAC_buf_OUT == 1)
 								gpio_set_gpio_pin(AVR32_PIN_PX30);
 							else
 								gpio_clr_gpio_pin(AVR32_PIN_PX30);

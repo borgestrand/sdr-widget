@@ -98,8 +98,9 @@ volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
 volatile int ADC_buf_DMA_write = 0; // Written by interrupt handler, initiated by sequential code
 volatile int DAC_buf_DMA_read = 0; // Written by interrupt handler, initiated by sequential code
-volatile int ADC_buf_USB_IN; 	// Written by sequential code 
-volatile int DAC_buf_USB_OUT; 	// Written by sequential code
+volatile int ADC_buf_USB_IN; 	// Written by sequential code, handles only data IN-to USB host
+volatile int ADC_buf_I2S_IN;	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
+volatile int DAC_buf_OUT; 	// Written by sequential code, handles both USB OUT -> spk_buffer_0/1 -and- I2S input -> spk_buffer_0/1
 volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers

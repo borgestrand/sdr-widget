@@ -96,7 +96,7 @@
 
 
 static U32  index, spk_index;
-// static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// These are now global the ID number of the buffer used for sending out to the USB
+// static U8 ADC_buf_USB_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out to the USB
 
 U8 command [4][5];
 U8 command_out [8];
@@ -112,7 +112,7 @@ void hpsdr_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	index     =0;
 	ADC_buf_USB_IN = 0;
 	spk_index = 0;
-	DAC_buf_USB_OUT = 0;
+	DAC_buf_OUT = 0;
 	mute = FALSE;
 	spk_mute = FALSE;
 	ep_audio_in = ep_in;
@@ -193,7 +193,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 
 				ADC_buf_DMA_write = 0;
 				ADC_buf_USB_IN = 0;
-				DAC_buf_USB_OUT = 0;
+				DAC_buf_OUT = 0;
 				DAC_buf_DMA_read = 0;
 				index = 0;
 
@@ -305,7 +305,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 
 			// Sync CS4344 spk data stream by calculating gap and provide feedback
 		num_remaining = spk_pdca_channel->tcr;
-		if (DAC_buf_USB_OUT != DAC_buf_DMA_read) {
+		if (DAC_buf_OUT != DAC_buf_DMA_read) {
 			// CS4344 and USB using same buffer
 			if ( spk_index < (DAC_BUFFER_SIZE - num_remaining)) gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
 			else gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
@@ -372,7 +372,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 			  };
 
 			  sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-			  if (DAC_buf_USB_OUT == 0) spk_buffer_0[spk_index+OUT_LEFT] = sample;
+			  if (DAC_buf_OUT == 0) spk_buffer_0[spk_index+OUT_LEFT] = sample;
 			  else spk_buffer_1[spk_index+OUT_LEFT] = sample;
 
 			  if (spk_mute) {
@@ -389,13 +389,13 @@ void hpsdr_device_audio_task(void *pvParameters)
 			  };
 
 			  sample = (((U32) sample_MSB) << 16) + (((U32)sample_SB) << 8) + sample_LSB;
-			  if (DAC_buf_USB_OUT == 0) spk_buffer_0[spk_index+OUT_RIGHT] = sample;
+			  if (DAC_buf_OUT == 0) spk_buffer_0[spk_index+OUT_RIGHT] = sample;
 			  else spk_buffer_1[spk_index+OUT_RIGHT] = sample;
 
 			  spk_index += 2;
 			  if (spk_index >= DAC_BUFFER_SIZE){
 			  spk_index = 0;
-			  DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+			  DAC_buf_OUT = 1 - DAC_buf_OUT;
 			  }
 			  }
 

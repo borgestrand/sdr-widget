@@ -102,7 +102,7 @@
 
 static U32  index, spk_index;
 static S16  old_gap = DAC_BUFFER_SIZE;
-// static U8 ADC_buf_USB_IN, DAC_buf_USB_OUT;		// These are now global the ID number of the buffer used for sending out
+// static U8 ADC_buf_USB_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out
 												// to the USB and reading from USB
 
 static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
@@ -116,7 +116,7 @@ void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	index     =0;
 	ADC_buf_USB_IN = 0;
 	spk_index = 0;
-	DAC_buf_USB_OUT = 0;
+	DAC_buf_OUT = 0;
 	mute = FALSE; // applies to ADC OUT endpoint
 	spk_mute = FALSE;
 	ep_audio_in = ep_in;
@@ -601,12 +601,12 @@ end removal for dummy data insert*/
 							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 							num_remaining = spk_pdca_channel->tcr;
 						}
-						DAC_buf_USB_OUT = DAC_buf_DMA_read_local;
+						DAC_buf_OUT = DAC_buf_DMA_read_local;
 						LED_Off(LED0);							// The LEDs on the PCB near the MCU
 						LED_Off(LED1);
 
 #ifdef USB_STATE_MACHINE_GPIO
-						if (DAC_buf_USB_OUT == 1)
+						if (DAC_buf_OUT == 1)
 							gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 						else
 							gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
@@ -788,7 +788,7 @@ end removal for dummy data insert*/
 						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
 							while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 								if (dac_must_clear == DAC_READY) {
-									if (DAC_buf_USB_OUT == 0) {
+									if (DAC_buf_OUT == 0) {
 										spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
 										spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
 									}
@@ -801,10 +801,10 @@ end removal for dummy data insert*/
 								spk_index += 2;
 								if (spk_index >= DAC_BUFFER_SIZE) {
 									spk_index = 0;
-									DAC_buf_USB_OUT = 1 - DAC_buf_USB_OUT;
+									DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 	#ifdef USB_STATE_MACHINE_GPIO
-									if (DAC_buf_USB_OUT == 1) {
+									if (DAC_buf_OUT == 1) {
 										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 									}
 									else {
@@ -909,7 +909,7 @@ end removal for dummy data insert*/
 
 							// Which buffer is in use, and does it truly correspond to the num_remaining value?
 							// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
-							if (DAC_buf_USB_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
+							if (DAC_buf_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
 								if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
 									gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
 								else
