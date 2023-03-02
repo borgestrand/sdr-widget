@@ -111,6 +111,9 @@
 #define DAC_MUST_CLEAR		1		// Immediately clear the content of outgoing DAC buffers
 #define DAC_CLEARED			2		// Outgoing DAC buffers are cleared, don't write to DAC buffers
 #define DAC_READY			3		// Outgoing DAC buffers are ready to be written to
+#define I2S_IN_MUST_INIT	-1
+#define I2S_IN_POINTER_INIT	-2
+
 
 // Values for silence (32-bit)
 #define SILENCE_USB_LIMIT	12000 				// We're counting USB packets. UAC2: 250us, UAC1: 1ms. Value of 12000 means 3s
