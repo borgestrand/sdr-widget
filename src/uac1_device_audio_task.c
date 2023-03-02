@@ -226,7 +226,7 @@ void uac1_device_audio_task(void *pvParameters)
 		#endif
 
 
-		// Should we remove old ADC code from here?
+		// Should we remove old ADC code from here? ADC code is only watched in UAC2 ADC_site
 		num_samples = 48;
 			if (usb_alternate_setting == 1) {
 

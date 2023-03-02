@@ -232,199 +232,180 @@ void uac2_device_audio_task(void *pvParameters)
 		#endif
 
 
-		if ((usb_alternate_setting == 1)) {	// For IN endpoint / ADC
+		#ifdef FEATURE_ADC_EXPERIMENTAL
 
-			// ADC_site make some mic state machine hereabouts...
+			if (usb_alternate_setting >= 1) { // For IN endpoint / ADC bBitResolution
 
-			#ifdef FEATURE_ADC_EXPERIMENTAL
+				// ADC_site make some mic state machine hereabouts...
 
-//				if (!FEATURE_ADC_NONE) {
-				if(1) {
-					// First of all, how many stereo samples are present in a 1/4ms USB period? 
-					// 192   / 4 = 48
-					// 176.4 / 4 = 44.1
-					//  96   / 4 = 24
-					//  88.2 / 4 = 22.05
-					//  48   / 4 = 12
-					//  44.1 / 4 = 11.025
-					// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
+				// First of all, how many stereo samples are present in a 1/4ms USB period on UAC2? 
+				// 192   / 4 = 48
+				// 176.4 / 4 = 44.1
+				//  96   / 4 = 24
+				//  88.2 / 4 = 22.05
+				//  48   / 4 = 12
+				//  44.1 / 4 = 11.025
+				// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
 
-					if (current_freq.frequency == FREQ_44) {
-						num_samples_adc = 11;
-						limit_44k = 40;
-					}
-					else if (current_freq.frequency == FREQ_48) {
-						num_samples_adc = 12;
-					}
-					else if (current_freq.frequency == FREQ_88) {
-						num_samples_adc = 22;
-						limit_44k = 20;
-					}
-					else if (current_freq.frequency == FREQ_96) {
-						num_samples_adc = 24;
-					}
-					else if (current_freq.frequency == FREQ_176) {
-						num_samples_adc = 44;
-						limit_44k = 10;
-					}
-					else if (current_freq.frequency == FREQ_192) {
-						num_samples_adc = 48;
-					}
-
+				if (current_freq.frequency == FREQ_44) {
+					num_samples_adc = 11;
+					limit_44k = 40;
+				}
+				else if (current_freq.frequency == FREQ_48) {
+					num_samples_adc = 12;
+				}
+				else if (current_freq.frequency == FREQ_88) {
+					num_samples_adc = 22;
+					limit_44k = 20;
+				}
+				else if (current_freq.frequency == FREQ_96) {
+					num_samples_adc = 24;
+				}
+				else if (current_freq.frequency == FREQ_176) {
+					num_samples_adc = 44;
+					limit_44k = 10;
+				}
+				else if (current_freq.frequency == FREQ_192) {
+					num_samples_adc = 48;
+				}
 				
-					if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
-						counter_44k++;
-						if (counter_44k == limit_44k) { 
-							counter_44k = 0;
-							num_samples_adc++;
-						}
+				if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
+					counter_44k++;
+					if (counter_44k == limit_44k) { 
+						counter_44k = 0;
+						num_samples_adc++;
 					}
-					// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
+				}
+				// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
 
 
-					if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
-						Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
+				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
+					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 											
-						// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - visible on J7:1 on Boenicke build
-						gpio_tgl_gpio_pin(AVR32_PIN_PA01);
-						// visible
+					// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - visible on J7:1 on Boenicke build
+					gpio_tgl_gpio_pin(AVR32_PIN_PA01);
+					// visible
 
 
 
-						// Sync AK data stream with USB data stream
-						// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
-						// buffer 0 is set in the reload register of the pdca
-						// So the actual loading is occuring in buffer 1
-						// USB data is being taken from ADC_buf_USB_IN
+					// Sync AK data stream with USB data stream
+					// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
+					// buffer 0 is set in the reload register of the pdca
+					// So the actual loading is occuring in buffer 1
+					// USB data is being taken from ADC_buf_USB_IN
 
-						// find out the current status of PDCA transfer
-						// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
+					// find out the current status of PDCA transfer
+					// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
 
 
 // Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
 // Why on earth must this code be present for 44.1 operation??
 
 /*
-						num_remaining = pdca_channel->tcr;
-						if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
-							// AK and USB using same buffer
-							if ( index < (ADC_BUFFER_SIZE - num_remaining)) gap = ADC_BUFFER_SIZE - num_remaining - index;
-							else gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
-						}
-						else {
-							// usb and pdca working on different buffers
-							gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
-						}
+					num_remaining = pdca_channel->tcr;
+					if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
+						// AK and USB using same buffer
+						if ( index < (ADC_BUFFER_SIZE - num_remaining)) gap = ADC_BUFFER_SIZE - num_remaining - index;
+						else gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
+					}
+					else {
+						// usb and pdca working on different buffers
+						gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
+					}
 
-						if ( gap < ADC_BUFFER_SIZE/2 ) {
-							// throttle back, transfer less
-							num_samples--; // This one can be omitted... 
-						}
-						else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
-							// transfer more
-							num_samples++;
-						}
+					if ( gap < ADC_BUFFER_SIZE/2 ) {
+						// throttle back, transfer less
+						num_samples--; // This one can be omitted... 
+					}
+					else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
+						// transfer more
+						num_samples++;
+					}
 
 */
 
-// num_samples = 1; // 0%
-// num_samples = 12; // 99%
-// num_samples = 22; // 0%
-// num_samples = 13; // 0%
-// num_samples = 11; // 0%
-// num_samples = 12; // Only 12 will work, and only at 44.1 setting, and even that has gaps in the recording. What is going on? The above code must have made it ever so slightly above 12. Try disabling DAC interface in descriptors...
-
-
-						Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
+					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
-						
-						for( i=0 ; i < num_samples_adc ; i++ ) {
+					for( i=0 ; i < num_samples_adc ; i++ ) {
 
 /* Start removal for dummy data insert
 
-							   // Fill endpoint with samples
-							if (!mute) {
-								if (ADC_buf_USB_IN == 0) {
-									sample_LSB = audio_buffer_0[index+IN_LEFT];
-									sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
-									sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
-								}
-								else {
-									sample_LSB = audio_buffer_1[index+IN_LEFT];
-									sample_SB = audio_buffer_1[index+IN_LEFT] >> 8;
-									sample_MSB = audio_buffer_1[index+IN_LEFT] >> 16;
-								}
-
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-
-								if (ADC_buf_USB_IN == 0) {
-									sample_LSB = audio_buffer_0[index+IN_RIGHT];
-									sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
-									sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
-								}
-								else {
-									sample_LSB = audio_buffer_1[index+IN_RIGHT];
-									sample_SB = audio_buffer_1[index+IN_RIGHT] >> 8;
-									sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 16;
-								}
-
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-
-								index += 2;
-								if (index >= ADC_BUFFER_SIZE) {
-									index=0;
-									ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
-								}
+							// Fill endpoint with samples
+						if (!mute) {
+							if (ADC_buf_USB_IN == 0) {
+								sample_LSB = audio_buffer_0[index+IN_LEFT];
+								sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
+								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
 							}
 							else {
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								sample_LSB = audio_buffer_1[index+IN_LEFT];
+								sample_SB = audio_buffer_1[index+IN_LEFT] >> 8;
+								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 16;
 							}
+
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+
+							if (ADC_buf_USB_IN == 0) {
+								sample_LSB = audio_buffer_0[index+IN_RIGHT];
+								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
+								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
+							}
+							else {
+								sample_LSB = audio_buffer_1[index+IN_RIGHT];
+								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 8;
+								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 16;
+							}
+
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+
+							index += 2;
+							if (index >= ADC_BUFFER_SIZE) {
+								index=0;
+								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
+							}
+						}
+						else {
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+						}
 							
 end removal for dummy data insert*/
 
-								static uint8_t dummy_data = 0;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30); // L:MSB
+							static uint8_t dummy_data = 0;
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30); // L:MSB
 
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40); // R:MSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40); // R:MSB
 								
-								// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
+							// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
 
-								if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
-								}
+							if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+							}
 								
-								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
-								gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
-								// invisible
-						}
+							// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
+							gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
+							// invisible
+					}
 						
 						
 						
-						Usb_send_in(EP_AUDIO_IN);		// send the current bank
-					} // end Is_usb_in_ready(EP_AUDIO_IN)
-//				} // end FEATURE_ADC / (1)
-
-			}
-
-
-			#endif
-				
-				
-		} // end alt setting 1 
-
+					Usb_send_in(EP_AUDIO_IN);		// send the current bank
+				} // end Is_usb_in_ready(EP_AUDIO_IN)
+			} 	// end alt setting 1 / 2
+		#endif // FEATURE_ADC_EXPERIMENTAL
+		
 
 #ifdef HW_GEN_RXMOD 
 		if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
