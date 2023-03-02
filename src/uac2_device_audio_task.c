@@ -381,25 +381,33 @@ void uac2_device_audio_task(void *pvParameters)
 end removal for dummy data insert*/
 
 							static uint8_t dummy_data = 0;
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // L:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30); // L:MSB
+							
+							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) { // Stereo 24-bit data
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// L:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// L:MSB
 
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0); // R:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40); // R:MSB
-								
-							// Overriding FORMAT_BIT_RESOLUTION_1 defined to 24 in order to test 16-bit ADC samples
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);	// R:MSB
+							}
+							else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) { // Stereo 16-bit data
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// L:MSB
 
-							if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);	// R:MSB
 							}
 								
-							// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
-							gpio_tgl_gpio_pin(AVR32_PIN_PA18); 
-							// invisible
+
+							dummy_data++;	// Just another way to generate synthetic data...
+							if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
+								gpio_tgl_gpio_pin(AVR32_PIN_PA18);
+								// invisible
+							}
+								
 					}
-						
-						
 						
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				} // end Is_usb_in_ready(EP_AUDIO_IN)
@@ -555,10 +563,14 @@ end removal for dummy data insert*/
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);
 
 					// bBitResolution
-					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX)		// Alternate 1 24 bits/sample, 8 bytes per stereo sample with FORMAT_SUBSLOT_SIZE_1 = 4. Must use /6 with FORMAT_SUBSLOT_SIZE_1 = 3
+					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample with FORMAT_SUBSLOT_SIZE_1 = 4. Must use /6 with FORMAT_SUBSLOT_SIZE_1 = 3
 						num_samples = num_samples / 6;
-					else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX)	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
-						num_samples = num_samples / 4;
+					}
+					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) { // Alternate 2 16 bits/sample, 4 bytes per stereo sample
+							num_samples = num_samples / 4;
+						}
+					#endif
 					else
 						num_samples = 0;											// Should never get here...
 
@@ -702,18 +714,20 @@ end removal for dummy data insert*/
 							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
 						}
-						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
-							// 16-bit code
-							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
-							silence_det_L |= sample_L;
+						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
+							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
+								// 16-bit code
+								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
+								silence_det_L |= sample_L;
 
-							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
-							silence_det_R |= sample_R;
-						}
+								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
+								silence_det_R |= sample_R;
+							}
+						#endif						
 
 						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
 							silence_det = 1;
