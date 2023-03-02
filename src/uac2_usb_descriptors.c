@@ -353,17 +353,17 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 	   ,  AUDIO_EP_DELAY_UNIT
 	   ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
    }
+   // End of mic alt 1
    ,
-	// ADC_site Skipping alt 2 for now, // Mic alt 2, Must implement to 16 bit format at some stage // ADC_site alt2
-	/*
+	#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 	{  sizeof(S_usb_as_interface_descriptor)
 		,  INTERFACE_DESCRIPTOR
 		,  STD_AS_INTERFACE_IN
-		,  ALT1_AS_INTERFACE_INDEX
-		,  ALT1_AS_NB_ENDPOINT
-		,  ALT1_AS_INTERFACE_CLASS
-		,  ALT1_AS_INTERFACE_SUB_CLASS
-		,  ALT1_AS_INTERFACE_PROTOCOL
+		,  ALT2_AS_INTERFACE_INDEX
+		,  ALT2_AS_NB_ENDPOINT
+		,  ALT2_AS_INTERFACE_CLASS
+		,  ALT2_AS_INTERFACE_SUB_CLASS
+		,  ALT2_AS_INTERFACE_PROTOCOL
 		,  0x00
 	}
 	,
@@ -403,7 +403,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 		,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
 	}
 	,
-*/
+	#endif // ALT 2
  #endif
 
   
@@ -478,8 +478,11 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
        ,   EP_INTERVAL_3_FS
        }
   ,
+  // End of ALT 1
+
+  
   // ALT2 is for 16-bit audio streaming, otherwise identical to ALT1
-  /* ADC_site skipping ALT 2 for now
+	#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 
   {  sizeof(S_usb_as_interface_descriptor)
    ,  INTERFACE_DESCRIPTOR
@@ -492,8 +495,6 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
    ,  0x00
    }
 ,
-
-
 {  sizeof(S_usb_as_g_interface_descriptor_2)
  ,  CS_INTERFACE
  ,  GENERAL_SUB_TYPE
@@ -505,9 +506,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
  ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
  ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
  }
-
 ,
-
 {  sizeof(S_usb_format_type_2)
 ,  CS_INTERFACE
 ,  FORMAT_SUB_TYPE
@@ -515,7 +514,6 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 ,  FORMAT_SUBSLOT_SIZE_2  // bBitResolution
 ,  FORMAT_BIT_RESOLUTION_2  // bBitResolution
 }
-
 ,
      {   sizeof(S_usb_endpoint_audio_descriptor_2)
      ,   ENDPOINT_DESCRIPTOR
@@ -542,7 +540,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
       ,   EP_INTERVAL_3_FS
       }
 	  ,
-*/
+#endif // ALT 2
   // End of audio streaming interface and its ALTs
 
 
@@ -856,8 +854,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	 ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
  }
  ,
-// ADC_site Skipping alt 2 for now, // Mic alt 2, Must implement to 16 bit format at some stage // ADC_site alt2
-/*
+ #ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
  // Mic alt 2, Must implement to 16 bit format at some stage
  {  sizeof(S_usb_as_interface_descriptor)
 	 ,  INTERFACE_DESCRIPTOR
@@ -906,10 +903,9 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 	 ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
  }
  ,
-*/
+  #endif // ALT 2 for mic
  #endif
- 
-  
+   
 
 // Speaker ALT0 has no endpoints
     {  sizeof(S_usb_as_interface_descriptor)
@@ -947,8 +943,6 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
      ,  SPK_INPUT_TERMINAL_CH_NAME_ID //0x00
      }
   ,
-
-
      {  sizeof(S_usb_format_type_2)
      ,  CS_INTERFACE
      ,  FORMAT_SUB_TYPE
@@ -983,9 +977,10 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
        ,   EP_INTERVAL_3_HS
        }
 ,
+// end of speaker ALT 1
 
   // Speaker ALT2 is for 16-bit audio streaming, otherwise identical to ALT1
-  /* ADC_site skipping ALT 2 for now
+#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
   
       {  sizeof(S_usb_as_interface_descriptor)
       ,  INTERFACE_DESCRIPTOR
@@ -1046,7 +1041,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
         }
 		,
 
-*/
+#endif // ALT 2 mic
 // End of audio streaming interface and its ALTs 
 
 // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin

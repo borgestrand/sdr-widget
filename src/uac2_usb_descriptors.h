@@ -389,15 +389,15 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_descriptor_2 		ep1;
 	S_usb_endpoint_audio_specific_2			ep1_s;
 
-	// Mic alt2 - identical for now, may change bit resolution to 16 if there is a way to test it
-// ADC_site skipping alt2 for now
-//	S_usb_as_interface_descriptor	 		mic_as_alt2;
-//	S_usb_as_g_interface_descriptor_2		mic_g_as_alt2;
-//	S_usb_format_type_2						mic_format_type_alt2;
-//	S_usb_endpoint_audio_descriptor_2 		ep1_alt2;
-//	S_usb_endpoint_audio_specific_2			ep1_s_alt2;
-#endif
-
+	// Mic alt2
+	#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+		S_usb_as_interface_descriptor	 	mic_as_alt2;
+		S_usb_as_g_interface_descriptor_2	mic_g_as_alt2;
+		S_usb_format_type_2					mic_format_type_alt2;
+		S_usb_endpoint_audio_descriptor_2 	ep1_alt2;
+		S_usb_endpoint_audio_specific_2		ep1_s_alt2;
+	#endif // Mic ALT 2
+#endif // ADC
 
 	// Speaker alt0
 	S_usb_as_interface_descriptor	 		spk_as_alt0;
@@ -411,13 +411,14 @@ __attribute__((__packed__))
 	S_usb_endpoint_audio_descriptor_2 		ep3;
 
 	// Speaker alt2 bBitResolution added alt2 for 16-bit audio streaming
-// ADC_site skipping alt2 for now
-//	S_usb_as_interface_descriptor	 		spk_as_alt2;
-//	S_usb_as_g_interface_descriptor_2		spk_g_as_alt2;
-//	S_usb_format_type_2						spk_format_type_alt2;
-//	S_usb_endpoint_audio_descriptor_2 		ep2_alt2;
-//	S_usb_endpoint_audio_specific_2			ep2_s_alt2;
-//	S_usb_endpoint_audio_descriptor_2 		ep3_alt2;
+	#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+		S_usb_as_interface_descriptor	 	spk_as_alt2;
+		S_usb_as_g_interface_descriptor_2	spk_g_as_alt2;
+		S_usb_format_type_2					spk_format_type_alt2;
+		S_usb_endpoint_audio_descriptor_2 	ep2_alt2;
+		S_usb_endpoint_audio_specific_2		ep2_s_alt2;
+		S_usb_endpoint_audio_descriptor_2 	ep3_alt2;
+	#endif // Spk ALT 2
 
 	// BSB 20120720 Added, reduced to ONE TX endpoint
 #ifdef FEATURE_HID

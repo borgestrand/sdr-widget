@@ -15,7 +15,8 @@
 #
 # -DFEATURE_HID					USB HID functions AND debug development system - FIX: split them in two... 
 # -DFEATURE_VOLUME_CTRL			Software volume control in DAC
-# -DFEATURE_CLOCK_SELECTOR		Clock selector, what is the reason for retaining this?
+# -DFEATURE_CLOCK_SELECTOR		Clock selector, don't enable unless you wish to experiment with different clocks for ADC and DAC
+# -DFEATURE_ALT2_16BIT			UAC2 has both ALT1 (24 bit) and ALT2 (16 bit). Applies to both ADC and DAC code in UAC2. Does NOT! apply to UAC1
 #
 # -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
 
@@ -52,6 +53,9 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DHW_GEN_RXMOD_PATCH_01 \
 	-DHW_GEN_RXMOD_PATCH_02 \
 	-DFEATURE_ADC_EXPERIMENTAL
+	
+#	 \
+#	-DFEATURE_ALT2_16BIT
 	
 
 audio-widget::
