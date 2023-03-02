@@ -472,7 +472,7 @@ void mobo_handle_spdif(uint8_t width) {
 				// New co-sample verification routine
 				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 				num_remaining = spk_pdca_channel->tcr;
-				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not valid, interrupt won't strike again
 				// for a long time. In which we simply read the counter again
 				if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
 					DAC_buf_DMA_read_local = DAC_buf_DMA_read;
