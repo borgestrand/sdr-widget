@@ -115,6 +115,9 @@
 #define INIT_ADC_I2S_st2	-2		// Must initialize the buffer pointer used for the I2S toward DAC, init stage 2
 #define INIT_ADC_USB		-3		// Must initialize the buffer pointer used for the I2S toward USB
 #define INIT_ADC_USB_st2	-4		// Must initialize the buffer pointer used for the I2S toward USB
+#define I2S_CONSUMER_NONE	0b00000000		// None
+#define I2S_CONSUMER_USB	0b00000001		// USB is consuming I2S input data
+#define I2S_CONSUMER_DAC	0b00000010		// DAC output is consuming I2S input data
 
 
 // Values for silence (32-bit)
@@ -138,6 +141,7 @@ extern volatile int DAC_buf_DMA_read;	// Written by interrupt handler, initiated
 extern volatile int ADC_buf_I2S_IN; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
 extern volatile int ADC_buf_USB_IN;		// Written by sequential code, handles only data IN-to USB host
 extern volatile int DAC_buf_OUT;		// Written by sequential code
+extern volatile int I2S_consumer;		// Which consumer is subscribing to I2S data?
 extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers

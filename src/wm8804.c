@@ -316,6 +316,8 @@ void wm8804_init(void) {
 //		initial = 0;
 //	}
 
+	I2S_consumer |= I2S_CONSUMER_DAC;			// DAC intends to subscribe to incoming I2S port
+
 	// Enable CPU's processing of produced data
 	// This is needed for the silence detector
 	AK5394A_pdca_rx_enable(FREQ_INVALID);	// Start up without caring about I2S frequency or synchronization
@@ -327,8 +329,12 @@ void wm8804_init(void) {
 
 // Turn off wm8804, why can't we just run init again?
 void wm8804_sleep(void) {
-	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
-	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	I2S_consumer &= !I2S_CONSUMER_DAC;			// DAC is no longer subscribing to I2S data
+	
+	if (I2S_consumer == I2S_CONSUMER_NONE) {	// No other consumers? Disable DMA
+		pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	}
 
 	wm8804_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL // WM8804 same
 }
@@ -738,6 +744,8 @@ void wm8804_unmute(void) {
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 //	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);			// Outgoing I2S clock division selector
+
+	I2S_consumer |= I2S_CONSUMER_DAC;						// DAC subscribes to incoming I2S
 
 	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
 
