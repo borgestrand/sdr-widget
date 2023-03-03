@@ -402,11 +402,12 @@ void mobo_handle_spdif(uint8_t width) {
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 #endif
 
+//æææææææ
 
 	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
 	// Continue writing to consumer's buffer where this routine left of last
-	if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
+	if ( (ADC_buf_DMA_write_prev == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		for (i = 0; i < ADC_BUFFER_SIZE; i++) {
 			audio_buffer_0[i] = 0;

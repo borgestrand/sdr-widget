@@ -114,7 +114,7 @@ static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 {
 	index     =0;
-	ADC_buf_USB_IN = 0;
+	ADC_buf_USB_IN = INIT_ADC_USB;				// Must initialize before it can be used for any good!
 	spk_index = 0;
 	DAC_buf_OUT = 0;
 	mute = FALSE; // applies to ADC OUT endpoint
@@ -225,7 +225,7 @@ void uac2_device_audio_task(void *pvParameters)
 					 (prev_input_select == MOBO_SRC_TOSLINK1) ) {
 
 					mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-					mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+					mobo_clock_division(current_freq.frequency);			// Re-configure correct USB sample rate
 				}
 			}
 			prev_input_select = input_select;
@@ -233,8 +233,34 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 		#ifdef FEATURE_ADC_EXPERIMENTAL
+			if (usb_alternate_setting == 0) {								// ADC interface is permanently off or about to be turned off
+				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// Already in initial state. Do nothing
+				}
+				else {
+					I2S_consumer &= !I2S_CONSUMER_USB;						// USB is no longer subscribing to I2S data
+	
+					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Disable DMA
+						pdca_disable(PDCA_CHANNEL_SSC_RX);					// Disable I2S reception at MCU's ADC port
+						pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+					}
+					
+					ADC_buf_USB_IN = INIT_ADC_USB;							// Done initializing. Wait for alt > 0 to enable it
+				}
+			} // alt == 0
 
-			if (usb_alternate_setting >= 1) { // For IN endpoint / ADC bBitResolution
+
+			else if (usb_alternate_setting >= 1) { // For IN endpoint / ADC bBitResolution
+				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// Already in initial state. Do something!
+					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
+						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// Blindly following I2S receiver sample rate, not USB desired sample rate.....
+					}
+					I2S_consumer |= I2S_CONSUMER_USB;						// USB subscribes to I2S data
+
+					//æææææææ ADC_buf_USB_IN = synchronization to DMA address etc.
+					
+				}
+				
+				
 
 				// ADC_site make some mic state machine hereabouts...
 
