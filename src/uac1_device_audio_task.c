@@ -307,7 +307,7 @@ void uac1_device_audio_task(void *pvParameters)
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00); 
 
 						}
 					}
