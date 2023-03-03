@@ -177,7 +177,9 @@ void uac2_device_audio_task(void *pvParameters)
 	uint32_t silence_det_L = 0;
 	uint32_t silence_det_R = 0;
 	uint8_t silence_det = 0;
-	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
+	int DAC_buf_DMA_read_local = 0;				// Local copy read in atomic operations
+	int ADC_buf_DMA_write_temp = 0;				// Local copy read in atomic operations
+
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
@@ -250,14 +252,40 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 			else if (usb_alternate_setting >= 1) { // For IN endpoint / ADC bBitResolution
-				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// Already in initial state. Do something!
+				
+				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// In initial state. Do something to fire up data collection!
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
-						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// Blindly following I2S receiver sample rate, not USB desired sample rate.....
+						
+						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
+						for (i = 0; i < ADC_BUFFER_SIZE; i++) {
+							audio_buffer_0[i] = 0;
+							audio_buffer_1[i] = 0;
+						}
+
+						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
+						
+						// New co-sample verification routine
+						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+						num_remaining = pdca_channel->tcr;
+				
+						// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
+						// for a long time. In which we simply read the counter again
+						if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
+							ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+							num_remaining = pdca_channel->tcr;
+						}
+						DAC_buf_OUT = DAC_buf_DMA_read_local;
+
+						index = ADC_BUFFER_SIZE - num_remaining;
+						index = index & ~((U32)1); 							// Clear LSB in order to start with L sample
+						ADC_buf_USB_IN = ADC_buf_DMA_write_temp;			// Disable further init, select correct audio_buffer_0/1
+
+
 					}
 					I2S_consumer |= I2S_CONSUMER_USB;						// USB subscribes to I2S data
 
+
 					//æææææææ ADC_buf_USB_IN = synchronization to DMA address etc.
-					
 				}
 				
 				
