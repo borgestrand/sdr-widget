@@ -380,14 +380,14 @@ void uac2_device_audio_task(void *pvParameters)
 							// Fill endpoint with samples
 						if (!mute) {
 							if (ADC_buf_USB_IN == 0) {
-								sample_LSB = audio_buffer_0[index+IN_LEFT];
-								sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
-								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
+								sample_LSB = audio_buffer_0[index+IN_LEFT] >> 8;
+								sample_SB = audio_buffer_0[index+IN_LEFT] >> 16;
+								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 24;				// Treating audio_buffer_0/1 as 32-bit data...
 							}
 							else {
-								sample_LSB = audio_buffer_1[index+IN_LEFT];
-								sample_SB = audio_buffer_1[index+IN_LEFT] >> 8;
-								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 16;
+								sample_LSB = audio_buffer_1[index+IN_LEFT] >> 8;
+								sample_SB = audio_buffer_1[index+IN_LEFT] >> 16;
+								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 24;
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data
@@ -403,14 +403,14 @@ void uac2_device_audio_task(void *pvParameters)
 							#endif
 
 							if (ADC_buf_USB_IN == 0) {
-								sample_LSB = audio_buffer_0[index+IN_RIGHT];
-								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
-								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
+								sample_LSB = audio_buffer_0[index+IN_RIGHT] >> 8;
+								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 16;
+								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 24;
 							}
 							else {
-								sample_LSB = audio_buffer_1[index+IN_RIGHT];
-								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 8;
-								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 16;
+								sample_LSB = audio_buffer_1[index+IN_RIGHT] >> 8;
+								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 16;
+								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 24;
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Right stereo 24-bit data
