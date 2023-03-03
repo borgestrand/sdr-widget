@@ -283,16 +283,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 					}
 					I2S_consumer |= I2S_CONSUMER_USB;						// USB subscribes to I2S data
-
-
-					//æææææææ ADC_buf_USB_IN = synchronization to DMA address etc.
-				}
+				} // Init DMA for USB IN consumer				
 				
-				
-
-				// ADC_site make some mic state machine hereabouts...
-
-				// First of all, how many stereo samples are present in a 1/4ms USB period on UAC2? 
+				// How many stereo samples are present in a 1/4ms USB period on UAC2? 
 				// 192   / 4 = 48
 				// 176.4 / 4 = 44.1
 				//  96   / 4 = 24
@@ -339,14 +332,12 @@ void uac2_device_audio_task(void *pvParameters)
 											
 					// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - visible on J7:1 on Boenicke build
 					gpio_tgl_gpio_pin(AVR32_PIN_PA01);
-					// visible
-
 
 
 					// Sync AK data stream with USB data stream
 					// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
 					// buffer 0 is set in the reload register of the pdca
-					// So the actual loading is occuring in buffer 1
+					// So the actual loading is occurring in buffer 1
 					// USB data is being taken from ADC_buf_USB_IN
 
 					// find out the current status of PDCA transfer
@@ -354,9 +345,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 // Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
-// Why on earth must this code be present for 44.1 operation??
 
-/*
+// Start of blocked gap calculation
+
 					num_remaining = pdca_channel->tcr;
 					if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 						// AK and USB using same buffer
@@ -377,13 +368,14 @@ void uac2_device_audio_task(void *pvParameters)
 						num_samples++;
 					}
 
-*/
+// End of blocked gap calculation
+
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
 					for( i=0 ; i < num_samples_adc ; i++ ) {
 
-/* Start removal for dummy data insert
+// Start of blocked data insertion
 
 							// Fill endpoint with samples
 						if (!mute) {
@@ -398,9 +390,17 @@ void uac2_device_audio_task(void *pvParameters)
 								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 16;
 							}
 
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+							}
+							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left stereo 16-bit data
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								}
+							#endif
 
 							if (ADC_buf_USB_IN == 0) {
 								sample_LSB = audio_buffer_0[index+IN_RIGHT];
@@ -413,53 +413,82 @@ void uac2_device_audio_task(void *pvParameters)
 								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 16;
 							}
 
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Right stereo 24-bit data
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+							}
+							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Right stereo 16-bit data
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								}
+							#endif
 
 							index += 2;
 							if (index >= ADC_BUFFER_SIZE) {
 								index=0;
 								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
+								
+								// ADC_site Add buffer indicator GPIO here!
+								
+//								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
+//								gpio_tgl_gpio_pin(AVR32_PIN_PA18);
+
 							}
 						}
 						else {
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {			// Left and Right stereo 24-bit mute
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							}
+							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left and Right stereo 16-bit mute
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								}
+							#endif
 						}
 							
-end removal for dummy data insert*/
+// End of blocked data insertion
 
-							static uint8_t dummy_data = 0;
+
+// Start of dummy data insertion
+/*
+						static uint8_t dummy_data = 0;
 							
-							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) { // Stereo 24-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// L:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// L:MSB
+						if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) { // Stereo 24-bit data
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// L:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// L:MSB
 
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);	// R:MSB
-							}
-							else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) { // Stereo 16-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x20);	// L:MSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);	// R:MSB
+						}
+						else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) { // Stereo 16-bit data
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x20);	// L:MSB
 
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// R:MSB
-							}
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// R:MSB
+						}
 								
 
-							dummy_data++;	// Just another way to generate synthetic data...
-							if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
-								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
-								gpio_tgl_gpio_pin(AVR32_PIN_PA18);
-								// invisible
-							}
+						dummy_data++;	// Just another way to generate synthetic data...
+						if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+							// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
+							gpio_tgl_gpio_pin(AVR32_PIN_PA18);
+							// invisible
+						}
+*/
+// End of dummy data insertion							
 								
 					}
 						
