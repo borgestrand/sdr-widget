@@ -299,7 +299,7 @@ void uac1_device_audio_task(void *pvParameters)
 							index += 2;
 							if (index >= ADC_BUFFER_SIZE) {
 								index=0;
-								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
+								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN; // Doesn't work if it has init commands in it... 
 							}
 						} else {
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
