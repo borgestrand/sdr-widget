@@ -406,7 +406,7 @@ void mobo_handle_spdif(uint8_t width) {
 	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
 	// Continue writing to consumer's buffer where this routine left of last
-	if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_USB_IN == -1) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
+	if ( (ADC_buf_DMA_write_prev == -1)	|| (ADC_buf_I2S_IN == -1) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		for (i = 0; i < ADC_BUFFER_SIZE; i++) {
 			audio_buffer_0[i] = 0;
@@ -414,7 +414,7 @@ void mobo_handle_spdif(uint8_t width) {
 		}
 
 		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
-		ADC_buf_USB_IN = -2;
+		ADC_buf_I2S_IN = -2;
 	}
 
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
@@ -461,8 +461,8 @@ void mobo_handle_spdif(uint8_t width) {
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
-			if (ADC_buf_USB_IN == -2) {
-				ADC_buf_USB_IN = ADC_buf_DMA_write_temp;	// Disable further init
+			if (ADC_buf_I2S_IN == -2) {
+				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init, select correct audio_buffer_0/1
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 
 				// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c

@@ -742,7 +742,7 @@ void wm8804_unmute(void) {
 	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
 
 
-	ADC_buf_USB_IN = -1;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
+	ADC_buf_I2S_IN = -1;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 
 	mobo_i2s_enable(MOBO_I2S_ENABLE);				// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 }

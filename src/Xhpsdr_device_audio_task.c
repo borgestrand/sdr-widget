@@ -96,7 +96,7 @@
 
 
 static U32  index, spk_index;
-// static U8 ADC_buf_USB_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out to the USB
+// static U8 ADC_buf_I2S_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out to the USB
 
 U8 command [4][5];
 U8 command_out [8];
@@ -110,7 +110,7 @@ static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 void hpsdr_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 {
 	index     =0;
-	ADC_buf_USB_IN = 0;
+	ADC_buf_I2S_IN = 0;
 	spk_index = 0;
 	DAC_buf_OUT = 0;
 	mute = FALSE;
@@ -192,7 +192,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 				startup=FALSE;
 
 				ADC_buf_DMA_write = 0;
-				ADC_buf_USB_IN = 0;
+				ADC_buf_I2S_IN = 0;
 				DAC_buf_OUT = 0;
 				DAC_buf_DMA_read = 0;
 				index = 0;
@@ -222,12 +222,12 @@ void hpsdr_device_audio_task(void *pvParameters)
 		// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
 		// buffer 0 is set in the reload register of the pdca
 		// So the actual loading is occuring in buffer 1
-		// USB data is being taken from ADC_buf_USB_IN
+		// USB data is being taken from ADC_buf_I2S_IN
 
 		// find out the current status of PDCA transfer
-		// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
+		// gap is how far the ADC_buf_I2S_IN is from overlapping ADC_buf_DMA_write
 		num_remaining = pdca_channel->tcr;
-		if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
+		if (ADC_buf_DMA_write != ADC_buf_I2S_IN) {
 			// AK and USB using same buffer
 			if ( index < (ADC_BUFFER_SIZE - num_remaining)) gap = ADC_BUFFER_SIZE - num_remaining - index;
 			else gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
@@ -249,7 +249,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 			for( i=0 ; i < num_samples ; i++ ) {
 				// Fill endpoint with samples
 				if(!mute) {
-					if (ADC_buf_USB_IN == 0) {
+					if (ADC_buf_I2S_IN == 0) {
 						sample_LSB = audio_buffer_0[index+IN_LEFT];
 						sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
 						sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
@@ -264,7 +264,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_IQ_IN, 8, sample_LSB);
 
 
-					if (ADC_buf_USB_IN == 0) {
+					if (ADC_buf_I2S_IN == 0) {
 						sample_LSB = audio_buffer_0[index+IN_RIGHT];
 						sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
 						sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
@@ -281,7 +281,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 					index += 2;
 					if (index >= ADC_BUFFER_SIZE) {
 						index=0;
-						ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
+						ADC_buf_I2S_IN = 1 - ADC_buf_I2S_IN;
 					}
 				} else {
 					Usb_write_endpoint_data(EP_IQ_IN, 8, 0x00);

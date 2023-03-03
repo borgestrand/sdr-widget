@@ -225,8 +225,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 		#endif
 
-
-		// Should we remove old ADC code from here? ADC code is only watched in UAC2 ADC_site
+		/* Beginning of removed old ADC code from here? ADC code is only watched in UAC2 ADC_site
 		num_samples = 48;
 			if (usb_alternate_setting == 1) {
 
@@ -314,7 +313,9 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				}
 			} // end alt setting == 1
-			// Should we remove old ADC code to here?
+			// End of commented out ADC code
+			*/ 
+			
 
 #ifdef HW_GEN_RXMOD
 			if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
