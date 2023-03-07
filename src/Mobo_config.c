@@ -408,6 +408,9 @@ void mobo_handle_spdif(uint8_t width) {
 
 	// Continue writing to consumer's buffer where this routine left of last
 	if ( (ADC_buf_DMA_write_prev == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
+
+		print_dbg_char('Y');	// I2S OUT consumer starting up
+
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		for (i = 0; i < ADC_BUFFER_SIZE; i++) {
 			audio_buffer_0[i] = 0;
@@ -463,6 +466,9 @@ void mobo_handle_spdif(uint8_t width) {
 
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
+
+				print_dbg_char('X');	// I2S OUT consumer starting up
+				
 				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init, select correct audio_buffer_0/1
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 

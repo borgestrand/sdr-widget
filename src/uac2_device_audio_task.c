@@ -239,9 +239,15 @@ void uac2_device_audio_task(void *pvParameters)
 				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// Already in initial state. Do nothing
 				}
 				else {
+					
+					print_dbg_char('i');	// USB IN consumer shutting down
+					
 					I2S_consumer &= !I2S_CONSUMER_USB;						// USB is no longer subscribing to I2S data
 	
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Disable DMA
+
+						print_dbg_char('i');	// USB IN consumer shutting down
+
 						pdca_disable(PDCA_CHANNEL_SSC_RX);					// Disable I2S reception at MCU's ADC port
 						pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 					}
@@ -254,7 +260,12 @@ void uac2_device_audio_task(void *pvParameters)
 			else if (usb_alternate_setting >= 1) { // For IN endpoint / ADC bBitResolution
 				
 				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// In initial state. Do something to fire up data collection!
+					
+					print_dbg_char('I');	// USB IN consumer starting up
+
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
+	
+						print_dbg_char('I');	// USB IN consumer starting up
 						
 						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
 						for (i = 0; i < ADC_BUFFER_SIZE; i++) {
@@ -263,27 +274,29 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 
 						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
+					} // Init DMA for USB IN consumer
+		
 						
-						// New co-sample verification routine
+					// New co-sample verification routine
+					ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+					num_remaining = pdca_channel->tcr;
+				
+					// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
+					// for a long time. In which we simply read the counter again
+					if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
 						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
 						num_remaining = pdca_channel->tcr;
-				
-						// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
-						// for a long time. In which we simply read the counter again
-						if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
-							ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
-							num_remaining = pdca_channel->tcr;
-						}
-						DAC_buf_OUT = DAC_buf_DMA_read_local;
-
-						index = ADC_BUFFER_SIZE - num_remaining;
-						index = index & ~((U32)1); 							// Clear LSB in order to start with L sample
-						ADC_buf_USB_IN = ADC_buf_DMA_write_temp;			// Disable further init, select correct audio_buffer_0/1
-
-
 					}
+// Clearly, this must be a bug!						DAC_buf_OUT = DAC_buf_DMA_read_local;
+
+					index = ADC_BUFFER_SIZE - num_remaining;
+					index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
+					ADC_buf_USB_IN = ADC_buf_DMA_write_temp;				// Disable further init, select correct audio_buffer_0/1
+
 					I2S_consumer |= I2S_CONSUMER_USB;						// USB subscribes to I2S data
-				} // Init DMA for USB IN consumer				
+
+				} // Init synching up USB IN consumer's pointers to I2S RX data producer
+				
 				
 				// How many stereo samples are present in a 1/4ms USB period on UAC2? 
 				// 192   / 4 = 48
@@ -427,14 +440,18 @@ void uac2_device_audio_task(void *pvParameters)
 
 							index += 2;
 							if (index >= ADC_BUFFER_SIZE) {
-								index=0;
+								index = 0;
 								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
-								
-								// ADC_site Add buffer indicator GPIO here!
-								
-//								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
-//								gpio_tgl_gpio_pin(AVR32_PIN_PA18);
+						
 
+#ifdef USB_STATE_MACHINE_GPIO
+								if (ADC_buf_USB_IN == 1) {
+									gpio_set_gpio_pin(AVR32_PIN_PX31);
+								}
+								else {
+									gpio_clr_gpio_pin(AVR32_PIN_PX31);
+								}
+#endif
 							}
 						}
 						else {
@@ -638,9 +655,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
-#ifdef USB_STATE_MACHINE_GPIO
-					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
-#endif
+// #ifdef USB_STATE_MACHINE_GPIO
+// 					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
+// #endif
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);

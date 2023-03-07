@@ -319,6 +319,9 @@ void wm8804_init(void) {
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
 		// Enable CPU's processing of produced data
 		// This is needed for the silence detector
+
+		print_dbg_char('Z');	// I2S OUT consumer starting up
+
 		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
 	}
 //	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC doesn't yet properly subscribe to incoming I2S
@@ -332,8 +335,13 @@ void wm8804_init(void) {
 // Turn off wm8804, why can't we just run init again?
 void wm8804_sleep(void) {
 	I2S_consumer &= !I2S_CONSUMER_DAC;			// DAC is no longer subscribing to I2S data
+
+	print_dbg_char('z');	// I2S OUT consumer shutting down
 	
 	if (I2S_consumer == I2S_CONSUMER_NONE) {	// No other consumers? Disable DMA
+
+		print_dbg_char('z');	// I2S OUT consumer shutting down
+		
 		pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
 		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	}
@@ -751,6 +759,9 @@ void wm8804_unmute(void) {
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
+
+		print_dbg_char('Y');	// I2S OUT consumer starting up
+		
 		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
 	}
 	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC subscribes to incoming I2S
