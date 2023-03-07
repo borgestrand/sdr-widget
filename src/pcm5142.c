@@ -68,9 +68,18 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 		vTaskDelay(5);							// Wait 0.5ms
 
 		// Start of blocking code
+		#ifdef HW_GEN_RXMOD_PATCH_02
+			gpio_set_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN enable I2C to DAC
+			vTaskDelay(10);							// Wild guess at delay time
+		#endif
+
 		dev_data[0] = int_adr;
 		dev_data[1] = int_data;
 		status = twi_write_out(PCM5142_DEV_ADR, dev_data, 2);
+
+		#ifdef HW_GEN_RXMOD_PATCH_02
+			gpio_clr_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN, cut off I2C noise to DAC
+		#endif
 		// End of blocking code
 
 		gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC
@@ -107,12 +116,21 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 		vTaskDelay(5);							// Wait 0.5ms
 
 		// Start of blocking code
+		#ifdef HW_GEN_RXMOD_PATCH_02
+			gpio_set_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN enable I2C to DAC
+			vTaskDelay(10);							// Wild guess at delay time
+		#endif
+
 		dev_data[0] = int_adr;
 		if (twi_write_out(PCM5142_DEV_ADR, dev_data, 1) == TWI_SUCCESS) {
 			twi_read_in(PCM5142_DEV_ADR, dev_data, 1);
 		}
 		else
 			dev_data[0] = 0 ;	// Randomly chosen failure state
+
+		#ifdef HW_GEN_RXMOD_PATCH_02
+			gpio_clr_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN, cut off I2C noise to DAC
+		#endif
 		// End of blocking code
 
 		gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC

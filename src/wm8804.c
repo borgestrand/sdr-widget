@@ -827,6 +827,7 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 		}
 		else
 			dev_data[0] = 0 ;	// Randomly chosen failure state
+		
 		// End of blocking code
 
 //		print_dbg_char('g');
