@@ -323,8 +323,10 @@ void wm8804_init(void) {
 		print_dbg_char('Z');	// I2S OUT consumer starting up
 
 		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
+
 	}
-//	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC doesn't yet properly subscribe to incoming I2S
+
+	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine subscribes to incoming I2S
 
 
 //	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
@@ -760,7 +762,7 @@ void wm8804_unmute(void) {
 
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
 
-		print_dbg_char('Y');	// I2S OUT consumer starting up
+		print_dbg_char('U');	// I2S OUT consumer starting up
 		
 		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
 	}

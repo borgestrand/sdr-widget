@@ -402,7 +402,6 @@ void mobo_handle_spdif(uint8_t width) {
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 #endif
 
-//æææææææ
 
 	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
@@ -467,7 +466,7 @@ void mobo_handle_spdif(uint8_t width) {
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
 
-				print_dbg_char('X');	// I2S OUT consumer starting up
+				print_dbg_char('O');	// I2S OUT consumer starting up
 				
 				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init, select correct audio_buffer_0/1
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface

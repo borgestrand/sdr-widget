@@ -246,7 +246,7 @@ void uac2_device_audio_task(void *pvParameters)
 	
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Disable DMA
 
-						print_dbg_char('i');	// USB IN consumer shutting down
+						print_dbg_char('j');	// USB IN consumer shutting down
 
 						pdca_disable(PDCA_CHANNEL_SSC_RX);					// Disable I2S reception at MCU's ADC port
 						pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -265,7 +265,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
 	
-						print_dbg_char('I');	// USB IN consumer starting up
+						print_dbg_char('J');	// USB IN consumer starting up
 						
 						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
 						for (i = 0; i < ADC_BUFFER_SIZE; i++) {
