@@ -532,7 +532,7 @@ void mobo_handle_spdif(uint8_t width) {
 				else if ((gap > old_gap) && (gap > SPK_GAP_U3)) {
 					samples_to_transfer_OUT = 2;		// Do some insertin'
 #ifdef USB_STATE_MACHINE_DEBUG
- 					print_dbg_char('i');
+// 					print_dbg_char('i');
 #endif
 				}
 

@@ -242,7 +242,7 @@ void uac2_device_audio_task(void *pvParameters)
 					
 					print_dbg_char('i');	// USB IN consumer shutting down
 					
-					I2S_consumer &= !I2S_CONSUMER_USB;						// USB is no longer subscribing to I2S data
+					I2S_consumer &= ~I2S_CONSUMER_USB;						// USB is no longer subscribing to I2S data
 	
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Disable DMA
 

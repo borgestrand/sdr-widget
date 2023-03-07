@@ -1023,9 +1023,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else if (wValue_msb == AUDIO_CS_CONTROL_CLOCK_VALID //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
-#ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char('i'); // BSB debug 20120910 Xperia
-#endif
+// #ifdef USB_STATE_MACHINE_DEBUG
+//						print_dbg_char('i'); // BSB debug 20120910 Xperia
+// #endif
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1042,9 +1042,9 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					} else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_RANGE) {
 
-#ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char('j'); // BSB debug 20120910 Xperia
-#endif
+// #ifdef USB_STATE_MACHINE_DEBUG
+//						print_dbg_char('j'); // BSB debug 20120910 Xperia
+// #endif
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
