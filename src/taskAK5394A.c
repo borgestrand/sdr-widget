@@ -101,7 +101,7 @@ volatile int DAC_buf_DMA_read = 0;	// Written by interrupt handler, initiated by
 volatile int ADC_buf_I2S_IN = 0; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
 volatile int ADC_buf_USB_IN = 0;	// Written by sequential code, handles only data IN-to USB host
 volatile int DAC_buf_OUT = 0; 		// Written by sequential code, handles both USB OUT -> spk_buffer_0/1 -and- I2S input -> spk_buffer_0/1
-volatile int I2S_consumer = I2S_CONSUMER_NONE;	// Initially, no I2S consumer is active
+volatile U8 I2S_consumer = I2S_CONSUMER_NONE;	// Initially, no I2S consumer is active
 volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers

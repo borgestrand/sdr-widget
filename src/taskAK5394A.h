@@ -141,7 +141,7 @@ extern volatile int DAC_buf_DMA_read;	// Written by interrupt handler, initiated
 extern volatile int ADC_buf_I2S_IN; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
 extern volatile int ADC_buf_USB_IN;		// Written by sequential code, handles only data IN-to USB host
 extern volatile int DAC_buf_OUT;		// Written by sequential code
-extern volatile int I2S_consumer;		// Which consumer is subscribing to I2S data?
+extern volatile U8 I2S_consumer;		// Which consumer is subscribing to I2S data?
 extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
