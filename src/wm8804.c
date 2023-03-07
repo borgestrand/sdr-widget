@@ -334,7 +334,7 @@ void wm8804_init(void) {
 
 }
 
-// Turn off wm8804, why can't we just run init again?
+// Turn off wm8804, why can't we just run init again? 
 void wm8804_sleep(void) {
 	I2S_consumer &= ~I2S_CONSUMER_DAC;			// DAC is no longer subscribing to I2S data
 
