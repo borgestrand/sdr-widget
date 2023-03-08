@@ -374,11 +374,11 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if ( gap < ADC_BUFFER_SIZE/2 ) {
 						// throttle back, transfer less
-						num_samples--; // This one can be omitted... 
+						num_samples_adc--; // This one can be omitted... 
 					}
 					else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
 						// transfer more
-						num_samples++;
+						num_samples_adc++;
 					}
 
 
@@ -652,10 +652,6 @@ void uac2_device_audio_task(void *pvParameters)
 #endif
 
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
-
-// #ifdef USB_STATE_MACHINE_GPIO
-// 					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
-// #endif
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);
