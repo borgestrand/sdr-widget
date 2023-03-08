@@ -339,6 +339,9 @@ void uac2_device_audio_task(void *pvParameters)
 				// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
 
 
+				num_samples_adc = 12; // Hard override 
+				
+
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
