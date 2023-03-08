@@ -393,8 +393,6 @@ void uac2_device_audio_task(void *pvParameters)
 							num_samples_adc++;
 						}
 					}
-					// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
-
 
 											
 					// Sync AK data stream with USB data stream
@@ -472,7 +470,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Start of  data insertion
 							// Fill endpoint with samples
-						if (!mute) {
+//						if (!mute) {
+						if (1) {
 							if (ADC_buf_USB_IN == 0) {
 								sample_LSB = audio_buffer_0[index+IN_LEFT] >> 8;
 								sample_SB = audio_buffer_0[index+IN_LEFT] >> 16;
@@ -522,8 +521,8 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Right stereo 16-bit data
-									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 									usb_in_cache[cache_counter++] = sample_SB;
 									usb_in_cache[cache_counter++] = sample_MSB;
 								}

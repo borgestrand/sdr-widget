@@ -262,7 +262,7 @@ void hpsdr_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_IQ_IN, 8, sample_MSB);
 					Usb_write_endpoint_data(EP_IQ_IN, 8, sample_SB);
 					Usb_write_endpoint_data(EP_IQ_IN, 8, sample_LSB);
-
+					
 
 					if (ADC_buf_I2S_IN == 0) {
 						sample_LSB = audio_buffer_0[index+IN_RIGHT];
