@@ -150,7 +150,8 @@ void uac2_device_audio_task(void *pvParameters)
 //	static Bool startup=TRUE;
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i = 0;
-	S32 num_samples, num_remaining, gap;
+	S32 num_samples, num_remaining;
+	S32 gap = 0;
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
 		U16 num_samples_adc = 0;
@@ -408,8 +409,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
 
-// ADC_site verify gap calculation
-
+// ADC_site original-ish gap calculation
+/*
 					num_remaining = pdca_channel->tcr;
 					if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
 						// AK and USB using same buffer
@@ -420,10 +421,43 @@ void uac2_device_audio_task(void *pvParameters)
 						// usb and pdca working on different buffers
 						gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
 					}
+*/
 
 					if ( gap < ADC_BUFFER_SIZE/2 ) {
 						// throttle back, transfer less
 						num_samples_adc--; // This one can be omitted... 
+					}
+					else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
+						// transfer more
+						num_samples_adc++;
+					}
+
+// Adoption of DAC side's buffered gap calculation
+					ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+					num_remaining = pdca_channel->tcr;
+					// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not, interrupt won't strike again
+					// for a long time. In which we simply read the counter again
+					if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
+						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+						num_remaining = pdca_channel->tcr;
+					}
+
+					// Which buffer is in use, and does it truly correspond to the num_remaining value?
+					// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
+					if (ADC_buf_USB_IN != ADC_buf_DMA_write_temp) {
+						if ( index < (ADC_BUFFER_SIZE - num_remaining))
+							gap = ADC_BUFFER_SIZE - num_remaining - index;
+						else
+							gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
+					}
+					else // usb and pdca working on different buffers
+					gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
+
+// End of gap calculation
+
+					if ( gap < ADC_BUFFER_SIZE/2 ) {
+						// throttle back, transfer less
+						num_samples_adc--; // This one can be omitted...
 					}
 					else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
 						// transfer more
@@ -436,8 +470,7 @@ void uac2_device_audio_task(void *pvParameters)
 						
 					for( i=0 ; i < num_samples_adc ; i++ ) {
 
-// Start of blocked data insertion
-
+// Start of  data insertion
 							// Fill endpoint with samples
 						if (!mute) {
 							if (ADC_buf_USB_IN == 0) {
