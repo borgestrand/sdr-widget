@@ -316,18 +316,18 @@ void wm8804_init(void) {
 //		initial = 0;
 //	}
 
+#ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
 		// Enable CPU's processing of produced data
 		// This is needed for the silence detector
 
 		print_dbg_char('Z');	// I2S OUT consumer starting up
-
 		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
-
 	}
-
 	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine subscribes to incoming I2S
-
+#else
+	AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
+#endif
 
 //	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
 //  pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -336,17 +336,22 @@ void wm8804_init(void) {
 
 // Turn off wm8804, why can't we just run init again? 
 void wm8804_sleep(void) {
+#ifdef FEATURE_ADC_EXPERIMENTAL
 	I2S_consumer &= ~I2S_CONSUMER_DAC;			// DAC is no longer subscribing to I2S data
 
 	print_dbg_char('z');	// I2S OUT consumer shutting down
 	
 	if (I2S_consumer == I2S_CONSUMER_NONE) {	// No other consumers? Disable DMA
 
-		print_dbg_char('z');	// I2S OUT consumer shutting down
+		print_dbg_char('b');	// I2S OUT consumer shutting down
 		
 		pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
 		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	}
+#else
+	pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
+	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+#endif
 
 	wm8804_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL // WM8804 same
 }
@@ -760,6 +765,7 @@ void wm8804_unmute(void) {
 //	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 
+#ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
 
 		print_dbg_char('U');	// I2S OUT consumer starting up
@@ -767,6 +773,9 @@ void wm8804_unmute(void) {
 		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
 	}
 	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC subscribes to incoming I2S
+#else
+		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
+#endif
 
 	ADC_buf_I2S_IN = INIT_ADC_I2S;								// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 

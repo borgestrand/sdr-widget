@@ -359,7 +359,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
 
-// Start of blocked gap calculation
+// ADC_site verify gap calculation
 
 					num_remaining = pdca_channel->tcr;
 					if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
@@ -380,8 +380,6 @@ void uac2_device_audio_task(void *pvParameters)
 						// transfer more
 						num_samples++;
 					}
-
-// End of blocked gap calculation
 
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
