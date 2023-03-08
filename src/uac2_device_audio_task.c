@@ -150,7 +150,7 @@ void uac2_device_audio_task(void *pvParameters)
 //	static Bool startup=TRUE;
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i;
-	U16 num_samples, num_remaining, gap;
+	S32 num_samples, num_remaining, gap;
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
 		U16 num_samples_adc = 0;

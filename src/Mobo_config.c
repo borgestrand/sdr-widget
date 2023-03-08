@@ -105,17 +105,6 @@ void mobo_sleep_rtc_ms(uint16_t time_ms) {
 
 
 #ifdef HW_GEN_RXMOD
-// Control headphone amp power supply (K-mult) turn-on time, for now main VDD turn on/off!
-
-// RXMODFIX IO is available on TP, currently not in use
-/*
-void mobo_km(uint8_t enable) {
-	if (enable == MOBO_HP_KM_ENABLE)
-	gpio_set_gpio_pin(AVR32_PIN_PX55);				// Clear PX55 to no longer short the KM capacitors
-	else
-	gpio_clr_gpio_pin(AVR32_PIN_PX55);				// Set PX55 to short the KM capacitors (pulled up on HW)
-}
-*/
 
 // Control USB multiplexer in HW_GEN_RXMOD 
 void mobo_usb_select(uint8_t usb_ch) {
@@ -411,10 +400,7 @@ void mobo_handle_spdif(uint8_t width) {
 		print_dbg_char('Y');	// I2S OUT consumer starting up
 
 		// Clear incoming SPDIF before enabling pdca to keep filling it
-		for (i = 0; i < ADC_BUFFER_SIZE; i++) {
-			audio_buffer_0[i] = 0;
-			audio_buffer_1[i] = 0;
-		}
+		mobo_clear_adc_channel();
 
 		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
 		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2
