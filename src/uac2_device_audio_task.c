@@ -470,8 +470,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Start of  data insertion
 							// Fill endpoint with samples
-//						if (!mute) {
-						if (1) {
+						if (!mute) {
 							if (ADC_buf_USB_IN == 0) {
 								sample_LSB = audio_buffer_0[index+IN_LEFT] >> 8;
 								sample_SB = audio_buffer_0[index+IN_LEFT] >> 16;

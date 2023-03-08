@@ -36,8 +36,8 @@
 // Keep buffer sizes belov 2^14
 #ifdef HW_GEN_RXMOD // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
 // Nominal values
-	#define ADC_BUFFER_SIZE	(8*2*24) * 1	// 192 stereo samples
-	#define DAC_BUFFER_SIZE (32*2*24) * 1 // ADC_site wild shot
+	#define ADC_BUFFER_SIZE	390 // was 384: (8*2*24) * 1	// 192 stereo samples
+	#define DAC_BUFFER_SIZE 1560 // was 1536: (32*2*24) * 1 // ADC_site wild shot
 
 // Trying to provoke bugs in 44.1 SPDIF playback during USB activity. *5 instead of *24 means running DMAs slightly faster than nominal at 192
 //	#define ADC_BUFFER_SIZE	(8*2*3)
