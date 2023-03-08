@@ -275,81 +275,77 @@ void uac2_device_audio_task(void *pvParameters)
 
 						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
 					} // Init DMA for USB IN consumer
-		
-						
-					// New co-sample verification routine
-					ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
-					num_remaining = pdca_channel->tcr;
-				
-					// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
-					// for a long time. In which we simply read the counter again
-					if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
-						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
-						num_remaining = pdca_channel->tcr;
-					}
-// Clearly, this must be a bug!						DAC_buf_OUT = DAC_buf_DMA_read_local;
 
-					index = ADC_BUFFER_SIZE - num_remaining;
-					index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
-					ADC_buf_USB_IN = ADC_buf_DMA_write_temp;				// Disable further init, select correct audio_buffer_0/1
-
+					ADC_buf_USB_IN = INIT_ADC_USB_st2;						// Prepare for 2nd init step during first USB data transfer
+					
 					I2S_consumer |= I2S_CONSUMER_USB;						// USB subscribes to I2S data
 
 				} // Init synching up USB IN consumer's pointers to I2S RX data producer
 				
 				
-				// How many stereo samples are present in a 1/4ms USB period on UAC2? 
-				// 192   / 4 = 48
-				// 176.4 / 4 = 44.1
-				//  96   / 4 = 24
-				//  88.2 / 4 = 22.05
-				//  48   / 4 = 12
-				//  44.1 / 4 = 11.025
-				// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
-
-				if (current_freq.frequency == FREQ_44) {
-					num_samples_adc = 11;
-					limit_44k = 40;
-				}
-				else if (current_freq.frequency == FREQ_48) {
-					num_samples_adc = 12;
-				}
-				else if (current_freq.frequency == FREQ_88) {
-					num_samples_adc = 22;
-					limit_44k = 20;
-				}
-				else if (current_freq.frequency == FREQ_96) {
-					num_samples_adc = 24;
-				}
-				else if (current_freq.frequency == FREQ_176) {
-					num_samples_adc = 44;
-					limit_44k = 10;
-				}
-				else if (current_freq.frequency == FREQ_192) {
-					num_samples_adc = 48;
-				}
-				
-				if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
-					counter_44k++;
-					if (counter_44k == limit_44k) { 
-						counter_44k = 0;
-						num_samples_adc++;
-					}
-				}
-				// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
-
-
-				num_samples_adc = 12; // Hard override 
-				
-
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
+				
+					// Must ADC consumer pointers be set up for 1st transfer?
+					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
+						// New co-sample verification routine
+						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+						num_remaining = pdca_channel->tcr;
+									
+						// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
+						// for a long time. In which we simply read the counter again
+						if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
+							ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+							num_remaining = pdca_channel->tcr;
+						}
+
+						index = ADC_BUFFER_SIZE - num_remaining;
+						index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
+						ADC_buf_USB_IN = ADC_buf_DMA_write_temp;				// Disable further init, select correct audio_buffer_0/1
+					}
+
+					// How many stereo samples are present in a 1/4ms USB period on UAC2? 
+					// 192   / 4 = 48
+					// 176.4 / 4 = 44.1
+					//  96   / 4 = 24
+					//  88.2 / 4 = 22.05
+					//  48   / 4 = 12
+					//  44.1 / 4 = 11.025
+					// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
+
+					if (current_freq.frequency == FREQ_44) {
+						num_samples_adc = 11;
+						limit_44k = 40;
+					}
+					else if (current_freq.frequency == FREQ_48) {
+						num_samples_adc = 12;
+					}
+					else if (current_freq.frequency == FREQ_88) {
+						num_samples_adc = 22;
+						limit_44k = 20;
+					}
+					else if (current_freq.frequency == FREQ_96) {
+						num_samples_adc = 24;
+					}
+					else if (current_freq.frequency == FREQ_176) {
+						num_samples_adc = 44;
+						limit_44k = 10;
+					}
+					else if (current_freq.frequency == FREQ_192) {
+						num_samples_adc = 48;
+					}
+				
+					if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
+						counter_44k++;
+						if (counter_44k == limit_44k) { 
+							counter_44k = 0;
+							num_samples_adc++;
+						}
+					}
+					// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
+
 
 											
-					// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - visible on J7:1 on Boenicke build
-					gpio_tgl_gpio_pin(AVR32_PIN_PA01);
-
-
 					// Sync AK data stream with USB data stream
 					// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
 					// buffer 0 is set in the reload register of the pdca
