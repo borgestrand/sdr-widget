@@ -326,7 +326,7 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
 
 
-					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges!
+					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711탎
 
 
 					// Is the response time to Is_usb_in_ready too long? Or is the execution time too long? (17탎 nominal, up to 43탎)
