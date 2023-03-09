@@ -275,6 +275,8 @@ void uac2_device_audio_task(void *pvParameters)
 	
 						print_dbg_char('J');	// USB IN consumer starting up
 						
+						// ADC_site - this mode (starting with USB plabyack) does not yield USB IN data. Fix that one a little later... 
+						
 						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
 						 mobo_clear_adc_channel();
 
@@ -317,12 +319,17 @@ void uac2_device_audio_task(void *pvParameters)
 							usb_in_cache_used *= 4;
 						}
 					#endif
-					
 
 				} // Init synching up USB IN consumer's pointers to I2S RX data producer
 				
 				
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
+
+					// Is the response time to Is_usb_in_ready too long? Or is the execution time too long? (17µs nominal, up to 43µs)
+
+taskENTER_CRITICAL();
+					gpio_set_gpio_pin(AVR32_PIN_PX31);
+
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
@@ -333,6 +340,9 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
+
+					gpio_clr_gpio_pin(AVR32_PIN_PX31);
+taskEXIT_CRITICAL();
 					
 					// Done sending contents of USB IN cache. Now fill it up for the next transfer
 					cache_counter = 0;
@@ -394,9 +404,6 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 					}
 
-
-// Override ADC_site - didn't help for zeros insertion 
-// num_samples_adc = 12;
 											
 					// Sync AK data stream with USB data stream
 					// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
@@ -538,10 +545,10 @@ void uac2_device_audio_task(void *pvParameters)
 
 #ifdef USB_STATE_MACHINE_GPIO
 								if (ADC_buf_USB_IN == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX31);
+//									gpio_set_gpio_pin(AVR32_PIN_PX31);
 								}
 								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PX31);
+//									gpio_clr_gpio_pin(AVR32_PIN_PX31);
 								}
 #endif
 							} // end index > buffer size
