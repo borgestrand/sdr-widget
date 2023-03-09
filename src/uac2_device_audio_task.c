@@ -514,7 +514,7 @@ void uac2_device_audio_task(void *pvParameters)
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-								usb_in_cache[cache_counter++] = 0x60; // sample_LSB;		// Are there "holes" in data out of the USB interface?
+								usb_in_cache[cache_counter++] = 0x60; // sample_LSB;		// Are there "holes" in data out of the USB interface? Yes!
 								usb_in_cache[cache_counter++] = 0x50; // sample_SB;
 								usb_in_cache[cache_counter++] = 0x40; // sample_MSB;
 							}
