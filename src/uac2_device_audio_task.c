@@ -394,6 +394,9 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 					}
 
+
+// Override ADC_site - didn't help for zeros insertion 
+// num_samples_adc = 12;
 											
 					// Sync AK data stream with USB data stream
 					// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
