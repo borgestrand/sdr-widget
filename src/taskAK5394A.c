@@ -249,15 +249,11 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-		ADC_buf_DMA_write = 0;
 		
 
 		//   	gpio_clr_gpio_pin(AVR32_PIN_PX17); // repurposed in HW_GEN_RXMOD
 	}
 	else {	// No known frequency, don't halt system while polling for LRCK edge
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-		ADC_buf_DMA_write = 0;
 
 		i = 1;
 
@@ -266,15 +262,20 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	}
 
 	// What is the optimal sequence? These two are simple write operations
-   	pdca_enable(PDCA_CHANNEL_SSC_RX); // Redundant
+
+	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+	ADC_buf_DMA_write = 0;
+   	pdca_enable(PDCA_CHANNEL_SSC_RX);
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 	taskEXIT_CRITICAL();
 
+	print_dbg_char('.');
 	if (i == 1)
 		print_dbg_char('F'); // As in "Free running"
 	else
 		print_dbg_char('L'); // As in "Locked"
+	print_dbg_char('.');
 	
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX43); // ch6 p88

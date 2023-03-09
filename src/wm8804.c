@@ -324,7 +324,7 @@ void wm8804_init(void) {
 		print_dbg_char('Z');	// I2S OUT consumer starting up
 		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
 	}
-	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine subscribes to incoming I2S
+//	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine subscribes to incoming I2S
 #else
 	AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
 #endif
