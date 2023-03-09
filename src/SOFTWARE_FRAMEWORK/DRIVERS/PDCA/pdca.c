@@ -159,6 +159,10 @@ unsigned int pdca_get_reload_size(unsigned int pdca_ch_number)
 
 void pdca_reload_channel(unsigned int pdca_ch_number, volatile void *addr, unsigned int size)
 {
+
+/*
+  // Original
+  
   // get the correct channel pointer
   volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(pdca_ch_number);
 
@@ -172,6 +176,23 @@ void pdca_reload_channel(unsigned int pdca_ch_number, volatile void *addr, unsig
   pdca_channel->cr = AVR32_PDCA_ECLR_MASK;
   pdca_channel->isr;
   if (global_interrupt_enabled) Enable_global_interrupt();
+*/
+
+
+  // Attempt at speeding things up a bit
+
+  // get the correct channel pointer
+  volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(pdca_ch_number);
+
+  Disable_global_interrupt();
+  // set up next memory address
+  pdca_channel->marr = (unsigned long)addr;
+  // set up next memory size
+  pdca_channel->tcrr = size;
+  pdca_channel->cr = AVR32_PDCA_ECLR_MASK;
+  pdca_channel->isr;
+  Enable_global_interrupt();
+
 }
 
 

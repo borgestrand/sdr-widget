@@ -325,11 +325,14 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
 
+
+					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges!
+
+
 					// Is the response time to Is_usb_in_ready too long? Or is the execution time too long? (17탎 nominal, up to 43탎)
 
-taskENTER_CRITICAL();
-					gpio_set_gpio_pin(AVR32_PIN_PX31);
-
+taskENTER_CRITICAL(); // Including gpio set and clear, this routine takes 15.7-18.4탎 as a critical task
+//					gpio_set_gpio_pin(AVR32_PIN_PX31);
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
@@ -340,8 +343,7 @@ taskENTER_CRITICAL();
 					}
 
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
-
-					gpio_clr_gpio_pin(AVR32_PIN_PX31);
+//					gpio_set_gpio_pin(AVR32_PIN_PX31);
 taskEXIT_CRITICAL();
 					
 					// Done sending contents of USB IN cache. Now fill it up for the next transfer
