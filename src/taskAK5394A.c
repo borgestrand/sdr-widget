@@ -153,7 +153,7 @@ gpio_set_gpio_pin(AVR32_PIN_PX55);
 #endif
 #endif
 	}
-
+ 
 
 gpio_clr_gpio_pin(AVR32_PIN_PX55);
 }
