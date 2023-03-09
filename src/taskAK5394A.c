@@ -128,6 +128,9 @@ volatile U8 dig_in_silence;
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
+	
+gpio_set_gpio_pin(AVR32_PIN_PX55);
+			
 	if (ADC_buf_DMA_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		// Register names are different from those used in AVR32108. BUT: it seems pdca_reload_channel() sets the
@@ -137,7 +140,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_GPIO
 #ifdef FEATURE_ADC_EXPERIMENTAL
-    	gpio_set_gpio_pin(AVR32_PIN_PX55);
+//    	gpio_set_gpio_pin(AVR32_PIN_PX55);
 #endif
 #endif
 	}
@@ -151,6 +154,8 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 #endif
 	}
 
+
+gpio_clr_gpio_pin(AVR32_PIN_PX55);
 }
 
 /*! \brief The PDCA interrupt handler for the DAC interface.
