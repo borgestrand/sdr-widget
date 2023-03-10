@@ -357,7 +357,7 @@ void mobo_rxmod_input(uint8_t input_sel) {
 #ifdef HW_GEN_RXMOD
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
-	static int ADC_buf_DMA_write_prev = -1;
+	static int ADC_buf_DMA_write_prev = INIT_ADC_I2S;
 	int ADC_buf_DMA_write_temp = 0;
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
@@ -417,10 +417,16 @@ void mobo_handle_spdif(uint8_t width) {
 	else if (spdif_rx_status.buffered == 0) {
 		spdif_rx_status.silent = 0;
 	}
-	else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
-		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+//	else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
+//		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+
+	else if (ADC_buf_toggle > 0) { // Check if producer has sent more data
+		if (ADC_buf_toggle > 1) {
+			print_dbg_char('#');	// Producer sent data more than once before we were able to process it. That's ok the first time but then it's bad!
+		}
+		ADC_buf_toggle = 0;			// Now we can process new buffer data on each run, not just on every other run due to polling
+
 		
-//		æææææææ Is this what takes a shitload of time after ADC buffer toggles? And is the time spent here the reason longer buffers cause more frequent insertions?
 
 		if (input_select == MOBO_SRC_NONE)
 			iterations = 0;

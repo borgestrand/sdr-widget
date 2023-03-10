@@ -151,7 +151,7 @@ extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
-extern volatile int buffer_reload_just_occured;
+extern volatile int ADC_buf_toggle;
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	extern volatile U8 I2S_consumer;		// Which consumer is subscribing to I2S data?

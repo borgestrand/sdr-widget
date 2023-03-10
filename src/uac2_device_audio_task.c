@@ -212,13 +212,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 //		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
 		
-//		// æææææææææææææ 
-		if (buffer_reload_just_occured == 1) {
-			buffer_reload_just_occured = 0;
-		}
-		else {
-			vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
-		}
+		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents?
@@ -234,7 +228,6 @@ void uac2_device_audio_task(void *pvParameters)
 		// Process digital input
 		#ifdef HW_GEN_RXMOD
 //			mobo_handle_spdif(32); // UAC2 uses 32-bit data - moved to (presumably interruptable) wm8804 task to save sequential time in this task
-
 
 			static uint8_t prev_input_select = MOBO_SRC_NONE;
 
