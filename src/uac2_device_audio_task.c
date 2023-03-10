@@ -212,7 +212,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 //		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
 		
-//		// æææææææææææææ
+//		// æææææææææææææ 
 		if (buffer_reload_just_occured == 1) {
 			buffer_reload_just_occured = 0;
 		}

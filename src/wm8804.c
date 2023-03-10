@@ -120,10 +120,10 @@ void wm8804_task(void *pvParameters) {
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
 
 		if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio) {
-			mobo_handle_spdif(32);						// Polling code. UAC2 uses 32-bit data - moved here from uac2_dat.c
+			mobo_handle_spdif(32);					// Polling code. UAC2 uses 32-bit data - moved here from uac2_dat.c
 		}
 		else if (feature_get_nvram(feature_image_index) == feature_image_uac2_audio) {
-			mobo_handle_spdif(24);						// Polling code. UAC1 uses 24-bit data - moved here from uac1_dat.c
+			mobo_handle_spdif(24);					// Polling code. UAC1 uses 24-bit data - moved here from uac1_dat.c
 		}
 
 		
