@@ -772,12 +772,8 @@ void wm8804_unmute(void) {
 //	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 
-<<<<<<< HEAD
-	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);			// New code to test for L/R swap
-=======
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
->>>>>>> revert06
 
 		print_dbg_char('U');	// I2S OUT consumer starting up
 		
@@ -788,12 +784,7 @@ void wm8804_unmute(void) {
 		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
 #endif
 
-<<<<<<< HEAD
-//	ADC_buf_USB_IN = -1;	// 20230302 variable rename			// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
-	ADC_buf_I2S_IN = I2S_IN_MUST_INIT;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
-=======
 	ADC_buf_I2S_IN = INIT_ADC_I2S;								// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
->>>>>>> revert06
 
 	mobo_i2s_enable(MOBO_I2S_ENABLE);							// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 }

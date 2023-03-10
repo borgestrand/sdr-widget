@@ -114,10 +114,6 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define DAC_MUST_CLEAR		1		// Immediately clear the content of outgoing DAC buffers
 #define DAC_CLEARED			2		// Outgoing DAC buffers are cleared, don't write to DAC buffers
 #define DAC_READY			3		// Outgoing DAC buffers are ready to be written to
-<<<<<<< HEAD
-#define I2S_IN_MUST_INIT	-1
-#define I2S_IN_POINTER_INIT	-2
-=======
 #define INIT_ADC_I2S		-1		// Must initialize the buffer pointer used for the I2S toward DAC
 #define INIT_ADC_I2S_st2	-2		// Must initialize the buffer pointer used for the I2S toward DAC, init stage 2
 #define INIT_ADC_USB		-3		// Must initialize the buffer pointer used for the I2S toward USB
@@ -128,7 +124,6 @@ Short buffers give less system latency and poorer synch state machine performanc
 	#define I2S_CONSUMER_USB	0b00000001		// USB is consuming I2S input data
 	#define I2S_CONSUMER_DAC	0b00000010		// DAC output is consuming I2S input data
 #endif
->>>>>>> revert06
 
 
 // Values for silence (32-bit)

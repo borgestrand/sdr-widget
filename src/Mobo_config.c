@@ -357,11 +357,7 @@ void mobo_rxmod_input(uint8_t input_sel) {
 #ifdef HW_GEN_RXMOD
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
-<<<<<<< HEAD
-	static int ADC_buf_DMA_write_prev = I2S_IN_MUST_INIT;
-=======
 	static int ADC_buf_DMA_write_prev = INIT_ADC_I2S;
->>>>>>> revert06
 	int ADC_buf_DMA_write_temp = 0;
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
@@ -399,23 +395,15 @@ void mobo_handle_spdif(uint8_t width) {
 	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
 	// Continue writing to consumer's buffer where this routine left of last
-<<<<<<< HEAD
-	if ( (ADC_buf_DMA_write_prev == I2S_IN_MUST_INIT) || (ADC_buf_I2S_IN == I2S_IN_MUST_INIT) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing. Only wm8804 code sets it to -1
-=======
 	if ( (ADC_buf_DMA_write_prev == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
 
 		print_dbg_char('Y');	// I2S OUT consumer starting up
 
->>>>>>> revert06
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		mobo_clear_adc_channel();
 
 		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
-<<<<<<< HEAD
-		ADC_buf_USB_IN = I2S_IN_POINTER_INIT;
-=======
 		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2
->>>>>>> revert06
 	}
 
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
@@ -462,16 +450,11 @@ void mobo_handle_spdif(uint8_t width) {
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
-<<<<<<< HEAD
-			if (ADC_buf_I2S_IN == I2S_IN_POINTER_INIT) {
-				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init
-=======
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
 
 				print_dbg_char('O');	// I2S OUT consumer starting up
 				
 				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init, select correct audio_buffer_0/1
->>>>>>> revert06
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 
 				// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
@@ -680,7 +663,7 @@ void mobo_handle_spdif(uint8_t width) {
 				megaskip = 0;					// Normal operation
 
 //				print_dbg_char_hex(target);
-//				print_dbg_char('\n'); 
+//				print_dbg_char('\n');
 
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					// Fill endpoint with sample raw
