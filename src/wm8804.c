@@ -115,9 +115,11 @@ void wm8804_task(void *pvParameters) {
 
 	while (TRUE) {
 		
-		gpio_tgl_gpio_pin(AVR32_PIN_PX31);		// Indicate execution slots of this task
+		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
 		
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
+		
+		mobo_handle_spdif(32);						// Polling code. UAC2 uses 32-bit data - moved here from uac2_dat.c ææææ must fix for UAC1 as well, with 24 bit data!
 		
 		poll_counter ++;							// Don't always do everything
 

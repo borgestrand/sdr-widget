@@ -231,7 +231,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 		// Process digital input
 		#ifdef HW_GEN_RXMOD
-			mobo_handle_spdif(32); // UAC2 uses 32-bit data
+//			mobo_handle_spdif(32); // UAC2 uses 32-bit data - moved to (presumably interruptable) wm8804 task to save sequential time in this task
+
 
 			static uint8_t prev_input_select = MOBO_SRC_NONE;
 
