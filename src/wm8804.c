@@ -108,33 +108,32 @@ void wm8804_task(void *pvParameters) {
 	uint8_t mustgive = 0;
 	uint8_t silence_counter = 0;					// How long has a channel been silent? Allow 3s for pause, 0.2s for newly locked channel. Also track LED updates
 	uint8_t playing_counter = 0;					// How long has a channel be playing music so that we'll look for pause, not newly locked-on mute?
-	uint8_t poll_counter = 0;
+	uint16_t poll_counter = 0;
 
 	portTickType xLastWakeTime;
-	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200
+	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200, every 1.2ms with configTSK_WM8804_PERIOD = 12
 
 	while (TRUE) {
 		
-//		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
+		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
 		
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
-		
-		mobo_handle_spdif(32);						// Polling code. UAC2 uses 32-bit data - moved here from uac2_dat.c ææææ must fix for UAC1 as well, with 24 bit data!
+
+		if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio) {
+			mobo_handle_spdif(32);						// Polling code. UAC2 uses 32-bit data - moved here from uac2_dat.c
+		}
+		else if (feature_get_nvram(feature_image_index) == feature_image_uac2_audio) {
+			mobo_handle_spdif(24);						// Polling code. UAC1 uses 24-bit data - moved here from uac1_dat.c
+		}
+
 		
 		poll_counter ++;							// Don't always do everything
-
-//		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_inputnew()
-
-// ææææ handle spdif here? Does this code run frequently enough to catch ADC producer buffer toggles?
-		
 		
 		// while playing, got interrupt. Could be loss of link (monitored faster on pin) or TRANS_ERR (only visible on interrupt)
 
 		// 		if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
 		// try wm8804_pllnew(WM8804_PLL_TOGGLE);
 		// then scan inputs starting with last known good input	
-	
-				
 				
 		// USB has assumed control, power down WM8804 if it was on
 		if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
@@ -199,7 +198,8 @@ void wm8804_task(void *pvParameters) {
 				}
 				
 				// Sometimes poll sample rate - dude, this happens a lot!
-				if ( (poll_counter & 0x03) == 0) {				// Once every 80ms while playing check if sample rate is correct
+//				if ( (poll_counter & 0x0003) == 0) {				// Once every 80ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 200
+				if ( (poll_counter & 0x003F) == 0) {				// Once every 76.8ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 12
 					freq = wm8804_srd();
 
 					// If srd() returned a valid frequency that is different from the one we believe we're at, do something!					

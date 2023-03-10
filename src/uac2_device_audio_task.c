@@ -210,7 +210,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 	while (TRUE) {
 
-		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
 		
 //		// æææææææææææææ
 		if (buffer_reload_just_occured == 1) {
@@ -536,16 +536,16 @@ taskEXIT_CRITICAL();
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-								usb_in_cache[cache_counter++] = 0x60; // sample_LSB;		// Are there "holes" in data out of the USB interface? Yes!
-								usb_in_cache[cache_counter++] = 0x50; // sample_SB;
-								usb_in_cache[cache_counter++] = 0x40; // sample_MSB;
+								usb_in_cache[cache_counter++] = sample_LSB;		// Are there "holes" in data out of the USB interface? Yes!
+								usb_in_cache[cache_counter++] = sample_SB;
+								usb_in_cache[cache_counter++] = sample_MSB;
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Right stereo 16-bit data
 //									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 //									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-									usb_in_cache[cache_counter++] = 0x50; // sample_SB;
-									usb_in_cache[cache_counter++] = 0x40; // sample_MSB;
+									usb_in_cache[cache_counter++] = sample_SB;
+									usb_in_cache[cache_counter++] = sample_MSB;
 								}
 							#endif
 

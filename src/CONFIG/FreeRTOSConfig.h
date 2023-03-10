@@ -174,7 +174,7 @@ to exclude the API function. */
 #define configTSK_WM8804_NAME					((const signed portCHAR *)"WM8804 Configuration")
 #define configTSK_WM8804_STACK_SIZE				256
 #define configTSK_WM8804_PRIORITY				(tskIDLE_PRIORITY + 2) // was: +1
-#define configTSK_WM8804_PERIOD					10 // was: 200
+#define configTSK_WM8804_PERIOD					12 // was: 200 for 20ms. Is 12 for 1.2ms. That is roughly 16 times as fast
 
 /* USB device Audio task definitions. */
 #define configTSK_USB_DAUDIO_NAME				((const signed portCHAR *)"USB Device Audio")
