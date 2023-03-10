@@ -105,17 +105,6 @@ void mobo_sleep_rtc_ms(uint16_t time_ms) {
 
 
 #ifdef HW_GEN_RXMOD
-// Control headphone amp power supply (K-mult) turn-on time, for now main VDD turn on/off!
-
-// RXMODFIX IO is available on TP, currently not in use
-/*
-void mobo_km(uint8_t enable) {
-	if (enable == MOBO_HP_KM_ENABLE)
-	gpio_set_gpio_pin(AVR32_PIN_PX55);				// Clear PX55 to no longer short the KM capacitors
-	else
-	gpio_clr_gpio_pin(AVR32_PIN_PX55);				// Set PX55 to short the KM capacitors (pulled up on HW)
-}
-*/
 
 // Control USB multiplexer in HW_GEN_RXMOD 
 void mobo_usb_select(uint8_t usb_ch) {
@@ -368,7 +357,11 @@ void mobo_rxmod_input(uint8_t input_sel) {
 #ifdef HW_GEN_RXMOD
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
+<<<<<<< HEAD
 	static int ADC_buf_DMA_write_prev = I2S_IN_MUST_INIT;
+=======
+	static int ADC_buf_DMA_write_prev = INIT_ADC_I2S;
+>>>>>>> revert06
 	int ADC_buf_DMA_write_temp = 0;
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
@@ -389,7 +382,7 @@ void mobo_handle_spdif(uint8_t width) {
 	S16 target = -1;					// Default value, no sample to touch
 
 
-// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
+// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
 #if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
 	#define IN_LEFT 0
 	#define IN_RIGHT 1
@@ -406,15 +399,23 @@ void mobo_handle_spdif(uint8_t width) {
 	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
 	// Continue writing to consumer's buffer where this routine left of last
+<<<<<<< HEAD
 	if ( (ADC_buf_DMA_write_prev == I2S_IN_MUST_INIT) || (ADC_buf_I2S_IN == I2S_IN_MUST_INIT) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing. Only wm8804 code sets it to -1
+=======
+	if ( (ADC_buf_DMA_write_prev == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
+
+		print_dbg_char('Y');	// I2S OUT consumer starting up
+
+>>>>>>> revert06
 		// Clear incoming SPDIF before enabling pdca to keep filling it
-		for (i = 0; i < ADC_BUFFER_SIZE; i++) {
-			audio_buffer_0[i] = 0;
-			audio_buffer_1[i] = 0;
-		}
+		mobo_clear_adc_channel();
 
 		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+<<<<<<< HEAD
 		ADC_buf_USB_IN = I2S_IN_POINTER_INIT;
+=======
+		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2
+>>>>>>> revert06
 	}
 
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
@@ -439,30 +440,38 @@ void mobo_handle_spdif(uint8_t width) {
 		}
 
 		// Silence / DC detector 2.0
-//			if (spdif_rx_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
-			for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
-				if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
-					sample_temp = audio_buffer_0[i] & 0x00FFFF00;
-				else if (ADC_buf_DMA_write_temp == 1)
-					sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+//		if (spdif_rx_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
+		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
+			if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
+				sample_temp = audio_buffer_0[i] & 0x00FFFF00;
+			else if (ADC_buf_DMA_write_temp == 1)
+				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
 
-				if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
-					i = ADC_BUFFER_SIZE + 10;
-			}
+			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
+				i = ADC_BUFFER_SIZE + 10;
+		}
 
-			if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
-				spdif_rx_status.silent = 0;
-			}
-			else {									// Silence was detected, update flag to SPDIF RX code
-				spdif_rx_status.silent = 1;
-			}
-//			}
+		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
+			spdif_rx_status.silent = 0;
+		}
+		else {									// Silence was detected, update flag to SPDIF RX code
+			spdif_rx_status.silent = 1;
+		}
+//		}
 
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
+<<<<<<< HEAD
 			if (ADC_buf_I2S_IN == I2S_IN_POINTER_INIT) {
 				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init
+=======
+			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
+
+				print_dbg_char('O');	// I2S OUT consumer starting up
+				
+				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init, select correct audio_buffer_0/1
+>>>>>>> revert06
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 
 				// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
@@ -532,7 +541,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 				// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
 				if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) {
-					// Explicitly enable receiver's MCLK generator?
+					// Explicitly enable receiver's MCLK generator? ADC_site
 					mobo_xo_select(FREQ_RXNATIVE, input_select);
 #ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('X');
@@ -649,7 +658,7 @@ void mobo_handle_spdif(uint8_t width) {
 				for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
 					if (dac_must_clear == DAC_READY) {
 						if (DAC_buf_OUT == 0) {
-							spk_buffer_0[spk_index+OUT_LEFT] = 0;
+							spk_buffer_0[spk_index+OUT_LEFT] = 0; 
 							spk_buffer_0[spk_index+OUT_RIGHT] = 0;
 						}
 						else if (DAC_buf_OUT == 1) {
@@ -658,7 +667,7 @@ void mobo_handle_spdif(uint8_t width) {
 						}
 					}
 
-					spk_index += 2;
+					spk_index += 2;							// æææ Analyze this code again, what is actually going on with the megaskips?
 					if (spk_index >= DAC_BUFFER_SIZE) {
 						spk_index -= DAC_BUFFER_SIZE;
 						DAC_buf_OUT = 1 - DAC_buf_OUT;
@@ -723,6 +732,10 @@ void mobo_handle_spdif(uint8_t width) {
 			} // Normal operation
 
 		} // ADC_buf_DMA_write toggle
+		
+//		ææææ split the toggle action into multiple rounds of the spdif handler!!
+//		or make it an interruptable task or something....
+		
 	} // input select
 
 } // mobo_handle_spdif(void)

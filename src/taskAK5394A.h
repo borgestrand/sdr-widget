@@ -35,9 +35,12 @@
 #define PDCA_CHANNEL_SSC_TX	   1
 // Keep buffer sizes belov 2^14
 #ifdef HW_GEN_RXMOD // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
-// Nominal values
-	#define ADC_BUFFER_SIZE	(8*2*24)
-	#define DAC_BUFFER_SIZE (32*2*24)
+/* Nominal values are (8*2*24) and (32*2*24)
+Long buffers may take up too much RAM. And clearing and moving their contents take a long time.
+Short buffers give less system latency and poorer synch state machine performance
+*/
+	#define ADC_BUFFER_SIZE	384 // (8*2*24) * 1 // = 384 = 192 stereo samples ADC_site requires uncomfortably much fine-tuning in order to work with two consumers
+	#define DAC_BUFFER_SIZE 1536 // (32*2*24) * 1 // = 1536
 
 // Trying to provoke bugs in 44.1 SPDIF playback during USB activity. *5 instead of *24 means running DMAs slightly faster than nominal at 192
 //	#define ADC_BUFFER_SIZE	(8*2*3)
@@ -111,8 +114,21 @@
 #define DAC_MUST_CLEAR		1		// Immediately clear the content of outgoing DAC buffers
 #define DAC_CLEARED			2		// Outgoing DAC buffers are cleared, don't write to DAC buffers
 #define DAC_READY			3		// Outgoing DAC buffers are ready to be written to
+<<<<<<< HEAD
 #define I2S_IN_MUST_INIT	-1
 #define I2S_IN_POINTER_INIT	-2
+=======
+#define INIT_ADC_I2S		-1		// Must initialize the buffer pointer used for the I2S toward DAC
+#define INIT_ADC_I2S_st2	-2		// Must initialize the buffer pointer used for the I2S toward DAC, init stage 2
+#define INIT_ADC_USB		-3		// Must initialize the buffer pointer used for the I2S toward USB
+#define INIT_ADC_USB_st2	-4		// Must initialize the buffer pointer used for the I2S toward USB
+
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	#define I2S_CONSUMER_NONE	0b00000000		// None
+	#define I2S_CONSUMER_USB	0b00000001		// USB is consuming I2S input data
+	#define I2S_CONSUMER_DAC	0b00000010		// DAC output is consuming I2S input data
+#endif
+>>>>>>> revert06
 
 
 // Values for silence (32-bit)
@@ -131,14 +147,18 @@ extern volatile S32 audio_buffer_1[ADC_BUFFER_SIZE];
 extern volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 extern volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
-extern volatile int ADC_buf_DMA_write; // Written by interrupt handler, initiated by sequential code
-extern volatile int DAC_buf_DMA_read; // Written by interrupt handler, initiated by sequential code
-extern volatile int ADC_buf_USB_IN; // Written by sequential code
-extern volatile int ADC_buf_I2S_IN;	// Written by sequential code
-extern volatile int DAC_buf_OUT; // Written by sequential code
+extern volatile int ADC_buf_DMA_write;	// Written by interrupt handler, initiated by sequential code
+extern volatile int DAC_buf_DMA_read;	// Written by interrupt handler, initiated by sequential code
+extern volatile int ADC_buf_I2S_IN; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
+extern volatile int ADC_buf_USB_IN;		// Written by sequential code, handles only data IN-to USB host
+extern volatile int DAC_buf_OUT;		// Written by sequential code
 extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
+
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	extern volatile U8 I2S_consumer;		// Which consumer is subscribing to I2S data? 
+#endif
 
 
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;

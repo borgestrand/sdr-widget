@@ -460,10 +460,14 @@
   Usb_unicode('3'),\
   Usb_unicode('0'),\
   Usb_unicode('3'),\
+  Usb_unicode('1'),\
   Usb_unicode('0'),\
-  Usb_unicode('2'),\
   Usb_unicode('0'),\
+<<<<<<< HEAD
   Usb_unicode('7'),\
+=======
+  Usb_unicode('2'),\
+>>>>>>> revert06
   Usb_unicode('B'),\
   Usb_unicode('S'),\
   Usb_unicode('B') \

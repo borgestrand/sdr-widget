@@ -59,6 +59,8 @@
 #define WM8804_SCAN_ONE		0x10				// Scan only one channel
 #define WM8804_SCAN_FROM_PRESENT	0x20		// Start scanning from presented channel
 #define WM8804_SCAN_FROM_NEXT		0x30		// Start scanning from next channel in list
+
+// æææ periods!
 #define WM8804_DETECT_MUSIC			5			// Was:15 20ms*5 = 100ms of music reception must take place before 3s of pause count as silence
 #define WM8804_LED_UPDATED			0xFF		// Significantly more than WM8804_DETECT_MUSIC !
 #define WM8804_SILENCE_PLAYING		150			// 20ms*150 = 3s of pause needed in a previously playing channel to resume searching

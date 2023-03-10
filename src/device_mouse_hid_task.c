@@ -196,6 +196,8 @@ void device_mouse_hid_task(void)
   U8 ReportByte1_prev = 0;		// Previous ReportByte1
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
+  uint8_t temp;					// Temporary debug data
+  uint8_t dev_datar[1];
 
 
 #ifdef FREERTOS_USED
@@ -374,12 +376,19 @@ void device_mouse_hid_task(void)
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
             }
 
-#endif
+            else if (a == 'e') {							// Lowercase e - Read from PCM5142
+	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+				temp = pcm5142_read_byte(dev_datar[0]);
+				print_dbg_char_hex(temp);
+            }
 
+            else if (a == 'f') {							// Lowercase f - Write to PCM5142
+	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+	            dev_datar[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch content
+				temp = pcm5142_write_byte(dev_datar[0], dev_datar[1]);
+	            print_dbg_char_hex(temp);
+            }
 
-
-
-#ifdef HW_GEN_RXMOD
 
 /* Changing filters. TI says:
 Hello, This is the information you needed: The interpolation filter can be changed with just 3 steps.
@@ -402,14 +411,12 @@ Arash
 			}
 
             else if (a == 'k') {			// PCM5142 filter selection. Valid: 01, 02, 03, 07
-	            uint8_t temp;
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				pcm5142_filter(temp);
             }
 
 
             else if (a == 'w') {							// Lowercase w - read (silly!)
-	            uint8_t dev_datar[1];
 	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
 
 //				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks

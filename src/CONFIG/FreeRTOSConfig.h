@@ -145,7 +145,7 @@ to exclude the API function. */
 /* USB device task definitions. */
 #define configTSK_USB_DEV_NAME                ((const signed portCHAR *)"USB Device")
 #define configTSK_USB_DEV_STACK_SIZE          256
-#define configTSK_USB_DEV_PRIORITY            (tskIDLE_PRIORITY + 3)
+#define configTSK_USB_DEV_PRIORITY            (tskIDLE_PRIORITY + 1) // was: +3
 #define UAC1_configTSK_USB_DEV_PERIOD              10
 #define UAC2_configTSK_USB_DEV_PERIOD              2
 #define HPSDR_configTSK_USB_DEV_PERIOD              2
@@ -173,13 +173,13 @@ to exclude the API function. */
 /* WM8845 task definitions. */
 #define configTSK_WM8804_NAME					((const signed portCHAR *)"WM8804 Configuration")
 #define configTSK_WM8804_STACK_SIZE				256
-#define configTSK_WM8804_PRIORITY				(tskIDLE_PRIORITY + 1)
-#define configTSK_WM8804_PERIOD					200
+#define configTSK_WM8804_PRIORITY				(tskIDLE_PRIORITY + 3) // was: +1
+#define configTSK_WM8804_PERIOD					5 // 4 doesn't enumerate. 20 doesn't process spdif // was: 200 for 20ms. Is 4 for 0.4ms. It is -not- regular at all, must qualify actual rate!
 
 /* USB device Audio task definitions. */
 #define configTSK_USB_DAUDIO_NAME				((const signed portCHAR *)"USB Device Audio")
 #define configTSK_USB_DAUDIO_STACK_SIZE			256
-#define configTSK_USB_DAUDIO_PRIORITY			(tskIDLE_PRIORITY + 2)
+#define configTSK_USB_DAUDIO_PRIORITY			(tskIDLE_PRIORITY + 3) // was: +2, no further improvement beyond +4
 #define UAC1_configTSK_USB_DAUDIO_PERIOD		2
 #define UAC2_configTSK_USB_DAUDIO_PERIOD		1
 #define HPSDR_configTSK_USB_DAUDIO_PERIOD		2
@@ -188,7 +188,7 @@ to exclude the API function. */
 #define configTSK_AK5394A_NAME					((const signed portCHAR *)"AK5394A")
 #define configTSK_AK5394A_STACK_SIZE			256
 #define UAC1_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 2)// Was 1
-#define UAC2_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 3)// Was +1, then +2
+#define UAC2_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 1)// Was +3 // Was +1, then +2
 #define HPSDR_configTSK_AK5394A_PRIORITY		(tskIDLE_PRIORITY + 2)
 #define UAC1_configTSK_AK5394A_PERIOD			50
 #define UAC2_configTSK_AK5394A_PERIOD			50
@@ -197,7 +197,7 @@ to exclude the API function. */
 /* USB host Audio HID task definitions. */
 #define configTSK_USB_HAUDIO_NAME             ((const signed portCHAR *)"USB Host Audio")
 #define configTSK_USB_HAUDIO_STACK_SIZE       256
-#define configTSK_USB_HAUDIO_PRIORITY         (tskIDLE_PRIORITY + 2)// Was 1
+#define configTSK_USB_HAUDIO_PRIORITY         (tskIDLE_PRIORITY + 1) // Was 2
 #define configTSK_USB_HAUDIO_PERIOD           10
 
 /* taskMoboCtrl definitions. */

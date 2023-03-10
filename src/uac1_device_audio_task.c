@@ -207,7 +207,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 		// Process digital input
 		#ifdef HW_GEN_RXMOD
-			mobo_handle_spdif(24); // UAC1 uses 24-bit data
+//			mobo_handle_spdif(24); // UAC1 uses 24-bit data
+//			Moved to wm8804 task
 
 				static uint8_t prev_input_select = MOBO_SRC_NONE;
 
@@ -225,8 +226,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 		#endif
 
-
-		// Should we remove old ADC code from here? ADC code is only watched in UAC2 ADC_site
+		/* Beginning of removed old ADC code from here? ADC code is only watched in UAC2 ADC_site
 		num_samples = 48;
 			if (usb_alternate_setting == 1) {
 
@@ -299,7 +299,7 @@ void uac1_device_audio_task(void *pvParameters)
 							index += 2;
 							if (index >= ADC_BUFFER_SIZE) {
 								index=0;
-								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
+								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN; // Doesn't work if it has init commands in it... 
 							}
 						} else {
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
@@ -307,14 +307,16 @@ void uac1_device_audio_task(void *pvParameters)
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00); 
 
 						}
 					}
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				}
 			} // end alt setting == 1
-			// Should we remove old ADC code to here?
+			// End of commented out ADC code
+			*/ 
+			
 
 #ifdef HW_GEN_RXMOD
 			if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
@@ -416,11 +418,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 					if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
-#ifdef USB_STATE_MACHINE_GPIO
-					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
-#endif
-
-					spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
+						spk_usb_heart_beat++;			// indicates EP_AUDIO_OUT receiving data from host
 
 						Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 						num_samples = Usb_byte_count(EP_AUDIO_OUT);

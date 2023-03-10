@@ -96,14 +96,18 @@ volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
-volatile int ADC_buf_DMA_write = 0; // Written by interrupt handler, initiated by sequential code
-volatile int DAC_buf_DMA_read = 0; // Written by interrupt handler, initiated by sequential code
-volatile int ADC_buf_USB_IN; 	// Written by sequential code, handles only data IN-to USB host
-volatile int ADC_buf_I2S_IN;	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
-volatile int DAC_buf_OUT; 	// Written by sequential code, handles both USB OUT -> spk_buffer_0/1 -and- I2S input -> spk_buffer_0/1
+volatile int ADC_buf_DMA_write = 0;	// Written by interrupt handler, initiated by sequential code
+volatile int DAC_buf_DMA_read = 0;	// Written by interrupt handler, initiated by sequential code
+volatile int ADC_buf_I2S_IN = 0; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
+volatile int ADC_buf_USB_IN = 0;	// Written by sequential code, handles only data IN-to USB host
+volatile int DAC_buf_OUT = 0; 		// Written by sequential code, handles both USB OUT -> spk_buffer_0/1 -and- I2S input -> spk_buffer_0/1
 volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
+
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	volatile U8 I2S_consumer = I2S_CONSUMER_NONE;	// Initially, no I2S consumer is active
+#endif
 
 
 // BSB 20131201 attempting improved playerstarted detection
@@ -124,6 +128,8 @@ volatile U8 dig_in_silence;
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
+	
+			
 	if (ADC_buf_DMA_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		// Register names are different from those used in AVR32108. BUT: it seems pdca_reload_channel() sets the
@@ -132,17 +138,21 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_GPIO
-//    	gpio_set_gpio_pin(AVR32_PIN_PX17);			// Pin 83 repurposed in HW_GEN_RXMOD
+#ifdef FEATURE_ADC_EXPERIMENTAL
+    	gpio_set_gpio_pin(AVR32_PIN_PX55);
+#endif
 #endif
 	}
 	else if (ADC_buf_DMA_write == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
 #ifdef USB_STATE_MACHINE_GPIO
-   	// gpio_clr_gpio_pin(AVR32_PIN_PX17);			// Pin 83 repurposed in HW_GEN_RXMOD
+#ifdef FEATURE_ADC_EXPERIMENTAL
+		gpio_clr_gpio_pin(AVR32_PIN_PX55);
+#endif
 #endif
 	}
-
+ 
 }
 
 /*! \brief The PDCA interrupt handler for the DAC interface.
@@ -224,8 +234,7 @@ void AK5394A_pdca_enable(void) {
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
 	U16 countdown = 0xFFFF;
-
-//	gpio_set_gpio_pin(AVR32_PIN_PX43); // ch6 p88
+//	int i = 0;	// For debug purposes
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	mobo_clear_adc_channel();
@@ -239,23 +248,28 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-		ADC_buf_DMA_write = 0;
-
-		//   	gpio_clr_gpio_pin(AVR32_PIN_PX17); // repurposed in HW_GEN_RXMOD
 	}
 	else {	// No known frequency, don't halt system while polling for LRCK edge
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-		ADC_buf_DMA_write = 0;
-
-		//   	gpio_clr_gpio_pin(AVR32_PIN_PX17); // repurposed in HW_GEN_RXMOD
+//		i = 1;
 	}
 
 	// What is the optimal sequence? These two are simple write operations
+
+	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+	ADC_buf_DMA_write = 0;
    	pdca_enable(PDCA_CHANNEL_SSC_RX);
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 	taskEXIT_CRITICAL();
+
+/* debug
+	print_dbg_char('.');
+	if (i == 1)
+		print_dbg_char('F'); // As in "Free running"
+	else
+		print_dbg_char('L'); // As in "Locked"
+	print_dbg_char('.');
+*/	
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX43); // ch6 p88
 }

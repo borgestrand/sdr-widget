@@ -114,7 +114,7 @@ static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 {
 	index     =0;
-	ADC_buf_USB_IN = 0;
+	ADC_buf_USB_IN = INIT_ADC_USB;				// Must initialize before it can be used for any good!
 	spk_index = 0;
 	DAC_buf_OUT = 0;
 	mute = FALSE; // applies to ADC OUT endpoint
@@ -149,8 +149,9 @@ void uac2_device_audio_task(void *pvParameters)
 //	static U32  time=0;
 //	static Bool startup=TRUE;
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
-	int i;
-	U16 num_samples, num_remaining, gap;
+	int i = 0;
+	S32 num_samples, num_remaining;
+	S32 gap = 0;
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
 		U16 num_samples_adc = 0;
@@ -177,7 +178,16 @@ void uac2_device_audio_task(void *pvParameters)
 	uint32_t silence_det_L = 0;
 	uint32_t silence_det_R = 0;
 	uint8_t silence_det = 0;
-	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
+	int DAC_buf_DMA_read_local = 0;				// Local copy read in atomic operations
+	int ADC_buf_DMA_write_temp = 0;				// Local copy read in atomic operations
+	
+	#ifdef FEATURE_ADC_EXPERIMENTAL
+		#define USB_IN_CACHE_LENGTH 6*50			// Maximum value of num_samples_adc below, rounding up * 2 channels * 3 bytes per channel with 24 bit data
+		U8 usb_in_cache[USB_IN_CACHE_LENGTH];		// Raw packet cache
+		U16 usb_in_cache_used = 0;					// How much of the cache is in use?
+		int cache_counter = 0;
+	#endif
+
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
@@ -199,6 +209,9 @@ void uac2_device_audio_task(void *pvParameters)
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (TRUE) {
+
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
+		
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 		
 		// Introduced into UAC2 code with mobodebug
@@ -214,18 +227,18 @@ void uac2_device_audio_task(void *pvParameters)
 
 		// Process digital input
 		#ifdef HW_GEN_RXMOD
-			mobo_handle_spdif(32); // UAC2 uses 32-bit data
+//			mobo_handle_spdif(32); // UAC2 uses 32-bit data - moved to (presumably interruptable) wm8804 task to save sequential time in this task
 
 			static uint8_t prev_input_select = MOBO_SRC_NONE;
 
-			// Did SPDIF system just give up I2S control? If get onto the sample rate of the USB system ASAP
+			// Did SPDIF system just give up I2S control? If so get onto the sample rate of the USB system ASAP
 			if (input_select == MOBO_SRC_NONE) {
 				if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
 					 (prev_input_select == MOBO_SRC_TOSLINK0) ||
 					 (prev_input_select == MOBO_SRC_TOSLINK1) ) {
 
 					mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
-					mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+					mobo_clock_division(current_freq.frequency);			// Re-configure correct USB sample rate
 				}
 			}
 			prev_input_select = input_select;
@@ -233,66 +246,174 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 		#ifdef FEATURE_ADC_EXPERIMENTAL
+			if (usb_alternate_setting == 0) {								// ADC interface is permanently off or about to be turned off
+				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// Already in initial state. Do nothing
+				}
+				else {
+					
+					print_dbg_char('i');	// USB IN consumer shutting down
+					
+					I2S_consumer &= ~I2S_CONSUMER_USB;						// USB is no longer subscribing to I2S data
+	
+					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Disable DMA
 
-			if (usb_alternate_setting >= 1) { // For IN endpoint / ADC bBitResolution
+						print_dbg_char('j');	// USB IN consumer shutting down
 
-				// ADC_site make some mic state machine hereabouts...
-
-				// First of all, how many stereo samples are present in a 1/4ms USB period on UAC2? 
-				// 192   / 4 = 48
-				// 176.4 / 4 = 44.1
-				//  96   / 4 = 24
-				//  88.2 / 4 = 22.05
-				//  48   / 4 = 12
-				//  44.1 / 4 = 11.025
-				// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
-
-				if (current_freq.frequency == FREQ_44) {
-					num_samples_adc = 11;
-					limit_44k = 40;
-				}
-				else if (current_freq.frequency == FREQ_48) {
-					num_samples_adc = 12;
-				}
-				else if (current_freq.frequency == FREQ_88) {
-					num_samples_adc = 22;
-					limit_44k = 20;
-				}
-				else if (current_freq.frequency == FREQ_96) {
-					num_samples_adc = 24;
-				}
-				else if (current_freq.frequency == FREQ_176) {
-					num_samples_adc = 44;
-					limit_44k = 10;
-				}
-				else if (current_freq.frequency == FREQ_192) {
-					num_samples_adc = 48;
-				}
-				
-				if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
-					counter_44k++;
-					if (counter_44k == limit_44k) { 
-						counter_44k = 0;
-						num_samples_adc++;
+						pdca_disable(PDCA_CHANNEL_SSC_RX);					// Disable I2S reception at MCU's ADC port
+						pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 					}
+					
+					ADC_buf_USB_IN = INIT_ADC_USB;							// Done initializing. Wait for alt > 0 to enable it
 				}
-				// This code simulates perfectly in Octave, but USB debugger log records 132*7 + 138 at 88.2 and 264*19 + 270 at 176.4
+			} // alt == 0
 
 
-				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer?
+			else if (usb_alternate_setting >= 1) { // For IN endpoint / ADC bBitResolution
+				
+				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// In initial state. Do something to fire up data collection!
+					
+					print_dbg_char('I');	// USB IN consumer starting up
+
+					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
+	
+						print_dbg_char('J');	// USB IN consumer starting up
+						
+						// ADC_site - this mode (starting with USB plabyack) does not yield USB IN data. Fix that one a little later... 
+						
+						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
+						 mobo_clear_adc_channel();
+
+						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
+					} // Init DMA for USB IN consumer
+
+					ADC_buf_USB_IN = INIT_ADC_USB_st2;						// Prepare for 2nd init step during first USB data transfer
+					
+					I2S_consumer |= I2S_CONSUMER_USB;						// USB subscribes to I2S data
+					
+					for (i = 0; i < USB_IN_CACHE_LENGTH; i++) {
+						usb_in_cache[i] = 0; 
+					}
+					
+					// How much of the cache is "in use" for the 1st packet? Use nominal packet lengths
+					if (current_freq.frequency == FREQ_44) {
+						usb_in_cache_used = 11;
+					}
+					else if (current_freq.frequency == FREQ_48) {
+						usb_in_cache_used = 12;
+					}
+					else if (current_freq.frequency == FREQ_88) {
+						usb_in_cache_used = 22;
+					}
+					else if (current_freq.frequency == FREQ_96) {
+						usb_in_cache_used = 24;
+					}
+					else if (current_freq.frequency == FREQ_176) {
+						usb_in_cache_used = 44;
+					}
+					else if (current_freq.frequency == FREQ_192) {
+						usb_in_cache_used = 48;
+					}
+					
+					if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data -> 6 bytes per stereo sample
+						usb_in_cache_used *= 6;
+					}
+					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+						else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left stereo 16-bit data -> 4 bytes per stereo sample
+							usb_in_cache_used *= 4;
+						}
+					#endif
+
+				} // Init synching up USB IN consumer's pointers to I2S RX data producer
+				
+				
+				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
+
+
+//					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711탎
+
+
+					// Is the response time to Is_usb_in_ready too long? Or is the execution time too long? (17탎 nominal, up to 43탎)
+
+taskENTER_CRITICAL(); // Including gpio set and clear, this routine takes 15.7-18.4탎 as a critical task
+//					gpio_set_gpio_pin(AVR32_PIN_PX31);
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
+					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
+										
+					// Transfer cache to endpoint buffer
+					for (i = 0; i < usb_in_cache_used; i++) {
+						Usb_write_endpoint_data(EP_AUDIO_IN, 8, usb_in_cache[i]);
+					}
+
+					Usb_send_in(EP_AUDIO_IN);		// send the current bank
+//					gpio_set_gpio_pin(AVR32_PIN_PX31);
+taskEXIT_CRITICAL();
+					
+					// Done sending contents of USB IN cache. Now fill it up for the next transfer
+					cache_counter = 0;
+				
+					// Must ADC consumer pointers be set up for 1st transfer?
+					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
+						// New co-sample verification routine
+						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+						num_remaining = pdca_channel->tcr;
+									
+						// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
+						// for a long time. In which we simply read the counter again
+						if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
+							ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+							num_remaining = pdca_channel->tcr;
+						}
+
+						index = ADC_BUFFER_SIZE - num_remaining;
+						index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
+						ADC_buf_USB_IN = ADC_buf_DMA_write_temp;				// Disable further init, select correct audio_buffer_0/1
+					}
+
+					// How many stereo samples are present in a 1/4ms USB period on UAC2? 
+					// 192   / 4 = 48
+					// 176.4 / 4 = 44.1
+					//  96   / 4 = 24
+					//  88.2 / 4 = 22.05
+					//  48   / 4 = 12
+					//  44.1 / 4 = 11.025
+					// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
+
+					if (current_freq.frequency == FREQ_44) {
+						num_samples_adc = 11;
+						limit_44k = 40;
+					}
+					else if (current_freq.frequency == FREQ_48) {
+						num_samples_adc = 12;
+					}
+					else if (current_freq.frequency == FREQ_88) {
+						num_samples_adc = 22;
+						limit_44k = 20;
+					}
+					else if (current_freq.frequency == FREQ_96) {
+						num_samples_adc = 24;
+					}
+					else if (current_freq.frequency == FREQ_176) {
+						num_samples_adc = 44;
+						limit_44k = 10;
+					}
+					else if (current_freq.frequency == FREQ_192) {
+						num_samples_adc = 48;
+					}
+				
+					if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
+						counter_44k++;
+						if (counter_44k == limit_44k) { 
+							counter_44k = 0;
+							num_samples_adc++;
+						}
+					}
+
 											
-					// Toggling RATE_LED0 / PA01 to switch between 44.1 and 48 - visible on J7:1 on Boenicke build
-					gpio_tgl_gpio_pin(AVR32_PIN_PA01);
-					// visible
-
-
-
 					// Sync AK data stream with USB data stream
 					// AK data is being filled into ~ADC_buf_DMA_write, ie if ADC_buf_DMA_write is 0
 					// buffer 0 is set in the reload register of the pdca
-					// So the actual loading is occuring in buffer 1
+					// So the actual loading is occurring in buffer 1
 					// USB data is being taken from ADC_buf_USB_IN
 
 					// find out the current status of PDCA transfer
@@ -300,8 +421,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 // Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
-// Why on earth must this code be present for 44.1 operation??
 
+// ADC_site original-ish gap calculation
 /*
 					num_remaining = pdca_channel->tcr;
 					if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
@@ -313,103 +434,200 @@ void uac2_device_audio_task(void *pvParameters)
 						// usb and pdca working on different buffers
 						gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
 					}
+*/
 
 					if ( gap < ADC_BUFFER_SIZE/2 ) {
 						// throttle back, transfer less
-						num_samples--; // This one can be omitted... 
+						num_samples_adc--; // This one can be omitted... 
 					}
 					else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
 						// transfer more
-						num_samples++;
+						num_samples_adc++;
 					}
 
-*/
+// Adoption of DAC side's buffered gap calculation
+					ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+					num_remaining = pdca_channel->tcr;
+					// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not, interrupt won't strike again
+					// for a long time. In which we simply read the counter again
+					if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
+						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+						num_remaining = pdca_channel->tcr;
+					}
 
-					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
+					// Which buffer is in use, and does it truly correspond to the num_remaining value?
+					// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
+					if (ADC_buf_USB_IN != ADC_buf_DMA_write_temp) {
+						if ( index < (ADC_BUFFER_SIZE - num_remaining))
+							gap = ADC_BUFFER_SIZE - num_remaining - index;
+						else
+							gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
+					}
+					else // usb and pdca working on different buffers
+					gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
+
+// End of gap calculation
+
+					if ( gap < ADC_BUFFER_SIZE/2 ) {
+						// throttle back, transfer less
+						num_samples_adc--; // This one can be omitted...
+					}
+					else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
+						// transfer more
+						num_samples_adc++;
+					}
+
+
+// Removed here and moved to cache section above
+//					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
 					for( i=0 ; i < num_samples_adc ; i++ ) {
 
-/* Start removal for dummy data insert
-
+// Start of data insertion
 							// Fill endpoint with samples
 						if (!mute) {
 							if (ADC_buf_USB_IN == 0) {
-								sample_LSB = audio_buffer_0[index+IN_LEFT];
-								sample_SB = audio_buffer_0[index+IN_LEFT] >> 8;
-								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 16;
+								sample_LSB = audio_buffer_0[index+IN_LEFT] >> 8;
+								sample_SB = audio_buffer_0[index+IN_LEFT] >> 16;
+								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 24;				// Treating audio_buffer_0/1 as 32-bit data...
 							}
 							else {
-								sample_LSB = audio_buffer_1[index+IN_LEFT];
-								sample_SB = audio_buffer_1[index+IN_LEFT] >> 8;
-								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 16;
+								sample_LSB = audio_buffer_1[index+IN_LEFT] >> 8;
+								sample_SB = audio_buffer_1[index+IN_LEFT] >> 16;
+								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 24;
 							}
 
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								usb_in_cache[cache_counter++] = sample_LSB;
+								usb_in_cache[cache_counter++] = sample_SB;
+								usb_in_cache[cache_counter++] = sample_MSB;
+							}
+							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left stereo 16-bit data
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+									usb_in_cache[cache_counter++] = sample_SB;
+									usb_in_cache[cache_counter++] = sample_MSB;
+								}
+							#endif
 
 							if (ADC_buf_USB_IN == 0) {
-								sample_LSB = audio_buffer_0[index+IN_RIGHT];
-								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 8;
-								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 16;
+								sample_LSB = audio_buffer_0[index+IN_RIGHT] >> 8;
+								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 16;
+								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 24;
 							}
 							else {
-								sample_LSB = audio_buffer_1[index+IN_RIGHT];
-								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 8;
-								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 16;
+								sample_LSB = audio_buffer_1[index+IN_RIGHT] >> 8;
+								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 16;
+								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 24;
 							}
 
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Right stereo 24-bit data
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								usb_in_cache[cache_counter++] = sample_LSB;		// Are there "holes" in data out of the USB interface? Yes!
+								usb_in_cache[cache_counter++] = sample_SB;
+								usb_in_cache[cache_counter++] = sample_MSB;
+							}
+							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Right stereo 16-bit data
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+									usb_in_cache[cache_counter++] = sample_SB;
+									usb_in_cache[cache_counter++] = sample_MSB;
+								}
+							#endif
 
 							index += 2;
 							if (index >= ADC_BUFFER_SIZE) {
-								index=0;
+								index = 0;
 								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
-							}
-						}
-						else {
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-						}
-							
-end removal for dummy data insert*/
-
-							static uint8_t dummy_data = 0;
-							
-							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) { // Stereo 24-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// L:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// L:MSB
-
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);	// R:MSB
-							}
-							else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) { // Stereo 16-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x20);	// L:MSB
-
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// R:MSB
-							}
-								
-
-							dummy_data++;	// Just another way to generate synthetic data...
-							if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
-								// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
-								gpio_tgl_gpio_pin(AVR32_PIN_PA18);
-								// invisible
-							}
-								
-					}
 						
-					Usb_send_in(EP_AUDIO_IN);		// send the current bank
+
+#ifdef USB_STATE_MACHINE_GPIO
+								if (ADC_buf_USB_IN == 1) {
+//									gpio_set_gpio_pin(AVR32_PIN_PX31);
+								}
+								else {
+//									gpio_clr_gpio_pin(AVR32_PIN_PX31);
+								}
+#endif
+							} // end index > buffer size
+						}
+						else { // muted
+							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {			// Left and Right stereo 24-bit mute
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								usb_in_cache[cache_counter++] = 0;
+								usb_in_cache[cache_counter++] = 0;
+								usb_in_cache[cache_counter++] = 0;
+								usb_in_cache[cache_counter++] = 0;
+								usb_in_cache[cache_counter++] = 0;
+								usb_in_cache[cache_counter++] = 0;
+							}
+							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left and Right stereo 16-bit mute
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+									usb_in_cache[cache_counter++] = 0;
+									usb_in_cache[cache_counter++] = 0;
+									usb_in_cache[cache_counter++] = 0;
+									usb_in_cache[cache_counter++] = 0;
+								}
+							#endif
+						} // muted
+							
+// End of data insertion
+
+
+// Start of dummy data insertion
+/*
+						static uint8_t dummy_data = 0;
+							
+						if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) { // Stereo 24-bit data
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// L:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// L:MSB
+
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);	// R:MSB
+						}
+						else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) { // Stereo 16-bit data
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x20);	// L:MSB
+
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
+							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// R:MSB
+						}
+								
+
+						dummy_data++;	// Just another way to generate synthetic data...
+						if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
+							// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
+							gpio_tgl_gpio_pin(AVR32_PIN_PA18);
+							// invisible
+						}
+*/
+// End of dummy data insertion							
+								
+					} // end for num_samples
+					
+					usb_in_cache_used = cache_counter;	// Transfer this many bytes in the next USB message!
+
+
+// Removed here and moved to cache section above						
+//					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				} // end Is_usb_in_ready(EP_AUDIO_IN)
 			} 	// end alt setting 1 / 2
 		#endif // FEATURE_ADC_EXPERIMENTAL
@@ -554,10 +772,6 @@ end removal for dummy data insert*/
 #endif
 
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
-
-#ifdef USB_STATE_MACHINE_GPIO
-					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
-#endif
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					num_samples = Usb_byte_count(EP_AUDIO_OUT);

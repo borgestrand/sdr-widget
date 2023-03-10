@@ -108,26 +108,32 @@ void wm8804_task(void *pvParameters) {
 	uint8_t mustgive = 0;
 	uint8_t silence_counter = 0;					// How long has a channel been silent? Allow 3s for pause, 0.2s for newly locked channel. Also track LED updates
 	uint8_t playing_counter = 0;					// How long has a channel be playing music so that we'll look for pause, not newly locked-on mute?
-	uint8_t poll_counter = 0;
+	uint16_t poll_counter = 0;
 
 	portTickType xLastWakeTime;
-	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200
+	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200, every 1.2ms with configTSK_WM8804_PERIOD = 12
 
 	while (TRUE) {
+		
+		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
+		
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
+
+		if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio) {
+			mobo_handle_spdif(32);					// Polling code. UAC2 uses 32-bit data - moved here from uac2_dat.c
+		}
+		else if (feature_get_nvram(feature_image_index) == feature_image_uac2_audio) {
+			mobo_handle_spdif(24);					// Polling code. UAC1 uses 24-bit data - moved here from uac1_dat.c
+		}
+
 		
 		poll_counter ++;							// Don't always do everything
-
-//		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_inputnew()
-		
 		
 		// while playing, got interrupt. Could be loss of link (monitored faster on pin) or TRANS_ERR (only visible on interrupt)
 
 		// 		if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
 		// try wm8804_pllnew(WM8804_PLL_TOGGLE);
 		// then scan inputs starting with last known good input	
-	
-				
 				
 		// USB has assumed control, power down WM8804 if it was on
 		if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
@@ -192,7 +198,8 @@ void wm8804_task(void *pvParameters) {
 				}
 				
 				// Sometimes poll sample rate - dude, this happens a lot!
-				if ( (poll_counter & 0x03) == 0) {				// Once every 80ms while playing check if sample rate is correct
+//				if ( (poll_counter & 0x0003) == 0) {				// Once every 80ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 200
+				if ( (poll_counter & 0x000F) == 0) {				// Once every 102.4ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 4 æææ period!
 					freq = wm8804_srd();
 
 					// If srd() returned a valid frequency that is different from the one we believe we're at, do something!					
@@ -277,8 +284,8 @@ void wm8804_task(void *pvParameters) {
 	
 	
 	
-	}
-}
+	} // while (1)
+} // wm8804_task
 
 
 // Start up the WM8804
@@ -316,19 +323,42 @@ void wm8804_init(void) {
 //		initial = 0;
 //	}
 
-	// Enable CPU's processing of produced data
-	// This is needed for the silence detector
-	AK5394A_pdca_rx_enable(FREQ_INVALID);	// Start up without caring about I2S frequency or synchronization
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
+		// Enable CPU's processing of produced data
+		// This is needed for the silence detector
+
+		print_dbg_char('Z');	// I2S OUT consumer starting up
+		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
+	}
+//	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine doesn't really subscribe to incoming I2S, it only scans for it...
+#else
+	AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
+#endif
 
 //	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
 //  pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 }
 
-// Turn off wm8804, why can't we just run init again?
+// Turn off wm8804, why can't we just run init again? 
 void wm8804_sleep(void) {
-	pdca_disable(PDCA_CHANNEL_SSC_RX);				// Disable I2S reception at MCU's ADC port
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	I2S_consumer &= ~I2S_CONSUMER_DAC;			// DAC is no longer subscribing to I2S data
+
+	print_dbg_char('z');	// I2S OUT consumer shutting down
+	
+	if (I2S_consumer == I2S_CONSUMER_NONE) {	// No other consumers? Disable DMA
+
+		print_dbg_char('b');	// I2S OUT consumer shutting down
+		
+		pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	}
+#else
+	pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+#endif
 
 	wm8804_write_byte(0x1E, 0x1F);	// Power down 7-6:0, 5:0 OUT, 4:1 _IF, 3:1 _OSC, 2:1 _TX, 1:1 _RX, 0:1 _PLL // WM8804 same
 }
@@ -735,15 +765,35 @@ void wm8804_mute(void) {
 void wm8804_unmute(void) {
 //	print_dbg_char('U');
 
+
+	// For now, frequency changes totally mess up ADC_site
+	
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 //	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 
+<<<<<<< HEAD
 	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);			// New code to test for L/R swap
+=======
+#ifdef FEATURE_ADC_EXPERIMENTAL
+	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
+>>>>>>> revert06
 
+		print_dbg_char('U');	// I2S OUT consumer starting up
+		
+		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
+	}
+	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC subscribes to incoming I2S
+#else
+		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
+#endif
 
+<<<<<<< HEAD
 //	ADC_buf_USB_IN = -1;	// 20230302 variable rename			// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 	ADC_buf_I2S_IN = I2S_IN_MUST_INIT;							// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
+=======
+	ADC_buf_I2S_IN = INIT_ADC_I2S;								// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
+>>>>>>> revert06
 
 	mobo_i2s_enable(MOBO_I2S_ENABLE);							// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 }
@@ -815,6 +865,7 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 		}
 		else
 			dev_data[0] = 0 ;	// Randomly chosen failure state
+		
 		// End of blocking code
 
 //		print_dbg_char('g');
