@@ -209,7 +209,14 @@ void uac2_device_audio_task(void *pvParameters)
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (TRUE) {
-		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
+		
+//		// æææææææææææææ
+		if (buffer_reload_just_occured == 1) {
+			buffer_reload_just_occured = 0;
+		}
+		else {
+			vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
+		}
 		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents?
@@ -326,7 +333,7 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
 
 
-					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745µs between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711µs
+//					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745µs between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711µs
 
 
 					// Is the response time to Is_usb_in_ready too long? Or is the execution time too long? (17µs nominal, up to 43µs)
@@ -480,7 +487,7 @@ taskEXIT_CRITICAL();
 						
 					for( i=0 ; i < num_samples_adc ; i++ ) {
 
-// Start of  data insertion
+// Start of data insertion
 							// Fill endpoint with samples
 						if (!mute) {
 							if (ADC_buf_USB_IN == 0) {
@@ -584,7 +591,7 @@ taskEXIT_CRITICAL();
 							#endif
 						} // muted
 							
-// End of blocked data insertion
+// End of data insertion
 
 
 // Start of dummy data insertion

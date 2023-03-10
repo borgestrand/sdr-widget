@@ -378,7 +378,7 @@ void mobo_handle_spdif(uint8_t width) {
 	S16 target = -1;					// Default value, no sample to touch
 
 
-// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
+// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
 #if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
 	#define IN_LEFT 0
 	#define IN_RIGHT 1
@@ -419,6 +419,8 @@ void mobo_handle_spdif(uint8_t width) {
 	}
 	else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
 		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+		
+//		æææææææ Is this what takes a shitload of time after ADC buffer toggles? And is the time spent here the reason longer buffers cause more frequent insertions?
 
 		if (input_select == MOBO_SRC_NONE)
 			iterations = 0;
@@ -428,24 +430,24 @@ void mobo_handle_spdif(uint8_t width) {
 		}
 
 		// Silence / DC detector 2.0
-//			if (spdif_rx_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
-			for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
-				if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
-					sample_temp = audio_buffer_0[i] & 0x00FFFF00;
-				else if (ADC_buf_DMA_write_temp == 1)
-					sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+//		if (spdif_rx_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
+		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
+			if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
+				sample_temp = audio_buffer_0[i] & 0x00FFFF00;
+			else if (ADC_buf_DMA_write_temp == 1)
+				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
 
-				if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
-					i = ADC_BUFFER_SIZE + 10;
-			}
+			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
+				i = ADC_BUFFER_SIZE + 10;
+		}
 
-			if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
-				spdif_rx_status.silent = 0;
-			}
-			else {									// Silence was detected, update flag to SPDIF RX code
-				spdif_rx_status.silent = 1;
-			}
-//			}
+		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
+			spdif_rx_status.silent = 0;
+		}
+		else {									// Silence was detected, update flag to SPDIF RX code
+			spdif_rx_status.silent = 1;
+		}
+//		}
 
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
@@ -518,13 +520,13 @@ void mobo_handle_spdif(uint8_t width) {
 				else if ((gap > old_gap) && (gap > SPK_GAP_U3)) {
 					samples_to_transfer_OUT = 2;		// Do some insertin'
 #ifdef USB_STATE_MACHINE_DEBUG
-// 					print_dbg_char('i');
+ 					print_dbg_char('i');
 #endif
 				}
 
 				// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
 				if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) {
-					// Explicitly enable receiver's MCLK generator?
+					// Explicitly enable receiver's MCLK generator? ADC_site
 					mobo_xo_select(FREQ_RXNATIVE, input_select);
 #ifdef USB_STATE_MACHINE_DEBUG
 					print_dbg_char('X');
@@ -641,7 +643,7 @@ void mobo_handle_spdif(uint8_t width) {
 				for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
 					if (dac_must_clear == DAC_READY) {
 						if (DAC_buf_OUT == 0) {
-							spk_buffer_0[spk_index+OUT_LEFT] = 0;
+							spk_buffer_0[spk_index+OUT_LEFT] = 0; 
 							spk_buffer_0[spk_index+OUT_RIGHT] = 0;
 						}
 						else if (DAC_buf_OUT == 1) {
@@ -650,7 +652,7 @@ void mobo_handle_spdif(uint8_t width) {
 						}
 					}
 
-					spk_index += 2;
+					spk_index += 2;							// æææ Analyze this code again, what is actually going on with the megaskips?
 					if (spk_index >= DAC_BUFFER_SIZE) {
 						spk_index -= DAC_BUFFER_SIZE;
 						DAC_buf_OUT = 1 - DAC_buf_OUT;
@@ -715,6 +717,10 @@ void mobo_handle_spdif(uint8_t width) {
 			} // Normal operation
 
 		} // ADC_buf_DMA_write toggle
+		
+//		ææææ split the toggle action into multiple rounds of the spdif handler!!
+//		or make it an interruptable task or something....
+		
 	} // input select
 
 } // mobo_handle_spdif(void)

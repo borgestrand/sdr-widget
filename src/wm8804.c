@@ -114,11 +114,16 @@ void wm8804_task(void *pvParameters) {
 	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200
 
 	while (TRUE) {
+		
+		gpio_tgl_gpio_pin(AVR32_PIN_PX31);		// Indicate execution slots of this task
+		
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
 		
 		poll_counter ++;							// Don't always do everything
 
 //		gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_inputnew()
+
+// ææææ handle spdif here? Does this code run frequently enough to catch ADC producer buffer toggles?
 		
 		
 		// while playing, got interrupt. Could be loss of link (monitored faster on pin) or TRANS_ERR (only visible on interrupt)

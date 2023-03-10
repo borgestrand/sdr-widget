@@ -105,6 +105,8 @@ volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
+volatile int buffer_reload_just_occured = 0; // Task switcher hack
+
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	volatile U8 I2S_consumer = I2S_CONSUMER_NONE;	// Initially, no I2S consumer is active
 #endif
@@ -129,7 +131,6 @@ volatile U8 dig_in_silence;
  */
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 	
-gpio_set_gpio_pin(AVR32_PIN_PX55);
 			
 	if (ADC_buf_DMA_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
@@ -140,7 +141,7 @@ gpio_set_gpio_pin(AVR32_PIN_PX55);
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_GPIO
 #ifdef FEATURE_ADC_EXPERIMENTAL
-//    	gpio_set_gpio_pin(AVR32_PIN_PX55);
+    	gpio_set_gpio_pin(AVR32_PIN_PX55);
 #endif
 #endif
 	}
@@ -155,7 +156,7 @@ gpio_set_gpio_pin(AVR32_PIN_PX55);
 	}
  
 
-gpio_clr_gpio_pin(AVR32_PIN_PX55);
+	buffer_reload_just_occured = 1; // ææææ keep this?
 }
 
 /*! \brief The PDCA interrupt handler for the DAC interface.
@@ -203,6 +204,8 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	if (!audio_OUT_alive)				// If no packet has been received since last DMA reset,
 		audio_OUT_must_sync = 1;		// indicate that next arriving packet must enter mid-buffer
 	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
+	
+	buffer_reload_just_occured = 1;
 }
 
 /*! \brief Init interrupt controller and register pdca_int_handler interrupt.

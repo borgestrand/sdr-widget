@@ -288,13 +288,6 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 #ifdef HW_GEN_RXMOD
 	gpio_set_gpio_pin(AVR32_PIN_PA25);						// Reset pin override inactive. Should have external pull-up!
 
-	// Disable all power supplies
-	// Shouldn't be needed with pull-down
-	// mobo_km(MOBO_HP_KM_DISABLE);							// Disabled for now in HW_GEN_RXMOD
-	// gpio_clr_gpio_pin(AVR32_PIN_PX31);					// Available test pont
-	// gpio_clr_gpio_pin(AVR32_PIN_PA27);					// Unconnected pin
-	// gpio_set_gpio_pin(AVR32_PIN_PA22); // TP18			// Available test pont
-
 	gpio_clr_gpio_pin(AVR32_PIN_PB04);						// Disable SPDIF receiver counters
 
 //	gpio_clr_gpio_pin(USB_VBUS_C_PIN);						// NO USB C to MCU's VBUS pin
