@@ -236,7 +236,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 			static uint8_t prev_input_select = MOBO_SRC_NONE;
 
-			// Did SPDIF system just give up I2S control? If get onto the sample rate of the USB system ASAP
+			// Did SPDIF system just give up I2S control? If so get onto the sample rate of the USB system ASAP
 			if (input_select == MOBO_SRC_NONE) {
 				if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
 					 (prev_input_select == MOBO_SRC_TOSLINK0) ||
