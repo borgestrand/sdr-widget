@@ -39,8 +39,8 @@
 Long buffers may take up too much RAM. And clearing and moving their contents take a long time.
 Short buffers give less system latency and poorer synch state machine performance
 */
-	#define ADC_BUFFER_SIZE	(8*2*24) * 1	// 192 stereo samples
-	#define DAC_BUFFER_SIZE (32*2*24) * 1
+	#define ADC_BUFFER_SIZE	256 // 128 stereo samples // Was (8*2*24) * 1	// 192 stereo samples, that is a bit too much for spdif handler to process in one go, and still have time to register buffer toggle
+	#define DAC_BUFFER_SIZE 1024 // 512 stereo samples // Was (32*2*24) * 1
 
 // Trying to provoke bugs in 44.1 SPDIF playback during USB activity. *5 instead of *24 means running DMAs slightly faster than nominal at 192
 //	#define ADC_BUFFER_SIZE	(8*2*3)
