@@ -173,13 +173,13 @@ to exclude the API function. */
 /* WM8845 task definitions. */
 #define configTSK_WM8804_NAME					((const signed portCHAR *)"WM8804 Configuration")
 #define configTSK_WM8804_STACK_SIZE				256
-#define configTSK_WM8804_PRIORITY				(tskIDLE_PRIORITY + 3) // was: +1
-#define configTSK_WM8804_PERIOD					4 // was: 200 for 20ms. Is 4 for 0.4ms. It is -not- regular at all, must qualify actual rate!
+#define configTSK_WM8804_PRIORITY				(tskIDLE_PRIORITY + 2) // was: +1
+#define configTSK_WM8804_PERIOD					20 // 4 // was: 200 for 20ms. Is 4 for 0.4ms. It is -not- regular at all, must qualify actual rate!
 
 /* USB device Audio task definitions. */
 #define configTSK_USB_DAUDIO_NAME				((const signed portCHAR *)"USB Device Audio")
 #define configTSK_USB_DAUDIO_STACK_SIZE			256
-#define configTSK_USB_DAUDIO_PRIORITY			(tskIDLE_PRIORITY + 3) // was: +2, no further improvement beyond +4
+#define configTSK_USB_DAUDIO_PRIORITY			(tskIDLE_PRIORITY + 2) // was: +2, no further improvement beyond +4
 #define UAC1_configTSK_USB_DAUDIO_PERIOD		2
 #define UAC2_configTSK_USB_DAUDIO_PERIOD		1
 #define HPSDR_configTSK_USB_DAUDIO_PERIOD		2
