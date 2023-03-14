@@ -215,7 +215,7 @@ void uac2_device_audio_task(void *pvParameters)
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 		
 		// Introduced into UAC2 code with mobodebug
-		// Must we clear the DAC buffer contents?
+		// Must we clear the DAC buffer contents? 
 		if (dac_must_clear == DAC_MUST_CLEAR) {
 			#ifdef USB_STATE_MACHINE_DEBUG
 //				print_dbg_char('7');
