@@ -702,7 +702,7 @@ Arash
 						}
 					}
 					else if ( (mux_cmd & 0x0F) == 0x07) {	// 37 -> Unmute
-						spdif_rx_status.frequency = wm8804_srd();	// Update some spdif systems variables before continuing
+						spdif_rx_status.frequency = mobo_srd();	// Update some spdif systems variables before continuing
 						spdif_rx_status.powered == 1;
 						spdif_rx_status.reliable = 1;
 						spdif_rx_status.muted = 0;
@@ -966,7 +966,7 @@ Arash
 			192	C0
 			*/
 			else if (a == 's') {
-				print_dbg_char_hex( (uint8_t)(wm8804_srd() / 1000) );		// Report sample rate
+				print_dbg_char_hex( (uint8_t)(mobo_srd() / 1000) );			// Report sample rate
 				wm8804_linkstats();											// Report linkup status
 			}
 			

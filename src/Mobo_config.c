@@ -351,6 +351,263 @@ void mobo_rxmod_input(uint8_t input_sel) {
 
 #endif // RXmod hardware controls
 
+// Sample rate detector based on ADC LRCK polling
+uint32_t mobo_srd(void) {
+	uint32_t temp;
+	uint8_t freqs[6];
+	uint8_t attempts = 0;
+	freqs[0] = 1;					// 44.1 hits
+	freqs[1] = 1;					// 48 hits
+	freqs[2] = 1;					// 88.2 hits
+	freqs[3] = 1;					// 96 hits
+	freqs[4] = 1;					// 176.4 hits
+	freqs[5] = 1;					// 196 hits
+
+	#define SRD_MAX_ATTEMPTS	5		// How many total attempts
+	#define SRD_AFE_DETECTS		3		// How many attempts to declare a safe detection?
+
+	while (attempts++ < SRD_MAX_ATTEMPTS) {
+		temp = mobo_srd_asm2();
+		switch (temp) {
+			case FREQ_44:
+				if (freqs[0]++ >= SRD_AFE_DETECTS) {
+					return FREQ_44;
+				}
+			break;
+			case FREQ_48:
+				if (freqs[1]++ >= SRD_AFE_DETECTS) {
+					return FREQ_48;
+				}
+			break;
+			case FREQ_88:
+				if (freqs[2]++ >= SRD_AFE_DETECTS) {
+					return FREQ_88;
+				}
+			break;
+			case FREQ_96:
+				if (freqs[3]++ >= SRD_AFE_DETECTS) {
+					return FREQ_96;
+				}
+			break;
+			case FREQ_176:
+				if (freqs[4]++ >= SRD_AFE_DETECTS) {
+					return FREQ_176;
+				}
+			break;
+			case FREQ_192:
+				if (freqs[5]++ >= SRD_AFE_DETECTS) {
+					return FREQ_192;
+				}
+			break;
+		}
+		
+	}
+	
+	return FREQ_TIMEOUT;
+
+} // mobo_srd()
+
+// Sample rate detection test
+// This is MCU assembly code which replaces the non-functional sample rate detector inside the WM8804.
+// It uses the same code for 44.1 and 48, and for 88.2 and 96. 176.4 and 192 are messed up too.
+// The WM8804 sample rate change interrupt is based on its faulty detector and can't be trusted either.
+// Todo: Make the pin to poll a parameter to the function rather than hard-coded.
+//
+// Compile with something like this:
+// http://www.delorie.com/djgpp/v2faq/faq8_20.html
+// gives:
+// avr32-gcc -DFEATURE_BOARD_DEFAULT=feature_board_usbi2s -DFEATURE_IMAGE_DEFAULT=feature_image_uac1_audio -DFEATURE_IN_DEFAULT=feature_in_normal -DFEATURE_OUT_DEFAULT=feature_out_normal -DFEATURE_ADC_DEFAULT=feature_adc_none -DFEATURE_DAC_DEFAULT=feature_dac_generic -DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 -DFEATURE_LOG_DEFAULT=feature_log_500ms -DFEATURE_FILTER_DEFAULT=feature_filter_fir -DFEATURE_QUIRK_DEFAULT=feature_quirk_none -DUSB_STATE_MACHINE_DEBUG -DHW_GEN_DIN10 -DFEATURE_PRODUCT_AB1x -DBOARD=SDRwdgtLite -DFREERTOS_USED -I../src/SOFTWARE_FRAMEWORK/DRIVERS/SSC/I2S -I../src/SOFTWARE_FRAMEWORK/DRIVERS/PDCA -I../src/SOFTWARE_FRAMEWORK/DRIVERS/TWIM -I../src/SOFTWARE_FRAMEWORK/UTILS/DEBUG -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/AUDIO -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/CDC -I../src/SOFTWARE_FRAMEWORK/SERVICES/FREERTOS/Source/portable/GCC/AVR32_UC3 -I../src/SOFTWARE_FRAMEWORK/SERVICES/FREERTOS/Source/include -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/HID -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB -I../src/CONFIG -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USART -I../src/SOFTWARE_FRAMEWORK/DRIVERS/TC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/WDT -I../src/SOFTWARE_FRAMEWORK/DRIVERS/CPU/CYCLE_COUNTER -I../src/SOFTWARE_FRAMEWORK/DRIVERS/EIC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/RTC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/PM -I../src/SOFTWARE_FRAMEWORK/DRIVERS/GPIO -I../src/SOFTWARE_FRAMEWORK/DRIVERS/FLASHC -I../src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE -I../src/SOFTWARE_FRAMEWORK/UTILS/PREPROCESSOR -I../src/SOFTWARE_FRAMEWORK/UTILS -I../src/SOFTWARE_FRAMEWORK/DRIVERS/INTC -I../src/SOFTWARE_FRAMEWORK/BOARDS -I../src -O2 -fdata-sections -Wall -c -fmessage-length=0 -mpart=uc3a3256 -ffunction-sections -masm-addr-pseudos -MMD -c -g -O2 -Wa,-a,-ad srd_test.c > srd_test.lst
+// "/cygdrive/c/Program Files (x86)/Atmel/AVR Tools/AVR Toolchain/bin/avr32-gcc" -DFEATURE_BOARD_DEFAULT=feature_board_usbi2s -DFEATURE_IMAGE_DEFAULT=feature_image_uac1_audio -DFEATURE_IN_DEFAULT=feature_in_normal -DFEATURE_OUT_DEFAULT=feature_out_normal -DFEATURE_ADC_DEFAULT=feature_adc_none -DFEATURE_DAC_DEFAULT=feature_dac_generic -DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 -DFEATURE_LOG_DEFAULT=feature_log_500ms -DFEATURE_FILTER_DEFAULT=feature_filter_fir -DFEATURE_QUIRK_DEFAULT=feature_quirk_none -DUSB_STATE_MACHINE_DEBUG -DHW_GEN_DIN10 -DFEATURE_PRODUCT_AB1x -DBOARD=SDRwdgtLite -DFREERTOS_USED -I../src/SOFTWARE_FRAMEWORK/DRIVERS/SSC/I2S -I../src/SOFTWARE_FRAMEWORK/DRIVERS/PDCA -I../src/SOFTWARE_FRAMEWORK/DRIVERS/TWIM -I../src/SOFTWARE_FRAMEWORK/UTILS/DEBUG -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/AUDIO -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/CDC -I../src/SOFTWARE_FRAMEWORK/SERVICES/FREERTOS/Source/portable/GCC/AVR32_UC3 -I../src/SOFTWARE_FRAMEWORK/SERVICES/FREERTOS/Source/include -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/HID -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB -I../src/CONFIG -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USART -I../src/SOFTWARE_FRAMEWORK/DRIVERS/TC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/WDT -I../src/SOFTWARE_FRAMEWORK/DRIVERS/CPU/CYCLE_COUNTER -I../src/SOFTWARE_FRAMEWORK/DRIVERS/EIC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/RTC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/PM -I../src/SOFTWARE_FRAMEWORK/DRIVERS/GPIO -I../src/SOFTWARE_FRAMEWORK/DRIVERS/FLASHC -I../src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE -I../src/SOFTWARE_FRAMEWORK/UTILS/PREPROCESSOR -I../src/SOFTWARE_FRAMEWORK/UTILS -I../src/SOFTWARE_FRAMEWORK/DRIVERS/INTC -I../src/SOFTWARE_FRAMEWORK/BOARDS -I../src -O2 -fdata-sections -Wall -c -fmessage-length=0 -mpart=uc3a3256 -ffunction-sections -masm-addr-pseudos -MMD -c -g -O2 -Wa,-a,-ad srd_test.c > srd_test.lst
+//
+// Alternatively:
+// avr32-gcc -DFEATURE_BOARD_DEFAULT=feature_board_usbi2s -DFEATURE_IMAGE_DEFAULT=feature_image_uac1_audio -DFEATURE_IN_DEFAULT=feature_in_normal -DFEATURE_OUT_DEFAULT=feature_out_normal -DFEATURE_ADC_DEFAULT=feature_adc_none -DFEATURE_DAC_DEFAULT=feature_dac_generic -DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 -DFEATURE_LOG_DEFAULT=feature_log_500ms -DFEATURE_FILTER_DEFAULT=feature_filter_fir -DFEATURE_QUIRK_DEFAULT=feature_quirk_none -DUSB_STATE_MACHINE_DEBUG -DHW_GEN_DIN10 -DFEATURE_PRODUCT_AB1x -DBOARD=SDRwdgtLite -DFREERTOS_USED -I../src/SOFTWARE_FRAMEWORK/DRIVERS/SSC/I2S -I../src/SOFTWARE_FRAMEWORK/DRIVERS/PDCA -I../src/SOFTWARE_FRAMEWORK/DRIVERS/TWIM -I../src/SOFTWARE_FRAMEWORK/UTILS/DEBUG -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/AUDIO -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/CDC -I../src/SOFTWARE_FRAMEWORK/SERVICES/FREERTOS/Source/portable/GCC/AVR32_UC3 -I../src/SOFTWARE_FRAMEWORK/SERVICES/FREERTOS/Source/include -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/HID -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB -I../src/CONFIG -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USART -I../src/SOFTWARE_FRAMEWORK/DRIVERS/TC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/WDT -I../src/SOFTWARE_FRAMEWORK/DRIVERS/CPU/CYCLE_COUNTER -I../src/SOFTWARE_FRAMEWORK/DRIVERS/EIC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/RTC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/PM -I../src/SOFTWARE_FRAMEWORK/DRIVERS/GPIO -I../src/SOFTWARE_FRAMEWORK/DRIVERS/FLASHC -I../src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE -I../src/SOFTWARE_FRAMEWORK/UTILS/PREPROCESSOR -I../src/SOFTWARE_FRAMEWORK/UTILS -I../src/SOFTWARE_FRAMEWORK/DRIVERS/INTC -I../src/SOFTWARE_FRAMEWORK/BOARDS -I../src -O2 -fdata-sections -Wall -c -fmessage-length=0 -mpart=uc3a3256 -ffunction-sections -masm-addr-pseudos -MMD -S -fverbose-asm -g -O2 srd_test.c
+// avr32-gcc -DFEATURE_BOARD_DEFAULT=feature_board_usbi2s -DFEATURE_IMAGE_DEFAULT=feature_image_uac1_audio -DFEATURE_IN_DEFAULT=feature_in_normal -DFEATURE_OUT_DEFAULT=feature_out_normal -DFEATURE_ADC_DEFAULT=feature_adc_none -DFEATURE_DAC_DEFAULT=feature_dac_generic -DFEATURE_LCD_DEFAULT=feature_lcd_hd44780 -DFEATURE_LOG_DEFAULT=feature_log_500ms -DFEATURE_FILTER_DEFAULT=feature_filter_fir -DFEATURE_QUIRK_DEFAULT=feature_quirk_none -DUSB_STATE_MACHINE_DEBUG -DHW_GEN_DIN10 -DFEATURE_PRODUCT_AB1x -DBOARD=SDRwdgtLite -DFREERTOS_USED -I../src/SOFTWARE_FRAMEWORK/DRIVERS/SSC/I2S -I../src/SOFTWARE_FRAMEWORK/DRIVERS/PDCA -I../src/SOFTWARE_FRAMEWORK/DRIVERS/TWIM -I../src/SOFTWARE_FRAMEWORK/UTILS/DEBUG -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/AUDIO -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/CDC -I../src/SOFTWARE_FRAMEWORK/SERVICES/FREERTOS/Source/portable/GCC/AVR32_UC3 -I../src/SOFTWARE_FRAMEWORK/SERVICES/FREERTOS/Source/include -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB/CLASS/HID -I../src/SOFTWARE_FRAMEWORK/SERVICES/USB -I../src/CONFIG -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM/DEVICE -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB/ENUM -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USBB -I../src/SOFTWARE_FRAMEWORK/DRIVERS/USART -I../src/SOFTWARE_FRAMEWORK/DRIVERS/TC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/WDT -I../src/SOFTWARE_FRAMEWORK/DRIVERS/CPU/CYCLE_COUNTER -I../src/SOFTWARE_FRAMEWORK/DRIVERS/EIC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/RTC -I../src/SOFTWARE_FRAMEWORK/DRIVERS/PM -I../src/SOFTWARE_FRAMEWORK/DRIVERS/GPIO -I../src/SOFTWARE_FRAMEWORK/DRIVERS/FLASHC -I../src/SOFTWARE_FRAMEWORK/UTILS/LIBS/NEWLIB_ADDONS/INCLUDE -I../src/SOFTWARE_FRAMEWORK/UTILS/PREPROCESSOR -I../src/SOFTWARE_FRAMEWORK/UTILS -I../src/SOFTWARE_FRAMEWORK/DRIVERS/INTC -I../src/SOFTWARE_FRAMEWORK/BOARDS -I../src -O2 -fdata-sections -Wall -c -fmessage-length=0 -mpart=uc3a3256 -ffunction-sections -masm-addr-pseudos -MMD -S -g -O2 srd_test.c
+//
+// A good asm syntax list:
+// http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html
+//
+// Test code for learning the asm code:
+/*
+#include "gpio.h"
+#include <avr32/io.h>
+#include "compiler.h"
+#define GPIO  AVR32_GPIO
+int foo(void) {
+	#define TIMEOUT_LIM 8000;
+	int timeout = 8000;
+	// Code to determine GPIO constants, rewrite this (2 positions!) first, compile this section, then modify asm
+	volatile avr32_gpio_port_t *gpio_port = &GPIO.port[AVR32_PIN_PA04 >> 5];
+	while ( (timeout != 0) && ( ((gpio_port->pvr >> (AVR32_PIN_PA04 & 0x1F)) & 1) == 0) ) {
+		timeout --;
+	}
+	return timeout;
+}
+*/
+uint32_t mobo_srd_asm2(void) {
+	uint32_t timeout;
+
+	// see srd_test03.c and srd_test03.lst
+
+	// HW_GEN_RXMOD: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
+
+	// Recompile prototype c to change io pin!
+	// Test is done for up to 1 half period, then 2 full periods
+
+	gpio_enable_gpio_pin(AVR32_PIN_PA05);	// Enable GPIO pin, not special IO (also for input). Needed?
+	
+	// PA05 is GPIO. PX26 and PX36 are special purpose clock pins
+
+	asm volatile(
+		//		"ssrf	16				\n\t"	// Disable global interrupt
+		"mov	%0, 	2000	\n\t"	// Load timeout
+		"mov	r9,		-60928	\n\t"	// Immediate load, set up pointer to PX36, recompile C for other IO pin, do once
+
+		// If bit is 0, branch to loop while 0. If bit was 1, continue to loop while 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	S3				\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+
+		// Wait while bit is 1, then count two half periods
+		"S0:					\n\t"	// Loop while PX36 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	S0_done			\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S0				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S0_done:				\n\t"
+
+		"mfsr	r10, 264		\n\t"	// Load 1st cycle counter into r10
+
+		"S1:					\n\t"	// Loop while PX36 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	S1_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S1				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S1_done:				\n\t"
+
+		"S2:					\n\t"	// Loop while PX36 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	S2_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S2				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S2_done:				\n\t"
+		"rjmp	SRETURN__		\n\t"
+
+
+
+		// Wait while bit is 0, then count two half periods
+		"S3:					\n\t"	// Loop while PX36 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	S3_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S3				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S3_done:				\n\t"
+
+		"mfsr	r10, 264		\n\t"	// Load 1st cycle counter into r10
+
+		"S4:					\n\t"	// Loop while PX36 is 1
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"brne	S4_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S4				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S4_done:				\n\t"
+
+		"S5:					\n\t"	// Loop while PX36 is 0
+		"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"breq	S5_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+		"sub	%0,	1			\n\t"	// Count down
+		"brne	S5				\n\t"	// Not done counting down
+		"rjmp	SCOUNTD			\n\t"	// Countdown reached
+		"S5_done:				\n\t"
+		"rjmp	SRETURN__		\n\t"
+
+
+		"SRETURN__:				\n\t"
+
+		"mfsr	%0, 264			\n\t"	// Load 2nd cycle counter into r11
+		"sub	%0, r10			\n\t"	// Return difference from 1st to 2nd cycle counter
+
+
+		"SCOUNTD:				\n\t"	// Countdown reached, %0 is 0
+
+		//		"csrf	16				\n\t"	// Enable global interrupt
+		:	"=r" (timeout)				// One output register
+		:								// No input registers
+		:	"r8", "r9", "r10"			// Clobber registers, pushed/popped unless assigned by GCC as temps
+	);
+
+
+// 	timeout = 150 - timeout;
+
+	// It looks like we have approx. With 66MHz CPU clock it looks like 1 ticks
+	// Results from measurements and math:
+	//  44.1 1478-1580 (1496.6)
+	//  48.0 1358-1452 (1375.0)
+	//	88.2  739- 790 ( 748.3)
+	//  96.0  679- 726 ( 687.5)
+	// 176.4  369- 396 ( 374.2)
+	// 192.0  339- 363 ( 343.8)
+
+	#define SLIM_44_LOW		1478
+	#define SLIM_44_HIGH	1580 		// Gives timeout of 2000
+	#define SLIM_48_LOW		1358
+	#define SLIM_48_HIGH	1452
+	#define SLIM_88_LOW		739
+	#define SLIM_88_HIGH	790
+	#define SLIM_96_LOW		679
+	#define SLIM_96_HIGH	726
+	#define SLIM_176_LOW	369			// Add margin??
+	#define SLIM_176_HIGH	396
+	#define SLIM_192_LOW	339
+	#define SLIM_192_HIGH	367			// Analysis saw up to 366
+	
+	// Limits range from 0x0153 to 0x062C. If timeout & 0x0000F000 isn't 0 then something went wrong and result should be ignored
+	
+	if ( (timeout >= SLIM_44_LOW) && (timeout <= SLIM_44_HIGH) ) {
+//		print_dbg_char('1');
+		return FREQ_44;
+	}
+	if ( (timeout >= SLIM_48_LOW) && (timeout <= SLIM_48_HIGH) ) {
+//		print_dbg_char('2');
+		return FREQ_48;
+	}
+	if ( (timeout >= SLIM_88_LOW) && (timeout <= SLIM_88_HIGH) ) {
+//		print_dbg_char('3');
+		return FREQ_88;
+	}
+	if ( (timeout >= SLIM_96_LOW) && (timeout <= SLIM_96_HIGH) ) {
+//		print_dbg_char('4');
+		return FREQ_96;
+	}
+	if ( (timeout >= SLIM_176_LOW) && (timeout <= SLIM_176_HIGH) ) {
+//		print_dbg_char('5');
+		return FREQ_176;
+	}
+	if ( (timeout >= SLIM_192_LOW) && (timeout <= SLIM_192_HIGH) ) {
+//		print_dbg_char('6');
+		return FREQ_192;
+	}
+	if (timeout & 0x0000F000) {		// According to tests done. This may be the signature of the RTOS
+//		print_dbg_char('I');
+		return FREQ_INVALID;
+	}
+		
+	else {
+//		print_dbg_char('F');
+		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
+	}
+
+} // mobo_srd_asm2()
 
 
 
