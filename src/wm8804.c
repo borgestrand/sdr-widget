@@ -201,8 +201,7 @@ void wm8804_task(void *pvParameters) {
 				}
 				
 				// Sometimes poll sample rate - dude, this happens a lot!
-//				if ( (poll_counter & 0x0003) == 0) {				// Once every 80ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 200
-				if ( (poll_counter & 0x000F) == 0) {				// Once every 102.4ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 4 æææ period!
+				if ( (poll_counter & 0x0003) == 0) {				// Once every 80ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 200
 					freq = wm8804_srd();
 
 					// If srd() returned a valid frequency that is different from the one we believe we're at, do something!					
