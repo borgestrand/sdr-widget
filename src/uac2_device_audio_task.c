@@ -220,7 +220,7 @@ void uac2_device_audio_task(void *pvParameters)
 			#ifdef USB_STATE_MACHINE_DEBUG
 //				print_dbg_char('7');
 			#endif
-			mobo_clear_dac_channel();
+			mobo_clear_dac_channel(); 
 			dac_must_clear = DAC_CLEARED;
 		}
 
