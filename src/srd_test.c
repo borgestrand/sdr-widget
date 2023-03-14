@@ -94,8 +94,18 @@ int foo(void) {
 	}
 */	
 
+
+/*
 	volatile avr32_gpio_port_t 	*gpio_port2 = &GPIO.port[AVR32_PIN_PA05 >> 5];
 	while ( (timeout != 0) && ( ((gpio_port2->pvr >> (AVR32_PIN_PA05 & 0x1F)) & 1) == 0) ) {
+		timeout --;
+	}
+*/
+
+// Use hardwired PX36 = AK5394_LRCK
+
+	volatile avr32_gpio_port_t 	*gpio_port2 = &GPIO.port[AVR32_PIN_PX36 >> 5];
+	while ( (timeout != 0) && ( ((gpio_port2->pvr >> (AVR32_PIN_PX36 & 0x1F)) & 1) == 0) ) {
 		timeout --;
 	}
 
@@ -110,19 +120,20 @@ int foo(void) {
 		"mov	%0, 	8000	\n\t"	// Load timeout
 		"mov	r9,		-61440	\n\t"	// Immediate load, set up pointer to PA04, (0xFFFF1000) recompile C for other IO pin, do once
 		"mov	r9,		-61184	\n\t"	// Immediate load, set up pointer to PB11, (0XFFFF1100) recompile C for other IO pin, do once. Is comment correct???
-		
-		"L0:					\n\t"	// Loop while PA04 is 1
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"mov	r9,		-60928	\n\t"	// Immediate load, set up pointer to PX36, recompile C for other IO pin, do once
+	
+		"L0:					\n\t"	// Loop while PX36 is 1
+		"ld.w	r8,		r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"brne	L0_done			\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L0				\n\t"	// Not done counting down
 		"rjmp	COUNTD			\n\t"	// Countdown reached
 		"L0_done:				\n\t"
 
-		"L1:					\n\t"	// Loop while PA04 is 0
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"L1:					\n\t"	// Loop while PX36 is 0
+		"ld.w	r8,		r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"breq	L1_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L1				\n\t"	// Not done counting down
@@ -131,18 +142,18 @@ int foo(void) {
 
 		"mov	%0, 	8000	\n\t"	// Restart countdon for actual timing of below half-cycles
 
-		"L3:					\n\t"	// Loop while PBA04 is 1
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"L3:					\n\t"	// Loop while PX36 is 1
+		"ld.w	r8,		r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"brne	L3_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L3				\n\t"	// Not done counting down
 		"rjmp	COUNTD			\n\t"	// Countdown reached
 		"L3_done:				\n\t"
 
-		"L4:					\n\t"	// Loop while PA04 is 0
-		"ld.w	r8,		r9[96]	\n\t"	// Load PA04 (and surroundings?) into r8, 		recompile C for other IO pin
-		"bld	r8, 	4		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+		"L4:					\n\t"	// Loop while PX36 is 0
+		"ld.w	r8,		r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+		"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
 		"breq	L4_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 		"sub	%0,	1			\n\t"	// Count down
 		"brne	L4				\n\t"	// Not done counting down
