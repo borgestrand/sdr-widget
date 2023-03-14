@@ -276,8 +276,8 @@ void uac2_freq_change_handler() {
 			print_dbg_char('4'); // BSB debug 20121212
 #endif
 
-#ifdef HW_GEN_RXMOD
-			// Avoid when using SSC_RX for SPDIF buffering?
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
+			// Avoid when using SSC_RX for SPDIF buffering? 
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 			pdca_disable(PDCA_CHANNEL_SSC_RX);
@@ -305,7 +305,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('3'); // BSB debug 20121212
 #endif
 
-#ifdef HW_GEN_RXMOD
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -334,7 +334,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('5'); // BSB debug 20121212
 #endif
 
-#ifdef HW_GEN_RXMOD
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -356,7 +356,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('6'); // BSB debug 20121212
 #endif
 
-#ifdef HW_GEN_RXMOD
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -378,7 +378,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('2'); // BSB debug 20121212
 #endif
 
-#ifdef HW_GEN_RXMOD
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -400,7 +400,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('1'); // BSB debug 20121212
 #endif
 
-#ifdef HW_GEN_RXMOD
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -418,7 +418,7 @@ void uac2_freq_change_handler() {
 		}
 
 		if (FEATURE_ADC_AK5394A) {
-			#ifdef HW_GEN_RXMOD // Just to be on the safe side
+			#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // Just to be on the safe side
 			#else
 				// re-sync SSC to LRCK
 				// Wait for the next frame synchronization event

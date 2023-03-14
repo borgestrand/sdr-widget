@@ -337,6 +337,18 @@ void device_mouse_hid_task(void)
 
 
 
+#ifdef HW_GEN_WFADC
+            else if (a == 'c') {							// Lowercase c
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				if (temp == 0) {
+					gpio_clr_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is high for 48ksps domain
+				}
+				else {
+					gpio_set_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is low for 44.1ksps domain
+				}
+            }
+#endif
+
 #ifdef HW_GEN_RXMOD
             else if (a == '0') {							// Digit 0
 	            // usb_ch = USB_CH_NONE;

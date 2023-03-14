@@ -255,7 +255,7 @@ void LED_Off(U32 leds) {
 	#if (defined HW_GEN_RXMOD)
 		LED_On_GPIO(leds);								// RXMODFIX LEDs near PCB are active high, LEDs at edge are active low
 	#else
-		gpio_enable_pin_pull_up(AVR32_PIN_PA04);		// Floating: Active high. GND: Active low HW_GEN_RXMOD: stay away from PA04!
+		gpio_enable_pin_pull_up(AVR32_PIN_PA04);		// Floating: Active high. GND: Active low HW_GEN_RXMOD: stay away from PA04! usbmod and HW_GEN_WFADC brought out to test point
 
 		if (gpio_get_pin_value(AVR32_PIN_PA04) == 1)	// Active high
 			LED_Off_GPIO(leds);
@@ -272,7 +272,7 @@ void LED_On(U32 leds) {
 	#if (defined HW_GEN_RXMOD)
 		LED_Off_GPIO(leds);								// RXMODFIX LEDs near PCB are active high, LEDs at edge are active low
 	#else
-		gpio_enable_pin_pull_up(AVR32_PIN_PA04);		// Floating: Active high. GND: Active low
+		gpio_enable_pin_pull_up(AVR32_PIN_PA04);		// Floating: Active high. GND: Active low HW_GEN_RXMOD: stay away from PA04! usbmod and HW_GEN_WFADC brought out to test point
 
 		if (gpio_get_pin_value(AVR32_PIN_PA04) == 1)	// Active high
 			LED_On_GPIO(leds);

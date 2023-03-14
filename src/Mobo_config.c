@@ -636,7 +636,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
-#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
 	#define IN_LEFT 0
 	#define IN_RIGHT 1
 	#define OUT_LEFT 0
@@ -1103,7 +1103,9 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 			}
 		}
-
+	#elif (defined HW_GEN_WFADC)
+		// WFADC_site 
+		// 48ksps domain is permanently turned on
 	#else
 		#error undefined hardware
 	#endif
@@ -1119,7 +1121,7 @@ void mobo_clock_division(U32 frequency) {
 	static U32 prev_frequency = FREQ_INVALID;
 
 	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
-		#if (defined HW_GEN_RXMOD) 
+		#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
 			// RXMODFIX implement clock division and config pin
 		#else
 			gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
@@ -1127,7 +1129,7 @@ void mobo_clock_division(U32 frequency) {
 	
 		pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-		#if (defined HW_GEN_RXMOD)					// RXMODFIX implement clock division and config pin
+		#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)		// RXMODFIX implement clock division and config pin
 			if (0) {
 		#else
 			// External /2 variety, unmodded hardware with floating, pulled-up PA03 interpreted as 1
@@ -1186,7 +1188,7 @@ void mobo_clock_division(U32 frequency) {
 			}
 
 		// No external /2 variety, modded hardware with resistor tying PA03 to 0
-		else {	// HW_GEN_RXMOD only follows this branch
+		else {	// HW_GEN_RXMOD and HW_GEN_WFADC only follow this branch
 			switch (frequency) {
 				case FREQ_192 :
 					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc

@@ -380,8 +380,8 @@ void AK5394A_task_init(const Bool uac1) {
 	// Register PDCA IRQ interruptS. // Plural those are!
 	pdca_set_irq();
 
-	// Init ADC channel for SPDIF buffering
-	#ifdef HW_GEN_RXMOD
+	// Init ADC channel for SPDIF buffering, HW_GEN_WFADC turns it on in separate state machine WFADC_site
+	#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
 	/*  Empty for now....
 		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 //		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);

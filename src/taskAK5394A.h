@@ -34,7 +34,7 @@
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
 // Keep buffer sizes belov 2^14
-#ifdef HW_GEN_RXMOD // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
 /* Nominal values are (8*2*24) and (32*2*24)
 Long buffers may take up too much RAM. And clearing and moving their contents take a long time.
 Short buffers give less system latency and poorer synch state machine performance

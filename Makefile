@@ -8,7 +8,8 @@
 # -DFEATURE_PRODUCT_HA256		Henry Audio experimental product
 # -DFEATURE_PRODUCT_BOEC1		Boenicke experimental product
 #
-# -DHW_GEN_AB1X					Pure USB DAC - all hardware revisions
+# -DHW_GEN_AB1X					Pure USB DAC - all marketed Henry Audio / QNKTC hardware versions
+# -DHW_GEN_WFADC				Whisperfloor ADC data collection based on old USB module
 # -DHW_GEN_RXMOD				Latest revision of SPDIF receiver
 # -DHW_GEN_RXMOD_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
 # -DHW_GEN_RXMOD_PATCH_02		Hardware development, RXmod_T1_C boards
@@ -48,12 +49,12 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_HID \
 	-DFEATURE_PRODUCT_HA256 \
-	-DFEATURE_ALT2_16BIT \
-	-DHW_GEN_RXMOD \
-	-DHW_GEN_RXMOD_PATCH_01 \
-	-DHW_GEN_RXMOD_PATCH_02
+	-DHW_GEN_WFADC
 
-#		\
+#	-DFEATURE_ALT2_16BIT \
+#	-DHW_GEN_RXMOD \
+#	-DHW_GEN_RXMOD_PATCH_01 \
+#	-DHW_GEN_RXMOD_PATCH_02 \
 #	-DFEATURE_VOLUME_CTRL \
 #	-DFEATURE_ADC_EXPERIMENTAL
 	

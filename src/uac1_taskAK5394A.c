@@ -116,7 +116,7 @@ void uac1_AK5394A_task(void *pvParameters) {
 			// FIX: This is not pretty! We only comment out the disabling of PDCA_CHANNEL_SSC_RX, not what else is going on in the file
 			// RXMODFIX sane??
 			#ifdef HW_GEN_RXMOD
-				// pdca disable code must be moved to something dealing with spdif playback use of ADC interface
+				// pdca disable code must be moved to something dealing with spdif playback use of ADC interface WFADC_site
 			#else
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);

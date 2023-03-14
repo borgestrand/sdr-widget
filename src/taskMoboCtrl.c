@@ -94,7 +94,7 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
 #if I2C
 
 // The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
-#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD)
+#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD) || (defined  HW_GEN_WFADC)
 #else
 
 static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
@@ -594,7 +594,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 //	print_dbg_char('o');
 
 		// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
-		#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD)
+		#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD) || (defined  HW_GEN_WFADC)
 		#else
 			// Probe for I2C devices present and report on LCD
 			i2c_device_scan();
@@ -692,7 +692,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 	
 	// The Henry Audio and QNKTC series of hardware doesn't use the rotary encoder
-	#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD)
+	#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD) || (defined  HW_GEN_WFADC)
 	#else
 	// Initialise Rotary Encoder Function
 		encoder_init();
@@ -781,7 +781,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 						mobo_led(FLED_GREEN);
 					}
 
-				#elif (defined HW_GEN_RXMOD)
+				#elif (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
 					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 						mobo_led(FLED_RED);							// With UAC1
 					else
@@ -810,7 +810,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 					if (btn_poll_temp == 100) {
 						#if defined(HW_GEN_AB1X)
 							mobo_led(FLED_DARK);
-						#elif (defined HW_GEN_RXMOD)
+						#elif (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
 							mobo_led(FLED_DARK);
 							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
 
@@ -1060,14 +1060,14 @@ static void vtaskMoboCtrl( void * pcParameters )
 				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
 				{						// also present, then we can use Widget PTT_1
 										// for additional PTT control
-					#if !(  (defined HW_GEN_RXMOD)  ) // PTT_1 (PX45) line recycled
+					#if !(  (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)  ) // PTT_1 (PX45) line recycled
 						gpio_set_gpio_pin(PTT_1);
 					#endif
 				}
    	    	}
 			else
 			#endif
-				#if !(  (defined HW_GEN_RXMOD)  ) // PTT_1 line recycled
+				#if !(  (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)   ) // PTT_1 line recycled
 					gpio_set_gpio_pin(PTT_1);
 				#endif
 
@@ -1096,14 +1096,15 @@ static void vtaskMoboCtrl( void * pcParameters )
 				if(i2c.pcflpf1)			// If the PCF for Low Pass switching is
 				{						// also present, then we can use Widget PTT_1
 										// for additional PTT control
-					#if !(  (defined HW_GEN_RXMOD)  ) // PTT_1 line recycled
+										
+					#if !(  (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)  ) // PTT_1 (PX45) line recycled
 						gpio_clr_gpio_pin(PTT_1);
 					#endif
 				}
    	    	}
 			else
 			#endif
-				#if !(  (defined HW_GEN_RXMOD)  ) // PTT_1 line recycled
+				#if !(  (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)  ) // PTT_1 (PX45) line recycled
 					gpio_clr_gpio_pin(PTT_1);
 				#endif
 

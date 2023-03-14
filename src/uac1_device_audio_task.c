@@ -173,7 +173,7 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
-	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD)
+	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
 	#define IN_LEFT 0
 	#define IN_RIGHT 1
 	#define OUT_LEFT 0

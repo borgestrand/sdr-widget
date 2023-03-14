@@ -255,6 +255,7 @@ int main(void)
 		
 	// Set CPU and PBA clock at slow (12MHz) frequency
 	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param_slow) )
+	
 		return 42;
 
 
@@ -336,6 +337,15 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #endif
 
+#ifdef HW_GEN_WFADC	// Whisperfloor data collection on usb module
+
+	gpio_set_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is high for 48ksps domain - check if it boots
+
+	cpu_delay_ms(500, FCPU_HZ_SLOW);		// For good measure, not tested
+
+#endif
+
+
 	// Set CPU and PBA clock
 	if( PM_FREQ_STATUS_FAIL==pm_configure_clocks(&pm_freq_param) )
 		return 42;
@@ -343,7 +353,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	// Initialize usart comm
 	init_dbg_rs232(pm_freq_param.pba_f);
 
-#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) )
+#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) || (defined HW_GEN_WFADC) )
 #else
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware Verified HW_GEN_RXMOD
 #endif
@@ -362,7 +372,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #if (defined HW_GEN_RXMOD)
 
-	print_dbg_char('s');									// RXMODFIX input_select debug
+//	print_dbg_char('s');									// RXMODFIX input_select debug
 	print_dbg_char_hex(input_select);
 	
 	mobo_led_select(FREQ_44, MOBO_SRC_NONE);				// Front RGB LED, default indication of 44.1kHz and scanning
@@ -429,7 +439,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	}
 
 #if !(defined HW_GEN_RXMOD)
-	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);	// HW_GEN_DIN20 PX02 = SP_SEL1, SPDIF selector
+	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);	// HW_GEN_DIN20 PX02 = SP_SEL1, SPDIF selector, not used in HW_GEN_WFADC
 #endif
 
 #if (defined HW_GEN_RXMOD)
