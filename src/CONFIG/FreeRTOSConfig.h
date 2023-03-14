@@ -185,7 +185,7 @@ to exclude the API function. */
 #define HPSDR_configTSK_USB_DAUDIO_PERIOD		2
 
 /* AK5394A task definitions. */
-#define configTSK_AK5394A_NAME					((const signed portCHAR *)"AK5394A")
+#define configTSK_AK5394A_NAME					((const signed portCHAR *)"AK5394A") 
 #define configTSK_AK5394A_STACK_SIZE			256
 #define UAC1_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 2)// Was 1
 #define UAC2_configTSK_AK5394A_PRIORITY			(tskIDLE_PRIORITY + 3)// Was +1, then +2
