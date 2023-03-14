@@ -127,9 +127,5 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t data);
 // Read a single byte from WM8804
 uint8_t wm8804_read_byte(uint8_t int_adr);
 
-// Sample rate detection test
-uint32_t wm8804_srd(void);
-uint32_t wm8804_srd_asm2(void);		// For test and evaluation
-
 
 #endif /* WM8804_H_ */
