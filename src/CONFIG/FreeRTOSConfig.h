@@ -179,7 +179,7 @@ to exclude the API function. */
 /* USB device Audio task definitions. */
 #define configTSK_USB_DAUDIO_NAME				((const signed portCHAR *)"USB Device Audio")
 #define configTSK_USB_DAUDIO_STACK_SIZE			256
-#define configTSK_USB_DAUDIO_PRIORITY			(tskIDLE_PRIORITY + 2)
+#define configTSK_USB_DAUDIO_PRIORITY			(tskIDLE_PRIORITY + 3)
 #define UAC1_configTSK_USB_DAUDIO_PERIOD		2
 #define UAC2_configTSK_USB_DAUDIO_PERIOD		1
 #define HPSDR_configTSK_USB_DAUDIO_PERIOD		2
