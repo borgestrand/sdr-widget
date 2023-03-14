@@ -207,8 +207,8 @@ void uac1_device_audio_task(void *pvParameters)
 
 		// Process digital input
 		#ifdef HW_GEN_RXMOD
-//			mobo_handle_spdif(24); // UAC1 uses 24-bit data
-//			Moved to wm8804 task
+			mobo_handle_spdif(24); // UAC1 uses 24-bit data
+//			Can fit here or in wm8804 task. There is too little time to run two consumers!
 
 				static uint8_t prev_input_select = MOBO_SRC_NONE;
 

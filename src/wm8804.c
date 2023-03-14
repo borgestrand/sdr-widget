@@ -119,13 +119,16 @@ void wm8804_task(void *pvParameters) {
 		
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
 
+
+/*
+// It's possible to run spdif handler here, but it's very tight in the time domain. Two consumers probably can't coexist at given MCU speed and algorithm complexity
 		if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio) {
 			mobo_handle_spdif(32);					// Polling code. UAC2 uses 32-bit data - moved here from uac2_dat.c
 		}
 		else if (feature_get_nvram(feature_image_index) == feature_image_uac2_audio) {
 			mobo_handle_spdif(24);					// Polling code. UAC1 uses 24-bit data - moved here from uac1_dat.c
 		}
-
+*/
 		
 		poll_counter ++;							// Don't always do everything
 		
