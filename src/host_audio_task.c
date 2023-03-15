@@ -166,7 +166,7 @@ void host_audio_task(void)
                   {
                     // Log in device
                     audio_connected=TRUE;
-                    LED_On(LED0);
+//                    LED_On(LED0);
                     Host_enable_sof_interrupt();
 
                     // Select and enable ISOCHRONOUS pipe
@@ -235,27 +235,27 @@ void host_audio_task(void)
                stream_status = usb_stream_input(pipe_audio_in, byte_count, &fifo_cnt);
                if( USB_STREAM_STATUS_OK == stream_status )
                {
-                  LED_Off( LED0 );
-                  LED_On(  LED1 );
-                  LED_Off( LED2 );
+//                  LED_Off( LED0 );
+//                 LED_On(  LED1 );
+//                LED_Off( LED2 );
                }
                else if( USB_STREAM_STATUS_SPEED_UP == stream_status )
                {
-                  LED_On(  LED0 );
-                  LED_Off( LED1 );
-                  LED_Off( LED2 );
+//                  LED_On(  LED0 );
+//                  LED_Off( LED1 );
+//                  LED_Off( LED2 );
                }
                else if( USB_STREAM_STATUS_SLOW_DOWN == stream_status )
                {
-                  LED_Off( LED0 );
-                  LED_Off( LED1 );
-                  LED_On(  LED2 );
+//                  LED_Off( LED0 );
+//                  LED_Off( LED1 );
+//                  LED_On(  LED2 );
                }
                else if( USB_STREAM_STATUS_NOT_SYNCHRONIZED == stream_status )
                {
-                  LED_On( LED0 );
-                  LED_On( LED1 );
-                  LED_On( LED2 );
+//                  LED_On( LED0 );
+//                  LED_On( LED1 );
+//                  LED_On( LED2 );
                }
             }
             Host_ack_in_received(pipe_audio_in);

@@ -1052,7 +1052,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Asked for TX on, TX not yet on and no Temperature alarm
    		if (TX_flag && !TX_state && !TMP_alarm)
 		{
-			LED_Off(LED0);
+//			LED_Off(LED0);
 
 			TX_state = TRUE;
 			// Switch to Transmit mode, set TX out
@@ -1089,7 +1089,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Asked for TX off, TX still on, or if Temperature Alarm
 		else if ((!TX_flag && TX_state) || (TMP_alarm && TX_state))
 		{
-			LED_On(LED0);
+//			LED_On(LED0);
 
 			TX_state = FALSE;
 			#if PCF8574
