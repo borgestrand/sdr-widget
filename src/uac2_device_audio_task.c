@@ -875,7 +875,7 @@ taskEXIT_CRITICAL();
 								FB_error_acc = FB_error_acc - (1<<14);
 								time_to_calculate_gap = -1;				// Immediate gap re-calculation
 								skip_indicate = 1;
-								LED_On(LED0);							// Indicate skipping on module LED
+//								LED_On(LED0);							// Indicate skipping on module LED
 	#ifdef USB_STATE_MACHINE_DEBUG
 	//							print_dbg_char('s');
 	#endif
@@ -898,7 +898,7 @@ taskEXIT_CRITICAL();
 								FB_error_acc = FB_error_acc - (1<<14);	// FB_* formatted as 2^14 samples per ms
 								time_to_calculate_gap = -1;				// Immediate gap re-calculation
 								skip_indicate = 1;
-								LED_On(LED0);							// Indicate skipping on module LED
+//								LED_On(LED0);							// Indicate skipping on module LED
 	#ifdef USB_STATE_MACHINE_DEBUG
 	//							print_dbg_char('s');
 	#endif
@@ -1164,7 +1164,7 @@ taskEXIT_CRITICAL();
 										FB_rate -= 2*FB_RATE_DELTA;
 										old_gap = gap;
 										skip_indicate = 0;				// Feedback system is running again!
-										LED_On(LED0);
+//										LED_On(LED0);
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('/');
 	#endif
@@ -1173,7 +1173,7 @@ taskEXIT_CRITICAL();
 										FB_rate -= FB_RATE_DELTA;
 										old_gap = gap;
 										skip_indicate = 0;				// Feedback system is running again!
-										LED_On(LED0);
+//										LED_On(LED0);
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('-');
 	#endif
