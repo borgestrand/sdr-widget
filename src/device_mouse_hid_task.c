@@ -359,11 +359,11 @@ void device_mouse_hid_task(void)
             else if (a == 'l') {							// Lowercase c
 	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 
-				if ( (temp & 0b00000001) != 0)				// Presumably AVR32_PIN_PX20 or AVR32_PIN_PX29
+				if ( (temp & 0b00000001) != 0)				// Presumably AVR32_PIN_PX20 or AVR32_PIN_PX29, red led on usb module
 					LED_On( LED0 );
 				else
 					LED_Off( LED0 );
-				if ( (temp & 0b00000010) != 0)				// Presumably AVR32_PIN_PX46 or AVR32_PIN_PX32
+				if ( (temp & 0b00000010) != 0)				// Presumably AVR32_PIN_PX46 or AVR32_PIN_PX32, green led on usb module
 					LED_On( LED1 );
 				else
 					LED_Off( LED1 );

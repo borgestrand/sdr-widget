@@ -252,7 +252,9 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 				else {
 					
-					print_dbg_char('i');	// USB IN consumer shutting down
+					LED_Off( LED1 );										// Green LED turning off
+					
+					print_dbg_char('i');									// USB IN consumer shutting down
 					
 					I2S_consumer &= ~I2S_CONSUMER_USB;						// USB is no longer subscribing to I2S data
 	
@@ -273,7 +275,8 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// In initial state. Do something to fire up data collection!
 					
-					print_dbg_char('I');	// USB IN consumer starting up
+					LED_On( LED1 );											// Green LED turning on
+					print_dbg_char('I');									// USB IN consumer starting up
 
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
 	
