@@ -284,7 +284,9 @@ void uac2_device_audio_task(void *pvParameters)
 						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
 						 mobo_clear_adc_channel();
 
-						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
+//						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
+						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state WFADC_site enable according to detected rate
+						
 					} // Init DMA for USB IN consumer
 
 					ADC_buf_USB_IN = INIT_ADC_USB_st2;						// Prepare for 2nd init step during first USB data transfer

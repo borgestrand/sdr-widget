@@ -152,19 +152,19 @@ void send_descriptor(U16 wLength, Bool zlp) {
 // To fix -that- search for "triplets" in the ASIO driver code and change the array size from 64 to 128.
 //const U8 Speedx[38] = { // 74
 	
-#ifdef FEATURE_ADC_EXPERIMENTAL	// Initially operating at only 44.1 ADC_site
+#ifdef HW_GEN_WFADC				// Hardware is fixed to 96ksps. We could use mobo_srd() and enumerate accordingly, but that messes with the whole USB transmit structure
 	const U8 Speedx_hs[14] = {
 		0x01, 0x00, // Number of sample rate triplets with UAC2 over USB 1.1 (not tested!)
 
-		0x44,0xac,0x00,0x00,	//44.1k Min
-		0x44,0xac,0x00,0x00,	//44.1k Max
+		0x00,0x77,0x01,0x00,	//96k Min
+		0x00,0x77,0x01,0x00,	//96k Max
 		0x00,0x00,0x00,0x00,	// 0 Res
 	};
 	const U8 Speedx_fs[14] = {
 		0x01, 0x00, // Number of sample rate triplets with UAC2 over USB 1.1 (not very well tested!)
 
-		0x44,0xac,0x00,0x00,	//44.1k Min
-		0x44,0xac,0x00,0x00,	//44.1k Max
+		0x00,0x77,0x01,0x00,	//96k Min
+		0x00,0x77,0x01,0x00,	//96k Max
 		0x00,0x00,0x00,0x00,	// 0 Res
 	};
 #else // Conventional sample rates for UAC2
