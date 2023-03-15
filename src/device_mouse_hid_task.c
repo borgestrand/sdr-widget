@@ -355,6 +355,31 @@ void device_mouse_hid_task(void)
 				print_dbg_char_hex(temp32 >> 16);
 				print_dbg_char_hex(temp32 >> 24);
 			}
+			
+            else if (a == 'l') {							// Lowercase c
+	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+
+				if ( (temp & 0b00000001) != 0)				// Presumably AVR32_PIN_PX20 or AVR32_PIN_PX29
+					LED_On( LED0 );
+				else
+					LED_Off( LED0 );
+				if ( (temp & 0b00000010) != 0)				// Presumably AVR32_PIN_PX46 or AVR32_PIN_PX32
+					LED_On( LED1 );
+				else
+					LED_Off( LED1 );
+				if ( (temp & 0b00000100) != 0)				// Presumably AVR32_PIN_PX50
+					LED_On( LED2 );
+				else
+					LED_Off( LED2 );
+				if ( (temp & 0b00001000) != 0)				// Presumably AVR32_PIN_PX57
+					LED_On( LED3 );
+				else
+					LED_Off( LED3 );
+				
+	
+			}
+
+
 #endif
 
 #ifdef HW_GEN_RXMOD

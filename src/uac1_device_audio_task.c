@@ -453,8 +453,8 @@ void uac1_device_audio_task(void *pvParameters)
 								num_remaining = spk_pdca_channel->tcr;
 							}
 							DAC_buf_OUT = DAC_buf_DMA_read_local;
-							LED_Off(LED0);							// The LEDs on the PCB near the MCU
-							LED_Off(LED1);
+							// LED_Off(LED0);							// The LEDs on the PCB near the MCU
+							// LED_Off(LED1);
 
 	#ifdef USB_STATE_MACHINE_GPIO
 							if (DAC_buf_OUT == 1)
@@ -788,8 +788,8 @@ void uac1_device_audio_task(void *pvParameters)
 	#endif
 										}
 										else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
-											LED_Off(LED0);
-											LED_Off(LED1);
+											// LED_Off(LED0);
+											// LED_Off(LED1);
 										}
 									}
 									else if (gap > old_gap) {
@@ -812,13 +812,13 @@ void uac1_device_audio_task(void *pvParameters)
 	#endif
 										}
 										else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
-											LED_Off(LED0);
-											LED_Off(LED1);
+											// LED_Off(LED0);
+											// LED_Off(LED1);
 										}
 									}
 									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
-										LED_Off(LED0);
-										LED_Off(LED1);
+										// LED_Off(LED0);
+										// LED_Off(LED1);
 									}
 								} // end if(playerStarted)
 							} // end if (usb_alternate_setting_out >= 1)

@@ -7,6 +7,7 @@
 # -DFEATURE_PRODUCT_AB1x		Henry Audio USB DAC 128 and QNKTC series of DACs
 # -DFEATURE_PRODUCT_HA256		Henry Audio experimental product
 # -DFEATURE_PRODUCT_BOEC1		Boenicke experimental product
+# -DFEATURE_PRODUCT_WFADC		Whisperfloor data collection device
 #
 # -DHW_GEN_AB1X					Pure USB DAC - all marketed Henry Audio / QNKTC hardware versions
 # -DHW_GEN_WFADC				Whisperfloor ADC data collection based on old USB module
@@ -48,10 +49,11 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_GPIO \
 	-DUSB_STATE_MACHINE_DEBUG \
 	-DFEATURE_HID \
-	-DFEATURE_PRODUCT_HA256 \
+	-DFEATURE_PRODUCT_WFADC \
 	-DFEATURE_ADC_EXPERIMENTAL \
 	-DHW_GEN_WFADC
 
+#	-DFEATURE_PRODUCT_HA256 \
 #	-DFEATURE_ALT2_16BIT \
 #	-DHW_GEN_RXMOD \
 #	-DHW_GEN_RXMOD_PATCH_01 \
