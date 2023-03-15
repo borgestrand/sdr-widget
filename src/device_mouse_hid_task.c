@@ -197,6 +197,7 @@ void device_mouse_hid_task(void)
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
   uint8_t temp;					// Temporary debug data
+  uint32_t temp32;					// Temporary debug data
   uint8_t dev_datar[1];
 
 
@@ -347,6 +348,13 @@ void device_mouse_hid_task(void)
 					gpio_set_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is low for 44.1ksps domain
 				}
             }
+            else if (a == 's') {							// Lowercase s
+				temp32 = mobo_srd();						// Does MCU see ADC's LRCK? Yes, 96ksps detected
+				print_dbg_char_hex(temp32);
+				print_dbg_char_hex(temp32 >> 8);
+				print_dbg_char_hex(temp32 >> 16);
+				print_dbg_char_hex(temp32 >> 24);
+			}
 #endif
 
 #ifdef HW_GEN_RXMOD

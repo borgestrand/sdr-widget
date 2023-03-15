@@ -139,7 +139,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_GPIO
 #ifdef FEATURE_ADC_EXPERIMENTAL
-    	gpio_set_gpio_pin(AVR32_PIN_PX55);
+    	gpio_set_gpio_pin(AVR32_PIN_PX55); 
 #endif
 #endif
 	}

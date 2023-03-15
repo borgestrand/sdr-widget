@@ -333,13 +333,13 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
 
 
-//					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711탎
+// WFADC_site OK, 2.5ms period		gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711탎
 
 
 					// Is the response time to Is_usb_in_ready too long? Or is the execution time too long? (17탎 nominal, up to 43탎)
 
 taskENTER_CRITICAL(); // Including gpio set and clear, this routine takes 15.7-18.4탎 as a critical task
-//					gpio_set_gpio_pin(AVR32_PIN_PX31);
+// WFADC_site OK, takes 33.4탎					gpio_set_gpio_pin(AVR32_PIN_PX31);
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
@@ -350,7 +350,7 @@ taskENTER_CRITICAL(); // Including gpio set and clear, this routine takes 15.7-1
 					}
 
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
-//					gpio_set_gpio_pin(AVR32_PIN_PX31);
+//					gpio_clr_gpio_pin(AVR32_PIN_PX31);
 taskEXIT_CRITICAL();
 					
 					// Done sending contents of USB IN cache. Now fill it up for the next transfer
@@ -358,6 +358,9 @@ taskEXIT_CRITICAL();
 				
 					// Must ADC consumer pointers be set up for 1st transfer?
 					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
+						
+						print_dbg_char('K');	// USB IN consumer starting up ADC_site
+
 						// New co-sample verification routine
 						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
 						num_remaining = pdca_channel->tcr;
@@ -554,10 +557,10 @@ taskEXIT_CRITICAL();
 
 #ifdef USB_STATE_MACHINE_GPIO
 								if (ADC_buf_USB_IN == 1) {
-//									gpio_set_gpio_pin(AVR32_PIN_PX31);
+									gpio_set_gpio_pin(AVR32_PIN_PX31);						// WFADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
 								}
 								else {
-//									gpio_clr_gpio_pin(AVR32_PIN_PX31);
+									gpio_clr_gpio_pin(AVR32_PIN_PX31);
 								}
 #endif
 							} // end index > buffer size
