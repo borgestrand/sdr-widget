@@ -288,8 +288,8 @@ void uac2_device_audio_task(void *pvParameters)
 						// mobo_clear_adc_channel();						// Redundant with call below
 
 //						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
-//						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state WFADC_site enable according to detected rate
-						AK5394A_pdca_rx_enable(FREQ_96);					// ADC_state WFADC_site enable according to detected rate
+						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state WFADC_site enable according to detected rate
+//						AK5394A_pdca_rx_enable(FREQ_96);					// ADC_state WFADC_site enable according to detected rate
 						
 					} // Init DMA for USB IN consumer
 
