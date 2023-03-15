@@ -282,10 +282,11 @@ void uac2_device_audio_task(void *pvParameters)
 						// ADC_site - this mode (starting with USB plabyack) does not yield USB IN data. Fix that one a little later... 
 						
 						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
-						 mobo_clear_adc_channel();
+						// mobo_clear_adc_channel();						// Redundant with call below
 
 //						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
-						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state WFADC_site enable according to detected rate
+//						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state WFADC_site enable according to detected rate
+						AK5394A_pdca_rx_enable(FREQ_96);					// ADC_state WFADC_site enable according to detected rate
 						
 					} // Init DMA for USB IN consumer
 
