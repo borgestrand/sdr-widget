@@ -781,12 +781,14 @@ static void vtaskMoboCtrl( void * pcParameters )
 						mobo_led(FLED_GREEN);
 					}
 
-				#elif (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
+				#elif (defined HW_GEN_RXMOD)
 					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 						mobo_led(FLED_RED);							// With UAC1
 					else
 						mobo_led(FLED_GREEN);						// With UAC != 1
 				
+				#elif (defined HW_GEN_WFADC)
+					// Don't do anything with LEDs, we're not running UAC1 on this hardware
 				#else
 				#error undefined hardware
 				#endif
@@ -810,12 +812,13 @@ static void vtaskMoboCtrl( void * pcParameters )
 					if (btn_poll_temp == 100) {
 						#if defined(HW_GEN_AB1X)
 							mobo_led(FLED_DARK);
-						#elif (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
+						#elif (defined HW_GEN_RXMOD)
 							mobo_led(FLED_DARK);
 							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
-
+						#elif (defined HW_GEN_WFADC)
+							// Do nothing with LEDs
 						#else
-						#error undefined hardware
+							#error undefined hardware
 						#endif
 					}
     			}
@@ -844,10 +847,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 						else {
 							mobo_led(FLED_PURPLE);	// With UAC != 1
 						}
-						// RXMODFIX what is the purpose just here?
-
+					#elif (defined HW_GEN_WFADC)
+						// Do nothing with LEDs
 					#else
-					#error undefined hardware
+						#error undefined hardware
 					#endif
     			}
     			btn_poll_temp = 0;
