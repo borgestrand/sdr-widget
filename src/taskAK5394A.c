@@ -234,7 +234,6 @@ void AK5394A_pdca_enable(void) {
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
 	U16 countdown = 0xFFFF;
-//	int i = 0;	// For debug purposes
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	mobo_clear_adc_channel();
@@ -243,16 +242,13 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
-		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
+		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 	}
-	else {	// No known frequency, don't halt system while polling for LRCK edge
-//		i = 1;
-	}
-
+	
 	// What is the optimal sequence? These two are simple write operations
 
 	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
@@ -261,6 +257,14 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 	taskEXIT_CRITICAL();
+
+	// Debug L/R
+	print_dbg_char('-');
+	print_dbg_char_hex(countdown >> 8);
+	print_dbg_char_hex(countdown);
+	print_dbg_char('-');
+	
+
 
 /* debug
 	print_dbg_char('.');

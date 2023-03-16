@@ -174,10 +174,10 @@ void uac1_device_audio_task(void *pvParameters)
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
-	#define IN_LEFT 0
-	#define IN_RIGHT 1
-	#define OUT_LEFT 0
-	#define OUT_RIGHT 1
+		#define IN_LEFT 0
+		#define IN_RIGHT 1
+		#define OUT_LEFT 0
+		#define OUT_RIGHT 1
 	#else
 		const U8 IN_LEFT = FEATURE_IN_NORMAL ? 0 : 1;
 		const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
