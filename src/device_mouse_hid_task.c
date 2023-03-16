@@ -375,8 +375,6 @@ void device_mouse_hid_task(void)
 					LED_On( LED3 );
 				else
 					LED_Off( LED3 );
-				
-	
 			}
 
 
