@@ -381,6 +381,27 @@ void device_mouse_hid_task(void)
 #endif
 
 #ifdef HW_GEN_RXMOD
+            else if (a == 'l') {							// Lowercase c
+	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+
+	            if ( (temp & 0b00000001) != 0)				// Presumably AVR32_PIN_PX20 or AVR32_PIN_PX29, red led on usb module
+	            LED_On( LED0 );
+	            else
+	            LED_Off( LED0 );
+	            if ( (temp & 0b00000010) != 0)				// Presumably AVR32_PIN_PX46 or AVR32_PIN_PX32, green led on usb module
+	            LED_On( LED1 );
+	            else
+	            LED_Off( LED1 );
+	            if ( (temp & 0b00000100) != 0)				// Presumably AVR32_PIN_PX50
+	            LED_On( LED2 );
+	            else
+	            LED_Off( LED2 );
+	            if ( (temp & 0b00001000) != 0)				// Presumably AVR32_PIN_PX57
+	            LED_On( LED3 );
+	            else
+	            LED_Off( LED3 );
+            }
+
             else if (a == '0') {							// Digit 0
 	            // usb_ch = USB_CH_NONE;
 				usb_ch = USB_CH_DEACTIVATE;					// Debugging disconnected USB cable
@@ -585,78 +606,7 @@ Arash
 			}
 			
 
-            else if (a == 'l') {							// Lowercase l
-				
-				/* Investigate whether long I2C accesses alone cause impulse noise
-				1) Does toggle alone cause impulse noise? Up? Down? NO!
-				2) If not, does toggle with I2C access always cause impulse noise?
-				   8x wm8804_read_byte(0x0B); does not give a particularly strong reading
-				   1x wm8804_pllnew(WM8804_PLL_NORMAL); YES, particularly with "// Always write to pll!	"
-				   8x wm8804_write_byte(0x1E, 0x04); is more I2C traffic. It too generates impulse noise but less than PLL command does
-				3) Does any other I2C write do the same, or is this an effect of wm8804_pllnew() ?
-				   It happens with other writes, but wm8804_pllnew() is dominated by it!
-				
-				4) Does a particular part of wm8804_pllnew() cause impulse?
-				   Yes, it mainly comes between
-				   wm8804_write_byte(0x1E, 0x06);
-				   and
-				   wm8804_write_byte(0x1E, 0x04);
-				   
-				   a) Try the improved (?) wm8804_write_byte(0x1E, 0x07); that also disables PLL, as stated in comments
-				   b) Monitor other activities between these two commands!
-
-				   
-				   
-				X) If not, what else happens during the I2C accesses that do coincide with impulse noise?
-				   Void...
-				   
-				   Multiple writes... setting the CONT bit high
-				   See modified  wm8804_init(void) {
-					   
-					   
-				   All I2C transfers create noise. But between "wm8804_write_byte(0x1E, 0x06);" and "wm8804_write_byte(0x1E, 0x04);" the pulse persists. Tested for 2ms
-				   
-				   
-				*/
-				
-//               	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-				   
-				// I2C accesses
-
-				// wm8804_pllnew(WM8804_PLL_NORMAL); 
-				// split into its constituent parts:
-
-				// Implemented code does not match comments!
-//				wm8804_write_byte(0x1E, 0x06);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:1 PLL // WM8804 same bit use, not verified here NB: disabling PLL before messing with it
-
-
-//LeavePLL				wm8804_write_byte(0x1E, 0x0F); // Analog disturbance is the same with 0x05, 0x06, 0x07! 0x0D and 0x0F are similar with slower onset, 0x0E lasts longer
-
-				// Match comments, turn off both RX and PLL
-				// Try disabling the oscillator as well....
-
-				wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
-				wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
-				wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
-				wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
-				wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
-
-
-				// last part of wm8804_pllnew
-//				wm8804_write_byte(0x1E, 0x04);		// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
-
-				
-				// Interrupt mask word, only written during setup
-//				wm8804_write_byte(0x0A, 0b11100100);
-
-				
-//              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-
-			}
-
             else if (a == 'p') {							// Lowercase p
-				
-				
 				// Emulate wm8804_pllnew(WM8804_PLL_NORMAL); 
 				
 //              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
