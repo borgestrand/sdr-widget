@@ -338,7 +338,7 @@ void device_mouse_hid_task(void)
 
 
 
-#ifdef HW_GEN_WFADC
+#ifdef HW_GEN_FMADC
             else if (a == 'c') {							// Lowercase c
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				if (temp == 0) {

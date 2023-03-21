@@ -190,7 +190,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
-	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC)
+	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 		#define IN_LEFT 0
 		#define IN_RIGHT 1
 		#define OUT_LEFT 0
@@ -288,8 +288,8 @@ void uac2_device_audio_task(void *pvParameters)
 						// mobo_clear_adc_channel();						// Redundant with call below
 
 //						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
-//						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state WFADC_site enable according to detected rate
-						AK5394A_pdca_rx_enable(FREQ_96);					// ADC_state WFADC_site enable according to detected rate
+//						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state FMADC_site enable according to detected rate
+						AK5394A_pdca_rx_enable(FREQ_96);					// ADC_state FMADC_site enable according to detected rate
 						
 					} // Init DMA for USB IN consumer
 
@@ -336,13 +336,13 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
 
 
-// WFADC_site OK, 2.5ms period		gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711탎
+// FMADC_site OK, 2.5ms period		gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711탎
 
 
 					// Is the response time to Is_usb_in_ready too long? Or is the execution time too long? (17탎 nominal, up to 43탎)
 
 taskENTER_CRITICAL(); // Including gpio set and clear, this routine takes 15.7-18.4탎 as a critical task
-// WFADC_site OK, takes 33.4탎					gpio_set_gpio_pin(AVR32_PIN_PX31);
+// FMADC_site OK, takes 33.4탎					gpio_set_gpio_pin(AVR32_PIN_PX31);
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
@@ -560,7 +560,7 @@ taskEXIT_CRITICAL();
 
 #ifdef USB_STATE_MACHINE_GPIO
 								if (ADC_buf_USB_IN == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX31);						// WFADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
+									gpio_set_gpio_pin(AVR32_PIN_PX31);						// FMADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
 								}
 								else {
 									gpio_clr_gpio_pin(AVR32_PIN_PX31);

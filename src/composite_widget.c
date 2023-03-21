@@ -337,7 +337,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #endif
 
-#ifdef HW_GEN_WFADC	// Whisperfloor data collection on usb module
+#ifdef HW_GEN_FMADC	// Floormotion data collection on usb module
 
 	gpio_set_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is high for 48ksps domain - check if it boots
 
@@ -355,7 +355,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	// Initialize usart comm
 	init_dbg_rs232(pm_freq_param.pba_f);
 
-#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) || (defined HW_GEN_WFADC) )
+#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) || (defined HW_GEN_FMADC) )
 #else
 	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware Verified HW_GEN_RXMOD
 #endif
@@ -441,7 +441,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	}
 
 #if !(defined HW_GEN_RXMOD)
-	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);	// HW_GEN_DIN20 PX02 = SP_SEL1, SPDIF selector, not used in HW_GEN_WFADC
+	gpio_enable_pin_pull_up(GPIO_PTT_INPUT);	// HW_GEN_DIN20 PX02 = SP_SEL1, SPDIF selector, not used in HW_GEN_FMADC
 #endif
 
 #if (defined HW_GEN_RXMOD)

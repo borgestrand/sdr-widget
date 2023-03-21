@@ -152,7 +152,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 // To fix -that- search for "triplets" in the ASIO driver code and change the array size from 64 to 128.
 //const U8 Speedx[38] = { // 74
 	
-#ifdef HW_GEN_WFADC				// Hardware is fixed to 96ksps. We could use mobo_srd() and enumerate accordingly, but that messes with the whole USB transmit structure
+#ifdef HW_GEN_FMADC				// Hardware is fixed to 96ksps. We could use mobo_srd() and enumerate accordingly, but that messes with the whole USB transmit structure
 	const U8 Speedx_hs[14] = {
 		0x01, 0x00, // Number of sample rate triplets with UAC2 over USB 1.1 (not tested!)
 
@@ -276,7 +276,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('4'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering? 
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -305,7 +305,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('3'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -334,7 +334,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('5'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -356,7 +356,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('6'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -378,7 +378,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('2'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -400,7 +400,7 @@ void uac2_freq_change_handler() {
 			print_dbg_char('1'); // BSB debug 20121212
 #endif
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // WFADC_site
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -418,7 +418,7 @@ void uac2_freq_change_handler() {
 		}
 
 		if (FEATURE_ADC_AK5394A) {
-			#if (defined HW_GEN_RXMOD) || (defined HW_GEN_WFADC) // Just to be on the safe side
+			#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // Just to be on the safe side
 			#else
 				// re-sync SSC to LRCK
 				// Wait for the next frame synchronization event
