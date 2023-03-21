@@ -349,7 +349,7 @@ void device_mouse_hid_task(void)
 				}
             }
             else if (a == 's') {							// Lowercase s
-				temp32 = mobo_srd();						// Does MCU see ADC's LRCK? Yes, 96ksps detected
+				temp32 = mobo_srd();
 				print_dbg_char_hex(temp32);
 				print_dbg_char_hex(temp32 >> 8);
 				print_dbg_char_hex(temp32 >> 16);
@@ -959,7 +959,11 @@ Arash
 			192	C0
 			*/
 			else if (a == 's') {
-				print_dbg_char_hex( (uint8_t)(mobo_srd() / 1000) );			// Report sample rate
+				temp32 = mobo_srd();
+				print_dbg_char_hex(temp32);
+				print_dbg_char_hex(temp32 >> 8);
+				print_dbg_char_hex(temp32 >> 16);
+				print_dbg_char_hex(temp32 >> 24);
 				wm8804_linkstats();											// Report linkup status
 			}
 			
