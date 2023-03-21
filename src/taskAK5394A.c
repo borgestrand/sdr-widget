@@ -233,47 +233,56 @@ void AK5394A_pdca_enable(void) {
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
-	U16 countdown = 0x00FF;
-
-	// On RXMOD hardware, I2S hasn't started up when this function is called. LRCK = '0' from WM8804
-	// There, timing out from 0xffff takes almost 30ms while two full periods at 44.1 is 0.045ms
-	// But timing out from 0x00ff takes 138us
-	// 
-	// NB: Ideally, this code should be called with running LRCK on RXMOD, not with LRCK == '0'
-
-	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-	mobo_clear_adc_channel();
-
-	// Moved to before LRCK edge detection to save time
-   	taskENTER_CRITICAL();
-
-	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-	ADC_buf_DMA_write = 0;
-
+	
+	// Consider LRCK version
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
-		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
-		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
+		(frequency == FREQ_88) || (frequency == FREQ_96) ||
+		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
+
+		U16 countdown = 0x00FF;
+
+		// Timing out from 0xffff takes almost 30ms while two full periods at 44.1 is 0.045ms
+		// But timing out from 0x00ff takes 138us
+
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		mobo_clear_adc_channel();
+
+		taskENTER_CRITICAL();
+
+		// Moved to before LRCK edge detection to save time
+		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+		ADC_buf_DMA_write = 0;
+
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
-//		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
-	}
+		//		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 
-// Waiting while LRCK == 1 and resetting on LRCK == 0 gives LR swap on FM hardware	
-// Waiting while LRCK == 0 and resetting on LRCK == 1 gives correct LR on FM hardware
+		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72, only timed version is used for triggering scope
 
-	gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+		pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
+		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
-// Moved to before LRCK edge detection
-//	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-//	ADC_buf_DMA_write = 0;
+		gpio_clr_gpio_pin(AVR32_PIN_PX31);
 
-   	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
-	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		taskEXIT_CRITICAL();
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX31);
+	} // End of consider LRCK version
+	// Ignore LRCK version
+	else {
 
-	taskEXIT_CRITICAL();
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		mobo_clear_adc_channel();
+
+		// Moved to before LRCK edge detection to save time
+   		taskENTER_CRITICAL();
+
+		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+		ADC_buf_DMA_write = 0;
+   		pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
+		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		taskEXIT_CRITICAL();
+	} // End of ignore LRCK version
 }
 
 
