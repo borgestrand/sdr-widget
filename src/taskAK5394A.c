@@ -235,9 +235,6 @@ void AK5394A_pdca_enable(void) {
 void AK5394A_pdca_rx_enable(U32 frequency) {
 	U16 countdown = 0x00FF;
 
-// Hack! ADC_site
-// frequency = FREQ_96;
-
 	// On RXMOD hardware, I2S hasn't started up when this function is called. LRCK = '0' from WM8804
 	// There, timing out from 0xffff takes almost 30ms while two full periods at 44.1 is 0.045ms
 	// But timing out from 0x00ff takes 138us
