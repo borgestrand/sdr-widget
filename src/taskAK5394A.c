@@ -258,7 +258,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		//		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 
-		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72, only timed version is used for triggering scope
+		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72, only timed version is used for triggering scope   
 
 		pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
 		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
