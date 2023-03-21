@@ -115,7 +115,7 @@ void wm8804_task(void *pvParameters) {
 
 	while (TRUE) {
 		
-		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
 		
 		vTaskDelayUntil(&xLastWakeTime, configTSK_WM8804_PERIOD);
 

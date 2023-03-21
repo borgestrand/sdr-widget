@@ -275,7 +275,7 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// In initial state. Do something to fire up data collection!
 					
-					LED_On( LED1 );											// Green LED turning on
+//					LED_On( LED1 );											// Green LED turning on
 					print_dbg_char('I');									// USB IN consumer starting up
 
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
@@ -288,8 +288,8 @@ void uac2_device_audio_task(void *pvParameters)
 						// mobo_clear_adc_channel();						// Redundant with call below
 
 //						AK5394A_pdca_rx_enable(spdif_rx_status.frequency);	// ADC_state Blindly following I2S receiver sample rate, not USB desired sample rate.....
-//						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state FMADC_site enable according to detected rate
-						AK5394A_pdca_rx_enable(FREQ_96);					// ADC_state FMADC_site enable according to detected rate
+						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_state FMADC_site enable according to detected rate
+//						AK5394A_pdca_rx_enable(FREQ_96);					// ADC_state FMADC_site enable according to detected rate
 						
 					} // Init DMA for USB IN consumer
 
@@ -560,10 +560,10 @@ taskEXIT_CRITICAL();
 
 #ifdef USB_STATE_MACHINE_GPIO
 								if (ADC_buf_USB_IN == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX31);						// FMADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
+//									gpio_set_gpio_pin(AVR32_PIN_PX31);						// FMADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
 								}
 								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PX31);
+//									gpio_clr_gpio_pin(AVR32_PIN_PX31);
 								}
 #endif
 							} // end index > buffer size

@@ -233,12 +233,25 @@ void AK5394A_pdca_enable(void) {
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
-	U16 countdown = 0xFFFF;
+	U16 countdown = 0x00FF;
+
+// Hack! ADC_site
+// frequency = FREQ_96;
+
+	// On RXMOD hardware, I2S hasn't started up when this function is called. LRCK = '0' from WM8804
+	// There, timing out from 0xffff takes almost 30ms while two full periods at 44.1 is 0.045ms
+	// But timing out from 0x00ff takes 138us
+	// 
+	// NB: Ideally, this code should be called with running LRCK on RXMOD, not with LRCK == '0'
 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	mobo_clear_adc_channel();
 
+	// Moved to before LRCK edge detection to save time
    	taskENTER_CRITICAL();
+
+	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+	ADC_buf_DMA_write = 0;
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
@@ -246,36 +259,24 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
-		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
+//		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 	}
-	
-	// What is the optimal sequence? These two are simple write operations
 
-	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-	ADC_buf_DMA_write = 0;
-   	pdca_enable(PDCA_CHANNEL_SSC_RX);
+// Waiting while LRCK == 1 and resetting on LRCK == 0 gives LR swap on FM hardware	
+// Waiting while LRCK == 0 and resetting on LRCK == 1 gives correct LR on FM hardware
+
+	gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+
+// Moved to before LRCK edge detection
+//	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+//	ADC_buf_DMA_write = 0;
+
+   	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
+	gpio_clr_gpio_pin(AVR32_PIN_PX31);
+
 	taskEXIT_CRITICAL();
-
-	// Debug L/R
-	print_dbg_char('-');
-	print_dbg_char_hex(countdown >> 8);
-	print_dbg_char_hex(countdown);
-	print_dbg_char('-');
-	
-
-
-/* debug
-	print_dbg_char('.');
-	if (i == 1)
-		print_dbg_char('F'); // As in "Free running"
-	else
-		print_dbg_char('L'); // As in "Locked"
-	print_dbg_char('.');
-*/	
-
-//	gpio_clr_gpio_pin(AVR32_PIN_PX43); // ch6 p88
 }
 
 
