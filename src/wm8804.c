@@ -332,7 +332,7 @@ print_dbg_char('Z');	// I2S OUT consumer starting up
 		// Enable CPU's processing of produced data
 		// This is needed for the silence detector
 
-		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
+		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization - doesn't happen in FMADC code
 	}
 //	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine doesn't really subscribe to incoming I2S, it only scans for it...
 #else

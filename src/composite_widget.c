@@ -344,7 +344,6 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	cpu_delay_ms(500, FCPU_HZ_SLOW);		// For good measure, not tested
 	
 	LED_On( LED0 );							// Red LED turns on to indicate running firmware
-
 #endif
 
 
@@ -453,6 +452,9 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// M_DAC_I2C_EN, cut off I2C noise to DAC
 #endif
 
+#ifdef HW_GEN_FMADC
+//	AK5394A_pdca_rx_enable(FREQ_INVALID);	// For good measure, happens in wm8804.c in RXMOD build
+#endif
 
 
 	if (FEATURE_FILTER_FIR) gpio_clr_gpio_pin(GPIO_PCM5102_FILTER);

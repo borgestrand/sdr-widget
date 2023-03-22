@@ -240,7 +240,8 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 //	taskENTER_CRITICAL();
 	Disable_global_interrupt();
 
-//	gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72, only timed version is used for triggering scope
+	gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72, only timed version is used for triggering scope
+
 	ADC_buf_DMA_write = 0;
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
@@ -259,7 +260,8 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
-//	gpio_clr_gpio_pin(AVR32_PIN_PX31);
+	gpio_clr_gpio_pin(AVR32_PIN_PX31);
+	
 //	taskEXIT_CRITICAL();
 	Enable_global_interrupt();
 }
