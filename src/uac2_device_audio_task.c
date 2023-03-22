@@ -181,14 +181,6 @@ void uac2_device_audio_task(void *pvParameters)
 	int DAC_buf_DMA_read_local = 0;				// Local copy read in atomic operations
 	int ADC_buf_DMA_write_temp = 0;				// Local copy read in atomic operations
 	
-	#ifdef FEATURE_ADC_EXPERIMENTAL
-		#define USB_IN_CACHE_LENGTH 6*50			// Maximum value of num_samples_adc below, rounding up * 2 channels * 3 bytes per channel with 24 bit data
-		U8 usb_in_cache[USB_IN_CACHE_LENGTH];		// Raw packet cache
-		U16 usb_in_cache_used = 0;					// How much of the cache is in use?
-		int cache_counter = 0;
-	#endif
-
-
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
 	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 		#define IN_LEFT 0
@@ -295,67 +287,11 @@ void uac2_device_audio_task(void *pvParameters)
 					
 					I2S_consumer |= I2S_CONSUMER_USB;						// USB subscribes to I2S data
 					
-					for (i = 0; i < USB_IN_CACHE_LENGTH; i++) {
-						usb_in_cache[i] = 0; 
-					}
-					
-					// How much of the cache is "in use" for the 1st packet? Use nominal packet lengths
-					if (current_freq.frequency == FREQ_44) {
-						usb_in_cache_used = 11;
-					}
-					else if (current_freq.frequency == FREQ_48) {
-						usb_in_cache_used = 12;
-					}
-					else if (current_freq.frequency == FREQ_88) {
-						usb_in_cache_used = 22;
-					}
-					else if (current_freq.frequency == FREQ_96) {
-						usb_in_cache_used = 24;
-					}
-					else if (current_freq.frequency == FREQ_176) {
-						usb_in_cache_used = 44;
-					}
-					else if (current_freq.frequency == FREQ_192) {
-						usb_in_cache_used = 48;
-					}
-					
-					if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data -> 6 bytes per stereo sample
-						usb_in_cache_used *= 6;
-					}
-					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
-						else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left stereo 16-bit data -> 4 bytes per stereo sample
-							usb_in_cache_used *= 4;
-						}
-					#endif
-
 				} // Init synching up USB IN consumer's pointers to I2S RX data producer
 				
 				
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
-
-
-// FMADC_site OK, 2.5ms period		gpio_tgl_gpio_pin(AVR32_PIN_PX31); // May take up to 745탎 between edges at configTSK_USB_DAUDIO_PRIORITY	(tskIDLE_PRIORITY + 2), at +4 we're down to 711탎
-
-
-					// Is the response time to Is_usb_in_ready too long? Or is the execution time too long? (17탎 nominal, up to 43탎)
-
-taskENTER_CRITICAL(); // Including gpio set and clear, this routine takes 15.7-18.4탎 as a critical task
-// FMADC_site OK, takes 33.4탎					gpio_set_gpio_pin(AVR32_PIN_PX31);
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
-
-					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
-										
-					// Transfer cache to endpoint buffer
-					for (i = 0; i < usb_in_cache_used; i++) {
-						Usb_write_endpoint_data(EP_AUDIO_IN, 8, usb_in_cache[i]);
-					}
-
-					Usb_send_in(EP_AUDIO_IN);		// send the current bank
-//					gpio_clr_gpio_pin(AVR32_PIN_PX31);
-taskEXIT_CRITICAL();
-					
-					// Done sending contents of USB IN cache. Now fill it up for the next transfer
-					cache_counter = 0;
 				
 					// Must ADC consumer pointers be set up for 1st transfer?
 					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
@@ -486,13 +422,11 @@ taskEXIT_CRITICAL();
 					}
 
 
-// Removed here and moved to cache section above
-//					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
+					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
+					// Start of data insertion
 					for( i=0 ; i < num_samples_adc ; i++ ) {
-
-// Start of data insertion
-							// Fill endpoint with samples
+						// Fill endpoint with samples
 						if (!mute) {
 							if (ADC_buf_USB_IN == 0) {
 								sample_LSB = audio_buffer_0[index+IN_LEFT] >> 8;
@@ -506,19 +440,14 @@ taskEXIT_CRITICAL();
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-								usb_in_cache[cache_counter++] = sample_LSB;
-								usb_in_cache[cache_counter++] = sample_SB;
-								usb_in_cache[cache_counter++] = sample_MSB;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left stereo 16-bit data
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-									usb_in_cache[cache_counter++] = sample_SB;
-									usb_in_cache[cache_counter++] = sample_MSB;
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 								}
 							#endif
 
@@ -534,19 +463,14 @@ taskEXIT_CRITICAL();
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Right stereo 24-bit data
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-								usb_in_cache[cache_counter++] = sample_LSB;		// Are there "holes" in data out of the USB interface? Yes!
-								usb_in_cache[cache_counter++] = sample_SB;
-								usb_in_cache[cache_counter++] = sample_MSB;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Right stereo 16-bit data
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
-									usb_in_cache[cache_counter++] = sample_SB;
-									usb_in_cache[cache_counter++] = sample_MSB;
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 								}
 							#endif
 
@@ -565,77 +489,30 @@ taskEXIT_CRITICAL();
 								}
 #endif
 							} // end index > buffer size
-						}
+						} // !mute
 						else { // muted
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {			// Left and Right stereo 24-bit mute
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-								usb_in_cache[cache_counter++] = 0;
-								usb_in_cache[cache_counter++] = 0;
-								usb_in_cache[cache_counter++] = 0;
-								usb_in_cache[cache_counter++] = 0;
-								usb_in_cache[cache_counter++] = 0;
-								usb_in_cache[cache_counter++] = 0;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left and Right stereo 16-bit mute
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
-									usb_in_cache[cache_counter++] = 0;
-									usb_in_cache[cache_counter++] = 0;
-									usb_in_cache[cache_counter++] = 0;
-									usb_in_cache[cache_counter++] = 0;
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x00);
 								}
 							#endif
 						} // muted
+						
+					} // Data insertion
 							
-// End of data insertion
 
-
-// Start of dummy data insertion
-/*
-						static uint8_t dummy_data = 0;
-							
-						if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) { // Stereo 24-bit data
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// L:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// L:MSB
-
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x40);	// R:MSB
-						}
-						else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) { // Stereo 16-bit data
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x20);	// L:MSB
-
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0);		// R:LSB
-							Usb_write_endpoint_data(EP_AUDIO_IN, 8, 0x30);	// R:MSB
-						}
-								
-
-						dummy_data++;	// Just another way to generate synthetic data...
-						if (dummy_data == 1) {	// Starting from scratch again on a new data cycle
-							// Toggling FLED0_B / PA18 to switch between white and yellow - visible on J7:13 and J7:15 on Boenicke build
-							gpio_tgl_gpio_pin(AVR32_PIN_PA18);
-							// invisible
-						}
-*/
-// End of dummy data insertion							
-								
-					} // end for num_samples
-					
-					usb_in_cache_used = cache_counter;	// Transfer this many bytes in the next USB message!
-
-
-// Removed here and moved to cache section above						
-//					Usb_send_in(EP_AUDIO_IN);		// send the current bank
+					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				} // end Is_usb_in_ready(EP_AUDIO_IN)
 			} 	// end alt setting 1 / 2
 		#endif // FEATURE_ADC_EXPERIMENTAL
