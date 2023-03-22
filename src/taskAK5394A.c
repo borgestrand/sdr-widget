@@ -240,9 +240,15 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
 
 		U16 countdown = 0xffFF;
+		
+		
+		// This is less random. Why? Timeout? while(LRCK == 1)? Different timing? Is it the same on all frequencies?
 
 		// Timing out from 0xffff takes almost 30ms while two full periods at 44.1 is 0.045ms
 		// But timing out from 0x00ff takes 138us
+		
+		// RXMOD 96ksps OK
+		// RXMOD 192ksps occational swap
 
 		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 		mobo_clear_adc_channel();

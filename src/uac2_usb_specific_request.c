@@ -153,7 +153,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 //const U8 Speedx[38] = { // 74
 	
 #ifdef HW_GEN_FMADC				// Hardware is fixed to 96ksps. We could use mobo_srd() and enumerate accordingly, but that messes with the whole USB transmit structure
-	const U8 Speedx_hs[14] = {
+	const U8 Speedx_hs[14] = {	// sample rate samplerate descriptor speed_hs speed_fs <- Comments to find this place more easily
 		0x01, 0x00, // Number of sample rate triplets with UAC2 over USB 1.1 (not tested!)
 
 		0x00,0x77,0x01,0x00,	//96k Min
