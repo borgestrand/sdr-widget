@@ -1342,11 +1342,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
 						uac2_freq_change_handler();
 						
-#ifdef USB_STATE_MACHINE_DEBUG
-		print_dbg_char('m');
-#endif
-
-
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
 						while (!Is_usb_control_in_ready())

@@ -325,13 +325,10 @@ void wm8804_init(void) {
 //		initial = 0;
 //	}
 
-print_dbg_char('Z');	// I2S OUT consumer starting up
-
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
 		// Enable CPU's processing of produced data
 		// This is needed for the silence detector
-
 		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization - doesn't happen in FMADC code
 	}
 //	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine doesn't really subscribe to incoming I2S, it only scans for it...
@@ -348,13 +345,7 @@ print_dbg_char('Z');	// I2S OUT consumer starting up
 void wm8804_sleep(void) {
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	I2S_consumer &= ~I2S_CONSUMER_DAC;			// DAC is no longer subscribing to I2S data
-
-	print_dbg_char('z');	// I2S OUT consumer shutting down
-	
 	if (I2S_consumer == I2S_CONSUMER_NONE) {	// No other consumers? Disable DMA
-
-		print_dbg_char('b');	// I2S OUT consumer shutting down
-		
 		pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
 		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	}
@@ -766,16 +757,11 @@ void wm8804_mute(void) {
 
 // Un-mute the WM8804
 void wm8804_unmute(void) {
-//	print_dbg_char('U');
-
-
 	// For now, frequency changes totally mess up ADC_site
 	
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 //	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
-
-	print_dbg_char('U');	// I2S OUT consumer starting up
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??

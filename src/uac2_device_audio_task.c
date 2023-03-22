@@ -243,17 +243,10 @@ void uac2_device_audio_task(void *pvParameters)
 				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// Already in initial state. Do nothing
 				}
 				else {
-					
 					LED_Off( LED1 );										// Green LED turning off
-					
-					print_dbg_char('i');									// USB IN consumer shutting down
-					
 					I2S_consumer &= ~I2S_CONSUMER_USB;						// USB is no longer subscribing to I2S data
 	
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Disable DMA
-
-						print_dbg_char('j');	// USB IN consumer shutting down
-
 						pdca_disable(PDCA_CHANNEL_SSC_RX);					// Disable I2S reception at MCU's ADC port
 						pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 					}
@@ -266,14 +259,8 @@ void uac2_device_audio_task(void *pvParameters)
 			else if (usb_alternate_setting >= 1) { // For IN endpoint / ADC bBitResolution
 				
 				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// In initial state. Do something to fire up data collection!
-					
-//					LED_On( LED1 );											// Green LED turning on
-					print_dbg_char('I');									// USB IN consumer starting up
-
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
 	
-						print_dbg_char('J');	// USB IN consumer starting up
-						
 						// ADC_site - this mode (starting with USB plabyack) does not yield USB IN data. Fix that one a little later... 
 						
 						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
@@ -296,8 +283,6 @@ void uac2_device_audio_task(void *pvParameters)
 					// Must ADC consumer pointers be set up for 1st transfer?
 					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
 						
-						print_dbg_char('K');	// USB IN consumer starting up ADC_site
-
 						// New co-sample verification routine
 						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
 						num_remaining = pdca_channel->tcr;
