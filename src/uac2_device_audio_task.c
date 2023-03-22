@@ -520,10 +520,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 #ifdef HW_GEN_RXMOD 
 		if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
-//		if ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) ) {
 #else
 			if (usb_alternate_setting_out >= 1) { // bBitResolution
-//			if (usb_alternate_setting_out == 1) {
 #endif
 
 			/* SPDIF reduced OK */
