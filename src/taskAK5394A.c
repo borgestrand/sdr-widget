@@ -234,74 +234,34 @@ void AK5394A_pdca_enable(void) {
 // FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_rx_enable(U32 frequency) {
 	
-	// Consider LRCK version
+	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+	mobo_clear_adc_channel();
+
+//	taskENTER_CRITICAL();
+	Disable_global_interrupt();
+
+//	gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72, only timed version is used for triggering scope
+	ADC_buf_DMA_write = 0;
+
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		(frequency == FREQ_88) || (frequency == FREQ_96) ||
 		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
-
-		U16 countdown = 0x00FF;
-		uint32_t temp32 = 0;
-		
-		
-		// This is less random. Why? Timeout? while(LRCK == 1)? Different timing? Is it the same on all frequencies?
-
-		// Timing out from 0xffff takes almost 30ms while two full periods at 44.1 is 0.045ms
-		// But timing out from 0x00ff takes 138us
-		
-		// RXMOD 96ksps OK
-		// RXMOD 192ksps occational swap
-		
-		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-		mobo_clear_adc_channel();
-
-//		taskENTER_CRITICAL();
-		Disable_global_interrupt();
-
-
-		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72, only timed version is used for triggering scope
-		ADC_buf_DMA_write = 0;
-
 /*
 //		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
 */
-		temp32 = mobo_wait_LRCK_asm(); // Wait for some well-defined action on LRCK pin
+		mobo_wait_LRCK_asm(); // Wait for some well-defined action on LRCK pin
+	}
+		
+	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
+	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-		pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
-		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-
-		gpio_clr_gpio_pin(AVR32_PIN_PX31);
-
-//		taskEXIT_CRITICAL();
-		Enable_global_interrupt();
-
-		print_dbg_char('-');
-		print_dbg_char_hex(temp32);
-		print_dbg_char_hex(temp32 >> 8);
-		print_dbg_char_hex(temp32 >> 16);
-		print_dbg_char_hex(temp32 >> 24);
-		print_dbg_char('-');
-
-
-	} // End of consider LRCK version
-	// Ignore LRCK version
-	else {
-
-		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-		mobo_clear_adc_channel();
-
-		// Moved to before LRCK edge detection to save time
-   		taskENTER_CRITICAL();
-
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-		ADC_buf_DMA_write = 0;
-   		pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
-		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-		taskEXIT_CRITICAL();
-	} // End of ignore LRCK version
+//	gpio_clr_gpio_pin(AVR32_PIN_PX31);
+//	taskEXIT_CRITICAL();
+	Enable_global_interrupt();
 }
 
 
