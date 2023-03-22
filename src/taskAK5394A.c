@@ -394,13 +394,6 @@ void AK5394A_task_init(const Bool uac1) {
 	// Therefore, call it with proper frequency when playback starts.
 	mobo_clock_division(FREQ_INVALID);
 
-	// Desperately trying to figure out LR swap in FMADC
-	#ifdef HW_GEN_FMADC
-		AK5394A_pdca_rx_enable(FREQ_INVALID);	// For good measure, happens in wm8804.c in RXMOD build
-		pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
-		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-	#endif
-
 
 #ifdef HW_GEN_RXMOD
 // No such power control yet
