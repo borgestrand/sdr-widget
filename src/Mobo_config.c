@@ -453,7 +453,7 @@ uint32_t mobo_srd_asm2(void) {
 	// Recompile prototype c to change io pin!
 	// Test is done for up to 1 half period, then 2 full periods
 
-	gpio_enable_gpio_pin(AVR32_PIN_PA05);	// Enable GPIO pin, not special IO (also for input). Needed?
+	gpio_enable_gpio_pin(AVR32_PIN_PX36);	// Enable GPIO pin, not special IO (also for input). Needed?
 	
 	// PA05 is GPIO. PX26 and PX36 are special purpose clock pins
 
@@ -608,6 +608,79 @@ uint32_t mobo_srd_asm2(void) {
 	}
 
 } // mobo_srd_asm2()
+
+
+
+// Wait for N half-periods of LRCK
+uint32_t mobo_wait_LRCK_asm(void) {
+	uint32_t timeout;
+
+	// see srd_test03.c and srd_test03.lst
+
+	// HW_GEN_RXMOD: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
+
+	// Recompile prototype c to change io pin!
+	// Test is done for up to 1 half period, then 2 full periods
+
+	gpio_enable_gpio_pin(AVR32_PIN_PX36);	// Enable GPIO pin, not special IO (also for input). Needed?
+	
+	// PA05 is GPIO. PX26 and PX36 are special purpose clock pins
+
+	asm volatile(
+	//		"ssrf	16				\n\t"	// Disable global interrupt
+	"mov	%0, 	500	\n\t"	// Load timeout
+	"mov	r9,		-60928	\n\t"	// Immediate load, set up pointer to PX36, recompile C for other IO pin, do once
+
+	"S0x:					\n\t"	// Loop while PX36 is 1
+	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+	"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+	"brne	S0x_done		\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+	"sub	%0,	1			\n\t"	// Count down
+	"brne	S0x				\n\t"	// Not done counting down
+	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
+	"S0x_done:				\n\t"
+
+	"S1x:					\n\t"	// Loop while PX36 is 0
+	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+	"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+	"breq	S1x_done		\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+	"sub	%0,	1			\n\t"	// Count down
+	"brne	S1x				\n\t"	// Not done counting down
+	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
+	"S1x_done:				\n\t"
+
+	"S2x:					\n\t"	// Loop while PX36 is 1
+	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+	"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+	"brne	S2x_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+	"sub	%0,	1			\n\t"	// Count down
+	"brne	S2x				\n\t"	// Not done counting down
+	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
+	"S2x_done:				\n\t"
+
+/*
+	"S3x:					\n\t"	// Loop while PX36 is 0
+	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
+	"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+	"breq	S3x_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+	"sub	%0,	1			\n\t"	// Count down
+	"brne	S3x				\n\t"	// Not done counting down
+	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
+	"S3x_done:				\n\t"
+*/
+
+	"SCOUNTDx:				\n\t"	// Countdown reached, %0 is 0
+
+	//		"csrf	16				\n\t"	// Enable global interrupt
+	:	"=r" (timeout)				// One output register
+	:								// No input registers
+	:	"r8", "r9"					// Clobber registers, pushed/popped unless assigned by GCC as temps
+	);
+
+	return timeout;
+
+} // mobo_wait_LRCK_asm
+
 
 
 

@@ -85,6 +85,7 @@ void mobo_rxmod_input(uint8_t input_sel);
 // Sample rate detection on ADC interface
 uint32_t mobo_srd(void);
 uint32_t mobo_srd_asm2(void);
+uint32_t mobo_wait_LRCK_asm(void);
 
 #ifdef HW_GEN_RXMOD
 // Process spdif and toslink inputs
