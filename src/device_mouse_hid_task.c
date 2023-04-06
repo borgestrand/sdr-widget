@@ -381,6 +381,22 @@ void device_mouse_hid_task(void)
 #endif
 
 #ifdef HW_GEN_RXMOD
+
+            else if (a == 'T') {							// Upper T
+				// Print some Toslink buffer contents
+				uint32_t tosdata[12];	
+				for (temp = 0; temp < 12; temp++) {
+					tosdata[temp] = audio_buffer_0[temp];
+				}
+				for (temp = 0; temp < 12; temp++) {
+					// Dump 12 32-bit samples L R
+					print_dbg_char_hex(tosdata[temp] >> 24);
+					print_dbg_char_hex(tosdata[temp] >> 16);
+					print_dbg_char_hex(tosdata[temp] >> 8);
+					print_dbg_char_hex(tosdata[temp]);
+				}
+			}
+
             else if (a == 'l') {							// Lowercase c
 	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 
