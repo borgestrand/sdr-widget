@@ -388,12 +388,14 @@ void device_mouse_hid_task(void)
 				for (temp = 0; temp < 12; temp++) {
 					tosdata[temp] = audio_buffer_0[temp];
 				}
+				print_dbg_char('\n');
 				for (temp = 0; temp < 12; temp++) {
 					// Dump 12 32-bit samples L R
 					print_dbg_char_hex(tosdata[temp] >> 24);
 					print_dbg_char_hex(tosdata[temp] >> 16);
 					print_dbg_char_hex(tosdata[temp] >> 8);
 					print_dbg_char_hex(tosdata[temp]);
+					print_dbg_char('\n');
 				}
 			}
 
