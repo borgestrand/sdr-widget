@@ -40,6 +40,31 @@ void mobo_clear_adc_channel(void);
 void mobo_clear_dac_channel(void);
 
 
+// Commands to and from CPU
+#ifdef USB_REDUCED_DEBUG
+#define CPU_CHAR_BOOT				'H'	// MCU boots up
+#define CPU_CHAR_IDLE				'0'	// MCU reports no input
+#define CPU_CHAR_SPDIF0				's'	// MCU reports that SPDIF0 is input
+#define CPU_CHAR_SPDIF1				'S'	// MCU reports that SPDIF1 is input
+#define CPU_CHAR_TOSLINK0			't'	// MCU reports that TOSLINK0 is input
+#define CPU_CHAR_TOSLINK1			'T'	// MCU reports that TOSLINK0 is input
+#define CPU_CHAR_UAC1_B				'b'	// MCU reports that Rear USB-B USB Audio Class 1 is input
+#define CPU_CHAR_UAC2_B				'B'	// MCU reports that Rear USB-B USB Audio Class 2 is input
+#define CPU_CHAR_UAC1_C				'c'	// MCU reports that Front USB-C USB Audio Class 1 is input
+#define CPU_CHAR_UAC2_C				'C'	// MCU reports that Front USB-C USB Audio Class 2 is input
+#define CPU_CHAR_SRC_DEF			'y' // MCU reports that Input is not known
+#define CPU_CHAR_44					'1' // MCU requests oscillator for 44.1ksps and outputs on that rate
+#define CPU_CHAR_48					'2' // MCU requests oscillator for 48ksps and outputs on that rate
+#define CPU_CHAR_88					'3' // MCU requests oscillator for 88.2ksps and outputs on that rate
+#define CPU_CHAR_96					'4' // MCU requests oscillator for 96ksps and outputs on that rate
+#define CPU_CHAR_176				'5' // MCU requests oscillator for 176.4ksps and outputs on that rate
+#define CPU_CHAR_192				'6' // MCU requests oscillator for 192ksps and outputs on that rate
+#define CPU_CHAR_REGEN				'X' // MCU requests regenerated clock from SPDIF/TOSLINK receiver. Probably outputs on last reported rate ('1'-'6')
+#define CPU_CHAR_RATE_DEF			'Y' // MCU rate request is unknown
+#define MCU_CHAR_SI_ENABLE			'I' // CPU instructs MCU to enable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
+#define MCU_CHAR_SI_DISABLE			'i' // CPU instructs MCU to disable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
+#define MCU_CHAR_RESET				'R'	// CPU resets MCU over UART
+#endif
 
 #ifdef HW_GEN_RXMOD
 // USB multiplexer definitions

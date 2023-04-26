@@ -202,6 +202,10 @@ void init_dbg_rs232_ex(unsigned long baudrate, long pba_hz)
 
 void print_dbg(const char *str)
 {
+  #ifdef USB_REDUCED_DEBUG
+    return;
+  #endif
+
   // Redirection to the debug USART.
   print(DBG_USART, str);
 
@@ -210,8 +214,21 @@ void print_dbg(const char *str)
 
 void print_dbg_char(int c)
 {
+  #ifdef USB_REDUCED_DEBUG
+    return;
+  #endif	
   // Redirection to the debug USART.
   print_char(DBG_USART, c);
+}
+
+
+// Special write to internal CPU (when present) that replaces UART debug system
+void print_cpu_char(int c)
+{
+  #ifdef USB_REDUCED_DEBUG
+	// Redirection to the debug USART.
+	print_char(DBG_USART, c);
+  #endif
 }
 
 
@@ -224,6 +241,9 @@ void print_dbg_ulong(unsigned long n)
 
 void print_dbg_char_hex(unsigned char n)
 {
+  #ifdef USB_REDUCED_DEBUG
+    return;
+  #endif
   // Redirection to the debug USART.
   print_char_hex(DBG_USART, n);
 }
@@ -231,6 +251,10 @@ void print_dbg_char_hex(unsigned char n)
 
 void print_dbg_char_nibble(unsigned char n)
 {
+  #ifdef USB_REDUCED_DEBUG
+    return;
+  #endif
+	
 	n = n & 0x0F;	// Keep only 4 LSBs
 	if (n < 0x0A)
 		print_char(DBG_USART, n+48);	// 0..9
@@ -241,6 +265,10 @@ void print_dbg_char_nibble(unsigned char n)
 
 void print_dbg_char_bin(unsigned char n)
 {
+  #ifdef USB_REDUCED_DEBUG
+    return;
+  #endif
+	
 	unsigned char index = 0x80;
 	while (index) {
 		if (n & index)
@@ -253,6 +281,10 @@ void print_dbg_char_bin(unsigned char n)
 
 void print_dbg_short_hex(unsigned short n)
 {
+  #ifdef USB_REDUCED_DEBUG
+    return;
+  #endif
+
   // Redirection to the debug USART.
   print_short_hex(DBG_USART, n);
 }
@@ -260,6 +292,10 @@ void print_dbg_short_hex(unsigned short n)
 
 void print_dbg_hex(unsigned long n)
 {
+  #ifdef USB_REDUCED_DEBUG
+    return;
+  #endif
+
   // Redirection to the debug USART.
   print_hex(DBG_USART, n);
 }

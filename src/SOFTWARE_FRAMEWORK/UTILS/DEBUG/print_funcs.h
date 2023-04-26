@@ -302,6 +302,12 @@ extern void print_dbg(const char *str);
  */
 extern void print_dbg_char(int c);
 
+/*! \brief Prints a character to CPU when present
+ *
+ * \param c The character to print.
+ */
+extern void print_cpu_char(int c);
+
 /*! \brief Prints an integer to DBG_USART in a decimal representation.
  *
  * \param n The integer to print.

@@ -583,6 +583,16 @@ void uac1_device_audio_task(void *pvParameters)
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 											print_dbg_char('[');
 											input_select = MOBO_SRC_UAC1;
+											
+											#ifdef USB_REDUCED_DEBUG
+												if (usb_ch == USB_CH_B) {
+													print_cpu_char(CPU_CHAR_UAC1_B);	// USB audio Class 1 on rear USB-B plug 
+												}
+												else if (usb_ch == USB_CH_C) {
+													print_cpu_char(CPU_CHAR_UAC1_C);	// USB audio Class 1 on front USB-C plug 
+												}
+											#endif
+
 											mobo_led_select(current_freq.frequency, input_select);
 											#ifdef HW_GEN_RXMOD
 												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
@@ -695,6 +705,10 @@ void uac1_device_audio_task(void *pvParameters)
 									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 										input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 										print_dbg_char(60); // '<'
+										
+										#ifdef USB_REDUCED_DEBUG
+											print_cpu_char(CPU_CHAR_IDLE);
+										#endif
 										
 										#ifdef HW_GEN_RXMOD
 										#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
@@ -877,6 +891,10 @@ void uac1_device_audio_task(void *pvParameters)
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 									input_select = MOBO_SRC_NONE;
 									print_dbg_char(60); // '<' 
+									
+									#ifdef USB_REDUCED_DEBUG
+										print_cpu_char(CPU_CHAR_IDLE);
+									#endif
 
 									#ifdef HW_GEN_RXMOD
 									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
@@ -939,6 +957,10 @@ void uac1_device_audio_task(void *pvParameters)
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 					print_dbg_char(60); // '<'
+
+					#ifdef USB_REDUCED_DEBUG
+						print_cpu_char(CPU_CHAR_IDLE);
+					#endif
 						
 					#ifdef HW_GEN_RXMOD
 					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?

@@ -225,6 +225,10 @@ void wm8804_task(void *pvParameters) {
 						silence_counter = 0;					// For good measure, pause not yet detected
 						print_dbg_char(60); // '<'
 						
+						#ifdef USB_REDUCED_DEBUG
+							print_cpu_char(CPU_CHAR_IDLE);
+						#endif
+						
 						#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 							// mobo_led(FLED_SCANNING);			// Avoid raw LED-control!
 							mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
@@ -271,6 +275,28 @@ void wm8804_task(void *pvParameters) {
 							spdif_rx_status.buffered = 1;
 							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
+							
+							#ifdef USB_REDUCED_DEBUG
+								// Report to CPU (when present)
+								switch (input_select) {
+									case MOBO_SRC_SPDIF0:
+										print_cpu_char(CPU_CHAR_SPDIF0);	// SPDIF0
+									break;
+									case MOBO_SRC_SPDIF1:
+										print_cpu_char(CPU_CHAR_SPDIF1);	// SPDIF1
+									break;
+									case MOBO_SRC_TOSLINK0:
+										print_cpu_char(CPU_CHAR_TOSLINK0);	// TOSLINK0
+									break;
+									case MOBO_SRC_TOSLINK1:
+										print_cpu_char(CPU_CHAR_TOSLINK1);	// TOSLINK1
+									break;
+									default:
+										print_cpu_char(CPU_CHAR_SRC_DEF);	// Inform CPU (when present)
+									break;
+								}			
+							#endif
+														
 							wm8804_unmute();					// No longer including LED change on this TAKE event
 							spdif_rx_status.muted = 0;
 							silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
