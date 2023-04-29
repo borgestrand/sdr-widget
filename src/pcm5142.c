@@ -141,11 +141,11 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 //			print_dbg_char(60); // '<'
 		}
 		else {
-			print_dbg_char('R');
+			print_dbg_char('Q');
 		}
 	}
 	else {
-		print_dbg_char('S');
+		print_dbg_char('T');
 	}
 
 	return dev_data[0];

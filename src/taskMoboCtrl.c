@@ -604,6 +604,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 		#if (defined HW_GEN_RXMOD)
 			input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
 			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
+
+			// Initialie PCM5142
+			pcm5142_filter(02); // Selected from listening 20230429
+
 			// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
 //			print_dbg_char('p');
 //			wm8804_init();							// Start up the WM8805 in a fairly dead mode
