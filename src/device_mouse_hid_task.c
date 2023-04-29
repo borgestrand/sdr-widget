@@ -161,8 +161,10 @@ void device_mouse_hid_task_init(U8 ep_tx) {
 
 	// Added BSB 20120718
 	print_dbg("\nHID ready\n"); // usart is ready to receive HID commands! 2022-10-13 doesn't appear in UAC1, only in UAC2
-	print_cpu_char(CPU_CHAR_BOOT);		// Tell CPU (when present) that CPU is booting up
-
+	#ifdef USB_REDUCED_DEBUG
+		print_cpu_char(CPU_CHAR_BOOT);		// Tell CPU (when present) that CPU is booting up
+	#endif
+	
 	// Added BSB 20120719
 #if LCD_DISPLAY
 	#define HID2LCD					// Use LCD to debug incoming HID commands from uart
