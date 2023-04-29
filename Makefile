@@ -21,6 +21,9 @@
 # -DFEATURE_ALT2_16BIT			UAC2 has both ALT1 (24 bit) and ALT2 (16 bit). Applies to both ADC and DAC code in UAC2. Does NOT! apply to UAC1
 #
 # -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
+#
+# -DUSB_REDUCED_DEBUG			Reduce debug and use UART only for CPU communication
+
 
 
 # PARTNAME=-mpart=uc3a3256
