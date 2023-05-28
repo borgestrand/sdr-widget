@@ -312,7 +312,6 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 
 	LED_On(LED0);							// Red LED next to MCU turns on to indicate running firmware
-	LED_Off(LED1);							// Green LED next to MCU turns off
 
 	cpu_delay_ms(60, FCPU_HZ_SLOW);
 
