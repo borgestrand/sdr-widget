@@ -1071,7 +1071,7 @@ void uac2_device_audio_task(void *pvParameters)
 										skip_indicate = 0;				// Feedback system is running again!
 //										LED_On(LED1);
 	#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('+');
+										print_dbg_char('+'); 
 	#endif
 									}
 									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
