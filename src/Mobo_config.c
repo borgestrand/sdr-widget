@@ -154,8 +154,8 @@ void mobo_pcm1863_init(void) {						// Works 20230530
 	mobo_i2c_write (DEVADR_PCM1863, 0x20, 0x51);	// page.0 0x20 clocking 0b01010001 - 0x51 SCK selection, sck, master, sck, sck, sck, auto clock detect, for 256xfs
 	
 	// For 512x operation (44.1 or 48ksps)
-	mobo_i2c_write (DEVADR_PCM1863, 0x26, 0x07);	// page.0 0x26 bit clock 0b00000111 - 0x07 for 512x at 22-24MHz, set MCLK / BCLK = 8. Keep defaults in address 0x25 and 0x26
-	// ** Control gain settings!!
+	// mobo_i2c_write (DEVADR_PCM1863, 0x26, 0x07);	// page.0 0x26 bit clock 0b00000111 - 0x07 for 512x at 22-24MHz, set MCLK / BCLK = 8. Keep defaults in address 0x25 and 0x26
+	// Gain settings are in p.0 0x01 and 0x02
 }
 
 
