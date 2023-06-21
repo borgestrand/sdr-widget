@@ -43,6 +43,7 @@ volatile uint8_t usb_ch_swap;				// USB channel is about to swap!
 volatile xSemaphoreHandle input_select_semphr = NULL; // BSB 20150626 audio channel selection semaphore
 #endif
 
-#if (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 volatile xSemaphoreHandle I2C_busy = NULL; 
 #endif
+

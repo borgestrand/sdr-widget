@@ -199,8 +199,8 @@ void device_mouse_hid_task(void)
   U8 ReportByte1_prev = 0;		// Previous ReportByte1
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
-  uint8_t temp;					// Temporary debug data
-  uint32_t temp32;					// Temporary debug data
+  uint8_t temp, temp2;			// Temporary debug data
+  uint32_t temp32;				// Temporary debug data
   uint8_t dev_datar[1];
 
 
@@ -342,6 +342,60 @@ void device_mouse_hid_task(void)
 
 
 #ifdef HW_GEN_FMADC
+
+			// Set preamp gain
+            else if (a == 'g') {									// Lowercase g
+	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);		// Channel 1 or 2, two hex nibbles
+	            temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);		// Gain 0, 1, 2 or 3, two hex nibbles
+				temp = mobo_fmadc_gain(temp, temp2);
+				print_dbg_char('g');
+				print_dbg_char_hex(temp);
+				print_dbg_char('\n');
+			}
+
+            // Init ADC
+			else if (a == 'p') {							// Lowercase p
+				mobo_pcm1863_init();
+				print_dbg_char('p');
+				print_dbg_char('\n');
+			}
+	
+			// I2C device address
+			else if (a == 'r') {			// Static debug device address
+				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				print_dbg_char('r');
+				print_dbg_char('\n');
+			}
+			
+			// I2C read
+			else if (a == 'w') {								// Lowercase w - read (silly!)
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+				if (mobo_i2c_read (&temp, I2C_device_address, temp) > 0) {
+					print_dbg_char_hex(temp);
+					print_dbg_char('+');
+				}
+				else {
+					print_dbg_char('-');
+				}
+				print_dbg_char('\n');
+			}
+
+			// I2C write
+			else if (a == 'W') {								// Uppercase W - write
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+				temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
+				if (mobo_i2c_write (I2C_device_address, temp, temp2) > 0) {
+					print_dbg_char('+');
+				}
+				else  {
+					print_dbg_char('-');
+				}				
+				print_dbg_char('\n');
+			}
+			            
+
+
+			// Clock control for module MUX ??
             else if (a == 'c') {							// Lowercase c
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				if (temp == 0) {
@@ -351,6 +405,8 @@ void device_mouse_hid_task(void)
 					gpio_set_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is low for 44.1ksps domain
 				}
             }
+
+			// Detect sample rate
             else if (a == 's') {							// Lowercase s
 				temp32 = mobo_srd();
 				print_dbg_char_hex(temp32);
@@ -359,6 +415,7 @@ void device_mouse_hid_task(void)
 				print_dbg_char_hex(temp32 >> 24);
 			}
 			
+			// Control LEDs near MCU
             else if (a == 'l') {							// Lowercase c
 	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 

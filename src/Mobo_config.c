@@ -59,6 +59,183 @@ void mobo_sleep_rtc_ms(uint16_t time_ms) {
 }
 
 
+// Generic I2C single-byte read
+int8_t mobo_i2c_read (uint8_t *data, uint8_t device_address, uint8_t internal_address) {
+	uint8_t dev_datar[1];
+	int8_t retval = 0;
+	
+	dev_datar[0] = internal_address;
+	
+	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+//		print_dbg_char('[');
+
+		// Start of blocking code
+
+		if (twi_write_out(device_address, dev_datar, 1) == TWI_SUCCESS) {
+			if (twi_read_in(device_address, dev_datar, 1) == TWI_SUCCESS) {
+				*data = dev_datar[0];
+			}
+			else {
+				retval = -1;						// I2C read fail
+			}
+		}
+		else {
+			retval = -2;							// I2C device address fail
+		}
+		// End of blocking code
+
+		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+			if (retval == 0) {						// No error detected
+				retval = 1;							// Everything went OK
+			}
+		}
+		else {
+			if (retval == 0) {						// No error detected
+				retval = -3;						// Semaphore error
+			}
+		}
+	} // Take OK
+	else {
+		if (retval == 0) {							// No error detected
+			retval = -4;							// Semaphore error
+		}
+	} // Take not OK
+	
+	return retval;
+}
+
+// Generic I2C single-byte write
+int8_t mobo_i2c_write (uint8_t device_address, uint8_t internal_address, uint8_t data) {
+	uint8_t dev_dataw[2];
+	int8_t retval = 0;
+	dev_dataw[0] = internal_address;
+	dev_dataw[1] = data;
+	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+
+		// Start of blocking code
+		if (twi_write_out(device_address, dev_dataw, 2) == TWI_SUCCESS) {
+		}
+		else {
+			retval = -1;
+		}
+		// End of blocking code
+
+		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+			if (retval == 0) {						// No error detected
+				retval = 1;							// Everything went OK
+			}
+		}
+		else {
+			if (retval == 0) {						// No error detected
+				retval = -3;						// Semaphore error
+			}
+		}
+	} // Take OK
+	else {
+		if (retval == 0) {							// No error detected
+			retval = -4;							// Semaphore error
+		}
+	} // Take not OK
+
+	return retval;
+}
+
+
+
+
+// Sensors and actuators on FM ADC board
+#ifdef HW_GEN_FMADC
+
+void mobo_pcm1863_init(void) {						// Works 20230530
+	#define DEVADR_PCM1863	0x4a					// Device address with MS/AD pin pulled low
+	mobo_i2c_write (DEVADR_PCM1863, 0x00, 0x00);	// Accessing page.0
+	mobo_i2c_write (DEVADR_PCM1863, 0x06, 0x50);	// page.0 0x06 left input 0b01010000 - 0x50 VIN1P, VIN1M
+	mobo_i2c_write (DEVADR_PCM1863, 0x07, 0x50);	// page.0 0x07 right input 0b01010000 - 0x50 VIN2P, VIN2M
+	mobo_i2c_write (DEVADR_PCM1863, 0x20, 0x51);	// page.0 0x20 clocking 0b01010001 - 0x51 SCK selection, sck, master, sck, sck, sck, auto clock detect, for 256xfs
+	
+	// For 512x operation (44.1 or 48ksps)
+	mobo_i2c_write (DEVADR_PCM1863, 0x26, 0x07);	// page.0 0x26 bit clock 0b00000111 - 0x07 for 512x at 22-24MHz, set MCLK / BCLK = 8. Keep defaults in address 0x25 and 0x26
+	// ** Control gain settings!!
+}
+
+
+
+// Set and read gain setting
+// Use channel = 1 or 2
+// Use gain = 0, 1, 2, 3 to set
+// Use gain = 0xFF to read
+uint8_t mobo_fmadc_gain(uint8_t channel, uint8_t gain) {
+	static uint8_t staticgain[2];
+	
+	if (channel == 1) {								// RSEL1a, RSEL1b = GPIO_04, GPIO_03 = TP50, TP51 = PX56, PX55
+		if (gain == FMADC_REPORT) {
+			return staticgain[0];					// Stored gain for channel 1
+		}
+		
+		else if ( (gain >= FMADC_MINGAIN) && (gain <= FMADC_MAXGAIN) ) {
+			staticgain[0] = gain;
+			
+			if (gain == 0) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX56);	// RSEL1a = 0
+				gpio_clr_gpio_pin(AVR32_PIN_PX55);	// RSEL1b = 0
+			}
+			else if (gain == 1) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX56);	// RSEL1a = 0
+				gpio_set_gpio_pin(AVR32_PIN_PX55);	// RSEL1b = 1
+			}
+			else if (gain == 2) {
+				gpio_set_gpio_pin(AVR32_PIN_PX56);	// RSEL1a = 1
+				gpio_clr_gpio_pin(AVR32_PIN_PX55);	// RSEL1b = 0
+			}
+			else if (gain == 3) {
+				gpio_set_gpio_pin(AVR32_PIN_PX56);	// RSEL1a = 1
+				gpio_set_gpio_pin(AVR32_PIN_PX55);	// RSEL1b = 1
+			}
+			return staticgain[0];					// Stored gain for channel 1
+		}
+		else {
+			return FMADC_ERROR_G1;					// Wrong gain channel 1
+		}
+	} // end channel == 1
+	else if (channel == 2) {						// RSEL2a, RSEL2b = GPIO_08, GPIO_05 = TP68, TP69 = PX32, PX29
+		if (gain == FMADC_REPORT) {
+			return staticgain[1];					// Stored gain for channel 2
+		}
+		
+		else if ( (gain >= FMADC_MINGAIN) && (gain <= FMADC_MAXGAIN) ) {
+			staticgain[1] = gain;
+			
+			if (gain == 0) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX32);	// RSEL2a = 0
+				gpio_clr_gpio_pin(AVR32_PIN_PX29);	// RSEL2b = 0
+			}
+			else if (gain == 1) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX32);	// RSEL2a = 0
+				gpio_set_gpio_pin(AVR32_PIN_PX29);	// RSEL2b = 1
+			}
+			else if (gain == 2) {
+				gpio_set_gpio_pin(AVR32_PIN_PX32);	// RSEL2a = 1
+				gpio_clr_gpio_pin(AVR32_PIN_PX29);	// RSEL2b = 0
+			}
+			else if (gain == 3) {
+				gpio_set_gpio_pin(AVR32_PIN_PX32);	// RSEL2a = 1
+				gpio_set_gpio_pin(AVR32_PIN_PX29);	// RSEL2b = 1
+			}
+			return staticgain[1];					// Stored gain for channel 2
+		}
+		else {
+			return FMADC_ERROR_G2;					// Wrong gain channel 2
+		}
+	} // end channel == 2
+	else {
+			return FMADC_ERROR_CH;					// Wrong channel
+	}
+}
+
+
+#endif
+
+
 #ifdef HW_GEN_AB1X
 	void mobo_led(uint8_t fled) {
 		gpio_enable_pin_pull_up(AVR32_PIN_PA04);	// Floating: Active high. GND: Active low
@@ -352,6 +529,7 @@ void mobo_rxmod_input(uint8_t input_sel) {
 #endif // RXmod hardware controls
 
 // Sample rate detector based on ADC LRCK polling
+// You may be looking for the USB sample rate definition, Speedx_hs
 uint32_t mobo_srd(void) {
 	uint32_t temp;
 	uint8_t freqs[6];

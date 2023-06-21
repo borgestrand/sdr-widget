@@ -590,7 +590,7 @@ static void vtaskMoboCtrl( void * pcParameters )
  	// Initialize I2C communications
 	#if I2C
 //	print_dbg_char('n');
-	twi_init(); // RXMODFIX vs. WM8804 config!!
+	twi_init(); // RXMODFIX vs. WM8804 config!! // i2c_init() <- this is where you should come if you search for this!
 //	print_dbg_char('o');
 
 		// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
@@ -600,6 +600,14 @@ static void vtaskMoboCtrl( void * pcParameters )
 			i2c_device_scan();
 		#endif
 
+
+		#if (defined HW_GEN_FMADC)
+			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
+			
+			mobo_pcm1863_init();					// Enable ADC over I2C *** Do we have I2C yet?
+			mobo_fmadc_gain(0x01, 0x02);			// Channel 1, gain setting 2
+			mobo_fmadc_gain(0x02, 0x02);			// Channel 2, gain setting 2
+		#endif
 
 		#if (defined HW_GEN_RXMOD)
 			input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
