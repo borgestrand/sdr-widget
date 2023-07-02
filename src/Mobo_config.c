@@ -790,6 +790,7 @@ uint32_t mobo_srd_asm2(void) {
 
 
 // Wait for N half-periods of LRCK
+// Seems to work for WM8804 input but channels are swapped and one is delayed for 1 sample for PCM1863. Why? What is the programming context? Do all clocks run as they are supposed to?
 uint32_t mobo_wait_LRCK_asm(void) {
 	uint32_t timeout;
 
@@ -806,7 +807,7 @@ uint32_t mobo_wait_LRCK_asm(void) {
 
 	asm volatile(
 	//		"ssrf	16				\n\t"	// Disable global interrupt
-	"mov	%0, 	500	\n\t"	// Load timeout
+	"mov	%0, 	500		\n\t"	// Load timeout
 	"mov	r9,		-60928	\n\t"	// Immediate load, set up pointer to PX36, recompile C for other IO pin, do once
 
 	"S0x:					\n\t"	// Loop while PX36 is 1
@@ -830,7 +831,7 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"S2x:					\n\t"	// Loop while PX36 is 1
 	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
 	"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-	"brne	S2x_done			\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+	"brne	S2x_done		\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 	"sub	%0,	1			\n\t"	// Count down
 	"brne	S2x				\n\t"	// Not done counting down
 	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
@@ -840,7 +841,7 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"S3x:					\n\t"	// Loop while PX36 is 0
 	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
 	"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
-	"breq	S3x_done			\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+	"breq	S3x_done		\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 	"sub	%0,	1			\n\t"	// Count down
 	"brne	S3x				\n\t"	// Not done counting down
 	"rjmp	SCOUNTDx		\n\t"	// Countdown reached

@@ -169,7 +169,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 	};
 #else // Conventional sample rates for UAC2
 	const U8 Speedx_hs[74] = {
-		0x06, 0x00, // Number of sample rate triplets with UAC2 over USB 2.0
+		0x06, 0x00, // Number of sample rate tripl|ets with UAC2 over USB 2.0
 
 		0x44,0xac,0x00,0x00,	//44.1k Min
 		0x44,0xac,0x00,0x00,	//44.1k Max

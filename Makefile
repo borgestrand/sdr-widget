@@ -93,3 +93,16 @@ clean::
 	rm -f widget-control widget-control.exe
 	cd Release && make clean
 	rm -f widget-control
+
+
+# Things you will find yourself searching for:
+# Speedx_hs - sample rate definitions
+# mobo_srd - sample rate detector
+# AK5394A_pdca_rx_enable - turn on DMA for incoming I2S
+# 
+# Tasks
+# - Turn on I2S RX DMA without LR swap or 1-sample delays - both PCM1863 and WM8804 based sources
+# - Always start WM8804 playback mid-buffer, avoid use of regenerated clock
+# - Improve skip/insert code, see reMarkable notes
+
+
