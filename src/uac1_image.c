@@ -103,7 +103,6 @@ static void x_image_task_init(void) {
 
 #if LCD_DISPLAY						// Multi-line LCD display
 	vStartTaskLCD();
-	vStartTaskPowerDisplay();
 #endif
 
 // #ifdef HW_GEN_RXMOD

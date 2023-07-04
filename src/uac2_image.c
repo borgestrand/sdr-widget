@@ -112,7 +112,6 @@ static void x_image_task_init(void) {
 
 #if LCD_DISPLAY						// Multi-line LCD display
 	vStartTaskLCD();				// Disabling this task makes for no Prog and no Auido
-//	vStartTaskPowerDisplay();		// Disable OK for Prog and Audio
 #endif
 
 // #ifdef HW_GEN_RXMOD

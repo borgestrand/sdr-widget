@@ -26,7 +26,6 @@ C_SRCS += \
 ../src/taskEXERCISE.c \
 ../src/taskLCD.c \
 ../src/taskMoboCtrl.c \
-../src/taskPowerDisplay.c \
 ../src/uac1_device_audio_task.c \
 ../src/uac1_image.c \
 ../src/uac1_taskAK5394A.c \
@@ -67,7 +66,6 @@ OBJS += \
 ./src/taskEXERCISE.o \
 ./src/taskLCD.o \
 ./src/taskMoboCtrl.o \
-./src/taskPowerDisplay.o \
 ./src/uac1_device_audio_task.o \
 ./src/uac1_image.o \
 ./src/uac1_taskAK5394A.o \
@@ -109,7 +107,6 @@ C_DEPS += \
 ./src/taskEXERCISE.d \
 ./src/taskLCD.d \
 ./src/taskMoboCtrl.d \
-./src/taskPowerDisplay.d \
 ./src/uac1_device_audio_task.d \
 ./src/uac1_image.d \
 ./src/uac1_taskAK5394A.d \

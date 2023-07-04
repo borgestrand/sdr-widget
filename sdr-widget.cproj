@@ -15296,18 +15296,6 @@
     <Compile Include="src\taskMoboCtrl.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\taskPowerDisplay.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskPowerDisplay.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskStartupLogDisplay.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskStartupLogDisplay.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\TMP100.c">
       <SubType>compile</SubType>
     </Compile>
