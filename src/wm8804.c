@@ -569,9 +569,6 @@ else {
 
 		while (link_attempts++ < wm8804_LINK_MAX_ATTEMPTS) {		// Repeat until timeout
 
-			gpio_tgl_gpio_pin(AVR32_PIN_PA22);	// Debug - also used in wm8804_task()
-
-
 			// Check UNLOCK bit if everything is OK and we can leave this function
 			//		if ( (wm8804_read_byte(0x0C) & 0x40) == 0 ) {	// UNLOCK bit. Does much the same job but takes a few µs longer than GPIO read. Not fully verified in 192ksps
 			if (gpio_get_pin_value(WM8804_CSB_PIN) == 0) {	// Got link!
