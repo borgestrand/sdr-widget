@@ -4,7 +4,6 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/AD5301.c \
 ../src/AD7991.c \
 ../src/DG8SAQ_cmd.c \
 ../src/I2C.c \
@@ -42,7 +41,6 @@ C_SRCS += \
 
 
 OBJS += \
-./src/AD5301.o \
 ./src/AD7991.o \
 ./src/DG8SAQ_cmd.o \
 ./src/I2C.o \
@@ -81,7 +79,6 @@ OBJS += \
 
 
 C_DEPS += \
-./src/AD5301.d \
 ./src/AD7991.d \
 ./src/DG8SAQ_cmd.d \
 ./src/I2C.d \

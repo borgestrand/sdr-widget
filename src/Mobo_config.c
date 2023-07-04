@@ -27,9 +27,11 @@
 #include "taskAK5394A.h"
 #include "usb_specific_request.h"
 
+// I2C functions
+#include "I2C.h"
+
 /*
 #include "AD7991.h"
-#include "AD5301.h"
 #include "Si570.h"
 #include "PCF8574.h"
 #include "TMP100.h"
@@ -1575,6 +1577,8 @@ void mobo_clear_dac_channel(void) {
 //
 
 #define ENC_PULSES			512		// hack while removing rotary_encoder
+#define AD5301_I2C_ADDRESS 1		// hack while removing AD5301
+
 mobo_data_t	cdata							// Variables in ram/flash rom (default)
 		=
 		{

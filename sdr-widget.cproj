@@ -15227,12 +15227,6 @@
     <Compile Include="src\PCF8574.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\rotary_encoder.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\rotary_encoder.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\Si570.c">
       <SubType>compile</SubType>
     </Compile>

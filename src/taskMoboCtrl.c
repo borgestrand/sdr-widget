@@ -29,6 +29,9 @@
 #include "queue.h"
 #include "usb_drv.h"
 
+// I2C functions
+#include "I2C.h"
+
 #include "composite_widget.h"
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
@@ -140,10 +143,6 @@ static void i2c_device_scan(void)
     	}
     }
     #endif
-
-	#if AD5301
-	i2c.ad5301 = i2c_device_probe_and_log(cdata.AD5301_I2C_addr, "AD5301");
-	#endif
 
 	#if AD7991
 	i2c.ad7991 = i2c_device_probe_and_log(cdata.AD7991_I2C_addr, "AD7991");
@@ -428,8 +427,6 @@ void PA_bias(void)
 		// Set RD16HHF1 Bias to LO setting, using stored calibrated value
 		//-------------------------------------------------------------
 		case 1:													// Set RD16HHF1 PA bias for Class AB
-			if(biasInit != 1)									// Has this been done already?
-				ad5301(cdata.AD5301_I2C_addr, cdata.cal_LO);	// No, set bias
 			biasInit = 1;
 			break;
 		//-------------------------------------------------------------
@@ -438,12 +435,10 @@ void PA_bias(void)
 		case 2:													// Set RD16HHF1 PA bias for Class A
 			if (SWR_alarm)										// Whoops, we have a SWR situation
 			{
-				ad5301(cdata.AD5301_I2C_addr, cdata.cal_LO);	// Set lower bias setting
 				biasInit = 0;
 			}
 			else if(biasInit != 2 )								// Has this been done already?
 			{
-				ad5301(cdata.AD5301_I2C_addr, cdata.cal_HI);	// No, set bias
 				biasInit = 2;
 			}
 			break;
@@ -455,7 +450,6 @@ void PA_bias(void)
 			{
 				TX_flag = TRUE; 								// Ask for transmitter to be keyed on
 				PA_cal = TRUE;									// Indicate PA Calibrate in progress
-				ad5301(cdata.AD5301_I2C_addr, 0);				// Set bias to 0 in preparation for step up
 			}
 			else if ((!TMP_alarm) && (TX_flag) && (TX_state))	// We have been granted switch over to TX
 			{													// Start calibrating
@@ -497,15 +491,12 @@ void PA_bias(void)
 					calibrate = 0;								// Clear calibrate value (for next round)
 					cdata.Bias_Select = 2;						// Set bias select for class A and store
 					flashc_memset8((void *)&nvram_cdata.Bias_Select, cdata.Bias_Select, sizeof(cdata.Bias_Select), TRUE);
-					//implicit, no need:
-					//ad5301(cdata.AD5301_I2C_addr, cdata.cal_HI);// Set bias	at class A value
 				}
 
 				// Crank up the bias
 				else
 				{
 					calibrate++;								// Crank up the bias by one notch
-					ad5301(cdata.AD5301_I2C_addr, calibrate);	// for the next round of measurements
 				}
 			}
 	}
@@ -643,7 +634,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	lcd_q_goto(0,0);
 	#endif
 	// A Full house
-	if (i2c.si570 && i2c.tmp100 && i2c.ad5301 && i2c.ad7991 && i2c.pcfmobo && i2c.pcflpf1)
+	if (i2c.si570 && i2c.tmp100 && i2c.ad7991 && i2c.pcfmobo && i2c.pcflpf1)
 	{
 		#if LOGGING
 		widget_startup_log_line("RX&TX&LPF Init OK");
@@ -651,7 +642,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		lcd_q_print("RX&TX&LPF Init OK");
 		#endif
 	}
-	else if (i2c.si570 && i2c.tmp100 && i2c.ad5301 && i2c.ad7991 && i2c.pcfmobo)
+	else if (i2c.si570 && i2c.tmp100 && i2c.ad7991 && i2c.pcfmobo)
 	{
 		#if LOGGING
 		widget_startup_log_line("RX & TX Init OK");
@@ -888,7 +879,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// The below is only applicable if I2C bus is available
 		#if I2C
 
-		#if MOBO_FUNCTIONS	// AD7991/AD5301/TMP100, P/SWR etc...
+		#if MOBO_FUNCTIONS	// AD7991/TMP100, P/SWR etc...
 		//--------------------------
    		// TX stuff, once every 10ms
    		//--------------------------
@@ -896,7 +887,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// Bias management poll, every 10ms
 		//---------------------------------
 		// RD16HHF1 PA Bias management
-		if (i2c.ad7991 && i2c.ad5301)					// Test for presence of required hardware
+		if (i2c.ad7991)					// Test for presence of required hardware
 			PA_bias();									// Autobias and other bias management functions
 														// This generates no I2C traffic unless bias change or
 														// autobias measurement
