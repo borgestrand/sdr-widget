@@ -15302,12 +15302,6 @@
     <Compile Include="src\taskPowerDisplay.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\taskPushButtonMenu.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskPushButtonMenu.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\taskStartupLogDisplay.c">
       <SubType>compile</SubType>
     </Compile>
