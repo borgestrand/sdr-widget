@@ -60,6 +60,7 @@ void mobo_sleep_rtc_ms(uint16_t time_ms) {
 
 
 // Generic I2C single-byte read
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 int8_t mobo_i2c_read (uint8_t *data, uint8_t device_address, uint8_t internal_address) {
 	uint8_t dev_datar[1];
 	int8_t retval = 0;
@@ -139,7 +140,7 @@ int8_t mobo_i2c_write (uint8_t device_address, uint8_t internal_address, uint8_t
 
 	return retval;
 }
-
+#endif // #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 
 
 

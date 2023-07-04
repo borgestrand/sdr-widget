@@ -90,9 +90,10 @@ uint8_t mobo_usb_detect(void);
 #endif
 
 // Generic I2C functionality
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 int8_t mobo_i2c_read (uint8_t *data, uint8_t device_address, uint8_t internal_address);
 int8_t mobo_i2c_write (uint8_t device_address, uint8_t internal_address, uint8_t data);
-	
+#endif
 	
 // Sensors and actuators on FM ADC board
 #ifdef HW_GEN_FMADC
