@@ -71,6 +71,8 @@
 //_____  I N C L U D E S ___________________________________________________
 
 
+////// For old debug commands see device_mouse_hid_task.c_legacy_commands /////
+
 #include "conf_usb.h"
 #if BOARD != EVK1104 && BOARD != SDRwdgtLite
 #include "joystick.h"
@@ -220,65 +222,6 @@ void device_mouse_hid_task(void)
 #endif  // FREERTOS_USED
 
 
-// BSB 20120711: Debugging HID
-/*
-
-// Original code from Atmel commented out
-
-       switch (usb_state){
-
-       case 'r':
-	   if ( Is_usb_out_received(EP_HID_RX)){
-		   LED_Toggle(LED1);
-		   Usb_reset_endpoint_fifo_access(EP_HID_RX);
-		   data_length = Usb_byte_count(EP_HID_RX);
-		   if (data_length > 2) data_length = 2;
-		   usb_read_ep_rxpacket(EP_HID_RX, &usb_report[0], data_length, NULL);
-		   Usb_ack_out_received_free(EP_HID_RX);
-#if LCD_DISPLAY			// Multi-line LCD display
-		   xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		   lcdQUEDATA.CMD = lcdPOSW;
-	       xStatus = xQueueSendToBack( lcdCMDQUE, &lcdQUEDATA, portMAX_DELAY );
-           lcdQUEDATA.CMD=lcdGOTO;
-           lcdQUEDATA.data.scrnPOS.row = 3;
-           lcdQUEDATA.data.scrnPOS.col = 14;
-           xStatus = xQueueSendToBack( lcdCMDQUE, &lcdQUEDATA, portMAX_DELAY );
-           lcdQUEDATA.CMD=lcdPUTH;
-           lcdQUEDATA.data.aChar=usb_report[0];
-           xStatus = xQueueSendToBack( lcdCMDQUE, &lcdQUEDATA, portMAX_DELAY );
-           lcdQUEDATA.CMD=lcdPUTH;
-           lcdQUEDATA.data.aChar=usb_report[1];
-           xStatus = xQueueSendToBack( lcdCMDQUE, &lcdQUEDATA, portMAX_DELAY );
-           lcdQUEDATA.CMD = lcdPOSR;
-           xStatus = xQueueSendToBack( lcdCMDQUE, &lcdQUEDATA, portMAX_DELAY );
-           xSemaphoreGive( mutexQueLCD );
-#endif
-           print_dbg("HID: report received\n");
-
-		   usb_state = 't';
-	   }
-	   break;
-
-       case 't':
-
-       if( Is_usb_in_ready(EP_HID_TX) )
-       {
-    	  LED_Toggle(LED0);
-          Usb_reset_endpoint_fifo_access(EP_HID_TX);
-          
-          //! Write report
-          Usb_write_endpoint_data(EP_HID_TX, 8, usb_report[0]);
-          Usb_write_endpoint_data(EP_HID_TX, 8, usb_report[1]);
-          Usb_ack_in_ready_send(EP_HID_TX);
-          usb_state = 'r';
-       }
-       break;
-       }
-*/
-
-
-// BSB 20120711: HID using uart
-
 /*
  * HID protocol using uart
  *
@@ -325,21 +268,6 @@ void device_mouse_hid_task(void)
             // If you need the UART for something other than HID, this is where you interpret it!
 
 
-#ifdef USB_METALLIC_NOISE_SIM
-            else if (a == 'u') {
-            	FB_rate_nominal += 64;
-            	FB_rate_nominal |= 1; // Use LSB as mask for FB rate being messed up
-            }
-            else if (a == 'd') {
-            	FB_rate_nominal -= 64;
-            	FB_rate_nominal |= 1; // Use LSB as mask for FB rate being messed up
-            }
-            else if (a == 'x') {
-            	FB_rate_nominal = FB_rate_initial; // Use LSB as mask for FB rate being messed up
-            }
-#endif
-
-
 
 #ifdef HW_GEN_FMADC
 
@@ -352,20 +280,15 @@ void device_mouse_hid_task(void)
 				print_dbg_char_hex(temp);
 				print_dbg_char('\n');
 			}
-
-            // Init ADC
-			else if (a == 'p') {							// Lowercase p
-				mobo_pcm1863_init();
-				print_dbg_char('p');
-				print_dbg_char('\n');
-			}
 	
+
 			// I2C device address
 			else if (a == 'r') {			// Static debug device address
 				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				print_dbg_char('r');
 				print_dbg_char('\n');
 			}
+
 			
 			// I2C read
 			else if (a == 'w') {								// Lowercase w - read (silly!)
@@ -379,6 +302,7 @@ void device_mouse_hid_task(void)
 				}
 				print_dbg_char('\n');
 			}
+
 
 			// I2C write
 			else if (a == 'W') {								// Uppercase W - write
@@ -394,18 +318,6 @@ void device_mouse_hid_task(void)
 			}
 			            
 
-
-			// Clock control for module MUX ??
-            else if (a == 'c') {							// Lowercase c
-				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				if (temp == 0) {
-					gpio_clr_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is high for 48ksps domain
-				}
-				else {
-					gpio_set_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is low for 44.1ksps domain
-				}
-            }
-
 			// Detect sample rate
             else if (a == 's') {							// Lowercase s
 				temp32 = mobo_srd();
@@ -414,71 +326,9 @@ void device_mouse_hid_task(void)
 				print_dbg_char_hex(temp32 >> 16);
 				print_dbg_char_hex(temp32 >> 24);
 			}
-			
-			// Control LEDs near MCU
-            else if (a == 'l') {							// Lowercase c
-	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-
-				if ( (temp & 0b00000001) != 0)				// Presumably AVR32_PIN_PX20 or AVR32_PIN_PX29, red led on usb module
-					LED_On( LED0 );
-				else
-					LED_Off( LED0 );
-				if ( (temp & 0b00000010) != 0)				// Presumably AVR32_PIN_PX46 or AVR32_PIN_PX32, green led on usb module
-					LED_On( LED1 );
-				else
-					LED_Off( LED1 );
-				if ( (temp & 0b00000100) != 0)				// Presumably AVR32_PIN_PX50
-					LED_On( LED2 );
-				else
-					LED_Off( LED2 );
-				if ( (temp & 0b00001000) != 0)				// Presumably AVR32_PIN_PX57
-					LED_On( LED3 );
-				else
-					LED_Off( LED3 );
-			}
-
-
 #endif
 
 #ifdef HW_GEN_RXMOD
-
-            else if (a == 'T') {							// Upper T
-				// Print some Toslink buffer contents
-				uint32_t tosdata[12];	
-				for (temp = 0; temp < 12; temp++) {
-					tosdata[temp] = audio_buffer_0[temp];
-				}
-				print_dbg_char('\n');
-				for (temp = 0; temp < 12; temp++) {
-					// Dump 12 32-bit samples L R
-					print_dbg_char_hex(tosdata[temp] >> 24);
-					print_dbg_char_hex(tosdata[temp] >> 16);
-					print_dbg_char_hex(tosdata[temp] >> 8);
-					print_dbg_char_hex(tosdata[temp]);
-					print_dbg_char('\n');
-				}
-			}
-
-            else if (a == 'l') {							// Lowercase c
-	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-
-	            if ( (temp & 0b00000001) != 0)				// Presumably AVR32_PIN_PX20 (or AVR32_PIN_PX29), red led on usb module
-	            LED_On( LED0 );
-	            else
-	            LED_Off( LED0 );
-	            if ( (temp & 0b00000010) != 0)				// Presumably AVR32_PIN_PX46 (or AVR32_PIN_PX32), green led on usb module
-	            LED_On( LED1 );
-	            else
-	            LED_Off( LED1 );
-	            if ( (temp & 0b00000100) != 0)				// Presumably AVR32_PIN_PX50
-	            LED_On( LED2 );
-	            else
-	            LED_Off( LED2 );
-	            if ( (temp & 0b00001000) != 0)				// Presumably AVR32_PIN_PX57
-	            LED_On( LED3 );
-	            else
-	            LED_Off( LED3 );
-            }
 
             else if (a == '0') {							// Digit 0
 	            // usb_ch = USB_CH_NONE;
@@ -512,25 +362,6 @@ void device_mouse_hid_task(void)
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
             }
 
-            else if (a == 'P') {							// Uppercase P - doesn't work, needs larger capacitor?
-	            gpio_clr_gpio_pin(AVR32_PIN_PB10); 			// PROG = 0
-				vTaskDelay(6000);							// How long time is this really? 600 and sch's original cap don't work
-	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
-            }
-
-            else if (a == 'e') {							// Lowercase e - Read from PCM5142
-	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-				temp = pcm5142_read_byte(dev_datar[0]);
-				print_dbg_char_hex(temp);
-            }
-
-            else if (a == 'f') {							// Lowercase f - Write to PCM5142
-	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-	            dev_datar[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch content
-				temp = pcm5142_write_byte(dev_datar[0], dev_datar[1]);
-	            print_dbg_char_hex(temp);
-            }
-
 
 /* Changing filters. TI says:
 Hello, This is the information you needed: The interpolation filter can be changed with just 3 steps.
@@ -543,10 +374,6 @@ Kind Regards,
 Arash
 */
 
-// Attempts to access PCM5142
-
-			// 0x3A							// Assumed WM8804 address, it responds with local address byte coming back
-			// 0x4C							// Both adr pins set to 0 in hardware
 
             else if (a == 'r') {			// Static debug device address
 				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
@@ -558,72 +385,32 @@ Arash
             }
 
 
-            else if (a == 'w') {							// Lowercase w - read (silly!)
-	            dev_datar[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-
-//				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
-				if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-//					print_dbg_char('[');
-
-					// Start of blocking code
-// 					gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Indicate on pin 95
-
-					if (twi_write_out(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) { 
-						if (twi_read_in(I2C_device_address, dev_datar, 1) == TWI_SUCCESS) {
-							print_dbg_char('.');
-							print_dbg_char_hex(dev_datar[0]);
-							print_dbg_char('.');
-						}
-						else {
-							print_dbg_char('-');				// Secondary read part failed
-						}
-					}
-					else {
-						print_dbg_char(':');					// Primary write part failed
-					}
-					// End of blocking code
-
-//					print_dbg_char('g');
-					if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
-//						print_dbg_char(60); // '<'
-					}
-					else {
-//						print_dbg_char(62); // '>'
-					}
-				} // Take OK
+			// I2C read
+			else if (a == 'w') {								// Lowercase w - read (silly!)
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+				if (mobo_i2c_read (&temp, I2C_device_address, temp) > 0) {
+					print_dbg_char_hex(temp);
+					print_dbg_char('+');
+				}
 				else {
-//					print_dbg_char(']');
-				} // Take not OK
-            }
+					print_dbg_char('-');
+				}
+				print_dbg_char('\n');
+			}
 
-            else if (a == 'W') {							// Uppercase W - write
-				uint8_t dev_dataw[2];
-				uint8_t status;
-				dev_dataw[0] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-				dev_dataw[1] = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
-//				print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
-				if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-//					print_dbg_char('[');
 
-					// Start of blocking code
-					status = twi_write_out(I2C_device_address, dev_dataw, 2);
-					print_dbg_char(',');
-					print_dbg_char_hex(status);
-					print_dbg_char(',');
-					// End of blocking code
-
-//					print_dbg_char('g');
-					if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
-//						print_dbg_char(60); // '<'
-					}
-					else {
-//						print_dbg_char(62); // '>'
-					}
-				} // Take OK
-				else {
-//					print_dbg_char(']');
-				} // Take not OK
-            }
+			// I2C write
+			else if (a == 'W') {								// Uppercase W - write
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+				temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
+				if (mobo_i2c_write (I2C_device_address, temp, temp2) > 0) {
+					print_dbg_char('+');
+				}
+				else  {
+					print_dbg_char('-');
+				}
+				print_dbg_char('\n');
+			}
 			
 			
             // LED debug
@@ -659,445 +446,6 @@ Arash
 	            spdif_rx_status.buffered = 1;				// Use precision clock and buffering
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
-			
-
-			// Are SPDIF/TOSLINK inputs alive and not static? Use a timer for deep analysis, use this code for live/dead detect
-            else if (a == 'c') {							// Lowercase c
-
-				// Time keeper code to see how long time it takes
-//				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-				wm8804_live_detect(MOBO_SRC_TOSLINK1);
-//				gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-				
-				if (wm8804_live_detect(MOBO_SRC_TOSLINK1))
-					print_dbg_char('l');
-				else
-					print_dbg_char('d');
-				if (wm8804_live_detect(MOBO_SRC_TOSLINK0))
-					print_dbg_char('l');
-				else
-					print_dbg_char('d');
-				if (wm8804_live_detect(MOBO_SRC_SPDIF0))
-					print_dbg_char('l');
-				else
-					print_dbg_char('d');
-			}
-			
-
-            else if (a == 'p') {							// Lowercase p
-				// Emulate wm8804_pllnew(WM8804_PLL_NORMAL); 
-				
-//              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-				uint8_t dev_data[5];
-				dev_data[0] = 0x03;
-				dev_data[1] = 0x21; // 0x03 data
-				dev_data[2] = 0xFD; // 0x04
-				dev_data[3] = 0x36; // 0x05
-				dev_data[4] = 0x07; // 0x06
-				wm8804_multiwrite(5, dev_data);
-				wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL
-
-//              	gpio_tgl_gpio_pin(AVR32_PIN_PX33);			// Pin 95
-				
-			}
-			
-
-            // Analog MUX on WM8804 input, high level function call
-			/* Use LSB:
-			MOBO_SRC_SPDIF0			3
-			MOBO_SRC_TOSLINK1		4
-			MOBO_SRC_TOSLINK0		5
-			
-			n31 init
-			n20 no input
-			n24 tos by buttons <- Study this transition on scope!
-			s   srd
-			t   GPIO status
-			u   Interrupt report 8 is TRANS_ERR, 1 is UPD_UNLOCK
-			n33 pll != 192
-			n34 pll 192
-			n35 take
-			n36 give
-			n37 unmute
-			n38 mute
-			n39 PLL toggle
-						
-			*/
-            else if (a == 'n') {
-	            uint8_t mux_cmd;
-				static uint8_t input_select_debug = MOBO_SRC_TOSLINK1;
-	            mux_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				
-				if ( (mux_cmd & 0xF0) == 0x10 ) {			// 1 in upper nibble -> raw hardware mux control. Should have no influence as long as same channel is re-selected
-					mobo_rxmod_input(mux_cmd & 0x0F);		// Hardware MUX control
-				}
-				else if ( (mux_cmd & 0xF0) == 0x20 ) {		// 2 in upper nibble -> WM8804 IO control
-					input_select_debug = mux_cmd & 0x0F;	// Store for audio enable
-					wm8804_inputnew(input_select_debug);	// Set up MUXes, PLL, clock division. Test result
-				}
-				else if ( (mux_cmd & 0xF0) == 0x30) {		// 3 in upper nibble init functions
-					if ( (mux_cmd & 0x0F) == 0x00) {		// 30 -> sleep
-						wm8804_sleep();
-					}
-					else if ( (mux_cmd & 0x0F) == 0x01) {	// 31 -> init = wake
-						wm8804_init();
-					}
-					else if ( (mux_cmd & 0x0F) == 0x03) {	// 33 -> PLL !192
-						wm8804_pllnew(WM8804_PLL_NORMAL);
-					}
-					else if ( (mux_cmd & 0x0F) == 0x04) {	// 34 -> PLL 192
-						wm8804_pllnew(WM8804_PLL_192);
-					}
-					else if ( (mux_cmd & 0x0F) == 0x05) {	// 35 -> Take and swap channel out
-						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-							print_dbg_char('[');
-							input_select = input_select_debug;	// Owning semaphore we may write to input_select
-						}
-						else {
-							print_dbg_char(']');
-						}
-					}
-					else if ( (mux_cmd & 0x0F) == 0x06) {	// 36 -> Give
-						if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-							input_select = MOBO_SRC_NONE;	// Indicate USB may  over control, but don't power down!
-							print_dbg_char(60); // '<'
-							
-							#ifdef HW_GEN_RXMOD
-							#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-								mobo_led(FLED_SCANNING);
-							#endif
-							#endif
-						}
-						else {
-							print_dbg_char(62); // '>'
-						}
-					}
-					else if ( (mux_cmd & 0x0F) == 0x07) {	// 37 -> Unmute
-						spdif_rx_status.frequency = mobo_srd();	// Update some spdif systems variables before continuing
-						spdif_rx_status.powered == 1;
-						spdif_rx_status.reliable = 1;
-						spdif_rx_status.muted = 0;
-						spdif_rx_status.silent = 0;
-						spdif_rx_status.pllmode = WM8804_PLL_NORMAL;
-						spdif_rx_status.buffered = 1;
-						wm8804_unmute();
-					}
-					else if ( (mux_cmd & 0x0F) == 0x08) {	// 38 -> Mute
-						wm8804_mute();
-					}
-					else if ( (mux_cmd & 0x0F) == 0x09) {	// 39 -> PLL mode toggle !192 <-> 192
-						wm8804_pllnew(WM8804_PLL_TOGGLE);
-					}
-					else if ( (mux_cmd & 0x0F) == 0x0A) {	// 3A -> Use recovered MCLK with unbuffered SPDIF - Requires disable of automatic mobo_xo_select() calls
-						spdif_rx_status.buffered = 0;		// NB: will be discontinued in hardware!
-						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF0);
-					}
-					else if ( (mux_cmd & 0x0F) == 0x0B) {	// 3B -> Use recovered MCLK with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
-						spdif_rx_status.buffered = 1;
-						mobo_xo_select(FREQ_RXNATIVE, MOBO_SRC_SPDIF0);
-					}
-					else if ( (mux_cmd & 0x0F) == 0x0C) {	// 3C -> Use 48kHz domain XO with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
-						spdif_rx_status.buffered = 1;
-						mobo_xo_select(FREQ_96, MOBO_SRC_SPDIF0);
-					}
-					else if ( (mux_cmd & 0x0F) == 0x0D) {	// 3D -> Use 44.1kHz domain XO with buffered SPDIF - Requires disable of automatic mobo_xo_select() calls
-						spdif_rx_status.buffered = 1;
-						mobo_xo_select(FREQ_88, MOBO_SRC_SPDIF0);
-					}
-					else if ( (mux_cmd & 0x0F) == 0x0E) {	// 3E -> Disable SPDIF_COUNTers
-						gpio_clr_gpio_pin(AVR32_PIN_PB04);
-					}
-					else if ( (mux_cmd & 0x0F) == 0x0F) {	// 3F -> Enable SPDIF_COUNTers
-						gpio_set_gpio_pin(AVR32_PIN_PB04);
-					}
-										
-				} // 3 in upper nibble
-				print_dbg_char('\n');
-            }
-			
-			
-            // Start of algorithm within wm8804 task
-			else if (a == 'N') {		// Uppercase 'N'
-				static uint8_t scanmode = WM8804_SCAN_FROM_NEXT + 0x05;		// Start scanning from next channel. Run up to 5x4 scan attempts
-				uint32_t freq;
-				static uint8_t channel;
-				uint8_t wm8804_int;
-				uint8_t mustgive = 0;
-				
-				
-				// USB has assumed control, power down WM8804 if it was on
-				if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
-					
-					print_dbg_char('U');
-					
-					if (spdif_rx_status.powered == 1) {
-						spdif_rx_status.powered = 0;
-						wm8804_sleep();
-					}
-				}
-				
-				// Consider what is going on with WM8804
-				else {
-									
-
-					// Playing music from WM8804 - is everything OK?
-					if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
-						
-						print_dbg_char('W');
-						
-						mustgive = 0;									// Not ready to give up playing audio just yet
-					
-						// Poll silence - must elaborate!
-						if ( (0) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
-							print_dbg_char('m');						// Dude went mummmm
-						}
-						
-						// Poll silence - must elaborate!
-						if ( (spdif_rx_status.silent == 1) || (0) ) {
-							// Count occurrences, qualify by recent linkup or the thing having been quiet for a long time
-							print_dbg_char('n');						// Dude went mummmm
-							// scanmode = WM8804_SCAN_FROM_NEXT & 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
-						}
-						
-						// Poll lost lock pin
-						if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
-							// Count to more than one error?
-							scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
-							mustgive = 1;
-						}
-
-						// Poll interrupt pin
-						if  (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) {
-							wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
-						
-							print_dbg_char('!');
-							print_dbg_char_hex(wm8804_int);				// Report interrupts
-
-							if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
-								scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
-								mustgive = 1;
-							}
-						}
-						
-						// Give away control?
-						if (mustgive) {
-							wm8804_mute();
-							spdif_rx_status.muted = 1;
-							spdif_rx_status.reliable = 0;		// Critical for mobo_handle_spdif()
-
-							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-								input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
-								print_dbg_char(60); // '<'
-								
-								#ifdef HW_GEN_RXMOD
-								#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-									// mobo_led(FLED_SCANNING);
-									mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
-								#endif
-								#endif
-							}
-							else {
-								print_dbg_char(62); // '>'
-							}
-
-						}
-					
-					}
-
-					// USB and WM8804 have given away active control, see if WM8804 can grab it
-					if (input_select == MOBO_SRC_NONE) {
-						
-						print_dbg_char('N');
-						
-						if (spdif_rx_status.powered == 0) {
-
-							print_dbg_char('P');
-							
-							wm8804_init();								// WM8804 was probably put to sleep before this. Hence re-init
-							//			print_dbg_char('0');
-							spdif_rx_status.powered = 1;
-							spdif_rx_status.muted = 1;					// I2S is still controlled by USB which should have zeroed it.
-						}
-
-						// FIX: Newly enabled WM8804 takes much longer time to lock on to audio stream!
-
-						else {											// Don't start scanning immediately after power-on
-							print_dbg_char('Q');
-
-							channel = spdif_rx_status.channel;			// Use receiver scan history if it is of any use
-							wm8804_scannew(&channel, &freq, scanmode);	
-							if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
-								wm8804_read_byte(0x0B);					// Clear interrupts for good measure
-								
-								// Update status
-								spdif_rx_status.channel = channel;
-								spdif_rx_status.frequency = freq;
-								// spdif_rx_status.powered = 1;			// Written above
-								spdif_rx_status.reliable = 1;			// Critical for mobo_handle_spdif()
-								spdif_rx_status.silent = 0;				// Modified in mobo_handle_spdif()
-								spdif_rx_status.buffered = 1;
-								
-								// Take semaphore
-								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-									print_dbg_char('[');
-									input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
-									wm8804_unmute();
-									spdif_rx_status.muted = 0;
-								}
-								else {
-									print_dbg_char(']');
-								}
-							} // Scan success
-							print_dbg_char('\n');
-						}
-
-					} // Done processing no selected input source
-				
-				} // Done considering what is happening to WM8804
-				
-			}
-			
-			
-			// SPDIF source scan test
-            else if (a == 'o') {		// Lowercase 'o'
-	            uint8_t mode;
-				uint32_t freq;
-				uint8_t channel = spdif_rx_status.channel;
-
-				
-	            mode = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// High nibble is input scan type, low nibble is 1/4 the permitted scan attempts. For example "o14" for 16 scans of program 1
-				
-				// With mode = 0xFn start scanning at specified channel. Specified channel = current channel! 
-//				if ( (spdif_rx_status.channel == MOBO_SRC_TOSLINK0) || (spdif_rx_status.channel == MOBO_SRC_TOSLINK1) || (spdif_rx_status.channel == MOBO_SRC_SPDIF0) ) {
-					// TRANS_ERR failure may mean rate change on current channel
-					// if (TRANS_ERR interrupt) {
-					//   wm8804_pllnew(WM8804_PLL_TOGGLE);
-				    // }
-					// else {
-					//	channel = input_select + 1;
-					//	if (channel > MOBO_SRC_HIGH) {
-					//		channel = MOBO_SRC_LOW;
-					//	}
-					// }
-//					print_dbg_char('G');
-//				}
-//				else {
-//					print_dbg_char('H');
-//				}
-				
-				wm8804_scannew(&channel, &freq, mode);						// Scan SPDIF inputs and report
-				if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (spdif_rx_status.channel != MOBO_SRC_NONE)) {
-					// Take semaphore
-					if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
-						print_dbg_char('[');
-						spdif_rx_status.channel = channel;
-						input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
-
-						// Set up and unmute
-						spdif_rx_status.frequency = freq;
-						spdif_rx_status.powered == 1;
-						spdif_rx_status.reliable = 1;
-						spdif_rx_status.muted = 0;
-						spdif_rx_status.silent = 0;
-						// spdif_rx_status.pllmode = WM8804_PLL_NORMAL;	// Currently hidden within wm8804_inputnew()
-						spdif_rx_status.buffered = 1;
-						wm8804_unmute();
-					}
-					else {
-						print_dbg_char(']');
-					}
-				} // Scan success
-				print_dbg_char('\n');
-			}
-			
-			
-			// Input scan parameter fix
-            else if (a == 'O') {		// Uppercase 'O' typically "O64051e" Fastest to date for 3ch scan on warm chip is O200414
-				wm8804_LINK_MAX_ATTEMPTS = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				wm8804_LINK_DETECTS_OK = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				wm8804_TRANS_ERR_FAILURE = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				print_dbg_char('\n');
-			}
-			
-			// 3ch scan on warm chip 44.1 ch4 by buttons "n36" "o02"
-			// O64051e - ms
-			
-			
-			// 1ch frequency change on same channel spdif "n36" <rate swap> "o22"
-			//
-			
-
-			// WM8804 SRC check
-			/* Expect
-			44	2C
-			48	30
-			88	58
-			92	60
-			176	B0
-			192	C0
-			*/
-			else if (a == 's') {
-				temp32 = mobo_srd();
-				print_dbg_char_hex(temp32);
-				print_dbg_char_hex(temp32 >> 8);
-				print_dbg_char_hex(temp32 >> 16);
-				print_dbg_char_hex(temp32 >> 24);
-				wm8804_linkstats();											// Report linkup status
-			}
-			
-
-            // WM8804 GPIO control check
-			else if (a == 't') {
-				//7 - SP_SEL1 - PX02
-				if (gpio_get_pin_value(AVR32_PIN_PX02))
-					print_dbg_char('1');
-				else
-					print_dbg_char('0');
-					
-				//6 - SP_SEL0 - PX03
-				if (gpio_get_pin_value(AVR32_PIN_PX03))
-					print_dbg_char('1');
-				else
-					print_dbg_char('0');
-				
-				//5 - SPIO_05_GPO1 - PX15 - WM8804_CSB_PIN
-				if (gpio_get_pin_value(AVR32_PIN_PX15))
-					print_dbg_char('l');
-				else
-					print_dbg_char('L');	// Active low lock
-				
-				//4 - SPIO_04_GPO2 - PA04 - WM8804_INT_N_PIN
-				if (gpio_get_pin_value(AVR32_PIN_PA04))
-					print_dbg_char('i');
-				else
-					print_dbg_char('I');	// Active low interrupt
-				
-				//3 - SPIO_03_DAC_RST - PX10
-				if (gpio_get_pin_value(AVR32_PIN_PX10))
-					print_dbg_char('r');
-				else
-					print_dbg_char('R');	// Active low reset
-				
-				//2 - x
-				print_dbg_char('.');
-
-				//1 - x
-				print_dbg_char('.');
-
-				//0 - SPIO_00_SPO0 - PX54 - WM8804_ZERO_PIN
-				if (gpio_get_pin_value(AVR32_PIN_PX54))
-					print_dbg_char('Z');	// Active high zero detect
-				else
-					print_dbg_char('z');
-
-				print_dbg_char('\n');
-            }
-			
-			// WM8804 interrupt status
-			else if (a == 'u') {
-				print_dbg_char_hex(wm8804_read_byte(0x0B));	// Read, clear and report interrupts
-				print_dbg_char('\n');
-			}
 			
 
 
@@ -1148,6 +496,7 @@ Arash
     	if (gotcmd == 0)									// Nothing recorded:
 			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS. WM8805 needs that, HID doesn't
     } //while (gotcmd == 0)
+
 
 //  Tested ReportByte1 content with JRiver and VLC on Win7-32
 //  ReportByte1 = 0b00000001; // Encode volup according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works!
