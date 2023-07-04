@@ -4,7 +4,6 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/AD7991.c \
 ../src/DG8SAQ_cmd.c \
 ../src/I2C.c \
 ../src/LCD_bargraphs.c \
@@ -41,7 +40,6 @@ C_SRCS += \
 
 
 OBJS += \
-./src/AD7991.o \
 ./src/DG8SAQ_cmd.o \
 ./src/I2C.o \
 ./src/LCD_bargraphs.o \
@@ -79,7 +77,6 @@ OBJS += \
 
 
 C_DEPS += \
-./src/AD7991.d \
 ./src/DG8SAQ_cmd.d \
 ./src/I2C.d \
 ./src/LCD_bargraphs.d \

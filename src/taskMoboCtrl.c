@@ -36,7 +36,6 @@
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
 #include "usb_specific_request.h"
-#include "AD7991.h"
 #include "PCF8574.h"
 #include "TMP100.h"
 #include "DG8SAQ_cmd.h" 
@@ -144,9 +143,6 @@ static void i2c_device_scan(void)
     }
     #endif
 
-	#if AD7991
-	i2c.ad7991 = i2c_device_probe_and_log(cdata.AD7991_I2C_addr, "AD7991");
-	#endif
 
 	#if PCF8574
 	i2c.pcfmobo = i2c_device_probe_and_log(cdata.PCF_I2C_Mobo_addr, "PCF8574");
@@ -177,102 +173,6 @@ static void i2c_device_scan(void)
 #endif // #ifdef I2C
 #endif // Henry Audio device
 
-
-
-/*! \brief Print stuff in the second line of the LCD
- *
- * \retval nothing returned.
- */
-void lcd_display_V_C_T_in_2nd_line(void)
-{
-	#if LCD_DISPLAY			// Multi-line LCD display
-	// TMP100 dependent printouts
-	if (i2c.tmp100)
-	{
-		#if DISP_FAHRENHEIT						// Display temperature in Fahrenheit
-		uint16_t tmp_F;							// (threshold still set in deg C)
-		tmp_F = ((tmp100_data>>7) * 9)/10 + 32;
-		#else
-		int16_t tmp_C = tmp100_data/256;		// Signed integer, discard sub-decimal precision
-		#endif
-
-		// Display "  Voltage and temperature" in second line
-		#if DISP_FAHRENHEIT						// Display temperature in Fahrenheit
-												// (threshold still set in deg C)
-		sprintf(lcd_pass1,"%3uF   ", tmp_F);
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_goto(1,0);						// First char, second line
-		lcd_q_print(lcd_pass1);
-		xSemaphoreGive( mutexQueLCD );
-		#else
-		sprintf(lcd_pass1,"%3d%cC  ", tmp_C,0xdf);
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_goto(1,0);						// First char, second line
-		lcd_q_print(lcd_pass1);
-		xSemaphoreGive( mutexQueLCD );
-		#endif
-	}
-
-	// AD7991 dependent printouts
-	if (i2c.ad7991)
-	{
-		// Prep Voltage readout.  Max voltage = 15.6V (5V * 14.7k/4.7k)
-		uint16_t vdd_tenths = ((uint32_t) ad7991_adc[AD7991_PSU_VOLTAGE] * 156) / 0xfff0;
-		uint16_t vdd = vdd_tenths / 10;
-		vdd_tenths = vdd_tenths % 10;
-
-		sprintf(lcd_pass2,"%2u.%1uV ", vdd, vdd_tenths);
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_goto(1,7);
-		lcd_q_print(lcd_pass2);
-		xSemaphoreGive( mutexQueLCD );
-
-		//
-		//-------------------------------------------------------
-		// During TX, Display PA current in second line of LCD
-		//-------------------------------------------------------
-		//
-		if (TX_state)
-		{
-			// Fetch and normalize PA current
-			uint16_t idd_ca = ad7991_adc[AD7991_PA_CURRENT] / 262;
-			uint16_t idd = idd_ca/100; idd_ca = idd_ca%100;
-
-			sprintf(lcd_pass3,"%u.%02uA ", idd, idd_ca);	// Display current while in transmit
-	    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-			lcd_q_goto(1,13);							// Second line, 13th position
-			lcd_q_print(lcd_pass3);
-			xSemaphoreGive( mutexQueLCD );
-
-		}
-
-		//
-		//-------------------------------------------------------
-		// Display alternate text during RX in second line of LCD
-		//-------------------------------------------------------
-		//
-		else
-		{
-	    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-			lcd_q_goto(1,12);
-	    	lcd_q_print("  Bias:");
-			xSemaphoreGive( mutexQueLCD );
-		}
-
-		//
-		//-------------------------------------------------------
-		// Display Bias setting in second line of LCD
-		//-------------------------------------------------------
-		//
-		const char bias[]= {'R','L','H'};
-    	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-		lcd_q_goto(1,19);								// Second line, 19th position
-		lcd_q_putc(bias[biasInit]);						// Print Bias status 'R'educed
-														// 'Low' or 'H'igh
-		xSemaphoreGive( mutexQueLCD );
-	}
-	#endif
-}
 
 
 /*! \brief Convert AD reading into "Measured Power in centiWatts"
@@ -309,10 +209,6 @@ uint16_t measured_Power(uint16_t voltage)
  * \retval nothing returned.
  */
 // Read the ADC inputs.
-// The global variable ad7991_adc[AD7991_POWER_OUT] contains a measurement of the
-// Power transmitted,
-// and the global variable ad7991_adc[AD7991_POWER_REF] contains a measurement of the
-// Power reflected,
 #if POWER_SWR													// Power and SWR measurement
 void Test_SWR(void)
 {
@@ -329,16 +225,9 @@ void Test_SWR(void)
 		// Calculate SWR
 		//-------------------------------------------------------------
 		// Quick check for an invalid result
-		if (ad7991_adc[AD7991_POWER_OUT] < V_MIN_TRIGGER*0x10)
-			swr = 100;											// Too little for valid measurement, SWR = 1.0
-		else if (ad7991_adc[AD7991_POWER_REF] >= ad7991_adc[AD7991_POWER_OUT])
-			swr = 9990; 										// Infinite (or more than infinite) SWR:
 		// Standard SWR formula multiplied by 100, eg 270 = SWR of 2.7
 		else
 		{
-			uint32_t diff = (uint32_t)(ad7991_adc[AD7991_POWER_OUT] - ad7991_adc[AD7991_POWER_REF]);
-			uint32_t sum = (uint32_t)ad7991_adc[AD7991_POWER_OUT] + (uint32_t)ad7991_adc[AD7991_POWER_REF];
-			swr = 100 * sum / diff;		
 		}
 
 		if (swr < 9990)											// Set an upper bound to avoid overrrun.
@@ -354,44 +243,6 @@ void Test_SWR(void)
 					{
 		// On measured Power output and high SWR, force clear RXTX2 and seed timer
 
-		// Compare power measured (in mW) with min Trigger value
-		if ((measured_Power(ad7991_adc[AD7991_POWER_OUT]) > cdata.P_Min_Trigger)
-			&& (measured_SWR > 10*cdata.SWR_Trigger)) 				// SWR Trigger value is a 10x value,
-																// e.g. 27 corresponds to an SWR of 2.7.
-		{
-			if (!second_pass)									// First time, set flag, no action yet
-				second_pass++;
-			else												// There have been two or more consecutive measurements
-																// with high SWR, take action
-			{
-				SWR_alarm = TRUE;								// Set SWR alarm flag
-				#if  REVERSE_PTT2_LOGIC							// Switch the PTT2 logic
-				pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Clear PTT2 line
-				#else//not REVERSE_PTT2_LOGIC					// Normal PTT2 logic
-				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Set PTT2 line
-				#endif//REVERSE_PTT2_LOGIC						// end of Switch the PTT2 logic
-				timer = cdata.SWR_Protect_Timer;				// Seed SWR Alarm patience timer
-			}
-		}
-		// If SWR OK and timer has been zeroed, set the PTT2 line
-		else
-		{
-			if (timer == 0)
-			{
-				SWR_alarm = FALSE;								// Clear SWR alarm flag
-
-				#if  REVERSE_PTT2_LOGIC							// Switch the PTT2 logic
-				pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Set PTT2 line
-				#else//not REVERSE_PTT2_LOGIC					// Normal PTT2 logic
-				pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Clear PTT2 line
-				#endif//REVERSE_PTT2_LOGIC						// end of Switch the PTT2 logic
-				second_pass = 0;								// clear second pass flag
-			}
-			else
-			{
-				timer--;
-			}
-		}
 		#endif//SWR_ALARM_FUNC									// SWR alarm function, activates a secondary PTT
 	}
 	}
@@ -453,21 +304,6 @@ void PA_bias(void)
 			}
 			else if ((!TMP_alarm) && (TX_flag) && (TX_state))	// We have been granted switch over to TX
 			{													// Start calibrating
-				// Is current larger or equal to setpoint for class AB?
-				if((ad7991_adc[AD7991_PA_CURRENT]/256 >= cdata.Bias_LO) && (!PA_cal_lo))
-				{
-					PA_cal_lo = TRUE;							// Set flag, were done with class AB
-					cdata.cal_LO = calibrate;					// We have bias, store
-					flashc_memset8((void *)&nvram_cdata.cal_LO, cdata.cal_LO, sizeof(cdata.cal_LO), TRUE);
-				}
-
-				// Is current larger or equal to setpoint for class A?
-				if((ad7991_adc[AD7991_PA_CURRENT]/256 >= cdata.Bias_HI) && (!PA_cal_hi))
-				{
-					PA_cal_hi = TRUE;							// Set flag, we're done with class A
-					cdata.cal_HI = calibrate;					// We have bias, store
-					flashc_memset8((void *)&nvram_cdata.cal_HI, cdata.cal_HI, sizeof(cdata.cal_HI), TRUE);
-				}
 
 				// Have we reached the end of our rope?
 				if(calibrate == 0xff)

@@ -20,7 +20,6 @@
 #include "taskLCD.h"
 #include "Mobo_config.h"
 #include "Si570.h"
-#include "AD7991.h"
 #include "TMP100.h"
 #include "usb_drv.h"
 #include "usb_descriptors.h"
@@ -355,7 +354,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 						// Index 3 reads/modifies the I2C address for the second PCF8574 used in the LPF Mobo
 						// Index 4 reads/modifies the I2C address for the onboard TMP100 temperature sensor
 						// Index 5 reads/modifies the I2C address for the onboard AD5301 8 bit DAC
-						// Index 6 reads/modifies the I2C address for the onboard AD7991 4 x ADC
+						// Index 6 reads/modifies the I2C address for the onboard 
 						// Index 7 reads/modifies the I2C address for the external PCF8574 used for FAN, attenuators etc
 
 			if (wValue == 0xff)
@@ -384,12 +383,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 					case 4:
 						flashc_memset8((void *)&nvram_cdata.TMP100_I2C_addr, wValue, sizeof(uint8_t), TRUE);
 						break;
-					case 5:
-						flashc_memset8((void *)&nvram_cdata.AD5301_I2C_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 6:
-						flashc_memset8((void *)&nvram_cdata.AD7991_I2C_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
 					case 7:
 						flashc_memset8((void *)&nvram_cdata.PCF_I2C_Ext_addr, wValue, sizeof(uint8_t), TRUE);
 						break;
@@ -413,12 +406,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 						break;
 					case 4:
 						Buffer[0] = cdata.TMP100_I2C_addr;
-						break;
-					case 5:
-						Buffer[0] = cdata.AD5301_I2C_addr;
-						break;
-					case 6:
-						Buffer[0] = cdata.AD7991_I2C_addr;
 						break;
 					case 7:
 						Buffer[0] = cdata.PCF_I2C_Ext_addr;
@@ -480,14 +467,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 						// Index 4 = Temperature in degC.Signed Int.  0 = 0 deg C
 						// 			 32640 =  128 deg C, 32768 = -128 deg C
 
-			if (wIndex < 4)						// Values from AD7991
-			{
-				*Buf16 = ad7991_adc[wIndex];
-			}
-			else								// Read current temperature
-			{
-				*Buf16 = tmp100_data;
-			}
 			return sizeof(uint16_t);
 
 

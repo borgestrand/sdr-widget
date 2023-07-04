@@ -35,7 +35,6 @@
 #define AK5394              1   // 24-bit ADC, too much hinges on this one!
 #define AK4382A             0   // 24-bit DAC
 #define TMP100              0   // Temperature measurement device  (needs I2C driver)
-#define AD7991              0   //  (needs I2C driver)
 #define PCF8574             0   // port expander control of TX/RX and Band Pass filters  (needs I2C driver)
 
 #define DEBUG232            1   // Use the UART debug port
@@ -49,7 +48,7 @@
 
 /*! \name Features to include at compile time. */
 //! @{
-#define MOBO_FUNCTIONS		0 // 1 Disabled 20171228	// AD7991/TMP100, P/SWR etc...  (needs I2C driver)
+#define MOBO_FUNCTIONS		0 // 1 Disabled 20171228	// TMP100, P/SWR etc...  (needs I2C driver)
 								// Without this, we have a simple Si570 control
 // None, or only one of the two, CALC_FREQ_MUL_ADD or CALC_BAND_MUL_ADD should be selected
 #define CALC_FREQ_MUL_ADD	0	// Frequency Subtract and Multiply Routines (for smart VFO)
