@@ -20,7 +20,6 @@ C_SRCS += \
 ../src/flashyBlinky.c \
 ../src/host_audio_task.c \
 ../src/image.c \
-../src/rotary_encoder.c \
 ../src/taskAK5394A.c \
 ../src/taskEXERCISE.c \
 ../src/taskLCD.c \
@@ -59,7 +58,6 @@ OBJS += \
 ./src/flashyBlinky.o \
 ./src/host_audio_task.o \
 ./src/image.o \
-./src/rotary_encoder.o \
 ./src/taskAK5394A.o \
 ./src/taskEXERCISE.o \
 ./src/taskLCD.o \
@@ -99,7 +97,6 @@ C_DEPS += \
 ./src/flashyBlinky.d \
 ./src/host_audio_task.d \
 ./src/image.d \
-./src/rotary_encoder.d \
 ./src/taskAK5394A.d \
 ./src/taskEXERCISE.d \
 ./src/taskLCD.d \

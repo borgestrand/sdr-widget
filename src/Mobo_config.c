@@ -28,7 +28,6 @@
 #include "usb_specific_request.h"
 
 /*
-#include "rotary_encoder.h"
 #include "AD7991.h"
 #include "AD5301.h"
 #include "Si570.h"
@@ -1574,6 +1573,8 @@ void mobo_clear_dac_channel(void) {
 // The below structure contains a number of implementation dependent definitions (user tweak stuff)
 //-----------------------------------------------------------------------------
 //
+
+#define ENC_PULSES			512		// hack while removing rotary_encoder
 mobo_data_t	cdata							// Variables in ram/flash rom (default)
 		=
 		{

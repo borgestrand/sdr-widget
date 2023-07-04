@@ -32,7 +32,6 @@
 #include "composite_widget.h"
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
-#include "rotary_encoder.h"
 #include "usb_specific_request.h"
 #include "AD7991.h"
 #include "PCF8574.h"
