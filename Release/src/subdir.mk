@@ -18,7 +18,6 @@ C_SRCS += \
 ../src/device_mouse_hid_task.c \
 ../src/features.c \
 ../src/flashyBlinky.c \
-../src/freq_and_filters.c \
 ../src/host_audio_task.c \
 ../src/image.c \
 ../src/rotary_encoder.c \
@@ -58,7 +57,6 @@ OBJS += \
 ./src/device_mouse_hid_task.o \
 ./src/features.o \
 ./src/flashyBlinky.o \
-./src/freq_and_filters.o \
 ./src/host_audio_task.o \
 ./src/image.o \
 ./src/rotary_encoder.o \
@@ -99,7 +97,6 @@ C_DEPS += \
 ./src/device_mouse_hid_task.d \
 ./src/features.d \
 ./src/flashyBlinky.d \
-./src/freq_and_filters.d \
 ./src/host_audio_task.d \
 ./src/image.d \
 ./src/rotary_encoder.d \

@@ -38,7 +38,6 @@
 #include "PCF8574.h"
 #include "TMP100.h"
 #include "DG8SAQ_cmd.h" 
-#include "freq_and_filters.h"
 #include "device_audio_task.h"
 #include "taskAK5394A.h"
 
@@ -1143,10 +1142,6 @@ static void vtaskMoboCtrl( void * pcParameters )
    	    	}
 		}
 
-		// Si570 Control
-		#if Si570
-		freq_and_filter_control();
-		#endif
 
 		#endif
 

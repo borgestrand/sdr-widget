@@ -15191,12 +15191,6 @@
     <Compile Include="src\flashyblinky_image.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\freq_and_filters.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\freq_and_filters.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\host_audio_task.c">
       <SubType>compile</SubType>
     </Compile>
