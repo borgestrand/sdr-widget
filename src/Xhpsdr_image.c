@@ -46,7 +46,6 @@
 
 #if LCD_DISPLAY				// Multi-line LCD display
 #include "taskLCD.h"
-#include "taskStartupLogDisplay.h"
 #endif
 
 /*
@@ -82,9 +81,6 @@ static void x_image_task_init(void) {
   // vStartTaskEXERCISE( tskIDLE_PRIORITY );
   hpsdr_AK5394A_task_init();
   hpsdr_device_audio_task_init(HPSDR_EP_IQ_IN, HPSDR_EP_IQ_OUT, 0);
-#endif
-#if LCD_DISPLAY						// Multi-line LCD display
-  vStartTaskStartupLogDisplay();
 #endif
 }
 

@@ -120,10 +120,6 @@ static void x_image_task_init(void) {
 
 	uac1_device_audio_task_init(UAC1_EP_AUDIO_IN, UAC1_EP_AUDIO_OUT, UAC1_EP_AUDIO_OUT_FB);
 #endif
-#if LCD_DISPLAY						// Multi-line LCD display
-	if ( ! FEATURE_LOG_NONE )
-		vStartTaskStartupLogDisplay();
-#endif
 }
 
 // descriptor accessors
