@@ -181,13 +181,9 @@ void hpsdr_device_audio_task(void *pvParameters)
 				pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 				pdca_disable(PDCA_CHANNEL_SSC_RX);
 			} else if( time== 2*STARTUP_LED_DELAY ) LED_On( LED1 );
-			else if( time== 3*STARTUP_LED_DELAY ) LED_On( LED2 );
-			else if( time== 4*STARTUP_LED_DELAY ) LED_On( LED3 );
 			else if( time== 5*STARTUP_LED_DELAY ) {
 //				LED_Off( LED0 );
 			} else if( time== 6*STARTUP_LED_DELAY ) LED_Off( LED1 );
-			else if( time== 7*STARTUP_LED_DELAY ) LED_Off( LED2 );
-			else if( time== 8*STARTUP_LED_DELAY ) LED_Off( LED3 );
 			else if( time >= 9*STARTUP_LED_DELAY ) {
 				startup=FALSE;
 

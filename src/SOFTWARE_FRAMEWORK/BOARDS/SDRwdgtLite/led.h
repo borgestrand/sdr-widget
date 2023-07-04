@@ -76,8 +76,6 @@
 //! @{
 #define LED0  0x01
 #define LED1  0x02
-#define LED2  0x04
-#define LED3  0x08
 //! @}
 
 

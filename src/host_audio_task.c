@@ -237,25 +237,21 @@ void host_audio_task(void)
                {
 //                  LED_Off( LED0 );
 //                 LED_On(  LED1 );
-//                LED_Off( LED2 );
                }
                else if( USB_STREAM_STATUS_SPEED_UP == stream_status )
                {
 //                  LED_On(  LED0 );
 //                  LED_Off( LED1 );
-//                  LED_Off( LED2 );
                }
                else if( USB_STREAM_STATUS_SLOW_DOWN == stream_status )
                {
 //                  LED_Off( LED0 );
 //                  LED_Off( LED1 );
-//                  LED_On(  LED2 );
                }
                else if( USB_STREAM_STATUS_NOT_SYNCHRONIZED == stream_status )
                {
 //                  LED_On( LED0 );
 //                  LED_On( LED1 );
-//                  LED_On( LED2 );
                }
             }
             Host_ack_in_received(pipe_audio_in);

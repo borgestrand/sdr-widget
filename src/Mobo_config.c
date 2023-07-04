@@ -439,7 +439,6 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 On revision C board for Boenicke, these pins are connected:
 RATE_LED0 PA01
 RATE_LED1 PA00
-RATE_LED2 PA26
 On revision A board and Henry Audio boards, pins are not connected.
 We set them regardless. We could wrap them in #ifdef FEATURE_PRODUCT_BOEC1 if that were important
 

@@ -1150,7 +1150,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 		#endif
 
-        LED_Toggle(LED2); // FIX: Needed???
 		
 
 #ifdef HW_GEN_RXMOD
