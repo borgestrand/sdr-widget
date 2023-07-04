@@ -529,8 +529,11 @@ up if things are tricky the first time!
      This text assumes you install to "C:\Program Files (x86)\Atmel\Flip 3.4.7"
 
 4  - Download 
-     https://github.com/borgestrand/widget_binaries/blob/master/Add_to_flip347_bin.zip?raw=true
-     and copy the contents of the zip file to folder "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin"
+     https://github.com/borgestrand/widget_binaries/blob/master/Add_to_flip347_bin_rev2.zip?raw=true
+     and copy the contents of the zip file's folder to your computer's folder 
+	 folder "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin". NB: this replaces the old versions
+	 Add_to_flip347_bin.zip and Add_to_flip345_bin.zip. The new revision 2 file also supports
+	 128kB AVR32 processors. The old versions will ruin the 128kB processors.
 
 5  - Download the latest firmware in the form of an .elf file. 
      Use an .elf file from https://github.com/borgestrand/widget_binaries
@@ -559,7 +562,7 @@ up if things are tricky the first time!
 10 - To program the Audio Widget use the command line Flip installation and 
      Add_to_flip347_bin.zip package. Things may take extra time and require up
      to five attempts the first time: Start, Run, cmd.exe, 
-     cd "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin", "prog widget.elf" 
+     cd "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin", "prog128.bat widget.elf" 
      Substitute "widget.elf" with the compiled firmware file you wish to to use
      in your Audio Widget. This is the file from step 5. (If you saved the .elf
      file to C:\foo\widget.elf, use "prog C:\foo\widget.elf" instead.)
@@ -567,12 +570,12 @@ up if things are tricky the first time!
 11 - Expect an output like this in your cmd window:
 
 --------------------------------------------------------------------------------
-C:\Program Files (x86)\Atmel\Flip 3.4.7\bin>batchisp -device at32uc3a3256 -hardw
+C:\Program Files (x86)\Atmel\Flip 3.4.7\bin>batchisp -device at32uc3a3128 -hardw
 are usb -operation erase f memory flash blankcheck loadbuffer widget.elf program
  verify start reset 0
 Running batchisp 1.2.5 on Tue Jul 31 19:44:26 2012
 
-AT32UC3A3256 - USB - USB/DFU
+AT32UC3A3128 - USB - USB/DFU
 
 Device selection....................... PASS
 Hardware selection..................... PASS
@@ -600,9 +603,9 @@ following methods:
      the firmware. You will need this log if you need to contact other Audio 
      Widget owners or Atmel support.
 
-1 -  Instead of prog.bat, try prog_noerase.bat from the Add_to_flip347_bin.zip
+1 -  Instead of prog128.bat, try prog_noerase.bat from the Add_to_flip347_bin.zip
      file. prog_noerase.bat comes without the "erase f" part of the command. You
-     may also try omitting other parts of the command in prog.bat. 
+     may also try omitting other parts of the command in prog128.bat. 
      
 2 -  Try the Linux method for firmware installation. See Installing new firmware 
      - Linux above.
@@ -611,7 +614,7 @@ following methods:
      programming bootloader (DFU), try the following: Unplug all cables leading
      to the Audio Widget. Wait. (10s-30min, waiting time isn't yet determined.)
      Press Prog while reconnecting the USB cable. Finally, release Prog and 
-     execute prog.bat or prog_noerase.bat
+     execute prog128.bat or prog128_noerase.bat
      
 4 -  If all of this fails, contact the Audio Widget mailing list and/or Atmel
      support with your detailed notes.

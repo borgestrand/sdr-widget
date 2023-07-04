@@ -35,7 +35,6 @@ PARTNAME=-mpart=uc3a3128
 # Use "prog128.bat"
 # NB: the use of "prog256.bat" or "prog.bat" will positively brick a '128 processor!!
 
-# Serial number hard-coded on line 454 of usb_descriptors.h
 
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
@@ -99,10 +98,10 @@ clean::
 # Speedx_hs - sample rate definitions
 # mobo_srd - sample rate detector
 # AK5394A_pdca_rx_enable - turn on DMA for incoming I2S
+# Serial number hard-coded on line 454 of usb_descriptors.h
 # 
 # Tasks
 # - Turn on I2S RX DMA without LR swap or 1-sample delays - both PCM1863 and WM8804 based sources
 # - Always start WM8804 playback mid-buffer, avoid use of regenerated clock
 # - Improve skip/insert code, see reMarkable notes
-
 

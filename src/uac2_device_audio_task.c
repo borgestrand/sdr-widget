@@ -365,6 +365,8 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 */
 
+
+// FIX: is this code executed twice??
 					if ( gap < ADC_BUFFER_SIZE/2 ) {
 						// throttle back, transfer less
 						num_samples_adc--; // This one can be omitted... 
