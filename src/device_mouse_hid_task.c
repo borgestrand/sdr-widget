@@ -166,17 +166,6 @@ void device_mouse_hid_task_init(U8 ep_tx) {
 	#ifdef USB_REDUCED_DEBUG
 		print_cpu_char(CPU_CHAR_BOOT);		// Tell CPU (when present) that CPU is booting up
 	#endif
-	
-	// Added BSB 20120719
-#if LCD_DISPLAY
-	#define HID2LCD					// Use LCD to debug incoming HID commands from uart
-#endif
-
-#ifdef HID2LCD					// Needed here? Including these lines seems to break functionality
-//	lcd_q_init();
-//	lcd_q_clear();
-#endif
-
 }
 
 
@@ -494,7 +483,7 @@ Arash
     	} // else, !readkey
 
     	if (gotcmd == 0)									// Nothing recorded:
-			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS. WM8805 needs that, HID doesn't
+			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS. WM8804 needs that, HID doesn't
     } //while (gotcmd == 0)
 
 
@@ -508,15 +497,7 @@ Arash
 //  ReportByte1 = 0b01000000; // Encode FastForward to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works in JRiver, not VLC
 //  ReportByte1 = 0b10000000; // Encode Rewind to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works in JRiver, not VLC
 
-	#ifdef HID2LCD
-		lcd_q_goto(0,0);
-		lcd_q_putc('h');
-		lcd_q_puth(ReportByte1);
-		lcd_q_puth(ReportByte2);
-	#endif
-
-
-	// Send the HID report over USB
+// Send the HID report over USB
 #ifdef FEATURE_HID
     if ( Is_usb_in_ready(EP_HID_TX) )
     {
@@ -527,9 +508,6 @@ Arash
        Usb_ack_in_ready_send(EP_HID_TX);
        print_dbg_char('H');					// Confirm HID command forwarded to HOST
        print_dbg_char('\n');					// Confirm HID command forwarded to HOST
-       #ifdef HID2LCD
-         lcd_q_putc('H');
-       #endif
        // usb_state = 'r'; // May we ignore usb_state for HID TX ??
     }
     else { // Failure
@@ -538,16 +516,13 @@ Arash
 #endif
         print_dbg_char('-');					// NO HID command forwarded to HOST
         print_dbg_char('\n');					// NO HID command forwarded to HOST
-        #ifdef HID2LCD
-          lcd_q_putc('-');
-        #endif
     }
 
     // BSB 20120711: Debugging HID end
 
 
 #ifdef FREERTOS_USED
-  }
+  }  //   while (TRUE)
 #endif
 }
 #endif  // USB_DEVICE_FEATURE == ENABLED
