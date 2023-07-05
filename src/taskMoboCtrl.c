@@ -59,7 +59,6 @@ char lcd_pass1[20];									// Pass data to LCD
 char lcd_pass2[20];									// Pass data to LCD
 char lcd_pass3[20];									// Pass data to LCD
 
-i2c_avail	i2c;	// Availability of probed i2c devices
 
 // Various flags, may be moved around
 volatile bool MENU_mode		= 	FALSE;				// LCD Menu mode, used in conjunction with taskPushButtonMenu.c
@@ -192,11 +191,6 @@ void Test_SWR(void)
 	{
 		SWR_alarm = FALSE;								// Clear SWR alarm flag
 	    if (i2c.pcfmobo)
-#if  REVERSE_PTT2_LOGIC							// Switch the PTT2 logic
-		pcf8574_mobo_clear(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Clear PTT2 line
-		#else//not REVERSE_PTT2_LOGIC					// Normal PTT2 logic
-		pcf8574_mobo_set(cdata.PCF_I2C_Mobo_addr, Mobo_PCF_TX2);// Set PTT2 line
-		#endif//REVERSE_PTT2_LOGIC						// end of Switch the PTT2 logic
 	}
 }
 #endif//POWER_SWR												// Power and SWR measurement
@@ -281,7 +275,6 @@ static void mobo_ctrl_factory_reset_handler(void) {
 	// Force an EEPROM update in the mobo config
 	flashc_memset8((void *)&nvram_cdata.EEPROM_init_check, 0xFF, sizeof(uint8_t), TRUE);
 }
-#define LOGGING 1
 
 /*! \brief Initialize and run Mobo functions, including Si570 frequency control, filters and so on
  *

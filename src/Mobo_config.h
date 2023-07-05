@@ -226,35 +226,6 @@ extern bool	PA_cal;							// Indicates PA Bias auto adjust in progress
 
 #define	_2(x)		((uint32_t)1<<(x))		// Macro: Take power of 2
 
-typedef struct
-{
-		bool		si570;					// Chip has been probed
-		bool		tmp100;					// Chip has been probed
-		bool		ad5301;					// Chip has been probed
-		bool		ad7991;					// Chip has been probed
-		bool		pcfmobo;				// Chip has been probed
-		bool		pcflpf1;				// Chip has been probed
-		bool		pcflpf2;				// Chip has been probed
-		bool		pcfext;					// Chip has been probed
-		bool		pcf0x20;				// Chip has been probed (all possible PCF8574 addresses)
-		bool		pcf0x21;				// Chip has been probed
-		bool		pcf0x22;				// Chip has been probed
-		bool		pcf0x23;				// Chip has been probed
-		bool		pcf0x24;				// Chip has been probed
-		bool		pcf0x25;				// Chip has been probed
-		bool		pcf0x26;				// Chip has been probed
-		bool		pcf0x27;				// Chip has been probed
-		bool		pcf0x38;				// Chip has been probed
-		bool		pcf0x39;				// Chip has been probed
-		bool		pcf0x3a;				// Chip has been probed
-		bool		pcf0x3b;				// Chip has been probed
-		bool		pcf0x3c;				// Chip has been probed
-		bool		pcf0x3d;				// Chip has been probed
-		bool		pcf0x3e;				// Chip has been probed
-		bool		pcf0x3f;				// Chip has been probed
-} i2c_avail;
-
-extern i2c_avail i2c;
 
 typedef struct
 {

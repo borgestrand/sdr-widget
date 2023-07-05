@@ -64,8 +64,6 @@
 #define PCF_FILTER_IO		0	// 8x BCD control for LPF switching, switches P1 pins 4-6
 #define M0RZF_FILTER_IO		0	// M0RZF 20W amplifier LPF switching, switches P1 pins 4-6
 
-#define FRQ_CGH_DURING_TX	0 // 1 Disabled 20171228	// Allow Si570 Frequency change during TX
-#define FLTR_CGH_DURING_TX	0	// Allow Filter changes when frequency is changed during TX
 
 // Transmit specific features --------------------------------------------------------------
 #define POWER_SWR           0 // 1 Disabled 20171228   // Measure, and if LCD, display Power and SWR.
@@ -89,7 +87,6 @@
 #define FRQ_IN_FIRST_LINE	0	// Normal Frequency display in first line of LCD. Can be disabled for Debug // 20230128 removed
 #define TMP_V_I_SECOND_LINE	0	// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug // 20230128 removed
 #define ENOB_TEST			0	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
-#define	I2C_LCD_PRINT		0	// Show which values are being sent to the PCF and 
 #define LCD_CDC				0	// CDC traffic displayed on LCD
 
 //! @}
