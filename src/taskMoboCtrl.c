@@ -185,10 +185,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 	//rtc_enable(&AVR32_RTC);
 
 
-	//Todo! may want a better name for function, function has changed
-	features_display_all();
-
-
 	// Create I2C comms semaphore
 	// mutexI2C = xSemaphoreCreateMutex();  // Switching to mutex I2C_busy
 
@@ -226,8 +222,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 	// Fetch last frequency stored
 	cdata.Freq[0] = cdata.Freq[cdata.SwitchFreq];
-	// Initialize Startup frequency
-	freq_from_usb = cdata.Freq[0];
 	// Indicate new frequency for Si570
 	FRQ_fromusb = TRUE;
 	

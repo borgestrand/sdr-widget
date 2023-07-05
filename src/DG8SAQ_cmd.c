@@ -26,9 +26,6 @@
 #include "widget.h"
 #include "taskAK5394A.h"
 
-// This var is used to pass frequency from USB input command
-volatile uint32_t freq_from_usb;		// New Frequency from USB
-
 volatile bool	FRQ_fromusbreg = FALSE;	// Flag: New frequency by Register from USB
 volatile bool	FRQ_fromusb = FALSE;	// Flag: New frequency from USB
 volatile bool	FRQ_lcdupdate = FALSE;	// Flag: Update LCD frequency printout
@@ -55,7 +52,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 		if (len == 6)
 		{
 			// Calc the freq as a 32bit integer, based on the 
-			// Writing a non_zero value into freq_from_usb will result in a write to
 			// 
 			// Freq_FRom_Register uses the 
 			FRQ_fromusbreg = TRUE;
@@ -66,7 +62,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 				if (len == 4) {
 					cdata.FreqXtal = *Buf32;
 					flashc_memset32((void *)&nvram_cdata.FreqXtal, *Buf32, sizeof(uint32_t), TRUE);
-					freq_from_usb = cdata.Freq[0];  // Refresh frequency
 					FRQ_fromusb = TRUE;
 				}
 				break;
@@ -262,42 +257,9 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			{
 				Buffer[0] = wValue;
 
-				switch (wIndex)
-				{
-					case 1:
-						flashc_memset8((void *)&nvram_cdata.PCF_I2C_Mobo_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 2:
-						flashc_memset8((void *)&nvram_cdata.PCF_I2C_lpf1_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 3:
-						flashc_memset8((void *)&nvram_cdata.PCF_I2C_lpf2_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 7:
-						flashc_memset8((void *)&nvram_cdata.PCF_I2C_Ext_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-				}
 			}
 			else								// Else just read and return the current value
 			{
-				switch (wIndex)
-				{
-					case 1:
-						Buffer[0] = cdata.PCF_I2C_Mobo_addr;
-						break;
-					case 2:
-						Buffer[0] = cdata.PCF_I2C_lpf1_addr;
-						break;
-					case 3:
-						Buffer[0] = cdata.PCF_I2C_lpf2_addr;
-						break;
-					case 4:
-						Buffer[0] = cdata.TMP100_I2C_addr;
-						break;
-					case 7:
-						Buffer[0] = cdata.PCF_I2C_Ext_addr;
-						break;
-				}
 			}
 			return sizeof(uint8_t);
 

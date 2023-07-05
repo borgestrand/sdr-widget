@@ -76,8 +76,8 @@ void widget_startup_log_line(char *string) {
 void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
 	// append a usage summary to any startup log listing
 	static char log_usage[2][20];
-	sprintf(log_usage[0], "log %d/%d lines", (int)(startup_log_line_ptr - (char **)startup_log_lines), STARTUP_LOG_LINES);
-	sprintf(log_usage[1], "log %d/%d chars", (int)(startup_log_ptr-startup_log), STARTUP_LOG_SIZE);
+	// sprintf(log_usage[0], "log %d/%d lines", (int)(startup_log_line_ptr - (char **)startup_log_lines), STARTUP_LOG_LINES);
+	// sprintf(log_usage[1], "log %d/%d chars", (int)(startup_log_ptr-startup_log), STARTUP_LOG_SIZE);
 	startup_log_line_ptr[0] = log_usage[0];
 	startup_log_line_ptr[1] = log_usage[1];
 	*buffer_lines = (char **)startup_log_lines;
@@ -104,9 +104,6 @@ void widget_display_drop(void) {
 		if ( ! display_grabbed ) {
 		}
 	}
-}
-	
-void widget_display_clear(void) {
 }
 
 void widget_display_string_and_scroll(char *string) {
@@ -232,10 +229,3 @@ void widget_ready(char *msg) {
 	// widget_blink_morse(msg);
 }
 
-void widget_report(void) {
-	char buff[32];
-	widget_startup_log_line("sdr-widget");
-	widget_startup_log_line(FIRMWARE_VERSION);
-	sprintf(buff, "reset = %s", widget_reset_cause());
-	widget_startup_log_line(buff);
-}

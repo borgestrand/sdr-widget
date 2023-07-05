@@ -63,29 +63,7 @@ void features_init() {
   widget_factory_reset_handler_register(feature_factory_reset_handler);
 }
 
-void features_display(char *title, features_t fp) {
-	int i;
-	char buff[32];
-	widget_startup_log_line(title);
-	sprintf(buff, "%s = %u.%u", "version", fp[feature_major_index], fp[feature_minor_index]);
-	widget_startup_log_line(buff);
-	for (i = feature_board_index; i < feature_end_index; i += 1) {
-		strcpy(buff, feature_index_names[i]);
-		strcat(buff, " = ");
-		if (features[i] < feature_end_values)
-			strcat(buff, (char *)feature_value_names[fp[i]]);
-		else
-			strcat(buff, "invalid!");
-		widget_startup_log_line(buff);
-	}
-}
 
-void features_display_all() {
-	widget_display_clear();
-	widget_report();
-	features_display("features ram:", features);
-	// features_display("features nvram:", features_nvram, 500000);
-}
 
 uint8_t feature_set(uint8_t index, uint8_t value) {
 //	return index > feature_minor_index && index < feature_end_index && value < feature_end_values ?

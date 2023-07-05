@@ -1572,16 +1572,8 @@ void mobo_clear_dac_channel(void) {
 //
 
 #define ENC_PULSES			512		// hack while removing rotary_encoder
-#define AD5301_I2C_ADDRESS 1		// hack while removing AD5301
-#define AD7991_I2C_ADDRESS 1		// hack while removing AD7991
-#define SI570_I2C_ADDRESS 1			// hack while removing SI570
 #define DEVICE_XTAL 1				// hack while removing SI570
-#define PCF_MOBO_I2C_ADDR 1			// hack while removing PCF8574
-#define PCF_LPF1_I2C_ADDR 1
-#define PCF_LPF2_I2C_ADDR 1 
-#define PCF_EXT_I2C_ADDR 1
-#define PCF_EXT_FAN_BIT 1
-#define TMP100_I2C_ADDRESS 1		// hack while removing TMP100
+#define PCF_EXT_FAN_BIT 1			// hack while removing PCF8574
 
 
 mobo_data_t	cdata							// Variables in ram/flash rom (default)
@@ -1589,14 +1581,6 @@ mobo_data_t	cdata							// Variables in ram/flash rom (default)
 		{
 					COLDSTART_REF			// Update into eeprom if value mismatch
 				,	FALSE					// FALSE if UAC1 Audio, TRUE if UAC2 Audio.
-				,	SI570_I2C_ADDRESS		// Si570 I2C address or Si570_I2C_addr
-				,	TMP100_I2C_ADDRESS		// I2C address for the TMP100 chip
-				,	AD5301_I2C_ADDRESS		// I2C address for the AD5301 DAC chip
-				,	AD7991_I2C_ADDRESS		// I2C address for the AD7991 4 x ADC chip
-				,	PCF_MOBO_I2C_ADDR		// I2C address for the onboard PCF8574
-				,	PCF_LPF1_I2C_ADDR		// I2C address for the first MegaFilterMobo PCF8574
-				,	PCF_LPF2_I2C_ADDR		// I2C address for the second MegaFilterMobo PCF8574
-				,	PCF_EXT_I2C_ADDR		// I2C address for an external PCF8574 used for FAN, attenuators etc
 				,	HI_TMP_TRIGGER			// If PA temperature goes above this point, then
 											// disable transmission
 				,	P_MIN_TRIGGER			// Min P out measurement for SWR trigger

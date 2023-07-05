@@ -221,14 +221,6 @@ typedef struct
 {
 		uint8_t		EEPROM_init_check;		// If value mismatch,
 		uint8_t		UAC2_Audio;				// UAC1 if FALSE, UAC2 if TRUE
-		uint8_t		Si570_I2C_addr;			// Si570 I2C addres, default 0x55 (85 dec)
-		uint8_t		TMP100_I2C_addr;		// I2C address for the onboard TMP100 temperature sensor
-		uint8_t		AD5301_I2C_addr;		// I2C address for the onboard AD5301 8 bit DAC
-		uint8_t		AD7991_I2C_addr;		// I2C address for the onboard AD7991 4 x ADC
-		uint8_t		PCF_I2C_Mobo_addr;		// I2C address for the onboard PCF8574
-		uint8_t		PCF_I2C_lpf1_addr;		// I2C address for the first PCF8574 used in the MegaFilterMobo
-		uint8_t		PCF_I2C_lpf2_addr;		// I2C address for the second PCF8574 used in the MegaFilterMobo
-		uint8_t		PCF_I2C_Ext_addr;		// I2C address for an external PCF8574 used for FAN, attenuators etc
 		uint8_t		hi_tmp_trigger;			// If PA temperature goes above this point, then
 											// disable transmission
 		uint16_t	P_Min_Trigger;			// Min P out measurement for SWR trigger

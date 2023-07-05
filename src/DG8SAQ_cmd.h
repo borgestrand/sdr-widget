@@ -11,8 +11,6 @@
 extern void dg8saqFunctionWrite(U8, U16, U16, U8 *, U8 );
 extern uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* Buffer);
 
-extern volatile uint32_t freq_from_usb;			// Pass frequency from USB input command
-												// if 0, then nothing to pass
 extern volatile bool FRQ_fromusbreg;			// Flag: New frequency by Register from USB
 extern volatile bool FRQ_fromusb;				// Flag: New frequency from USB
 extern volatile bool FRQ_lcdupdate;				// Flag: Update LCD frequency printout

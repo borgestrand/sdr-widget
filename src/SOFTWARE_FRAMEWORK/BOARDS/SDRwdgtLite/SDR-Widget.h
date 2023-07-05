@@ -39,10 +39,6 @@
 
 //! @}
 
-/*! \name Features to include at compile time. */
-//! @{
-#define SCRAMBLED_FILTERS	0 // 1 Disabled 20171228	// Enable a non contiguous order of filters
-
 // Low Pass Filters for Transmit ----------------------------------------------------------
 #define TX_FILTERS			0 // 1 Disabled 20171228	// Enable TX filter selection, including one of the four options below
 // Only one of the four below should be selected, if TX_FILTERS is selected

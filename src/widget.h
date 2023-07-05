@@ -29,8 +29,6 @@ extern void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines);
 extern void widget_display_grab(void);
 // release control of the LCD
 extern void widget_display_drop(void);
-// clear the lcd
-extern void widget_display_clear(void);
 // display a string on the lcd with scrolling
 extern void widget_display_string_and_scroll(char *string);
 // display a string on the lcd with scrolling and delay for microseconds
@@ -55,7 +53,5 @@ extern void widget_factory_reset(void);
 extern void widget_init(void);
 // mark widget ready to schedule
 extern void widget_ready(char *msg);
-// report the startup state of the widget
-extern void widget_report(void);
 
 #endif /* WIDGET_H_ */

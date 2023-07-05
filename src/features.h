@@ -294,9 +294,6 @@ extern const features_t features_default;
 
 extern const char * const feature_value_names[];
 extern const char * const feature_index_names[];
-extern void features_init();
-extern void features_display(char *title, features_t fp);
-extern void features_display_all();
 extern uint8_t feature_set(uint8_t index, uint8_t value);
 extern uint8_t feature_get(uint8_t index);
 extern uint8_t feature_set_nvram(uint8_t index, uint8_t value);
