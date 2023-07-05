@@ -32,7 +32,6 @@
 #define SHAFT_ENCODER       0   // Shaft Encoder VFO function
 #define AK5394              1   // 24-bit ADC, too much hinges on this one!
 #define AK4382A             0   // 24-bit DAC
-#define TMP100              0   // Temperature measurement device  (needs I2C driver)
 
 #define DEBUG232            1   // Use the UART debug port
 #define USB                 1   // Although it may look odd there may be a free standing mode.
@@ -45,7 +44,7 @@
 
 /*! \name Features to include at compile time. */
 //! @{
-#define MOBO_FUNCTIONS		0 // 1 Disabled 20171228	// TMP100, P/SWR etc...  (needs I2C driver)
+#define MOBO_FUNCTIONS		0 // 1 Disabled 20171228	// P/SWR etc...  (needs I2C driver)
 								// Without this, we have a simple 
 // None, or only one of the two, CALC_FREQ_MUL_ADD or CALC_BAND_MUL_ADD should be selected
 #define CALC_FREQ_MUL_ADD	0	// Frequency Subtract and Multiply Routines (for smart VFO)

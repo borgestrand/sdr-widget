@@ -12,8 +12,6 @@
 #include <stdint.h>
 #include "board.h"
 
-#include "TMP100.h"
-
 
 // Hardware control functions
 

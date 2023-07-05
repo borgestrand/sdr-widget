@@ -18,7 +18,6 @@
 
 #include "DG8SAQ_cmd.h"
 #include "Mobo_config.h"
-#include "TMP100.h"
 #include "usb_drv.h"
 #include "usb_descriptors.h"
 #include "usb_standard_request.h"
@@ -335,9 +334,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 						break;
 					case 3:
 						flashc_memset8((void *)&nvram_cdata.PCF_I2C_lpf2_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 4:
-						flashc_memset8((void *)&nvram_cdata.TMP100_I2C_addr, wValue, sizeof(uint8_t), TRUE);
 						break;
 					case 7:
 						flashc_memset8((void *)&nvram_cdata.PCF_I2C_Ext_addr, wValue, sizeof(uint8_t), TRUE);

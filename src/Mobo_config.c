@@ -31,9 +31,6 @@
 // I2C functions
 #include "I2C.h"
 
-/*
-#include "TMP100.h"
-*/
 
 
 // Low-power sleep for a number of milliseconds by means of RTC
@@ -1584,6 +1581,7 @@ void mobo_clear_dac_channel(void) {
 #define PCF_LPF2_I2C_ADDR 1 
 #define PCF_EXT_I2C_ADDR 1
 #define PCF_EXT_FAN_BIT 1
+#define TMP100_I2C_ADDRESS 1		// hack while removing TMP100
 
 
 mobo_data_t	cdata							// Variables in ram/flash rom (default)
