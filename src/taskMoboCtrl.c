@@ -44,7 +44,6 @@
 
 #if LCD_DISPLAY			// Multi-line LCD display
 #include "taskLCD.h"
-#include "LCD_bargraphs.h"
 #endif
 
 

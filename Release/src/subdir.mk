@@ -6,7 +6,6 @@
 C_SRCS += \
 ../src/DG8SAQ_cmd.c \
 ../src/I2C.c \
-../src/LCD_bargraphs.c \
 ../src/Mobo_config.c \
 ../src/PCF8574.c \
 ../src/TMP100.c \
@@ -41,7 +40,6 @@ C_SRCS += \
 OBJS += \
 ./src/DG8SAQ_cmd.o \
 ./src/I2C.o \
-./src/LCD_bargraphs.o \
 ./src/Mobo_config.o \
 ./src/PCF8574.o \
 ./src/TMP100.o \
@@ -77,7 +75,6 @@ OBJS += \
 C_DEPS += \
 ./src/DG8SAQ_cmd.d \
 ./src/I2C.d \
-./src/LCD_bargraphs.d \
 ./src/Mobo_config.d \
 ./src/PCF8574.d \
 ./src/TMP100.d \

@@ -15215,12 +15215,6 @@
     <Compile Include="src\PCF8574.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\Si570.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Si570.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\srd_test.c">
       <SubType>compile</SubType>
     </Compile>
