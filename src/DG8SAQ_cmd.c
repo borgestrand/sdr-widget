@@ -17,7 +17,6 @@
 #include "gpio.h"
 
 #include "DG8SAQ_cmd.h"
-#include "taskLCD.h"
 #include "Mobo_config.h"
 #include "TMP100.h"
 #include "usb_drv.h"

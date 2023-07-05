@@ -69,9 +69,6 @@ static void x_image_task_init(void) {
 
   mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
-  #if LCD_DISPLAY						// Multi-line LCD display
-  vStartTaskLCD();
-  #endif
   vStartTaskMoboCtrl();
   // vStartTaskEXERCISE( tskIDLE_PRIORITY );
   hpsdr_AK5394A_task_init();

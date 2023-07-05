@@ -12,7 +12,6 @@
 
 #if I2C_LCD_PRINT
 #include "Mobo_config.h"
-#include "taskLCD.h"
 #endif
 
 // pcf8574_mobo_data_out contains the current output data on the builtin PCF8574 on the Mobo

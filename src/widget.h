@@ -41,8 +41,6 @@ extern void widget_display_clear(void);
 extern void widget_display_string_and_scroll(char *string);
 // display a string on the lcd with scrolling and delay for microseconds
 extern void widget_display_string_scroll_and_delay(char *string, unsigned delay);
-// report a serious problem, somehow
-extern void widget_oops(char *message);
 // test if the widget is in supervisor mode
 extern int widget_is_supervisor(void);
 // return true if widget appears to be in tasking mode (can be wrong)

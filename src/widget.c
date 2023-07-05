@@ -123,13 +123,6 @@ void widget_display_string_and_scroll(char *string) {
 void widget_display_string_scroll_and_delay(char *string, unsigned delay) {
 }
 
-//
-// provide a place for disasters to be reported
-// only works when taskLCD is active
-// shows a message for 30 seconds
-//
-void widget_oops(char *message) {
-}
 
 //
 // test if we're in supervisor mode
@@ -215,8 +208,6 @@ void widget_factory_reset_handler_register(widget_factory_reset_handler_t handle
 			handlers[i] = handler;
 			break;
 		}
-	if (i >= WIDGET_FACTORY_RESET_HANDLERS)
-		widget_oops("reset table is full"); /* keep it under 20 chars */
 }
 
 //

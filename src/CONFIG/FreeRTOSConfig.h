@@ -206,11 +206,6 @@ to exclude the API function. */
 #define configTSK_MoboCtrl_PRIORITY			  (tskIDLE_PRIORITY + 1) // mobodebug: +2 works, but we prefer imrpoved UAC2 code // Was 0 // (tskIDLE_PRIORITY + 1) // Was 0
 #define configTSK_MoboCtrl_PERIOD			  120
 
-/* taskLCD definitions */
-// Priority has to be same or greater than that of client tasks such as MoboControl and PowerDisplay
-#define configTSK_LCD_PRIORITY        		( tskIDLE_PRIORITY + 1) // Was 0.
-#define	configTSK_LCD_STACK_SIZE			1024
-
 /* taskExercise definitions */
 #define configTSK_EXERCISE_STACK_SIZE		256
 #define configTSK_EXERCISE_PRIORITY			(tskIDLE_PRIORITY + 1 )
