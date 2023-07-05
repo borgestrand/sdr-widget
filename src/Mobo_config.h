@@ -10,14 +10,7 @@
 #define MOBO_CONFIG_H_
 
 #include <stdint.h>
-
-
-#include "Si570.h"
-#include "PCF8574.h"
-#include "AD5301.h"
-#include "AD7991.h"
-#include "TMP100.h"
-#include "rotary_encoder.h"
+#include "board.h"
 
 
 // Hardware control functions
@@ -199,14 +192,6 @@ void  mobo_i2s_enable(uint8_t i2s_mode);
 //-----------------------------------------------------------------------------
 //
 
-// CW input bits, defines which bit goes where in the USB reply to a CW pin poll
-#define REG_CWSHORT 		(1 << 5)		// Bits used for CW in reg
-#define REG_CWLONG  		(1 << 1)
-#define REG_PTT_1			(1 << 2)
-#define REG_PTT_2			(1 << 3)
-#define REG_PTT_3			(1 << 4)
-#define REG_TX_state		(1 << 6)
-#define REG_PTT_INPUT		(1 << 7)
 
 // Conditional def based on the above, do not touch:
 #if PCF_LPF
@@ -223,8 +208,6 @@ void  mobo_i2s_enable(uint8_t i2s_mode);
 
 // Various flags, may be moved around
 extern volatile bool MENU_mode;				// LCD Menu mode.  Owned by taskPushButtonMenu, used by all LCD users
-extern bool	TX_state;						// Keep tabs on current TX status
-extern bool	TX_flag;						// Request for TX to be set
 extern bool	SWR_alarm;						// SWR alarm condition
 extern bool	TMP_alarm;						// Temperature alarm condition
 extern bool	PA_cal_lo;						// Used by PA Bias auto adjust routine
@@ -233,48 +216,11 @@ extern bool	PA_cal;							// Indicates PA Bias auto adjust in progress
 
 #define	_2(x)		((uint32_t)1<<(x))		// Macro: Take power of 2
 
-typedef struct
-{
-		bool		si570;					// Chip has been probed
-		bool		tmp100;					// Chip has been probed
-		bool		ad5301;					// Chip has been probed
-		bool		ad7991;					// Chip has been probed
-		bool		pcfmobo;				// Chip has been probed
-		bool		pcflpf1;				// Chip has been probed
-		bool		pcflpf2;				// Chip has been probed
-		bool		pcfext;					// Chip has been probed
-		bool		pcf0x20;				// Chip has been probed (all possible PCF8574 addresses)
-		bool		pcf0x21;				// Chip has been probed
-		bool		pcf0x22;				// Chip has been probed
-		bool		pcf0x23;				// Chip has been probed
-		bool		pcf0x24;				// Chip has been probed
-		bool		pcf0x25;				// Chip has been probed
-		bool		pcf0x26;				// Chip has been probed
-		bool		pcf0x27;				// Chip has been probed
-		bool		pcf0x38;				// Chip has been probed
-		bool		pcf0x39;				// Chip has been probed
-		bool		pcf0x3a;				// Chip has been probed
-		bool		pcf0x3b;				// Chip has been probed
-		bool		pcf0x3c;				// Chip has been probed
-		bool		pcf0x3d;				// Chip has been probed
-		bool		pcf0x3e;				// Chip has been probed
-		bool		pcf0x3f;				// Chip has been probed
-} i2c_avail;
-
-extern i2c_avail i2c;
 
 typedef struct
 {
 		uint8_t		EEPROM_init_check;		// If value mismatch,
 		uint8_t		UAC2_Audio;				// UAC1 if FALSE, UAC2 if TRUE
-		uint8_t		Si570_I2C_addr;			// Si570 I2C addres, default 0x55 (85 dec)
-		uint8_t		TMP100_I2C_addr;		// I2C address for the onboard TMP100 temperature sensor
-		uint8_t		AD5301_I2C_addr;		// I2C address for the onboard AD5301 8 bit DAC
-		uint8_t		AD7991_I2C_addr;		// I2C address for the onboard AD7991 4 x ADC
-		uint8_t		PCF_I2C_Mobo_addr;		// I2C address for the onboard PCF8574
-		uint8_t		PCF_I2C_lpf1_addr;		// I2C address for the first PCF8574 used in the MegaFilterMobo
-		uint8_t		PCF_I2C_lpf2_addr;		// I2C address for the second PCF8574 used in the MegaFilterMobo
-		uint8_t		PCF_I2C_Ext_addr;		// I2C address for an external PCF8574 used for FAN, attenuators etc
 		uint8_t		hi_tmp_trigger;			// If PA temperature goes above this point, then
 											// disable transmission
 		uint16_t	P_Min_Trigger;			// Min P out measurement for SWR trigger
@@ -306,20 +252,6 @@ typedef struct
 		uint8_t		Fan_On;					// Fan On trigger temp
 		uint8_t		Fan_Off;				// Fan Off trigger temp
 		uint8_t		PCF_fan_bit;			// Which bit is used to control the Cooling Fan
-		#if SCRAMBLED_FILTERS				// Enable a non contiguous order of filters
-		uint8_t		FilterNumber[8];		// Which Band Pass filter to select at each crossover
-		uint8_t		TXFilterNumber[16];		// Which TX Low Pass filter to select at each crossover
-		#endif
-		#if CALC_FREQ_MUL_ADD				// Frequency Subtract and Multiply Routines
-		uint32_t	FreqSub;				// Freq subtract value[MHz] (11.21bits)
-		uint32_t	FreqMul;				// Freq multiply value (11.21bits)
-		#endif
-		#if CALC_BAND_MUL_ADD				// Band dependent Frequency Subtract and Multiply
-		uint32_t	BandSub[8];				// Freq Subtract values [MHz] (11.21bits) for each of
-											// the 8 (BPF) Bands
-		uint32_t	BandMul[8];				// Freq Multiply values [MHz] (11.21bits) for each of
-											// the 8 (BPF) Bands
-		#endif
 } mobo_data_t;
 
 extern mobo_data_t	cdata;					// Variables in ram/flash rom (default)

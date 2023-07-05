@@ -42,14 +42,8 @@
 #include "queue.h"
 #include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
-#include "taskPowerDisplay.h"
-#include "taskPushButtonMenu.h"
 #include "wdt.h"
 
-#if LCD_DISPLAY				// Multi-line LCD display
-#include "taskLCD.h"
-#include "taskStartupLogDisplay.h"
-#endif
 
 /*
 ** Image specific headers
@@ -102,11 +96,6 @@ static void x_image_task_init(void) {
 
   mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
-#if LCD_DISPLAY						// Multi-line LCD display
-	vStartTaskLCD();
-	vStartTaskPowerDisplay();
-	vStartTaskPushButtonMenu();
-#endif
 
 // #ifdef HW_GEN_RXMOD
 //	wm8804_task_init();	// Rather done in controlled WM8804 startup sequence
@@ -121,10 +110,6 @@ static void x_image_task_init(void) {
 #endif
 
 	uac1_device_audio_task_init(UAC1_EP_AUDIO_IN, UAC1_EP_AUDIO_OUT, UAC1_EP_AUDIO_OUT_FB);
-#endif
-#if LCD_DISPLAY						// Multi-line LCD display
-	if ( ! FEATURE_LOG_NONE )
-		vStartTaskStartupLogDisplay();
 #endif
 }
 

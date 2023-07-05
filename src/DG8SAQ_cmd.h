@@ -11,8 +11,6 @@
 extern void dg8saqFunctionWrite(U8, U16, U16, U8 *, U8 );
 extern uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* Buffer);
 
-extern volatile uint32_t freq_from_usb;			// Pass frequency from USB input command
-												// if 0, then nothing to pass
 extern volatile bool FRQ_fromusbreg;			// Flag: New frequency by Register from USB
 extern volatile bool FRQ_fromusb;				// Flag: New frequency from USB
 extern volatile bool FRQ_lcdupdate;				// Flag: Update LCD frequency printout
@@ -20,7 +18,6 @@ extern volatile bool FRQ_lcdupdate;				// Flag: Update LCD frequency printout
 //
 // Host to Device transmissions
 //
-#define DG8SAQ_SET_SI570_REGS 0x30				// takes 6 bytes, write Si570 register values
 #define DG8SAQ_SET_FREQ_MUL_ADD	0x31			// takes 8 bytes, frequency subtract and multiply
 #define DG8SAQ_SET_BAND_MUL_ADD 0x31			// takes 8 bytes, band specific frequency subtract and multiply
 #define DG8SAQ_SET_FREQ 0x32					// takes 4 bytes, set frequency
@@ -53,7 +50,6 @@ extern volatile bool FRQ_lcdupdate;				// Flag: Update LCD frequency printout
 #define DG8SAQ_GET_SMOOTH 0x3b					//
 #define DG8SAQ_GET_START_F 0x3c					//
 #define DG8SAQ_GET_XTAL 0x3d					//
-#define DG8SAQ_GET_SI570_REGS 0x3f				//
 
 #define DG8SAQ_GET_I2C_STATUS 0x40				//
 // 0x41

@@ -12,6 +12,7 @@
 // To compile sample rate detector we need low-level hardware access
 #include "gpio.h"
 #include <avr32/io.h>
+
 #include "compiler.h"
 
 // Power module and clock control
@@ -27,14 +28,9 @@
 #include "taskAK5394A.h"
 #include "usb_specific_request.h"
 
-/*
-#include "rotary_encoder.h"
-#include "AD7991.h"
-#include "AD5301.h"
-#include "Si570.h"
-#include "PCF8574.h"
-#include "TMP100.h"
-*/
+// I2C functions
+#include "I2C.h"
+
 
 
 // Low-power sleep for a number of milliseconds by means of RTC
@@ -439,6 +435,7 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 On revision C board for Boenicke, these pins are connected:
 RATE_LED0 PA01
 RATE_LED1 PA00
+RATE_LED2 PA26
 On revision A board and Henry Audio boards, pins are not connected.
 We set them regardless. We could wrap them in #ifdef FEATURE_PRODUCT_BOEC1 if that were important
 
@@ -1573,19 +1570,17 @@ void mobo_clear_dac_channel(void) {
 // The below structure contains a number of implementation dependent definitions (user tweak stuff)
 //-----------------------------------------------------------------------------
 //
+
+#define ENC_PULSES			512		// hack while removing rotary_encoder
+#define DEVICE_XTAL 1				// hack while removing SI570
+#define PCF_EXT_FAN_BIT 1			// hack while removing PCF8574
+
+
 mobo_data_t	cdata							// Variables in ram/flash rom (default)
 		=
 		{
 					COLDSTART_REF			// Update into eeprom if value mismatch
 				,	FALSE					// FALSE if UAC1 Audio, TRUE if UAC2 Audio.
-				,	SI570_I2C_ADDRESS		// Si570 I2C address or Si570_I2C_addr
-				,	TMP100_I2C_ADDRESS		// I2C address for the TMP100 chip
-				,	AD5301_I2C_ADDRESS		// I2C address for the AD5301 DAC chip
-				,	AD7991_I2C_ADDRESS		// I2C address for the AD7991 4 x ADC chip
-				,	PCF_MOBO_I2C_ADDR		// I2C address for the onboard PCF8574
-				,	PCF_LPF1_I2C_ADDR		// I2C address for the first MegaFilterMobo PCF8574
-				,	PCF_LPF2_I2C_ADDR		// I2C address for the second MegaFilterMobo PCF8574
-				,	PCF_EXT_I2C_ADDR		// I2C address for an external PCF8574 used for FAN, attenuators etc
 				,	HI_TMP_TRIGGER			// If PA temperature goes above this point, then
 											// disable transmission
 				,	P_MIN_TRIGGER			// Min P out measurement for SWR trigger
@@ -1668,52 +1663,4 @@ mobo_data_t	cdata							// Variables in ram/flash rom (default)
 				,	45						// Fan On trigger temp in degrees C
 				,	40						// Fan Off trigger temp in degrees C
 				,	PCF_EXT_FAN_BIT			// Which bit is used to control the Cooling Fan
-				#if SCRAMBLED_FILTERS		// Enable a non contiguous order of filters
-				,	{ Mobo_PCF_FLT0			// Band Pass filter selection
-				,	  Mobo_PCF_FLT1			// these values are mapped against the result of the
-				,	  Mobo_PCF_FLT2			// filter crossover point comparison
-				,	  Mobo_PCF_FLT3			// Filter selected by writing value to output port
-				,	  Mobo_PCF_FLT4
-				,	  Mobo_PCF_FLT5
-				,	  Mobo_PCF_FLT6
-				,	  Mobo_PCF_FLT7	}
-				,	{ I2C_EXTERN_FLT0		// External LPF filter selection
-				,	  I2C_EXTERN_FLT1		// these values are mapped against the result of the
-				,	  I2C_EXTERN_FLT2		// filter crossover point comparison
-				,	  I2C_EXTERN_FLT3		// Value is used to set 1 out of 16 bits in a double
-				,	  I2C_EXTERN_FLT4		// 8bit port (2x PCF8574 GPIO)
-				,	  I2C_EXTERN_FLT5
-				,	  I2C_EXTERN_FLT6
-				,	  I2C_EXTERN_FLT7
-				,	  I2C_EXTERN_FLT8
-				,	  I2C_EXTERN_FLT9
-				,	  I2C_EXTERN_FLTa
-				,	  I2C_EXTERN_FLTb
-				,	  I2C_EXTERN_FLTc
-				,	  I2C_EXTERN_FLTd
-				,	  I2C_EXTERN_FLTe
-				,	  I2C_EXTERN_FLTf }
-				#endif
-				#if CALC_FREQ_MUL_ADD		// Frequency Subtract and Multiply Routines (for Smart VFO)
-				,	0.000 * _2(21)			// Freq subtract value is 0.0MHz (11.21bits)
-				,	1.000 * _2(21)			// Freq multiply value os 1.0    (11.21bits)
-				#endif
-				#if CALC_BAND_MUL_ADD		// Frequency Subtract and Multiply Routines (for smart VFO)
-				,	{ 0.000 * _2(21)		// Freq subtract value is 0.0MHz (11.21bits)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21) }
-				,	{ 1.000 * _2(21)		// Freq multiply value is 1.0MHz (11.21bits)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21) }
-				#endif
 		};

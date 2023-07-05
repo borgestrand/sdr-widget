@@ -17,12 +17,6 @@ typedef void (*widget_factory_reset_handler_t)(void);
 // there are 2 known at present: features and moboConfig
 #define WIDGET_FACTORY_RESET_HANDLERS	4
 
-// widget is in initialization
-extern int widget_is_initializing(void);
-// widget module is starting initialization
-extern void widget_initialization_start(void);
-// widget module is finishing initialization
-extern void widget_initialization_finish(void);
 // append a character to the startup log
 extern void widget_startup_log_char(char c);
 // append a string to the startup log
@@ -35,14 +29,10 @@ extern void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines);
 extern void widget_display_grab(void);
 // release control of the LCD
 extern void widget_display_drop(void);
-// clear the lcd
-extern void widget_display_clear(void);
 // display a string on the lcd with scrolling
 extern void widget_display_string_and_scroll(char *string);
 // display a string on the lcd with scrolling and delay for microseconds
 extern void widget_display_string_scroll_and_delay(char *string, unsigned delay);
-// report a serious problem, somehow
-extern void widget_oops(char *message);
 // test if the widget is in supervisor mode
 extern int widget_is_supervisor(void);
 // return true if widget appears to be in tasking mode (can be wrong)
@@ -59,15 +49,9 @@ extern void widget_reset(void);
 extern void widget_factory_reset_handler_register(widget_factory_reset_handler_t handler);
 // cause the widget to reset and reread image default values
 extern void widget_factory_reset(void);
-// blink dot space code on the led's using rtc for timing
-extern void widget_blink(char *dotspace);
-// blink morse code on the led's using rtc for timing
-extern void widget_blink_morse(char *ascii);
 // initialize widget level stuff
 extern void widget_init(void);
 // mark widget ready to schedule
 extern void widget_ready(char *msg);
-// report the startup state of the widget
-extern void widget_report(void);
 
 #endif /* WIDGET_H_ */

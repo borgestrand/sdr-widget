@@ -54,6 +54,7 @@
 #include "rtc.h"
 
 #include "rotary_encoder.h"
+
 #include "Mobo_config.h"	// cdata.Resolvable_States cdata.VFO_resolution
 
 	//--------------------------------------------------------

@@ -39,16 +39,9 @@
 #include "queue.h"
 #include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
-#include "taskPowerDisplay.h"
-#include "taskPushButtonMenu.h"
 #include "device_audio_task.h"
 #include "hpsdr_device_audio_task.h"
 #include "wdt.h"
-
-#if LCD_DISPLAY				// Multi-line LCD display
-#include "taskLCD.h"
-#include "taskStartupLogDisplay.h"
-#endif
 
 /*
 ** Image specific headers
@@ -75,18 +68,10 @@ static void x_image_task_init(void) {
 
   mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
-  #if LCD_DISPLAY						// Multi-line LCD display
-  vStartTaskLCD();
-  vStartTaskPowerDisplay();
-  vStartTaskPushButtonMenu();
-  #endif
   vStartTaskMoboCtrl();
   // vStartTaskEXERCISE( tskIDLE_PRIORITY );
   hpsdr_AK5394A_task_init();
   hpsdr_device_audio_task_init(HPSDR_EP_IQ_IN, HPSDR_EP_IQ_OUT, 0);
-#endif
-#if LCD_DISPLAY						// Multi-line LCD display
-  vStartTaskStartupLogDisplay();
 #endif
 }
 

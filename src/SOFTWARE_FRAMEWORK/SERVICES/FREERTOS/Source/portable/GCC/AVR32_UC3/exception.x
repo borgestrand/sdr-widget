@@ -95,10 +95,15 @@ _handle_Bus_Error_Instruction_Fetch:
         .org  0x010
         // NMI.
 _handle_NMI:
-        
+
+/* Needed for rotary_encoder.c        
         //*********TF3LJ* rjmp $
         // replaced with the below
         lda.w   pc, eic_nmi_handler
+*/
+
+/* Reverting to presumed original */
+		rjmp $
         
         .org  0x014
         // Instruction Address.

@@ -106,6 +106,8 @@
 	#define LED1_GPIO   AVR32_PIN_PX32 // Green on AB-1.1
 #endif
 
+#define LED2_GPIO   AVR32_PIN_PX50
+#define LED3_GPIO   AVR32_PIN_PX57
 //! @}
 
 /*! \name PWM Channels of LEDs
@@ -113,6 +115,8 @@
 //! @{
 #define LED0_PWM    (-1)
 #define LED1_PWM    (-1)
+#define LED2_PWM    (-1)
+#define LED3_PWM    (-1)
 
 //! @}
 
@@ -121,6 +125,8 @@
 //! @{
 #define LED0_PWM_FUNCTION   (-1)
 #define LED1_PWM_FUNCTION   (-1)
+#define LED2_PWM_FUNCTION   (-1)
+#define LED3_PWM_FUNCTION   (-1)
 
 //! @}
 
@@ -129,6 +135,8 @@
 //! @{
 #define LED_MONO0_GREEN   LED0
 #define LED_MONO1_GREEN   LED1
+#define LED_MONO2_GREEN   LED2
+#define LED_MONO3_GREEN   LED3
 //! @}
 
 /*! \name GPIO Connections of the SW2 Push Button
@@ -211,7 +219,6 @@
 #define ENCODER_ROTI_IRQ			AVR32_EIC_IRQ_7
 #define ENCODER_ROTI_INT			EXT_INT7
 
-#define ENCODER_SWITCH              AVR32_PIN_PA12
 
 //! @}
 
@@ -254,18 +261,6 @@
 #define GCLK2				AVR32_PM_GCLK_2_PIN
 #define GCLK2_FUNCTION		AVR32_PM_GCLK_2_FUNCTION
 
-/*! \name GPIO Connections of the CW key inputs
- */
-//! @{
-
-//#define GPIO_CW_KEY_1        AVR32_PIN_PB9
-#define GPIO_CW_KEY_1        AVR32_PIN_PX00
-#define GPIO_CW_KEY_2        AVR32_PIN_PX01
-#define GPIO_PTT_INPUT       AVR32_PIN_PX02
-
-#define PTT_1				 AVR32_PIN_PX45
-#define PTT_2				 AVR32_PIN_PX42
-#define PTT_3				 AVR32_PIN_PX22
 
 #define GPIO_PCM5102_FILTER	 AVR32_PIN_PX56	 // 0=FIR 1=IIR
 //! @}

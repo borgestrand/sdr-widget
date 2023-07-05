@@ -206,29 +206,6 @@ to exclude the API function. */
 #define configTSK_MoboCtrl_PRIORITY			  (tskIDLE_PRIORITY + 1) // mobodebug: +2 works, but we prefer imrpoved UAC2 code // Was 0 // (tskIDLE_PRIORITY + 1) // Was 0
 #define configTSK_MoboCtrl_PERIOD			  120
 
-/* taskPowerDisplay definitions. */
-#define configTSK_PDISPLAY_NAME				  ((const signed portCHAR *)"taskPowerDisplay")
-#define configTSK_PDISPLAY_STACK_SIZE		  1024
-#define configTSK_PDISPLAY_PRIORITY			  (tskIDLE_PRIORITY )
-// Not used... Lowest priority task, but is in a fast loop with a fixed wait of only 5ms at the end
-//#define configTSK_PDISPLAY_PERIOD			  50
-
-/* taskPushButtonMenu definitions. */
-#define configTSK_PBTNMENU_NAME				  ((const signed portCHAR *)"taskPushButtonMenu")
-#define configTSK_PBTNMENU_STACK_SIZE		  1024
-#define configTSK_PBTNMENU_PRIORITY			  (tskIDLE_PRIORITY )
-#define configTSK_PBTNMENU_PERIOD			  100	// 10ms
-
-/* taskLCD definitions */
-// Priority has to be same or greater than that of client tasks such as MoboControl and PowerDisplay
-#define configTSK_LCD_PRIORITY        		( tskIDLE_PRIORITY + 1) // Was 0.
-#define	configTSK_LCD_STACK_SIZE			1024
-
-/* taskStartupLogDisplay definitions */
-#define configTSK_LOGDISPLAY_NAME			((const signed portCHAR *)"taskStartupLogDisplay")
-#define configTSK_LOGDISPLAY_PRIORITY		configTSK_LCD_PRIORITY
-#define configTSK_LOGDISPLAY_STACK_SIZE		1024
-
 /* taskExercise definitions */
 #define configTSK_EXERCISE_STACK_SIZE		256
 #define configTSK_EXERCISE_PRIORITY			(tskIDLE_PRIORITY + 1 )

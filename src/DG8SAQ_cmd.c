@@ -17,11 +17,7 @@
 #include "gpio.h"
 
 #include "DG8SAQ_cmd.h"
-#include "taskLCD.h"
 #include "Mobo_config.h"
-#include "Si570.h"
-#include "AD7991.h"
-#include "TMP100.h"
 #include "usb_drv.h"
 #include "usb_descriptors.h"
 #include "usb_standard_request.h"
@@ -29,9 +25,6 @@
 #include "features.h"
 #include "widget.h"
 #include "taskAK5394A.h"
-
-// This var is used to pass frequency from USB input command
-volatile uint32_t freq_from_usb;		// New Frequency from USB
 
 volatile bool	FRQ_fromusbreg = FALSE;	// Flag: New frequency by Register from USB
 volatile bool	FRQ_fromusb = FALSE;	// Flag: New frequency from USB
@@ -50,7 +43,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 	//Buf64 = (uint64_t*)Buffer;
 	Buf32 = (uint32_t*)Buffer;
 	Buf16 = (uint16_t*)Buffer;
-	int x;
 
 //	LED_Toggle(LED1);
 
@@ -59,54 +51,17 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 	case 0x30:
 		if (len == 6)
 		{
-			for (x = 0; x<6;x++)
-			{
-				si570reg[x] = Buffer[5-x];
-			}
-			// Calc the freq as a 32bit integer, based on the Si570 register value
-			// Writing a non_zero value into freq_from_usb will result in a write to
-			// Si570 by the taskMoboCtrl
-			// Freq_FRom_Register uses the si570reg[6] as input
+			// Calc the freq as a 32bit integer, based on the 
+			// 
+			// Freq_FRom_Register uses the 
 			FRQ_fromusbreg = TRUE;
 		}
 		break;
-			#if CALC_FREQ_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
-			case 0x31:								// Write the frequency subtract multiply to the eeprom
-				if (len == 2*sizeof(uint32_t))
-				{
-					cdata.FreqSub = Buf32[1];
-					cdata.FreqMul = Buf32[0];
-					flashc_memset32((void *)&nvram_cdata.FreqSub, cdata.FreqSub, sizeof(uint32_t), TRUE);
-					flashc_memset32((void *)&nvram_cdata.FreqMul, cdata.FreqMul, sizeof(uint32_t), TRUE);
-				}
-				break;
-			#endif
-			#if CALC_BAND_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
-			case 0x31:								// Write the frequency subtract multiply to the eeprom
-				if (len == 2*sizeof(uint32_t))
-				{
-					cdata.BandSub[wIndex & 0x0f] = Buf32[1];
-					cdata.BandMul[wIndex & 0x0f] = Buf32[0];
-					flashc_memset32((void *)&nvram_cdata.BandSub[wIndex & 0x0f], Buf32[1], sizeof(uint32_t), TRUE);
-					flashc_memset32((void *)&nvram_cdata.BandMul[wIndex & 0x0f], Buf32[0], sizeof(uint32_t), TRUE);
-				}
-				break;
-			#endif
-
-			case 0x32:								// Set frequency by value and load Si570
-				if (len == 4)
-				{
-					freq_from_usb = *Buf32;
-					FRQ_fromusb = TRUE;
-				}
-				break;
-
 
 			case 0x33:								// Write new crystal frequency to EEPROM and use it.
 				if (len == 4) {
 					cdata.FreqXtal = *Buf32;
 					flashc_memset32((void *)&nvram_cdata.FreqXtal, *Buf32, sizeof(uint32_t), TRUE);
-					freq_from_usb = cdata.Freq[0];  // Refresh frequency
 					FRQ_fromusb = TRUE;
 				}
 				break;
@@ -262,64 +217,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			}
 		}
 
-	#if SCRAMBLED_FILTERS					// Enable a non contiguous order of Filters
-	case 0x18:								// Set the Band Pass Filter Address for one band: 0,1,2...7
-		cdata.FilterNumber[wIndex] = wValue;
-		flashc_memset8((void *)&nvram_cdata.FilterNumber[wIndex], wValue, sizeof(uint8_t), TRUE);
-		// passthrough to case 0x19
-
-	case 0x19:								// Read the Band Pass Filter Addresses for bands 0,1,2...7
-		for (x=0;x<8;x++)
-		{
-			Buffer[7-x] = cdata.FilterNumber[x];
-		}
-		return 8 * sizeof(uint8_t);
-
-	case 0x1a:								// Set the Low Pass Filter Address for one band: 0,1,2...15
-		cdata.TXFilterNumber[wIndex] = wValue;
-		flashc_memset8((void *)&nvram_cdata.TXFilterNumber[wIndex], wValue, sizeof(uint8_t), TRUE);
-		// passthrough to case 0x1b
-
-	case 0x1b:								// Read the Low Pass Filter Addresses for bands 0,1,2...15
-		for (x=0;x<TXF;x++)
-		{
-			Buffer[(TXF-1)-x] = cdata.TXFilterNumber[x];
-		}
-		return TXF * sizeof(uint8_t);
-	#endif
-
-	// Todo -- delete, most likely
-	//case 0x20:								// [DEBUG] Write byte to Si570 register
-	//	Si570CmdReg(rq->wValue.b1, rq->wIndex.b0);  // Value high byte and Index low byte
-	//
-	//	Status2 |= SI570_OFFL;				// Next SetFreq call no smoothtune
-	//
-	//	replyBuf[0].b0 = I2CErrors;			// return I2C transmission error status
-	//  return sizeof(uint8_t);
-
-	//case 0x30:							// Set frequnecy by register and load Si570
-	//case 0x31:							// Write the FREQ mul & add to the eeprom
-	//case 0x32:							// Set frequency by value and load Si570
-	//case 0x33:							// write new crystal frequency to EEPROM and use it.
-	//case 0x34:							// Write new startup frequency to eeprom
-	//case 0x35:							// Write new smooth tune to eeprom and use it.
-	//case 0x36:
-	//case 0x37:
-	//	return 0		;					// Hey we're not supposed to be here
-											// 	we use usbFunctionWrite() to transfer data
-
-	#if CALC_FREQ_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
-	case 0x39:								// Return the current Subtract and Multiply values
-		Buf32[1] = cdata.FreqSub;
-		Buf32[0] = cdata.FreqMul;
-		return 2*sizeof(uint32_t);
-	#endif
-	#if CALC_BAND_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
-	case 0x39:								// Return the current Subtract and Multiply values
-		Buf32[1] = cdata.BandSub[wIndex & 0x0f];
-		Buf32[0] = cdata.BandMul[wIndex & 0x0f];
-		return 2*sizeof(uint32_t);
-	#endif
 
 	case 0x3a:								// Return running frequnecy
 			*Buf32 = cdata.Freq[0];
@@ -337,13 +234,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			*Buf32  = cdata.FreqXtal;
 			return sizeof(uint32_t);
 
-		case 0x3f:							// Return the Si570 chip frequency control registers
-			GetRegFromSi570(cdata.Si570_I2C_addr);
-			for (x = 0; x<6;x++)
-			{
-				Buffer[5-x]= si570reg[x];
-			}
-			return 6*sizeof(uint8_t);
 
 
 		case 0x41:		// Set a new i2c address for a device, or reset the EEPROM to factory default
@@ -355,7 +245,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 						// Index 3 reads/modifies the I2C address for the second PCF8574 used in the LPF Mobo
 						// Index 4 reads/modifies the I2C address for the onboard TMP100 temperature sensor
 						// Index 5 reads/modifies the I2C address for the onboard AD5301 8 bit DAC
-						// Index 6 reads/modifies the I2C address for the onboard AD7991 4 x ADC
+						// Index 6 reads/modifies the I2C address for the onboard 
 						// Index 7 reads/modifies the I2C address for the external PCF8574 used for FAN, attenuators etc
 
 			if (wValue == 0xff)
@@ -367,63 +257,9 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			{
 				Buffer[0] = wValue;
 
-				switch (wIndex)
-				{
-					case 0:
-						flashc_memset8((void *)&nvram_cdata.Si570_I2C_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 1:
-						flashc_memset8((void *)&nvram_cdata.PCF_I2C_Mobo_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 2:
-						flashc_memset8((void *)&nvram_cdata.PCF_I2C_lpf1_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 3:
-						flashc_memset8((void *)&nvram_cdata.PCF_I2C_lpf2_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 4:
-						flashc_memset8((void *)&nvram_cdata.TMP100_I2C_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 5:
-						flashc_memset8((void *)&nvram_cdata.AD5301_I2C_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 6:
-						flashc_memset8((void *)&nvram_cdata.AD7991_I2C_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-					case 7:
-						flashc_memset8((void *)&nvram_cdata.PCF_I2C_Ext_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
-				}
 			}
 			else								// Else just read and return the current value
 			{
-				switch (wIndex)
-				{
-					case 0:
-						Buffer[0] = cdata.Si570_I2C_addr;
-						break;
-					case 1:
-						Buffer[0] = cdata.PCF_I2C_Mobo_addr;
-						break;
-					case 2:
-						Buffer[0] = cdata.PCF_I2C_lpf1_addr;
-						break;
-					case 3:
-						Buffer[0] = cdata.PCF_I2C_lpf2_addr;
-						break;
-					case 4:
-						Buffer[0] = cdata.TMP100_I2C_addr;
-						break;
-					case 5:
-						Buffer[0] = cdata.AD5301_I2C_addr;
-						break;
-					case 6:
-						Buffer[0] = cdata.AD7991_I2C_addr;
-						break;
-					case 7:
-						Buffer[0] = cdata.PCF_I2C_Ext_addr;
-						break;
-				}
 			}
 			return sizeof(uint8_t);
 
@@ -440,35 +276,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 		//#endif
 
 
-		case 0x50:								//Set/Release PTT and get cw-key status
-			if (wValue == 0)
-			{
-				// Clear PTT flag, ask for state change to RX
-				TX_flag = FALSE;
-			    FRQ_lcdupdate = TRUE;				// Force LCD update, Indicate new frequency for Si570
-			}
-			else
-			{
-				// Set PTT flag, ask for state change to TX
-				TX_flag = TRUE;
-			    FRQ_lcdupdate = TRUE;				// Force LCD update, Indicate new frequency for Si570
-			}
-			// Passthrough to Cmd 0x51
-
-		case 0x51:								// read CW & PTT key levels
-		case 0x52:
-			Buffer[0] = 0x00;
-			// read pin and set regbit accordingly
-			if (gpio_get_pin_value(GPIO_CW_KEY_1)) Buffer[0] |= REG_CWSHORT;
-			if (gpio_get_pin_value(GPIO_CW_KEY_2)) Buffer[0] |= REG_CWLONG;
-			if (gpio_get_pin_value(GPIO_PTT_INPUT)) Buffer[0] |= REG_PTT_INPUT;
-			if (gpio_get_pin_value(PTT_1)) Buffer[0] |= REG_PTT_1;
-			if (gpio_get_pin_value(PTT_2)) Buffer[0] |= REG_PTT_2;
-			if (gpio_get_pin_value(PTT_3)) Buffer[0] |= REG_PTT_3;
-			if (TX_state) Buffer[0] |= REG_TX_state;
-
-        	return sizeof(uint8_t);
-
 
 		case 0x61:		// Read ADC inputs,
 						// Index byte points to which ADC input to read.
@@ -480,14 +287,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 						// Index 4 = Temperature in degC.Signed Int.  0 = 0 deg C
 						// 			 32640 =  128 deg C, 32768 = -128 deg C
 
-			if (wIndex < 4)						// Values from AD7991
-			{
-				*Buf16 = ad7991_adc[wIndex];
-			}
-			else								// Read current temperature
-			{
-				*Buf16 = tmp100_data;
-			}
 			return sizeof(uint16_t);
 
 
@@ -703,69 +502,13 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 				{
 					flashc_memset8((void *)&nvram_cdata.LCD_RX_Offset, wValue, sizeof(uint8_t), TRUE);
 					cdata.LCD_RX_Offset = wValue;	// RX frequency offset, when using PowerSDR-IQ
-				    FRQ_fromusb = TRUE;				// Indicate new frequency for Si570
+				    FRQ_fromusb = TRUE;				// Indicate new frequency for 
 				}
 				// Return current value
 				*Buffer = cdata.LCD_RX_Offset;
 				return sizeof(uint8_t);
 
 
-		// direct control of PCF8574 extenders
-		case 0x6e:								// Send byte to (PCF8574) GPIO Extender
-												// Check for a device that has been probed previously
-												// If we try to write to a nonexistent I2C device, then
-												// the I2C driver will end up in a funk.
-			if ((wIndex == 0x20) && (i2c.pcf0x20));
-			else if ((wIndex == 0x21) && (i2c.pcf0x21));
-			else if ((wIndex == 0x22) && (i2c.pcf0x22));
-			else if ((wIndex == 0x23) && (i2c.pcf0x23));
-			else if ((wIndex == 0x24) && (i2c.pcf0x24));
-			else if ((wIndex == 0x25) && (i2c.pcf0x25));
-			else if ((wIndex == 0x26) && (i2c.pcf0x26));
-			else if ((wIndex == 0x27) && (i2c.pcf0x27));
-			else if ((wIndex == 0x38) && (i2c.pcf0x38));
-			else if ((wIndex == 0x39) && (i2c.pcf0x39));
-			else if ((wIndex == 0x3a) && (i2c.pcf0x3a));
-			else if ((wIndex == 0x3b) && (i2c.pcf0x3b));
-			else if ((wIndex == 0x3c) && (i2c.pcf0x3c));
-			else if ((wIndex == 0x3d) && (i2c.pcf0x3d));
-			else if ((wIndex == 0x3e) && (i2c.pcf0x3e));
-			else if ((wIndex == 0x3f) && (i2c.pcf0x3f));
-			else
-			{
-				*Buffer = 42;					// For a lack of better number, 42 = Error, nonexistent device
-				return sizeof(uint8_t);
-			}
-			pcf8574_out_byte(wIndex, wValue);
-			// Passthrough to next command and do a read.
-
-		case 0x6f:								// Read byte from (PCF8574) GPIO Extender
-												// Check for a device that has been probed previously
-												// If we try to write to a nonexistent I2C device, then
-												// the I2C driver will end up in a funk.
-			if ((wIndex == 0x20) && (i2c.pcf0x20));
-			else if ((wIndex == 0x21) && (i2c.pcf0x21));
-			else if ((wIndex == 0x22) && (i2c.pcf0x22));
-			else if ((wIndex == 0x23) && (i2c.pcf0x23));
-			else if ((wIndex == 0x24) && (i2c.pcf0x24));
-			else if ((wIndex == 0x25) && (i2c.pcf0x25));
-			else if ((wIndex == 0x26) && (i2c.pcf0x26));
-			else if ((wIndex == 0x27) && (i2c.pcf0x27));
-			else if ((wIndex == 0x38) && (i2c.pcf0x38));
-			else if ((wIndex == 0x39) && (i2c.pcf0x39));
-			else if ((wIndex == 0x3a) && (i2c.pcf0x3a));
-			else if ((wIndex == 0x3b) && (i2c.pcf0x3b));
-			else if ((wIndex == 0x3c) && (i2c.pcf0x3c));
-			else if ((wIndex == 0x3d) && (i2c.pcf0x3d));
-			else if ((wIndex == 0x3e) && (i2c.pcf0x3e));
-			else if ((wIndex == 0x3f) && (i2c.pcf0x3f));
-			else
-			{
-				*Buffer = 42;					// For lack of better number, 42 = Error, nonexistent device
-				return sizeof(uint8_t);
-			}
-			pcf8574_in_byte(wIndex, Buffer);
-			return sizeof(uint8_t);
 
 		case 0x71:
 			switch (wValue){

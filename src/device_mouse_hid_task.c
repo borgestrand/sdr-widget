@@ -107,10 +107,6 @@
 #include "device_audio_task.h"	// To modify FB_rate_nominal
 #endif
 
-#if LCD_DISPLAY			// Multi-line LCD display
-#include "taskLCD.h"
-#endif
-//#include "taskEXERCISE.h"
 
 
 //_____ M A C R O S ________________________________________________________
@@ -142,14 +138,9 @@ void device_mouse_hid_task_init(U8 ep_tx) {
 #endif
 //	ep_hid_rx = ep_rx; // BSB 20120718 unused variable, sane?
 	ep_hid_tx = ep_tx;
-#ifndef FREERTOS_USED
-#if USB_HOST_FEATURE == ENABLED
-	// If both device and host features are enabled, check if device mode is engaged
-	// (accessing the USB registers of a non-engaged mode, even with load operations,
-	// may corrupt USB FIFO data).
-	if (Is_usb_device())
-#endif  // USB_HOST_FEATURE == ENABLED
-		Usb_enable_sof_interrupt();
+#ifndef FREERTOS_USED 
+// Removed reference to USB_HOST_FEATURE
+	Usb_enable_sof_interrupt();
 #endif  // FREERTOS_USED
 
 #ifdef FREERTOS_USED
@@ -191,9 +182,7 @@ void device_mouse_hid_task(void)
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
   uint8_t temp, temp2;			// Temporary debug data
-  uint32_t temp32;				// Temporary debug data
-  uint8_t dev_datar[1];
-
+  
 
 #ifdef FREERTOS_USED
   portTickType xLastWakeTime;

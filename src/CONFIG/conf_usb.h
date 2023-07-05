@@ -96,10 +96,6 @@
   //! supported by the application
   //! @{
 
-    //! @brief ENABLE to activate the host software framework support
-    //!
-    //! Possible values ENABLED or DISABLED
-#define USB_HOST_FEATURE            DISABLED
     //! @brief ENABLE to activate the device software framework support
     //!
     //! Possible values ENABLED or DISABLED

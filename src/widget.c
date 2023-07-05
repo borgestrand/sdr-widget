@@ -14,25 +14,16 @@
 #include "wdt.h"
 #include "flashc.h"
 #include "rtc.h"
+#include "gpio.h"
+
 
 #include "FreeRTOS.h"
 #include "task.h"
 
 #include "features.h"
 #include "widget.h"
-#if LCD_DISPLAY
-	#include "taskLCD.h"
-#endif
 #include "Mobo_config.h"
 
-//
-// initialization flag
-//
-static int initialization_count = 0;
-
-int widget_is_initializing(void) { return initialization_count != 0; }
-void widget_initialization_start(void) { initialization_count += 1; }
-void widget_initialization_finish(void) { initialization_count -= 1; }
 
 //
 // startup log
@@ -85,8 +76,8 @@ void widget_startup_log_line(char *string) {
 void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
 	// append a usage summary to any startup log listing
 	static char log_usage[2][20];
-	sprintf(log_usage[0], "log %d/%d lines", (int)(startup_log_line_ptr - (char **)startup_log_lines), STARTUP_LOG_LINES);
-	sprintf(log_usage[1], "log %d/%d chars", (int)(startup_log_ptr-startup_log), STARTUP_LOG_SIZE);
+	// sprintf(log_usage[0], "log %d/%d lines", (int)(startup_log_line_ptr - (char **)startup_log_lines), STARTUP_LOG_LINES);
+	// sprintf(log_usage[1], "log %d/%d chars", (int)(startup_log_ptr-startup_log), STARTUP_LOG_SIZE);
 	startup_log_line_ptr[0] = log_usage[0];
 	startup_log_line_ptr[1] = log_usage[1];
 	*buffer_lines = (char **)startup_log_lines;
@@ -100,16 +91,9 @@ void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
 // ditto and delay after each line of text is displayed
 //
 static unsigned char display_grabbed = 0;
-#if LCD_DISPLAY
-	static unsigned char display_row = 0;
-	static char display_contents[4][21];
-#endif
 
 void widget_display_grab(void) {
 	if ( ! display_grabbed) {
-	#if LCD_DISPLAY
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-	#endif
 	}
 	display_grabbed += 1;
 }
@@ -118,69 +102,16 @@ void widget_display_drop(void) {
 	if (display_grabbed) {
 		display_grabbed -= 1;
 		if ( ! display_grabbed ) {
-		#if LCD_DISPLAY
-			xSemaphoreGive( mutexQueLCD );
-		#endif
 		}
 	}
-}
-	
-void widget_display_clear(void) {
-#if LCD_DISPLAY
-	int i;
-	widget_display_grab();
-	lcd_q_clear();
-	display_row = 0;
-	for (i = 0; i < 4; i += 1)
-		memset(&display_contents[i][0], ' ', 20);
-	widget_display_drop();
-#endif
 }
 
 void widget_display_string_and_scroll(char *string) {
-#if LCD_DISPLAY
-	widget_display_grab();
-	if (display_row == 4) {
-		// scroll up
-		int row;
-		memmove(&display_contents[0][0], &display_contents[1][0], 3*21);
-		for (row = 0; row < 3; row += 1) {
-			lcd_q_goto(row,0);
-			lcd_q_print(&display_contents[row][0]);
-		}
-		display_row = 3;
-	}
-	sprintf(&display_contents[display_row][0], "%-20.20s", string);
-	lcd_q_goto(display_row, 0);
-	lcd_q_print(&display_contents[display_row][0]);
-	display_row += 1;
-	widget_display_drop();
-#endif
 }
 
 void widget_display_string_scroll_and_delay(char *string, unsigned delay) {
-#if LCD_DISPLAY
-	widget_display_string_and_scroll(string);
-	widget_delay_task(delay);
-#endif
 }
 
-//
-// provide a place for disasters to be reported
-// only works when taskLCD is active
-// shows a message for 30 seconds
-//
-void widget_oops(char *message) {
-#if LCD_DISPLAY
-	if (widget_is_tasking()) {
-		widget_display_grab();
-		widget_display_clear();
-		widget_display_string_and_scroll("widget_oops:");
-		widget_display_string_scroll_and_delay(message, 30000000);
-		widget_display_drop();
-	}
-#endif
-}
 
 //
 // test if we're in supervisor mode
@@ -266,8 +197,6 @@ void widget_factory_reset_handler_register(widget_factory_reset_handler_t handle
 			handlers[i] = handler;
 			break;
 		}
-	if (i >= WIDGET_FACTORY_RESET_HANDLERS)
-		widget_oops("reset table is full"); /* keep it under 20 chars */
 }
 
 //
@@ -294,122 +223,9 @@ void widget_factory_reset(void) {
 #define PARIS_DPW  50							// dit clocks in PARIS
 #define CODEX_DPW  60							// dit clocks in CODEX
 
-// LED0_GPIO - mounted led0, contended for by uac
-// LED1_GPIO - mounted led1, contended for by uac
-// PTT_1 - one of these three gets set eventually
-// PTT_2
-// PTT_3
-void widget_blink(char *dotspace) {
-	// take the number of clocks per second, divide by the dits per second
-	const int32_t us_per_dot = 1000000 / (BLINKY_WPM * PARIS_DPW / 60);
-	// start off
-	LED_Off(LED0); LED_Off(LED1);
-	// until a nul terminator
-	while (*dotspace != 0) {
-		// on for dot, off for anything else
-		if (*dotspace == '.') {
-			gpio_clr_gpio_pin(PTT_1); gpio_clr_gpio_pin(PTT_2); gpio_clr_gpio_pin(PTT_3);
-		} else if (*dotspace == ' ') {
-			gpio_set_gpio_pin(PTT_1); gpio_set_gpio_pin(PTT_2); gpio_set_gpio_pin(PTT_3);
-		} else {
-			break;
-		}
-		// increment dotspace code
-		dotspace += 1;
-		// count down the dot clock
-		widget_delay_rtc(us_per_dot);
-	}
-	gpio_set_gpio_pin(PTT_1); gpio_set_gpio_pin(PTT_2); gpio_set_gpio_pin(PTT_3);
-}
 
-void widget_blink_morse(char *ascii) {
-	while (*ascii != 0) {
-		switch (*ascii++) {
-		case ' ':           widget_blink("    "); continue;
-		case 'e': case 'E': widget_blink(".   "); continue;
-		case 'i': case 'I': widget_blink(". .   "); continue;
-		case 't': case 'T': widget_blink("...   "); continue;
-		case 'a': case 'A': widget_blink(". ...   "); continue;
-		case 'n': case 'N': widget_blink("... .   "); continue;
-		case 's': case 'S': widget_blink(". . .   "); continue;
-		case 'd': case 'D': widget_blink("... . .   "); continue;
-		case 'h': case 'H': widget_blink(". . . .   "); continue;
-		case 'm': case 'M': widget_blink("... ...   "); continue;
-		case 'r': case 'R': widget_blink(". ... .   "); continue;
-		case 'u': case 'U': widget_blink(". . ...   "); continue;
-		case 'b': case 'B': widget_blink("... . . .   "); continue;
-		case 'f': case 'F': widget_blink(". . ... .   "); continue;
-		case 'g': case 'G': widget_blink("... ... .   "); continue;
-		case 'k': case 'K': widget_blink("... . ...   "); continue;
-		case 'l': case 'L': widget_blink(". ... . .   "); continue;
-		case 'v': case 'V': widget_blink(". . . ...   "); continue;
-		case 'w': case 'W': widget_blink(". ... ...   "); continue;
-		case 'c': case 'C': widget_blink("... . ... .   "); continue;
-		case 'o': case 'O': widget_blink("... ... ...   "); continue;
-		case 'p': case 'P': widget_blink(". ... ... .   "); continue;
-		case 'x': case 'X': widget_blink("... . . ...   "); continue;
-		case 'z': case 'Z': widget_blink("... ... . .   "); continue;
-		case 'j': case 'J': widget_blink(". ... ... ...   "); continue;
-		case 'q': case 'Q': widget_blink("... ... . ...   "); continue;
-		case 'y': case 'Y': widget_blink("... . ... ...   "); continue;
-		case '1':		    widget_blink(". ... ... ... ...   "); continue;
-		case '2':		    widget_blink(". . ... ... ...   "); continue;
-		case '3':		    widget_blink(". . . ... ...   "); continue;
-		case '4':		    widget_blink(". . . . ...   "); continue;
-		case '5':		    widget_blink(". . . . .   "); continue;
-		case '6':		    widget_blink("... . . . .   "); continue;
-		case '7':		    widget_blink("... ... . . .   "); continue;
-		case '8':		    widget_blink("... ... ... . .   "); continue;
-		case '9':		    widget_blink("... ... ... ... .   "); continue;
-		case '0':		    widget_blink("... ... ... ... ...   "); continue;
-		case '"':			widget_blink(". ... . ... .   "); continue;
-		case '\'':			widget_blink(". ... ... ... ... .   "); continue;
-		case '$':			widget_blink(". . . ... . . ...   "); continue;
-		case '(':		    widget_blink("... . ... ... .   "); continue;
-		case ')':		    widget_blink("... . ... ... . ...   "); continue;
-		case '+':		    widget_blink(". ... . ... .   "); continue;
-		case ',':		    widget_blink("... ... . . ... ...   "); continue;
-		case '-':		    widget_blink("... . . . . ...   "); continue;
-		case '.':		    widget_blink(". ... . ... . ...   "); continue;
-		case '/':			widget_blink("... . . ... .   "); continue;
-		case ':':			widget_blink("... ... ... . . .   "); continue;
-		case ';':			widget_blink("... . ... . ... .   "); continue;
-		case '=':			widget_blink("... . . . ...   "); continue;
-		case '?':			widget_blink(". . ... ... . .   "); continue;
-		case '_':			widget_blink(". . ... ... . ...   "); continue;
-		case '@':			widget_blink(". ... ... . ... .   "); continue;
-		}
-	}
-}
-
-void widget_init(void) {
-	// widget_blink_morse(" v ");
-	// char buffer[64];
-	// strncpy(buffer,widget_reset_cause(),64);
-	// buffer[3] = 0;
-	// widget_blink_morse(buffer);
-	// widget_blink_morse(" v ");
-	
-	// this returns not tasking during startup
-	// if (widget_is_tasking()) widget_blink_morse(" tasking "); else widget_blink_morse(" not tasking ");
-	//	widget_blink_morse("   ");
-	//	widget_blink_morse(" reset from ");
-	//	widget_blink_morse(widget_reset_cause());
-	//	widget_blink_morse("   ");
-	//	if ( ! widget_is_supervisor() )
-	//		widget_blink_morse(" user");
-	//	else
-	//		widget_blink_morse(" super");
-}
 
 void widget_ready(char *msg) {
 	// widget_blink_morse(msg);
 }
 
-void widget_report(void) {
-	char buff[32];
-	widget_startup_log_line("sdr-widget");
-	widget_startup_log_line(FIRMWARE_VERSION);
-	sprintf(buff, "reset = %s", widget_reset_cause());
-	widget_startup_log_line(buff);
-}
