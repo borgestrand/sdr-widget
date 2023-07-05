@@ -15134,12 +15134,6 @@
       <SubType>compile</SubType>
     </None>
     <Folder Include="src" />
-    <Compile Include="src\AD7991.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\AD7991.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\composite_widget.c">
       <SubType>compile</SubType>
     </Compile>

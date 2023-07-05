@@ -452,73 +452,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	#endif
 
 
-	#if ! LOGGING
-	#if LCD_DISPLAY			// Multi-line LCD display
-    // Clear LCD and Print Firmware version again
-	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-    lcd_q_clear();
-	lcd_q_goto(3,10);
-    lcd_q_print(FIRMWARE_VERSION);
-	xSemaphoreGive( mutexQueLCD );
-	#endif
-	#endif
 
-	#if Si570
-    // Print capabilities on LCD
-	#if ! LOGGING
-	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-	lcd_q_goto(0,0);
-	#endif
-	// A Full house
-	if (i2c.si570 && i2c.tmp100 && i2c.ad7991 && i2c.pcfmobo && i2c.pcflpf1)
-	{
-		#if LOGGING
-		widget_startup_log_line("RX&TX&LPF Init OK");
-		#else
-		lcd_q_print("RX&TX&LPF Init OK");
-		#endif
-	}
-	else if (i2c.si570 && i2c.tmp100 && i2c.ad7991 && i2c.pcfmobo)
-	{
-		#if LOGGING
-		widget_startup_log_line("RX & TX Init OK");
-		#else
-	    lcd_q_print("RX & TX Init OK");
-		#endif
-	}
-	else if (i2c.si570 && i2c.pcfmobo)
-	{
-		#if LOGGING
-		widget_startup_log_line("RX Init OK");
-		#else
-	    lcd_q_print("RX Init OK");
-		#endif
-	}
-	// Si570 present
-	else if (i2c.si570)
-	{
-		#if LOGGING
-		widget_startup_log_line("Si570 Init OK");
-		#else
-	    lcd_q_print("Si570 Init OK");
-		#endif
-	}
-	// I2C device problem
-	else
-	{
-		#if LOGGING
-		widget_startup_log_line("I2Cbus NOK");
-		#else
-	    lcd_q_print("I2Cbus NOK");
-		#endif//Si570
-	}
-	#if ! LOGGING
-	// Keep init info on LCD for 2 seconds
-	vTaskDelay( 20000 );
- 	lcd_q_clear();
-	xSemaphoreGive( mutexQueLCD );
-	#endif
- 	#endif
 
 	// Fetch last frequency stored
 	cdata.Freq[0] = cdata.Freq[cdata.SwitchFreq];
@@ -526,14 +460,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 	freq_from_usb = cdata.Freq[0];
 	// Indicate new frequency for Si570
 	FRQ_fromusb = TRUE;
-
-	
-	// The Henry Audio and QNKTC series of hardware doesn't use the rotary encoder
-	#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD) || (defined  HW_GEN_FMADC)
-	#else
-	// Initialise Rotary Encoder Function
-		encoder_init();
-	#endif
 	
 
 	// Force an initial reading of AD7991 etc
@@ -715,33 +641,15 @@ static void vtaskMoboCtrl( void * pcParameters )
 		// The below is only applicable if I2C bus is available
 		#if I2C
 
-		#if MOBO_FUNCTIONS	// AD7991/TMP100, P/SWR etc...
+		#if MOBO_FUNCTIONS	// /TMP100, P/SWR etc...
 		//--------------------------
    		// TX stuff, once every 10ms
    		//--------------------------
 		//---------------------------------
 		// Bias management poll, every 10ms
 		//---------------------------------
-		// RD16HHF1 PA Bias management
-		if (i2c.ad7991)					// Test for presence of required hardware
-			PA_bias();									// Autobias and other bias management functions
-														// This generates no I2C traffic unless bias change or
-														// autobias measurement
 		if (TX_state)
        	{
-			if (i2c.ad7991)
-			{
-   				if (ad7991_poll(cdata.AD7991_I2C_addr) == 0){		// Poll the AD7991 for all four values, success == 0
-
-				#if	POWER_SWR							// Power/SWR measurements and related actions
-   				// SWR Protect
-   				Test_SWR();								// Calculate SWR and control the PTT2 output
-   														// (SWR protect).  Updates measured_SWR variable (SWR*100)
-   														// Writes to the PCF8574 every time (2 bytes)
-   														// => constant traffic on I2C (can be improved to slightly
-				#endif									// reduce I2C traffic, at the cost of a few extra bytes)
-				}
-			}
        	}
 		//--------------------------
       	// RX stuff, once every 10ms
