@@ -222,31 +222,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			}
 		}
 
-	#if SCRAMBLED_FILTERS					// Enable a non contiguous order of Filters
-	case 0x18:								// Set the Band Pass Filter Address for one band: 0,1,2...7
-		cdata.FilterNumber[wIndex] = wValue;
-		flashc_memset8((void *)&nvram_cdata.FilterNumber[wIndex], wValue, sizeof(uint8_t), TRUE);
-		// passthrough to case 0x19
-
-	case 0x19:								// Read the Band Pass Filter Addresses for bands 0,1,2...7
-		for (x=0;x<8;x++)
-		{
-			Buffer[7-x] = cdata.FilterNumber[x];
-		}
-		return 8 * sizeof(uint8_t);
-
-	case 0x1a:								// Set the Low Pass Filter Address for one band: 0,1,2...15
-		cdata.TXFilterNumber[wIndex] = wValue;
-		flashc_memset8((void *)&nvram_cdata.TXFilterNumber[wIndex], wValue, sizeof(uint8_t), TRUE);
-		// passthrough to case 0x1b
-
-	case 0x1b:								// Read the Low Pass Filter Addresses for bands 0,1,2...15
-		for (x=0;x<TXF;x++)
-		{
-			Buffer[(TXF-1)-x] = cdata.TXFilterNumber[x];
-		}
-		return TXF * sizeof(uint8_t);
-	#endif
 
 	case 0x3a:								// Return running frequnecy
 			*Buf32 = cdata.Freq[0];

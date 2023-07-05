@@ -1679,30 +1679,4 @@ mobo_data_t	cdata							// Variables in ram/flash rom (default)
 				,	45						// Fan On trigger temp in degrees C
 				,	40						// Fan Off trigger temp in degrees C
 				,	PCF_EXT_FAN_BIT			// Which bit is used to control the Cooling Fan
-				#if SCRAMBLED_FILTERS		// Enable a non contiguous order of filters
-				,	{ Mobo_PCF_FLT0			// Band Pass filter selection
-				,	  Mobo_PCF_FLT1			// these values are mapped against the result of the
-				,	  Mobo_PCF_FLT2			// filter crossover point comparison
-				,	  Mobo_PCF_FLT3			// Filter selected by writing value to output port
-				,	  Mobo_PCF_FLT4
-				,	  Mobo_PCF_FLT5
-				,	  Mobo_PCF_FLT6
-				,	  Mobo_PCF_FLT7	}
-				,	{ I2C_EXTERN_FLT0		// External LPF filter selection
-				,	  I2C_EXTERN_FLT1		// these values are mapped against the result of the
-				,	  I2C_EXTERN_FLT2		// filter crossover point comparison
-				,	  I2C_EXTERN_FLT3		// Value is used to set 1 out of 16 bits in a double
-				,	  I2C_EXTERN_FLT4		// 8bit port (2x PCF8574 GPIO)
-				,	  I2C_EXTERN_FLT5
-				,	  I2C_EXTERN_FLT6
-				,	  I2C_EXTERN_FLT7
-				,	  I2C_EXTERN_FLT8
-				,	  I2C_EXTERN_FLT9
-				,	  I2C_EXTERN_FLTa
-				,	  I2C_EXTERN_FLTb
-				,	  I2C_EXTERN_FLTc
-				,	  I2C_EXTERN_FLTd
-				,	  I2C_EXTERN_FLTe
-				,	  I2C_EXTERN_FLTf }
-				#endif
 		};

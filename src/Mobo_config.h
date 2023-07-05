@@ -260,10 +260,6 @@ typedef struct
 		uint8_t		Fan_On;					// Fan On trigger temp
 		uint8_t		Fan_Off;				// Fan Off trigger temp
 		uint8_t		PCF_fan_bit;			// Which bit is used to control the Cooling Fan
-		#if SCRAMBLED_FILTERS				// Enable a non contiguous order of filters
-		uint8_t		FilterNumber[8];		// Which Band Pass filter to select at each crossover
-		uint8_t		TXFilterNumber[16];		// Which TX Low Pass filter to select at each crossover
-		#endif
 } mobo_data_t;
 
 extern mobo_data_t	cdata;					// Variables in ram/flash rom (default)
