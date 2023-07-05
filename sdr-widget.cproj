@@ -15179,12 +15179,6 @@
     <Compile Include="src\flashyblinky_image.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\host_audio_task.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\host_audio_task.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\I2C.c">
       <SubType>compile</SubType>
     </Compile>

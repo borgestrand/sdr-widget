@@ -64,12 +64,8 @@
 
 
 // Transmit specific features --------------------------------------------------------------
-#define POWER_SWR           0 // 1 Disabled 20171228   // Measure, and if LCD, display Power and SWR.
-                                // If not defined, while LCD is defined, then
-                                // LCD displays Vdd and I-Pa
-#define SWR_ALARM_FUNC      0 // 1 Disabled 20171228   // SWR alarm function, activates a secondary PTT
-                                // with auto Hi-SWR shutdown. Is dependent
-                                // on POWER_SWR being defined as well
+#define SWR_ALARM_FUNC      0 // 1 Disabled 20171228   // SWR alarm function, activates a secondary 
+                                // with auto Hi-SWR shutdown. 
 #define REVERSE_PTT2_LOGIC	0	// Reverse the logic of the PTT2 signal pin
 
 								// pin is definable by Cmd 64 index 3

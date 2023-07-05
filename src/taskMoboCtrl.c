@@ -109,33 +109,6 @@ uint16_t measured_Power(uint16_t voltage)
 }
 
 
-/*! \brief Do SWR calcultions and control the PTT2 output
- *
- * \retval nothing returned.
- */
-// Read the ADC inputs.
-#if POWER_SWR													// Power and SWR measurement
-void Test_SWR(void)
-{
-	uint16_t swr = 100;											// Initialize SWR = 1.0
-
-	#if SWR_ALARM_FUNC											// SWR alarm function, activates a secondary PTT
-	static uint8_t second_pass=0, timer=0;
-	#endif//SWR_ALARM_FUNC										// SWR alarm function, activates a secondary PTT
-
-	
-
-	//-------------------------------------------------------------
-	// Not Keyed - Clear PTT2 line
-	//-------------------------------------------------------------
-	else
-	{
-		SWR_alarm = FALSE;								// Clear SWR alarm flag
-	    if (i2c.pcfmobo)
-	}
-}
-#endif//POWER_SWR												// Power and SWR measurement
-
 
 /*! \brief RD16HHF1 PA Bias management
  *
@@ -208,10 +181,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 		memcpy(&cdata, &nvram_cdata, sizeof(nvram_cdata));
 	}
 
-	// Enable Pin Pullups for Input Pins
-	gpio_enable_pin_pull_up(GPIO_CW_KEY_1);
-	gpio_enable_pin_pull_up(GPIO_CW_KEY_2);
-
+	
 	// Initialize Real Time Counter
 	//rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz
 	//rtc_disable_interrupt(&AVR32_RTC);

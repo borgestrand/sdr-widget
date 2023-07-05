@@ -262,18 +262,6 @@
 #define GCLK2				AVR32_PM_GCLK_2_PIN
 #define GCLK2_FUNCTION		AVR32_PM_GCLK_2_FUNCTION
 
-/*! \name GPIO Connections of the CW key inputs
- */
-//! @{
-
-//#define GPIO_CW_KEY_1        AVR32_PIN_PB9
-#define GPIO_CW_KEY_1        AVR32_PIN_PX00
-#define GPIO_CW_KEY_2        AVR32_PIN_PX01
-#define GPIO_PTT_INPUT       AVR32_PIN_PX02
-
-#define PTT_1				 AVR32_PIN_PX45
-#define PTT_2				 AVR32_PIN_PX42
-#define PTT_3				 AVR32_PIN_PX22
 
 #define GPIO_PCM5102_FILTER	 AVR32_PIN_PX56	 // 0=FIR 1=IIR
 //! @}

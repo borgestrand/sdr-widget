@@ -228,9 +228,6 @@ void widget_factory_reset(void) {
 
 // LED0_GPIO - mounted led0, contended for by uac
 // LED1_GPIO - mounted led1, contended for by uac
-// PTT_1 - one of these three gets set eventually
-// PTT_2
-// PTT_3
 void widget_blink(char *dotspace) {
 	// take the number of clocks per second, divide by the dits per second
 	const int32_t us_per_dot = 1000000 / (BLINKY_WPM * PARIS_DPW / 60);
@@ -240,9 +237,7 @@ void widget_blink(char *dotspace) {
 	while (*dotspace != 0) {
 		// on for dot, off for anything else
 		if (*dotspace == '.') {
-			gpio_clr_gpio_pin(PTT_1); gpio_clr_gpio_pin(PTT_2); gpio_clr_gpio_pin(PTT_3);
 		} else if (*dotspace == ' ') {
-			gpio_set_gpio_pin(PTT_1); gpio_set_gpio_pin(PTT_2); gpio_set_gpio_pin(PTT_3);
 		} else {
 			break;
 		}
@@ -251,7 +246,6 @@ void widget_blink(char *dotspace) {
 		// count down the dot clock
 		widget_delay_rtc(us_per_dot);
 	}
-	gpio_set_gpio_pin(PTT_1); gpio_set_gpio_pin(PTT_2); gpio_set_gpio_pin(PTT_3);
 }
 
 void widget_blink_morse(char *ascii) {

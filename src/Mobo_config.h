@@ -192,13 +192,6 @@ void  mobo_i2s_enable(uint8_t i2s_mode);
 //-----------------------------------------------------------------------------
 //
 
-// CW input bits, defines which bit goes where in the USB reply to a CW pin poll
-#define REG_CWSHORT 		(1 << 5)		// Bits used for CW in reg
-#define REG_CWLONG  		(1 << 1)
-#define REG_PTT_1			(1 << 2)
-#define REG_PTT_2			(1 << 3)
-#define REG_PTT_3			(1 << 4)
-#define REG_PTT_INPUT		(1 << 7)
 
 // Conditional def based on the above, do not touch:
 #if PCF_LPF
