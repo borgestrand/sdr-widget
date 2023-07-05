@@ -198,7 +198,6 @@ void  mobo_i2s_enable(uint8_t i2s_mode);
 #define REG_PTT_1			(1 << 2)
 #define REG_PTT_2			(1 << 3)
 #define REG_PTT_3			(1 << 4)
-#define REG_TX_state		(1 << 6)
 #define REG_PTT_INPUT		(1 << 7)
 
 // Conditional def based on the above, do not touch:
@@ -216,8 +215,6 @@ void  mobo_i2s_enable(uint8_t i2s_mode);
 
 // Various flags, may be moved around
 extern volatile bool MENU_mode;				// LCD Menu mode.  Owned by taskPushButtonMenu, used by all LCD users
-extern bool	TX_state;						// Keep tabs on current TX status
-extern bool	TX_flag;						// Request for TX to be set
 extern bool	SWR_alarm;						// SWR alarm condition
 extern bool	TMP_alarm;						// Temperature alarm condition
 extern bool	PA_cal_lo;						// Used by PA Bias auto adjust routine

@@ -63,8 +63,6 @@ char lcd_pass3[20];									// Pass data to LCD
 // Various flags, may be moved around
 volatile bool MENU_mode		= 	FALSE;				// LCD Menu mode, used in conjunction with taskPushButtonMenu.c
 
-bool		TX_state	=	FALSE;					// Keep tabs on current TX status
-bool		TX_flag		=	FALSE;					// Request for TX to be set
 bool		SWR_alarm	= 	FALSE;					// SWR alarm condition
 bool		TMP_alarm	= 	FALSE;					// Temperature alarm condition
 bool		PA_cal_lo	= 	FALSE;					// Used by PA Bias auto adjust routine
@@ -155,34 +153,7 @@ void Test_SWR(void)
 	static uint8_t second_pass=0, timer=0;
 	#endif//SWR_ALARM_FUNC										// SWR alarm function, activates a secondary PTT
 
-	// There is no point in doing a SWR calculation, unless keyed and on the air
-	if(!(TMP_alarm) && (TX_state))
-	{
-		//-------------------------------------------------------------
-		// Calculate SWR
-		//-------------------------------------------------------------
-		// Quick check for an invalid result
-		// Standard SWR formula multiplied by 100, eg 270 = SWR of 2.7
-		else
-		{
-		}
-
-		if (swr < 9990)											// Set an upper bound to avoid overrrun.
-			measured_SWR = swr;
-		else measured_SWR = 9990;
-
-		//-------------------------------------------------------------
-		// SWR Alarm function
-		// If PTT is keyed, key the PTT2 line according to SWR status
-		//-------------------------------------------------------------
-		#if SWR_ALARM_FUNC										// SWR alarm function, activates a secondary PTT
-			    if (i2c.pcfmobo)
-					{
-		// On measured Power output and high SWR, force clear RXTX2 and seed timer
-
-		#endif//SWR_ALARM_FUNC									// SWR alarm function, activates a secondary PTT
-	}
-	}
+	
 
 	//-------------------------------------------------------------
 	// Not Keyed - Clear PTT2 line
@@ -225,48 +196,7 @@ void PA_bias(void)
 				biasInit = 2;
 			}
 			break;
-		//-------------------------------------------------------------
-		// Calibrate RD16HHF1 Bias
-		//-------------------------------------------------------------
-		default:												// Calibrate RD16HHF1 PA bias
-			if ((!TMP_alarm) && (!TX_state))					// Proceed if there are no inhibits
-			{
-				TX_flag = TRUE; 								// Ask for transmitter to be keyed on
-				PA_cal = TRUE;									// Indicate PA Calibrate in progress
-			}
-			else if ((!TMP_alarm) && (TX_flag) && (TX_state))	// We have been granted switch over to TX
-			{													// Start calibrating
 
-				// Have we reached the end of our rope?
-				if(calibrate == 0xff)
-				{
-					PA_cal_hi = TRUE;							// Set flag as if done with class AB
-					cdata.cal_HI = 0;
-					cdata.cal_LO = 0;							// We have no valid bias setting
-					// store 0 for both Class A and Class AB
-					flashc_memset8((void *)&nvram_cdata.cal_LO, cdata.cal_LO, sizeof(cdata.cal_LO), TRUE);
-					flashc_memset8((void *)&nvram_cdata.cal_HI, cdata.cal_HI, sizeof(cdata.cal_HI), TRUE);
-				}
-
-				// Are we finished?
-				if (PA_cal_hi)									// We're done, Clear all flags
-				{
-					PA_cal_hi = FALSE;
-					PA_cal_lo = FALSE;
-					PA_cal = FALSE;
-					TX_flag = FALSE;							// Ask for transmitter to be keyed down
-
-					calibrate = 0;								// Clear calibrate value (for next round)
-					cdata.Bias_Select = 2;						// Set bias select for class A and store
-					flashc_memset8((void *)&nvram_cdata.Bias_Select, cdata.Bias_Select, sizeof(cdata.Bias_Select), TRUE);
-				}
-
-				// Crank up the bias
-				else
-				{
-					calibrate++;								// Crank up the bias by one notch
-				}
-			}
 	}
 }
 
@@ -377,10 +307,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 	FRQ_fromusb = TRUE;
 	
 
-	// Force an initial reading of AD7991 etc
-	#if I2C
-	TX_state = TRUE;
-	#endif
 
 	widget_initialization_finish();
 

@@ -376,33 +376,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 		//#endif
 
 
-		case 0x50:								//Set/Release PTT and get cw-key status
-			if (wValue == 0)
-			{
-				// Clear PTT flag, ask for state change to RX
-				TX_flag = FALSE;
-			}
-			else
-			{
-				// Set PTT flag, ask for state change to TX
-				TX_flag = TRUE;
-			}
-			// Passthrough to Cmd 0x51
-
-		case 0x51:								// read CW & PTT key levels
-		case 0x52:
-			Buffer[0] = 0x00;
-			// read pin and set regbit accordingly
-			if (gpio_get_pin_value(GPIO_CW_KEY_1)) Buffer[0] |= REG_CWSHORT;
-			if (gpio_get_pin_value(GPIO_CW_KEY_2)) Buffer[0] |= REG_CWLONG;
-			if (gpio_get_pin_value(GPIO_PTT_INPUT)) Buffer[0] |= REG_PTT_INPUT;
-			if (gpio_get_pin_value(PTT_1)) Buffer[0] |= REG_PTT_1;
-			if (gpio_get_pin_value(PTT_2)) Buffer[0] |= REG_PTT_2;
-			if (gpio_get_pin_value(PTT_3)) Buffer[0] |= REG_PTT_3;
-			if (TX_state) Buffer[0] |= REG_TX_state;
-
-        	return sizeof(uint8_t);
-
 
 		case 0x61:		// Read ADC inputs,
 						// Index byte points to which ADC input to read.
