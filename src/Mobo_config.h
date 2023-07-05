@@ -11,7 +11,6 @@
 
 #include <stdint.h>
 
-#include "Si570.h"
 #include "PCF8574.h"
 #include "TMP100.h"
 

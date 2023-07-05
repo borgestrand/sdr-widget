@@ -31,7 +31,6 @@
 #define I2C                 1	// I2C driver
 #define LCD_DISPLAY         0   // 20x4 Liquid Crystal Display (LCD)
 #define SHAFT_ENCODER       0   // Shaft Encoder VFO function
-#define Si570               0   // Si570 VXO control funcs (needs I2C driver)
 #define AK5394              1   // 24-bit ADC, too much hinges on this one!
 #define AK4382A             0   // 24-bit DAC
 #define TMP100              0   // Temperature measurement device  (needs I2C driver)
@@ -49,7 +48,7 @@
 /*! \name Features to include at compile time. */
 //! @{
 #define MOBO_FUNCTIONS		0 // 1 Disabled 20171228	// TMP100, P/SWR etc...  (needs I2C driver)
-								// Without this, we have a simple Si570 control
+								// Without this, we have a simple 
 // None, or only one of the two, CALC_FREQ_MUL_ADD or CALC_BAND_MUL_ADD should be selected
 #define CALC_FREQ_MUL_ADD	0	// Frequency Subtract and Multiply Routines (for smart VFO)
 								// normally not needed with Mobo 4.3.   *OR*
@@ -98,7 +97,7 @@
 #define FRQ_IN_FIRST_LINE	0	// Normal Frequency display in first line of LCD. Can be disabled for Debug // 20230128 removed
 #define TMP_V_I_SECOND_LINE	0	// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug // 20230128 removed
 #define ENOB_TEST			0	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
-#define	I2C_LCD_PRINT		0	// Show which values are being sent to the PCF and Si570
+#define	I2C_LCD_PRINT		0	// Show which values are being sent to the PCF and 
 #define LCD_CDC				0	// CDC traffic displayed on LCD
 
 //! @}

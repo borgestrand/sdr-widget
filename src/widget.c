@@ -14,6 +14,8 @@
 #include "wdt.h"
 #include "flashc.h"
 #include "rtc.h"
+#include "gpio.h"
+
 
 #include "FreeRTOS.h"
 #include "task.h"

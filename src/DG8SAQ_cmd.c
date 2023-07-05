@@ -19,7 +19,6 @@
 #include "DG8SAQ_cmd.h"
 #include "taskLCD.h"
 #include "Mobo_config.h"
-#include "Si570.h"
 #include "TMP100.h"
 #include "usb_drv.h"
 #include "usb_descriptors.h"
@@ -58,14 +57,10 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 	case 0x30:
 		if (len == 6)
 		{
-			for (x = 0; x<6;x++)
-			{
-				si570reg[x] = Buffer[5-x];
-			}
-			// Calc the freq as a 32bit integer, based on the Si570 register value
+			// Calc the freq as a 32bit integer, based on the 
 			// Writing a non_zero value into freq_from_usb will result in a write to
-			// Si570 by the taskMoboCtrl
-			// Freq_FRom_Register uses the si570reg[6] as input
+			// 
+			// Freq_FRom_Register uses the 
 			FRQ_fromusbreg = TRUE;
 		}
 		break;
@@ -91,14 +86,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 				}
 				break;
 			#endif
-
-			case 0x32:								// Set frequency by value and load Si570
-				if (len == 4)
-				{
-					freq_from_usb = *Buf32;
-					FRQ_fromusb = TRUE;
-				}
-				break;
 
 
 			case 0x33:								// Write new crystal frequency to EEPROM and use it.
@@ -287,25 +274,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 		return TXF * sizeof(uint8_t);
 	#endif
 
-	// Todo -- delete, most likely
-	//case 0x20:								// [DEBUG] Write byte to Si570 register
-	//	Si570CmdReg(rq->wValue.b1, rq->wIndex.b0);  // Value high byte and Index low byte
-	//
-	//	Status2 |= SI570_OFFL;				// Next SetFreq call no smoothtune
-	//
-	//	replyBuf[0].b0 = I2CErrors;			// return I2C transmission error status
-	//  return sizeof(uint8_t);
-
-	//case 0x30:							// Set frequnecy by register and load Si570
-	//case 0x31:							// Write the FREQ mul & add to the eeprom
-	//case 0x32:							// Set frequency by value and load Si570
-	//case 0x33:							// write new crystal frequency to EEPROM and use it.
-	//case 0x34:							// Write new startup frequency to eeprom
-	//case 0x35:							// Write new smooth tune to eeprom and use it.
-	//case 0x36:
-	//case 0x37:
-	//	return 0		;					// Hey we're not supposed to be here
-											// 	we use usbFunctionWrite() to transfer data
 
 	#if CALC_FREQ_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
 	case 0x39:								// Return the current Subtract and Multiply values
@@ -336,13 +304,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			*Buf32  = cdata.FreqXtal;
 			return sizeof(uint32_t);
 
-		case 0x3f:							// Return the Si570 chip frequency control registers
-			GetRegFromSi570(cdata.Si570_I2C_addr);
-			for (x = 0; x<6;x++)
-			{
-				Buffer[5-x]= si570reg[x];
-			}
-			return 6*sizeof(uint8_t);
 
 
 		case 0x41:		// Set a new i2c address for a device, or reset the EEPROM to factory default
@@ -368,9 +329,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 
 				switch (wIndex)
 				{
-					case 0:
-						flashc_memset8((void *)&nvram_cdata.Si570_I2C_addr, wValue, sizeof(uint8_t), TRUE);
-						break;
 					case 1:
 						flashc_memset8((void *)&nvram_cdata.PCF_I2C_Mobo_addr, wValue, sizeof(uint8_t), TRUE);
 						break;
@@ -392,9 +350,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			{
 				switch (wIndex)
 				{
-					case 0:
-						Buffer[0] = cdata.Si570_I2C_addr;
-						break;
 					case 1:
 						Buffer[0] = cdata.PCF_I2C_Mobo_addr;
 						break;
@@ -432,13 +387,11 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			{
 				// Clear PTT flag, ask for state change to RX
 				TX_flag = FALSE;
-			    FRQ_lcdupdate = TRUE;				// Force LCD update, Indicate new frequency for Si570
 			}
 			else
 			{
 				// Set PTT flag, ask for state change to TX
 				TX_flag = TRUE;
-			    FRQ_lcdupdate = TRUE;				// Force LCD update, Indicate new frequency for Si570
 			}
 			// Passthrough to Cmd 0x51
 
@@ -682,7 +635,7 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 				{
 					flashc_memset8((void *)&nvram_cdata.LCD_RX_Offset, wValue, sizeof(uint8_t), TRUE);
 					cdata.LCD_RX_Offset = wValue;	// RX frequency offset, when using PowerSDR-IQ
-				    FRQ_fromusb = TRUE;				// Indicate new frequency for Si570
+				    FRQ_fromusb = TRUE;				// Indicate new frequency for 
 				}
 				// Return current value
 				*Buffer = cdata.LCD_RX_Offset;

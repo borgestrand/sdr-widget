@@ -2,7 +2,7 @@
 /*
  * taskMoboCtrl.c
  *
- * This task takes care of the Mobo specific functions, such as Si570
+ * This task takes care of the Mobo specific functions, such as 
  * frequency control, A/D inputs, Bias management and control (D/A output),
  * Transmit/Receive switchover and so on.
  * It accepts parameter updates from the USB task through the DG8SAQ_cmd.c/h
@@ -123,9 +123,6 @@ static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
  */
 static void i2c_device_scan(void)
 {
-	#if Si570
-	i2c.si570 = i2c_device_probe_and_log(cdata.Si570_I2C_addr, "SI570");
-    #endif
 
 	#if TMP100
 	i2c.tmp100 = i2c_device_probe_and_log(cdata.TMP100_I2C_addr, "TMP100");
@@ -344,6 +341,7 @@ static void mobo_ctrl_factory_reset_handler(void) {
 	flashc_memset8((void *)&nvram_cdata.EEPROM_init_check, 0xFF, sizeof(uint8_t), TRUE);
 }
 #define LOGGING 1
+
 /*! \brief Initialize and run Mobo functions, including Si570 frequency control, filters and so on
  *
  * \retval none
@@ -351,8 +349,7 @@ static void mobo_ctrl_factory_reset_handler(void) {
 static void vtaskMoboCtrl( void * pcParameters )
 {
 
-	uint32_t time, ten_s_counter=0;					// Time management
-	uint32_t lastIteration=0, Timerval;				// Counters to keep track of time
+	uint32_t time;					// Time management
 
 #ifdef  HW_GEN_RXMOD
 	uint8_t usb_ch_counter = 0;						// How many poll periods have passed since a USB change detection?

@@ -20,7 +20,6 @@ extern volatile bool FRQ_lcdupdate;				// Flag: Update LCD frequency printout
 //
 // Host to Device transmissions
 //
-#define DG8SAQ_SET_SI570_REGS 0x30				// takes 6 bytes, write Si570 register values
 #define DG8SAQ_SET_FREQ_MUL_ADD	0x31			// takes 8 bytes, frequency subtract and multiply
 #define DG8SAQ_SET_BAND_MUL_ADD 0x31			// takes 8 bytes, band specific frequency subtract and multiply
 #define DG8SAQ_SET_FREQ 0x32					// takes 4 bytes, set frequency
@@ -53,7 +52,6 @@ extern volatile bool FRQ_lcdupdate;				// Flag: Update LCD frequency printout
 #define DG8SAQ_GET_SMOOTH 0x3b					//
 #define DG8SAQ_GET_START_F 0x3c					//
 #define DG8SAQ_GET_XTAL 0x3d					//
-#define DG8SAQ_GET_SI570_REGS 0x3f				//
 
 #define DG8SAQ_GET_I2C_STATUS 0x40				//
 // 0x41

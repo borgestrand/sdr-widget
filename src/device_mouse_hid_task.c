@@ -191,9 +191,7 @@ void device_mouse_hid_task(void)
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
   uint8_t temp, temp2;			// Temporary debug data
-  uint32_t temp32;				// Temporary debug data
-  uint8_t dev_datar[1];
-
+  
 
 #ifdef FREERTOS_USED
   portTickType xLastWakeTime;

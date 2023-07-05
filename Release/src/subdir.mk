@@ -9,7 +9,6 @@ C_SRCS += \
 ../src/LCD_bargraphs.c \
 ../src/Mobo_config.c \
 ../src/PCF8574.c \
-../src/Si570.c \
 ../src/TMP100.c \
 ../src/composite_widget.c \
 ../src/device_audio_task.c \
@@ -45,7 +44,6 @@ OBJS += \
 ./src/LCD_bargraphs.o \
 ./src/Mobo_config.o \
 ./src/PCF8574.o \
-./src/Si570.o \
 ./src/TMP100.o \
 ./src/composite_widget.o \
 ./src/device_audio_task.o \
@@ -82,7 +80,6 @@ C_DEPS += \
 ./src/LCD_bargraphs.d \
 ./src/Mobo_config.d \
 ./src/PCF8574.d \
-./src/Si570.d \
 ./src/TMP100.d \
 ./src/composite_widget.d \
 ./src/device_audio_task.d \
