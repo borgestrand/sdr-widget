@@ -6,8 +6,6 @@
  * frequency control, A/D inputs, Bias management and control (D/A output),
  * Transmit/Receive switchover and so on.
  * It accepts parameter updates from the USB task through the DG8SAQ_cmd.c/h
- * And it also makes A/D inputs available to the taskPowerDisplay.c/h, which
- * in turn does a best effort LCD update of the lower two LCD lines.
  *
  *  Created on: 2010-06-13
  *      Author: Loftur Jonasson, TF3LJ

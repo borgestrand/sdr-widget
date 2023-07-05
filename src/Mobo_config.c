@@ -1705,26 +1705,4 @@ mobo_data_t	cdata							// Variables in ram/flash rom (default)
 				,	  I2C_EXTERN_FLTe
 				,	  I2C_EXTERN_FLTf }
 				#endif
-				#if CALC_FREQ_MUL_ADD		// Frequency Subtract and Multiply Routines (for Smart VFO)
-				,	0.000 * _2(21)			// Freq subtract value is 0.0MHz (11.21bits)
-				,	1.000 * _2(21)			// Freq multiply value os 1.0    (11.21bits)
-				#endif
-				#if CALC_BAND_MUL_ADD		// Frequency Subtract and Multiply Routines (for smart VFO)
-				,	{ 0.000 * _2(21)		// Freq subtract value is 0.0MHz (11.21bits)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21)
-				,	  0.000 * _2(21) }
-				,	{ 1.000 * _2(21)		// Freq multiply value is 1.0MHz (11.21bits)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21)
-				,	  1.000 * _2(21) }
-				#endif
 		};

@@ -264,16 +264,6 @@ typedef struct
 		uint8_t		FilterNumber[8];		// Which Band Pass filter to select at each crossover
 		uint8_t		TXFilterNumber[16];		// Which TX Low Pass filter to select at each crossover
 		#endif
-		#if CALC_FREQ_MUL_ADD				// Frequency Subtract and Multiply Routines
-		uint32_t	FreqSub;				// Freq subtract value[MHz] (11.21bits)
-		uint32_t	FreqMul;				// Freq multiply value (11.21bits)
-		#endif
-		#if CALC_BAND_MUL_ADD				// Band dependent Frequency Subtract and Multiply
-		uint32_t	BandSub[8];				// Freq Subtract values [MHz] (11.21bits) for each of
-											// the 8 (BPF) Bands
-		uint32_t	BandMul[8];				// Freq Multiply values [MHz] (11.21bits) for each of
-											// the 8 (BPF) Bands
-		#endif
 } mobo_data_t;
 
 extern mobo_data_t	cdata;					// Variables in ram/flash rom (default)

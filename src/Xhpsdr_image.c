@@ -39,7 +39,6 @@
 #include "queue.h"
 #include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
-// #include "taskPowerDisplay.h"
 #include "device_audio_task.h"
 #include "hpsdr_device_audio_task.h"
 #include "wdt.h"

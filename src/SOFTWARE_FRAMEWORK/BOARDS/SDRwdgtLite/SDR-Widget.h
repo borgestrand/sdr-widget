@@ -29,29 +29,18 @@
 /*! \name Peripherals to include at compile time. */
 //! @{
 #define I2C                 1	// I2C driver
-#define SHAFT_ENCODER       0   // Shaft Encoder VFO function
 #define AK5394              1   // 24-bit ADC, too much hinges on this one!
-#define AK4382A             0   // 24-bit DAC
 
 #define DEBUG232            1   // Use the UART debug port
 #define USB                 1   // Although it may look odd there may be a free standing mode.
 #define LED                 1   // Flashy-Blinky lights
-#define SPI                 0   // SPI driver
-#define EXTERN_MEM          0   // Use MMC memory slot
-//#define MENU                0   // A menu system driven by the rotary encoder
+// #define SPI                 0   // SPI driver
+// #define EXTERN_MEM          0   // Use MMC memory slot
 
 //! @}
 
 /*! \name Features to include at compile time. */
 //! @{
-// None, or only one of the two, CALC_FREQ_MUL_ADD or CALC_BAND_MUL_ADD should be selected
-#define CALC_FREQ_MUL_ADD	0	// Frequency Subtract and Multiply Routines (for smart VFO)
-								// normally not needed with Mobo 4.3.   *OR*
-#define CALC_BAND_MUL_ADD	0 // 1 Disabled 20171228	// Band dependent Frequency Subtract and Multiply Routines
-								// (for smart VFO) normally not needed with Mobo 4.3.
-
-#define BPF_LPF_Module		0 // 1 Disabled 20171228	// Band Pass and Low Pass filter switcing
-
 #define SCRAMBLED_FILTERS	0 // 1 Disabled 20171228	// Enable a non contiguous order of filters
 
 // Low Pass Filters for Transmit ----------------------------------------------------------
@@ -64,19 +53,7 @@
 
 
 
-// Audio specific features ----------------------------------------------------------------
-#define	TX_BARGRAPH_dB		0	// TX audio bargraph in dB or VU-meter style
 
-// Menu Function specific features --------------------------------------------------------
-#define PRG_AS_PUSH_BUTTON	0 // 1 Disabled 20171228	// Activates the PRG button as a second optional Push Button
-								// used for the Menu Functions.
-
-// Tests and Debug ------------------------------------------------------------------------
-#define FRQ_IN_FIRST_LINE	0	// Normal Frequency display in first line of LCD. Can be disabled for Debug // 20230128 removed
-#define ENOB_TEST			0	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
-#define LCD_CDC				0	// CDC traffic displayed on LCD
-
-//! @}
 
 
 #endif  // _SDR_Widget_H_

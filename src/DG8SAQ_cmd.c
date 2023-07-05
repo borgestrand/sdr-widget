@@ -61,29 +61,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 			FRQ_fromusbreg = TRUE;
 		}
 		break;
-			#if CALC_FREQ_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
-			case 0x31:								// Write the frequency subtract multiply to the eeprom
-				if (len == 2*sizeof(uint32_t))
-				{
-					cdata.FreqSub = Buf32[1];
-					cdata.FreqMul = Buf32[0];
-					flashc_memset32((void *)&nvram_cdata.FreqSub, cdata.FreqSub, sizeof(uint32_t), TRUE);
-					flashc_memset32((void *)&nvram_cdata.FreqMul, cdata.FreqMul, sizeof(uint32_t), TRUE);
-				}
-				break;
-			#endif
-			#if CALC_BAND_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
-			case 0x31:								// Write the frequency subtract multiply to the eeprom
-				if (len == 2*sizeof(uint32_t))
-				{
-					cdata.BandSub[wIndex & 0x0f] = Buf32[1];
-					cdata.BandMul[wIndex & 0x0f] = Buf32[0];
-					flashc_memset32((void *)&nvram_cdata.BandSub[wIndex & 0x0f], Buf32[1], sizeof(uint32_t), TRUE);
-					flashc_memset32((void *)&nvram_cdata.BandMul[wIndex & 0x0f], Buf32[0], sizeof(uint32_t), TRUE);
-				}
-				break;
-			#endif
-
 
 			case 0x33:								// Write new crystal frequency to EEPROM and use it.
 				if (len == 4) {
@@ -269,20 +246,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 			Buffer[(TXF-1)-x] = cdata.TXFilterNumber[x];
 		}
 		return TXF * sizeof(uint8_t);
-	#endif
-
-
-	#if CALC_FREQ_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
-	case 0x39:								// Return the current Subtract and Multiply values
-		Buf32[1] = cdata.FreqSub;
-		Buf32[0] = cdata.FreqMul;
-		return 2*sizeof(uint32_t);
-	#endif
-	#if CALC_BAND_MUL_ADD					// Frequency Subtract and Multiply Routines (for smart VFO)
-	case 0x39:								// Return the current Subtract and Multiply values
-		Buf32[1] = cdata.BandSub[wIndex & 0x0f];
-		Buf32[0] = cdata.BandMul[wIndex & 0x0f];
-		return 2*sizeof(uint32_t);
 	#endif
 
 	case 0x3a:								// Return running frequnecy

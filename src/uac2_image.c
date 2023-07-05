@@ -52,7 +52,6 @@
 #include "queue.h"
 #include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
-#include "taskPowerDisplay.h"
 #include "wdt.h"
 
 /*
