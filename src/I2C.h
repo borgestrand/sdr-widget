@@ -41,7 +41,7 @@
 #define MOBO_TWI_IRQ 	AVR32_TWIM1_IRQ // Used by tweaked twim.c, twi_master_init()
 #endif
 
-extern xSemaphoreHandle mutexI2C;
+// extern xSemaphoreHandle mutexI2C;
 
 extern void twi_init(void);
 extern uint8_t twi_write_out(uint8_t i2c_address, uint8_t *payload, uint8_t size);

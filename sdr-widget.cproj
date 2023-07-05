@@ -15242,12 +15242,6 @@
     <Compile Include="src\taskMoboCtrl.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\TMP100.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\TMP100.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\uac1_device_audio_task.c">
       <SubType>compile</SubType>
     </Compile>

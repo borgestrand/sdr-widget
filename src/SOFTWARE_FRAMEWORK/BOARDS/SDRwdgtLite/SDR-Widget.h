@@ -63,10 +63,6 @@
 #define M0RZF_FILTER_IO		0	// M0RZF 20W amplifier LPF switching, switches P1 pins 4-6
 
 
-// Transmit specific features --------------------------------------------------------------
-#define SWR_ALARM_FUNC      0 // 1 Disabled 20171228   // SWR alarm function, activates a secondary 
-                                // with auto Hi-SWR shutdown. 
-								// pin is definable by Cmd 64 index 3
 
 // Audio specific features ----------------------------------------------------------------
 #define	TX_BARGRAPH_dB		0	// TX audio bargraph in dB or VU-meter style

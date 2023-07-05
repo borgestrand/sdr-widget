@@ -11,9 +11,6 @@
  */
 //! @{
 
-#define TWI_SCL  AVR32_PIN_PA14
-#define TWI_SDA  AVR32_PIN_PA15
-
 
 //! @}
 

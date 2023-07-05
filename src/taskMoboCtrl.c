@@ -192,7 +192,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 
 	// Create I2C comms semaphore
-	mutexI2C = xSemaphoreCreateMutex();
+	// mutexI2C = xSemaphoreCreateMutex();  // Switching to mutex I2C_busy
 
  	// Initialize I2C communications
 	#if I2C
