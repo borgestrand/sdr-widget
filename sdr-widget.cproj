@@ -15242,12 +15242,6 @@
     <Compile Include="src\taskEXERCISE.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\taskLCD.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskLCD.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\taskMoboCtrl.c">
       <SubType>compile</SubType>
     </Compile>

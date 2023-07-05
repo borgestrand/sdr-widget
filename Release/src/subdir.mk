@@ -12,7 +12,6 @@ C_SRCS += \
 ../src/device_mouse_hid_task.c \
 ../src/features.c \
 ../src/flashyBlinky.c \
-../src/host_audio_task.c \
 ../src/image.c \
 ../src/taskAK5394A.c \
 ../src/taskEXERCISE.c \
@@ -43,7 +42,6 @@ OBJS += \
 ./src/device_mouse_hid_task.o \
 ./src/features.o \
 ./src/flashyBlinky.o \
-./src/host_audio_task.o \
 ./src/image.o \
 ./src/taskAK5394A.o \
 ./src/taskEXERCISE.o \
@@ -75,7 +73,6 @@ C_DEPS += \
 ./src/device_mouse_hid_task.d \
 ./src/features.d \
 ./src/flashyBlinky.d \
-./src/host_audio_task.d \
 ./src/image.d \
 ./src/taskAK5394A.d \
 ./src/taskEXERCISE.d \

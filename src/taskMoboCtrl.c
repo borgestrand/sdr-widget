@@ -77,36 +77,6 @@ uint8_t		biasInit = 0;							// Power Amplifier Bias initiate flag
 uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
 
 
-/*! \brief Probe and report presence of individual I2C devices
- *
- * \retval none
- */
-#if I2C
-
-// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
-#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD) || (defined  HW_GEN_FMADC)
-#else
-
-static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
-{
-	uint8_t retval;
-
-	retval = (twi_probe(MOBO_TWI,addr)== TWI_SUCCESS);
-
-	return retval;
-}
-/*! \brief Probe and report which I2C devices are present
- *
- * \retval none
- */
-static void i2c_device_scan(void)
-{
-
-
-
-}
-#endif // #ifdef I2C
-#endif // Henry Audio device
 
 
 
@@ -219,7 +189,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 	uint8_t usb_ch_counter = 0;						// How many poll periods have passed since a USB change detection?
 #endif
 
-	widget_initialization_start();
 	widget_factory_reset_handler_register(mobo_ctrl_factory_reset_handler);
 
 	//----------------------------------------------------
@@ -259,17 +228,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
  	// Initialize I2C communications
 	#if I2C
-//	print_dbg_char('n');
-	twi_init(); // RXMODFIX vs. WM8804 config!! // i2c_init() <- this is where you should come if you search for this!
-//	print_dbg_char('o');
-
-		// The Henry Audio and QNKTC series of hardware doesn't scan for i2c devices
-		#if (defined HW_GEN_AB1X) || (defined  HW_GEN_RXMOD) || (defined  HW_GEN_FMADC)
-		#else
-			// Probe for I2C devices present and report on LCD
-			i2c_device_scan();
-		#endif
-
+		twi_init(); // RXMODFIX vs. WM8804 config!! // i2c_init() <- this is where you should come if you search for this!
 
 		#if (defined HW_GEN_FMADC)
 			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
@@ -308,7 +267,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 	
 
 
-	widget_initialization_finish();
 
 	//----------------------------------------------------
 	// Mobo Functions Loop *******************************

@@ -24,14 +24,6 @@
 #include "widget.h"
 #include "Mobo_config.h"
 
-//
-// initialization flag
-//
-static int initialization_count = 0;
-
-int widget_is_initializing(void) { return initialization_count != 0; }
-void widget_initialization_start(void) { initialization_count += 1; }
-void widget_initialization_finish(void) { initialization_count -= 1; }
 
 //
 // startup log

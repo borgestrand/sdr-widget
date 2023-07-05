@@ -138,14 +138,9 @@ void device_mouse_hid_task_init(U8 ep_tx) {
 #endif
 //	ep_hid_rx = ep_rx; // BSB 20120718 unused variable, sane?
 	ep_hid_tx = ep_tx;
-#ifndef FREERTOS_USED
-#if USB_HOST_FEATURE == ENABLED
-	// If both device and host features are enabled, check if device mode is engaged
-	// (accessing the USB registers of a non-engaged mode, even with load operations,
-	// may corrupt USB FIFO data).
-	if (Is_usb_device())
-#endif  // USB_HOST_FEATURE == ENABLED
-		Usb_enable_sof_interrupt();
+#ifndef FREERTOS_USED 
+// Removed reference to USB_HOST_FEATURE
+	Usb_enable_sof_interrupt();
 #endif  // FREERTOS_USED
 
 #ifdef FREERTOS_USED

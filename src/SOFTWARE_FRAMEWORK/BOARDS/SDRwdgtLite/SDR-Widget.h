@@ -44,8 +44,6 @@
 
 /*! \name Features to include at compile time. */
 //! @{
-#define MOBO_FUNCTIONS		0 // 1 Disabled 20171228	// P/SWR etc...  (needs I2C driver)
-								// Without this, we have a simple 
 // None, or only one of the two, CALC_FREQ_MUL_ADD or CALC_BAND_MUL_ADD should be selected
 #define CALC_FREQ_MUL_ADD	0	// Frequency Subtract and Multiply Routines (for smart VFO)
 								// normally not needed with Mobo 4.3.   *OR*
@@ -85,7 +83,6 @@
 
 // Tests and Debug ------------------------------------------------------------------------
 #define FRQ_IN_FIRST_LINE	0	// Normal Frequency display in first line of LCD. Can be disabled for Debug // 20230128 removed
-#define TMP_V_I_SECOND_LINE	0	// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug // 20230128 removed
 #define ENOB_TEST			0	// Sample A/D input channels for ENOB test, fourth line (taskPowerDisplay)
 #define LCD_CDC				0	// CDC traffic displayed on LCD
 
