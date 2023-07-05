@@ -45,10 +45,6 @@
 #include "taskPowerDisplay.h"
 #include "wdt.h"
 
-#if LCD_DISPLAY				// Multi-line LCD display
-#include "taskLCD.h"
-#include "taskStartupLogDisplay.h"
-#endif
 
 /*
 ** Image specific headers
@@ -101,9 +97,6 @@ static void x_image_task_init(void) {
 
   mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
-#if LCD_DISPLAY						// Multi-line LCD display
-	vStartTaskLCD();
-#endif
 
 // #ifdef HW_GEN_RXMOD
 //	wm8804_task_init();	// Rather done in controlled WM8804 startup sequence

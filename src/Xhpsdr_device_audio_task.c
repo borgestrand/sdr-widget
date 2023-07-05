@@ -77,9 +77,6 @@
 #include "device_audio_task.h"
 #include "hpsdr_device_audio_task.h"
 
-#if LCD_DISPLAY				// Multi-line LCD display
-#include "taskLCD.h"
-#endif
 
 //#include "taskEXERCISE.h"
 #include "composite_widget.h"

@@ -55,10 +55,6 @@
 #include "taskPowerDisplay.h"
 #include "wdt.h"
 
-#if LCD_DISPLAY				// Multi-line LCD display
-#include "taskLCD.h"
-#endif
-
 /*
 ** Image specific headers
 */
@@ -110,13 +106,6 @@ static void x_image_task_init(void) {
 #if USB_DEVICE_FEATURE == ENABLED
 	mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
-#if LCD_DISPLAY						// Multi-line LCD display
-	vStartTaskLCD();				// Disabling this task makes for no Prog and no Auido
-#endif
-
-// #ifdef HW_GEN_RXMOD
-//	wm8804_task_init();	// Rather done in controlled WM8804 startup sequence
-// #endif
 
 	vStartTaskMoboCtrl();
 	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
@@ -127,8 +116,6 @@ static void x_image_task_init(void) {
 #endif
 
 	uac2_device_audio_task_init(UAC2_EP_AUDIO_IN, UAC2_EP_AUDIO_OUT, UAC2_EP_AUDIO_OUT_FB);
-#endif
-#if LCD_DISPLAY						// Multi-line LCD display
 #endif
 
 }

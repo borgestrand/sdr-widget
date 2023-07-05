@@ -79,9 +79,6 @@
 #include "device_audio_task.h"
 #include "uac2_device_audio_task.h"
 
-#if LCD_DISPLAY				// Multi-line LCD display
-#include "taskLCD.h"
-#endif
 
 #include "composite_widget.h"
 #include "taskAK5394A.h"

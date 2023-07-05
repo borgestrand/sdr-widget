@@ -42,10 +42,6 @@
 #include "device_audio_task.h"
 #include "taskAK5394A.h"
 
-#if LCD_DISPLAY			// Multi-line LCD display
-#include "taskLCD.h"
-#endif
-
 
 #if (defined  HW_GEN_RXMOD)
 #include "wm8804.h"
@@ -99,20 +95,8 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
 static uint8_t i2c_device_probe_and_log(uint8_t addr, char *addr_report)
 {
 	uint8_t retval;
-	#if LCD_DISPLAY				// Multi-line LCD display
-		char	report[20];
-	#endif
 
 	retval = (twi_probe(MOBO_TWI,addr)== TWI_SUCCESS);
-	#if LCD_DISPLAY				// Multi-line LCD display
-	if (retval)
-    {
-    	// Print and Log the result
-		sprintf(report,"%s probed: %02x", addr_report, addr);
-		//widget_display_string_scroll_and_log(report);
-		widget_startup_log_line(report);
-    }
-	#endif
 
 	return retval;
 }
@@ -384,26 +368,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 	//rtc_set_top_value(&AVR32_RTC, RTC_COUNTER_MAX);	// Counter reset once per 10 seconds
 	//rtc_enable(&AVR32_RTC);
 
-	#if LCD_DISPLAY			// Multi-line LCD display
-	// Initialize LCD
-	gpio_set_gpio_pin(LCD_BL_PIN);	// Turn on LCD backlight
-	lcd_q_init();
-	lcd_q_clear();
-	lcd_bargraph_init();
-	#endif
 
 	//Todo! may want a better name for function, function has changed
 	features_display_all();
 
-	#if ! LOGGING
-	#if LCD_DISPLAY			// Multi-line LCD display
-	xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-	lcd_q_clear();
-	lcd_q_goto(3,10);
-    lcd_q_print(FIRMWARE_VERSION);
-	xSemaphoreGive( mutexQueLCD );
-	#endif
-	#endif
 
 	// Create I2C comms semaphore
 	mutexI2C = xSemaphoreCreateMutex();
@@ -745,7 +713,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 				#if TMP_V_I_SECOND_LINE					// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
        	    	if (!MENU_mode)
        	    	{
-           	    	lcd_display_V_C_T_in_2nd_line();	// Print LCD 2nd line stuff
        	    	}
 				#endif
    	       	}
@@ -778,7 +745,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 				#if TMP_V_I_SECOND_LINE					// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
        			if (!MENU_mode)
        	    	{
-           	    	lcd_display_V_C_T_in_2nd_line();	// Print LCD 2nd line stuff
        	    	}
 				#endif
        		}
@@ -815,17 +781,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 					gpio_set_gpio_pin(PTT_1);
 				#endif
 
-			#if LCD_DISPLAY				// Multi-line LCD display
-			#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
-			if (!MENU_mode)
-       	    {
-				xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-				lcd_q_goto(0,0);
-		    	lcd_q_print("TX ");
-		    	xSemaphoreGive( mutexQueLCD );
-       	    }
-			#endif
-			#endif
 		}
 		// Asked for TX off, TX still on, or if Temperature Alarm
 		else if ((!TX_flag && TX_state) || (TMP_alarm && TX_state))
@@ -854,21 +809,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 
    	    	if (!MENU_mode)
    	    	{
-				#if LCD_DISPLAY				// Multi-line LCD display
-   	    		#if FRQ_IN_FIRST_LINE		// Normal Frequency display in first line of LCD. Can be disabled for Debug
-   	    		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-   				//lcd_q_clear();
-   				lcd_q_goto(0,0);
-   	    		lcd_q_print("RX ");
-   	    		xSemaphoreGive( mutexQueLCD );
-				#endif
-				#endif
-				#if TMP_V_I_SECOND_LINE			// Normal Temp/Voltage/Current disp in second line of LCD, Disable for Debug
-   	    		lcd_display_V_C_T_in_2nd_line();// Print LCD 2nd line stuff
-				#endif
-
-				FRQ_lcdupdate = TRUE;			// Update Frequency on LCD upon return from Menu
-												// Side effect:  Also upon return from TX
    	    	}
 		}
 

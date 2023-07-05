@@ -107,10 +107,6 @@
 #include "device_audio_task.h"	// To modify FB_rate_nominal
 #endif
 
-#if LCD_DISPLAY			// Multi-line LCD display
-#include "taskLCD.h"
-#endif
-//#include "taskEXERCISE.h"
 
 
 //_____ M A C R O S ________________________________________________________

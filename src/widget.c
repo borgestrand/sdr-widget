@@ -22,9 +22,6 @@
 
 #include "features.h"
 #include "widget.h"
-#if LCD_DISPLAY
-	#include "taskLCD.h"
-#endif
 #include "Mobo_config.h"
 
 //
@@ -102,16 +99,9 @@ void widget_get_startup_buffer_lines(char ***buffer_lines, int *lines) {
 // ditto and delay after each line of text is displayed
 //
 static unsigned char display_grabbed = 0;
-#if LCD_DISPLAY
-	static unsigned char display_row = 0;
-	static char display_contents[4][21];
-#endif
 
 void widget_display_grab(void) {
 	if ( ! display_grabbed) {
-	#if LCD_DISPLAY
-		xSemaphoreTake( mutexQueLCD, portMAX_DELAY );
-	#endif
 	}
 	display_grabbed += 1;
 }
@@ -120,51 +110,17 @@ void widget_display_drop(void) {
 	if (display_grabbed) {
 		display_grabbed -= 1;
 		if ( ! display_grabbed ) {
-		#if LCD_DISPLAY
-			xSemaphoreGive( mutexQueLCD );
-		#endif
 		}
 	}
 }
 	
 void widget_display_clear(void) {
-#if LCD_DISPLAY
-	int i;
-	widget_display_grab();
-	lcd_q_clear();
-	display_row = 0;
-	for (i = 0; i < 4; i += 1)
-		memset(&display_contents[i][0], ' ', 20);
-	widget_display_drop();
-#endif
 }
 
 void widget_display_string_and_scroll(char *string) {
-#if LCD_DISPLAY
-	widget_display_grab();
-	if (display_row == 4) {
-		// scroll up
-		int row;
-		memmove(&display_contents[0][0], &display_contents[1][0], 3*21);
-		for (row = 0; row < 3; row += 1) {
-			lcd_q_goto(row,0);
-			lcd_q_print(&display_contents[row][0]);
-		}
-		display_row = 3;
-	}
-	sprintf(&display_contents[display_row][0], "%-20.20s", string);
-	lcd_q_goto(display_row, 0);
-	lcd_q_print(&display_contents[display_row][0]);
-	display_row += 1;
-	widget_display_drop();
-#endif
 }
 
 void widget_display_string_scroll_and_delay(char *string, unsigned delay) {
-#if LCD_DISPLAY
-	widget_display_string_and_scroll(string);
-	widget_delay_task(delay);
-#endif
 }
 
 //
@@ -173,15 +129,6 @@ void widget_display_string_scroll_and_delay(char *string, unsigned delay) {
 // shows a message for 30 seconds
 //
 void widget_oops(char *message) {
-#if LCD_DISPLAY
-	if (widget_is_tasking()) {
-		widget_display_grab();
-		widget_display_clear();
-		widget_display_string_and_scroll("widget_oops:");
-		widget_display_string_scroll_and_delay(message, 30000000);
-		widget_display_drop();
-	}
-#endif
 }
 
 //

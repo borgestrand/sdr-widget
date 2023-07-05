@@ -15197,12 +15197,6 @@
     <Compile Include="src\image.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\LCD_bargraphs.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\LCD_bargraphs.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\Mobo_config.c">
       <SubType>compile</SubType>
     </Compile>

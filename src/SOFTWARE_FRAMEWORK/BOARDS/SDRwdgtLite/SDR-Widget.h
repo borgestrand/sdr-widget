@@ -29,7 +29,6 @@
 /*! \name Peripherals to include at compile time. */
 //! @{
 #define I2C                 1	// I2C driver
-#define LCD_DISPLAY         0   // 20x4 Liquid Crystal Display (LCD)
 #define SHAFT_ENCODER       0   // Shaft Encoder VFO function
 #define AK5394              1   // 24-bit ADC, too much hinges on this one!
 #define AK4382A             0   // 24-bit DAC

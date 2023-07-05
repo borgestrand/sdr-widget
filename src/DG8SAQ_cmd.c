@@ -48,7 +48,6 @@ void dg8saqFunctionWrite(uint8_t type, uint16_t wValue, uint16_t wIndex, U8 *Buf
 	//Buf64 = (uint64_t*)Buffer;
 	Buf32 = (uint32_t*)Buffer;
 	Buf16 = (uint16_t*)Buffer;
-	int x;
 
 //	LED_Toggle(LED1);
 

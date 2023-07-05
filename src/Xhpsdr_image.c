@@ -44,10 +44,6 @@
 #include "hpsdr_device_audio_task.h"
 #include "wdt.h"
 
-#if LCD_DISPLAY				// Multi-line LCD display
-#include "taskLCD.h"
-#endif
-
 /*
 ** Image specific headers
 */
