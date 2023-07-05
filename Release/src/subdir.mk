@@ -7,7 +7,6 @@ C_SRCS += \
 ../src/DG8SAQ_cmd.c \
 ../src/I2C.c \
 ../src/Mobo_config.c \
-../src/PCF8574.c \
 ../src/TMP100.c \
 ../src/composite_widget.c \
 ../src/device_audio_task.c \
@@ -40,7 +39,6 @@ OBJS += \
 ./src/DG8SAQ_cmd.o \
 ./src/I2C.o \
 ./src/Mobo_config.o \
-./src/PCF8574.o \
 ./src/TMP100.o \
 ./src/composite_widget.o \
 ./src/device_audio_task.o \
@@ -74,7 +72,6 @@ C_DEPS += \
 ./src/DG8SAQ_cmd.d \
 ./src/I2C.d \
 ./src/Mobo_config.d \
-./src/PCF8574.d \
 ./src/TMP100.d \
 ./src/composite_widget.d \
 ./src/device_audio_task.d \

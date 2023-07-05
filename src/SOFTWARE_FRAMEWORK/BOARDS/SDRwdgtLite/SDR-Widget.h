@@ -33,7 +33,6 @@
 #define AK5394              1   // 24-bit ADC, too much hinges on this one!
 #define AK4382A             0   // 24-bit DAC
 #define TMP100              0   // Temperature measurement device  (needs I2C driver)
-#define PCF8574             0   // port expander control of TX/RX and Band Pass filters  (needs I2C driver)
 
 #define DEBUG232            1   // Use the UART debug port
 #define USB                 1   // Although it may look odd there may be a free standing mode.
@@ -78,11 +77,6 @@
                                 // on POWER_SWR being defined as well
 #define REVERSE_PTT2_LOGIC	0	// Reverse the logic of the PTT2 signal pin
 
-#define	FAN_CONTROL			0 // 1 Disabled 20171228	// Turn PA Cooling FAN On/Off, based on temperature
-// Only one of the two below is selected with the FAN Control
-#define	BUILTIN_PCF_FAN		0 // 1 Disabled 20171228	// This alternative uses a pin on the builtin PCF8574
-								// pin is definable by Cmd 64 index 3, normally header P1, pin 5
-#define	EXTERN_PCF_FAN		0	// This alternative uses a pin on an external PCF8574
 								// pin is definable by Cmd 64 index 3
 
 // Audio specific features ----------------------------------------------------------------

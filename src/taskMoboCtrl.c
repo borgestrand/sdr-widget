@@ -36,7 +36,6 @@
 #include "taskMoboCtrl.h"
 #include "Mobo_config.h"
 #include "usb_specific_request.h"
-#include "PCF8574.h"
 #include "TMP100.h"
 #include "DG8SAQ_cmd.h" 
 #include "device_audio_task.h"

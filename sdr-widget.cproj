@@ -15203,12 +15203,6 @@
     <Compile Include="src\Mobo_config.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\PCF8574.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\PCF8574.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\srd_test.c">
       <SubType>compile</SubType>
     </Compile>

@@ -640,62 +640,6 @@ uint8_t dg8saqFunctionSetup(uint8_t type, uint16_t wValue, uint16_t wIndex, U8* 
 				return sizeof(uint8_t);
 
 
-		// direct control of PCF8574 extenders
-		case 0x6e:								// Send byte to (PCF8574) GPIO Extender
-												// Check for a device that has been probed previously
-												// If we try to write to a nonexistent I2C device, then
-												// the I2C driver will end up in a funk.
-			if ((wIndex == 0x20) && (i2c.pcf0x20));
-			else if ((wIndex == 0x21) && (i2c.pcf0x21));
-			else if ((wIndex == 0x22) && (i2c.pcf0x22));
-			else if ((wIndex == 0x23) && (i2c.pcf0x23));
-			else if ((wIndex == 0x24) && (i2c.pcf0x24));
-			else if ((wIndex == 0x25) && (i2c.pcf0x25));
-			else if ((wIndex == 0x26) && (i2c.pcf0x26));
-			else if ((wIndex == 0x27) && (i2c.pcf0x27));
-			else if ((wIndex == 0x38) && (i2c.pcf0x38));
-			else if ((wIndex == 0x39) && (i2c.pcf0x39));
-			else if ((wIndex == 0x3a) && (i2c.pcf0x3a));
-			else if ((wIndex == 0x3b) && (i2c.pcf0x3b));
-			else if ((wIndex == 0x3c) && (i2c.pcf0x3c));
-			else if ((wIndex == 0x3d) && (i2c.pcf0x3d));
-			else if ((wIndex == 0x3e) && (i2c.pcf0x3e));
-			else if ((wIndex == 0x3f) && (i2c.pcf0x3f));
-			else
-			{
-				*Buffer = 42;					// For a lack of better number, 42 = Error, nonexistent device
-				return sizeof(uint8_t);
-			}
-			pcf8574_out_byte(wIndex, wValue);
-			// Passthrough to next command and do a read.
-
-		case 0x6f:								// Read byte from (PCF8574) GPIO Extender
-												// Check for a device that has been probed previously
-												// If we try to write to a nonexistent I2C device, then
-												// the I2C driver will end up in a funk.
-			if ((wIndex == 0x20) && (i2c.pcf0x20));
-			else if ((wIndex == 0x21) && (i2c.pcf0x21));
-			else if ((wIndex == 0x22) && (i2c.pcf0x22));
-			else if ((wIndex == 0x23) && (i2c.pcf0x23));
-			else if ((wIndex == 0x24) && (i2c.pcf0x24));
-			else if ((wIndex == 0x25) && (i2c.pcf0x25));
-			else if ((wIndex == 0x26) && (i2c.pcf0x26));
-			else if ((wIndex == 0x27) && (i2c.pcf0x27));
-			else if ((wIndex == 0x38) && (i2c.pcf0x38));
-			else if ((wIndex == 0x39) && (i2c.pcf0x39));
-			else if ((wIndex == 0x3a) && (i2c.pcf0x3a));
-			else if ((wIndex == 0x3b) && (i2c.pcf0x3b));
-			else if ((wIndex == 0x3c) && (i2c.pcf0x3c));
-			else if ((wIndex == 0x3d) && (i2c.pcf0x3d));
-			else if ((wIndex == 0x3e) && (i2c.pcf0x3e));
-			else if ((wIndex == 0x3f) && (i2c.pcf0x3f));
-			else
-			{
-				*Buffer = 42;					// For lack of better number, 42 = Error, nonexistent device
-				return sizeof(uint8_t);
-			}
-			pcf8574_in_byte(wIndex, Buffer);
-			return sizeof(uint8_t);
 
 		case 0x71:
 			switch (wValue){

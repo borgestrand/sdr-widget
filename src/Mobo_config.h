@@ -10,8 +10,8 @@
 #define MOBO_CONFIG_H_
 
 #include <stdint.h>
+#include "board.h"
 
-#include "PCF8574.h"
 #include "TMP100.h"
 
 

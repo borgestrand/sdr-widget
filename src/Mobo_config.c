@@ -12,6 +12,7 @@
 // To compile sample rate detector we need low-level hardware access
 #include "gpio.h"
 #include <avr32/io.h>
+
 #include "compiler.h"
 
 // Power module and clock control
@@ -31,7 +32,6 @@
 #include "I2C.h"
 
 /*
-#include "PCF8574.h"
 #include "TMP100.h"
 */
 
@@ -1579,6 +1579,11 @@ void mobo_clear_dac_channel(void) {
 #define AD7991_I2C_ADDRESS 1		// hack while removing AD7991
 #define SI570_I2C_ADDRESS 1			// hack while removing SI570
 #define DEVICE_XTAL 1				// hack while removing SI570
+#define PCF_MOBO_I2C_ADDR 1			// hack while removing PCF8574
+#define PCF_LPF1_I2C_ADDR 1
+#define PCF_LPF2_I2C_ADDR 1 
+#define PCF_EXT_I2C_ADDR 1
+#define PCF_EXT_FAN_BIT 1
 
 
 mobo_data_t	cdata							// Variables in ram/flash rom (default)
