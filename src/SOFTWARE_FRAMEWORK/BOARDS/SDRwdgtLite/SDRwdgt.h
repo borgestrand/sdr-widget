@@ -219,7 +219,6 @@
 #define ENCODER_ROTI_IRQ			AVR32_EIC_IRQ_7
 #define ENCODER_ROTI_INT			EXT_INT7
 
-#define ENCODER_SWITCH              AVR32_PIN_PA12
 
 //! @}
 

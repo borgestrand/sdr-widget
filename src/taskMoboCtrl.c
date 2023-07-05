@@ -47,7 +47,6 @@
 #include "device_audio_task.h"
 #endif
 
-//#define GPIO_PIN_EXAMPLE_3    GPIO_PUSH_BUTTON_SW2
 
 // Set up NVRAM (EEPROM) storage
 #if defined (__GNUC__)
@@ -116,7 +115,6 @@ uint16_t measured_Power(uint16_t voltage)
  */
 void PA_bias(void)
 {
-	uint8_t static calibrate = 0;								// Current calibrate value
 
 	switch (cdata.Bias_Select)
 	{

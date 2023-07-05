@@ -66,8 +66,6 @@
 // Transmit specific features --------------------------------------------------------------
 #define SWR_ALARM_FUNC      0 // 1 Disabled 20171228   // SWR alarm function, activates a secondary 
                                 // with auto Hi-SWR shutdown. 
-#define REVERSE_PTT2_LOGIC	0	// Reverse the logic of the PTT2 signal pin
-
 								// pin is definable by Cmd 64 index 3
 
 // Audio specific features ----------------------------------------------------------------

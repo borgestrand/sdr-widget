@@ -17,10 +17,6 @@ typedef void (*widget_factory_reset_handler_t)(void);
 // there are 2 known at present: features and moboConfig
 #define WIDGET_FACTORY_RESET_HANDLERS	4
 
-// widget module is starting initialization
-extern void widget_initialization_start(void);
-// widget module is finishing initialization
-extern void widget_initialization_finish(void);
 // append a character to the startup log
 extern void widget_startup_log_char(char c);
 // append a string to the startup log
@@ -55,10 +51,6 @@ extern void widget_reset(void);
 extern void widget_factory_reset_handler_register(widget_factory_reset_handler_t handler);
 // cause the widget to reset and reread image default values
 extern void widget_factory_reset(void);
-// blink dot space code on the led's using rtc for timing
-extern void widget_blink(char *dotspace);
-// blink morse code on the led's using rtc for timing
-extern void widget_blink_morse(char *ascii);
 // initialize widget level stuff
 extern void widget_init(void);
 // mark widget ready to schedule

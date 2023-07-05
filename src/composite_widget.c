@@ -420,7 +420,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	features_init();
 
 	// Initialize widget management
-	widget_init();
+	// widget_init(); // Morse blinks
 
 
 //	if ( FEATURE_BOARD_WIDGET ) {
