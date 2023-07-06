@@ -15134,18 +15134,6 @@
       <SubType>compile</SubType>
     </None>
     <Folder Include="src" />
-    <Compile Include="src\AD5301.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\AD5301.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\AD7991.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\AD7991.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\composite_widget.c">
       <SubType>compile</SubType>
     </Compile>
@@ -15191,18 +15179,6 @@
     <Compile Include="src\flashyblinky_image.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\freq_and_filters.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\freq_and_filters.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\host_audio_task.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\host_audio_task.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\I2C.c">
       <SubType>compile</SubType>
     </Compile>
@@ -15215,34 +15191,10 @@
     <Compile Include="src\image.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\LCD_bargraphs.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\LCD_bargraphs.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\Mobo_config.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\Mobo_config.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\PCF8574.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\PCF8574.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\rotary_encoder.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\rotary_encoder.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Si570.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Si570.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\srd_test.c">
@@ -15284,40 +15236,10 @@
     <Compile Include="src\taskEXERCISE.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\taskLCD.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskLCD.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\taskMoboCtrl.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\taskMoboCtrl.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskPowerDisplay.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskPowerDisplay.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskPushButtonMenu.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskPushButtonMenu.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskStartupLogDisplay.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\taskStartupLogDisplay.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\TMP100.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\TMP100.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\uac1_device_audio_task.c">
