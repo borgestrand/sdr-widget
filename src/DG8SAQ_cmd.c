@@ -23,7 +23,6 @@
 #include "usb_standard_request.h"
 #include "usb_specific_request.h"
 #include "features.h"
-#include "widget.h"
 #include "taskAK5394A.h"
 
 

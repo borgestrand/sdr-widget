@@ -452,15 +452,6 @@
     <Compile Include="src\wm8804.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="widget-control.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="WidgetControl.py">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="WidgetControl.rsrc.py">
-      <SubType>compile</SubType>
-    </None>
     <None Include="~$FW_qualification.xlsx">
       <SubType>compile</SubType>
     </None>
@@ -15321,12 +15312,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\usb_specific_request.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\widget.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\widget.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\Xhpsdr_device_audio_task.c">

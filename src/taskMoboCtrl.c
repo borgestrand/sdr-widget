@@ -17,7 +17,6 @@
 
 #include "board.h"
 #include "features.h"
-#include "widget.h"
 #include "gpio.h"
 #include "FreeRTOS.h"
 #include "wdt.h"

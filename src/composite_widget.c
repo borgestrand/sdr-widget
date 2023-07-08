@@ -175,7 +175,6 @@
 #include "FreeRTOS.h"
 
 #include "features.h"
-#include "widget.h"
 #include "image.h"
 #include "composite_widget.h"
 #include "Mobo_config.h"

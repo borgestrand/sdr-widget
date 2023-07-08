@@ -13,7 +13,6 @@
 #include "flashc.h"
 
 #include "features.h"
-#include "widget.h"
 
 // Set up NVRAM (EEPROM) storage
 #if defined (__GNUC__)
