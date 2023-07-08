@@ -59,8 +59,6 @@ void features_init() {
   } else {
 	  memcpy(&features, &features_nvram, sizeof(features));
   }
-  // Register a factory reset handler
-  widget_factory_reset_handler_register(feature_factory_reset_handler);
 }
 
 

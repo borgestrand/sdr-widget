@@ -5,7 +5,6 @@
  * This task takes care of the Mobo specific functions, such as 
  * frequency control, A/D inputs, Bias management and control (D/A output),
  * Transmit/Receive switchover and so on.
- * It accepts parameter updates from the USB task through the DG8SAQ_cmd.c/h
  *
  *  Created on: 2010-06-13
  *      Author: Loftur Jonasson, TF3LJ
@@ -50,7 +49,6 @@
 #if defined (__GNUC__)
 __attribute__((__section__(".userpage")))
 #endif
-mobo_data_t nvram_cdata;
 
 char lcd_pass1[20];									// Pass data to LCD
 char lcd_pass2[20];									// Pass data to LCD
@@ -100,11 +98,6 @@ void PA_bias(void)
 }
 
 
-static void mobo_ctrl_factory_reset_handler(void) {
-	// Force an EEPROM update in the mobo config
-	flashc_memset8((void *)&nvram_cdata.EEPROM_init_check, 0xFF, sizeof(uint8_t), TRUE);
-}
-
 /*! \brief Initialize and run Mobo functions, including Si570 frequency control, filters and so on
  *
  * \retval none
@@ -118,26 +111,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 	uint8_t usb_ch_counter = 0;						// How many poll periods have passed since a USB change detection?
 #endif
 
-	widget_factory_reset_handler_register(mobo_ctrl_factory_reset_handler);
-
-	//----------------------------------------------------
-	// Initialize all Mobo Functions *********************
-	//----------------------------------------------------
-
-	// Enforce "Factory default settings" when a mismatch is detected between the
-	// COLDSTART_REF defined serial number and the matching number in the NVRAM storage.
-	// This can be the result of either a fresh firmware upload, or cmd 0x41 with data 0xff
-	if(nvram_cdata.EEPROM_init_check != cdata.EEPROM_init_check)
-	{
-		widget_startup_log_line("reset mobo nvram");
-		flashc_memcpy((void *)&nvram_cdata, &cdata, sizeof(cdata), TRUE);
-	}
-	else
-	{
-		memcpy(&cdata, &nvram_cdata, sizeof(nvram_cdata));
-	}
-
-	
 	// Initialize Real Time Counter
 	//rtc_init(&AVR32_RTC, RTC_OSC_RC, 0);	// RC clock at 115kHz
 	//rtc_disable_interrupt(&AVR32_RTC);
@@ -177,14 +150,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 	#endif
 
-
-
-
-	// Fetch last frequency stored
-	cdata.Freq[0] = cdata.Freq[cdata.SwitchFreq];
-	// Indicate new frequency for Si570
-	FRQ_fromusb = TRUE;
-	
 
 
 

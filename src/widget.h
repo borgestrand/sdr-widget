@@ -9,13 +9,6 @@
 #ifndef WIDGET_H_
 #define WIDGET_H_
 
-// the type of a factory reset handler,
-// a pointer to a function which takes no arguments and returns void
-typedef void (*widget_factory_reset_handler_t)(void);
-
-// the number of factory reset handlers allowed
-// there are 2 known at present: features and moboConfig
-#define WIDGET_FACTORY_RESET_HANDLERS	4
 
 // append a character to the startup log
 extern void widget_startup_log_char(char c);
@@ -45,8 +38,6 @@ extern void widget_delay_rtc(unsigned delay);
 extern char *widget_reset_cause(void);
 // cause the widget to reset
 extern void widget_reset(void);
-// register a factory reset handler
-extern void widget_factory_reset_handler_register(widget_factory_reset_handler_t handler);
 // cause the widget to reset and reread image default values
 extern void widget_factory_reset(void);
 // initialize widget level stuff

@@ -182,22 +182,6 @@ void widget_reset(void) {
 	while (1);				// Wait for it to fire
 }
 
-//
-// widget factory reset handler table
-//
-static widget_factory_reset_handler_t handlers[WIDGET_FACTORY_RESET_HANDLERS];
-
-//
-// register a widget factory reset handler
-//
-void widget_factory_reset_handler_register(widget_factory_reset_handler_t handler) {
-	int i;
-	for (i = 0; i < WIDGET_FACTORY_RESET_HANDLERS; i += 1)
-		if (handlers[i] == NULL) {
-			handlers[i] = handler;
-			break;
-		}
-}
 
 //
 // force a factory reset, which reinitializes all nvram data to values from the
@@ -208,11 +192,6 @@ void widget_factory_reset_handler_register(widget_factory_reset_handler_t handle
 // how to force reset it.
 //
 void widget_factory_reset(void) {
-	// call the registered handlers
-	int i;
-	for (i = 0; i < WIDGET_FACTORY_RESET_HANDLERS; i += 1)
-		if (handlers[i] != NULL)
-			handlers[i]();
 	widget_reset();				// reset
 }
 

@@ -4,7 +4,6 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/DG8SAQ_cmd.c \
 ../src/I2C.c \
 ../src/Mobo_config.c \
 ../src/composite_widget.c \
@@ -34,7 +33,6 @@ C_SRCS += \
 
 
 OBJS += \
-./src/DG8SAQ_cmd.o \
 ./src/I2C.o \
 ./src/Mobo_config.o \
 ./src/composite_widget.o \
@@ -65,7 +63,6 @@ OBJS += \
 
 
 C_DEPS += \
-./src/DG8SAQ_cmd.d \
 ./src/I2C.d \
 ./src/Mobo_config.d \
 ./src/composite_widget.d \

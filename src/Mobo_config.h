@@ -217,44 +217,5 @@ extern bool	PA_cal;							// Indicates PA Bias auto adjust in progress
 #define	_2(x)		((uint32_t)1<<(x))		// Macro: Take power of 2
 
 
-typedef struct
-{
-		uint8_t		EEPROM_init_check;		// If value mismatch,
-		uint8_t		UAC2_Audio;				// UAC1 if FALSE, UAC2 if TRUE
-		uint8_t		hi_tmp_trigger;			// If PA temperature goes above this point, then
-											// disable transmission
-		uint16_t	P_Min_Trigger;			// Min P out measurement for SWR trigger
-		uint16_t	SWR_Protect_Timer;		// Timer loop value
-		uint16_t	SWR_Trigger;			// Max SWR threshold
-		uint16_t	PWR_Calibrate;			// Power meter calibration value
-		uint8_t		Bias_Select;			// Which bias, 0 = Cal, 1 = LO, 2 = HI
-		uint8_t		Bias_LO;				// PA Bias in 10 * mA, typically  20mA or Class B
-		uint8_t		Bias_HI;				// PA Bias in 10 * mA, typically 350mA or Class A
-		uint8_t		cal_LO;					// PA Bias setting, LO
-		uint8_t		cal_HI;					// PA Bias setting, HI
-		uint32_t	FreqXtal;				// crystal frequency[MHz] (8.24bits)
-		uint16_t	SmoothTunePPM;			// Max PPM value for the smooth tune
-		uint32_t	Freq[10];				// Running frequency[MHz] (11.21bits)
-											// The first one is the running frequency
-											// the next nine are memory stores, used with
-											// the Shaft Encoder function, one for each
-											// band, 1.8, 3.5, 7,... 28 MHz
-		uint8_t		SwitchFreq;				// Which freq is in use (used with ShaftEncoder)
-		uint16_t	FilterCrossOver[8];		// 8x Cross Over points for Band Pass Filter (11.5bits)
-		uint16_t	TXFilterCrossOver[TXF];	// TXF (4, 8 or 16) x Cross Over points for TX Low Pass Filter
-		uint8_t		PWR_fullscale;			// Full Scale setting for Power Output Bargraph
-		uint8_t		SWR_fullscale;			// Full Scale setting for SWR Bargraph
-		uint8_t		PEP_samples;			// Number of samples in PEP measurement
-		uint16_t	Resolvable_States;		// Number of Encoder Resolvable States per Revolution
-		uint8_t		VFO_resolution;			// VFO Resolution 1/2/5/10/50/100kHz per revolution
-		int8_t		LCD_RX_Offset;			// Freq add/subtract value is in kHz
-											// signed integer, 0.000 MHz * 4.0 * _2(21)
-		uint8_t		Fan_On;					// Fan On trigger temp
-		uint8_t		Fan_Off;				// Fan Off trigger temp
-		uint8_t		PCF_fan_bit;			// Which bit is used to control the Cooling Fan
-} mobo_data_t;
-
-extern mobo_data_t	cdata;					// Variables in ram/flash rom (default)
-extern mobo_data_t	nvram_cdata;			// Contain a number of default config parameters
 
 #endif /* MOBO_CONFIG_H_ */
