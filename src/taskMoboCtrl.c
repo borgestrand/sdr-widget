@@ -274,7 +274,7 @@ static void vtaskMoboCtrl( void * pcParameters )
     		} // if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) 	// If Prog button pressed and not yet handled..
     		else if ( (gpio_get_pin_value(PRG_BUTTON) != 0) && (btn_poll_temp > 0) ) {	// If Prog button released..
 //    			if (btn_poll_temp == 100)		// Only reset after Prog button is released and successfull nvram change.
-//					widget_reset();		 		// If Prog were still pressed, device would go to bootloader
+//					obsolete: widget_reset();		 		// If Prog were still pressed, device would go to bootloader
 					// Doesn't seem to reset Audio Widget.....
 
     			if (btn_poll_temp != 100)		// Prog released without nvram change -> default front LED color

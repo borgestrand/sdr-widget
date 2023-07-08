@@ -54,7 +54,6 @@ void features_init() {
 // Code line used to be: if( FEATURE_MAJOR != FEATURE_MAJOR_NVRAM || FEATURE_MINOR != FEATURE_MINOR_NVRAM ) {
 // BUMMER: that's looking in the defaults! Must look in nvram if( (FEATURE_PROD_TEST_ON) || (FEATURE_MAJOR != FEATURE_MAJOR_NVRAM) || (FEATURE_MINOR != FEATURE_MINOR_NVRAM) ) {
   if( (feature_get_nvram(feature_quirk_index) == feature_quirk_ptest) || (FEATURE_MAJOR != FEATURE_MAJOR_NVRAM) || (FEATURE_MINOR != FEATURE_MINOR_NVRAM) ) {
-	  widget_startup_log_line("reset feature nvram");
 	  flashc_memcpy((void *)&features_nvram, &features, sizeof(features), TRUE);
   } else {
 	  memcpy(&features, &features_nvram, sizeof(features));
