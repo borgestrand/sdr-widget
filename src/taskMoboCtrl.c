@@ -85,24 +85,7 @@ uint16_t	measured_SWR;							// SWR value x 100, in unsigned int format
 // (the maximum return value overflows above 655.35W max)
 uint16_t measured_Power(uint16_t voltage)
 {
-	// All standard stuff
-	// normalise the measured value from the VSWR bridge
-	// Reference voltage is 5V,
-	// diode offset ~ .10V
-	// R.PWR_Calibrate = Power meter calibration value
-	uint32_t measured_P;
-
-	if (voltage > 0) voltage = voltage/0x10 + 82;				// If no input voltage, then we do not add offset voltage
-																// as this would otherwise result in a bogus minimum power
-																// reading
-																// voltage is a MSB adjusted 12 bit value, therefore
-																// dividing by 10 does not lose any information
-																// 4096 = 5V,
-																// 82 = 100mV, compensating for schottky diode loss
-	// Formula roughly adjusted for the ratio in the SWR bridge
-	measured_P = (uint32_t)voltage * cdata.PWR_Calibrate/84;
-	measured_P = (measured_P*measured_P)/500000;
-	return measured_P;											// Return power in cW
+	return 0;											// Return power in cW
 }
 
 
@@ -114,29 +97,6 @@ uint16_t measured_Power(uint16_t voltage)
 void PA_bias(void)
 {
 
-	switch (cdata.Bias_Select)
-	{
-		//-------------------------------------------------------------
-		// Set RD16HHF1 Bias to LO setting, using stored calibrated value
-		//-------------------------------------------------------------
-		case 1:													// Set RD16HHF1 PA bias for Class AB
-			biasInit = 1;
-			break;
-		//-------------------------------------------------------------
-		// Set RD16HHF1 Bias to HI setting,  using stored calibrated value
-		//-------------------------------------------------------------
-		case 2:													// Set RD16HHF1 PA bias for Class A
-			if (SWR_alarm)										// Whoops, we have a SWR situation
-			{
-				biasInit = 0;
-			}
-			else if(biasInit != 2 )								// Has this been done already?
-			{
-				biasInit = 2;
-			}
-			break;
-
-	}
 }
 
 
@@ -377,14 +337,6 @@ static void vtaskMoboCtrl( void * pcParameters )
     			}
     			btn_poll_temp = 0;
     		}
-
-    		// Is the task switcher running???
-#ifdef USB_STATE_MACHINE_DEBUG
-    		else {
-    			// print_dbg_char_char(',');
-    			// print_dbg_char_nibble(input_select);
-    		}
-#endif
 
 
    		} // if (btn_poll_Timerval != btn_poll_lastIteration)	// Once every 1second, do stuff

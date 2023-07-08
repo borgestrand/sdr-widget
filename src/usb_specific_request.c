@@ -122,11 +122,6 @@ Bool freq_changed = FALSE;
 extern const    void *pbuffer;
 extern          U16   data_to_transfer;
 
-//
-// this is the dg8saq command data incoming and outgoing
-// commands are restricted, I think, to 256 bytes
-//
-U8 dg8saqBuffer[256];	// 256 bytes long input/output buffer for DG8SAQ commands
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -382,25 +377,27 @@ Bool usb_user_DG8SAQ(U8 type, U8 command) {
 		Usb_ack_setup_received_free();
 		while (!Is_usb_control_out_received());
 		Usb_reset_endpoint_fifo_access(EP_CONTROL);
+		
+		// This function is stripped down. Go back in commits to determine original version!
 
 		//for (x = 0; x<wLength;x++)
 		if (wLength>0)
 			for (x = wLength-1; x>=0;x--) {
-				dg8saqBuffer[x] = Usb_read_endpoint_data(EP_CONTROL, 8);
+				Usb_read_endpoint_data(EP_CONTROL, 8);
 			}
 		Usb_ack_control_out_received_free();
 		Usb_ack_control_in_ready_send();
 		while (!Is_usb_control_in_ready());
-
-		// This is our all important hook - Do the magic... control Si570 etc...
-		dg8saqFunctionWrite(command, wValue, wIndex, dg8saqBuffer, wLength);
 	}
 	//-------------------------------------------------------------------------------
 	// Process USB query commands and return a result (flexible size data payload)
 	//-------------------------------------------------------------------------------
 	else if (type == (DRD_IN | DRT_STD | DRT_VENDOR)) {
 		// This is our all important hook - Process and execute command, read CW paddle state etc...
-		replyLen = dg8saqFunctionSetup(command, wValue, wIndex, dg8saqBuffer);
+		
+		// This function is stripped down. Go back in commits to determine original version!
+
+		replyLen = 1; 
 
 		Usb_ack_setup_received_free();
 
@@ -409,7 +406,7 @@ Bool usb_user_DG8SAQ(U8 type, U8 command) {
 		// Write out if packet is larger than zero
 		if (replyLen) {
 			for (x = replyLen-1; x>=0;x--) {
-				Usb_write_endpoint_data(EP_CONTROL, 8, dg8saqBuffer[x]);	// send the reply
+				Usb_write_endpoint_data(EP_CONTROL, 8, 0);	// send the reply
 			}
 		}
 
