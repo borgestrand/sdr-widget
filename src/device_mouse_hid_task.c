@@ -298,7 +298,7 @@ void device_mouse_hid_task(void)
 
 			// Detect sample rate
             else if (a == 's') {							// Lowercase s
-				temp32 = mobo_srd();
+				uint32_t temp32 = mobo_srd();
 				print_dbg_char_hex(temp32);
 				print_dbg_char_hex(temp32 >> 8);
 				print_dbg_char_hex(temp32 >> 16);

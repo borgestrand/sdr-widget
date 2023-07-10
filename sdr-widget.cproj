@@ -15197,9 +15197,6 @@
     <None Include="src\srd_test.lst">
       <SubType>compile</SubType>
     </None>
-    <Compile Include="src\srd_test.s">
-      <SubType>compile</SubType>
-    </Compile>
     <None Include="src\srd_test.s1">
       <SubType>compile</SubType>
     </None>
