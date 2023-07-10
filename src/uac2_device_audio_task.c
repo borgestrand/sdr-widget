@@ -240,7 +240,7 @@ void uac2_device_audio_task(void *pvParameters)
 				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// Already in initial state. Do nothing
 				}
 				else {
-//					LED_Off( LED1 );										// Green LED turning off
+					LED_Off( LED1 );										// Green LED turning off
 					I2S_consumer &= ~I2S_CONSUMER_USB;						// USB is no longer subscribing to I2S data
 	
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Disable DMA
@@ -270,6 +270,7 @@ void uac2_device_audio_task(void *pvParameters)
 					ADC_buf_USB_IN = INIT_ADC_USB_st2;						// Prepare for 2nd init step during first USB data transfer
 					
 					I2S_consumer |= I2S_CONSUMER_USB;						// USB subscribes to I2S data
+					LED_On( LED1 );											// Green LED turning on to indicate recording
 					
 				} // Init synching up USB IN consumer's pointers to I2S RX data producer
 				
