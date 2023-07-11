@@ -212,7 +212,7 @@ USB-I2S module.
 Installing drivers - Windows
 ============================
 
-Driver installation is only needed on Windows. 
+Driver installation is only needed on Windows 7. This section is obsolete!
 
 You will need to download and install AWSetup.zip from:
   https://sites.google.com/site/nikkov/home/microcontrollers/audio-widget/
@@ -560,8 +560,8 @@ up if things are tricky the first time!
      Please ignore them if they show up.
 
 10 - To program the Audio Widget use the command line Flip installation and 
-     Add_to_flip347_bin.zip package. Things may take extra time and require up
-     to five attempts the first time: Start, Run, cmd.exe, 
+     Add_to_flip347_bin_rev2.zip package. Things may take extra time and require
+	 up to five attempts the first time: Start, Run, cmd.exe, 
      cd "C:\Program Files (x86)\Atmel\Flip 3.4.7\bin", "prog128.bat widget.elf" 
      Substitute "widget.elf" with the compiled firmware file you wish to to use
      in your Audio Widget. This is the file from step 5. (If you saved the .elf
