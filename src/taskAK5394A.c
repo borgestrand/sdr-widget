@@ -84,7 +84,7 @@ static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
 	.addr = (void *)spk_buffer_0,         // memory address
 	.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
 	.size = DAC_BUFFER_SIZE,              // transfer counter
-	.r_addr = NULL,                         // next memory address
+	.r_addr = NULL,                         // next memory address // What about using spk_buffer_1 here?
 	.r_size = 0,                            // next transfer counter
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
 };
