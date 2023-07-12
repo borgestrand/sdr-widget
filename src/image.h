@@ -73,7 +73,6 @@ extern void image_user_set_interface(U8 wIndex, U8 wValue);
 // the images defined in features.h by the efforts of
 // the programmers who write this code.
 //
-//extern const image_t flashyblinky_image;
 extern const image_t uac1_audio_image;
 //extern const image_t uac1_dg8saq_image;
 extern const image_t uac2_audio_image;

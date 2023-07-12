@@ -50,7 +50,6 @@
 #include "features.h"
 #include "image.h"
 #include "queue.h"
-#include "taskEXERCISE.h"
 #include "taskMoboCtrl.h"
 #include "wdt.h"
 
@@ -107,7 +106,6 @@ static void x_image_task_init(void) {
 
 
 	vStartTaskMoboCtrl();
-	// vStartTaskEXERCISE( tskIDLE_PRIORITY );
 	uac2_AK5394A_task_init();
 
 #ifdef FEATURE_HID

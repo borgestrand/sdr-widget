@@ -15131,9 +15131,6 @@
     <Compile Include="src\composite_widget.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\critical_variables.c">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\device_audio_task.c">
       <SubType>compile</SubType>
     </Compile>
@@ -15143,9 +15140,6 @@
     <Compile Include="src\device_mouse_hid_task.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\device_mouse_hid_task.d">
-      <SubType>compile</SubType>
-    </None>
     <Compile Include="src\device_mouse_hid_task.h">
       <SubType>compile</SubType>
     </Compile>
@@ -15159,15 +15153,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\features.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\flashyBlinky.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\flashyBlinky.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\flashyblinky_image.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\I2C.c">
@@ -15191,27 +15176,6 @@
     <Compile Include="src\srd_test.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\srd_test.d">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\srd_test.lst">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\srd_test.s1">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\srd_test.xls">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\srd_test02.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <None Include="src\srd_test02.d">
-      <SubType>compile</SubType>
-    </None>
-    <Compile Include="src\srd_test02.s">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\taskAK5394A.c">
       <SubType>compile</SubType>
     </Compile>
@@ -15233,13 +15197,7 @@
     <Compile Include="src\uac1_device_audio_task.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\uac1_device_audio_task.d">
-      <SubType>compile</SubType>
-    </None>
     <Compile Include="src\uac1_device_audio_task.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_device_audio_task.s">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\uac1_image.c">
@@ -15266,12 +15224,6 @@
     <Compile Include="src\uac2_device_audio_task.c">
       <SubType>compile</SubType>
     </Compile>
-    <None Include="src\uac2_device_audio_task.c_awx_pre_volume">
-      <SubType>compile</SubType>
-    </None>
-    <None Include="src\uac2_device_audio_task.c_new">
-      <SubType>compile</SubType>
-    </None>
     <Compile Include="src\uac2_device_audio_task.h">
       <SubType>compile</SubType>
     </Compile>
@@ -15309,33 +15261,6 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="src\usb_specific_request.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_device_audio_task.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_device_audio_task.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_image.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_taskAK5394A.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_taskAK5394A.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_usb_descriptors.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_usb_descriptors.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_usb_specific_request.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\Xhpsdr_usb_specific_request.h">
       <SubType>compile</SubType>
     </Compile>
     <Folder Include="src\CONFIG" />
