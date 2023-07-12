@@ -58,7 +58,7 @@ extern void uac2_user_set_interface(U8 wIndex, U8 wValue);
 //! supported. In this case, a STALL handshake will be automatically
 //! sent by the standard USB read request function.
 //!
-extern Bool uac2_user_read_request(U8, U8);
+extern Bool uac2_user_read_request(U8, U8); 
 
 //! @}
 
