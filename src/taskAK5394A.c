@@ -223,39 +223,34 @@ static void pdca_set_irq(void) {
 
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 void AK5394A_pdca_rx_enable(U32 frequency) {
+	U16 countdown = 0xFFFF;
 
 	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Added, always disable pdca before enabling it 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	mobo_clear_adc_channel();			// Fill it with zeros
 
-//	taskENTER_CRITICAL();
-	Disable_global_interrupt();
-
-	gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+	Disable_global_interrupt();			// Or taskENTER_CRITICAL();
 
 	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
 	ADC_buf_DMA_write = 0;
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
-		(frequency == FREQ_88) || (frequency == FREQ_96) ||
-		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
-/*
-//		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
-		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
+		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
+		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
+		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
-*/
-		mobo_wait_LRCK_asm(); // Wait for some well-defined action on LRCK pin
+		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
+//		mobo_wait_LRCK_asm(); // Wait for some well-defined action on LRCK pin
+		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	}
 		
 	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-
-	gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	
-//	taskEXIT_CRITICAL();
-	Enable_global_interrupt(); 
+	Enable_global_interrupt(); // Or taskEXIT_CRITICAL();
 
+	// Identify action
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		(frequency == FREQ_88) || (frequency == FREQ_96) ||
 		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
@@ -265,57 +260,37 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		print_dbg_char('u');
 	}
 
-
 }
 
 
 // Turn on the TX pdca, run after ssc_i2s_init()
-// FIX: Build some safety mechanism into the while loop to prevent lock-up!
 void AK5394A_pdca_tx_enable(U32 frequency) {
 	U16 countdown = 0xFFFF;
 
-//	gpio_set_gpio_pin(AVR32_PIN_PX52); // ch5 p87
-
+	pdca_disable(PDCA_CHANNEL_SSC_TX);	// Added, always disable pdca before enabling it
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
+	mobo_clear_dac_channel();			// To avoid odd spurs which some times occur
 
-	#ifdef USB_STATE_MACHINE_DEBUG
-//		print_dbg_char_char('N'); // xperia
-	#endif
-	mobo_clear_dac_channel(); // To avoid odd spurs which some times occur
+	Disable_global_interrupt();			// Or taskENTER_CRITICAL();
 
-   	taskENTER_CRITICAL();
+	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
+	DAC_buf_DMA_read = 0;				// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
-		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
+		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--; // This looks a lot like waiting for an LRCK
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--;
-		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 1) && (countdown != 0) ) countdown--;
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
-		DAC_buf_DMA_read = 0;	// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
-
-		// RXMODFIX This particular debug is disabled for now
-		// 2022-10-13 re-enabled
-		// gpio_clr_gpio_pin(AVR32_PIN_PX33);
-	}
-	else {	// No known frequency, don't halt system while polling for LRCK edge
-		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
-		DAC_buf_DMA_read = 0;
-
-		// RXMODFIX This particular debug is disabled for now
-		// 2022-10-13 re-enabled
-		// gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 
 	// What is the optimal sequence?
    	pdca_enable(PDCA_CHANNEL_SSC_TX);
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 
-	taskEXIT_CRITICAL();
+	Enable_global_interrupt(); // Or taskEXIT_CRITICAL();
 
-//	gpio_clr_gpio_pin(AVR32_PIN_PX52); // ch5 p87
-
+	// Identify action
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		(frequency == FREQ_88) || (frequency == FREQ_96) ||
 		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
