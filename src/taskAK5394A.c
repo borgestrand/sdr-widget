@@ -223,6 +223,9 @@ static void pdca_set_irq(void) {
 
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 void AK5394A_pdca_rx_enable(U32 frequency) {
+
+
+	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Added, always disable pdca before enabling it ??
 	
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	mobo_clear_adc_channel();
@@ -230,7 +233,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 //	taskENTER_CRITICAL();
 	Disable_global_interrupt();
 
-	gpio_tgl_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+	gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 
 	ADC_buf_DMA_write = 0;
 
@@ -247,13 +250,25 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	}
 		
 	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
+	ADC_buf_DMA_write = 0;
 	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
-	gpio_tgl_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+	gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	
 //	taskEXIT_CRITICAL();
 	Enable_global_interrupt();
+
+	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
+		(frequency == FREQ_88) || (frequency == FREQ_96) ||
+		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
+		print_dbg_char('U');
+	}
+	else {
+		print_dbg_char('u');
+	}
+
+
 }
 
 
@@ -276,7 +291,7 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ){
-		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--;
+		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--; // This looks a lot like waiting for an LRCK
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 1) && (countdown != 0) ) countdown--;
@@ -285,7 +300,7 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 		// RXMODFIX This particular debug is disabled for now
 		// 2022-10-13 re-enabled
-		gpio_clr_gpio_pin(AVR32_PIN_PX33);
+		// gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 	else {	// No known frequency, don't halt system while polling for LRCK edge
 		pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
@@ -293,7 +308,7 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 		// RXMODFIX This particular debug is disabled for now
 		// 2022-10-13 re-enabled
-		gpio_clr_gpio_pin(AVR32_PIN_PX33);
+		// gpio_clr_gpio_pin(AVR32_PIN_PX33);
 	}
 
 	// What is the optimal sequence?
@@ -303,6 +318,16 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 	taskEXIT_CRITICAL();
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX52); // ch5 p87
+
+	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
+		(frequency == FREQ_88) || (frequency == FREQ_96) ||
+		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
+		print_dbg_char('W');
+	}
+	else {
+		print_dbg_char('w');
+	}
+
 }
 
 

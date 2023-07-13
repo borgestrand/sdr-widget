@@ -336,6 +336,8 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 #ifdef HW_GEN_FMADC	// Floormotion data collection on usb module
 
 	gpio_set_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is high for 48ksps domain - check if it boots
+	
+	gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Starting with clean debug pins
 
 	cpu_delay_ms(500, FCPU_HZ_SLOW);		// For good measure, not tested
 	
@@ -368,6 +370,9 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 
 #if (defined HW_GEN_RXMOD)
+
+	gpio_clr_gpio_pin(AVR32_PIN_PX31);						// Starting with clean debug pins
+
 
 //	print_dbg_char('s');									// RXMODFIX input_select debug
 	print_dbg_char_hex(input_select);

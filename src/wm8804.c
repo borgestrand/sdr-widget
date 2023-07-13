@@ -356,10 +356,13 @@ void wm8804_init(void) {
 		// Enable CPU's processing of produced data
 		// This is needed for the silence detector
 		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization - doesn't happen in FMADC code
+		print_dbg_char(',');
+
 	}
 //	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine doesn't really subscribe to incoming I2S, it only scans for it...
 #else
 	AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
+	print_dbg_char(';'); // executed twice, before LRCK is alive, does this cause LR swap?
 #endif
 
 //	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
@@ -789,10 +792,12 @@ void wm8804_unmute(void) {
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
 		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
+		print_dbg_char(':');
 	}
 	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC subscribes to incoming I2S
 #else
-		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
+	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);			// New code to test for L/R swap
+	print_dbg_char('/');
 #endif
 
 	ADC_buf_I2S_IN = INIT_ADC_I2S;								// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
