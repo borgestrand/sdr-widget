@@ -129,22 +129,6 @@ void uac1_AK5394A_task(void *pvParameters) {
 			gpio_clr_gpio_pin(AK5394_DFS1);
 */
 
-			if (FEATURE_ADC_AK5394A) {
-				/* Moved here from above */
-				// L L  -> 48khz   L H  -> 96khz
-				gpio_clr_gpio_pin(AK5394_DFS0);
-				gpio_clr_gpio_pin(AK5394_DFS1);
-				
-				// re-sync SSC to LRCK
-				// Wait for the next frame synchronization event
-				// to avoid channel inversion.  Start with left channel - FS goes low
-				while (!gpio_get_pin_value(AK5394_LRCK));
-				while (gpio_get_pin_value(AK5394_LRCK));
-
-				// Enable now the transfer.
-				pdca_enable(PDCA_CHANNEL_SSC_RX);
-
-			}
 			// reset usb_alternate_setting_changed flag
 			usb_alternate_setting_changed = FALSE;
 		}
