@@ -807,6 +807,7 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"mov	%0, 	500		\n\t"	// Load timeout
 	"mov	r9,		-60928	\n\t"	// Immediate load, set up pointer to PX36, recompile C for other IO pin, do once
 
+/*
 	"S0x:					\n\t"	// Loop while PX36 is 1
 	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
 	"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
@@ -815,6 +816,7 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"brne	S0x				\n\t"	// Not done counting down
 	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
 	"S0x_done:				\n\t"
+*/
 
 	"S1x:					\n\t"	// Loop while PX36 is 0
 	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
@@ -834,7 +836,6 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
 	"S2x_done:				\n\t"
 
-/*
 	"S3x:					\n\t"	// Loop while PX36 is 0
 	"ld.w	r8, 	r9[96]	\n\t"	// Load PX36 (and surroundings?) into r8, 		recompile C for other IO pin
 	"bld	r8, 	23		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
@@ -843,7 +844,6 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"brne	S3x				\n\t"	// Not done counting down
 	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
 	"S3x_done:				\n\t"
-*/
 
 	"SCOUNTDx:				\n\t"	// Countdown reached, %0 is 0
 
