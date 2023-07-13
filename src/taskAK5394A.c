@@ -244,24 +244,11 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	
 	Enable_global_interrupt(); // Or taskEXIT_CRITICAL();
-
-	// Identify action
-	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
-		(frequency == FREQ_88) || (frequency == FREQ_96) ||
-		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
-		print_dbg_char('U');
-	}
-	else {
-		print_dbg_char('u');
-	}
-
 }
 
 
 // Turn on the TX pdca, run after ssc_i2s_init()
 void AK5394A_pdca_tx_enable(U32 frequency) {
-	U16 countdown = 0xFFFF;
-
 	pdca_disable(PDCA_CHANNEL_SSC_TX);	// Added, always disable pdca before enabling it
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 	mobo_clear_dac_channel();			// To avoid odd spurs which some times occur
@@ -274,12 +261,9 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
-		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
-		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--; // This looks a lot like waiting for an LRCK
-		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 1) && (countdown != 0) ) countdown--;
-		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--;
-//		mobo_wait_LRCK_TX_asm(); // Wait for some well-defined action on LRCK pin
-		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+//		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+		mobo_wait_LRCK_TX_asm(); // Wait for some well-defined action on LRCK pin
+//		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	}
 
 	// What is the optimal sequence?
@@ -287,17 +271,6 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_TX);
 
 	Enable_global_interrupt(); // Or taskEXIT_CRITICAL();
-
-	// Identify action
-	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
-		(frequency == FREQ_88) || (frequency == FREQ_96) ||
-		(frequency == FREQ_176) || (frequency == FREQ_192) ) {
-		print_dbg_char('W');
-	}
-	else {
-		print_dbg_char('w');
-	}
-
 }
 
 

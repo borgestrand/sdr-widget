@@ -264,8 +264,6 @@ void uac2_device_audio_task(void *pvParameters)
 						// mobo_clear_adc_channel();						// Redundant with call below
 
 						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_site FMADC_site enable according to detected rate
-						print_dbg_char('.');
-
 						
 					} // Init DMA for USB IN consumer
 
