@@ -238,10 +238,10 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
-		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
-		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
-		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
-//		mobo_wait_LRCK_asm(); // Wait for some well-defined action on LRCK pin
+//		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
+//		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
+//		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
+		mobo_wait_LRCK_asm(); // Wait for some well-defined action on LRCK pin
 		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	}
 		
