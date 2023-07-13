@@ -223,8 +223,6 @@ static void pdca_set_irq(void) {
 
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 void AK5394A_pdca_rx_enable(U32 frequency) {
-	U16 countdown = 0xFFFF;
-
 	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Added, always disable pdca before enabling it 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	mobo_clear_adc_channel();			// Fill it with zeros
@@ -237,12 +235,9 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
-		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
-//		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
-//		while ( (gpio_get_pin_value(AK5394_LRCK) == 1) && (countdown != 0) ) countdown--;
-//		while ( (gpio_get_pin_value(AK5394_LRCK) == 0) && (countdown != 0) ) countdown--;
-		mobo_wait_LRCK_asm(); // Wait for some well-defined action on LRCK pin
-		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+//		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
+		mobo_wait_LRCK_RX_asm(); // Wait for some well-defined action on LRCK pin, asm takes 572-778ns from LRCK fall to trigger fall. C code takes 478-992ns
+//		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	}
 		
 	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
@@ -279,9 +274,12 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
+		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--; // This looks a lot like waiting for an LRCK
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 1) && (countdown != 0) ) countdown--;
 		while ( (gpio_get_pin_value(AVR32_PIN_PX27) == 0) && (countdown != 0) ) countdown--;
+//		mobo_wait_LRCK_TX_asm(); // Wait for some well-defined action on LRCK pin
+		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	}
 
 	// What is the optimal sequence?

@@ -786,9 +786,9 @@ uint32_t mobo_srd_asm2(void) {
 
 
 
-// Wait for N half-periods of LRCK
+// Wait for N half-periods of LRCK on the RX side
 // Seems to work for WM8804 input but channels are swapped and one is delayed for 1 sample for PCM1863. Why? What is the programming context? Do all clocks run as they are supposed to?
-uint32_t mobo_wait_LRCK_asm(void) {
+uint32_t mobo_wait_LRCK_RX_asm(void) {
 	uint32_t timeout;
 
 	// see srd_test03.c and srd_test03.lst
@@ -814,7 +814,7 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"brne	S0x_done		\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 	"sub	%0,	1			\n\t"	// Count down
 	"brne	S0x				\n\t"	// Not done counting down
-	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
+	"rjmp	SCOUNTD_RX		\n\t"	// Countdown reached
 	"S0x_done:				\n\t"
 */
 
@@ -824,7 +824,7 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"breq	S1x_done		\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 	"sub	%0,	1			\n\t"	// Count down
 	"brne	S1x				\n\t"	// Not done counting down
-	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
+	"rjmp	SCOUNTD_RX		\n\t"	// Countdown reached
 	"S1x_done:				\n\t"
 
 	"S2x:					\n\t"	// Loop while PX36 is 1
@@ -833,7 +833,7 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"brne	S2x_done		\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
 	"sub	%0,	1			\n\t"	// Count down
 	"brne	S2x				\n\t"	// Not done counting down
-	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
+	"rjmp	SCOUNTD_RX		\n\t"	// Countdown reached
 	"S2x_done:				\n\t"
 
 	"S3x:					\n\t"	// Loop while PX36 is 0
@@ -842,10 +842,10 @@ uint32_t mobo_wait_LRCK_asm(void) {
 	"breq	S3x_done		\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
 	"sub	%0,	1			\n\t"	// Count down
 	"brne	S3x				\n\t"	// Not done counting down
-	"rjmp	SCOUNTDx		\n\t"	// Countdown reached
+	"rjmp	SCOUNTD_RX		\n\t"	// Countdown reached
 	"S3x_done:				\n\t"
 
-	"SCOUNTDx:				\n\t"	// Countdown reached, %0 is 0
+	"SCOUNTD_RX:			\n\t"	// Countdown reached, %0 is 0
 
 	//		"csrf	16				\n\t"	// Enable global interrupt
 	:	"=r" (timeout)				// One output register
@@ -855,7 +855,78 @@ uint32_t mobo_wait_LRCK_asm(void) {
 
 	return timeout;
 
-} // mobo_wait_LRCK_asm
+} // mobo_wait_LRCK_RX_asm
+
+
+// Wait for N half-periods of LRCK on the TX side
+uint32_t mobo_wait_LRCK_TX_asm(void) {
+	uint32_t timeout;
+
+	// see srd_test03.c and srd_test03.lst
+
+	// HW_GEN_RXMOD: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
+
+	// Recompile prototype c to change io pin!
+	// Test is done for up to 1 half period, then 2 full periods
+
+//	gpio_enable_gpio_pin(AVR32_PIN_PX27);	// DON'T! Enable GPIO pin, not special IO (also for input). Needed?
+	
+	// PA05 is GPIO. PX26 and PX36 are special purpose clock pins
+
+	asm volatile(
+	//		"ssrf	16				\n\t"	// Disable global interrupt
+	"mov	%0, 	500		\n\t"	// Load timeout
+	"mov	r9,		-60928	\n\t"	// Immediate load, set up pointer to PX27, recompile C for other IO pin, do once
+
+/*
+	"S10x:					\n\t"	// Loop while PX27 is 1
+	"ld.w	r8, 	r9[96]	\n\t"	// Load PX27 (and surroundings?) into r8, 		recompile C for other IO pin
+	"bld	r8, 	14		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+	"brne	S10x_done		\n\t"	// Branch if %0 bit 11 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+	"sub	%0,	1			\n\t"	// Count down
+	"brne	S10x			\n\t"	// Not done counting down
+	"rjmp	SCOUNTD_TX		\n\t"	// Countdown reached
+	"S10x_done:				\n\t"
+*/
+
+	"S11x:					\n\t"	// Loop while PX27 is 0
+	"ld.w	r8, 	r9[96]	\n\t"	// Load PX27 (and surroundings?) into r8, 		recompile C for other IO pin
+	"bld	r8, 	14		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+	"breq	S11x_done		\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+	"sub	%0,	1			\n\t"	// Count down
+	"brne	S11x			\n\t"	// Not done counting down
+	"rjmp	SCOUNTD_TX		\n\t"	// Countdown reached
+	"S11x_done:				\n\t"
+
+	"S12x:					\n\t"	// Loop while PX27 is 1
+	"ld.w	r8, 	r9[96]	\n\t"	// Load PX27 (and surroundings?) into r8, 		recompile C for other IO pin
+	"bld	r8, 	14		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+	"brne	S12x_done		\n\t"	// Branch if %0 bit 4 was 0 (bit was 0, Z becomes 0 i.e. not equal)
+	"sub	%0,	1			\n\t"	// Count down
+	"brne	S12x			\n\t"	// Not done counting down
+	"rjmp	SCOUNTD_TX		\n\t"	// Countdown reached
+	"S12x_done:				\n\t"
+
+	"S13x:					\n\t"	// Loop while PX27 is 0
+	"ld.w	r8, 	r9[96]	\n\t"	// Load PX27 (and surroundings?) into r8, 		recompile C for other IO pin
+	"bld	r8, 	14		\n\t"	// Bit load to Z and C, similar to above line,	recompile c for other IO pin
+	"breq	S13x_done		\n\t"	// Branch if %0 bit 4 was 1 (bit was 1, Z becomes 1 i.e. equal)
+	"sub	%0,	1			\n\t"	// Count down
+	"brne	S13x			\n\t"	// Not done counting down
+	"rjmp	SCOUNTD_TX		\n\t"	// Countdown reached
+	"S13x_done:				\n\t"
+
+	"SCOUNTD_TX:			\n\t"	// Countdown reached, %0 is 0
+
+	//		"csrf	16				\n\t"	// Enable global interrupt
+	:	"=r" (timeout)				// One output register
+	:								// No input registers
+	:	"r8", "r9"					// Clobber registers, pushed/popped unless assigned by GCC as temps
+	);
+
+	return timeout;
+
+} // mobo_wait_LRCK_TX_asm
 
 
 
