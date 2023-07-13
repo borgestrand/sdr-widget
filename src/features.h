@@ -202,9 +202,6 @@ extern const features_t features_default;
 #define FEATURE_OUT_NORMAL				(features[feature_out_index] == (uint8_t)feature_out_normal)
 #define FEATURE_OUT_SWAPPED				(features[feature_out_index] == (uint8_t)feature_out_swapped)
 
-#define FEATURE_ADC_NONE				(features[feature_adc_index] == (uint8_t)feature_adc_none)
-#define FEATURE_ADC_AK5394A				0 // (features[feature_adc_index] == (uint8_t)feature_adc_ak5394a)
-
 #define FEATURE_DAC_NONE				(features[feature_dac_index] == (uint8_t)feature_dac_none)
 #define FEATURE_DAC_CS4344				(features[feature_dac_index] == (uint8_t)feature_dac_cs4344)
 #define FEATURE_DAC_GENERIC				(features[feature_dac_index] == (uint8_t)feature_dac_generic)
