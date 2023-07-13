@@ -160,7 +160,7 @@ extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;
 extern xSemaphoreHandle mutexSpkUSB;
 
-// BSB 20131201 attempting improved playerstarted detection
+// BSB 20131201 attempting improved playerstarted detection 
 extern volatile S32 usb_buffer_toggle;
 
 // BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
