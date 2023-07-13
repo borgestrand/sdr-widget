@@ -15143,12 +15143,6 @@
     <Compile Include="src\device_mouse_hid_task.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\DG8SAQ_cmd.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\DG8SAQ_cmd.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\features.c">
       <SubType>compile</SubType>
     </Compile>

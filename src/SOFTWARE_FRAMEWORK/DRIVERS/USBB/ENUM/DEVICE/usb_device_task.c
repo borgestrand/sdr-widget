@@ -146,7 +146,6 @@ void usb_start_device(void)
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
   Usb_force_full_speed_mode();
 #else
-//  if(FEATURE_IMAGE_UAC1_AUDIO || FEATURE_IMAGE_UAC1_DG8SAQ)
   if (FEATURE_IMAGE_UAC1_AUDIO)
 	  Usb_force_full_speed_mode();
   else

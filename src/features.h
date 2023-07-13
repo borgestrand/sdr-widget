@@ -194,11 +194,7 @@ extern const features_t features_default;
 #define FEATURE_BOARD_USBDAC			(features[feature_board_index] == (uint8_t)feature_board_usbdac)
 
 #define FEATURE_IMAGE_UAC1_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac1_audio)
-//#define FEATURE_IMAGE_UAC1_DG8SAQ		(features[feature_image_index] == (uint8_t)feature_image_uac1_dg8saq)
 #define FEATURE_IMAGE_UAC2_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac2_audio)
-//#define FEATURE_IMAGE_UAC2_DG8SAQ		(features[feature_image_index] == (uint8_t)feature_image_uac2_dg8saq)
-//#define FEATURE_IMAGE_HPSDR				(features[feature_image_index] == (uint8_t)feature_image_hpsdr)
-//#define FEATURE_IMAGE_TEST				(features[feature_image_index] == (uint8_t)feature_image_test)
 
 #define FEATURE_IN_NORMAL				(features[feature_in_index] == (uint8_t)feature_in_normal)
 #define FEATURE_IN_SWAPPED				(features[feature_in_index] == (uint8_t)feature_in_swapped)
@@ -207,7 +203,7 @@ extern const features_t features_default;
 #define FEATURE_OUT_SWAPPED				(features[feature_out_index] == (uint8_t)feature_out_swapped)
 
 #define FEATURE_ADC_NONE				(features[feature_adc_index] == (uint8_t)feature_adc_none)
-#define FEATURE_ADC_AK5394A				(features[feature_adc_index] == (uint8_t)feature_adc_ak5394a)
+#define FEATURE_ADC_AK5394A				0 // (features[feature_adc_index] == (uint8_t)feature_adc_ak5394a)
 
 #define FEATURE_DAC_NONE				(features[feature_dac_index] == (uint8_t)feature_dac_none)
 #define FEATURE_DAC_CS4344				(features[feature_dac_index] == (uint8_t)feature_dac_cs4344)
