@@ -224,17 +224,16 @@ static void pdca_set_irq(void) {
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 void AK5394A_pdca_rx_enable(U32 frequency) {
 
-
-	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Added, always disable pdca before enabling it ??
-	
+	pdca_disable(PDCA_CHANNEL_SSC_RX);	// Added, always disable pdca before enabling it 
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-	mobo_clear_adc_channel();
+	mobo_clear_adc_channel();			// Fill it with zeros
 
 //	taskENTER_CRITICAL();
 	Disable_global_interrupt();
 
 	gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 
+	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
 	ADC_buf_DMA_write = 0;
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
@@ -249,8 +248,6 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 		mobo_wait_LRCK_asm(); // Wait for some well-defined action on LRCK pin
 	}
 		
-	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-	ADC_buf_DMA_write = 0;
 	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
 	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
