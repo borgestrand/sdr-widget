@@ -144,8 +144,6 @@ void uac1_AK5394A_task(void *pvParameters) {
 				// Enable now the transfer.
 				pdca_enable(PDCA_CHANNEL_SSC_RX);
 
-				// Init PDCA channel with the pdca_options.
-				AK5394A_pdca_enable();
 			}
 			// reset usb_alternate_setting_changed flag
 			usb_alternate_setting_changed = FALSE;

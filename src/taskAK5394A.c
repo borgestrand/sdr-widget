@@ -220,15 +220,6 @@ static void pdca_set_irq(void) {
 	Enable_global_interrupt();
 }
 
-void AK5394A_pdca_disable(void) {
-}
-
-// The old pdca_enable() code which will remain.
-void AK5394A_pdca_enable(void) {
-	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
-	pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-}
-
 
 // Turn on the RX pdca, run after ssc_i2s_init() This is the new, speculative version to try to prevent L/R swap
 void AK5394A_pdca_rx_enable(U32 frequency) {

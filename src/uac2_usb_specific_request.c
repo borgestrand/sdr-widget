@@ -440,7 +440,6 @@ void uac2_freq_change_handler() {
 				pdca_enable(PDCA_CHANNEL_SSC_RX);
 
 				// Init PDCA channel with the pdca_options.
-				AK5394A_pdca_enable();
 			#endif
 		}
 
