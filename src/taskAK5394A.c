@@ -254,7 +254,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	
 //	taskEXIT_CRITICAL();
-	Enable_global_interrupt();
+	Enable_global_interrupt(); 
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		(frequency == FREQ_88) || (frequency == FREQ_96) ||

@@ -117,13 +117,6 @@ extern volatile avr32_pdca_channel_t *pdca_get_handler(unsigned int pdca_ch_numb
  */
 extern int pdca_init_channel(unsigned int pdca_ch_number, const pdca_channel_options_t *opt);
 
-/*! \brief Merge pdca_init_channel(), pdca_enable() and pdca_enable_interrupt_reload_counter_zero()
- *
- * \param pdca_ch_number PDCA channel
- * \param opt channel option
- */
-int pdca_init_enable_int_channel(unsigned int pdca_ch_number, const pdca_channel_options_t *opt);
-
 /*! \brief Get the PDCA channel transfer enable status
  *
  * \param pdca_ch_number PDCA channel

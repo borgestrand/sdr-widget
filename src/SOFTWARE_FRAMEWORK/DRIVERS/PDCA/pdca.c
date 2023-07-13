@@ -99,43 +99,6 @@ opt->etrig << AVR32_PDCA_ETRIG_OFFSET |
   return PDCA_SUCCESS;
 }
 
-// Merge pdca_init_channel(), pdca_enable() and pdca_enable_interrupt_reload_counter_zero()
-int pdca_init_enable_int_channel(unsigned int pdca_ch_number, const pdca_channel_options_t *opt)
-{
-	// get the correct channel pointer
-	volatile avr32_pdca_channel_t *pdca_channel = pdca_get_handler(pdca_ch_number);
-
-	pdca_disable_interrupt_transfer_complete(pdca_ch_number); // disable channel interrupt
-	pdca_disable_interrupt_reload_counter_zero(pdca_ch_number); // disable channel interrupt
-
-	pdca_channel->mar = (unsigned long)opt->addr;
-	pdca_channel->tcr = opt->size;
-	pdca_channel->psr = opt->pid;
-	pdca_channel->marr = (unsigned long)opt->r_addr;
-	pdca_channel->tcrr = opt->r_size;
-	pdca_channel->mr =
-	#if (defined AVR32_PDCA_120_H_INCLUDED ) || (defined AVR32_PDCA_121_H_INCLUDED ) || (defined AVR32_PDCA_122_H_INCLUDED )
-	opt->etrig << AVR32_PDCA_ETRIG_OFFSET |
-	#endif // #ifdef AVR32_PDCA_120_H_INCLUDED
-	opt->transfer_size << AVR32_PDCA_SIZE_OFFSET;
-	
-	// CR:ECLR: Transfer Error Clear
-	// Writing a zero to this bit has no effect.
-	// Writing a one to this bit will clear the Transfer Error bit in the Status Register (SR.TERR). Clearing the SR.TERR bit will allow the
-	// channel to transmit data. The memory address must first be set to point to a valid location.
-	
-	// pdca_channel->cr = AVR32_PDCA_ECLR_MASK; // from pdca_init()
-	// pdca_channel->cr = AVR32_PDCA_TEN_MASK; // from pdca_enable()
-	
-	pdca_channel->cr = AVR32_PDCA_TEN_MASK | AVR32_PDCA_ECLR_MASK; // attempted merge
-	pdca_channel->ier = AVR32_PDCA_RCZ_MASK; // from pdca_enable_interrupt_reload_counter_zero
-	pdca_channel->isr;	// What does this do??
-
-	return PDCA_SUCCESS;
-}
-
-
-
 unsigned int pdca_get_channel_status(unsigned int pdca_ch_number)
 {
   // get the correct channel pointer
