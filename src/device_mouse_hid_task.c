@@ -182,7 +182,7 @@ void device_mouse_hid_task(void)
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
   uint8_t temp, temp2;			// Temporary debug data
-  
+  uint32_t temp32;				// Temporary debug data
 
 #ifdef FREERTOS_USED
   portTickType xLastWakeTime;
@@ -296,9 +296,9 @@ void device_mouse_hid_task(void)
 			}
 			            
 
-			// Detect sample rate
+			// Detect sample rate of I2S in
             else if (a == 's') {							// Lowercase s
-				uint32_t temp32 = mobo_srd();
+				temp32 = mobo_srd();
 				print_dbg_char_hex(temp32);
 				print_dbg_char_hex(temp32 >> 8);
 				print_dbg_char_hex(temp32 >> 16);
@@ -307,6 +307,21 @@ void device_mouse_hid_task(void)
 #endif
 
 #ifdef HW_GEN_RXMOD
+
+// Reduced debug system
+            else if (a == MCU_CHAR_ALIVE) {							// Uppercase 'L' - live detect
+	            print_cpu_char(CPU_CHAR_ALIVE);						// Answer with H for heartbeat
+            }
+			
+// Normal debug system			
+			// Detect sample rate of I2S in
+			else if (a == 's') {							// Lowercase s
+				temp32 = mobo_srd();
+				print_dbg_char_hex(temp32);
+				print_dbg_char_hex(temp32 >> 8);
+				print_dbg_char_hex(temp32 >> 16);
+				print_dbg_char_hex(temp32 >> 24);
+			}
 
             else if (a == '0') {							// Digit 0
 	            // usb_ch = USB_CH_NONE;
@@ -323,9 +338,9 @@ void device_mouse_hid_task(void)
             }
             else if (a == 'D') {							// Uppercase D
 	            if (mobo_usb_detect() == USB_CH_C)
-	            print_dbg_char('C');
+					print_dbg_char('C');
 	            else
-	            print_dbg_char('B');
+					print_dbg_char('B');
             }
 
             else if (a == 'Y') {							// Uppercase Y

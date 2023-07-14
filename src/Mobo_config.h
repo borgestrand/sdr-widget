@@ -54,9 +54,11 @@ void mobo_clear_dac_channel(void);
 #define CPU_CHAR_192				'6' // MCU requests oscillator for 192ksps and outputs on that rate
 #define CPU_CHAR_REGEN				'X' // MCU requests regenerated clock from SPDIF/TOSLINK receiver. Probably outputs on last reported rate ('1'-'6')
 #define CPU_CHAR_RATE_DEF			'Y' // MCU rate request is unknown
+#define CPU_CHAR_ALIVE				'l' // MCU is alive
 #define MCU_CHAR_SI_ENABLE			'I' // CPU instructs MCU to enable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
 #define MCU_CHAR_SI_DISABLE			'i' // CPU instructs MCU to disable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
 #define MCU_CHAR_RESET				'R'	// CPU resets MCU over UART
+#define MCU_CHAR_ALIVE				'L' // CPU asks MCU if it is alive
 #endif
 
 #ifdef HW_GEN_RXMOD
