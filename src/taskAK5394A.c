@@ -128,8 +128,6 @@ volatile U8 dig_in_silence;
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
-	
-			
 	if (ADC_buf_DMA_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		// Register names are different from those used in AVR32108. BUT: it seems pdca_reload_channel() sets the
@@ -138,18 +136,14 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_GPIO
-#ifdef FEATURE_ADC_EXPERIMENTAL
-//    	gpio_set_gpio_pin(AVR32_PIN_PX55); 
-#endif
+    	gpio_set_gpio_pin(AVR32_PIN_PX31); 
 #endif
 	}
 	else if (ADC_buf_DMA_write == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
 #ifdef USB_STATE_MACHINE_GPIO
-#ifdef FEATURE_ADC_EXPERIMENTAL
-//		gpio_clr_gpio_pin(AVR32_PIN_PX55);
-#endif
+		gpio_clr_gpio_pin(AVR32_PIN_PX31);
 #endif
 	}
  
@@ -171,8 +165,6 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-		// RXMODFIX This particular debug is disabled for now
-		// 20221013 re-enabled
 		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 #endif
@@ -185,8 +177,6 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-		// RXMODFIX This particular debug is disabled for now
-		// 20221013 re-enabled
 		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 #endif

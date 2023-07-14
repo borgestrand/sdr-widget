@@ -467,10 +467,10 @@ void uac2_device_audio_task(void *pvParameters)
 
 #ifdef USB_STATE_MACHINE_GPIO
 								if (ADC_buf_USB_IN == 1) {
-//									gpio_set_gpio_pin(AVR32_PIN_PX31);						// FMADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
+									gpio_set_gpio_pin(AVR32_PIN_PA22);						// FMADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
 								}
 								else {
-//									gpio_clr_gpio_pin(AVR32_PIN_PX31);
+									gpio_clr_gpio_pin(AVR32_PIN_PA22);
 								}
 #endif
 							} // end index > buffer size
