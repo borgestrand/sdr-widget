@@ -1372,7 +1372,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 
 	#elif (defined HW_GEN_RXMOD) 
 
-		if (spdif_rx_status.buffered == 0) { // NB will be discontinued in hardware!
+		if (spdif_rx_status.buffered == 0) { // NB has been discontinued in RXMOD C and onwards
 			// Old version with I2S mux
 			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
 			if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
@@ -1400,7 +1400,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		else { // Furrered, spdif_rx_status.buffered != 0
 			// New version, possibly without I2S mux, with buffering via MCU's ADC interface
 			// RXMODFIX verify ADC vs. mux! What is the test code for this?
-			gpio_set_gpio_pin(AVR32_PIN_PC01); 			// SEL_USBP_RXN = 1 defaults to USB and buffering via MCU FIFO
+			gpio_set_gpio_pin(AVR32_PIN_PC01); 			// SEL_USBP_RXN = 1 defaults to USB and buffering via MCU FIFO - not used on RXMOD C
 
 			// Clock source control
 			if (frequency == FREQ_RXNATIVE) {			// Use MCLK from SPDIF RX
@@ -1415,12 +1415,13 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 			}
-			else { // MOBO_SRC_NONE defaults to 48kHz domain? Is that consistent in code?
+			// FREQ_INVALID defaults to 48kHz domain? Is that consistent in code?
+			else
 				gpio_set_gpio_pin(AVR32_PIN_PA21); 		// 48 control
 				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 			}
-			
+
 			#ifdef USB_REDUCED_DEBUG
 				// Report to CPU (when present)
 				switch (frequency) {
@@ -1453,7 +1454,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		}
 	#elif (defined HW_GEN_FMADC)
 		// FMADC_site 
-		// 48ksps domain is permanently turned on
+		// 96ksps domain is permanently turned on
 	#else
 		#error undefined hardware
 	#endif
