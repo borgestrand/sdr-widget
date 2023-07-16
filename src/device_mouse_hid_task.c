@@ -249,6 +249,21 @@ void device_mouse_hid_task(void)
 
 #ifdef HW_GEN_FMADC
 
+
+			// Union test
+			else if (a == 'x') {									// Lowercase x 
+				union testdataunion {
+					uint32_t bignumber;
+					uint8_t smallnumber[4];
+				} testdata;
+				
+				testdata.bignumber = 0x99887766;
+				print_dbg_char_hex(testdata.smallnumber[3]);		// 66 LSB
+				print_dbg_char_hex(testdata.smallnumber[2]);		// 77
+				print_dbg_char_hex(testdata.smallnumber[1]);		// 88
+				print_dbg_char_hex(testdata.smallnumber[0]);		// 99 MSB
+			}
+
 			// Set preamp gain
             else if (a == 'g') {									// Lowercase g
 	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);		// Channel 1 or 2, two hex nibbles
