@@ -198,10 +198,11 @@ void uac2_device_audio_task(void *pvParameters)
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (TRUE) {
-
-//		gpio_tgl_gpio_pin(AVR32_PIN_PX31);			// Indicate execution slots of this task
 		
+
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
+
+		gpio_set_gpio_pin(AVR32_PIN_PA22); // Start of task execution
 		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents? 
@@ -410,6 +411,10 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
 					// Start of data insertion
+					
+					gpio_set_gpio_pin(AVR32_PIN_PX30); // Indicate copying ADC data from audio_buffer_X to USB IN
+
+
 					for( i=0 ; i < num_samples_adc ; i++ ) {
 						// Fill endpoint with samples
 						if (!mute) {
@@ -466,12 +471,12 @@ void uac2_device_audio_task(void *pvParameters)
 						
 
 #ifdef USB_STATE_MACHINE_GPIO
-								if (ADC_buf_USB_IN == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PA22);						// FMADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
-								}
-								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PA22);
-								}
+//								if (ADC_buf_USB_IN == 1) {
+//									gpio_set_gpio_pin(AVR32_PIN_PA22);						// FMADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
+//								}
+//								else {
+//									gpio_clr_gpio_pin(AVR32_PIN_PA22);
+//								}
 #endif
 							} // end index > buffer size
 						} // !mute
@@ -495,6 +500,8 @@ void uac2_device_audio_task(void *pvParameters)
 						} // muted
 						
 					} // Data insertion
+					
+					gpio_clr_gpio_pin(AVR32_PIN_PX30);  // Indicate copying ADC data from audio_buffer_X to USB IN
 							
 
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
@@ -688,10 +695,10 @@ void uac2_device_audio_task(void *pvParameters)
 						// LED_Off(LED1);
 
 #ifdef USB_STATE_MACHINE_GPIO
-						if (DAC_buf_OUT == 1)
-							gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-						else
-							gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						if (DAC_buf_OUT == 1)
+//							gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						else
+//							gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 #endif
 						spk_index = DAC_BUFFER_SIZE - num_remaining;
 						spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
@@ -777,6 +784,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 					silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
 					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
+
+					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
 
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
@@ -896,12 +905,12 @@ void uac2_device_audio_task(void *pvParameters)
 									DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 	#ifdef USB_STATE_MACHINE_GPIO
-									if (DAC_buf_OUT == 1) {
-										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-									}
-									else {
-										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-									}
+//									if (DAC_buf_OUT == 1) {
+//										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//									}
+//									else {
+//										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//									}
 	#endif
 									// BSB 20131201 attempting improved playerstarted detection
 									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
@@ -910,6 +919,9 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					} // end for num_samples
+					
+					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
+
 
 /*
 					// The silence detector detects the correct arrival of samples
@@ -1233,6 +1245,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 			} // end if usb buffer toggle limit reach
 		} // end if USB playback or no playback
+
+		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Start of task execution
 
 	} // end while vTask
 }

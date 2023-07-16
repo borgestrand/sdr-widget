@@ -136,14 +136,14 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 1;
 #ifdef USB_STATE_MACHINE_GPIO
-    	gpio_set_gpio_pin(AVR32_PIN_PX31); 
+//    	gpio_set_gpio_pin(AVR32_PIN_PX31); 
 #endif
 	}
 	else if (ADC_buf_DMA_write == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
 		ADC_buf_DMA_write = 0;
 #ifdef USB_STATE_MACHINE_GPIO
-		gpio_clr_gpio_pin(AVR32_PIN_PX31);
+//		gpio_clr_gpio_pin(AVR32_PIN_PX31);
 #endif
 	}
  
@@ -165,7 +165,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+//		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 #endif
 	}
@@ -177,7 +177,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
+//		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
 #endif
 #endif
 	}
@@ -225,9 +225,7 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
-//		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 		mobo_wait_LRCK_RX_asm(); // Wait for some well-defined action on LRCK pin, asm takes 572-778ns from LRCK fall to trigger fall. C code takes 478-992ns
-//		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	}
 		
 	pdca_enable(PDCA_CHANNEL_SSC_RX);	// Presumably the most timing critical ref. LRCK edge
@@ -251,9 +249,7 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
 		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
-//		gpio_set_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 		mobo_wait_LRCK_TX_asm(); // Wait for some well-defined action on LRCK pin
-//		gpio_clr_gpio_pin(AVR32_PIN_PX31); // PX31 // GPIO_07 // module pin TP72
 	}
 
 	// What is the optimal sequence?

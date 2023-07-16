@@ -1237,8 +1237,9 @@ void mobo_handle_spdif(uint8_t width) {
 			else {
 				megaskip = 0;					// Normal operation
 
-//				print_dbg_char_hex(target);
-//				print_dbg_char('\n');
+
+				gpio_set_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
+
 
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					// Fill endpoint with sample raw
@@ -1278,15 +1279,18 @@ void mobo_handle_spdif(uint8_t width) {
 							DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 #ifdef USB_STATE_MACHINE_DEBUG
-							if (DAC_buf_OUT == 1)
-								gpio_set_gpio_pin(AVR32_PIN_PX30);
-							else
-								gpio_clr_gpio_pin(AVR32_PIN_PX30);
+//							if (DAC_buf_OUT == 1)
+//								gpio_set_gpio_pin(AVR32_PIN_PX30);
+//							else
+//								gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
 						}
 					}
 					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 				} // for ADC_BUFFER_SIZE
+				
+				gpio_clr_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
+				
 			} // Normal operation
 
 		} // ADC_buf_DMA_write toggle

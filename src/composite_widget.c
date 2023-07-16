@@ -337,7 +337,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 	gpio_set_gpio_pin(AVR32_PIN_PX16); 		// MCLK_P48_N441 is high for 48ksps domain - check if it boots
 	
-	gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Starting with clean debug pins
+//	gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Starting with clean debug pins
 
 	cpu_delay_ms(500, FCPU_HZ_SLOW);		// For good measure, not tested
 	
@@ -371,7 +371,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 #if (defined HW_GEN_RXMOD)
 
-	gpio_clr_gpio_pin(AVR32_PIN_PX31);						// Starting with clean debug pins
+//	gpio_clr_gpio_pin(AVR32_PIN_PX31);						// Starting with clean debug pins
 
 
 //	print_dbg_char('s');									// RXMODFIX input_select debug
