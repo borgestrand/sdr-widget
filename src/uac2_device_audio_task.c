@@ -412,21 +412,31 @@ void uac2_device_audio_task(void *pvParameters)
 						
 					// Start of data insertion 
 					// How can this process become faster?
+					// Using C union notation actually makes it a bit slower
+					// 16-bit USB transfers seem to mess up a whole lot
 					
 					gpio_set_gpio_pin(AVR32_PIN_PX30); // Indicate copying ADC data from audio_buffer_X to USB IN
 
+
+					U16 balle1;
 
 					for( i=0 ; i < num_samples_adc ; i++ ) {
 						// Fill endpoint with samples
 						if (!mute) {
 							if (ADC_buf_USB_IN == 0) {
-								sample_LSB = audio_buffer_0[index+IN_LEFT] >> 8;
-								sample_SB = audio_buffer_0[index+IN_LEFT] >> 16;
+//								sample_LSB = audio_buffer_0[index+IN_LEFT] >> 8;
+//								sample_SB = audio_buffer_0[index+IN_LEFT] >> 16;
+
+								balle1 = audio_buffer_0[index+IN_LEFT] >> 8;
+
 								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 24;				// Treating audio_buffer_0/1 as 32-bit data...
 							}
 							else {
-								sample_LSB = audio_buffer_1[index+IN_LEFT] >> 8;
-								sample_SB = audio_buffer_1[index+IN_LEFT] >> 16;
+//								sample_LSB = audio_buffer_1[index+IN_LEFT] >> 8;
+//								sample_SB = audio_buffer_1[index+IN_LEFT] >> 16;
+
+								balle1 = audio_buffer_1[index+IN_LEFT] >> 8;
+
 								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 24;
 							}
 
@@ -434,9 +444,8 @@ void uac2_device_audio_task(void *pvParameters)
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 
-								U16 balle1 = 0x1122;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 16, balle1);
-
+								Usb_write_endpoint_data(EP_AUDIO_IN,16, balle1);
+								
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
 							}
@@ -449,23 +458,27 @@ void uac2_device_audio_task(void *pvParameters)
 
 							if (ADC_buf_USB_IN == 0) {
 								sample_LSB = audio_buffer_0[index+IN_RIGHT] >> 8;
-								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 16;
-								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 24;
+
+//								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 16;
+//								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 24;
+
 							}
 							else {
 								sample_LSB = audio_buffer_1[index+IN_RIGHT] >> 8;
-								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 16;
-								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 24;
+
+//								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 16;
+//								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 24;
+
+								balle1 = audio_buffer_1[index+IN_RIGHT] >> 16;
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Right stereo 24-bit data
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+
 //								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
-								U16 balle2 = 0x2233;
-								Usb_write_endpoint_data(EP_AUDIO_IN, 16, balle2);
-
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN,16, balle1);
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Right stereo 16-bit data
