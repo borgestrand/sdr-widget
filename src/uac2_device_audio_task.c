@@ -431,13 +431,13 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
 
 								U16 balle = 0x1122;
 								Usb_write_endpoint_data(EP_AUDIO_IN, 16, balle);
 
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
