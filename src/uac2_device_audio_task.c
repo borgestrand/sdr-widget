@@ -166,7 +166,6 @@ void uac2_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
-	U16 sample_MSB_SB;	
 	S32 sample_L = 0;
 	S32 sample_R = 0; // BSB 20131102 Expanded for skip/insert, 20160322 changed to S32
 	const U8 EP_AUDIO_IN = ep_audio_in;
@@ -411,7 +410,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
 						
-					// Start of data insertion
+					// Start of data insertion 
+					// How can this process become faster?
 					
 					gpio_set_gpio_pin(AVR32_PIN_PX30); // Indicate copying ADC data from audio_buffer_X to USB IN
 
@@ -431,8 +431,12 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+
+								U16 balle1 = 0x1122;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 16, balle1);
+
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
@@ -454,8 +458,12 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Right stereo 24-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
+//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+
+								U16 balle2 = 0x1122;
+								Usb_write_endpoint_data(EP_AUDIO_IN, 16, balle2);
+
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
