@@ -166,9 +166,7 @@ void uac2_device_audio_task(void *pvParameters)
 	U8 sample_MSB;
 	U8 sample_SB;
 	U8 sample_LSB;
-
-	U16 sample_MSB_SB;		// For tyring 16-bit USB transfers...
-		
+	U16 sample_MSB_SB;	
 	S32 sample_L = 0;
 	S32 sample_R = 0; // BSB 20131102 Expanded for skip/insert, 20160322 changed to S32
 	const U8 EP_AUDIO_IN = ep_audio_in;
@@ -423,61 +421,47 @@ void uac2_device_audio_task(void *pvParameters)
 						if (!mute) {
 							if (ADC_buf_USB_IN == 0) {
 								sample_LSB = audio_buffer_0[index+IN_LEFT] >> 8;
-								
-								sample_MSB_SB = audio_buffer_0[index+IN_LEFT] >> 16;			// 16-bit number
-//								sample_SB = audio_buffer_0[index+IN_LEFT] >> 16;
-//								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 24;				// Treating audio_buffer_0/1 as 32-bit data...
+								sample_SB = audio_buffer_0[index+IN_LEFT] >> 16;
+								sample_MSB = audio_buffer_0[index+IN_LEFT] >> 24;				// Treating audio_buffer_0/1 as 32-bit data...
 							}
 							else {
 								sample_LSB = audio_buffer_1[index+IN_LEFT] >> 8;
-
-								sample_MSB_SB = audio_buffer_1[index+IN_LEFT] >> 16;			// 16-bit number
-//								sample_SB = audio_buffer_1[index+IN_LEFT] >> 16;
-//								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 24;
+								sample_SB = audio_buffer_1[index+IN_LEFT] >> 16;
+								sample_MSB = audio_buffer_1[index+IN_LEFT] >> 24;
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Left stereo 24-bit data
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-
-								Usb_write_endpoint_data(EP_AUDIO_IN, 16, sample_MSB_SB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Left stereo 16-bit data
-									Usb_write_endpoint_data(EP_AUDIO_IN, 16, sample_MSB_SB);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 								}
 							#endif
 
 							if (ADC_buf_USB_IN == 0) {
 								sample_LSB = audio_buffer_0[index+IN_RIGHT] >> 8;
-
-								sample_MSB_SB = audio_buffer_0[index+IN_RIGHT] >> 16;			// 16-bit number
-//								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 16;
-//								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 24;
+								sample_SB = audio_buffer_0[index+IN_RIGHT] >> 16;
+								sample_MSB = audio_buffer_0[index+IN_RIGHT] >> 24;
 							}
 							else {
 								sample_LSB = audio_buffer_1[index+IN_RIGHT] >> 8;
-
-								sample_MSB_SB = audio_buffer_1[index+IN_RIGHT] >> 16;			// 16-bit number
-//								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 16;
-//								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 24;
+								sample_SB = audio_buffer_1[index+IN_RIGHT] >> 16;
+								sample_MSB = audio_buffer_1[index+IN_RIGHT] >> 24;
 							}
 
 							if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Right stereo 24-bit data
 								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_LSB);
-
-								Usb_write_endpoint_data(EP_AUDIO_IN, 16, sample_MSB_SB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+								Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 							}
 							#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 								else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Right stereo 16-bit data
-									Usb_write_endpoint_data(EP_AUDIO_IN, 16, sample_MSB_SB);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
-//									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_SB);
+									Usb_write_endpoint_data(EP_AUDIO_IN, 8, sample_MSB);
 								}
 							#endif
 
