@@ -172,12 +172,6 @@ void uac2_device_audio_task(void *pvParameters)
 	// Trying to speed up ADC DMA to USB copy
 	uint32_t sample_left = 0; 					// Must be unsigned for zeros to be right-shifted into MSBs
 	uint32_t sample_right = 0;
-	uint8_t	L_LSB = 0;
-	uint8_t	L_SB = 0;
-	uint8_t	L_MSB = 0;
-	uint8_t	R_LSB = 0;
-	uint8_t	R_SB = 0;
-	uint8_t	R_MSB = 0;
 	
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
@@ -358,24 +352,7 @@ void uac2_device_audio_task(void *pvParameters)
 					// find out the current status of PDCA transfer
 					// gap is how far the ADC_buf_USB_IN is from overlapping ADC_buf_DMA_write
 
-
-// Starting to prepare for new consumer code, IN endpoint delivery while SPDIF may run...
-
-// ADC_site original-ish gap calculation
 /*
-					num_remaining = pdca_channel->tcr;
-					if (ADC_buf_DMA_write != ADC_buf_USB_IN) {
-						// AK and USB using same buffer
-						if ( index < (ADC_BUFFER_SIZE - num_remaining)) gap = ADC_BUFFER_SIZE - num_remaining - index;
-						else gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
-					}
-					else {
-						// usb and pdca working on different buffers
-						gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
-					}
-*/
-
-
 // FIX: is this code executed twice??
 					if ( gap < ADC_BUFFER_SIZE/2 ) {
 						// throttle back, transfer less
@@ -385,6 +362,7 @@ void uac2_device_audio_task(void *pvParameters)
 						// transfer more
 						num_samples_adc++;
 					}
+*/
 
 // Adoption of DAC side's buffered gap calculation
 					ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
@@ -418,13 +396,7 @@ void uac2_device_audio_task(void *pvParameters)
 						num_samples_adc++;
 					}
 
-
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
-						
-					// Start of data insertion 
-					// How can this process become faster?
-					// Using C union notation actually makes it a bit slower
-					// 16-bit USB transfers seem to mess up a whole lot
 					
 					gpio_set_gpio_pin(AVR32_PIN_PX30); // Indicate copying ADC data from audio_buffer_X to USB IN
 
@@ -463,36 +435,24 @@ void uac2_device_audio_task(void *pvParameters)
 							} // index rolled over
 						} // not muted
 
-						// Always LSB first, MSB last
-						
-						uint16_t balle;
-						
-						if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Stereo 24-bit data, least significant byte first
-							
-							balle = (uint16_t) ( (  ((sample_left >>  8) & 0xFF) << 8 ) | ((sample_left  >> 16) & 0xFF) );
-							Usb_write_endpoint_data(EP_AUDIO_IN, 16, balle);
-
-							balle = (uint16_t) ( ( ((sample_left  >> 24) & 0xFF) << 8 ) | ((sample_right >>  8) & 0xFF) );
-							Usb_write_endpoint_data(EP_AUDIO_IN, 16, balle);
-
-							balle = (uint16_t) ( ( ((sample_right >> 16) & 0xFF) << 8 ) | ((sample_right >> 24) & 0xFF) );
-							Usb_write_endpoint_data(EP_AUDIO_IN, 16, balle);
+						// Always LSB first, MSB last. Either as sequences of 8-bit transfers or as 16-bit transfers read left-to-right
+						if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Stereo 24-bit data, least significant byte first, left before right
+							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left  >>  8) & 0x00FF) << 8 ) | ((sample_left  >> 16) & 0x00FF) ));
+							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left  >> 24) & 0x00FF) << 8 ) | ((sample_right >>  8) & 0x00FF) ));
+							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_right >> 16) & 0x00FF) << 8 ) | ((sample_right >> 24) & 0x00FF) ));
 						}
-						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio REWRITE and VERIFY!
+						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio, MUST VERIFY!
 							else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Stereo 16-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t)(sample_left  >> 16) );
-								Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t)(sample_right >> 16) );
+								Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left  >> 16) & 0x00FF) << 8 ) | ( ((sample_left  >> 24) & 0x00FF) );
+								Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_right >> 16) & 0x00FF) << 8 ) | ( ((sample_right >> 24) & 0x00FF) );
 							}
 						#endif
 
-						
 					} // Data insertion for loop
-
 					
 // End of experimental code					
 					
 					gpio_clr_gpio_pin(AVR32_PIN_PX30);  // Indicate copying ADC data from audio_buffer_X to USB IN
-							
 
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				} // end Is_usb_in_ready(EP_AUDIO_IN)
