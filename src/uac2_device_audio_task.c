@@ -397,10 +397,6 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_IN);
-					
-					gpio_set_gpio_pin(AVR32_PIN_PX30); // Indicate copying ADC data from audio_buffer_X to USB IN
-
-// Start of experimental code
 
 					for( i=0 ; i < num_samples_adc ; i++ ) {
 						
@@ -409,7 +405,6 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_right = 0;
 						}
 						else {
-							
 							if (ADC_buf_USB_IN == 0) {
 								sample_left  = audio_buffer_0[index + IN_LEFT];
 								sample_right = audio_buffer_0[index + IN_RIGHT];
@@ -431,10 +426,10 @@ void uac2_device_audio_task(void *pvParameters)
 //									gpio_clr_gpio_pin(AVR32_PIN_PA22);
 //								}
 #endif
-								
 							} // index rolled over
 						} // not muted
 
+						// 3x 16-bit USB accesses are faster than 6x 8-bit accesses. Odd/even sequences of 32-bit plus 16-bit accesses are more complex and slower. See commit history
 						// Always LSB first, MSB last. Either as sequences of 8-bit transfers or as 16-bit transfers read left-to-right
 						// Left LSB is first right-shifted 8 bits, then AND'ed with 0x00FF, then left-shifted 8 bits. It is less costly to just AND out the bits without shifting
 						if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Stereo 24-bit data, least significant byte first, left before right
@@ -451,10 +446,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 					} // Data insertion for loop
 					
-// End of experimental code					
-					
-					gpio_clr_gpio_pin(AVR32_PIN_PX30);  // Indicate copying ADC data from audio_buffer_X to USB IN
-
 					Usb_send_in(EP_AUDIO_IN);		// send the current bank
 				} // end Is_usb_in_ready(EP_AUDIO_IN)
 			} 	// end alt setting 1 / 2
@@ -614,8 +605,7 @@ void uac2_device_audio_task(void *pvParameters)
 					else
 						num_samples = 0;											// Should never get here...
 
-
-					xSemaphoreTake( mutexSpkUSB, portMAX_DELAY );
+					xSemaphoreTake( mutexSpkUSB, portMAX_DELAY ); // Isn't this horribly time consuming? 
 					spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
 					spk_usb_sample_counter += num_samples; 	// track the num of samples received
 					xSemaphoreGive(mutexSpkUSB);
@@ -642,8 +632,6 @@ void uac2_device_audio_task(void *pvParameters)
 							num_remaining = spk_pdca_channel->tcr;
 						}
 						DAC_buf_OUT = DAC_buf_DMA_read_local;
-						// LED_Off(LED0);							// The LEDs on the PCB near the MCU
-						// LED_Off(LED1);
 
 #ifdef USB_STATE_MACHINE_GPIO
 //						if (DAC_buf_OUT == 1)
@@ -735,12 +723,43 @@ void uac2_device_audio_task(void *pvParameters)
 
 					silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
 					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
+					
+					uint16_t usb_16_0;
+					uint16_t usb_16_1;
+					uint16_t usb_16_2;
+					
 
 					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
 
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+
+							// Fewer USB transfers
+							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
+							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
+							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
+							
+							// Glue logic
+							sample_LSB = (uint8_t)(usb_16_0 >> 8);
+							sample_SB  = (uint8_t)(usb_16_0);
+							sample_MSB = (uint8_t)(usb_16_1 >> 8);
+							
+							// Transfer
+							sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); //  + sample_HSB; // bBitResolution
+							silence_det_L |= sample_L;
+
+							// Glue logic
+							sample_LSB = (uint8_t)(usb_16_1);
+							sample_SB  = (uint8_t)(usb_16_2 >> 8);
+							sample_MSB = (uint8_t)(usb_16_2);
+							
+							// Transfer
+							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
+							silence_det_R |= sample_R;
+
+/*
+
 							// 24-bit code
 //							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
 							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -755,6 +774,9 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
+							
+*/
+							
 						}
 						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
 							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
