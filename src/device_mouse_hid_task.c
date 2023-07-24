@@ -310,9 +310,11 @@ void device_mouse_hid_task(void)
 #ifdef HW_GEN_RXMOD
 
 // Reduced debug system
+		#ifdef USB_REDUCED_DEBUG
             else if (a == MCU_CHAR_ALIVE) {					// Uppercase 'L' - live detect
 	            print_cpu_char(CPU_CHAR_ALIVE);				// Answer with H for heartbeat
             }
+		#endif
 			
 // Normal debug system			
 			// Detect sample rate of I2S in
