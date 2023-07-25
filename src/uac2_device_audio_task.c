@@ -738,13 +738,12 @@ void uac2_device_audio_task(void *pvParameters)
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 
-
-							// Fewer USB transfers - not yet stable
+							// Fewer 16-bit USB transfers
 							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
 							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
 							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
 							
-							// Glue logic
+							// Glue logic - code is slower if these are unwrapped, pre-shifted and AND'ed 
 							sample_LSB = (uint8_t)(usb_16_0 >> 8);
 							sample_SB  = (uint8_t)(usb_16_0);
 							sample_MSB = (uint8_t)(usb_16_1 >> 8);
@@ -763,7 +762,7 @@ void uac2_device_audio_task(void *pvParameters)
 							silence_det_R |= sample_R;
 
 
-/*
+/* Old 8-bit USB transfers
 							// 24-bit code
 //							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
 							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
