@@ -738,7 +738,7 @@ void uac2_device_audio_task(void *pvParameters)
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 
-/*
+
 							// Fewer USB transfers - not yet stable
 							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
 							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
@@ -762,8 +762,8 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
 
-*/
 
+/*
 							// 24-bit code
 //							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
 							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -778,7 +778,8 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
-							
+*/
+
 						}
 						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
 							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
