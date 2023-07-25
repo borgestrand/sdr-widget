@@ -730,6 +730,9 @@ void uac2_device_audio_task(void *pvParameters)
 					
 
 					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
+					
+					// sample_L and sample_R are S32, as is needed for volume control
+					// sample_left and sample_right are U32, as is needed for logical shifting in ADC code. Merge the variables!!
 
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
@@ -741,33 +744,21 @@ void uac2_device_audio_task(void *pvParameters)
 							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
 							
 							// Glue logic
-//							sample_MSB = (uint8_t)(usb_16_1 >> 8);
-//							sample_SB  = (uint8_t)(usb_16_0);
-//							sample_LSB = (uint8_t)(usb_16_0 >> 8);
+							sample_LSB = (uint8_t)(usb_16_0 >> 8);
+							sample_SB  = (uint8_t)(usb_16_0);
+							sample_MSB = (uint8_t)(usb_16_1 >> 8);
 							
 							// Transfer
-							sample_L = 
-								((U32)(usb_16_1 << 16) & 0xFF000000) + 
-								((U32)(usb_16_0 << 16) & 0x00FF0000) + 
-								((U32)(usb_16_0      ) & 0x0000FF00) ;
-/*							sample_L = 
-								(((U32) sample_MSB) << 24) + 
-								(((U32) sample_SB)  << 16) + 
-								(((U32) sample_LSB) <<  8);
-*/							
+							sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); //  + sample_HSB; // bBitResolution
 							silence_det_L |= sample_L;
 
 							// Glue logic
-//							sample_LSB = (uint8_t)(usb_16_1);
-//							sample_SB  = (uint8_t)(usb_16_2 >> 8);
-//							sample_MSB = (uint8_t)(usb_16_2);
+							sample_LSB = (uint8_t)(usb_16_1);
+							sample_SB  = (uint8_t)(usb_16_2 >> 8);
+							sample_MSB = (uint8_t)(usb_16_2);
 							
 							// Transfer
-							sample_R =
-								((U32)(usb_16_2 << 24) & 0xFF000000) +
-								((U32)(usb_16_2 <<  8) & 0x00FF0000) +
-								((U32)(usb_16_1 <<  8) & 0x0000FF00) ;
-
+							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
 
 /*
@@ -787,8 +778,7 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
 							
-*/
-							
+*/							
 						}
 						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
 							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
