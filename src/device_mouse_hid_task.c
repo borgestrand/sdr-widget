@@ -309,23 +309,41 @@ void device_mouse_hid_task(void)
 
 #ifdef HW_GEN_RXMOD
 
-// Reduced debug system
-		#ifdef USB_REDUCED_DEBUG
+// Also available in reduced debug system
             else if (a == MCU_CHAR_ALIVE) {					// Uppercase 'L' - live detect
 	            print_cpu_char(CPU_CHAR_ALIVE);				// Answer with H for heartbeat
             }
-		#endif
 			
-// Normal debug system			
 			// Detect sample rate of I2S in
-			else if (a == 's') {							// Lowercase s
+			else if (a == MCU_CHAR_SPRATE) {				// Lowercase 's'
 				temp32 = mobo_srd();
-				print_dbg_char_hex(temp32);
-				print_dbg_char_hex(temp32 >> 8);
-				print_dbg_char_hex(temp32 >> 16);
-				print_dbg_char_hex(temp32 >> 24);
+				print_cpu_char_hex(temp32 >> 24);			// MSB in 32-bit fixed-point number
+				print_cpu_char_hex(temp32 >> 16);
+				print_cpu_char_hex(temp32 >> 8);
+				print_cpu_char_hex(temp32);					// LSB in 32-bit fixed-point number
+				print_cpu_char('\n');
 			}
 
+			// Detect sample rate of I2S in
+			else if (a == MCU_CHAR_FBRATE) {				// Lowercase 'f'
+				print_cpu_char_hex(FB_rate >> 24);			// MSB in 32-bit fixed-point number - not transmitted in UAC2 / Full Speed
+				print_cpu_char_hex(FB_rate >> 16);			// MSB in 24-bit fixed-point number. Sample rate in kHz sent in 10.14 format
+				print_cpu_char_hex(FB_rate >> 8);
+				print_cpu_char_hex(FB_rate);				// LSB in 24-bit or 32-bit fixed-point number
+				print_cpu_char('\n');
+			}
+
+			// Increase feedback rate 
+			else if (a == MCU_CHAR_RATEUP) {				// Uppercase 'U'
+				FB_rate += 64;								// Replicated FB_RATE_DELTA from Uac2_device_audio_task.c
+			}
+
+			// Increase feedback rate
+			else if (a == MCU_CHAR_RATEDOWN) {				// Lowercase 'u'
+				FB_rate -= 64;								// Replicated FB_RATE_DELTA from Uac2_device_audio_task.c
+			}
+
+// Normal debug system
             else if (a == '0') {							// Digit 0
 	            // usb_ch = USB_CH_NONE;
 				usb_ch = USB_CH_DEACTIVATE;					// Debugging disconnected USB cable

@@ -633,12 +633,13 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						DAC_buf_OUT = DAC_buf_DMA_read_local;
 
-#ifdef USB_STATE_MACHINE_GPIO
-//						if (DAC_buf_OUT == 1)
-//							gpio_set_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-//						else
-//							gpio_clr_gpio_pin(AVR32_PIN_PX30); 	// BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-#endif
+						if (DAC_buf_OUT == 1) {
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
+						}
+						else {
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+						}
+									
 						spk_index = DAC_BUFFER_SIZE - num_remaining;
 						spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 
@@ -879,14 +880,13 @@ void uac2_device_audio_task(void *pvParameters)
 									spk_index = 0;
 									DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-	#ifdef USB_STATE_MACHINE_GPIO
-//									if (DAC_buf_OUT == 1) {
-//										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-//									}
-//									else {
-//										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-//									}
-	#endif
+									if (DAC_buf_OUT == 1) {
+										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+									else {
+										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+
 									// BSB 20131201 attempting improved playerstarted detection
 									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
 								}
@@ -1027,6 +1027,9 @@ void uac2_device_audio_task(void *pvParameters)
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('/');
 	#endif
+	#ifdef USB_REDUCED_DEBUG
+										print_cpu_char(CPU_CHAR_DECDEC_FREQ);
+	#endif
 									}
 									else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
 										FB_rate -= FB_RATE_DELTA;
@@ -1036,6 +1039,10 @@ void uac2_device_audio_task(void *pvParameters)
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('-');
 	#endif
+	#ifdef USB_REDUCED_DEBUG
+										print_cpu_char(CPU_CHAR_DEC_FREQ); 
+	#endif
+
 									}
 									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
 										// LED_Off(LED0);
@@ -1051,6 +1058,9 @@ void uac2_device_audio_task(void *pvParameters)
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('*');
 	#endif
+	#ifdef USB_REDUCED_DEBUG
+										print_cpu_char(CPU_CHAR_INCINC_FREQ); 
+	#endif
 									}
 									else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
 										FB_rate += FB_RATE_DELTA;
@@ -1060,6 +1070,10 @@ void uac2_device_audio_task(void *pvParameters)
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('+'); 
 	#endif
+	#ifdef USB_REDUCED_DEBUG
+										print_cpu_char(CPU_CHAR_INC_FREQ); 
+	#endif
+		
 									}
 									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
 										// LED_Off(LED0);

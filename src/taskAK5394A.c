@@ -161,24 +161,20 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		DAC_buf_DMA_read = 1;
 
 
-#ifdef USB_STATE_MACHINE_GPIO
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-//		gpio_set_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
-#endif
+		gpio_set_gpio_pin(AVR32_PIN_PX33);
 #endif
 	}
 	else if (DAC_buf_DMA_read == 1) {
 		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 		DAC_buf_DMA_read = 0;
 
-#ifdef USB_STATE_MACHINE_GPIO
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-//		gpio_clr_gpio_pin(AVR32_PIN_PX33); // BSB 20140820 debug on GPIO_09/TP70 (was PX56 / GPIO_04)
-#endif
+		gpio_clr_gpio_pin(AVR32_PIN_PX33);
 #endif
 	}
 

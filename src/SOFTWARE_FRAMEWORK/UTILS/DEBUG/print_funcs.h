@@ -308,6 +308,12 @@ extern void print_dbg_char(int c);
  */
 extern void print_cpu_char(int c);
 
+/*! \brief Prints a hex number to CPU when present
+ *
+ * \param n The hex number to print.
+ */
+void print_cpu_char_hex(unsigned char n);
+
 /*! \brief Prints an integer to DBG_USART in a decimal representation.
  *
  * \param n The integer to print.

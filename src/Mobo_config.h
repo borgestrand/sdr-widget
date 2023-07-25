@@ -33,8 +33,7 @@ void mobo_clear_adc_channel(void);
 void mobo_clear_dac_channel(void);
 
 
-// Commands to and from CPU
-#ifdef USB_REDUCED_DEBUG
+// Commands to and from CPU, primarily used with #ifdef USB_REDUCED_DEBUG
 #define CPU_CHAR_BOOT				'H'	// MCU boots up
 #define CPU_CHAR_IDLE				'0'	// MCU reports no input
 #define CPU_CHAR_SPDIF0				's'	// MCU reports that SPDIF0 is input
@@ -54,12 +53,20 @@ void mobo_clear_dac_channel(void);
 #define CPU_CHAR_192				'6' // MCU requests oscillator for 192ksps and outputs on that rate
 #define CPU_CHAR_REGEN				'X' // MCU requests regenerated clock from SPDIF/TOSLINK receiver. Probably outputs on last reported rate ('1'-'6')
 #define CPU_CHAR_RATE_DEF			'Y' // MCU rate request is unknown
+#define CPU_CHAR_INC_FREQ			'+' // MCU requests increased sample rate from Host
+#define CPU_CHAR_DEC_FREQ			'-' // MCU requests increased sample rate from Host
+#define CPU_CHAR_INCINC_FREQ		'*' // MCU intensely requests increased sample rate from Host
+#define CPU_CHAR_DECDEC_FREQ		'/' // MCU intensely requests increased sample rate from Host
 #define CPU_CHAR_ALIVE				'l' // MCU is alive
 #define MCU_CHAR_SI_ENABLE			'I' // CPU instructs MCU to enable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
 #define MCU_CHAR_SI_DISABLE			'i' // CPU instructs MCU to disable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
 #define MCU_CHAR_RESET				'R'	// CPU resets MCU over UART
 #define MCU_CHAR_ALIVE				'L' // CPU asks MCU if it is alive
-#endif
+#define MCU_CHAR_SPRATE				's' // CPU asks MCU about sample rate on SPDIF/TOSLINK receiver - response is rate in Hz as 32-bit signed, then \n
+#define MCU_CHAR_FBRATE				'f' // CPU asks MCU about feedback sample rate in USB playback - response is rate in kHz left-shifted 14 positions, as 32-bit signed, then \n
+#define MCU_CHAR_RATEUP				'U' // CPU asks MCU to increase feedback rate by 64 = FB_RATE_DELTA
+#define MCU_CHAR_RATEDOWN			'u' // CPU asks MCU to increase feedback rate by 64 = FB_RATE_DELTA
+
 
 #ifdef HW_GEN_RXMOD
 // USB multiplexer definitions

@@ -225,10 +225,15 @@ void print_dbg_char(int c)
 // Special write to internal CPU (when present) that replaces UART debug system
 void print_cpu_char(int c)
 {
-  #ifdef USB_REDUCED_DEBUG
 	// Redirection to the debug USART.
 	print_char(DBG_USART, c);
-  #endif
+}
+
+// Special write to internal CPU (when present) that replaces UART debug system
+void print_cpu_char_hex(unsigned char n)
+{
+	// Redirection to the debug USART.
+	print_char_hex(DBG_USART, n);
 }
 
 

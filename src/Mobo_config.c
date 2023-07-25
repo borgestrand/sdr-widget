@@ -1278,6 +1278,7 @@ void mobo_handle_spdif(uint8_t width) {
 							spk_index -= DAC_BUFFER_SIZE;
 							DAC_buf_OUT = 1 - DAC_buf_OUT;
 
+
 #ifdef USB_STATE_MACHINE_DEBUG
 //							if (DAC_buf_OUT == 1)
 //								gpio_set_gpio_pin(AVR32_PIN_PX30);
