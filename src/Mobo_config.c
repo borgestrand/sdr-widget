@@ -1475,20 +1475,21 @@ void mobo_clock_division(U32 frequency) {
 	static U32 prev_frequency = FREQ_INVALID;
 
 	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
-		#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
-			// RXMODFIX implement clock division and config pin
-		#else
-			gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
-		#endif
+		
+/* 20230930: Clock division option re-introduced in HW_GEN_RXMOD. NBNBNB Detect pin polarity is the opposite from that of AB-1.2 series. FMADC has no division!*/
+		
+		gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
 	
 		pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-		#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)		// RXMODFIX implement clock division and config pin
-			if (0) {
+		#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
+			// RXMOD: Pulling down PA03 indicates division. Floating indicates NO division.
+			if (gpio_get_pin_value(AVR32_PIN_PA03) == 0) {
 		#else
-			// External /2 variety, unmodded hardware with floating, pulled-up PA03 interpreted as 1
+			// AB-1.2, USB DAC 128: Pulling down PA03 indicates NO division. Floating indicates division.
 			if (gpio_get_pin_value(AVR32_PIN_PA03) == 1) {
 		#endif
+		
 				switch (frequency) {
 					case FREQ_192 :
 						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
@@ -1541,8 +1542,8 @@ void mobo_clock_division(U32 frequency) {
 				}
 			}
 
-		// No external /2 variety, modded hardware with resistor tying PA03 to 0
-		else {	// HW_GEN_RXMOD and HW_GEN_FMADC only follow this branch
+		// No external /2 variety
+		else {
 			switch (frequency) {
 				case FREQ_192 :
 					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
@@ -1595,7 +1596,7 @@ void mobo_clock_division(U32 frequency) {
 			}
 		}
 
-		gpio_disable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
+		gpio_disable_pin_pull_up(AVR32_PIN_PA03);	// Free up the pin again
 
 		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
