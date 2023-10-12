@@ -745,7 +745,7 @@ uint8_t cachecounter = 0;
 
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
-						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+//						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 
 							// Fewer 16-bit USB transfers
 							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
@@ -788,8 +788,8 @@ uint8_t cachecounter = 0;
 							silence_det_R |= sample_R;
 */
 
-						}
-						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
+//						}
+/*						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
 							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
 								// 16-bit code
 								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
@@ -803,6 +803,7 @@ uint8_t cachecounter = 0;
 								silence_det_R |= sample_R;
 							}
 						#endif			
+*/
 						
 // Site of moved silence detection code
 						
