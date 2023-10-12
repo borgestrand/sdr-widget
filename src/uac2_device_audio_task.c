@@ -752,21 +752,21 @@ uint8_t cachecounter = 0;
 							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
 							
 							// Glue logic - code is slower if these are unwrapped, pre-shifted and AND'ed 
-							sample_LSB = (uint8_t)(usb_16_0 >> 8);
-							sample_SB  = (uint8_t)(usb_16_0);
-							sample_MSB = (uint8_t)(usb_16_1 >> 8);
+							// sample_LSB = (uint8_t)(usb_16_0 >> 8);
+							// sample_SB  = (uint8_t)(usb_16_0);
+							// sample_MSB = (uint8_t)(usb_16_1 >> 8);
 							
 							// Transfer
-							sample_L = (((U32) sample_MSB) << 24) + (((U32) sample_SB) << 16) + (((U32) sample_LSB) << 8); //  + sample_HSB; // bBitResolution
+							sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
 							silence_det_L |= sample_L;
 
 							// Glue logic
-							sample_LSB = (uint8_t)(usb_16_1);
-							sample_SB  = (uint8_t)(usb_16_2 >> 8);
-							sample_MSB = (uint8_t)(usb_16_2);
+							// sample_LSB = (uint8_t)(usb_16_1);
+							// sample_SB  = (uint8_t)(usb_16_2 >> 8);
+							// sample_MSB = (uint8_t)(usb_16_2);
 							
 							// Transfer
-							sample_R = (((U32) sample_MSB) << 24) + (((U32) sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
+							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
 
 
