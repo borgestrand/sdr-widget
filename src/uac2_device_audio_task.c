@@ -735,6 +735,13 @@ void uac2_device_audio_task(void *pvParameters)
 					// sample_L and sample_R are S32, as is needed for volume control
 					// sample_left and sample_right are U32, as is needed for logical shifting in ADC code. Merge the variables!!
 
+// Start new code for skip/insert
+#define MAX_SAMPLES 60
+S32 cache_L[MAX_SAMPLES];
+S32 cache_R[MAX_SAMPLES];
+uint8_t cachecounter = 0;
+// End new code for skip/insert
+
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
@@ -861,6 +868,63 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 	#endif
 
+// Start new code experimenting with cache
+
+						if (cachecounter < MAX_SAMPLES) {
+							cache_L[cachecounter] = sample_L; 
+							cache_R[cachecounter] = sample_R;
+							cachecounter ++;
+						}
+
+					} // end for num_samples
+						
+cachecounter = 0;
+					for (i = 0; i < num_samples; i++) {
+
+						if (cachecounter < MAX_SAMPLES) {
+							sample_L = cache_L[cachecounter];
+							sample_R = cache_R[cachecounter];
+							cachecounter ++;
+						}
+
+
+						// Only write to spk_buffer_? when allowed
+						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
+							if (dac_must_clear == DAC_READY) {
+								if (DAC_buf_OUT == 0) {
+									spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+									spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+								}
+								else {
+									spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+									spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+								}
+							}
+
+							spk_index += 2;
+							if (spk_index >= DAC_BUFFER_SIZE) {
+								spk_index = 0;
+								DAC_buf_OUT = 1 - DAC_buf_OUT;
+
+								if (DAC_buf_OUT == 1) {
+									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+								}
+								else {
+									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+								}
+
+								// BSB 20131201 attempting improved playerstarted detection
+								usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+							} // End switching buffers
+						}
+					} // end for num_samples
+					
+					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
+
+// End new code experimenting with cache
+
+/* Start of old code writing directly to spk_buffer_?, with primitive skip-insert based on samples_to_transfer_OUT
+
 						// Only write to spk_buffer_? when allowed
 						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
 							while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
@@ -889,21 +953,14 @@ void uac2_device_audio_task(void *pvParameters)
 
 									// BSB 20131201 attempting improved playerstarted detection
 									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-								}
+								} // End switching buffers
 							}
 						}
 						samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 					} // end for num_samples
 					
 					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
-
-
-/*
-					// The silence detector detects the correct arrival of samples
-					if (silence_det_L != 0)
-						print_dbg_char('l');
-					if (silence_det_R != 0)
-						print_dbg_char('r');
+End of old code writing directly to spk_buffer_?, with primitive skip-insert
 */
 
 
