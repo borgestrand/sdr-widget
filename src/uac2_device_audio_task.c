@@ -207,7 +207,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
-		gpio_set_gpio_pin(AVR32_PIN_PA22); // Start of task execution
+		gpio_set_gpio_pin(AVR32_PIN_PA22); // Start of task execution = TP_TP18 on SPRX rev. B
 		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents? 
