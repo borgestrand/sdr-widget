@@ -766,7 +766,7 @@ uint8_t cache_USB_counter = 0;
 
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 						for (i = 0; i < num_samples*3; i++) {	// NB: we're spinning the loop 3x as many times!
-							cache_USB_OUT[cache_USB_counter++] = usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);
+							cache_USB_OUT[cache_USB_counter++] = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);
 						}
 					}
 
