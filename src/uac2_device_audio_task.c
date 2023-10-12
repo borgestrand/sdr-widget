@@ -742,14 +742,22 @@ S32 cache_R[MAX_SAMPLES];
 uint8_t cachecounter = 0;
 // End new code for skip/insert
 
+
+uint32_t usb_32_0;
+
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 
 							// Fewer 16-bit USB transfers
-							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
-							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
+//							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
+//							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
+
+							usb_32_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 32);	// L LSB, L SB, L MSB, R LSB 
 							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
+							
+							usb_16_0 = usb_32_0 >> 16;
+							usb_16_1 = usb_32_0;
 							
 							// Glue logic - code is slower if these are unwrapped, pre-shifted and AND'ed 
 							// sample_LSB = (uint8_t)(usb_16_0 >> 8);
