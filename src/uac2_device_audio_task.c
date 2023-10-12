@@ -763,7 +763,7 @@ uint8_t cache_USB_counter = 0;
 
 					cache_USB_counter = 0;
 					// bBitResolution
-					num_samples = min(num_samples, MAX_8_BIT_USB_WORDS/6); // To prevent overshoot of cache_USB_OUT
+					//num_samples = min(num_samples, MAX_8_BIT_USB_WORDS/6); // To prevent overshoot of cache_USB_OUT
 
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 						for (i = 0; i < num_samples*6; i++) {	// NB: we're spinning the loop 6x as many times!
@@ -773,7 +773,7 @@ uint8_t cache_USB_counter = 0;
 
 
 					cache_USB_counter = 0;
-					num_samples = min(num_samples, MAX_8_BIT_USB_WORDS/6); // To prevent overshoot of cache_USB_OUT
+					//num_samples = min(num_samples, MAX_8_BIT_USB_WORDS/6); // To prevent overshoot of cache_USB_OUT
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
