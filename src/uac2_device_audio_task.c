@@ -740,118 +740,114 @@ void uac2_device_audio_task(void *pvParameters)
 #define MAX_SAMPLES 60
 S32 cache_L[MAX_SAMPLES];
 S32 cache_R[MAX_SAMPLES];
-uint8_t cachecounter = 0;
 // End new code for skip/insert
 
-						// Test usb alt setting once outside for loop, use tight loops into cache
+					// Test usb alt setting once outside for loop, use tight loops into cache
 
-						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+						num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
+						for (i = 0; i < num_samples; i++) {
+
+							// Fewer 16-bit USB transfers
+							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
+							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
+							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
+							
+							// Glue logic - built in now
+							// sample_LSB = (uint8_t)(usb_16_0 >> 8);
+							// sample_SB  = (uint8_t)(usb_16_0);
+							// sample_MSB = (uint8_t)(usb_16_1 >> 8);
+							
+							// Transfer
+							sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
+							silence_det_L |= sample_L;
+
+							// Glue logic - built in now
+							// sample_LSB = (uint8_t)(usb_16_1);
+							// sample_SB  = (uint8_t)(usb_16_2 >> 8);
+							// sample_MSB = (uint8_t)(usb_16_2);
+							
+							// Transfer
+							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
+							silence_det_R |= sample_R;
+
+							cache_L[i] = sample_L;
+							cache_R[i] = sample_R;
+						} // end for num_samples
+
+					} // end if alt setting 1
+
+
+
+					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
+						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
 							num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
 							for (i = 0; i < num_samples; i++) {
 
-								// Fewer 16-bit USB transfers
-								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
-								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
-								usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
-							
-								// Glue logic - built in now
-								// sample_LSB = (uint8_t)(usb_16_0 >> 8);
-								// sample_SB  = (uint8_t)(usb_16_0);
-								// sample_MSB = (uint8_t)(usb_16_1 >> 8);
-							
-								// Transfer
-								sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
+								// 16-bit code
+								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
 								silence_det_L |= sample_L;
 
-								// Glue logic - built in now
-								// sample_LSB = (uint8_t)(usb_16_1);
-								// sample_SB  = (uint8_t)(usb_16_2 >> 8);
-								// sample_MSB = (uint8_t)(usb_16_2);
-							
-								// Transfer
-								sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
+								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+								sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
 								silence_det_R |= sample_R;
 
 								cache_L[i] = sample_L;
 								cache_R[i] = sample_R;
 							} // end for num_samples
 
-						} // end if alt setting
-
-
-
-						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
-							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
-								num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
-								for (i = 0; i < num_samples; i++) {
-
-									// 16-bit code
-									sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-									sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-									sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
-									silence_det_L |= sample_L;
-
-									sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-									sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-									sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
-									silence_det_R |= sample_R;
-
-									cache_L[i] = sample_L;
-									cache_R[i] = sample_R;
-								} // end for num_samples
-
-							} // end if alt setting
-						#endif
+						} // end if alt setting 2
+					#endif
 						
 						
-						// Moved to outside for loop
+					// Moved to outside for loop
 
-						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )	// What does this test really do???
-							silence_det = 1;
-						else
-							silence_det = 0;
+					if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )	// What does this test really do???
+						silence_det = 1;
+					else
+						silence_det = 0;
 
-						// New site for setting playerStarted and aligning buffers
-						if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
-							#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
-								#ifdef USB_STATE_MACHINE_DEBUG
-									print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
-									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
-										print_dbg_char('[');
-										input_select = MOBO_SRC_UAC2;
+					// New site for setting playerStarted and aligning buffers
+					if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
+						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+							#ifdef USB_STATE_MACHINE_DEBUG
+								print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
+								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
+									print_dbg_char('[');
+									input_select = MOBO_SRC_UAC2;
 
-										#ifdef USB_REDUCED_DEBUG
-											if (usb_ch == USB_CH_B) {
-												print_cpu_char(CPU_CHAR_UAC2_B);		// USB audio Class 2 on rear USB-B plug 
-											}
-											else if (usb_ch == USB_CH_C) {
-												print_cpu_char(CPU_CHAR_UAC2_C);		// USB audio Class 2 on front USB-C plug
-											}
-										#endif
+									#ifdef USB_REDUCED_DEBUG
+										if (usb_ch == USB_CH_B) {
+											print_cpu_char(CPU_CHAR_UAC2_B);		// USB audio Class 2 on rear USB-B plug 
+										}
+										else if (usb_ch == USB_CH_C) {
+											print_cpu_char(CPU_CHAR_UAC2_C);		// USB audio Class 2 on front USB-C plug
+										}
+									#endif
 																				
-										mobo_led_select(current_freq.frequency, input_select);
-										#ifdef HW_GEN_RXMOD 
-											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
-										#endif
-									}													// Hopefully, this code won't be called repeatedly. Would there be time??
-									else
-										print_dbg_char(']');
-								#else // not debug
-									if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
-										input_select = MOBO_SRC_UAC2;
-										mobo_led_select(current_freq.frequency, input_select);
-										#ifdef HW_GEN_RXMOD 
-											mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
-										#endif
-								#endif
-							#else // not HW_GEN_RXMOD		// No WM8804, take control
-								input_select = MOBO_SRC_UAC2;
+									mobo_led_select(current_freq.frequency, input_select);
+									#ifdef HW_GEN_RXMOD 
+										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
+									#endif
+								}													// Hopefully, this code won't be called repeatedly. Would there be time??
+								else
+									print_dbg_char(']');
+							#else // not debug
+								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
+									input_select = MOBO_SRC_UAC2;
+									mobo_led_select(current_freq.frequency, input_select);
+									#ifdef HW_GEN_RXMOD 
+										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
+									#endif
 							#endif
-						} // End silence_det == 0 & MOBO_SRC_NONE
+						#else // not HW_GEN_RXMOD		// No WM8804, take control
+							input_select = MOBO_SRC_UAC2;
+						#endif
+					} // End silence_det == 0 & MOBO_SRC_NONE
 
-
-						
-cachecounter = 0;
 
 					num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
 
