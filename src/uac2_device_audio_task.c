@@ -755,49 +755,43 @@ End old-ish code with 16-bit transfers */
 
 
 // Begin new code with cached USB transfers
-#define MAX_16_BIT_USB_WORDS 180 // 60 stereo samples in one package, 6 bytes or 3 16-bit words per stereo sample
-S16 cache_USB_OUT[MAX_16_BIT_USB_WORDS]; 
+#define MAX_8_BIT_USB_WORDS 360 // 60 stereo samples in one package, 6 bytes or 3 16-bit words per stereo sample
+S8 cache_USB_OUT[MAX_8_BIT_USB_WORDS]; 
+S8 usb_8[6];
 uint8_t cache_USB_counter = 0;
 
 
 					cache_USB_counter = 0;
 					// bBitResolution
-					num_samples = min(num_samples, MAX_16_BIT_USB_WORDS/3); // To prevent overshoot of cache_USB_OUT
+					num_samples = min(num_samples, MAX_8_BIT_USB_WORDS/6); // To prevent overshoot of cache_USB_OUT
 
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
-						for (i = 0; i < num_samples*3; i++) {	// NB: we're spinning the loop 3x as many times!
-							cache_USB_OUT[cache_USB_counter++] = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);
+						for (i = 0; i < num_samples*6; i++) {	// NB: we're spinning the loop 6x as many times!
+							cache_USB_OUT[cache_USB_counter++] = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 						}
 					}
 
 
 					cache_USB_counter = 0;
-					num_samples = min(num_samples, MAX_16_BIT_USB_WORDS/3); // To prevent overshoot of cache_USB_OUT
+					num_samples = min(num_samples, MAX_8_BIT_USB_WORDS/6); // To prevent overshoot of cache_USB_OUT
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 
 							// Fewer 16-bit USB transfers
-							usb_16_0 = cache_USB_OUT[cache_USB_counter++];			// L LSB, L SB
-							usb_16_1 = cache_USB_OUT[cache_USB_counter++];			// L MSB, R LSB
-							usb_16_2 = cache_USB_OUT[cache_USB_counter++];			// R SB,  R MSB
-							
-							// Glue logic - code is slower if these are unwrapped, pre-shifted and AND'ed 
-							sample_LSB = (uint8_t)(usb_16_0 >> 8);
-							sample_SB  = (uint8_t)(usb_16_0);
-							sample_MSB = (uint8_t)(usb_16_1 >> 8);
+							usb_8[0] = cache_USB_OUT[cache_USB_counter++];			// L LSB
+							usb_8[1] = cache_USB_OUT[cache_USB_counter++];			// L SB
+							usb_8[2] = cache_USB_OUT[cache_USB_counter++];			// L MSB
+							usb_8[3] = cache_USB_OUT[cache_USB_counter++];			// R LSB
+							usb_8[4] = cache_USB_OUT[cache_USB_counter++];			// R SB
+							usb_8[5] = cache_USB_OUT[cache_USB_counter++];			// R MSB 
 							
 							// Transfer
-							sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); //  + sample_HSB; // bBitResolution
+							sample_L = (((U32) usb_8[2]) << 24) + (((U32) usb_8[1]) << 16) + (((U32) usb_8[0]) << 8); //  + sample_HSB; // bBitResolution
 							silence_det_L |= sample_L;
 
-							// Glue logic
-							sample_LSB = (uint8_t)(usb_16_1);
-							sample_SB  = (uint8_t)(usb_16_2 >> 8);
-							sample_MSB = (uint8_t)(usb_16_2);
-							
 							// Transfer
-							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
+							sample_R = (((U32) usb_8[5]) << 24) + (((U32) usb_8[4]) << 16) + (((U32) usb_8[3]) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
 
 
