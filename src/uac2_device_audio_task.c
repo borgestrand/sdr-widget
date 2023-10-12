@@ -742,6 +742,7 @@ S32 cache_R[MAX_SAMPLES];
 uint8_t cachecounter = 0;
 // End new code for skip/insert
 
+/* Begin old-ish code with direct 16-bit transfers
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
@@ -750,6 +751,36 @@ uint8_t cachecounter = 0;
 							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
 							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
 							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
+End old-ish code with 16-bit transfers */
+
+
+// Begin new code with cached USB transfers
+#define MAX_16_BIT_USB_WORDS 180 // 60 stereo samples in one package, 6 bytes or 3 16-bit words per stereo sample
+S16 cache_USB_OUT[MAX_16_BIT_USB_WORDS]; 
+uint8_t cache_USB_counter = 0;
+
+
+					cache_USB_counter = 0;
+					// bBitResolution
+					num_samples = min(num_samples, MAX_16_BIT_USB_WORDS/3); // To prevent overshoot of cache_USB_OUT
+
+					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+						for (i = 0; i < num_samples*3; i++) {	// NB: we're spinning the loop 3x as many times!
+							cache_USB_OUT[cache_USB_counter++] = usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);
+						}
+					}
+
+
+					cache_USB_counter = 0;
+					num_samples = min(num_samples, MAX_16_BIT_USB_WORDS/3); // To prevent overshoot of cache_USB_OUT
+					for (i = 0; i < num_samples; i++) {
+						// bBitResolution
+						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+
+							// Fewer 16-bit USB transfers
+							usb_16_0 = cache_USB_OUT[cache_USB_counter++];			// L LSB, L SB
+							usb_16_1 = cache_USB_OUT[cache_USB_counter++];			// L MSB, R LSB
+							usb_16_2 = cache_USB_OUT[cache_USB_counter++];			// R SB,  R MSB
 							
 							// Glue logic - code is slower if these are unwrapped, pre-shifted and AND'ed 
 							sample_LSB = (uint8_t)(usb_16_0 >> 8);
@@ -803,11 +834,6 @@ uint8_t cachecounter = 0;
 							}
 						#endif			
 						
-						#define a AA
-						#define b BB
-						#define c CC
-						#error TPASTE3(a, b, c)			
-
 						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
 							silence_det = 1;
 						else
