@@ -407,15 +407,15 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						else {
 							if (ADC_buf_USB_IN == 0) {
-								sample_left  = audio_buffer_0[index++];  // Was [index + IN_LEFT]; 
+								sample_left  = audio_buffer_0[index++]; // Was [index + IN_LEFT]; 
 								sample_right = audio_buffer_0[index++]; // Was [index + IN_RIGHT];
 							}
 							else if (ADC_buf_USB_IN == 1) {
-								sample_left  = audio_buffer_1[index++];
-								sample_right = audio_buffer_1[index++];
+								sample_left  = audio_buffer_1[index++]; // Was [index + IN_LEFT]; 
+								sample_right = audio_buffer_1[index++]; // Was [index + IN_RIGHT];
 							}
-						
 							// Was: index += 2;
+
 							if (index >= ADC_BUFFER_SIZE) {
 								index = 0;
 								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
@@ -804,7 +804,11 @@ uint8_t cachecounter = 0;
 							}
 						#endif			
 						
-						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
+// Site of moved silence detection code
+						
+						
+// Start of moved silence detection code - try to do it only once per packet, not once per stereo sample!
+						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )	// What does this really do???
 							silence_det = 1;
 						else
 							silence_det = 0;
@@ -845,7 +849,8 @@ uint8_t cachecounter = 0;
 							#else // not HW_GEN_RXMOD		// No WM8804, take control
 								input_select = MOBO_SRC_UAC2;
 							#endif
-						}
+						} // End silence_det == 0 & MOBO_SRC_NONE
+// End of moved silence detection code
 
 	#ifdef FEATURE_VOLUME_CTRL
 						if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
@@ -893,16 +898,16 @@ cachecounter = 0;
 						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
 							if (dac_must_clear == DAC_READY) {
 								if (DAC_buf_OUT == 0) {
-									spk_buffer_0[spk_index++] = sample_L;  // Was: [spk_index+OUT_LEFT]
+									spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
 									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
 								else {
-									spk_buffer_1[spk_index++] = sample_L;
-									spk_buffer_1[spk_index++] = sample_R;
+									spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
 							}
-
 							// Was: spk_index += 2;
+							
 							if (spk_index >= DAC_BUFFER_SIZE) {
 								spk_index = 0;
 								DAC_buf_OUT = 1 - DAC_buf_OUT;
