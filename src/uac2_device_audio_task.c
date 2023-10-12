@@ -867,7 +867,7 @@ uint8_t cachecounter = 0;
 							}
 						}
 	#endif
-
+/*
 // Start new code experimenting with cache
 
 						if (cachecounter < MAX_SAMPLES) {
@@ -886,7 +886,7 @@ cachecounter = 0;
 							sample_R = cache_R[cachecounter];
 							cachecounter ++;
 						}
-
+*/
 
 						// Only write to spk_buffer_? when allowed
 						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
