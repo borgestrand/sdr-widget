@@ -184,6 +184,7 @@ void uac2_device_audio_task(void *pvParameters)
 	int ADC_buf_DMA_write_temp = 0;				// Local copy read in atomic operations
 	
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
+	/* The use of this code is disregarded to try to save time
 	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 		#define IN_LEFT 0
 		#define IN_RIGHT 1
@@ -195,7 +196,7 @@ void uac2_device_audio_task(void *pvParameters)
 		const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
 		const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 	#endif
-
+    */
 
 
 
@@ -406,15 +407,15 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 						else {
 							if (ADC_buf_USB_IN == 0) {
-								sample_left  = audio_buffer_0[index + IN_LEFT];
-								sample_right = audio_buffer_0[index + IN_RIGHT];
+								sample_left  = audio_buffer_0[index++];  // Was [index + IN_LEFT]; 
+								sample_right = audio_buffer_0[index++]; // Was [index + IN_RIGHT];
 							}
 							else if (ADC_buf_USB_IN == 1) {
-								sample_left  = audio_buffer_1[index + IN_LEFT];
-								sample_right = audio_buffer_1[index + IN_RIGHT];
+								sample_left  = audio_buffer_1[index++];
+								sample_right = audio_buffer_1[index++];
 							}
 						
-							index += 2;
+							// Was: index += 2;
 							if (index >= ADC_BUFFER_SIZE) {
 								index = 0;
 								ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
@@ -742,24 +743,16 @@ S32 cache_R[MAX_SAMPLES];
 uint8_t cachecounter = 0;
 // End new code for skip/insert
 
-
-uint32_t usb_32_0;
-
 					for (i = 0; i < num_samples; i++) {
 						// bBitResolution
 						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 
 							// Fewer 16-bit USB transfers
-//							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
-//							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
-
-							usb_32_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 32);	// L LSB, L SB, L MSB, R LSB 
+							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
+							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
 							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
 							
-							usb_16_0 = usb_32_0 >> 16;
-							usb_16_1 = usb_32_0;
-							
-							// Glue logic - code is slower if these are unwrapped, pre-shifted and AND'ed 
+							// Glue logic - built in now
 							// sample_LSB = (uint8_t)(usb_16_0 >> 8);
 							// sample_SB  = (uint8_t)(usb_16_0);
 							// sample_MSB = (uint8_t)(usb_16_1 >> 8);
@@ -768,7 +761,7 @@ uint32_t usb_32_0;
 							sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
 							silence_det_L |= sample_L;
 
-							// Glue logic
+							// Glue logic - built in now
 							// sample_LSB = (uint8_t)(usb_16_1);
 							// sample_SB  = (uint8_t)(usb_16_2 >> 8);
 							// sample_MSB = (uint8_t)(usb_16_2);
@@ -900,16 +893,16 @@ cachecounter = 0;
 						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
 							if (dac_must_clear == DAC_READY) {
 								if (DAC_buf_OUT == 0) {
-									spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-									spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+									spk_buffer_0[spk_index++] = sample_L;  // Was: [spk_index+OUT_LEFT]
+									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
 								else {
-									spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-									spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+									spk_buffer_1[spk_index++] = sample_L;
+									spk_buffer_1[spk_index++] = sample_R;
 								}
 							}
 
-							spk_index += 2;
+							// Was: spk_index += 2;
 							if (spk_index >= DAC_BUFFER_SIZE) {
 								spk_index = 0;
 								DAC_buf_OUT = 1 - DAC_buf_OUT;
