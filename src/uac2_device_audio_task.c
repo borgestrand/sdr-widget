@@ -801,7 +801,12 @@ uint8_t cachecounter = 0;
 								sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
 								silence_det_R |= sample_R;
 							}
-						#endif						
+						#endif			
+						
+						#define a AA
+						#define b BB
+						#define c CC
+						#error TPASTE3(a, b, c)			
 
 						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )
 							silence_det = 1;
