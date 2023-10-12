@@ -743,73 +743,70 @@ S32 cache_R[MAX_SAMPLES];
 uint8_t cachecounter = 0;
 // End new code for skip/insert
 
-					for (i = 0; i < num_samples; i++) {
-						// bBitResolution
-//						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+						// Test usb alt setting once outside for loop, use tight loops into cache
 
-							// Fewer 16-bit USB transfers
-							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
-							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
-							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
+						if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+							num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
+							for (i = 0; i < num_samples; i++) {
+
+								// Fewer 16-bit USB transfers
+								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB
+								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
+								usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
 							
-							// Glue logic - built in now
-							// sample_LSB = (uint8_t)(usb_16_0 >> 8);
-							// sample_SB  = (uint8_t)(usb_16_0);
-							// sample_MSB = (uint8_t)(usb_16_1 >> 8);
+								// Glue logic - built in now
+								// sample_LSB = (uint8_t)(usb_16_0 >> 8);
+								// sample_SB  = (uint8_t)(usb_16_0);
+								// sample_MSB = (uint8_t)(usb_16_1 >> 8);
 							
-							// Transfer
-							sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
-							silence_det_L |= sample_L;
-
-							// Glue logic - built in now
-							// sample_LSB = (uint8_t)(usb_16_1);
-							// sample_SB  = (uint8_t)(usb_16_2 >> 8);
-							// sample_MSB = (uint8_t)(usb_16_2);
-							
-							// Transfer
-							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
-							silence_det_R |= sample_R;
-
-
-/* Old 8-bit USB transfers
-							// 24-bit code
-//							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
-							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); //  + sample_HSB; // bBitResolution
-							silence_det_L |= sample_L;
-
-//							sample_HSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8); // bBitResolution void input byte to fill up to 4 bytes? Skip with FORMAT_SUBSLOT_SIZE_1 = 3, keep with FORMAT_SUBSLOT_SIZE_1 = 4; ??
-							sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_SB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-							sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_SB) << 16) + (((U32) sample_LSB) << 8); // + sample_HSB; // bBitResolution
-							silence_det_R |= sample_R;
-*/
-
-//						}
-/*						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
-							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
-								// 16-bit code
-								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-								sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
+								// Transfer
+								sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
 								silence_det_L |= sample_L;
 
-								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-								sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
+								// Glue logic - built in now
+								// sample_LSB = (uint8_t)(usb_16_1);
+								// sample_SB  = (uint8_t)(usb_16_2 >> 8);
+								// sample_MSB = (uint8_t)(usb_16_2);
+							
+								// Transfer
+								sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
 								silence_det_R |= sample_R;
-							}
-						#endif			
-*/
+
+								cache_L[i] = sample_L;
+								cache_R[i] = sample_R;
+							} // end for num_samples
+
+						} // end if alt setting
+
+
+
+						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
+							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
+								num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
+								for (i = 0; i < num_samples; i++) {
+
+									// 16-bit code
+									sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+									sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+									sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
+									silence_det_L |= sample_L;
+
+									sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+									sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
+									sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
+									silence_det_R |= sample_R;
+
+									cache_L[i] = sample_L;
+									cache_R[i] = sample_R;
+								} // end for num_samples
+
+							} // end if alt setting
+						#endif
 						
-// Site of moved silence detection code
 						
-						
-// Start of moved silence detection code - try to do it only once per packet, not once per stereo sample!
-						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )	// What does this really do???
+						// Moved to outside for loop
+
+						if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )	// What does this test really do???
 							silence_det = 1;
 						else
 							silence_det = 0;
@@ -851,9 +848,21 @@ uint8_t cachecounter = 0;
 								input_select = MOBO_SRC_UAC2;
 							#endif
 						} // End silence_det == 0 & MOBO_SRC_NONE
-// End of moved silence detection code
 
-	#ifdef FEATURE_VOLUME_CTRL
+
+						
+cachecounter = 0;
+
+					num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
+
+					for (i = 0; i < num_samples; i++) {
+
+						sample_L = cache_L[i];
+						sample_R = cache_R[i];
+
+
+						// Volume control now happens after cache readout
+						#ifdef FEATURE_VOLUME_CTRL
 						if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
 							sample_L = 0;
 							sample_R = 0;
@@ -873,27 +882,8 @@ uint8_t cachecounter = 0;
 								// sample_R += rand8(); // dither in bits 7:0
 							}
 						}
-	#endif
-/*
-// Start new code experimenting with cache
+						#endif
 
-						if (cachecounter < MAX_SAMPLES) {
-							cache_L[cachecounter] = sample_L; 
-							cache_R[cachecounter] = sample_R;
-							cachecounter ++;
-						}
-
-					} // end for num_samples
-						
-cachecounter = 0;
-					for (i = 0; i < num_samples; i++) {
-
-						if (cachecounter < MAX_SAMPLES) {
-							sample_L = cache_L[cachecounter];
-							sample_R = cache_R[cachecounter];
-							cachecounter ++;
-						}
-*/
 
 						// Only write to spk_buffer_? when allowed
 						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
