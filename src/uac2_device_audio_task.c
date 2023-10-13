@@ -740,6 +740,9 @@ void uac2_device_audio_task(void *pvParameters)
 #define MAX_SAMPLES 60
 S32 cache_L[MAX_SAMPLES];
 S32 cache_R[MAX_SAMPLES];
+
+static S32 prev_sample_L = 0;
+static S32 prev_sample_R = 0;
 // End new code for skip/insert
 
 					// Test usb alt setting once outside for loop, use tight loops into cache
@@ -771,8 +774,12 @@ S32 cache_R[MAX_SAMPLES];
 							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
 							silence_det_R |= sample_R;
 
-							cache_L[i] = sample_L;
-							cache_R[i] = sample_R;
+							cache_L[i] = prev_sample_L; // Storing one period delayed
+							cache_R[i] = prev_sample_R;
+							
+							// Establish history
+							prev_sample_L = sample_L;
+							prev_sample_R = sample_R;
 						} // end for num_samples
 
 					} // end if alt setting 1
@@ -890,7 +897,7 @@ S32 cache_R[MAX_SAMPLES];
 
 
 						// Only write to spk_buffer_? when allowed
-						if (input_select_OK) {
+						if (input_select_OK) { // Testing cached calculation made before packet processing started
 //						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
 //							if (dac_must_clear == DAC_READY) {
 								if (DAC_buf_OUT == 0) {
