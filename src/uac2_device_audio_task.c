@@ -850,6 +850,12 @@ S32 cache_R[MAX_SAMPLES];
 
 
 					num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
+					
+					// Cacheing the input_select test
+					bool input_select_OK = FALSE;
+					if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
+						input_select_OK = TRUE;
+					}
 
 					for (i = 0; i < num_samples; i++) {
 
@@ -892,24 +898,27 @@ S32 cache_R[MAX_SAMPLES];
 									spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
 									spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
-							}
 							// Was: spk_index += 2;
 							
-							if (spk_index >= DAC_BUFFER_SIZE) {
-								spk_index = 0;
-								DAC_buf_OUT = 1 - DAC_buf_OUT;
+								if (spk_index >= DAC_BUFFER_SIZE) {
+									spk_index = 0;
+									DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-								if (DAC_buf_OUT == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-								}
-								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-								}
+									if (DAC_buf_OUT == 1) {
+										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+									else {
+										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
 
-								// BSB 20131201 attempting improved playerstarted detection
-								usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-							} // End switching buffers
-						}
+									// BSB 20131201 attempting improved playerstarted detection
+									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+								} // End switching buffers
+							
+							} // end dac_must_clear
+						} // end input_select
+
+
 					} // end for num_samples
 					
 					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
