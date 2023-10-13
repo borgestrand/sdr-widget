@@ -802,8 +802,12 @@ static S32 prev_sample_R = 0;
 								sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
 								silence_det_R |= sample_R;
 
-								cache_L[i] = sample_L;
-								cache_R[i] = sample_R;
+								cache_L[i] = prev_sample_L; // Storing one period delayed
+								cache_R[i] = prev_sample_R;
+							
+								// Establish history
+								prev_sample_L = sample_L;
+								prev_sample_R = sample_R;
 							} // end for num_samples
 
 						} // end if alt setting 2
