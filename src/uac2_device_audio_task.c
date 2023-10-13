@@ -791,7 +791,8 @@ static S32 prev_sample_R = 0;
 							num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
 							for (i = 0; i < num_samples; i++) {
 
-								// 16-bit code
+/* Start original 8-bit code
+								// 8-bit code
 								sample_LSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 								sample_L = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
@@ -801,6 +802,27 @@ static S32 prev_sample_R = 0;
 								sample_MSB = Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 								sample_R = (((U32) sample_MSB) << 24) + (((U32)sample_LSB) << 16);
 								silence_det_R |= sample_R;
+end original 8-bit code */
+
+								// 16-bit code
+								
+								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L MSB
+								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, R MSB
+								
+								// Built-in glue logic
+								// sample_LSB  = (uint8_t)(usb_16_0 >> 8);
+								// sample_MSB = (uint8_t)(usb_16_0);
+								// sample_L = (((U32) sample_MSB ) << 24) + (((U32) sample_LSB ) << 16);
+								sample_L = (((U32) (uint8_t)(usb_16_0) ) << 24) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 16);
+								silence_det_L |= sample_L;
+
+								// Built-in glue logic
+								// sample_LSB  = (uint8_t)(usb_16_1 >> 8);
+								// sample_MSB = (uint8_t)(usb_16_1);
+								// sample_R = (((U32) sample_MSB) << 24) + (((U32) sample_LSB) << 16);
+								sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
+								silence_det_R |= sample_R;
+
 
 								cache_L[i] = prev_sample_L; // Storing one period delayed
 								cache_R[i] = prev_sample_R;
