@@ -741,7 +741,7 @@ void uac2_device_audio_task(void *pvParameters)
 S32 cache_L[MAX_SAMPLES];
 S32 cache_R[MAX_SAMPLES];
 
-static S32 prev_sample_L = 0;
+static S32 prev_sample_L = 0;	// Enable delayed writing to cache
 static S32 prev_sample_R = 0;
 // End new code for skip/insert
 
@@ -785,7 +785,7 @@ static S32 prev_sample_R = 0;
 					} // end if alt setting 1
 
 
-
+// Do something about the 16 bit version!
 					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
 						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
 							num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
