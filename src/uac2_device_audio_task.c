@@ -821,7 +821,7 @@ end original 8-bit code */
 								// sample_MSB = (uint8_t)(usb_16_1);
 								// sample_R = (((U32) sample_MSB) << 24) + (((U32) sample_LSB) << 16);
 								sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
-								silence_det_R |= sample_R;
+								silence_det_R |= sample_R; 
 
 
 								cache_L[i] = prev_sample_L; // Storing one period delayed
