@@ -851,10 +851,12 @@ S32 cache_R[MAX_SAMPLES];
 
 					num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
 					
-					// Cacheing the input_select test
+					// Cacheing the input_select and dac_must_clear tests
 					bool input_select_OK = FALSE;
 					if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
-						input_select_OK = TRUE;
+						if (dac_must_clear == DAC_READY) {
+							input_select_OK = TRUE;
+						}
 					}
 
 					for (i = 0; i < num_samples; i++) {
@@ -888,8 +890,9 @@ S32 cache_R[MAX_SAMPLES];
 
 
 						// Only write to spk_buffer_? when allowed
-						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
-							if (dac_must_clear == DAC_READY) {
+						if (input_select_OK) {
+//						if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
+//							if (dac_must_clear == DAC_READY) {
 								if (DAC_buf_OUT == 0) {
 									spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
 									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
@@ -915,8 +918,9 @@ S32 cache_R[MAX_SAMPLES];
 									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
 								} // End switching buffers
 							
-							} // end dac_must_clear
-						} // end input_select
+//							} // end dac_must_clear
+//						} // end input_select
+						} // end cached test
 
 
 					} // end for num_samples
