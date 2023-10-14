@@ -158,9 +158,6 @@ void uac2_device_audio_task(void *pvParameters)
 	
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
 	U16 packets_since_feedback = 0;
-	U8 skip_enable = 0;
-	U8 skip_indicate = 0;	// Should we show skipping on module LEDs?
-	U16 samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
 	S32 FB_error_acc = 0;	// BSB 20131102 Accumulated error for skip/insert
 	U8 sample_HSB;
 	U8 sample_MSB;
@@ -617,8 +614,6 @@ void uac2_device_audio_task(void *pvParameters)
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
 						FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
 						old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
-						skip_enable = 0;					// BSB 20131115 Not skipping yet...
-						skip_indicate = 0;
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
@@ -655,73 +650,12 @@ void uac2_device_audio_task(void *pvParameters)
 					// Error increases when Host (in average) sends too much data compared to FB_rate
 					// A high error means we must skip.
 
-	/*					// Try to detect a dead Host feedback system
-					if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
-						if (packets_since_feedback > SPK_HOST_FB_DEAD_AFTER)
-							skip_enable |= SPK_SKIP_EN_DEAD;	// Enable skip/insert due to dead host feedback system
-						else {
-							packets_since_feedback ++;
-							skip_enable &= ~SPK_SKIP_EN_DEAD;	// Disable skip/insert due to dead host feedback system
-						}
-					}
-	*/
 
 					// Default:1 Skip:0 Insert:2 Only one skip or insert per USB package
 					// .. prior to for(num_samples) Hence 1st sample in a package is skipped or inserted
-					samples_to_transfer_OUT = 1;
-					if (skip_enable == 0) {					// Respond to all skip enablers
-						FB_error_acc = 0;
-					}
-					else {
+					FB_error_acc = 0;
 
-						if (Is_usb_full_speed_mode()) {					// NB This code is untested in UAC2. It works in UAC1
-							FB_error_acc = FB_error_acc + ((S32)num_samples * 1<<14) - FB_rate;
-							if (FB_error_acc > SPK2_SKIP_LIMIT_14) {	// Must skip
-								samples_to_transfer_OUT = 0;			// Do some skippin'
-								FB_error_acc = FB_error_acc - (1<<14);
-								time_to_calculate_gap = -1;				// Immediate gap re-calculation
-								skip_indicate = 1;
-//								LED_On(LED0);							// Indicate skipping on module LED
-	#ifdef USB_STATE_MACHINE_DEBUG
-	//							print_dbg_char('s');
-	#endif
-							}
-							else if (FB_error_acc < -SPK2_SKIP_LIMIT_14) {	// Must insert
-								samples_to_transfer_OUT = 2;			// Do some insertin'
-								FB_error_acc = FB_error_acc + (1<<14);
-								time_to_calculate_gap = -1;				// Immediate gap re-calculation
-								skip_indicate = 1;
-//								LED_On(LED1);							// Indicate skipping on module LED
-	#ifdef USB_STATE_MACHINE_DEBUG
-	//							print_dbg_char('i');
-	#endif
-							}
-						} // end if usb_full_speeed
-						else { // usb_high_speed						// NB only this branch is testable in UAC2 code base
-							FB_error_acc = FB_error_acc + ((S32)num_samples * 1<<16) - FB_rate; // num_samples is per 250us, hence <<+2
-							if (FB_error_acc > SPK2_SKIP_LIMIT_16) {	// Must skip
-								samples_to_transfer_OUT = 0;			// Do some skippin'
-								FB_error_acc = FB_error_acc - (1<<14);	// FB_* formatted as 2^14 samples per ms
-								time_to_calculate_gap = -1;				// Immediate gap re-calculation
-								skip_indicate = 1;
-//								LED_On(LED0);							// Indicate skipping on module LED
-	#ifdef USB_STATE_MACHINE_DEBUG
-	//							print_dbg_char('s');
-	#endif
-							}
-							else if (FB_error_acc < -SPK2_SKIP_LIMIT_16) {	// Must insert
-								samples_to_transfer_OUT = 2;			// Do some insertin'
-								FB_error_acc = FB_error_acc + (1<<14);	// FB_* formatted as 2^14 samples per ms
-								time_to_calculate_gap = -1;				// Immediate gap re-calculation
-								skip_indicate = 1;
-//								LED_On(LED1);							// Indicate skipping on module LED
-	#ifdef USB_STATE_MACHINE_DEBUG
-	//							print_dbg_char('i');
-	#endif
-							}
-						} // end if usb_high_speed
-
-					} // end if skip_enable
+					// Site of old USB skip/insert code
 
 					silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
 					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
@@ -1179,10 +1113,7 @@ int8_t si_action = SI_NORMAL;
 					if (time_to_calculate_gap > 0)
 						time_to_calculate_gap--;
 					else {
-						if (time_to_calculate_gap == -1)		// Immediately after a skip/insert and then again shortly
-							time_to_calculate_gap = SPK_PACKETS_PER_GAP_SKIP - 1;
-						else									// Initially and a while after any skip/insert
-							time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
+						time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
 						if (usb_alternate_setting_out >= 1) {	// bBitResolution // Used with explicit feedback and not ADC data
 //						if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
@@ -1209,26 +1140,12 @@ int8_t si_action = SI_NORMAL;
 
 							if(playerStarted) {
 
-	#ifndef USB_METALLIC_NOISE_SIM										// Disable skip/insert when demoing metallic noise
-								if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
-									if (gap < SPK_GAP_LSKIP) {
-										skip_enable |= SPK_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
-									}
-									else if (gap > SPK_GAP_USKIP) {
-										skip_enable |= SPK_SKIP_EN_GAP;	// Enable skip/insert due to excessive buffer gap
-									}
-									else {
-										skip_enable &= ~SPK_SKIP_EN_GAP;	// Remove skip enable due to excessive buffer gap
-									}
-								}
-	#endif
+								// Site of old USB skip/insert code
 
 								if (gap < old_gap) {
 									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
 										FB_rate -= 2*FB_RATE_DELTA;
 										old_gap = gap;
-										skip_indicate = 0;				// Feedback system is running again!
-//										LED_On(LED0);
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('/');
 	#endif
@@ -1239,8 +1156,6 @@ int8_t si_action = SI_NORMAL;
 									else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
 										FB_rate -= FB_RATE_DELTA;
 										old_gap = gap;
-										skip_indicate = 0;				// Feedback system is running again!
-//										LED_On(LED0);
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('-');
 	#endif
@@ -1249,17 +1164,11 @@ int8_t si_action = SI_NORMAL;
 	#endif
 
 									}
-									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
-										// LED_Off(LED0);
-										// LED_Off(LED1);
-									}
 								}
 								else if (gap > old_gap) {
 									if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
 										FB_rate += 2*FB_RATE_DELTA;
 										old_gap = gap;
-										skip_indicate = 0;				// Feedback system is running again!
-//										LED_On(LED1);
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('*');
 	#endif
@@ -1270,8 +1179,6 @@ int8_t si_action = SI_NORMAL;
 									else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
 										FB_rate += FB_RATE_DELTA;
 										old_gap = gap;
-										skip_indicate = 0;				// Feedback system is running again!
-//										LED_On(LED1);
 	#ifdef USB_STATE_MACHINE_DEBUG
 										print_dbg_char('+'); 
 	#endif
@@ -1280,14 +1187,6 @@ int8_t si_action = SI_NORMAL;
 	#endif
 		
 									}
-									else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
-										// LED_Off(LED0);
-										// LED_Off(LED1);
-									}
-								}
-								else if (skip_indicate == 0) {		// Go back to indicating feedback system on module LEDs
-									// LED_Off(LED0);
-									// LED_Off(LED1);
 								}
 							} // end if(playerStarted)
 						} // end if (usb_alternate_setting_out >= 1)
