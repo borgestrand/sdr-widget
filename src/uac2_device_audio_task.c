@@ -752,9 +752,9 @@ static S32 prev_diff_value = 0;
 #define SI_SKIP -1
 #define SI_NORMAL 0
 #define SI_INSERT 1
-int8_t si_action = SI_INSERT;
+int8_t si_action = SI_NORMAL;
 
-// End new code for skip/insert
+// End new code for skip/insert 
 
 					// Test usb alt setting once outside for loop, use tight loops into cache
 
