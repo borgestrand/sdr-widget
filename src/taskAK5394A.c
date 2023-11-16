@@ -231,7 +231,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	volatile avr32_tc_t *tc = &spdif_tc_device;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
 	
 	// Configure PA05 input pin as clock
-//	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
+	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
 
 	// Options for waveform genration.
 	tc_waveform_opt_t waveform_opt = {
@@ -305,7 +305,7 @@ static void pdca_set_irq(void) {
 	
 	// TCFIX new code	
 	print_dbg_char('a');
-	spdif_packet_SetupTimerInterrupt();
+//	spdif_packet_SetupTimerInterrupt();
 	print_dbg_char('b');	
 	
 	// Enable all interrupt/exception.
