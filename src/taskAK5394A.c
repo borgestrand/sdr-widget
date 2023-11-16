@@ -124,22 +124,6 @@ volatile U8 audio_OUT_must_sync;
 volatile U8 dig_in_silence;
 
 
-
-/*! \brief The SPDIF packet receive interrupt handler for the ADC interface.
- *
- * The handler reload the PDCA settings with the correct address and size using the reload register.
- * The interrupt will happen when the reload counter reaches 0
- */
-__attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
-
-	// Schedule the COUNT&COMPARE match interrupt used in FreeRTOS code, needed here?? TCFIX
-	// AVR32_TC.channel[spdif_packet_tc].sr;
-	
-	// Indicate interrupt trig
-	gpio_tgl_gpio_pin(AVR32_PIN_PX31);
-}
-
-
 /*! \brief The PDCA interrupt handler for the ADC interface.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
@@ -209,6 +193,35 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 
 
 
+/*! \brief The SPDIF packet receive interrupt handler for the ADC interface.
+ *
+ * The handler reload the PDCA settings with the correct address and size using the reload register.
+ * The interrupt will happen when the reload counter reaches 0
+ */
+__attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
+
+	// Schedule the COUNT&COMPARE match interrupt used in FreeRTOS code, needed here?? TCFIX
+	// AVR32_TC.channel[spdif_packet_tc].sr;
+	
+	// Indicate interrupt trig
+	
+	static int balle = 0;
+	
+	print_dbg_char('!');
+
+	
+	if (balle == 0) {
+		gpio_set_gpio_pin(AVR32_PIN_PX31);
+		balle = 1;
+	}
+	else {
+		gpio_clr_gpio_pin(AVR32_PIN_PX31);
+		balle = 0;
+	}
+		
+}
+
+
 // TCFIX new code to set up spdif receive timer
 // MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
 #define spdif_packet_tc	0 // Timer counter -channel- 
@@ -222,6 +235,9 @@ static const gpio_map_t TC1_CLK0_GPIO_MAP = {
 
 static void spdif_packet_SetupTimerInterrupt(void) {
 	volatile avr32_tc_t *tc = &AVR32_TC1;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
+
+
+	print_dbg_char('c');
 	
 	// Configure PA05 input pin as clock
 	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
@@ -272,12 +288,14 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	// For now aim for a division by 10 and monitor PX31
 	tc_write_rc(tc, spdif_packet_tc, 9);
 
-	tc_configure_interrupts( tc, spdif_packet_tc, &tc_interrupt );
+	tc_configure_interrupts(tc, spdif_packet_tc, &tc_interrupt );
 
 	// Start the timer/counter, but only after we have reset the timer value to 0!
 	// tc_software_trigger(tc, spdif_packet_tc);
 	tc_start(tc, spdif_packet_tc); // Implements SWTRG software trig and CLKEN clock enable
-	
+
+	print_dbg_char('d');
+
 }
 
 
@@ -298,8 +316,9 @@ static void pdca_set_irq(void) {
 	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT0); //1
 	
 	// TCFIX new code	
+	print_dbg_char('a');
 	spdif_packet_SetupTimerInterrupt();
-	
+	print_dbg_char('b');	
 	
 	// Enable all interrupt/exception.
 	Enable_global_interrupt();
