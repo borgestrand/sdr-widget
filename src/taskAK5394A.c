@@ -274,7 +274,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
 
 	// Initialize the timer/counter
-//	tc_init_waveform(tc, &waveform_opt);
+	tc_init_waveform(tc, &waveform_opt);
 
 	// For now aim for a division by 10 and monitor PX31
 //	tc_write_rc(tc, spdif_tc_channel, 9);
