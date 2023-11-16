@@ -206,12 +206,11 @@ static const gpio_map_t TC1_CLK0_GPIO_MAP = {
 
 
 __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
-/*
 	// Needed to restart timer?
 	tc_read_sr(&spdif_tc_device, spdif_tc_channel);
 	
 	// Slow debug on console
-//	print_dbg_char('!');
+	print_dbg_char('!');
 	
 	// Fast debug on scope
 	static int test = 0;
@@ -223,8 +222,6 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX31);
 		test = 0;
 	}
-	
-	*/	
 }
 
 
@@ -269,8 +266,10 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
 
 	// Register the compare interrupt handler to the interrupt controller and enable the compare interrupt
-	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ1, AVR32_INTC_INT2);
-
+	// It's more probable than not that we're using IRQ0 with channel 0...
+	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT0);
+	
+	
 	// Should we do something like this???
 	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
 
@@ -283,7 +282,6 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	tc_configure_interrupts(tc, spdif_tc_channel, &tc_interrupt );
 
 	// Start the timer/counter, but only after we have reset the timer value to 0!
-	// tc_software_trigger(tc, spdif_tc_channel);
 	tc_start(tc, spdif_tc_channel); // Implements SWTRG software trig and CLKEN clock enable
 }
 
