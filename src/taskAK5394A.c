@@ -46,6 +46,7 @@
 #include "pm.h"
 #include "Mobo_config.h"
 #include "pdca.h"
+#include "tc.h"
 #include "usb_standard_request.h"
 #include "features.h"
 #include "device_audio_task.h"

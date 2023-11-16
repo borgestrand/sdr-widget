@@ -662,7 +662,7 @@ void uac2_device_audio_task(void *pvParameters)
 					uint16_t usb_16_2;
 					
 
-					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
+//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
 					
 					// sample_L and sample_R are S32, as is needed for volume control
 					// sample_left and sample_right are U32, as is needed for logical shifting in ADC code. Merge the variables!!
@@ -1061,7 +1061,7 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 					
 					
 					
-					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
+//					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
 
 
 
