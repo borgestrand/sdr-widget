@@ -359,7 +359,7 @@ clock cycles from now. */
 #else
 	__attribute__((__noinline__)) static void prvClearTcInt(void)
 	{
-		AVR32_TC.channel[configTICK_TC_CHANNEL].sr;
+		AVR32_TC.channel[configTICK_TC_CHANNEL].sr;  // What do3s this code really do?
 	}
 #endif
 /*-----------------------------------------------------------*/
@@ -369,7 +369,7 @@ static void prvSetupTimerInterrupt(void)
 {
 #if( configTICK_USE_TC==1 )
 
-	volatile avr32_tc_t *tc = &AVR32_TC;
+	volatile avr32_tc_t *tc = &AVR32_TC; // What do3s this code really do? This would make more sense: &AVR32_TC2
 
 	// Options for waveform genration.
 	tc_waveform_opt_t waveform_opt =

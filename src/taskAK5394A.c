@@ -46,7 +46,9 @@
 #include "pm.h"
 #include "Mobo_config.h"
 #include "pdca.h"
+
 #include "tc.h"
+
 #include "usb_standard_request.h"
 #include "features.h"
 #include "device_audio_task.h"
@@ -129,7 +131,12 @@ volatile U8 dig_in_silence;
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
-	gpio_tgl_gpio_pin(AVR32_PIN_PX31); 
+
+	// Schedule the COUNT&COMPARE match interrupt used in FreeRTOS code, needed here?? TCFIX
+	// AVR32_TC.channel[spdif_packet_tc].sr;
+	
+	// Indicate interrupt trig
+	gpio_tgl_gpio_pin(AVR32_PIN_PX31);
 }
 
 
@@ -200,6 +207,71 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
 }
 
+
+
+// TCFIX new code to set up spdif receive timer
+
+#define spdif_packet_tc	1 // Timer counter -channel- 
+
+static void spdif_packet_SetupTimerInterrupt(void) {
+	volatile avr32_tc_t *tc = &AVR32_TC1;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
+
+	// Options for waveform genration.
+	tc_waveform_opt_t waveform_opt = {
+		.channel  = spdif_packet_tc,                   /* Channel selection. */
+
+		.bswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOB. */
+		.beevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOB. */
+		.bcpc     = TC_EVT_EFFECT_NOOP,                /* RC compare effect on TIOB. */
+		.bcpb     = TC_EVT_EFFECT_NOOP,                /* RB compare effect on TIOB. */
+		.aswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOA. */
+		.aeevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOA. */
+		.acpc     = TC_EVT_EFFECT_NOOP,                /* RC compare effect on TIOA: toggle. */
+		.acpa     = TC_EVT_EFFECT_NOOP,                /* RA compare effect on TIOA: toggle (other possibilities are none, set and clear). */
+		.wavsel   = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER,/* Waveform selection: Up mode without automatic trigger on RC compare. */
+		.enetrg   = FALSE,                             /* External event trigger enable. */
+		.eevt     = 0,                                 /* External event selection. */
+		.eevtedg  = TC_SEL_NO_EDGE,                    /* External event edge selection. */
+		.cpcdis   = FALSE,                             /* Counter disable when RC compare. */
+		.cpcstop  = FALSE,                             /* Counter clock stopped with RC compare. */
+		.burst    = FALSE,                             /* Burst signal selection. */
+		.clki     = FALSE,                             /* Clock inversion. */
+		.tcclks   = TC_CLOCK_SOURCE_XC0                /* External source clock CLK0. */
+	};
+
+	tc_interrupt_t tc_interrupt = {
+		.etrgs=0,
+		.ldrbs=0,
+		.ldras=0,
+		.cpcs =1,
+		.cpbs =0,
+		.cpas =0,
+		.lovrs=0,
+		.covfs=0,
+	};
+
+	// Register the compare interrupt handler to the interrupt controller and enable the compare interrupt
+	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT2);
+
+	// Should we do something like this???
+	tc_select_external_clock(tc, spdif_packet_tc, TC_CH0_EXT_CLK0_SRC_TCLK0);
+
+	// Initialize the timer/counter
+	tc_init_waveform(tc, &waveform_opt);
+
+	// For now aim for a division by 10 and monitor PX31
+	tc_write_rc(tc, spdif_packet_tc, 9);
+
+	tc_configure_interrupts( tc, spdif_packet_tc, &tc_interrupt );
+
+	// Start the timer/counter, but only after we have reset the timer value to 0!
+	// tc_software_trigger(tc, spdif_packet_tc);
+	tc_start(tc, spdif_packet_tc); // Implements SWTRG software trig and CLKEN clock enable
+	
+}
+
+
+
 /*! \brief Init interrupt controller and register pdca_int_handler interrupt.
  */
 static void pdca_set_irq(void) {
@@ -214,7 +286,11 @@ static void pdca_set_irq(void) {
 	// INTC_register_interrupt(__int_handler handler, int line, int priority);
 	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT0); //2
 	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT0); //1
-	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT2);
+	
+	// TCFIX new code	
+	spdif_packet_SetupTimerInterrupt();
+	
+	
 	// Enable all interrupt/exception.
 	Enable_global_interrupt();
 }
