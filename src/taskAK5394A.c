@@ -279,7 +279,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	// For now aim for a division by 10 and monitor PX31
 	tc_write_rc(tc, spdif_tc_channel, 9);
 
-//	tc_configure_interrupts(tc, spdif_tc_channel, &tc_interrupt );
+	tc_configure_interrupts(tc, spdif_tc_channel, &tc_interrupt );
 
 	// Start the timer/counter, but only after we have reset the timer value to 0!
 	// tc_software_trigger(tc, spdif_tc_channel);
