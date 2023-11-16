@@ -195,42 +195,33 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 
 // TCFIX new code to set up spdif receive timer
 // MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
-#define spdif_tc_channel	0 // Timer counter -channel-
-#define spdif_tc_device AVR32_TC1
-#define TC1_CLK0_PIN			AVR32_TC1_CLK0_0_PIN
-#define	TC1_CLK0_FUNCTION		AVR32_TC1_CLK0_0_FUNCTION
+#define spdif_tc_device		AVR32_TC1	// Using TC1 where we have CLK0 available on PA05
+#define spdif_tc_channel	0			// Timer counter -channel-
+#define TC1_CLK0_PIN		AVR32_TC1_CLK0_0_PIN
+#define	TC1_CLK0_FUNCTION	AVR32_TC1_CLK0_0_FUNCTION
 
 static const gpio_map_t TC1_CLK0_GPIO_MAP = {
 	{TC1_CLK0_PIN, TC1_CLK0_FUNCTION}
 };
 
 
-/*! \brief The SPDIF packet receive interrupt handler for the ADC interface.
- *
- * The handler reload the PDCA settings with the correct address and size using the reload register.
- * The interrupt will happen when the reload counter reaches 0
- */
 __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 
-	// Schedule the COUNT&COMPARE match interrupt used in FreeRTOS code, needed here?? TCFIX
-	// AVR32_TC.channel[spdif_tc_channel].sr;
+	// Needed to restart timer?
+	tc_read_sr(&spdif_tc_device, spdif_tc_channel);
 	
-	// Indicate interrupt trig
-	
-	tc_read_sr(&spdif_tc_device, spdif_tc_channel); // Restart interrupt??
-	
-	static int balle = 0;
-	
+	// Slow debug on console
 	print_dbg_char('!');
-
 	
-	if (balle == 0) {
+	// Fast debug on scope
+	static int test = 0;
+	if (test == 0) {
 		gpio_set_gpio_pin(AVR32_PIN_PX31);
-		balle = 1;
+		test = 1;
 	}
 	else {
 		gpio_clr_gpio_pin(AVR32_PIN_PX31);
-		balle = 0;
+		test = 0;
 	}
 		
 }
@@ -238,12 +229,9 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 
 static void spdif_packet_SetupTimerInterrupt(void) {
 	volatile avr32_tc_t *tc = &spdif_tc_device;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
-
-
-	print_dbg_char('c');
 	
 	// Configure PA05 input pin as clock
-	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
+//	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
 
 	// Options for waveform genration.
 	tc_waveform_opt_t waveform_opt = {
@@ -296,9 +284,6 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	// Start the timer/counter, but only after we have reset the timer value to 0!
 	// tc_software_trigger(tc, spdif_tc_channel);
 	tc_start(tc, spdif_tc_channel); // Implements SWTRG software trig and CLKEN clock enable
-
-	print_dbg_char('d');
-
 }
 
 
