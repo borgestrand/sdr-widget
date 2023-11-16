@@ -230,13 +230,10 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 static void spdif_packet_SetupTimerInterrupt(void) {
 	volatile avr32_tc_t *tc = &spdif_tc_device;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
 	
-	// Configure PA05 input pin as clock
-	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
 
 	// Options for waveform genration.
 	tc_waveform_opt_t waveform_opt = {
 		.channel  = spdif_tc_channel,                   /* Channel selection. */
-
 		.bswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOB. */
 		.beevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOB. */
 		.bcpc     = TC_EVT_EFFECT_NOOP,                /* RC compare effect on TIOB. */
@@ -267,11 +264,14 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 		.covfs=0,
 	};
 
+	// Configure PA05 input pin as clock
+	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
+
 	// Register the compare interrupt handler to the interrupt controller and enable the compare interrupt
 	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ2, AVR32_INTC_INT2);
 
 	// Should we do something like this???
-	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
+//	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
 
 	// Initialize the timer/counter
 	tc_init_waveform(tc, &waveform_opt);
@@ -306,12 +306,8 @@ static void pdca_set_irq(void) {
 	// TCFIX new code	
 	print_dbg_char('a');
 	
-	// Is this breaking PA05?
-	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
+	spdif_packet_SetupTimerInterrupt();
 
-	print_dbg_char('b');
-
-//	spdif_packet_SetupTimerInterrupt();
 	print_dbg_char('c');	
 	
 	// Enable all interrupt/exception.
