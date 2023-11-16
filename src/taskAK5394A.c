@@ -210,11 +210,21 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 
 
 // TCFIX new code to set up spdif receive timer
+// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
+#define spdif_packet_tc	0 // Timer counter -channel- 
+#define TC1_CLK0_PIN			AVR32_TC1_CLK0_0_PIN
+#define	TC1_CLK0_FUNCTION		AVR32_TC1_CLK0_0_FUNCTION
 
-#define spdif_packet_tc	1 // Timer counter -channel- 
+static const gpio_map_t TC1_CLK0_GPIO_MAP = {
+	{TC1_CLK0_PIN, TC1_CLK0_FUNCTION}
+};
+
 
 static void spdif_packet_SetupTimerInterrupt(void) {
 	volatile avr32_tc_t *tc = &AVR32_TC1;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
+	
+	// Configure PA05 input pin as clock
+	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
 
 	// Options for waveform genration.
 	tc_waveform_opt_t waveform_opt = {
