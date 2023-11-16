@@ -210,7 +210,7 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 	tc_read_sr(&spdif_tc_device, spdif_tc_channel);
 	
 	// Slow debug on console
-	print_dbg_char('!');
+//	print_dbg_char('!');
 	
 	// Fast debug on scope
 	static int test = 0;
@@ -277,7 +277,8 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	tc_init_waveform(tc, &waveform_opt);
 
 	// For now aim for a division by 10 and monitor PX31
-	tc_write_rc(tc, spdif_tc_channel, 9);
+	// Toggle at 5 and 10
+	tc_write_rc(tc, spdif_tc_channel, 5);
 
 	tc_configure_interrupts(tc, spdif_tc_channel, &tc_interrupt );
 
