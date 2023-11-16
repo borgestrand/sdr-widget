@@ -271,7 +271,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ2, AVR32_INTC_INT2);
 
 	// Should we do something like this???
-//	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
+	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
 
 	// Initialize the timer/counter
 //	tc_init_waveform(tc, &waveform_opt);
