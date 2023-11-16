@@ -305,8 +305,14 @@ static void pdca_set_irq(void) {
 	
 	// TCFIX new code	
 	print_dbg_char('a');
+	
+	// Is this breaking PA05?
+	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
+
+	print_dbg_char('b');
+
 //	spdif_packet_SetupTimerInterrupt();
-	print_dbg_char('b');	
+	print_dbg_char('c');	
 	
 	// Enable all interrupt/exception.
 	Enable_global_interrupt();
