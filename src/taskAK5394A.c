@@ -193,6 +193,17 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 
 
 
+// TCFIX new code to set up spdif receive timer
+// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
+#define spdif_packet_tc	0 // Timer counter -channel-
+#define TC1_CLK0_PIN			AVR32_TC1_CLK0_0_PIN
+#define	TC1_CLK0_FUNCTION		AVR32_TC1_CLK0_0_FUNCTION
+
+static const gpio_map_t TC1_CLK0_GPIO_MAP = {
+	{TC1_CLK0_PIN, TC1_CLK0_FUNCTION}
+};
+
+
 /*! \brief The SPDIF packet receive interrupt handler for the ADC interface.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
@@ -204,6 +215,8 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 	// AVR32_TC.channel[spdif_packet_tc].sr;
 	
 	// Indicate interrupt trig
+	
+	tc_read_sr(&AVR32_TC1, spdif_packet_tc); // Restart interrupt??
 	
 	static int balle = 0;
 	
@@ -220,17 +233,6 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 	}
 		
 }
-
-
-// TCFIX new code to set up spdif receive timer
-// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
-#define spdif_packet_tc	0 // Timer counter -channel- 
-#define TC1_CLK0_PIN			AVR32_TC1_CLK0_0_PIN
-#define	TC1_CLK0_FUNCTION		AVR32_TC1_CLK0_0_FUNCTION
-
-static const gpio_map_t TC1_CLK0_GPIO_MAP = {
-	{TC1_CLK0_PIN, TC1_CLK0_FUNCTION}
-};
 
 
 static void spdif_packet_SetupTimerInterrupt(void) {
@@ -262,7 +264,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 		.cpcstop  = FALSE,                             /* Counter clock stopped with RC compare. */
 		.burst    = FALSE,                             /* Burst signal selection. */
 		.clki     = FALSE,                             /* Clock inversion. */
-		.tcclks   = TC_CLOCK_SOURCE_XC0                /* External source clock CLK0. */
+		.tcclks   = TC_CLOCK_SOURCE_XC0                /* Presumably external source clock CLK0. */
 	};
 
 	tc_interrupt_t tc_interrupt = {
@@ -277,7 +279,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	};
 
 	// Register the compare interrupt handler to the interrupt controller and enable the compare interrupt
-	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT2);
+	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ2, AVR32_INTC_INT2);
 
 	// Should we do something like this???
 	tc_select_external_clock(tc, spdif_packet_tc, TC_CH0_EXT_CLK0_SRC_TCLK0);
