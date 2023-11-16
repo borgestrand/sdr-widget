@@ -206,7 +206,7 @@ static const gpio_map_t TC1_CLK0_GPIO_MAP = {
 
 
 __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
-
+/*
 	// Needed to restart timer?
 	tc_read_sr(&spdif_tc_device, spdif_tc_channel);
 	
@@ -223,7 +223,8 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX31);
 		test = 0;
 	}
-		
+	
+	*/	
 }
 
 
