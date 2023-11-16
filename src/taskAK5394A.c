@@ -277,7 +277,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	tc_init_waveform(tc, &waveform_opt);
 
 	// For now aim for a division by 10 and monitor PX31
-//	tc_write_rc(tc, spdif_tc_channel, 9);
+	tc_write_rc(tc, spdif_tc_channel, 9);
 
 //	tc_configure_interrupts(tc, spdif_tc_channel, &tc_interrupt );
 
