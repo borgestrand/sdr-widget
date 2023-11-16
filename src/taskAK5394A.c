@@ -283,7 +283,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 
 	// Start the timer/counter, but only after we have reset the timer value to 0!
 	// tc_software_trigger(tc, spdif_tc_channel);
-//	tc_start(tc, spdif_tc_channel); // Implements SWTRG software trig and CLKEN clock enable
+	tc_start(tc, spdif_tc_channel); // Implements SWTRG software trig and CLKEN clock enable
 }
 
 
