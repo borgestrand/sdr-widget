@@ -657,9 +657,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 					// Site of old USB skip/insert code
 
-					silence_det_L = 0;						// We're looking for non-zero or non-static audio data..
-					silence_det_R = 0;						// We're looking for non-zero or non-static audio data..
-					
 					uint16_t usb_16_0;
 					uint16_t usb_16_1;
 					uint16_t usb_16_2;
@@ -675,18 +672,30 @@ void uac2_device_audio_task(void *pvParameters)
 S32 cache_L[MAX_SAMPLES];
 S32 cache_R[MAX_SAMPLES];
 
-static S32 prev_sample_L = 0;	// Enable delayed writing to cache
+static S32 prev_sample_L = 0;	// Enable delayed writing to cache, initiated to 0, new value survives to next iteration
 static S32 prev_sample_R = 0;
 S32 diff_value = 0;
 S32 diff_sum = 0;
-S32 si_score = 0x7FFFFFFF;			// Highest positive number
-int si_index = 0;
-static S32 prev_diff_value = 0;
+S32 si_score_low;
+int si_index_low;
+S32 si_score_high;
+int si_index_high;
+static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
 
 #define SI_SKIP -1
 #define SI_NORMAL 0
 #define SI_INSERT 1
 int8_t si_action = SI_NORMAL;
+
+// This is where unit test starts iterating
+
+si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
+si_index_low = 0;				// Location of "lowest energy", reset for each iteration
+si_score_high = 0;				// Lowest positive number, reset for each iteration
+si_index_high = 0;				// Location of "highest energy", reset for each iteration
+silence_det_L = 0;				// We're looking for non-zero or non-static audio data.. Not sure exactly how this works.....
+silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
+
 
 // End new code for skip/insert 
 
@@ -706,13 +715,18 @@ int8_t si_action = SI_NORMAL;
 							silence_det_R |= sample_R;
 
 
-							// Finding packet's point of lowest "energy"
+							// Finding packet's point of lowest and highest "energy"
 							diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 							diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample. 
 							
-							if (diff_sum < si_score) {
-								si_score = diff_sum;
-								si_index = i;
+							if (diff_sum < si_score_low) {
+								si_score_low = diff_sum;
+								si_index_low = i;
+							}
+
+							if (diff_sum > si_score_high) {
+								si_score_high = diff_sum;
+								si_index_high = i;
 							}
 
 							// Applying volume control to stored sample
@@ -765,14 +779,20 @@ int8_t si_action = SI_NORMAL;
 								silence_det_R |= sample_R; 
 								
 
-								// Finding packet's point of lowest "energy"
+								// Finding packet's point of lowest and highest "energy"
 								diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 								diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
 							
-								if (diff_sum < si_score) {
-									si_score = diff_sum;
-									si_index = i;
+								if (diff_sum < si_score_low) {
+									si_score_low = diff_sum;
+									si_index_low = i;
 								}
+								
+								if (diff_sum > si_score_high) {
+									si_score_high = diff_sum;
+									si_index_high = i;
+								}
+								
 								
 								// Applying volume control to stored sample
 								#ifdef FEATURE_VOLUME_CTRL
@@ -868,12 +888,11 @@ int8_t si_action = SI_NORMAL;
 					// This is where we will perform skip/insert
 					
 					
-					// ææææÆÆæææÆÆææ potential boo-boo: how do we know that si_index will always be less than num_samples??
 					
 					num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
 					
 					i = 0;
-					while (i < si_index) { // before skip/insert
+					while (i < si_index_low) { // before skip/insert
 						// Fetch from cache
 						sample_L = cache_L[i];
 						sample_R = cache_R[i];

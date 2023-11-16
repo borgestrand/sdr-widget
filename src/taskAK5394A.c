@@ -122,6 +122,16 @@ volatile U8 dig_in_silence;
 
 
 
+/*! \brief The SPDIF packet receive interrupt handler for the ADC interface.
+ *
+ * The handler reload the PDCA settings with the correct address and size using the reload register.
+ * The interrupt will happen when the reload counter reaches 0
+ */
+__attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
+	gpio_tgl_gpio_pin(AVR32_PIN_PX31); 
+}
+
+
 /*! \brief The PDCA interrupt handler for the ADC interface.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
@@ -148,6 +158,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 	}
  
 }
+
 
 /*! \brief The PDCA interrupt handler for the DAC interface.
  *
@@ -202,6 +213,7 @@ static void pdca_set_irq(void) {
 	// INTC_register_interrupt(__int_handler handler, int line, int priority);
 	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT0); //2
 	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT0); //1
+	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT2);
 	// Enable all interrupt/exception.
 	Enable_global_interrupt();
 }
