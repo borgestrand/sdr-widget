@@ -195,7 +195,8 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 
 // TCFIX new code to set up spdif receive timer
 // MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
-#define spdif_packet_tc	0 // Timer counter -channel-
+#define spdif_tc_channel	0 // Timer counter -channel-
+#define spdif_tc_device AVR32_TC1
 #define TC1_CLK0_PIN			AVR32_TC1_CLK0_0_PIN
 #define	TC1_CLK0_FUNCTION		AVR32_TC1_CLK0_0_FUNCTION
 
@@ -212,11 +213,11 @@ static const gpio_map_t TC1_CLK0_GPIO_MAP = {
 __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 
 	// Schedule the COUNT&COMPARE match interrupt used in FreeRTOS code, needed here?? TCFIX
-	// AVR32_TC.channel[spdif_packet_tc].sr;
+	// AVR32_TC.channel[spdif_tc_channel].sr;
 	
 	// Indicate interrupt trig
 	
-	tc_read_sr(&AVR32_TC1, spdif_packet_tc); // Restart interrupt??
+	tc_read_sr(&spdif_tc_device, spdif_tc_channel); // Restart interrupt??
 	
 	static int balle = 0;
 	
@@ -236,7 +237,7 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 
 
 static void spdif_packet_SetupTimerInterrupt(void) {
-	volatile avr32_tc_t *tc = &AVR32_TC1;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
+	volatile avr32_tc_t *tc = &spdif_tc_device;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
 
 
 	print_dbg_char('c');
@@ -246,7 +247,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 
 	// Options for waveform genration.
 	tc_waveform_opt_t waveform_opt = {
-		.channel  = spdif_packet_tc,                   /* Channel selection. */
+		.channel  = spdif_tc_channel,                   /* Channel selection. */
 
 		.bswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOB. */
 		.beevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOB. */
@@ -282,19 +283,19 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ2, AVR32_INTC_INT2);
 
 	// Should we do something like this???
-	tc_select_external_clock(tc, spdif_packet_tc, TC_CH0_EXT_CLK0_SRC_TCLK0);
+	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
 
 	// Initialize the timer/counter
 	tc_init_waveform(tc, &waveform_opt);
 
 	// For now aim for a division by 10 and monitor PX31
-	tc_write_rc(tc, spdif_packet_tc, 9);
+	tc_write_rc(tc, spdif_tc_channel, 9);
 
-	tc_configure_interrupts(tc, spdif_packet_tc, &tc_interrupt );
+	tc_configure_interrupts(tc, spdif_tc_channel, &tc_interrupt );
 
 	// Start the timer/counter, but only after we have reset the timer value to 0!
-	// tc_software_trigger(tc, spdif_packet_tc);
-	tc_start(tc, spdif_packet_tc); // Implements SWTRG software trig and CLKEN clock enable
+	// tc_software_trigger(tc, spdif_tc_channel);
+	tc_start(tc, spdif_tc_channel); // Implements SWTRG software trig and CLKEN clock enable
 
 	print_dbg_char('d');
 
