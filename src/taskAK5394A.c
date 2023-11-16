@@ -211,7 +211,7 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 	tc_read_sr(&spdif_tc_device, spdif_tc_channel);
 	
 	// Slow debug on console
-	print_dbg_char('!');
+//	print_dbg_char('!');
 	
 	// Fast debug on scope
 	static int test = 0;
