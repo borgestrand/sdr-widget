@@ -269,7 +269,7 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
 
 	// Register the compare interrupt handler to the interrupt controller and enable the compare interrupt
-	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ2, AVR32_INTC_INT2);
+	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT2);
 
 	// Should we do something like this???
 	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
