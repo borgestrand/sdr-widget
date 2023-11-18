@@ -220,6 +220,9 @@ void wm8804_task(void *pvParameters) {
 					spdif_rx_status.reliable = 0;				// Critical for mobo_handle_spdif()
 
 					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+						
+						mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
+						
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 						silence_counter = 0;					// For good measure, pause not yet detected
@@ -778,13 +781,16 @@ void wm8804_mute(void) {
 }
 
 
-// Un-mute the WM8804
+// Un-mute the WM8804 - only called after succesful mutex take!!
 void wm8804_unmute(void) {
 	// For now, frequency changes totally mess up ADC_site
 	
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 //	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
+
+	mobo_start_spdif_tc(spdif_rx_status.frequency);				// Turn on the spdif timer/counter interrupt
+
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??

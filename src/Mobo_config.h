@@ -137,6 +137,12 @@ uint32_t mobo_wait_LRCK_TX_asm(void);
 // Process spdif and toslink inputs
 void mobo_handle_spdif(uint8_t width);
 
+// Start the timer/counter that monitors spdif traffic
+void mobo_start_spdif_tc(U32 frequency);
+
+// Stop the timer/counter that monitors spdif traffic
+void mobo_stop_spdif_tc(void);
+
 // Front panel RGB LED control
 void mobo_led_select(U32 frequency, uint8_t source);
 

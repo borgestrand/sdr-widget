@@ -46,9 +46,7 @@
 #include "pm.h"
 #include "Mobo_config.h"
 #include "pdca.h"
-
 #include "tc.h"
-
 #include "usb_standard_request.h"
 #include "features.h"
 #include "device_audio_task.h"
@@ -193,10 +191,8 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 
 
 
-// TCFIX new code to set up spdif receive timer
+// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing
 // MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
-#define spdif_tc_device		AVR32_TC1	// Using TC1 where we have CLK0 available on PA05
-#define spdif_tc_channel	0			// Timer counter -channel-
 #define TC1_CLK0_PIN		AVR32_TC1_CLK0_0_PIN
 #define	TC1_CLK0_FUNCTION	AVR32_TC1_CLK0_0_FUNCTION
 
@@ -205,12 +201,10 @@ static const gpio_map_t TC1_CLK0_GPIO_MAP = {
 };
 
 
+// SPDIF timer interrupt
 __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
-	// Needed to restart timer?
-	tc_read_sr(&spdif_tc_device, spdif_tc_channel);
-	
-	// Slow debug on console
-//	print_dbg_char('!');
+	// Is interrupt clear really needed?
+	tc_read_sr(&SPDIF_TC_DEVICE, SPDIF_TC_CHANNEL);
 	
 	// Fast debug on scope
 	static int test = 0;
@@ -226,12 +220,11 @@ __attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 
 
 static void spdif_packet_SetupTimerInterrupt(void) {
-	volatile avr32_tc_t *tc = &spdif_tc_device;	// TCFIX changed from &AVR32_TC to &AVR32_TC1
-	
+	volatile avr32_tc_t *tc = &SPDIF_TC_DEVICE;		// TCFIX changed from &AVR32_TC to &AVR32_TC1
 
-	// Options for waveform genration.
+	// Options for waveform genration
 	tc_waveform_opt_t waveform_opt = {
-		.channel  = spdif_tc_channel,                   /* Channel selection. */
+		.channel  = SPDIF_TC_CHANNEL,                   /* Channel selection. */
 		.bswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOB. */
 		.beevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOB. */
 		.bcpc     = TC_EVT_EFFECT_NOOP,                /* RC compare effect on TIOB. */
@@ -266,24 +259,16 @@ static void spdif_packet_SetupTimerInterrupt(void) {
 	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
 
 	// Register the compare interrupt handler to the interrupt controller and enable the compare interrupt
-	// It's more probable than not that we're using IRQ0 with channel 0...
+	// It's more probable than not that we're using IRQ0 with channel 0. It works with IRQ0 and INT0 pri
 	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT0);
 	
-	
-	// Should we do something like this???
-	tc_select_external_clock(tc, spdif_tc_channel, TC_CH0_EXT_CLK0_SRC_TCLK0);
+	// Should we do something like this? Well, the code works with it! Does it work without?
+	tc_select_external_clock(tc, SPDIF_TC_CHANNEL, TC_CH0_EXT_CLK0_SRC_TCLK0);
 
 	// Initialize the timer/counter
 	tc_init_waveform(tc, &waveform_opt);
 
-	// For now aim for a division by 10 and monitor PX31
-	// Toggle at 5 and 10
-	tc_write_rc(tc, spdif_tc_channel, 5);
-
-	tc_configure_interrupts(tc, spdif_tc_channel, &tc_interrupt );
-
-	// Start the timer/counter, but only after we have reset the timer value to 0!
-	tc_start(tc, spdif_tc_channel); // Implements SWTRG software trig and CLKEN clock enable
+	tc_configure_interrupts(tc, SPDIF_TC_CHANNEL, &tc_interrupt );
 }
 
 
@@ -303,12 +288,8 @@ static void pdca_set_irq(void) {
 	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT0); //2
 	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT0); //1
 	
-	// TCFIX new code	
-	print_dbg_char('a');
-	
+	// New code to configure spdif timer interrupt
 	spdif_packet_SetupTimerInterrupt();
-
-	print_dbg_char('c');	
 	
 	// Enable all interrupt/exception.
 	Enable_global_interrupt();

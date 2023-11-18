@@ -18,6 +18,9 @@
 // Power module and clock control
 #include "pm.h"
 
+// Timer/counter control
+#include "tc.h"
+
 // Real-time counter management
 #include "rtc.h"
 
@@ -956,6 +959,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
+// Didn't we hard-code this for use with caching in UAC2 code?
 #if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 	#define IN_LEFT 0
 	#define IN_RIGHT 1
@@ -1302,6 +1306,55 @@ void mobo_handle_spdif(uint8_t width) {
 	} // input select
 
 } // mobo_handle_spdif(void)
+
+
+// Start the timer/counter that monitors spdif traffic
+void mobo_start_spdif_tc(U32 frequency) {
+	volatile avr32_tc_t *tc = &SPDIF_TC_DEVICE;
+	uint8_t temp = 0;
+
+	switch (frequency) {
+		case FREQ_44:
+			temp = 11;	// UAC2: 11.025 samples per 250µs
+		break;
+		case FREQ_48:
+			temp = 12;	// UAC2: 12 samples per 250µs
+		break;
+		case FREQ_88:
+			temp = 22;	// UAC2: 22.05 samples per 250µs
+		break;
+		case FREQ_96:
+			temp = 24;	// UAC2: 24 samples per 250µs
+		break;
+		case FREQ_176:
+			temp = 44;	// UAC2: 44.1 samples per 250µs
+		break;
+		case FREQ_192:
+			temp = 48;	// UAC2: 48 samples per 250µs
+		break;
+		case FREQ_RXNATIVE:
+			temp = 12;	// UAC2: 11 samples per 250µs - risky, we may have to process packets more often than every 250µs
+		break;
+		default:
+			temp = 12;	// UAC2: 11 samples per 250µs
+		break;
+	}			
+	
+	// Configure the timer limit register
+	tc_write_rc(tc, SPDIF_TC_CHANNEL, temp);
+
+	// Start the timer/counter, includes resetting the timer value to 0!
+	tc_start(tc, SPDIF_TC_CHANNEL); // Implements SWTRG software trig and CLKEN clock enable
+}
+
+
+// Stop the timer/counter that monitors spdif traffic
+void mobo_stop_spdif_tc(void) {
+	volatile avr32_tc_t *tc = &SPDIF_TC_DEVICE;
+
+	tc_stop(tc, SPDIF_TC_CHANNEL);
+}
+
 
 
 #endif

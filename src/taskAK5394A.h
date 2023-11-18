@@ -50,6 +50,11 @@ Short buffers give less system latency and poorer synch state machine performanc
 //	#define ADC_BUFFER_SIZE	(8*2*48)
 //	#define DAC_BUFFER_SIZE (32*2*48)
 
+// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing
+// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
+#define SPDIF_TC_DEVICE		AVR32_TC1	// Using TC1 where we have CLK0 available on PA05
+#define SPDIF_TC_CHANNEL	0			// Timer counter -channel-
+
 #else
 	#define ADC_BUFFER_SIZE	48*2*8 // 48 khz, stereo, 8 ms worth
 	#define DAC_BUFFER_SIZE 48*2*16
