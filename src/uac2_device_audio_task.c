@@ -180,8 +180,11 @@ void uac2_device_audio_task(void *pvParameters)
 	int DAC_buf_DMA_read_local = 0;				// Local copy read in atomic operations
 	int ADC_buf_DMA_write_temp = 0;				// Local copy read in atomic operations
 	
+	static bool return_to_nominal = false;		// Tweak frequency feedback system
+
+	
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
-	/* The use of this code is disregarded to try to save time
+	/* The use of this code is disregarded to try to save execution time
 	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 		#define IN_LEFT 0
 		#define IN_RIGHT 1
@@ -640,6 +643,8 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 
 						playerStarted = TRUE;				// Moved here from mutex take code
+						
+						return_to_nominal = false;			// Restart feedback system
 					} // end if (!playerStarted) || (audio_OUT_must_sync)
 
 
@@ -1158,12 +1163,6 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 
 
 							if(playerStarted) {
-
-								// Site of old USB skip/insert code
-								
-								
-								static bool return_to_nominal = false;
-
 								if (gap < old_gap) {
 									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
 										FB_rate -= 2*FB_RATE_DELTA;
