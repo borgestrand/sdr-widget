@@ -1160,6 +1160,9 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 							if(playerStarted) {
 
 								// Site of old USB skip/insert code
+								
+								
+								static bool return_to_nominal = false;
 
 								if (gap < old_gap) {
 									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
@@ -1171,7 +1174,9 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 	#ifdef USB_REDUCED_DEBUG
 										print_cpu_char(CPU_CHAR_DECDEC_FREQ);
 	#endif
+										return_to_nominal = true;
 									}
+									
 									else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
 										FB_rate -= FB_RATE_DELTA;
 										old_gap = gap;
@@ -1181,7 +1186,24 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 	#ifdef USB_REDUCED_DEBUG
 										print_cpu_char(CPU_CHAR_DEC_FREQ); 
 	#endif
+										return_to_nominal = true;
+									}
 
+									// New feature: gap returning to nominal gap
+									// Goal: approach nominal sample rate without cycles of gap low-high-low
+									// but rather attempt up gaps being low-nominal-low
+									else if (gap < SPK_GAP_NOM) {
+										if (return_to_nominal) {
+											FB_rate -= FB_RATE_DELTA;
+											old_gap = gap;
+	#ifdef USB_STATE_MACHINE_DEBUG
+											print_dbg_char(':');
+	#endif
+	#ifdef USB_REDUCED_DEBUG
+											print_cpu_char(CPU_CHAR_DEC_FREQ); 
+	#endif
+											return_to_nominal = false;
+										}
 									}
 								}
 								else if (gap > old_gap) {
@@ -1194,7 +1216,9 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 	#ifdef USB_REDUCED_DEBUG
 										print_cpu_char(CPU_CHAR_INCINC_FREQ); 
 	#endif
+										return_to_nominal = true;
 									}
+
 									else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
 										FB_rate += FB_RATE_DELTA;
 										old_gap = gap;
@@ -1204,7 +1228,24 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 	#ifdef USB_REDUCED_DEBUG
 										print_cpu_char(CPU_CHAR_INC_FREQ); 
 	#endif
-		
+										return_to_nominal = true;
+									}
+
+									// New feature: gap returning to nominal gap
+									// Goal: approach nominal sample rate without cycles of gap low-high-low
+									// but rather attempt up gaps being low-nominal-low
+									else if (gap > SPK_GAP_NOM) { 	
+										if (return_to_nominal) {
+											FB_rate += FB_RATE_DELTA;
+											old_gap = gap;
+	#ifdef USB_STATE_MACHINE_DEBUG
+											print_dbg_char('.');
+	#endif
+	#ifdef USB_REDUCED_DEBUG
+											print_cpu_char(CPU_CHAR_DEC_FREQ); 
+	#endif
+											return_to_nominal = false;
+										}
 									}
 								}
 							} // end if(playerStarted)
