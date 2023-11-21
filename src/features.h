@@ -222,10 +222,6 @@ extern const features_t features_default;
 #define FEATURE_LINUX_QUIRK_OFF			(features[feature_quirk_index] != (uint8_t)feature_quirk_linux)
 #define FEATURE_PROD_TEST_ON			(features[feature_quirk_index] == (uint8_t)feature_quirk_ptest)
 #define FEATURE_PROD_TEST_OFF			(features[feature_quirk_index] != (uint8_t)feature_quirk_ptest)
-#define FEATURE_HSTUPID_ON				(features[feature_quirk_index] == (uint8_t)feature_quirk_fb_Hstupid)
-#define FEATURE_HSTUPID_OFF				(features[feature_quirk_index] != (uint8_t)feature_quirk_fb_Hstupid)
-#define FEATURE_HDEAD_ON				(features[feature_quirk_index] == (uint8_t)feature_quirk_fb_Hdead)
-#define FEATURE_HDEAD_OFF				(features[feature_quirk_index] != (uint8_t)feature_quirk_fb_Hdead)
 #define FEATURE_NOSKIP_ON				(features[feature_quirk_index] == (uint8_t)feature_quirk_fb_noskip)
 #define FEATURE_NOSKIP_OFF				(features[feature_quirk_index] != (uint8_t)feature_quirk_fb_noskip)
 
