@@ -860,18 +860,6 @@ void uac2_device_audio_task(void *pvParameters)
 					
 					/*
 					
-					#define SI_PKG_RESOLUTION	1000		// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
-					static int32_t si_pkg_counter = 0;
-					static uint8_t si_pkg_increment = 0;	// Reset at sample rate change and when returning to nominal gap
-					static uint8_t si_pkg_direction = SI_NORMAL;	// Reset at sample rate change 
-					
-					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
-					if (si_pkg_counter > SI_PKG_RESOLUTION) {
-						si_pkg_counter -= SI_PKG_RESOLUTION;
-						si_action = si_pkg_direction;		// Apply only once in a while					
-					}
-					
-					
 					// With '*'
 					si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
 					si_pkg_increment ++;
@@ -886,6 +874,31 @@ void uac2_device_audio_task(void *pvParameters)
 					si_pkg_counter = 0;						// No s/i for a while
 					si_pkg_increment = 0;					// Not counting up to next s/i event
 					si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
+
+					// Up above
+					#define SI_PKG_RESOLUTION	1000		// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
+					static int32_t si_pkg_counter = 0;
+					static uint8_t si_pkg_increment = 0;	// Reset at sample rate change
+					static uint8_t si_pkg_direction = SI_NORMAL;	// Reset at sample rate change 
+					
+					// Here
+					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
+					if (si_pkg_counter > SI_PKG_RESOLUTION) {
+						si_pkg_counter -= SI_PKG_RESOLUTION;
+						si_action = si_pkg_direction;		// Apply only once in a while					
+					}
+					
+					if (si_action == SI_SKIP) {
+						set_gpio(x);						// Use top LEDs on PCB?
+					}
+					else if (si_action == SI_INSERT) {
+						set_gpio(y);
+					}
+					else {
+						clear_gpio(x);
+						clear_gpio(y);
+					}
+					
 					
 					
 					*/
