@@ -180,7 +180,27 @@ void uac2_device_audio_task(void *pvParameters)
 	int DAC_buf_DMA_read_local = 0;				// Local copy read in atomic operations
 	int ADC_buf_DMA_write_temp = 0;				// Local copy read in atomic operations
 	
+
+// Start new code for skip/insert
 	static bool return_to_nominal = false;		// Tweak frequency feedback system
+	#define MAX_SAMPLES 60			// Maximum number of stereo samples in one package of 250µs (nominally 48)
+	S32 cache_L[MAX_SAMPLES];
+	S32 cache_R[MAX_SAMPLES];
+
+	static S32 prev_sample_L = 0;	// Enable delayed writing to cache, initiated to 0, new value survives to next iteration
+	static S32 prev_sample_R = 0;
+	S32 diff_value = 0;
+	S32 diff_sum = 0;
+	S32 si_score_low;
+	int si_index_low;
+	S32 si_score_high;
+	int si_index_high;
+	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
+
+	#define SI_SKIP -1
+	#define SI_NORMAL 0
+	#define SI_INSERT 1
+	int8_t si_action = SI_NORMAL;
 
 	
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
@@ -644,7 +664,14 @@ void uac2_device_audio_task(void *pvParameters)
 
 						playerStarted = TRUE;				// Moved here from mutex take code
 						
+						// Updated skip/insert system
 						return_to_nominal = false;			// Restart feedback system
+						prev_sample_L = 0;
+						prev_sample_R = 0;
+						diff_value = 0;
+						diff_sum = 0;
+						si_action = SI_NORMAL;
+						
 					} // end if (!playerStarted) || (audio_OUT_must_sync)
 
 
@@ -672,25 +699,6 @@ void uac2_device_audio_task(void *pvParameters)
 					// sample_L and sample_R are S32, as is needed for volume control
 					// sample_left and sample_right are U32, as is needed for logical shifting in ADC code. Merge the variables!!
 
-// Start new code for skip/insert
-#define MAX_SAMPLES 60
-S32 cache_L[MAX_SAMPLES];
-S32 cache_R[MAX_SAMPLES];
-
-static S32 prev_sample_L = 0;	// Enable delayed writing to cache, initiated to 0, new value survives to next iteration
-static S32 prev_sample_R = 0;
-S32 diff_value = 0;
-S32 diff_sum = 0;
-S32 si_score_low;
-int si_index_low;
-S32 si_score_high;
-int si_index_high;
-static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
-
-#define SI_SKIP -1
-#define SI_NORMAL 0
-#define SI_INSERT 1
-int8_t si_action = SI_NORMAL;
 
 // This is where unit test starts iterating
 
