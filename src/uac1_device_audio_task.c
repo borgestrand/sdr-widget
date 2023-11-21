@@ -149,7 +149,6 @@ void uac1_device_audio_task(void *pvParameters)
 	int i;
 	U16 num_samples, num_remaining, gap = 0;
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
-	U16 packets_since_feedback = 0;
 	U8 skip_enable = 0;
 	U8 skip_indicate = 0;	// Should we show skipping on module LEDs?
 	U16 samples_to_transfer_OUT = 1; // Default value 1. Skip:0. Insert:2
@@ -329,8 +328,6 @@ void uac1_device_audio_task(void *pvParameters)
 					Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 
-					packets_since_feedback = 0;
-
 					if (Is_usb_full_speed_mode()) {
 						// FB rate is 3 bytes in 10.14 format
 #ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
@@ -421,7 +418,6 @@ void uac1_device_audio_task(void *pvParameters)
 
 						if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 							time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
-							packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
 							FB_error_acc = 0;					// BSB 20131102 reset feedback error
 							FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
 							old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
@@ -463,17 +459,6 @@ void uac1_device_audio_task(void *pvParameters)
 						// Received samples in 10.14 or 12.14 format is num_samples * 1<<14
 						// Error increases when Host (in average) sends too much data compared to FB_rate
 						// A high error means we must skip.
-
-	/*					// Try to detect a dead Host feedback system
-						if (FEATURE_NOSKIP_OFF) { 				// If skip/insert isn't disabled...
-							if (packets_since_feedback > SPK_HOST_FB_DEAD_AFTER)
-								skip_enable |= SPK_SKIP_EN_DEAD;	// Enable skip/insert due to dead host feedback system
-							else {
-								packets_since_feedback ++;
-								skip_enable &= ~SPK_SKIP_EN_DEAD;	// Disable skip/insert due to dead host feedback system
-							}
-						}
-	*/
 
 						// Default:1 Skip:0 Insert:2 Only one skip or insert per USB package
 						// .. prior to for(num_samples) Hence 1st sample in a package is skipped or inserted

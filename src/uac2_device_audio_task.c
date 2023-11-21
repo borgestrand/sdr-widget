@@ -157,7 +157,6 @@ void uac2_device_audio_task(void *pvParameters)
 	#endif
 	
 	S16 time_to_calculate_gap = 0; // BSB 20131101 New variables for skip/insert
-	U16 packets_since_feedback = 0;
 	S32 FB_error_acc = 0;	// BSB 20131102 Accumulated error for skip/insert
 	U8 sample_HSB;
 	U8 sample_MSB;
@@ -482,8 +481,6 @@ void uac2_device_audio_task(void *pvParameters)
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 
-				packets_since_feedback = 0;
-
 				if (Is_usb_full_speed_mode()) {
 					// FB rate is 3 bytes in 10.14 format
 
@@ -605,7 +602,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
-						packets_since_feedback = 0;			// BSB 20131031 assuming feedback system may soon kick in
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
 						FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
 						old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
