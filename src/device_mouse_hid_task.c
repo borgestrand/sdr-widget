@@ -103,9 +103,6 @@
 
 #include "ssc_i2s.h" // For I2S tests
 
-#ifdef USB_METALLIC_NOISE_SIM
-#include "device_audio_task.h"	// To modify FB_rate_nominal
-#endif
 
 
 
