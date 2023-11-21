@@ -664,21 +664,14 @@ void uac2_device_audio_task(void *pvParameters)
 
 //					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
 					
-					// sample_L and sample_R are S32, as is needed for volume control
-					// sample_left and sample_right are U32, as is needed for logical shifting in ADC code. Merge the variables!!
 
+					si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
+					si_index_low = 0;				// Location of "lowest energy", reset for each iteration
+					si_score_high = 0;				// Lowest positive number, reset for each iteration
+					si_index_high = 0;				// Location of "highest energy", reset for each iteration
+					silence_det_L = 0;				// We're looking for non-zero or non-static audio data.. Not sure exactly how this works.....
+					silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 
-// This is where unit test starts iterating
-
-si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
-si_index_low = 0;				// Location of "lowest energy", reset for each iteration
-si_score_high = 0;				// Lowest positive number, reset for each iteration
-si_index_high = 0;				// Location of "highest energy", reset for each iteration
-silence_det_L = 0;				// We're looking for non-zero or non-static audio data.. Not sure exactly how this works.....
-silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
-
-
-// End new code for skip/insert 
 
 					// Test usb alt setting once outside for loop, use tight loops into cache
 
@@ -757,8 +750,7 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 								silence_det_L |= sample_L;
 
 								sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
-								silence_det_R |= sample_R; 
-								
+								silence_det_R |= sample_R; 							
 
 								// Finding packet's point of lowest and highest "energy"
 								diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
@@ -773,7 +765,6 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 									si_score_high = diff_sum;
 									si_index_high = i;
 								}
-								
 								
 								// Applying volume control to stored sample
 								#ifdef FEATURE_VOLUME_CTRL
@@ -857,7 +848,6 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 					} // End silence_det == 0 & MOBO_SRC_NONE
 
 
-					
 					// Cacheing the input_select and dac_must_clear tests. Saves a lot of time over doing it for each sample
 					bool input_select_OK = FALSE;
 					if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {
@@ -868,6 +858,37 @@ silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
 
 					// This is where we will perform skip/insert
 					
+					/*
+					
+					#define SI_PKG_RESOLUTION	1000		// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
+					static int32_t si_pkg_counter = 0;
+					static uint8_t si_pkg_increment = 0;	// Reset at sample rate change and when returning to nominal gap
+					static uint8_t si_pkg_direction = SI_NORMAL;	// Reset at sample rate change 
+					
+					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
+					if (si_pkg_counter > SI_PKG_RESOLUTION) {
+						si_pkg_counter -= SI_PKG_RESOLUTION;
+						si_action = si_pkg_direction;		// Apply only once in a while					
+					}
+					
+					
+					// With '*'
+					si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
+					si_pkg_increment ++;
+					si_pkg_direction = SI_INSERT;			// Host must speed up
+					
+					// With '/'
+					si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
+					si_pkg_increment ++;
+					si_pkg_direction = SI_SKIP;				// Host must slow down
+					
+					// With return to nominal
+					si_pkg_counter = 0;						// No s/i for a while
+					si_pkg_increment = 0;					// Not counting up to next s/i event
+					si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
+					
+					
+					*/
 					
 					
 					num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
