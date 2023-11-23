@@ -1153,7 +1153,7 @@ void uac2_device_audio_task(void *pvParameters)
 								gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
 
-							if(playerStarted) {
+							if(playerStarted) { 
 								if (gap < old_gap) {
 									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
 										FB_rate -= 2*FB_RATE_DELTA;
