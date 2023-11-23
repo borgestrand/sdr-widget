@@ -93,7 +93,7 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 // For adaptive USB fallback, set this to 0 and experiment with MCU_CHAR_RATEUP and MCU_CHAR_RATEDOWN
-#define FB_RATE_DELTA 0 // 64 ææææ
+#define FB_RATE_DELTA 64 // 0 for UAC2 adaptive testing
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -1171,7 +1171,7 @@ void uac2_device_audio_task(void *pvParameters)
 	
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_DECDEC_FREQ);
-										print_dbg_char_hex(si_pkg_increment);
+										// print_dbg_char_hex(si_pkg_increment);
 										
 										return_to_nominal = TRUE;
 									}
@@ -1201,7 +1201,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 											// Report to cpu and debug terminal
 											print_cpu_char(CPU_CHAR_NOMDEC_FREQ); 
-											print_dbg_char_hex(si_pkg_increment);
+											// print_dbg_char_hex(si_pkg_increment);
 
 											return_to_nominal = FALSE;
 										}
@@ -1219,7 +1219,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_INCINC_FREQ); 
-										print_dbg_char_hex(si_pkg_increment);
+										// print_dbg_char_hex(si_pkg_increment);
 
 										return_to_nominal = TRUE;
 									}
@@ -1249,7 +1249,7 @@ void uac2_device_audio_task(void *pvParameters)
 	
 											// Report to cpu and debug terminal
 											print_cpu_char(CPU_CHAR_NOMINC_FREQ); 
-											print_dbg_char_hex(si_pkg_increment);
+											// print_dbg_char_hex(si_pkg_increment);
 	
 											return_to_nominal = FALSE;
 										}
