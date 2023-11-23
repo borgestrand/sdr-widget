@@ -181,7 +181,7 @@ void uac2_device_audio_task(void *pvParameters)
 	int ADC_buf_DMA_write_temp = 0;				// Local copy read in atomic operations
 
 // Start new code for skip/insert
-	static bool return_to_nominal = false;		// Tweak frequency feedback system
+	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
 	#define MAX_SAMPLES 60			// Maximum number of stereo samples in one package of 250µs (nominally 48)
 	S32 cache_L[MAX_SAMPLES];
 	S32 cache_R[MAX_SAMPLES];
@@ -639,7 +639,7 @@ void uac2_device_audio_task(void *pvParameters)
 						playerStarted = TRUE;				// Moved here from mutex take code
 						
 						// Updated skip/insert system
-						return_to_nominal = false;			// Restart feedback system
+						return_to_nominal = FALSE;			// Restart feedback system
 						prev_sample_L = 0;
 						prev_sample_R = 0;
 						diff_value = 0;
@@ -866,10 +866,12 @@ void uac2_device_audio_task(void *pvParameters)
 
 					
 					// New code for adaptive USB fallback using skip / insert s/i
-					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
-					if (si_pkg_counter > SI_PKG_RESOLUTION) {
-						si_pkg_counter -= SI_PKG_RESOLUTION;
-						si_action = si_pkg_direction;		// Apply only once in a while					
+					if (input_select_OK) {
+						si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
+						if (si_pkg_counter > SI_PKG_RESOLUTION) {
+							si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
+							si_action = si_pkg_direction;		// Apply only once in a while					
+						}
 					}
 
 /*					
@@ -1166,8 +1168,9 @@ void uac2_device_audio_task(void *pvParameters)
 	
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_DECDEC_FREQ);
+										print_dbg_hex(si_pkg_increment);
 										
-										return_to_nominal = true;
+										return_to_nominal = TRUE;
 									}
 									
 									else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
@@ -1177,7 +1180,7 @@ void uac2_device_audio_task(void *pvParameters)
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_DEC_FREQ); 
 
-										return_to_nominal = true;
+										return_to_nominal = TRUE;
 									}
 
 									// New feature: gap returning to nominal gap
@@ -1195,8 +1198,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 											// Report to cpu and debug terminal
 											print_cpu_char(CPU_CHAR_NOMDEC_FREQ); 
+											print_dbg_hex(si_pkg_increment);
 
-											return_to_nominal = false;
+											return_to_nominal = FALSE;
 										}
 									}
 								}
@@ -1212,8 +1216,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_INCINC_FREQ); 
+										print_dbg_hex(si_pkg_increment);
 
-										return_to_nominal = true;
+										return_to_nominal = TRUE;
 									}
 
 									else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
@@ -1223,7 +1228,7 @@ void uac2_device_audio_task(void *pvParameters)
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_INC_FREQ); 
 
-										return_to_nominal = true;
+										return_to_nominal = TRUE;
 									}
 
 									// New feature: gap returning to nominal gap
@@ -1241,8 +1246,9 @@ void uac2_device_audio_task(void *pvParameters)
 	
 											// Report to cpu and debug terminal
 											print_cpu_char(CPU_CHAR_NOMINC_FREQ); 
+											print_dbg_hex(si_pkg_increment);
 	
-											return_to_nominal = false;
+											return_to_nominal = FALSE;
 										}
 									}
 								}
