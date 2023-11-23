@@ -184,7 +184,7 @@ void uac2_device_audio_task(void *pvParameters)
 	#define MAX_SAMPLES 60			// Maximum number of stereo samples in one package of 250µs (nominally 48)
 	S32 cache_L[MAX_SAMPLES];
 	S32 cache_R[MAX_SAMPLES];
-
+	
 	static S32 prev_sample_L = 0;	// Enable delayed writing to cache, initiated to 0, new value survives to next iteration
 	static S32 prev_sample_R = 0;
 	S32 diff_value = 0;
@@ -195,10 +195,15 @@ void uac2_device_audio_task(void *pvParameters)
 	int si_index_high;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
 
+	// New code for adaptive USB fallback using skip / insert s/i
 	#define SI_SKIP -1
 	#define SI_NORMAL 0
 	#define SI_INSERT 1
+	#define SI_PKG_RESOLUTION	1000			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
 	int8_t si_action = SI_NORMAL;
+	int32_t si_pkg_counter = 0;
+	uint8_t si_pkg_increment = 0;				// Reset at sample rate change
+	uint8_t si_pkg_direction = SI_NORMAL;		// Reset at sample rate change
 
 	
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
@@ -638,8 +643,10 @@ void uac2_device_audio_task(void *pvParameters)
 						prev_sample_R = 0;
 						diff_value = 0;
 						diff_sum = 0;
-						si_action = SI_NORMAL;
-						
+						si_action = SI_NORMAL;				// No skip/insert yet
+						si_pkg_counter = 0;					// Count to when we must s/i
+						si_pkg_increment = 0;				// Not yet waiting for s/i
+						si_pkg_direction = SI_NORMAL;		// No rate mismatch detected yet		
 					} // end if (!playerStarted) || (audio_OUT_must_sync)
 
 
@@ -856,40 +863,15 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 					}
 
-					// This is where we will perform skip/insert
 					
-					/*
-					
-					æææææ
-					
-					// With '*'
-					si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
-					si_pkg_increment ++;
-					si_pkg_direction = SI_INSERT;			// Host must speed up
-					
-					// With '/'
-					si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
-					si_pkg_increment ++;
-					si_pkg_direction = SI_SKIP;				// Host must slow down
-					
-					// With return to nominal
-					si_pkg_counter = 0;						// No s/i for a while
-					si_pkg_increment = 0;					// Not counting up to next s/i event
-					si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
-
-					// Up above
-					#define SI_PKG_RESOLUTION	1000		// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
-					static int32_t si_pkg_counter = 0;
-					static uint8_t si_pkg_increment = 0;	// Reset at sample rate change
-					static uint8_t si_pkg_direction = SI_NORMAL;	// Reset at sample rate change 
-					
-					// Here
+					// New code for adaptive USB fallback using skip / insert s/i
 					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
 					if (si_pkg_counter > SI_PKG_RESOLUTION) {
 						si_pkg_counter -= SI_PKG_RESOLUTION;
 						si_action = si_pkg_direction;		// Apply only once in a while					
 					}
-					
+
+/*					
 					if (si_action == SI_SKIP) {
 						set_gpio(x);						// Use top LEDs on PCB?
 					}
@@ -900,11 +882,7 @@ void uac2_device_audio_task(void *pvParameters)
 						clear_gpio(x);
 						clear_gpio(y);
 					}
-					
-					
-					
-					*/
-					
+*/					
 					
 					num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
 					
@@ -1179,6 +1157,11 @@ void uac2_device_audio_task(void *pvParameters)
 									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
 										FB_rate -= 2*FB_RATE_DELTA;
 										old_gap = gap;
+
+										// New code for adaptive USB fallback using skip / insert s/i
+										si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
+										si_pkg_increment ++;
+										si_pkg_direction = SI_SKIP;				// Host must slow down
 	
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_DECDEC_FREQ);
@@ -1203,6 +1186,11 @@ void uac2_device_audio_task(void *pvParameters)
 										if (return_to_nominal) {
 											FB_rate -= FB_RATE_DELTA;
 											old_gap = gap;
+											
+											// New code for adaptive USB fallback using skip / insert s/i
+											si_pkg_counter = 0;						// No s/i for a while
+											si_pkg_increment = 0;					// Not counting up to next s/i event
+											si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
 
 											// Report to cpu and debug terminal
 											print_cpu_char(CPU_CHAR_NOMDEC_FREQ); 
@@ -1215,6 +1203,11 @@ void uac2_device_audio_task(void *pvParameters)
 									if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
 										FB_rate += 2*FB_RATE_DELTA;
 										old_gap = gap;
+										
+										// New code for adaptive USB fallback using skip / insert s/i
+										si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
+										si_pkg_increment ++;
+										si_pkg_direction = SI_INSERT;			// Host must speed up
 
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_INCINC_FREQ); 
@@ -1239,6 +1232,11 @@ void uac2_device_audio_task(void *pvParameters)
 										if (return_to_nominal) {
 											FB_rate += FB_RATE_DELTA;
 											old_gap = gap;
+
+											// New code for adaptive USB fallback using skip / insert s/i
+											si_pkg_counter = 0;						// No s/i for a while
+											si_pkg_increment = 0;					// Not counting up to next s/i event
+											si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
 	
 											// Report to cpu and debug terminal
 											print_cpu_char(CPU_CHAR_NOMINC_FREQ); 
