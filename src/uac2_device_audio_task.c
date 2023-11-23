@@ -92,7 +92,8 @@
 
 //_____ D E F I N I T I O N S ______________________________________________
 
-#define FB_RATE_DELTA 64
+// For adaptive USB fallback, set this to 0 and experiment with MCU_CHAR_RATEUP and MCU_CHAR_RATEDOWN
+#define FB_RATE_DELTA 0 // 64 ææææ
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
