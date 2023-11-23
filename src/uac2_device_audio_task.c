@@ -1168,7 +1168,7 @@ void uac2_device_audio_task(void *pvParameters)
 	
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_DECDEC_FREQ);
-										print_dbg_hex(si_pkg_increment);
+										print_dbg_char_hex(si_pkg_increment);
 										
 										return_to_nominal = TRUE;
 									}
@@ -1198,7 +1198,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 											// Report to cpu and debug terminal
 											print_cpu_char(CPU_CHAR_NOMDEC_FREQ); 
-											print_dbg_hex(si_pkg_increment);
+											print_dbg_char_hex(si_pkg_increment);
 
 											return_to_nominal = FALSE;
 										}
@@ -1216,7 +1216,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_INCINC_FREQ); 
-										print_dbg_hex(si_pkg_increment);
+										print_dbg_char_hex(si_pkg_increment);
 
 										return_to_nominal = TRUE;
 									}
@@ -1246,7 +1246,7 @@ void uac2_device_audio_task(void *pvParameters)
 	
 											// Report to cpu and debug terminal
 											print_cpu_char(CPU_CHAR_NOMINC_FREQ); 
-											print_dbg_hex(si_pkg_increment);
+											print_dbg_char_hex(si_pkg_increment);
 	
 											return_to_nominal = FALSE;
 										}
