@@ -279,7 +279,7 @@ void wm8804_task(void *pvParameters) {
 							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 							
-							#ifdef USB_REDUCED_DEBUG
+							#ifdef USB_REDUCED_DEBUG 
 								// Report to CPU (when present)
 								switch (input_select) {
 									case MOBO_SRC_SPDIF0:

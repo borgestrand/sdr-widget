@@ -552,9 +552,9 @@ void uac1_device_audio_task(void *pvParameters)
 							if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
 								#ifdef HW_GEN_RXMOD			// With WM8805/WM8804 subsystem, handle semaphore
 									#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
+//										print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
-											print_dbg_char('[');
+//											print_dbg_char('[');
 											input_select = MOBO_SRC_UAC1;
 											
 											#ifdef USB_REDUCED_DEBUG
@@ -566,13 +566,21 @@ void uac1_device_audio_task(void *pvParameters)
 												}
 											#endif
 
+											if (usb_ch == USB_CH_B) {
+												print_dbg_char(CPU_CHAR_UAC1_B);	// USB audio Class 1 on rear USB-B plug
+											}
+											else if (usb_ch == USB_CH_C) {
+												print_dbg_char(CPU_CHAR_UAC1_C);	// USB audio Class 1 on front USB-C plug
+											}
+
 											mobo_led_select(current_freq.frequency, input_select);
 											#ifdef HW_GEN_RXMOD
 												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
 											#endif
 										}												// Hopefully, this code won't be called repeatedly. Would there be time??
-										else
-											print_dbg_char(']');
+										else {
+//											print_dbg_char(']');
+										}
 									#else // not debug
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 											input_select = MOBO_SRC_UAC1;
