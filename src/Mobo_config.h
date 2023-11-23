@@ -52,7 +52,7 @@ void mobo_clear_dac_channel(void);
 #define CPU_CHAR_176				'5' // MCU requests oscillator for 176.4ksps and outputs on that rate
 #define CPU_CHAR_192				'6' // MCU requests oscillator for 192ksps and outputs on that rate
 #define CPU_CHAR_REGEN				'X' // MCU requests regenerated clock from SPDIF/TOSLINK receiver. Probably outputs on last reported rate ('1'-'6')
-#define CPU_CHAR_RATE_DEF			'Y' // MCU rate request is unknown
+#define CPU_CHAR_RATE_DEF			'z' // 'Y' // MCU rate request is unknown
 #define CPU_CHAR_INC_FREQ			'+' // MCU requests increased sample rate from Host
 #define CPU_CHAR_DEC_FREQ			'-' // MCU requests decreased sample rate from Host
 #define CPU_CHAR_NOMINC_FREQ		'.' // MCU requests increased sample rate from Host while returning to nominal gap

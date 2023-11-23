@@ -978,7 +978,7 @@ void mobo_handle_spdif(uint8_t width) {
 	// Continue writing to consumer's buffer where this routine left of last
 	if ( (ADC_buf_DMA_write_prev == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
 
-		print_dbg_char('Y');	// I2S OUT consumer starting up
+//		print_dbg_char('Y');	// I2S OUT consumer starting up
 
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		mobo_clear_adc_channel();
@@ -1515,6 +1515,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		#error undefined hardware
 	#endif
 
+		// Establish history
 		prev_frequency = frequency;
 	} // if (frequency != prev_frequency)
 }

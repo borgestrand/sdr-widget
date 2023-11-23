@@ -1293,7 +1293,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 					// Clear buffers before give
 					#ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char('9');
+//						print_dbg_char('9');
 					#endif
 					mobo_clear_dac_channel();
 					// mobodebug is this another scheduler thief?

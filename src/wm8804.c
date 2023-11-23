@@ -296,10 +296,9 @@ void wm8804_task(void *pvParameters) {
 									print_cpu_char(CPU_CHAR_SRC_DEF);	// Inform CPU (when present)
 								break;
 							}
-									
-							print_dbg_char('p');							
+							
+							// Enable audio, configure clocks (and report), but only if needed
 							wm8804_unmute();					// No longer including LED change on this TAKE event
-							print_dbg_char('q');
 							
 							spdif_rx_status.muted = 0;
 							silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
