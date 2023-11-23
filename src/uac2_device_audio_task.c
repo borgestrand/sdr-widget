@@ -818,15 +818,7 @@ void uac2_device_audio_task(void *pvParameters)
 //									print_dbg_char('[');
 									input_select = MOBO_SRC_UAC2;
 
-									#ifdef USB_REDUCED_DEBUG
-										if (usb_ch == USB_CH_B) {
-											print_cpu_char(CPU_CHAR_UAC2_B);		// USB audio Class 2 on rear USB-B plug 
-										}
-										else if (usb_ch == USB_CH_C) {
-											print_cpu_char(CPU_CHAR_UAC2_C);		// USB audio Class 2 on front USB-C plug
-										}
-									#endif
-
+									// Report to cpu and debug terminal
 									if (usb_ch == USB_CH_B) {
 										print_cpu_char(CPU_CHAR_UAC2_B);		// USB audio Class 2 on rear USB-B plug 
 									}
@@ -1118,14 +1110,13 @@ void uac2_device_audio_task(void *pvParameters)
 
 						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('k');					// Debug semaphore, lowercase letters for USB tasks
+//								print_dbg_char('k');					// Debug semaphore, lowercase letters for USB tasks
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-									print_dbg_char(60); // '<'
+//									print_dbg_char(60); // '<'
 
-									#ifdef USB_REDUCED_DEBUG
-										print_cpu_char(CPU_CHAR_IDLE);
-									#endif
+									// Report to cpu and debug terminal
+									print_cpu_char(CPU_CHAR_IDLE);
 									
 									#ifdef HW_GEN_RXMOD
 									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
@@ -1134,8 +1125,9 @@ void uac2_device_audio_task(void *pvParameters)
 									#endif
 									#endif
 								}
-								else
+								else {
 									print_dbg_char(62); // '>'
+								}
 							#else
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
@@ -1187,24 +1179,20 @@ void uac2_device_audio_task(void *pvParameters)
 									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
 										FB_rate -= 2*FB_RATE_DELTA;
 										old_gap = gap;
-	#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('/');
-	#endif
-	#ifdef USB_REDUCED_DEBUG
+	
+										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_DECDEC_FREQ);
-	#endif
+										
 										return_to_nominal = true;
 									}
 									
 									else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
 										FB_rate -= FB_RATE_DELTA;
 										old_gap = gap;
-	#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('-');
-	#endif
-	#ifdef USB_REDUCED_DEBUG
+
+										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_DEC_FREQ); 
-	#endif
+
 										return_to_nominal = true;
 									}
 
@@ -1215,12 +1203,10 @@ void uac2_device_audio_task(void *pvParameters)
 										if (return_to_nominal) {
 											FB_rate -= FB_RATE_DELTA;
 											old_gap = gap;
-	#ifdef USB_STATE_MACHINE_DEBUG
-											print_dbg_char(':');
-	#endif
-	#ifdef USB_REDUCED_DEBUG
-											print_cpu_char(CPU_CHAR_DEC_FREQ); 
-	#endif
+
+											// Report to cpu and debug terminal
+											print_cpu_char(CPU_CHAR_NOMDEC_FREQ); 
+
 											return_to_nominal = false;
 										}
 									}
@@ -1229,24 +1215,20 @@ void uac2_device_audio_task(void *pvParameters)
 									if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
 										FB_rate += 2*FB_RATE_DELTA;
 										old_gap = gap;
-	#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('*');
-	#endif
-	#ifdef USB_REDUCED_DEBUG
+
+										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_INCINC_FREQ); 
-	#endif
+
 										return_to_nominal = true;
 									}
 
 									else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
 										FB_rate += FB_RATE_DELTA;
 										old_gap = gap;
-	#ifdef USB_STATE_MACHINE_DEBUG
-										print_dbg_char('+'); 
-	#endif
-	#ifdef USB_REDUCED_DEBUG
+
+										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_INC_FREQ); 
-	#endif
+
 										return_to_nominal = true;
 									}
 
@@ -1257,12 +1239,10 @@ void uac2_device_audio_task(void *pvParameters)
 										if (return_to_nominal) {
 											FB_rate += FB_RATE_DELTA;
 											old_gap = gap;
-	#ifdef USB_STATE_MACHINE_DEBUG
-											print_dbg_char('.');
-	#endif
-	#ifdef USB_REDUCED_DEBUG
-											print_cpu_char(CPU_CHAR_DEC_FREQ); 
-	#endif
+	
+											// Report to cpu and debug terminal
+											print_cpu_char(CPU_CHAR_NOMINC_FREQ); 
+	
 											return_to_nominal = false;
 										}
 									}
@@ -1320,14 +1300,13 @@ void uac2_device_audio_task(void *pvParameters)
 
 					#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 						#ifdef USB_STATE_MACHINE_DEBUG
-							print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
+//							print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 								input_select = MOBO_SRC_NONE;
-								print_dbg_char(60); // '<'
+//								print_dbg_char(60); // '<'
 
-								#ifdef USB_REDUCED_DEBUG
-									print_cpu_char(CPU_CHAR_IDLE);
-								#endif
+								// Report to cpu and debug terminal
+								print_cpu_char(CPU_CHAR_IDLE);
 								
 								#ifdef HW_GEN_RXMOD
 								#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
@@ -1336,8 +1315,9 @@ void uac2_device_audio_task(void *pvParameters)
 								#endif
 								#endif
 							}
-							else
-								print_dbg_char(62); // '>'
+							else {
+//								print_dbg_char(62); // '>'
+							}
 						#else
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 								input_select = MOBO_SRC_NONE;
@@ -1383,14 +1363,13 @@ void uac2_device_audio_task(void *pvParameters)
 				// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
 				#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 				#ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
+//				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-					print_dbg_char(60); // '<'
+//					print_dbg_char(60); // '<'
 
-					#ifdef USB_REDUCED_DEBUG
-						print_cpu_char(CPU_CHAR_IDLE);
-					#endif
+					// Report to cpu and debug terminal
+					print_cpu_char(CPU_CHAR_IDLE);
 							
 					#ifdef HW_GEN_RXMOD
 					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
@@ -1399,8 +1378,9 @@ void uac2_device_audio_task(void *pvParameters)
 					#endif
 					#endif
 				}
-				else
-				print_dbg_char(62); // '>'
+				else {
+//					print_dbg_char(62); // '>'
+				}
 				#else
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control

@@ -156,7 +156,7 @@ void wm8804_task(void *pvParameters) {
 				// Poll two silence detectors, WM8804 and buffer transfer code
 				if ( (spdif_rx_status.silent == 1) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
 					if (silence_counter >= WM8804_SILENCE_PLAYING) {	// Source is paused, moving on
-						print_dbg_char('m');
+//						print_dbg_char('m');
 						scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
 						mustgive = 1;
 					}
@@ -190,8 +190,8 @@ void wm8804_task(void *pvParameters) {
 				if  (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) {
 					wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
 							
-					print_dbg_char('!');
-					print_dbg_char_hex(wm8804_int);				// Report interrupts
+//					print_dbg_char('!');
+//					print_dbg_char_hex(wm8804_int);				// Report interrupts
 
 					if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
 						wm8804_pllnew(WM8804_PLL_TOGGLE);
@@ -206,7 +206,7 @@ void wm8804_task(void *pvParameters) {
 
 					// If srd() returned a valid frequency that is different from the one we believe we're at, do something!					
 					if ( ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) || (freq == FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
-						print_dbg_char('?');					// Sample rate mismatch!
+//						print_dbg_char('?');					// Sample rate mismatch!
 						// wm8804_pllnew(WM8804_PLL_TOGGLE);		// No PLL toggle -> quick to return to present setting
 						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel to prevent consequences of false detects. Run up to 5x4 scan attempts
 						mustgive = 1;
@@ -226,11 +226,10 @@ void wm8804_task(void *pvParameters) {
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 						silence_counter = 0;					// For good measure, pause not yet detected
-						print_dbg_char(60); // '<'
+//						print_dbg_char(60); // '<'
 						
-						#ifdef USB_REDUCED_DEBUG
-							print_cpu_char(CPU_CHAR_IDLE);
-						#endif
+						// Report to cpu and debug terminal
+						print_cpu_char(CPU_CHAR_IDLE);
 						
 						#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 							// mobo_led(FLED_SCANNING);			// Avoid raw LED-control!
@@ -238,7 +237,7 @@ void wm8804_task(void *pvParameters) {
 						#endif
 					}
 					else {
-						print_dbg_char(62); // '>'
+//						print_dbg_char(62); // '>'
 					}
 
 				}
@@ -276,36 +275,37 @@ void wm8804_task(void *pvParameters) {
 							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
 							spdif_rx_status.silent = 0;			// Modified in mobo_handle_spdif()
 							spdif_rx_status.buffered = 1;
-							print_dbg_char('[');
+//							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 							
-							#ifdef USB_REDUCED_DEBUG 
-								// Report to CPU (when present)
-								switch (input_select) {
-									case MOBO_SRC_SPDIF0:
-										print_cpu_char(CPU_CHAR_SPDIF0);	// SPDIF0
-									break;
-									case MOBO_SRC_SPDIF1:
-										print_cpu_char(CPU_CHAR_SPDIF1);	// SPDIF1
-									break;
-									case MOBO_SRC_TOSLINK0:
-										print_cpu_char(CPU_CHAR_TOSLINK0);	// TOSLINK0
-									break;
-									case MOBO_SRC_TOSLINK1:
-										print_cpu_char(CPU_CHAR_TOSLINK1);	// TOSLINK1
-									break;
-									default:
-										print_cpu_char(CPU_CHAR_SRC_DEF);	// Inform CPU (when present)
-									break;
-								}			
-							#endif
-														
+							// Report to cpu and debug terminal
+							switch (input_select) {
+								case MOBO_SRC_SPDIF0:
+									print_cpu_char(CPU_CHAR_SPDIF0);	// SPDIF0
+								break;
+								case MOBO_SRC_SPDIF1:
+									print_cpu_char(CPU_CHAR_SPDIF1);	// SPDIF1
+								break;
+								case MOBO_SRC_TOSLINK0:
+									print_cpu_char(CPU_CHAR_TOSLINK0);	// TOSLINK0
+								break;
+								case MOBO_SRC_TOSLINK1:
+									print_cpu_char(CPU_CHAR_TOSLINK1);	// TOSLINK1
+								break;
+								default:
+									print_cpu_char(CPU_CHAR_SRC_DEF);	// Inform CPU (when present)
+								break;
+							}
+									
+							print_dbg_char('p');							
 							wm8804_unmute();					// No longer including LED change on this TAKE event
+							print_dbg_char('q');
+							
 							spdif_rx_status.muted = 0;
 							silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
 						}
 						else {
-							print_dbg_char(']');
+//							print_dbg_char(']');
 						}
 					} // Scan success
 				}
@@ -819,11 +819,11 @@ uint8_t wm8804_multiwrite(uint8_t no_bytes, uint8_t *int_data) {
 		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
 		}
 		else {
-			print_dbg_char('P');
+//			print_dbg_char('P');
 		}
 	}
 	else {
-		print_dbg_char('Q');
+//		print_dbg_char('Q');
 	}
 	return status;
 }
@@ -846,11 +846,11 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
 		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
 		}
 		else {
-			print_dbg_char('P');
+//			print_dbg_char('P');
 		}
 	}
 	else {
-		print_dbg_char('Q');
+//		print_dbg_char('Q');
 	}
 
 	return status;
@@ -881,11 +881,11 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 //			print_dbg_char(60); // '<'
 		}
 		else {
-			print_dbg_char('R');
+//			print_dbg_char('R');
 		}
 	}
 	else {
-		print_dbg_char('S');
+//		print_dbg_char('S');
 	}
 
 	return dev_data[0];

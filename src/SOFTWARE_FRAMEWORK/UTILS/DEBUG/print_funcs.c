@@ -208,7 +208,6 @@ void print_dbg(const char *str)
 
   // Redirection to the debug USART.
   print(DBG_USART, str);
-
 }
 
 
@@ -223,6 +222,7 @@ void print_dbg_char(int c)
 
 
 // Special write to internal CPU (when present) that replaces UART debug system
+// Also writes to standard UART
 void print_cpu_char(int c)
 {
 	// Redirection to the debug USART.

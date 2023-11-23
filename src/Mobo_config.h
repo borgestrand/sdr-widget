@@ -54,9 +54,11 @@ void mobo_clear_dac_channel(void);
 #define CPU_CHAR_REGEN				'X' // MCU requests regenerated clock from SPDIF/TOSLINK receiver. Probably outputs on last reported rate ('1'-'6')
 #define CPU_CHAR_RATE_DEF			'Y' // MCU rate request is unknown
 #define CPU_CHAR_INC_FREQ			'+' // MCU requests increased sample rate from Host
-#define CPU_CHAR_DEC_FREQ			'-' // MCU requests increased sample rate from Host
-#define CPU_CHAR_INCINC_FREQ		'*' // MCU intensely requests increased sample rate from Host
-#define CPU_CHAR_DECDEC_FREQ		'/' // MCU intensely requests increased sample rate from Host
+#define CPU_CHAR_DEC_FREQ			'-' // MCU requests decreased sample rate from Host
+#define CPU_CHAR_NOMINC_FREQ		'.' // MCU requests increased sample rate from Host while returning to nominal gap
+#define CPU_CHAR_NOMDEC_FREQ		':' // MCU requests decreased sample rate from Host while returning to nominal gap
+#define CPU_CHAR_INCINC_FREQ		'*' // MCU intensely requests increased-increased sample rate from Host
+#define CPU_CHAR_DECDEC_FREQ		'/' // MCU intensely requests decreased-decreased sample rate from Host
 #define CPU_CHAR_ALIVE				'l' // MCU is alive
 #define MCU_CHAR_SI_ENABLE			'I' // CPU instructs MCU to enable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
 #define MCU_CHAR_SI_DISABLE			'i' // CPU instructs MCU to disable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!

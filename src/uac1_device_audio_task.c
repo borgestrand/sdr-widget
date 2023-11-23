@@ -557,20 +557,12 @@ void uac1_device_audio_task(void *pvParameters)
 //											print_dbg_char('[');
 											input_select = MOBO_SRC_UAC1;
 											
-											#ifdef USB_REDUCED_DEBUG
-												if (usb_ch == USB_CH_B) {
-													print_cpu_char(CPU_CHAR_UAC1_B);	// USB audio Class 1 on rear USB-B plug 
-												}
-												else if (usb_ch == USB_CH_C) {
-													print_cpu_char(CPU_CHAR_UAC1_C);	// USB audio Class 1 on front USB-C plug 
-												}
-											#endif
-
+											// Report to cpu and debug terminal
 											if (usb_ch == USB_CH_B) {
-												print_dbg_char(CPU_CHAR_UAC1_B);	// USB audio Class 1 on rear USB-B plug
+												print_cpu_char(CPU_CHAR_UAC1_B);	// USB audio Class 1 on rear USB-B plug 
 											}
 											else if (usb_ch == USB_CH_C) {
-												print_dbg_char(CPU_CHAR_UAC1_C);	// USB audio Class 1 on front USB-C plug
+												print_cpu_char(CPU_CHAR_UAC1_C);	// USB audio Class 1 on front USB-C plug 
 											}
 
 											mobo_led_select(current_freq.frequency, input_select);
@@ -682,14 +674,13 @@ void uac1_device_audio_task(void *pvParameters)
 
 							#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 								#ifdef USB_STATE_MACHINE_DEBUG
-									print_dbg_char('k');						// Debug semaphore, lowercase letters for USB tasks
+//									print_dbg_char('k');						// Debug semaphore, lowercase letters for USB tasks
 									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 										input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-										print_dbg_char(60); // '<'
+//										print_dbg_char(60); // '<'
 										
-										#ifdef USB_REDUCED_DEBUG
-											print_cpu_char(CPU_CHAR_IDLE);
-										#endif
+										// Report to cpu and debug terminal
+										print_cpu_char(CPU_CHAR_IDLE);
 										
 										#ifdef HW_GEN_RXMOD
 										#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
@@ -698,8 +689,9 @@ void uac1_device_audio_task(void *pvParameters)
 										#endif
 										#endif
 									}
-									else
-										print_dbg_char(62); // '>'
+									else {
+//										print_dbg_char(62); // '>'
+									}
 								#else
 									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 										input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
@@ -868,14 +860,13 @@ void uac1_device_audio_task(void *pvParameters)
 
 						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('h');				// Debug semaphore, lowercase letters for USB tasks
+//								print_dbg_char('h');				// Debug semaphore, lowercase letters for USB tasks
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 									input_select = MOBO_SRC_NONE;
-									print_dbg_char(60); // '<' 
+//									print_dbg_char(60); // '<' 
 									
-									#ifdef USB_REDUCED_DEBUG
-										print_cpu_char(CPU_CHAR_IDLE);
-									#endif
+									// Report to cpu and debug terminal
+									print_cpu_char(CPU_CHAR_IDLE);
 
 									#ifdef HW_GEN_RXMOD
 									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
@@ -884,8 +875,9 @@ void uac1_device_audio_task(void *pvParameters)
 									#endif
 									#endif
 								}
-								else
-									print_dbg_char(62); // '>'
+								else {
+//									print_dbg_char(62); // '>'
+								}
 							#else
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 									input_select = MOBO_SRC_NONE;
@@ -934,14 +926,13 @@ void uac1_device_audio_task(void *pvParameters)
 				// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
 				#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 				#ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
+//				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-					print_dbg_char(60); // '<'
+//					print_dbg_char(60); // '<'
 
-					#ifdef USB_REDUCED_DEBUG
-						print_cpu_char(CPU_CHAR_IDLE);
-					#endif
+					// Report to cpu and debug terminal
+					print_cpu_char(CPU_CHAR_IDLE);
 						
 					#ifdef HW_GEN_RXMOD
 					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
@@ -950,8 +941,9 @@ void uac1_device_audio_task(void *pvParameters)
 					#endif
 					#endif
 				}
-				else
-					print_dbg_char(62); // '>'
+				else {
+//					print_dbg_char(62); // '>'
+				}
 				#else
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
