@@ -872,6 +872,9 @@ void uac2_device_audio_task(void *pvParameters)
 							si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
 							si_action = si_pkg_direction;		// Apply only once in a while					
 						}
+						else {
+							si_action = SI_NORMAL;				// Most of the time, don't apply
+						}
 					}
 
 /*					
