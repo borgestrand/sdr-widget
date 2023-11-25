@@ -361,10 +361,12 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 // It is very important to enable some sort of MCLK to the CPU, USB MCLK is the most reliable
 // FIX: NVRAM should store preferred source and resort to it on boot-up!
 
-	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
-		input_select = MOBO_SRC_UAC1;
-	else
-		input_select = MOBO_SRC_UAC2;
+//	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
+//		input_select = MOBO_SRC_UAC1;
+//	else
+
+// UAC2 only
+	input_select = MOBO_SRC_UAC2;
 
 //	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
@@ -394,6 +396,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 	// Set initial status of LEDs on the front of AB-1.1. BSB 20110903, 20111016
 	// Overriden by #if LED_STATUS == LED_STATUS_AB in SDRwdgt.h
+/*
 	if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 	{														// With UAC1:
 		mobo_led(FLED_GREEN);	}
@@ -401,6 +404,10 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	{														// With UAC != 1
 		mobo_led(FLED_RED);
 	}
+*/ 
+	// UAC2 only
+	mobo_led(FLED_RED);
+
 #endif
 
 	// Initialize Real Time Counter

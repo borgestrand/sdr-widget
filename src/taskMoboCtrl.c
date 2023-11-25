@@ -212,6 +212,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 				#endif
     		}
 
+/* UAC2 only - remove Prog pin UAC toggle
     		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) {	// If Prog button pressed and not yet handled..
     			// At first detection of Prog pin change AB-1.x / USB DAC 128 mkI/II front LEDs for contrast:
     			// RED->GREEN / GREEN->RED depending on LED_AB_FRONT
@@ -305,7 +306,7 @@ static void vtaskMoboCtrl( void * pcParameters )
    		} // if (btn_poll_Timerval != btn_poll_lastIteration)	// Once every 1second, do stuff
 
 		// End Prog button poll stuff BSB 20110903
-
+*/
 
 
    		//-----------------------------

@@ -146,10 +146,11 @@ void usb_start_device(void)
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
   Usb_force_full_speed_mode();
 #else
-  if (FEATURE_IMAGE_UAC1_AUDIO)
-	  Usb_force_full_speed_mode();
-  else
-	  Usb_use_dual_speed_mode();
+//  if (FEATURE_IMAGE_UAC1_AUDIO)
+//	  Usb_force_full_speed_mode();
+//  else
+  // UAC2 only
+  Usb_use_dual_speed_mode();
 #endif
   
   usb_init_device();  // Configure the USB controller EP0

@@ -13,11 +13,6 @@ C_SRCS += \
 ../src/image.c \
 ../src/taskAK5394A.c \
 ../src/taskMoboCtrl.c \
-../src/uac1_device_audio_task.c \
-../src/uac1_image.c \
-../src/uac1_taskAK5394A.c \
-../src/uac1_usb_descriptors.c \
-../src/uac1_usb_specific_request.c \
 ../src/uac2_device_audio_task.c \
 ../src/uac2_image.c \
 ../src/uac2_taskAK5394A.c \
@@ -39,11 +34,6 @@ OBJS += \
 ./src/image.o \
 ./src/taskAK5394A.o \
 ./src/taskMoboCtrl.o \
-./src/uac1_device_audio_task.o \
-./src/uac1_image.o \
-./src/uac1_taskAK5394A.o \
-./src/uac1_usb_descriptors.o \
-./src/uac1_usb_specific_request.o \
 ./src/uac2_device_audio_task.o \
 ./src/uac2_image.o \
 ./src/uac2_taskAK5394A.o \
@@ -66,11 +56,6 @@ C_DEPS += \
 ./src/image.d \
 ./src/taskAK5394A.d \
 ./src/taskMoboCtrl.d \
-./src/uac1_device_audio_task.d \
-./src/uac1_image.d \
-./src/uac1_taskAK5394A.d \
-./src/uac1_usb_descriptors.d \
-./src/uac1_usb_specific_request.d \
 ./src/uac2_device_audio_task.d \
 ./src/uac2_image.d \
 ./src/uac2_taskAK5394A.d \

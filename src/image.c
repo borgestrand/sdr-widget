@@ -18,9 +18,13 @@ static const image_t *image;
 // initializes to setup whatever
 // needs setting before initialization
 void image_boot(void) {
+/*
   if ( FEATURE_IMAGE_UAC1_AUDIO ) image = &uac1_audio_image;
   else if ( FEATURE_IMAGE_UAC2_AUDIO ) image = &uac2_audio_image;
   else image = &uac1_audio_image;
+*/
+  // UAC2 only
+  image = &uac2_audio_image;
   image->boot();
 }
 

@@ -85,7 +85,7 @@ typedef enum {
 	feature_board_usbi2s,
 	feature_board_usbdac,
 	feature_end_board,
-	feature_image_uac1_audio,
+	feature_image_uac1_audio,	// UAC2 only: retained for buffer compatibility for now
 //	feature_image_uac1_dg8saq,
 	feature_image_uac2_audio,
 //	feature_image_uac2_dg8saq,
@@ -193,7 +193,7 @@ extern const features_t features_default;
 #define FEATURE_BOARD_USBI2S			(features[feature_board_index] == (uint8_t)feature_board_usbi2s)
 #define FEATURE_BOARD_USBDAC			(features[feature_board_index] == (uint8_t)feature_board_usbdac)
 
-#define FEATURE_IMAGE_UAC1_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac1_audio)
+// #define FEATURE_IMAGE_UAC1_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac1_audio)
 #define FEATURE_IMAGE_UAC2_AUDIO		(features[feature_image_index] == (uint8_t)feature_image_uac2_audio)
 
 #define FEATURE_IN_NORMAL				(features[feature_in_index] == (uint8_t)feature_in_normal)
