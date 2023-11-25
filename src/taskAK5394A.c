@@ -190,87 +190,87 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 }
 
 
+#ifdef HW_GEN_RXMOD
+	// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing
+	// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
+	#define TC1_CLK0_PIN		AVR32_TC1_CLK0_0_PIN
+	#define	TC1_CLK0_FUNCTION	AVR32_TC1_CLK0_0_FUNCTION
 
-// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing
-// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
-#define TC1_CLK0_PIN		AVR32_TC1_CLK0_0_PIN
-#define	TC1_CLK0_FUNCTION	AVR32_TC1_CLK0_0_FUNCTION
-
-static const gpio_map_t TC1_CLK0_GPIO_MAP = {
-	{TC1_CLK0_PIN, TC1_CLK0_FUNCTION}
-};
-
-
-// SPDIF timer interrupt
-__attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
-	// Is interrupt clear really needed?
-	tc_read_sr(&SPDIF_TC_DEVICE, SPDIF_TC_CHANNEL);
-	
-	// Fast debug on scope
-	static int test = 0;
-	if (test == 0) {
-		gpio_set_gpio_pin(AVR32_PIN_PX31);
-		test = 1;
-	}
-	else {
-		gpio_clr_gpio_pin(AVR32_PIN_PX31);
-		test = 0;
-	}
-}
-
-
-static void spdif_packet_SetupTimerInterrupt(void) {
-	volatile avr32_tc_t *tc = &SPDIF_TC_DEVICE;		// TCFIX changed from &AVR32_TC to &AVR32_TC1
-
-	// Options for waveform genration
-	tc_waveform_opt_t waveform_opt = {
-		.channel  = SPDIF_TC_CHANNEL,                   /* Channel selection. */
-		.bswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOB. */
-		.beevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOB. */
-		.bcpc     = TC_EVT_EFFECT_NOOP,                /* RC compare effect on TIOB. */
-		.bcpb     = TC_EVT_EFFECT_NOOP,                /* RB compare effect on TIOB. */
-		.aswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOA. */
-		.aeevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOA. */
-		.acpc     = TC_EVT_EFFECT_NOOP,                /* RC compare effect on TIOA: toggle. */
-		.acpa     = TC_EVT_EFFECT_NOOP,                /* RA compare effect on TIOA: toggle (other possibilities are none, set and clear). */
-		.wavsel   = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER,/* Waveform selection: Up mode without automatic trigger on RC compare. */
-		.enetrg   = FALSE,                             /* External event trigger enable. */
-		.eevt     = 0,                                 /* External event selection. */
-		.eevtedg  = TC_SEL_NO_EDGE,                    /* External event edge selection. */
-		.cpcdis   = FALSE,                             /* Counter disable when RC compare. */
-		.cpcstop  = FALSE,                             /* Counter clock stopped with RC compare. */
-		.burst    = FALSE,                             /* Burst signal selection. */
-		.clki     = FALSE,                             /* Clock inversion. */
-		.tcclks   = TC_CLOCK_SOURCE_XC0                /* Presumably external source clock CLK0. */
+	static const gpio_map_t TC1_CLK0_GPIO_MAP = {
+		{TC1_CLK0_PIN, TC1_CLK0_FUNCTION}
 	};
 
-	tc_interrupt_t tc_interrupt = {
-		.etrgs=0,
-		.ldrbs=0,
-		.ldras=0,
-		.cpcs =1,
-		.cpbs =0,
-		.cpas =0,
-		.lovrs=0,
-		.covfs=0,
-	};
 
-	// Configure PA05 input pin as clock
-	gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
-
-	// Register the compare interrupt handler to the interrupt controller and enable the compare interrupt
-	// It's more probable than not that we're using IRQ0 with channel 0. It works with IRQ0 and INT0 pri
-	INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT0);
+	// SPDIF timer interrupt
+	__attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
+		// Is interrupt clear really needed?
+		tc_read_sr(&SPDIF_TC_DEVICE, SPDIF_TC_CHANNEL);
 	
-	// Should we do something like this? Well, the code works with it! Does it work without?
-	tc_select_external_clock(tc, SPDIF_TC_CHANNEL, TC_CH0_EXT_CLK0_SRC_TCLK0);
+		// Fast debug on scope
+		static int test = 0;
+		if (test == 0) {
+			gpio_set_gpio_pin(AVR32_PIN_PX31);
+			test = 1;
+		}
+		else {
+			gpio_clr_gpio_pin(AVR32_PIN_PX31);
+			test = 0;
+		}
+	}
 
-	// Initialize the timer/counter
-	tc_init_waveform(tc, &waveform_opt);
 
-	tc_configure_interrupts(tc, SPDIF_TC_CHANNEL, &tc_interrupt );
-}
+	static void spdif_packet_SetupTimerInterrupt(void) {
+		volatile avr32_tc_t *tc = &SPDIF_TC_DEVICE;		// TCFIX changed from &AVR32_TC to &AVR32_TC1
 
+		// Options for waveform genration
+		tc_waveform_opt_t waveform_opt = {
+			.channel  = SPDIF_TC_CHANNEL,                   /* Channel selection. */
+			.bswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOB. */
+			.beevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOB. */
+			.bcpc     = TC_EVT_EFFECT_NOOP,                /* RC compare effect on TIOB. */
+			.bcpb     = TC_EVT_EFFECT_NOOP,                /* RB compare effect on TIOB. */
+			.aswtrg   = TC_EVT_EFFECT_NOOP,                /* Software trigger effect on TIOA. */
+			.aeevt    = TC_EVT_EFFECT_NOOP,                /* External event effect on TIOA. */
+			.acpc     = TC_EVT_EFFECT_NOOP,                /* RC compare effect on TIOA: toggle. */
+			.acpa     = TC_EVT_EFFECT_NOOP,                /* RA compare effect on TIOA: toggle (other possibilities are none, set and clear). */
+			.wavsel   = TC_WAVEFORM_SEL_UP_MODE_RC_TRIGGER,/* Waveform selection: Up mode without automatic trigger on RC compare. */
+			.enetrg   = FALSE,                             /* External event trigger enable. */
+			.eevt     = 0,                                 /* External event selection. */
+			.eevtedg  = TC_SEL_NO_EDGE,                    /* External event edge selection. */
+			.cpcdis   = FALSE,                             /* Counter disable when RC compare. */
+			.cpcstop  = FALSE,                             /* Counter clock stopped with RC compare. */
+			.burst    = FALSE,                             /* Burst signal selection. */
+			.clki     = FALSE,                             /* Clock inversion. */
+			.tcclks   = TC_CLOCK_SOURCE_XC0                /* Presumably external source clock CLK0. */
+		};
+
+		tc_interrupt_t tc_interrupt = {
+			.etrgs=0,
+			.ldrbs=0,
+			.ldras=0,
+			.cpcs =1,
+			.cpbs =0,
+			.cpas =0,
+			.lovrs=0,
+			.covfs=0,
+		};
+
+		// Configure PA05 input pin as clock
+		gpio_enable_module(TC1_CLK0_GPIO_MAP, sizeof(TC1_CLK0_GPIO_MAP) / sizeof(TC1_CLK0_GPIO_MAP[0]));
+
+		// Register the compare interrupt handler to the interrupt controller and enable the compare interrupt
+		// It's more probable than not that we're using IRQ0 with channel 0. It works with IRQ0 and INT0 pri
+		INTC_register_interrupt( (__int_handler) &spdif_packet_int_handler, AVR32_TC1_IRQ0, AVR32_INTC_INT0);
+	
+		// Should we do something like this? Well, the code works with it! Does it work without?
+		tc_select_external_clock(tc, SPDIF_TC_CHANNEL, TC_CH0_EXT_CLK0_SRC_TCLK0);
+
+		// Initialize the timer/counter
+		tc_init_waveform(tc, &waveform_opt);
+
+		tc_configure_interrupts(tc, SPDIF_TC_CHANNEL, &tc_interrupt );
+	}
+#endif
 
 
 /*! \brief Init interrupt controller and register pdca_int_handler interrupt.
@@ -287,9 +287,11 @@ static void pdca_set_irq(void) {
 	// INTC_register_interrupt(__int_handler handler, int line, int priority);
 	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT0); //2
 	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT0); //1
-	
-	// New code to configure spdif timer interrupt
-	spdif_packet_SetupTimerInterrupt();
+
+	#ifdef HW_GEN_RXMOD	
+		// New code to configure spdif timer interrupt
+		spdif_packet_SetupTimerInterrupt();
+	#endif
 	
 	// Enable all interrupt/exception.
 	Enable_global_interrupt();
@@ -402,13 +404,13 @@ void AK5394A_task_init(const Bool uac1) {
 	// Register PDCA IRQ interruptS. // Plural those are!
 	pdca_set_irq();
 
+/* Old noisy code!?
 	// Init ADC channel for SPDIF buffering, HW_GEN_FMADC turns it on in separate state machine FMADC_site
 	#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
-	/*  Empty for now....
-		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
+	//  Empty for now....
+//		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 //		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 		// pdca_enable() is called from WM8805 init functions
-	 */
 	#else
 		// Init PDCA channel with the pdca_options.
 		// REMOVE! The ADC should be designed out completely, this is taken over by SPDIF reception sub system ADC_site
@@ -417,7 +419,7 @@ void AK5394A_task_init(const Bool uac1) {
 			pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 		}
 	#endif
-
+*/
 
 	// Initial setup of clock and TX IO. This will cause LR inversion when called with FREQ_INVALID
 	// Therefore, call it with proper frequency when playback starts.

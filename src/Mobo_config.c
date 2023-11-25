@@ -1304,6 +1304,7 @@ void mobo_handle_spdif(uint8_t width) {
 } // mobo_handle_spdif(void)
 
 
+
 // Start the timer/counter that monitors spdif traffic
 void mobo_start_spdif_tc(U32 frequency) {
 	volatile avr32_tc_t *tc = &SPDIF_TC_DEVICE;
