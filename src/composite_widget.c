@@ -388,7 +388,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 
 //clear samplerate indication
-#if defined(HW_GEN_AB1X)
+#if defined(HW_GEN_AB1X) 
 	gpio_clr_gpio_pin(SAMPLEFREQ_VAL0);
 	gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 
