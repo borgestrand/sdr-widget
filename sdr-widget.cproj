@@ -15182,33 +15182,6 @@
     <Compile Include="src\taskMoboCtrl.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="src\uac1_device_audio_task.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_device_audio_task.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_image.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_taskAK5394A.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_taskAK5394A.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_usb_descriptors.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_usb_descriptors.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_usb_specific_request.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="src\uac1_usb_specific_request.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="src\uac2_device_audio_task.c">
       <SubType>compile</SubType>
     </Compile>
