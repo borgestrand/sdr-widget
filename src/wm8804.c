@@ -139,7 +139,7 @@ void wm8804_task(void *pvParameters) {
 		// then scan inputs starting with last known good input	
 				
 		// USB has assumed control, power down WM8804 if it was on
-		if ( (input_select == MOBO_SRC_UAC1) || (input_select == MOBO_SRC_UAC2) ) {
+		if (input_select == MOBO_SRC_UAC2) {
 			if (spdif_rx_status.powered == 1) {
 				spdif_rx_status.powered = 0;
 				wm8804_sleep();

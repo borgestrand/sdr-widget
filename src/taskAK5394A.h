@@ -67,7 +67,6 @@ Short buffers give less system latency and poorer synch state machine performanc
 
 // Available digital audio sources, 3 and 4 only available in HW_GEN_DIN10 and ..20. Source 5 only available in HW_GEN_DIN20n and HW_GEN_RXMOD
 #define MOBO_SRC_NONE		0
-#define MOBO_SRC_UAC1		1
 #define MOBO_SRC_UAC2		2
 #define MOBO_SRC_SPDIF0		3
 #define MOBO_SRC_TOSLINK1	4

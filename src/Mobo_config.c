@@ -407,10 +407,6 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 		}
 		break;
 
-		case MOBO_SRC_UAC1:
-			mobo_led(FLED_GREEN);	// Classical color UAC1
-		break;
-
 		case MOBO_SRC_UAC2:
 			mobo_led(FLED_RED);		// Classical color UAC2
 		break;
@@ -1433,7 +1429,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		if (spdif_rx_status.buffered == 0) { // NB has been discontinued in RXMOD C and onwards
 			// Old version with I2S mux
 			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
-			if ( (source == MOBO_SRC_UAC1) || (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
+			if ( (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
 					gpio_set_gpio_pin(AVR32_PIN_PC01); 	// SEL_USBP_RXN = 1 defaults to USB
 
 				// Clock source control - Permit multiple clocks to briefly short rather than risk the clock being off
