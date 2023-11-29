@@ -953,7 +953,6 @@ void mobo_handle_spdif(uint8_t width) {
 	static S16 megaskip = 0; 
 	S16 target = -1;					// Default value, no sample to touch
 
-
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
 // Didn't we hard-code this for use with caching in UAC2 code?
 #if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
@@ -968,13 +967,10 @@ void mobo_handle_spdif(uint8_t width) {
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 #endif
 
-
 	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
 	// Continue writing to consumer's buffer where this routine left of last
 	if ( (ADC_buf_DMA_write_prev == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
-
-//		print_dbg_char('Y');	// I2S OUT consumer starting up
 
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		mobo_clear_adc_channel();
@@ -1075,7 +1071,6 @@ void mobo_handle_spdif(uint8_t width) {
 			}
 			else // DAC DMA and seq. code working on different buffers
 				gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
-
 
 			// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
 			samples_to_transfer_OUT = 1;			// Default value
@@ -1236,10 +1231,7 @@ void mobo_handle_spdif(uint8_t width) {
 			// Normal operation, copy one ADC package with normal skip/insert
 			else {
 				megaskip = 0;					// Normal operation
-
-
 //				gpio_set_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
-
 
 				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 					// Fill endpoint with sample raw
@@ -1251,7 +1243,6 @@ void mobo_handle_spdif(uint8_t width) {
 						sample_L = audio_buffer_1[i+IN_LEFT];
 						sample_R = audio_buffer_1[i+IN_RIGHT];
 					}
-
 
 // Super-rough skip/insert
 //					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
@@ -1277,7 +1268,6 @@ void mobo_handle_spdif(uint8_t width) {
 						if (spk_index >= DAC_BUFFER_SIZE) {
 							spk_index -= DAC_BUFFER_SIZE;
 							DAC_buf_OUT = 1 - DAC_buf_OUT;
-
 
 #ifdef USB_STATE_MACHINE_DEBUG
 //							if (DAC_buf_OUT == 1)

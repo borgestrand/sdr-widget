@@ -148,7 +148,8 @@ void uac2_device_audio_task(void *pvParameters)
 //	static Bool startup=TRUE;
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i = 0;
-	S32 num_samples, num_remaining;
+	S32 num_samples = 0;
+	S32 num_remaining = 0;
 	S32 gap = 0;
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
@@ -182,9 +183,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Start new code for skip/insert
 	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
-	#define MAX_SAMPLES 60			// Maximum number of stereo samples in one package of 250µs (nominally 48)
-	S32 cache_L[MAX_SAMPLES];
-	S32 cache_R[MAX_SAMPLES];
+	#define CACHE_MAX_SAMPLES 60				// Maximum number of stereo samples in one package of 250µs (nominally 48)
+	S32 cache_L[CACHE_MAX_SAMPLES];
+	S32 cache_R[CACHE_MAX_SAMPLES];
 	
 	static S32 prev_sample_L = 0;	// Enable delayed writing to cache, initiated to 0, new value survives to next iteration
 	static S32 prev_sample_R = 0;
@@ -606,6 +607,11 @@ void uac2_device_audio_task(void *pvParameters)
 					spk_usb_sample_counter += num_samples; 	// track the num of samples received
 					xSemaphoreGive(mutexSpkUSB);
 
+					if (input_select != MOBO_SRC_UAC2) {
+						num_samples = 0;					// Only process samples if we own the outgoing (toward DAC) cache
+					}
+
+
 					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
@@ -670,8 +676,7 @@ void uac2_device_audio_task(void *pvParameters)
 					uint16_t usb_16_2;
 					
 
-//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
-					
+//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Start copying DAC data from USB OUT to cache 
 
 					si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
 					si_index_low = 0;				// Location of "lowest energy", reset for each iteration
@@ -683,97 +688,35 @@ void uac2_device_audio_task(void *pvParameters)
 
 					// Test usb alt setting once outside for loop, use tight loops into cache
 
-					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
-						num_samples = min(num_samples, MAX_SAMPLES);				// prevent overshoot of cache_L and cache_R
-						for (i = 0; i < num_samples; i++) {
-							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
-							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
-							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
-							
-							sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
-							silence_det_L |= sample_L;
-
-							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
-							silence_det_R |= sample_R;
-
-
-							// Finding packet's point of lowest and highest "energy"
-							diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
-							diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample. 
-							
-							if (diff_sum < si_score_low) {
-								si_score_low = diff_sum;
-								si_index_low = i;
-							}
-
-							if (diff_sum > si_score_high) {
-								si_score_high = diff_sum;
-								si_index_high = i;
-							}
-
-							// Applying volume control to stored sample
-							#ifdef FEATURE_VOLUME_CTRL
-							if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
-								sample_L = 0;
-								sample_R = 0;
-							}
-							else {
-								if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-									// 32-bit data words volume control
-									prev_sample_L = (S32)( (int64_t)( (int64_t)(prev_sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
-									// rand8() too expensive at 192ksps
-									// sample_L += rand8(); // dither in bits 7:0
-								}
-
-								if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
-									// 32-bit data words volume control
-									prev_sample_R = (S32)( (int64_t)( (int64_t)(prev_sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
-									// rand8() too expensive at 192ksps
-									// sample_R += rand8(); // dither in bits 7:0
-								}
-							}
-							#endif
-
-							// Storing one period delayed
-							cache_L[i] = prev_sample_L; 
-							cache_R[i] = prev_sample_R;
-							
-							// Establish history
-							prev_sample_L = sample_L;
-							prev_sample_R = sample_R;
-							prev_diff_value = diff_value;
-						} // end for num_samples
-
-					} // end if alt setting 1
-
-
-					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
-						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
-							num_samples = min(num_samples, MAX_SAMPLES);					// prevent overshoot of cache_L and cache_R
+					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {			// Alternate 1 24 bits/sample, 8 bytes per stereo sample
+						if (input_select == MOBO_SRC_UAC2) {							// Only write to cache with the right permissions! Double check permission and num_samples
+							num_samples = min(num_samples, CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
 							for (i = 0; i < num_samples; i++) {
-								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);		// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
-								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);		// L LSB, R MSB
-								
-								sample_L = (((U32) (uint8_t)(usb_16_0) ) << 24) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 16);
+								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
+								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
+								usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
+							
+								sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
 								silence_det_L |= sample_L;
 
-								sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
-								silence_det_R |= sample_R; 							
+								sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
+								silence_det_R |= sample_R;
+
 
 								// Finding packet's point of lowest and highest "energy"
 								diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
-								diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
+								diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample. 
 							
 								if (diff_sum < si_score_low) {
 									si_score_low = diff_sum;
 									si_index_low = i;
 								}
-								
+
 								if (diff_sum > si_score_high) {
 									si_score_high = diff_sum;
 									si_index_high = i;
 								}
-								
+
 								// Applying volume control to stored sample
 								#ifdef FEATURE_VOLUME_CTRL
 								if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
@@ -796,8 +739,9 @@ void uac2_device_audio_task(void *pvParameters)
 									}
 								}
 								#endif
-								
-								cache_L[i] = prev_sample_L;
+
+								// Storing one period delayed
+								cache_L[i] = prev_sample_L; 
 								cache_R[i] = prev_sample_R;
 							
 								// Establish history
@@ -805,11 +749,75 @@ void uac2_device_audio_task(void *pvParameters)
 								prev_sample_R = sample_R;
 								prev_diff_value = diff_value;
 							} // end for num_samples
+						} // end input_select == MOBO_SRC_UAC2
+					} // end if alt setting 1
 
+					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
+						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
+							if (input_select == MOBO_SRC_UAC2) {							// Only write to cache with the right permissions! Double check permission and num_samples
+								num_samples = min(num_samples, CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
+								for (i = 0; i < num_samples; i++) {
+									usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
+									usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, R MSB
+								
+									sample_L = (((U32) (uint8_t)(usb_16_0) ) << 24) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 16);
+									silence_det_L |= sample_L;
+
+									sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
+									silence_det_R |= sample_R; 							
+
+									// Finding packet's point of lowest and highest "energy"
+									diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
+									diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
+							
+									if (diff_sum < si_score_low) {
+										si_score_low = diff_sum;
+										si_index_low = i;
+									}
+								
+									if (diff_sum > si_score_high) {
+										si_score_high = diff_sum;
+										si_index_high = i;
+									}
+								
+									// Applying volume control to stored sample
+									#ifdef FEATURE_VOLUME_CTRL
+									if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
+										sample_L = 0;
+										sample_R = 0;
+									}
+									else {
+										if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+											// 32-bit data words volume control
+											prev_sample_L = (S32)( (int64_t)( (int64_t)(prev_sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+											// rand8() too expensive at 192ksps
+											// sample_L += rand8(); // dither in bits 7:0
+										}
+
+										if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+											// 32-bit data words volume control
+											prev_sample_R = (S32)( (int64_t)( (int64_t)(prev_sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+											// rand8() too expensive at 192ksps
+											// sample_R += rand8(); // dither in bits 7:0
+										}
+									}
+									#endif
+								
+									cache_L[i] = prev_sample_L;
+									cache_R[i] = prev_sample_R;
+							
+									// Establish history
+									prev_sample_L = sample_L;
+									prev_sample_R = sample_R;
+									prev_diff_value = diff_value;
+								} // end for num_samples
+							} // End input_select == MOBO_SRC_UAC2
 						} // end if alt setting 2
 					#endif // UAC2 ALT 2 for 16-bit audio						
-						
-						
+
+//					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// End copying DAC data from USB OUT to cache
+
+
 					// Moved to outside for loop
 
 					if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )	// What does this test really do???
@@ -890,179 +898,180 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 */					
 					
-					num_samples = min(num_samples, MAX_SAMPLES); // prevent overshoot of cache_L and cache_R
 					
-					i = 0;
-					while (i < si_index_low) { // before skip/insert
-						// Fetch from cache
+					// æææ start writing from chache to spk_buffer
+					// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
+//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Start copying cache to spk_buffer_X
+					num_samples = min(num_samples, CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
+					if (num_samples > 0) {								// Only start copying when there is something to copy
+					
+						i = 0;
+						while (i < si_index_low) { // before skip/insert
+							// Fetch from cache
+							sample_L = cache_L[i];
+							sample_R = cache_R[i];
+
+							// Only write to spk_buffer_? when allowed
+							if (input_select_OK) { // Testing cached calculation made before packet processing started
+								if (DAC_buf_OUT == 0) {
+									spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
+								}
+								else {
+									spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
+								}
+							
+								if (spk_index >= DAC_BUFFER_SIZE) {
+									spk_index = 0;
+									DAC_buf_OUT = 1 - DAC_buf_OUT;
+
+									if (DAC_buf_OUT == 1) {
+										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+									else {
+										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+
+									// BSB 20131201 attempting improved playerstarted detection
+									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+								} // End switching buffers
+							} // end cached if test
+
+							i++;
+						} // end while i - before skip/insert
+
+
+						// i now points at sample to be skipped or inserted
 						sample_L = cache_L[i];
 						sample_R = cache_R[i];
 
-						// Only write to spk_buffer_? when allowed
-						if (input_select_OK) { // Testing cached calculation made before packet processing started
-							if (DAC_buf_OUT == 0) {
-								spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
-							else {
-								spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
-							
-							if (spk_index >= DAC_BUFFER_SIZE) {
-								spk_index = 0;
-								DAC_buf_OUT = 1 - DAC_buf_OUT;
-
-								if (DAC_buf_OUT == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						if (si_action == SI_SKIP) {
+							// Do nothing
+						}
+						else if (si_action == SI_NORMAL) {
+							// Single stereo sample
+							if (input_select_OK) { // Testing cached calculation made before packet processing started
+								if (DAC_buf_OUT == 0) {
+									spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
 								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
-
-								// BSB 20131201 attempting improved playerstarted detection
-								usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-							} // End switching buffers
-						} // end cached if test
-
-						i++;
-					} // end while i - before skip/insert
-
-
-					// i now points at sample to be skipped or inserted
-					sample_L = cache_L[i];
-					sample_R = cache_R[i];
-
-					if (si_action == SI_SKIP) {
-						// Do nothing
-					}
-					else if (si_action == SI_NORMAL) {
-						// Single stereo sample
-						if (input_select_OK) { // Testing cached calculation made before packet processing started
-							if (DAC_buf_OUT == 0) {
-								spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
-							else {
-								spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
 							
-							if (spk_index >= DAC_BUFFER_SIZE) {
-								spk_index = 0;
-								DAC_buf_OUT = 1 - DAC_buf_OUT;
+								if (spk_index >= DAC_BUFFER_SIZE) {
+									spk_index = 0;
+									DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-								if (DAC_buf_OUT == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									if (DAC_buf_OUT == 1) {
+										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+									else {
+										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+
+									// BSB 20131201 attempting improved playerstarted detection
+									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+								} // End switching buffers
+							} // end cached if test
+						} // End SI_NORMAL
+						else if (si_action == SI_INSERT) {
+							// First of two insertions:
+							if (input_select_OK) { // Testing cached calculation made before packet processing started
+								if (DAC_buf_OUT == 0) {
+									spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
 								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
-
-								// BSB 20131201 attempting improved playerstarted detection
-								usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-							} // End switching buffers
-						} // end cached if test
-					} // End SI_NORMAL
-					else if (si_action == SI_INSERT) {
-						// First of two insertions:
-						if (input_select_OK) { // Testing cached calculation made before packet processing started
-							if (DAC_buf_OUT == 0) {
-								spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
-							else {
-								spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
 							
-							if (spk_index >= DAC_BUFFER_SIZE) {
-								spk_index = 0;
-								DAC_buf_OUT = 1 - DAC_buf_OUT;
+								if (spk_index >= DAC_BUFFER_SIZE) {
+									spk_index = 0;
+									DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-								if (DAC_buf_OUT == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									if (DAC_buf_OUT == 1) {
+										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+									else {
+										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+
+									// BSB 20131201 attempting improved playerstarted detection
+									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+								} // End switching buffers
+							
+								// Second insertion:
+								if (DAC_buf_OUT == 0) {
+									spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
 								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
-
-								// BSB 20131201 attempting improved playerstarted detection
-								usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-							} // End switching buffers
 							
-							// Second insertion:
-							if (DAC_buf_OUT == 0) {
-								spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
-							else {
-								spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
-							
-							if (spk_index >= DAC_BUFFER_SIZE) {
-								spk_index = 0;
-								DAC_buf_OUT = 1 - DAC_buf_OUT;
+								if (spk_index >= DAC_BUFFER_SIZE) {
+									spk_index = 0;
+									DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-								if (DAC_buf_OUT == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									if (DAC_buf_OUT == 1) {
+										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+									else {
+										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+
+									// BSB 20131201 attempting improved playerstarted detection
+									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+								} // End switching buffers
+							} // end cached if test
+						}
+						i++; // Point to the sample after the one which was skipped or inserted
+					
+						while (i < num_samples) { // after skip/insert
+							// Fetch from cache
+							sample_L = cache_L[i];
+							sample_R = cache_R[i];
+
+							// Only write to spk_buffer_? when allowed
+							if (input_select_OK) { // Testing cached calculation made before packet processing started
+								if (DAC_buf_OUT == 0) {
+									spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
 								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+									spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 								}
-
-								// BSB 20131201 attempting improved playerstarted detection
-								usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-							} // End switching buffers
-						} // end cached if test
-					}
-					i++; // Point to the sample after the one which was skipped or inserted
-
-					
-					
-					while (i < num_samples) { // after skip/insert
-						// Fetch from cache
-						sample_L = cache_L[i];
-						sample_R = cache_R[i];
-
-						// Only write to spk_buffer_? when allowed
-						if (input_select_OK) { // Testing cached calculation made before packet processing started
-							if (DAC_buf_OUT == 0) {
-								spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
-							else {
-								spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-								spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-							}
 							
-							if (spk_index >= DAC_BUFFER_SIZE) {
-								spk_index = 0;
-								DAC_buf_OUT = 1 - DAC_buf_OUT;
+								if (spk_index >= DAC_BUFFER_SIZE) {
+									spk_index = 0;
+									DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-								if (DAC_buf_OUT == 1) {
-									gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-								}
-								else {
-									gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
-								}
+									if (DAC_buf_OUT == 1) {
+										gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
+									else {
+										gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+									}
 
-								// BSB 20131201 attempting improved playerstarted detection
-								usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-							} // End switching buffers
-						} // end cached if test
+									// BSB 20131201 attempting improved playerstarted detection
+									usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+								} // End switching buffers
+							} // end cached if test
 
-						i++;
-					} // end while i - after skip/insert
+							i++;
+						} // end while i - after skip/insert
 					
-					
-					
-					
-					
-					
-					
-//					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// Indicate copying DAC data from USB OUT to spk_audio_buffer_X
+						num_samples = 0; // Write is complete. Source must set it to > 0 for next write to spk_buffer_X to happen
+
+					} // end if num_samples > 0
+					// æææ end writing from chache to spk_buffer
+//					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// End copying DAC data from cache to spk_audio_buffer_X
 
 
 
@@ -1406,7 +1415,13 @@ void uac2_device_audio_task(void *pvParameters)
 			} // end if usb buffer toggle limit reach
 		} // end if USB playback or no playback
 
-		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Start of task execution
+
+// ææææ new site for writing from cache to spk_buf
+
+
+
+
+		gpio_clr_gpio_pin(AVR32_PIN_PA22); // End of task execution
 
 	} // end while vTask
 }
