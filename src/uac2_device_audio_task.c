@@ -244,7 +244,7 @@ void uac2_device_audio_task(void *pvParameters)
 			// Manual cache clear
 			for (i = 0; i < CACHE_MAX_SAMPLES; i++) {
 				cache_L[i] = 0;
-				cache_R[i] = 0;
+				cache_R[i] = 0; 
 			}
 			
 			dac_must_clear = DAC_CLEARED;
