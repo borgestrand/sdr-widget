@@ -241,6 +241,12 @@ void uac2_device_audio_task(void *pvParameters)
 //				print_dbg_char('7');
 			#endif
 			mobo_clear_dac_channel(); 
+			// Manual cache clear
+			for (i = 0; i < CACHE_MAX_SAMPLES; i++) {
+				cache_L[i] = 0;
+				cache_R[i] = 0;
+			}
+			
 			dac_must_clear = DAC_CLEARED;
 		}
 
@@ -639,7 +645,7 @@ void uac2_device_audio_task(void *pvParameters)
 						spk_index = DAC_BUFFER_SIZE - num_remaining;
 						spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 
-						playerStarted = TRUE;				// Moved here from mutex take code
+						// 	playerStarted = TRUE;				// Moved here from mutex take code
 						
 						// Updated skip/insert system
 						return_to_nominal = FALSE;			// Restart feedback system
@@ -831,6 +837,7 @@ void uac2_device_audio_task(void *pvParameters)
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
 //									print_dbg_char('[');
 									input_select = MOBO_SRC_UAC2;
+									playerStarted = TRUE;						// Is it better off here?
 
 									// Report to cpu and debug terminal
 									if (usb_ch == USB_CH_B) {
@@ -851,6 +858,7 @@ void uac2_device_audio_task(void *pvParameters)
 							#else // not debug
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 									input_select = MOBO_SRC_UAC2;
+									playerStarted = TRUE;						// Is it better off here?
 									mobo_led_select(current_freq.frequency, input_select);
 									#ifdef HW_GEN_RXMOD 
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
@@ -975,7 +983,7 @@ void uac2_device_audio_task(void *pvParameters)
 								gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
 
-							if(playerStarted) { 
+							if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
 								if (gap < old_gap) {
 									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
 										FB_rate -= 2*FB_RATE_DELTA;
@@ -1180,6 +1188,13 @@ void uac2_device_audio_task(void *pvParameters)
 			if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA and uacX_taskAK5394A.c, decreased by seq. code
 				usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
 				playerStarted = FALSE;
+				
+				mobo_clear_dac_channel();
+				// Manual cache clear when giving up access to outward facing resources
+				for (i = 0; i < CACHE_MAX_SAMPLES; i++) {
+					cache_L[i] = 0;
+					cache_R[i] = 0;
+				}
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('q');
