@@ -1237,7 +1237,7 @@ void uac2_device_audio_task(void *pvParameters)
 				sample_R = cache_R[i];
 
 				if (DAC_buf_OUT == 0) {
-					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
+					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT] 
 					spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
 				}
 				else {
