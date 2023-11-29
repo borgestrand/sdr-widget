@@ -1038,7 +1038,7 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_R = cache_R[i];
 
 							// Only write to spk_buffer_? when allowed
-							if (input_select_OK) { // Testing cached calculation made before packet processing started
+							if (input_select_OK) { // Testing cached calculation made before packet processing started 
 								if (DAC_buf_OUT == 0) {
 									spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
 									spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
