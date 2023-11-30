@@ -93,7 +93,7 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 // For adaptive USB fallback, set this to 0 and experiment with MCU_CHAR_RATEUP and MCU_CHAR_RATEDOWN
-#define FB_RATE_DELTA 64 // 0 for UAC2 adaptive testing
+#define FB_RATE_DELTA  0 // 64 // 0 for UAC2 adaptive testing
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
