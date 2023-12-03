@@ -950,7 +950,7 @@ void mobo_handle_spdif(uint8_t width) {
 	S32 sample_temp = 0;
 	static S32 sample_L = 0;
 	static S32 sample_R = 0;
-	static S16 megaskip = 0; 
+	static S16 megaskip = 0;   
 	S16 target = -1;					// Default value, no sample to touch
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
