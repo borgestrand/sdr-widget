@@ -93,7 +93,7 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 // For adaptive USB fallback, set this to 0 and experiment with MCU_CHAR_RATEUP and MCU_CHAR_RATEDOWN
-#define FB_RATE_DELTA  0 // 64 // 0 for UAC2 adaptive testing
+#define FB_RATE_DELTA   64 // 0 for UAC2 adaptive testing
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -191,10 +191,10 @@ void uac2_device_audio_task(void *pvParameters)
 	static S32 prev_sample_R = 0;
 	S32 diff_value = 0;
 	S32 diff_sum = 0;
-	S32 si_score_low;
-	int si_index_low;
-	S32 si_score_high;
-	int si_index_high;
+	S32 si_score_low = 0x7FFFFFFF;
+	int si_index_low = 0;
+	S32 si_score_high = 0;
+	int si_index_high = 0;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
 
 	// New code for adaptive USB fallback using skip / insert s/i
