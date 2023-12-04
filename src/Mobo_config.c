@@ -950,7 +950,6 @@ void mobo_handle_spdif(uint8_t width) {
 	S32 sample_temp = 0;
 	static S32 sample_L = 0;
 	static S32 sample_R = 0;
-	static S16 megaskip = 0;   
 	S16 target = -1;					// Default value, no sample to touch
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
@@ -1100,7 +1099,7 @@ void mobo_handle_spdif(uint8_t width) {
 					print_dbg_char('X');
 #endif
 				}
-			}
+			} // end iterations >
 
 			// If we must skip, what is the best place to do that?
 			// Code is prototyped in skip_insert_draft_c.m
@@ -1169,105 +1168,44 @@ void mobo_handle_spdif(uint8_t width) {
 			else if (ADC_buf_DMA_write_temp == 0)
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
-			// Apply megaskip when DC or zero is detected
-			if (spdif_rx_status.silent == 1) {				// Silence was detected
-				if (gap < SPK_GAP_LM ) {					// Are we close or past the limit for having to skip?
-					megaskip = SPK_GAP_UD - gap;			// This is as far as we can safely skip, one ADC package at a time
+
+//			gpio_set_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
+
+			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
+				// Fill endpoint with sample raw
+				if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+					sample_L = audio_buffer_0[i+IN_LEFT];
+					sample_R = audio_buffer_0[i+IN_RIGHT];
 				}
-				else if (gap > SPK_GAP_UM ) {				// Are we close to or past the limit for having to insert?
-					megaskip = gap - SPK_GAP_LD; 			// This is as far as we can safely insert, one ADC package at a time
+				else if (ADC_buf_DMA_write_temp == 1) {
+					sample_L = audio_buffer_1[i+IN_LEFT];
+					sample_R = audio_buffer_1[i+IN_RIGHT];
 				}
-			}
-			else {
-				megaskip = 0;	// Not zero -> no big skips!
-			}
-
-
-			// We're skipping or about to skip. In case of silence, do a good and proper skip by copying nothing
-			if (megaskip >= ADC_BUFFER_SIZE) {
-
-				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
-				mobo_xo_select(spdif_rx_status.frequency, input_select);
-
-#ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('S');
-#endif
-				samples_to_transfer_OUT = 1; 	// Revert to default:1. I.e. only one skip or insert in next ADC package
-				megaskip -= ADC_BUFFER_SIZE;	// We have jumped over one whole ADC package
-				// FIX: Is there a need to null the buffers and avoid re-use of old DAC buffer content?
-			}
-			// We're inserting or about to insert. In case of silence, do a good and proper insert by doubling an ADC package
-			else if (megaskip <= -ADC_BUFFER_SIZE) {
-
-				// Use crystal oscillator. It's OK to call this repeatedly even if XO wasn't disabled
-				mobo_xo_select(spdif_rx_status.frequency, input_select);
-
-#ifdef USB_STATE_MACHINE_DEBUG
-				print_dbg_char('I');
-#endif
-				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
-				megaskip += ADC_BUFFER_SIZE;	// Prepare to -insert- one ADC package, i.e. copying two ADC packages
-
-				for (i=0 ; i < ADC_BUFFER_SIZE *2 ; i+=2) { // Mind the *2
-					if (dac_must_clear == DAC_READY) {
-						if (DAC_buf_OUT == 0) {
-							spk_buffer_0[spk_index+OUT_LEFT] = 0; 
-							spk_buffer_0[spk_index+OUT_RIGHT] = 0;
-						}
-						else if (DAC_buf_OUT == 1) {
-							spk_buffer_1[spk_index+OUT_LEFT] = 0;
-							spk_buffer_1[spk_index+OUT_RIGHT] = 0;
-						}
-					}
-
-					spk_index += 2;							// æææ Analyze this code again, what is actually going on with the megaskips?
-					if (spk_index >= DAC_BUFFER_SIZE) {
-						spk_index -= DAC_BUFFER_SIZE;
-						DAC_buf_OUT = 1 - DAC_buf_OUT;
-					}
-				} // for i..
-
-			} // mega-insert <=
-			// Normal operation, copy one ADC package with normal skip/insert
-			else {
-				megaskip = 0;					// Normal operation
-//				gpio_set_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
-
-				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
-					// Fill endpoint with sample raw
-					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
-						sample_L = audio_buffer_0[i+IN_LEFT];
-						sample_R = audio_buffer_0[i+IN_RIGHT];
-					}
-					else if (ADC_buf_DMA_write_temp == 1) {
-						sample_L = audio_buffer_1[i+IN_LEFT];
-						sample_R = audio_buffer_1[i+IN_RIGHT];
-					}
 
 // Super-rough skip/insert
 //					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
 
-					p = 1;
-					if (i == target) {			// Are we touching the stereo sample?
-						p = samples_to_transfer_OUT;				// If so let's check what we're doing to it
+				p = 1;
+				if (i == target) {			// Are we touching the stereo sample?
+					p = samples_to_transfer_OUT;				// If so let's check what we're doing to it
+				}
+
+				while (p-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
+					if (dac_must_clear == DAC_READY) {
+						if (DAC_buf_OUT == 0) {
+							spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+						}
+						else if (DAC_buf_OUT == 1) {
+							spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+							spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+						}
 					}
 
-					while (p-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-						if (dac_must_clear == DAC_READY) {
-							if (DAC_buf_OUT == 0) {
-								spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-								spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
-							}
-							else if (DAC_buf_OUT == 1) {
-								spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-								spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
-							}
-						}
-
-						spk_index += 2;
-						if (spk_index >= DAC_BUFFER_SIZE) {
-							spk_index -= DAC_BUFFER_SIZE;
-							DAC_buf_OUT = 1 - DAC_buf_OUT;
+					spk_index += 2;
+					if (spk_index >= DAC_BUFFER_SIZE) {
+						spk_index -= DAC_BUFFER_SIZE;
+						DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 //							if (DAC_buf_OUT == 1)
@@ -1275,19 +1213,15 @@ void mobo_handle_spdif(uint8_t width) {
 //							else
 //								gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
-						}
 					}
-					samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
-				} // for ADC_BUFFER_SIZE
+				} // while p
+				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
+			} // for ADC_BUFFER_SIZE
 				
-//				gpio_clr_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
+//			gpio_clr_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 				
-			} // Normal operation
 
 		} // ADC_buf_DMA_write toggle
-		
-//		ææææ split the toggle action into multiple rounds of the spdif handler!!
-//		or make it an interruptable task or something....
 		
 	} // input select
 
