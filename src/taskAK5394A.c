@@ -106,6 +106,11 @@ volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
+#ifdef HW_GEN_RXMOD
+	volatile int timer_captured_ADC_buf_DMA_write = 0;	// SPDIF timer/counter records DMA status
+	volatile S32 timer_captured_num_remaining = 0;
+#endif
+
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	volatile U8 I2S_consumer = I2S_CONSUMER_NONE;	// Initially, no I2S consumer is active
 #endif
@@ -205,6 +210,19 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	__attribute__((__interrupt__)) static void spdif_packet_int_handler(void) {
 		// Is interrupt clear really needed?
 		tc_read_sr(&SPDIF_TC_DEVICE, SPDIF_TC_CHANNEL);
+
+		// New co-sample verification routine
+		timer_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
+		timer_captured_num_remaining = pdca_channel->tcr;
+						
+		// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
+		// for a long time. In which we simply read the counter again
+		if (timer_captured_ADC_buf_DMA_write != ADC_buf_DMA_write) {
+			timer_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
+			timer_captured_num_remaining = pdca_channel->tcr;
+		}
+		
+		
 	
 		// Fast debug on scope
 		static int test = 0;

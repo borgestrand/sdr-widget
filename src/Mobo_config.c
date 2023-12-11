@@ -1216,7 +1216,7 @@ void mobo_handle_spdif(uint8_t width) {
 					}
 				} // while p
 				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
-			} // for ADC_BUFFER_SIZE
+			} // for ADC_BUFFER_SIZE 
 				
 //			gpio_clr_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 				

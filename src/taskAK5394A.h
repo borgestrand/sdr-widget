@@ -155,6 +155,12 @@ extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
+#ifdef HW_GEN_RXMOD
+	extern volatile int timer_captured_ADC_buf_DMA_write;	// SPDIF timer/counter records DMA status
+	extern volatile S32 timer_captured_num_remaining;
+#endif
+
+
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	extern volatile U8 I2S_consumer;		// Which consumer is subscribing to I2S data? 
 #endif
