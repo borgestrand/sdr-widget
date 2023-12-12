@@ -382,7 +382,15 @@ Kind Regards,
 
 Arash
 */
-
+            
+			else if (a == 'q') {							// Lowercase 'q'
+				// How good is spdif timer at capturing num_remaining in DMA?
+				print_dbg_char('\n');
+				print_dbg_hex(timer_captured_num_remaining_max);
+				print_dbg_char('\n');
+				print_dbg_hex(timer_captured_num_remaining_min);
+				print_dbg_char('\n');
+            }
 
             else if (a == 'r') {			// Static debug device address
 				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);

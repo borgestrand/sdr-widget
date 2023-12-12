@@ -157,7 +157,12 @@ extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the c
 
 #ifdef HW_GEN_RXMOD
 	extern volatile int timer_captured_ADC_buf_DMA_write;	// SPDIF timer/counter records DMA status
-	extern volatile S32 timer_captured_num_remaining;
+	extern volatile U32 timer_captured_num_remaining;
+	
+	
+	extern volatile U32 timer_captured_num_remaining_min;
+	extern volatile U32 timer_captured_num_remaining_max;
+
 #endif
 
 

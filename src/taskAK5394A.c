@@ -108,7 +108,11 @@ volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content 
 
 #ifdef HW_GEN_RXMOD
 	volatile int timer_captured_ADC_buf_DMA_write = 0;	// SPDIF timer/counter records DMA status
-	volatile S32 timer_captured_num_remaining = 0;
+	volatile U32 timer_captured_num_remaining = 0;
+	
+	volatile U32 timer_captured_num_remaining_min = 0xFFFFFFFF;
+	volatile U32 timer_captured_num_remaining_max = 0;
+	
 #endif
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
@@ -222,7 +226,18 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 			timer_captured_num_remaining = pdca_channel->tcr;
 		}
 		
+		// What is the highest and lowest captured num_remaining?
+		// Practical tests print min, max of timer_captured_num_remaining as 0x0001 and 0x017F, respectively. That is with a buffer length of 0x0180 = 0d384
 		
+		if (timer_captured_num_remaining < timer_captured_num_remaining_min) {
+			timer_captured_num_remaining_min = timer_captured_num_remaining;
+		}
+		
+		if (timer_captured_num_remaining > timer_captured_num_remaining_max) {
+			timer_captured_num_remaining_max = timer_captured_num_remaining;
+		}
+		
+
 	
 		// Fast debug on scope
 		static int test = 0;
