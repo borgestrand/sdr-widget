@@ -227,7 +227,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		}
 		
 		// What is the highest and lowest captured num_remaining?
-		// Practical tests print min, max of timer_captured_num_remaining as 0x0001 and 0x0180, respectively. That is with a buffer length of 0x0180 = 0d384
+		// Practical tests print min, max of timer_captured_num_remaining as 0x0000 and 0x0180, respectively. That is with a buffer length of 0x0180 = 0d384
 		
 		if (timer_captured_num_remaining < timer_captured_num_remaining_min) {
 			timer_captured_num_remaining_min = timer_captured_num_remaining;
