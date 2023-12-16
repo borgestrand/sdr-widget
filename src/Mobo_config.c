@@ -1028,10 +1028,10 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 
-	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
+	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time, make cached copy
 
 	// Continue writing to consumer's buffer where this routine left of last
-	if ( (prev_ADC_buf_DMA_write == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
+	if ( (prev_ADC_buf_DMA_write == INIT_ADC_I2S) || (ADC_buf_I2S_IN == INIT_ADC_I2S) ) {	// Do the init on synchronous sampling ref. ADC DMA timing
 
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		mobo_clear_adc_channel();
@@ -1046,11 +1046,8 @@ void mobo_handle_spdif(uint8_t width) {
 	}
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
-	// If so, check it for silence. If selected as source, copy all of producer's data. (And perform skip/insert.)
-	// Only bother if .reliable != 0
-	else if (spdif_rx_status.buffered == 0) {
-		spdif_rx_status.silent = 0;
-	}
+	// If so, check it for silence. If selected as source, copy all of producer's data
+	// Only bother if .reliable != 0 ??
 	else if (ADC_buf_DMA_write_temp != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
 		prev_ADC_buf_DMA_write = ADC_buf_DMA_write_temp;
 
@@ -1069,8 +1066,10 @@ void mobo_handle_spdif(uint8_t width) {
 			else if (ADC_buf_DMA_write_temp == 1)
 				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
 
-			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) // "zero" according to tested sources
+			// Terminate this loop at first "non-zero" sample
+			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
 				i = ADC_BUFFER_SIZE + 10;
+			}
 		}
 
 		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
@@ -1094,8 +1093,7 @@ void mobo_handle_spdif(uint8_t width) {
 				// New co-sample verification routine
 				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 				num_remaining = spk_pdca_channel->tcr;
-				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not valid, interrupt won't strike again
-				// for a long time. In which we simply read the counter again
+				// Did an interrupt strike just ? Check if DAC_buf_DMA_read is valid. If not valid, interrupt won't strike again for a long time. In which we simply read the counter again
 				if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
 					DAC_buf_DMA_read_local = DAC_buf_DMA_read;
 					num_remaining = spk_pdca_channel->tcr;
@@ -1324,84 +1322,58 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 
 	#elif (defined HW_GEN_RXMOD) 
 
-		if (spdif_rx_status.buffered == 0) { // NB has been discontinued in RXMOD C and onwards
-			// Old version with I2S mux
-			// FIX: correlate with mode currently selected by user or auto, that's a global variable!
-			if ( (source == MOBO_SRC_UAC2) || (source == MOBO_SRC_NONE) ) {
-					gpio_set_gpio_pin(AVR32_PIN_PC01); 	// SEL_USBP_RXN = 1 defaults to USB
+		// New version, without I2S mux, with buffering via MCU's ADC interface
+		// RXmod_t1_B has the MUX built-in but sets SEL_USBP_RXN = PC01 to always select MCU's outgoing I2S port toward the DAC chip
+		gpio_set_gpio_pin(AVR32_PIN_PC01); 			// SEL_USBP_RXN = 1 defaults to USB and buffering via MCU FIFO - not used on RXMOD C and onwards
 
-				// Clock source control - Permit multiple clocks to briefly short rather than risk the clock being off
-				if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
-					gpio_set_gpio_pin(AVR32_PIN_PA23); 	// 44.1 control
-					gpio_clr_gpio_pin(AVR32_PIN_PA21); 	// 48 control
-					gpio_clr_gpio_pin(AVR32_PIN_PX22); 	// Disable RX recovered MCLK
-				}
-				else {
-					gpio_set_gpio_pin(AVR32_PIN_PA21); 	// 48 control
-					gpio_clr_gpio_pin(AVR32_PIN_PA23); 	// 44.1 control
-					gpio_clr_gpio_pin(AVR32_PIN_PX22); 	// Disable RX recovered MCLK
-				}
-			}
-			else if ( (source == MOBO_SRC_SPDIF0) || (source == MOBO_SRC_TOSLINK1)  || (source == MOBO_SRC_TOSLINK0) ) {
-				gpio_clr_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 0 defaults to RX-I2S with digital inputs because spdif_rx_status.buffered == 0
-				gpio_set_gpio_pin(AVR32_PIN_PX22); 		// Enable RX recovered MCLK
-				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// Disable XOs 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// Disable XOs 48 control
-			}
-		}
-		else { // Furrered, spdif_rx_status.buffered != 0
-			// New version, possibly without I2S mux, with buffering via MCU's ADC interface
-			// RXMODFIX verify ADC vs. mux! What is the test code for this?
-			gpio_set_gpio_pin(AVR32_PIN_PC01); 			// SEL_USBP_RXN = 1 defaults to USB and buffering via MCU FIFO - not used on RXMOD C
-
-			// Clock source control
-			if (frequency == FREQ_RXNATIVE) {			// Use MCLK from SPDIF RX
-				// Explicitly turn on MCLK generation in SPDIF RX?
-				gpio_set_gpio_pin(AVR32_PIN_PX22); 		// Enable RX recovered MCLK
-				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
+		// Clock source control
+		if (frequency == FREQ_RXNATIVE) {			// Use MCLK from SPDIF RX
+			// Explicitly turn on MCLK generation in SPDIF RX?
+			gpio_set_gpio_pin(AVR32_PIN_PX22); 		// Enable RX recovered MCLK
+			gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
+			gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
 //				gpio_clr_gpio_pin(AVR32_PIN_PC01); 		// SEL_USBP_RXN = 0 defaults to RX-I2S Don't bypass with MUX when it is buffered!
-			}
-			else if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
-				gpio_set_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
-				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
-			}
-			// FREQ_INVALID defaults to 48kHz domain? Is that consistent in code?
-			else {
-				gpio_set_gpio_pin(AVR32_PIN_PA21); 		// 48 control
-				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
-				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
-			}
-
-			// Report to CPU (when present) and debug terminal
-			switch (frequency) {
-				case FREQ_44:
-					print_cpu_char(CPU_CHAR_44); // Inform CPU (when present)
-				break;
-				case FREQ_48:
-					print_cpu_char(CPU_CHAR_48); // Inform CPU (when present)
-				break;
-				case FREQ_88:
-					print_cpu_char(CPU_CHAR_88); // Inform CPU (when present)
-				break;
-				case FREQ_96:
-					print_cpu_char(CPU_CHAR_96); // Inform CPU (when present)
-				break;
-				case FREQ_176:
-					print_cpu_char(CPU_CHAR_176); // Inform CPU (when present)
-				break;
-				case FREQ_192:
-					print_cpu_char(CPU_CHAR_192); // Inform CPU (when present)
-				break;
-				case FREQ_RXNATIVE:
-					print_cpu_char(CPU_CHAR_REGEN); // Inform CPU (when present)
-				break;
-				default:
-					print_cpu_char(CPU_CHAR_RATE_DEF); // Inform CPU (when present)
-				break;
-			}			
 		}
+		else if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) {
+			gpio_set_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
+			gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
+			gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
+		}
+		// FREQ_INVALID defaults to 48kHz domain? Is that consistent in code?
+		else {
+			gpio_set_gpio_pin(AVR32_PIN_PA21); 		// 48 control
+			gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
+			gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
+		}
+
+		// Report to CPU (when present) and debug terminal
+		switch (frequency) {
+			case FREQ_44:
+				print_cpu_char(CPU_CHAR_44); // Inform CPU (when present)
+			break;
+			case FREQ_48:
+				print_cpu_char(CPU_CHAR_48); // Inform CPU (when present)
+			break;
+			case FREQ_88:
+				print_cpu_char(CPU_CHAR_88); // Inform CPU (when present)
+			break;
+			case FREQ_96:
+				print_cpu_char(CPU_CHAR_96); // Inform CPU (when present)
+			break;
+			case FREQ_176:
+				print_cpu_char(CPU_CHAR_176); // Inform CPU (when present)
+			break;
+			case FREQ_192:
+				print_cpu_char(CPU_CHAR_192); // Inform CPU (when present)
+			break;
+			case FREQ_RXNATIVE:
+				print_cpu_char(CPU_CHAR_REGEN); // Inform CPU (when present)
+			break;
+			default:
+				print_cpu_char(CPU_CHAR_RATE_DEF); // Inform CPU (when present)
+			break;
+		}			
+
 	#elif (defined HW_GEN_FMADC)
 		// FMADC_site 
 		// 96ksps domain is permanently turned on

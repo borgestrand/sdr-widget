@@ -49,7 +49,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 // Global status variable
-volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, 1, MOBO_SRC_NONE, MOBO_SRC_SPDIF0}; // Last but s parameter sets .buffered to 1
+volatile spdif_rx_status_t spdif_rx_status = {0, 1, 0, 0, FREQ_TIMEOUT, WM8804_PLL_NONE, MOBO_SRC_NONE, MOBO_SRC_SPDIF0};
 	
 // Linkup monitoring variables, available for debug
 volatile uint8_t link_attempts_max = 0;				// Counting up to determine max poll cycles for linkup success
@@ -265,16 +265,15 @@ void wm8804_task(void *pvParameters) {
 						// spdif_rx_status.powered = 1;			// Written above
 						spdif_rx_status.reliable = 1;			// Critical for mobo_handle_spdif()
 						spdif_rx_status.silent = 0;				// Modified in mobo_handle_spdif()
-						spdif_rx_status.buffered = 1;
 								
 						// Take semaphore, update status if that went well
 						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 							spdif_rx_status.channel = channel;
 							spdif_rx_status.frequency = freq;
+							// No obvious reason to replicate code from just above
 							// spdif_rx_status.powered = 1;		// Written above
-							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
-							spdif_rx_status.silent = 0;			// Modified in mobo_handle_spdif()
-							spdif_rx_status.buffered = 1;
+							// spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
+							// spdif_rx_status.silent = 0;			// Modified in mobo_handle_spdif()
 //							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 							

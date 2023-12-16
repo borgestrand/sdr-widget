@@ -454,13 +454,11 @@ Arash
 			
 			// High-level I2S & MCLK MUX control
             else if (a == 'a') {							// Lowercase a
-	            spdif_rx_status.buffered = 0;				// Use regenerated clock
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
 
             // Select MCU's outgoing I2S bus
             else if (a == 'b') {							// Lowercase b
-	            spdif_rx_status.buffered = 1;				// Use precision clock and buffering
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
 			
