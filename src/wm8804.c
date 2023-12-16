@@ -220,8 +220,9 @@ void wm8804_task(void *pvParameters) {
 					spdif_rx_status.reliable = 0;				// Critical for mobo_handle_spdif()
 
 					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-						
-						mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
+
+//						Moved to pdca disable code
+//						mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
 						
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
@@ -353,31 +354,33 @@ void wm8804_init(void) {
 //	}
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
-	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
+	if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
 		// Enable CPU's processing of produced data
 		// This is needed for the silence detector
-		AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization - doesn't happen in FMADC code
+		AK5394A_pdca_rx_enable(FREQ_INVALID);				// Start up without caring about I2S frequency or synchronization - doesn't happen in FMADC code
+		mobo_start_spdif_tc(FREQ_192);						// Fast interrupts -> small packets. That is presumably better than too long packets which may overrun buffer lengths
+		// FEATURE_ADC_EXPERIMENTAL spdif timer/counter is not needed for pure ADC -> USB on a large buffer. But it is needed if spdif loopback is introduced at some time. If there is enough runtime in uac2_dat.c, that is
 	}
-//	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC state machine doesn't really subscribe to incoming I2S, it only scans for it...
+//	I2S_consumer |= I2S_CONSUMER_DAC;						// DAC state machine doesn't really subscribe to incoming I2S, it only scans for it...
 #else
 	AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
+	mobo_start_spdif_tc(FREQ_192);							// Fast interrupts -> small packets. That is presumably better than too long packets which may overrun buffer lengths
 #endif
-
-//	pdca_enable(PDCA_CHANNEL_SSC_RX);			// Enable I2S reception at MCU's ADC port
-//  pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 
 }
 
 // Turn off wm8804, why can't we just run init again? 
 void wm8804_sleep(void) {
 #ifdef FEATURE_ADC_EXPERIMENTAL
-	I2S_consumer &= ~I2S_CONSUMER_DAC;			// DAC is no longer subscribing to I2S data
-	if (I2S_consumer == I2S_CONSUMER_NONE) {	// No other consumers? Disable DMA
-		pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
+	I2S_consumer &= ~I2S_CONSUMER_DAC;						// DAC is no longer subscribing to I2S data
+	if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Disable DMA
+		mobo_stop_spdif_tc();								// Not using spdif rx timer when spdif source is disabled
+		pdca_disable(PDCA_CHANNEL_SSC_RX);					// Disable I2S reception at MCU's ADC port
 		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 	}
 #else
-	pdca_disable(PDCA_CHANNEL_SSC_RX);		// Disable I2S reception at MCU's ADC port
+	mobo_stop_spdif_tc();									// Not using spdif rx timer when spdif source is disabled
+	pdca_disable(PDCA_CHANNEL_SSC_RX);						// Disable I2S reception at MCU's ADC port
 	pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
 #endif
 
@@ -787,16 +790,19 @@ void wm8804_unmute(void) {
 //	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 
-	mobo_start_spdif_tc(spdif_rx_status.frequency);				// Turn on the spdif timer/counter interrupt
+//  Moved to pdca enable code
+//	mobo_start_spdif_tc(spdif_rx_status.frequency);				// Turn on the spdif timer/counter interrupt
 
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
 		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
+		mobo_start_spdif_tc(spdif_rx_status.frequency);			// Turn on the spdif timer/counter interrupt, not needed for pure ADC -> USB
 	}
 	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC subscribes to incoming I2S
 #else
 	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);			// New code to test for L/R swap
+	mobo_start_spdif_tc(spdif_rx_status.frequency);				// Turn on the spdif timer/counter interrupt
 #endif
 
 	ADC_buf_I2S_IN = INIT_ADC_I2S;								// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
