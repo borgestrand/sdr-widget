@@ -146,7 +146,7 @@ extern volatile S32 audio_buffer_1[ADC_BUFFER_SIZE];
 extern volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 extern volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
-extern volatile int ADC_buf_DMA_write;	// Written by interrupt handler, initiated by sequential code
+extern volatile int ADC_buf_DMA_write;	// Written by interrupt handler, initiated by sequential code, singlebuf redundant
 extern volatile int DAC_buf_DMA_read;	// Written by interrupt handler, initiated by sequential code
 extern volatile int ADC_buf_I2S_IN; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
 extern volatile int ADC_buf_USB_IN;		// Written by sequential code, handles only data IN-to USB host
@@ -156,8 +156,14 @@ extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
 #ifdef HW_GEN_RXMOD
-	extern volatile int timer_captured_ADC_buf_DMA_write;	// SPDIF timer/counter records DMA status
-	extern volatile U32 timer_captured_num_remaining;
+	// SPDIF timer/counter records DMA status - global registers move data from interrupt handler
+	extern volatile int timer_captured_ADC_buf_DMA_write;
+	extern volatile U32 timer_captured_num_remaining; // singlebuf redundant
+	
+	
+	// Temporary code for logging purposes
+	extern volatile U32 min_last_written_ADC_pos;
+	extern volatile U32 max_last_written_ADC_pos;
 #endif
 
 

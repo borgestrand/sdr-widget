@@ -954,8 +954,12 @@ void mobo_handle_spdif(uint8_t width) {
 	
 	
 	// New variables for timer/counter indicated packet processing
+	volatile int local_captured_ADC_buf_DMA_write = 0;
+	volatile U32 local_captured_num_remaining = 0;
 	static int prev_captured_ADC_buf_DMA_write = 0;
 	static U32 prev_captured_num_remaining = 0;
+	U32 last_written_ADC_pos = 0;
+	int last_written_ADC_buf = 0;
 
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
@@ -976,11 +980,49 @@ void mobo_handle_spdif(uint8_t width) {
 	// Begin new code for timer/counter indicated packet processing
 
 	// Does spdif timer interrupt indicate that we should process 250-ish µs of incoming SPDIF data?
-	if ( (prev_captured_num_remaining != timer_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != timer_captured_ADC_buf_DMA_write) ) {
-		gpio_set_gpio_pin(AVR32_PIN_PA22);
+	
+	// First establish a local, synchronously-sampled local cache
+	local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
+	local_captured_num_remaining = timer_captured_num_remaining;
+	// Interrupt may strike at any time, so re-cache if needed
+	if (local_captured_ADC_buf_DMA_write != timer_captured_ADC_buf_DMA_write ) {
+		local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
+		local_captured_num_remaining = timer_captured_num_remaining;
+	}
+
+	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
+		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate time to process spdif data, ideally once per 250us
 		
-		prev_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
-		prev_captured_num_remaining = timer_captured_num_remaining;
+		last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & (0xFFFFFFFE); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
+		// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
+		if (last_written_ADC_pos < ADC_BUFFER_SIZE) {
+			last_written_ADC_buf = local_captured_ADC_buf_DMA_write;
+		}
+		// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE? If so, don't overflow but record the last position of the previous buffer
+		// Tests indicate timer_captured_ADC_buf_DMA_write in the range 0..ADC_BUFFER_SIZE
+
+/*
+
+// Logging no safety features for now - introduce them before buffer manipulation r/w is introduced!
+		else {
+// safer	local_captured_num_remaining = max(local_captured_num_remaining - 2, ADC_BUFFER_SIZE - 2); // Move back one stereo sample. Rather risk deleting samples than overflowing
+			local_captured_num_remaining = local_captured_num_remaining - 2; // Move back one stereo sample
+			last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & (0xFFFFFFFE); // Counting mono samples. Clearing LSB = start with left sample
+			local_captured_ADC_buf_DMA_write = 1  - local_captured_ADC_buf_DMA_write;
+			last_written_ADC_buf = local_captured_ADC_buf_DMA_write;
+		}
+*/
+		
+		if (last_written_ADC_pos < min_last_written_ADC_pos) {
+			min_last_written_ADC_pos = last_written_ADC_pos;
+		}
+		if (last_written_ADC_pos > max_last_written_ADC_pos) {
+			max_last_written_ADC_pos = last_written_ADC_pos;
+		}
+		
+		// Establish history
+		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
+		prev_captured_num_remaining = local_captured_num_remaining;
 	}
 
 	// End new code for timer/counter indicated packet processing

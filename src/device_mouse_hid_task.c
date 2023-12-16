@@ -319,6 +319,15 @@ void device_mouse_hid_task(void)
 				print_cpu_char('\n');
 			}
 
+			// Debug spdif packet through timer/counter
+			else if (a == 'q') {							// Lowercase 'q'
+				print_dbg_char('\n');
+				print_dbg_hex(min_last_written_ADC_pos);
+				print_dbg_char('\n');
+				print_dbg_hex(max_last_written_ADC_pos);
+				print_dbg_char('\n');
+			}
+
 			// Detect sample rate of I2S in
 			else if (a == MCU_CHAR_FBRATE) {				// Lowercase 'f'
 				print_cpu_char_hex(FB_rate >> 24);			// MSB in 32-bit fixed-point number - not transmitted in UAC2 / Full Speed
