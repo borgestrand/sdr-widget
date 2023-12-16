@@ -960,6 +960,8 @@ void mobo_handle_spdif(uint8_t width) {
 	static U32 prev_captured_num_remaining = 0;
 	U32 last_written_ADC_pos = 0;
 	int last_written_ADC_buf = 0;
+	U32 prev_last_written_ADC_pos = 0;
+	int prev_last_written_ADC_buf = 0;
 
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
@@ -999,30 +1001,30 @@ void mobo_handle_spdif(uint8_t width) {
 			last_written_ADC_buf = local_captured_ADC_buf_DMA_write;
 		}
 		// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE? If so, don't overflow but record the last position of the previous buffer
-		// Tests indicate timer_captured_ADC_buf_DMA_write in the range 0..ADC_BUFFER_SIZE
-
-/*
-
-// Logging no safety features for now - introduce them before buffer manipulation r/w is introduced!
+		// Tests indicate timer_captured_ADC_buf_DMA_write in the range 0..ADC_BUFFER_SIZE-1, and in extremely rare situations 0..ADC_BUFFER_SIZE
 		else {
-// safer	local_captured_num_remaining = max(local_captured_num_remaining - 2, ADC_BUFFER_SIZE - 2); // Move back one stereo sample. Rather risk deleting samples than overflowing
-			local_captured_num_remaining = local_captured_num_remaining - 2; // Move back one stereo sample
+			local_captured_num_remaining = max(local_captured_num_remaining - 2, ADC_BUFFER_SIZE - 2); // Move back one stereo sample or more. Rather risk deleting samples than overflowing buffer access
 			last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & (0xFFFFFFFE); // Counting mono samples. Clearing LSB = start with left sample
 			local_captured_ADC_buf_DMA_write = 1  - local_captured_ADC_buf_DMA_write;
 			last_written_ADC_buf = local_captured_ADC_buf_DMA_write;
 		}
-*/
+
+
+
 		
 		if (last_written_ADC_pos < min_last_written_ADC_pos) {
-			min_last_written_ADC_pos = last_written_ADC_pos;
+			min_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x0000000 in initial test
 		}
 		if (last_written_ADC_pos > max_last_written_ADC_pos) {
-			max_last_written_ADC_pos = last_written_ADC_pos;
+			max_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x000017E in initial test - as expected
 		}
 		
-		// Establish history
+		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
 		prev_captured_num_remaining = local_captured_num_remaining;
+		prev_last_written_ADC_pos = last_written_ADC_pos;
+		prev_last_written_ADC_buf = last_written_ADC_buf;
+
 	}
 
 	// End new code for timer/counter indicated packet processing
