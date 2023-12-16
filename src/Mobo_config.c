@@ -951,6 +951,12 @@ void mobo_handle_spdif(uint8_t width) {
 	static S32 sample_L = 0;
 	static S32 sample_R = 0;
 	S16 target = -1;					// Default value, no sample to touch
+	
+	
+	// New variables for timer/counter indicated packet processing
+	static int prev_captured_ADC_buf_DMA_write = 0;
+	static U32 prev_captured_num_remaining = 0;
+
 
 // The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
 // Didn't we hard-code this for use with caching in UAC2 code?
@@ -965,6 +971,21 @@ void mobo_handle_spdif(uint8_t width) {
 	const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 #endif
+
+
+	// Begin new code for timer/counter indicated packet processing
+
+	// Does spdif timer interrupt indicate that we should process 250-ish µs of incoming SPDIF data?
+	if ( (prev_captured_num_remaining != timer_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != timer_captured_ADC_buf_DMA_write) ) {
+		gpio_set_gpio_pin(AVR32_PIN_PA22);
+		
+		prev_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
+		prev_captured_num_remaining = timer_captured_num_remaining;
+	}
+
+	// End new code for timer/counter indicated packet processing
+
+
 
 	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
@@ -1169,7 +1190,7 @@ void mobo_handle_spdif(uint8_t width) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 
-//			gpio_set_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
+			gpio_set_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 				// Fill endpoint with sample raw
@@ -1218,7 +1239,7 @@ void mobo_handle_spdif(uint8_t width) {
 				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
 			} // for ADC_BUFFER_SIZE 
 				
-//			gpio_clr_gpio_pin(AVR32_PIN_PX33);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
+			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 				
 
 		} // ADC_buf_DMA_write toggle

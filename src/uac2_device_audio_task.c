@@ -232,7 +232,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
-		gpio_set_gpio_pin(AVR32_PIN_PA22); // Start of task execution = TP_TP18 on SPRX rev. B
+//		gpio_set_gpio_pin(AVR32_PIN_PA22); // Start of task execution = TP_TP18 on SPRX rev. B
 		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents? 
@@ -636,10 +636,10 @@ void uac2_device_audio_task(void *pvParameters)
 						DAC_buf_OUT = DAC_buf_DMA_read_local;
 
 						if (DAC_buf_OUT == 1) {
-							gpio_set_gpio_pin(AVR32_PIN_PX30);
+//							gpio_set_gpio_pin(AVR32_PIN_PX30);
 						}
 						else {
-							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+//							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 						}
 									
 						spk_index = DAC_BUFFER_SIZE - num_remaining;
@@ -979,8 +979,9 @@ void uac2_device_audio_task(void *pvParameters)
 								else
 									gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
 							}
-							else // usb and pdca working on different buffers
+							else { // usb and pdca working on different buffers
 								gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+							}
 
 
 							if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
@@ -1265,10 +1266,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1301,10 +1302,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1327,10 +1328,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1352,10 +1353,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1383,10 +1384,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1404,7 +1405,18 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 
-		gpio_clr_gpio_pin(AVR32_PIN_PA22); // End of task execution
+//		gpio_clr_gpio_pin(AVR32_PIN_PA22); // End of task execution
+
+
+	// Begin new code for timer/counter indicated packet processing
+	// Counterpart is in mobo_handle_spdif()
+
+	// Always clear
+	gpio_clr_gpio_pin(AVR32_PIN_PA22);
+
+	// End new code for timer/counter indicated packet processing
+
+
 
 	} // end while vTask
 }
