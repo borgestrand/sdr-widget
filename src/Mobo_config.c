@@ -937,20 +937,17 @@ void mobo_handle_spdif(uint8_t width) {
 	int ADC_buf_DMA_write_temp = 0;
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
-	S16 old_gap = DAC_BUFFER_SIZE;
+	S16 prev_gap = DAC_BUFFER_SIZE;
 	static S16 iterations = 0;
 
-	U16 samples_to_transfer_OUT = 1; 	// Default value 1. Skip:0. Insert:2
 	S16 i;								// Generic counter
-	S16 p;								// Generic counter
 
 	U8 DAC_buf_DMA_read_local;			// Local copy read in atomic operations
 	U16 num_remaining;
 
 	S32 sample_temp = 0;
-	static S32 sample_L = 0;
-	static S32 sample_R = 0;
-	S16 target = -1;					// Default value, no sample to touch
+	S32 sample_L = 0;
+	S32 sample_R = 0;
 	
 	
 	// New variables for timer/counter indicated packet processing
@@ -995,7 +992,7 @@ void mobo_handle_spdif(uint8_t width) {
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate time to process spdif data, ideally once per 250us
 		
-		last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & (0xFFFFFFFE); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
+		last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
 		// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
 		if (last_written_ADC_pos < ADC_BUFFER_SIZE) {
 			last_written_ADC_buf = local_captured_ADC_buf_DMA_write;
@@ -1004,7 +1001,7 @@ void mobo_handle_spdif(uint8_t width) {
 		// Tests indicate timer_captured_ADC_buf_DMA_write in the range 0..ADC_BUFFER_SIZE-1, and in extremely rare situations 0..ADC_BUFFER_SIZE
 		else {
 			local_captured_num_remaining = max(local_captured_num_remaining - 2, ADC_BUFFER_SIZE - 2); // Move back one stereo sample or more. Rather risk deleting samples than overflowing buffer access
-			last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & (0xFFFFFFFE); // Counting mono samples. Clearing LSB = start with left sample
+			last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = start with left sample
 			local_captured_ADC_buf_DMA_write = 1  - local_captured_ADC_buf_DMA_write;
 			last_written_ADC_buf = local_captured_ADC_buf_DMA_write;
 		}
@@ -1108,12 +1105,11 @@ void mobo_handle_spdif(uint8_t width) {
 				DAC_buf_OUT = DAC_buf_DMA_read_local;
 
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
-//				spk_index = DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE * 0.9/4; // Nasty offset to put on skips sooner
 				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 			}
 
 			// Calculate gap before copying data into consumer register:
-			old_gap = gap;
+			prev_gap = gap;
 
 			// New co-sample verification routine
 			// FIX: May Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
@@ -1136,96 +1132,7 @@ void mobo_handle_spdif(uint8_t width) {
 			else // DAC DMA and seq. code working on different buffers
 				gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
-			// Apply gap to skip or insert, for now we're not reusing skip_enable from USB coee
-			samples_to_transfer_OUT = 1;			// Default value
-			target = -1;
 
-			if (iterations > 20) {
-				// Apply skip/insert
-				// Just don't do it right after starting playback
-				if ((gap < old_gap) && (gap < SPK_GAP_L3)) {
-					samples_to_transfer_OUT = 0;		// Do some skippin'
-#ifdef USB_STATE_MACHINE_DEBUG
- 					print_dbg_char('s');
-#endif
-				}
-				else if ((gap > old_gap) && (gap > SPK_GAP_U3)) {
-					samples_to_transfer_OUT = 2;		// Do some insertin'
-#ifdef USB_STATE_MACHINE_DEBUG
- 					print_dbg_char('i');
-#endif
-				}
-
-				// Are we about to loose skip/insert targets? If so, revert to RX's MCLK and run synchronous from now on
-				if ( (gap <= SPK_GAP_LX) || (gap >= SPK_GAP_UX) ) {
-					// Explicitly enable receiver's MCLK generator? ADC_site
-					mobo_xo_select(FREQ_RXNATIVE, input_select);
-#ifdef USB_STATE_MACHINE_DEBUG
-					print_dbg_char('X');
-#endif
-				}
-			} // end iterations >
-
-			// If we must skip, what is the best place to do that?
-			// Code is prototyped in skip_insert_draft_c.m
-			if (samples_to_transfer_OUT != 1) {
-				target = 0;					// If calculation fails, remove 1st sample in package
-				S32 prevsample_L = sample_L; 	// sample_L is static, so this is the last data from previous package transfer
-				S32 prevsample_R = sample_R;
-				if (width == 24) {				// We're starting out with 32-bit signed math here.
-					prevsample_L <<= 8;
-					prevsample_R <<= 8;
-				}
-				prevsample_L >>= 4;
-				prevsample_R >>= 4;
-				S32 absdiff_L = 0;
-				S32 absdiff_R = 0;
-				S32 prevabsdiff_L = 0;
-				S32 prevabsdiff_R = 0;
-				S32 score = 0;
-				S32 prevscore = 0x7FFFFFFF;	// An unreasonably large positive number
-
-				for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
-					if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
-						sample_L = audio_buffer_0[i+IN_LEFT];
-						sample_R = audio_buffer_0[i+IN_RIGHT];
-					}
-					else if (ADC_buf_DMA_write_temp == 1) {
-						sample_L = audio_buffer_1[i+IN_LEFT];
-						sample_R = audio_buffer_1[i+IN_RIGHT];
-					}
-					if (width == 24) {			// We're starting out with 32-bit signed math here.
-						sample_L <<= 8;
-						sample_R <<= 8;
-					}
-
-					// Calculating the "energy" coming from sample n-1 to sample n
-					sample_L >>= 4;	// Avoid saturation
-					sample_R >>= 4;
-					absdiff_L = abs(sample_L - prevsample_L);
-					absdiff_R = abs(sample_R - prevsample_R);
-
-					// Summing the "energy" going from sample n-2 to sample n-1 and the energy going from sample n-1 to sample n
-					// Determine which stereo sample should be touched
-					score = absdiff_L + absdiff_R + prevabsdiff_L + prevabsdiff_R;
-					if (score < prevscore) {
-						if (i != 0) {		// Can't touch last sample of package
-							target = i-2;	// Stereo sample offset
-							prevscore = score;
-						}
-					}
-
-					// Establish history within packet. Redundant in very last sample in package, but if test is too expensive
-					prevsample_L = sample_L;
-					prevsample_R = sample_R;
-					prevabsdiff_L = absdiff_L;
-					prevabsdiff_R = absdiff_R;
-				}
-#ifdef USB_STATE_MACHINE_DEBUG
-//				print_dbg_char_hex(target);
-//				print_dbg_char(' ');
-#endif
-			}
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
 			if (ADC_buf_DMA_write_temp == 1)
@@ -1236,6 +1143,18 @@ void mobo_handle_spdif(uint8_t width) {
 
 			gpio_set_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 
+			// Now: 
+			// - Processing a whole ADC_BUFFER_SIZE audio_buffer_0 or _1
+			// - s/i removed
+			// - Calculated gap not used for any purpose
+			
+			// Next:
+			// - Processing one packet at a time
+			// - Zero detection here
+			// - New gap calculation
+			// - Write through cache
+			// - Detect need for s/i here, execute it with reads from cache
+			
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 				// Fill endpoint with sample raw
 				if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
@@ -1247,30 +1166,21 @@ void mobo_handle_spdif(uint8_t width) {
 					sample_R = audio_buffer_1[i+IN_RIGHT];
 				}
 
-// Super-rough skip/insert
-//					while (samples_to_transfer_OUT-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-
-				p = 1;
-				if (i == target) {			// Are we touching the stereo sample?
-					p = samples_to_transfer_OUT;				// If so let's check what we're doing to it
+				if (dac_must_clear == DAC_READY) {
+					if (DAC_buf_OUT == 0) {
+						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+					}
+					else if (DAC_buf_OUT == 1) {
+						spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
+						spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+					}
 				}
 
-				while (p-- > 0) { // Default:1 Skip:0 Insert:2 Apply to 1st stereo sample in packet
-					if (dac_must_clear == DAC_READY) {
-						if (DAC_buf_OUT == 0) {
-							spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-							spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
-						}
-						else if (DAC_buf_OUT == 1) {
-							spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-							spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
-						}
-					}
-
-					spk_index += 2;
-					if (spk_index >= DAC_BUFFER_SIZE) {
-						spk_index -= DAC_BUFFER_SIZE;
-						DAC_buf_OUT = 1 - DAC_buf_OUT;
+				spk_index += 2;
+				if (spk_index >= DAC_BUFFER_SIZE) {
+					spk_index -= DAC_BUFFER_SIZE;
+					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 #ifdef USB_STATE_MACHINE_DEBUG
 //							if (DAC_buf_OUT == 1)
@@ -1278,9 +1188,8 @@ void mobo_handle_spdif(uint8_t width) {
 //							else
 //								gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
-					}
-				} // while p
-				samples_to_transfer_OUT = 1; // Revert to default:1. I.e. only one skip or insert per USB package
+				}
+
 			} // for ADC_BUFFER_SIZE 
 				
 			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X

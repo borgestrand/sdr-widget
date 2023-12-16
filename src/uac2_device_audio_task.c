@@ -169,7 +169,7 @@ void uac2_device_audio_task(void *pvParameters)
 	
 	// Trying to speed up ADC DMA to USB copy
 	uint32_t sample_left = 0; 					// Must be unsigned for zeros to be right-shifted into MSBs ??
-	uint32_t sample_right = 0;
+	uint32_t sample_right = 0;					// ææææ convert to signed to merge with sample_R and spdif code
 	
 	const U8 EP_AUDIO_IN = ep_audio_in;
 	const U8 EP_AUDIO_OUT = ep_audio_out;
