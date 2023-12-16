@@ -938,7 +938,6 @@ void mobo_handle_spdif(uint8_t width) {
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
 	S16 prev_gap = DAC_BUFFER_SIZE;
-	static S16 iterations = 0;
 
 	S16 i;								// Generic counter
 
@@ -1047,19 +1046,13 @@ void mobo_handle_spdif(uint8_t width) {
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
 	// If so, check it for silence. If selected as source, copy all of producer's data
-	// Only bother if .reliable != 0 ??
+	// Only bother if .reliable != 0 
 	else if (local_ADC_buf_DMA_write != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 
-		if (input_select == MOBO_SRC_NONE)
-			iterations = 0;
-		else if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
-			if (iterations < 100)
-				iterations++;
-		}
+		// S16 iterations was tested here and not used anywhere else...
 
 		// Silence / DC detector 2.0
-//		if (spdif_rx_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
 		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
 			if (local_ADC_buf_DMA_write == 0)	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;
@@ -1078,7 +1071,6 @@ void mobo_handle_spdif(uint8_t width) {
 		else {									// Silence was detected, update flag to SPDIF RX code
 			spdif_rx_status.silent = 1;
 		}
-//		}
 
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
