@@ -933,7 +933,7 @@ uint32_t mobo_wait_LRCK_TX_asm(void) {
 #ifdef HW_GEN_RXMOD
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
-	static int ADC_buf_DMA_write_prev = INIT_ADC_I2S;
+	static int prev_ADC_buf_DMA_write = INIT_ADC_I2S;
 	int ADC_buf_DMA_write_temp = 0;
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
@@ -1031,18 +1031,18 @@ void mobo_handle_spdif(uint8_t width) {
 	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time!
 
 	// Continue writing to consumer's buffer where this routine left of last
-	if ( (ADC_buf_DMA_write_prev == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
+	if ( (prev_ADC_buf_DMA_write == INIT_ADC_I2S)	|| (ADC_buf_I2S_IN == INIT_ADC_I2S) )	 {	// Do the init on synchronous sampling ref. ADC DMA timing
 
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		mobo_clear_adc_channel();
 
-		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+		prev_ADC_buf_DMA_write = ADC_buf_DMA_write_temp;
 		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2
 	}
 
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
 		spdif_rx_status.silent = 1;
-		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;			// Respond as soon as .reliable is set
+		prev_ADC_buf_DMA_write = ADC_buf_DMA_write_temp;			// Respond as soon as .reliable is set
 	}
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
@@ -1051,8 +1051,8 @@ void mobo_handle_spdif(uint8_t width) {
 	else if (spdif_rx_status.buffered == 0) {
 		spdif_rx_status.silent = 0;
 	}
-	else if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write_prev) { // Check if producer has sent more data
-		ADC_buf_DMA_write_prev = ADC_buf_DMA_write_temp;
+	else if (ADC_buf_DMA_write_temp != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
+		prev_ADC_buf_DMA_write = ADC_buf_DMA_write_temp;
 
 		if (input_select == MOBO_SRC_NONE)
 			iterations = 0;
@@ -1089,8 +1089,6 @@ void mobo_handle_spdif(uint8_t width) {
 				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init, select correct audio_buffer_0/1
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 
-				// USB code has !0 detection, semaphore checks etc. etc. around here. See line 744 in uac2_dat.c
-//				skip_enable = 0;
 				gap = DAC_BUFFER_SIZE; // Ideal gap value
 
 				// New co-sample verification routine
@@ -1104,12 +1102,11 @@ void mobo_handle_spdif(uint8_t width) {
 				}
 				DAC_buf_OUT = DAC_buf_DMA_read_local;
 
+				// Where to start writing to spk_index? Is that relevant when writing through cache?
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
 				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 			}
 
-			// Calculate gap before copying data into consumer register:
-			prev_gap = gap;
 
 			// New co-sample verification routine
 			// FIX: May Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
@@ -1132,6 +1129,8 @@ void mobo_handle_spdif(uint8_t width) {
 			else // DAC DMA and seq. code working on different buffers
 				gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
 
+			// Establish history
+			prev_gap = gap;
 
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
