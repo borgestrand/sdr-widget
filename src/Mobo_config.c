@@ -960,8 +960,8 @@ void mobo_handle_spdif(uint8_t width) {
 	U32 prev_last_written_ADC_pos = 0;
 	int prev_last_written_ADC_buf = 0;
 
-
-// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right æææ move this to some .h file!!
+/*
+// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right. These definitions are written out of the code
 // Didn't we hard-code this for use with caching in UAC2 code?
 #if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
 	#define IN_LEFT 0
@@ -974,7 +974,7 @@ void mobo_handle_spdif(uint8_t width) {
 	const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
 	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
 #endif
-
+*/
 
 	// Begin new code for timer/counter indicated packet processing
 
@@ -1155,22 +1155,22 @@ void mobo_handle_spdif(uint8_t width) {
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 				// Fill endpoint with sample raw
 				if (local_ADC_buf_DMA_write == 0) {		// 0 Seems better than 1, but non-conclusive
-					sample_L = audio_buffer_0[i+IN_LEFT];
-					sample_R = audio_buffer_0[i+IN_RIGHT];
+					sample_L = audio_buffer_0[i];
+					sample_R = audio_buffer_0[i + 1];
 				}
 				else if (local_ADC_buf_DMA_write == 1) {
-					sample_L = audio_buffer_1[i+IN_LEFT];
-					sample_R = audio_buffer_1[i+IN_RIGHT];
+					sample_L = audio_buffer_1[i];
+					sample_R = audio_buffer_1[i + 1];
 				}
 
 				if (dac_must_clear == DAC_READY) {
 					if (DAC_buf_OUT == 0) {
-						spk_buffer_0[spk_index+OUT_LEFT] = sample_L;
-						spk_buffer_0[spk_index+OUT_RIGHT] = sample_R;
+						spk_buffer_0[spk_index] = sample_L;
+						spk_buffer_0[spk_index + 1] = sample_R;
 					}
 					else if (DAC_buf_OUT == 1) {
-						spk_buffer_1[spk_index+OUT_LEFT] = sample_L;
-						spk_buffer_1[spk_index+OUT_RIGHT] = sample_R;
+						spk_buffer_1[spk_index] = sample_L;
+						spk_buffer_1[spk_index + 1] = sample_R;
 					}
 				}
 
