@@ -934,7 +934,7 @@ uint32_t mobo_wait_LRCK_TX_asm(void) {
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
 	static int prev_ADC_buf_DMA_write = INIT_ADC_I2S;
-	int ADC_buf_DMA_write_temp = 0;
+	int local_ADC_buf_DMA_write = 0;
 	static U32 spk_index = 0;
 	static S16 gap = DAC_BUFFER_SIZE;
 	S16 prev_gap = DAC_BUFFER_SIZE;
@@ -942,7 +942,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 	S16 i;								// Generic counter
 
-	U8 DAC_buf_DMA_read_local;			// Local copy read in atomic operations
+	U8 local_DAC_buf_DMA_read;			// Local copy read in atomic operations
 	U16 num_remaining;
 
 	S32 sample_temp = 0;
@@ -1028,7 +1028,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 
-	ADC_buf_DMA_write_temp = ADC_buf_DMA_write; // Interrupt may strike at any time, make cached copy
+	local_ADC_buf_DMA_write = ADC_buf_DMA_write; // Interrupt may strike at any time, make cached copy
 
 	// Continue writing to consumer's buffer where this routine left of last
 	if ( (prev_ADC_buf_DMA_write == INIT_ADC_I2S) || (ADC_buf_I2S_IN == INIT_ADC_I2S) ) {	// Do the init on synchronous sampling ref. ADC DMA timing
@@ -1036,20 +1036,20 @@ void mobo_handle_spdif(uint8_t width) {
 		// Clear incoming SPDIF before enabling pdca to keep filling it
 		mobo_clear_adc_channel();
 
-		prev_ADC_buf_DMA_write = ADC_buf_DMA_write_temp;
+		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2
 	}
 
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
 		spdif_rx_status.silent = 1;
-		prev_ADC_buf_DMA_write = ADC_buf_DMA_write_temp;			// Respond as soon as .reliable is set
+		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;			// Respond as soon as .reliable is set
 	}
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
 	// If so, check it for silence. If selected as source, copy all of producer's data
 	// Only bother if .reliable != 0 ??
-	else if (ADC_buf_DMA_write_temp != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
-		prev_ADC_buf_DMA_write = ADC_buf_DMA_write_temp;
+	else if (local_ADC_buf_DMA_write != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
+		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 
 		if (input_select == MOBO_SRC_NONE)
 			iterations = 0;
@@ -1061,9 +1061,9 @@ void mobo_handle_spdif(uint8_t width) {
 		// Silence / DC detector 2.0
 //		if (spdif_rx_status.reliable == 1) {			// This code is unable to detect silence in a shut-down WM8805
 		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
-			if (ADC_buf_DMA_write_temp == 0)	// End as soon as a difference is spotted
+			if (local_ADC_buf_DMA_write == 0)	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;
-			else if (ADC_buf_DMA_write_temp == 1)
+			else if (local_ADC_buf_DMA_write == 1)
 				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
 
 			// Terminate this loop at first "non-zero" sample
@@ -1085,20 +1085,20 @@ void mobo_handle_spdif(uint8_t width) {
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
 
-				ADC_buf_I2S_IN = ADC_buf_DMA_write_temp;	// Disable further init, select correct audio_buffer_0/1
+				ADC_buf_I2S_IN = local_ADC_buf_DMA_write;	// Disable further init, select correct audio_buffer_0/1
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 
 				gap = DAC_BUFFER_SIZE; // Ideal gap value
 
 				// New co-sample verification routine
-				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 				num_remaining = spk_pdca_channel->tcr;
 				// Did an interrupt strike just ? Check if DAC_buf_DMA_read is valid. If not valid, interrupt won't strike again for a long time. In which we simply read the counter again
-				if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-					DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+				if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+					local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 					num_remaining = spk_pdca_channel->tcr;
 				}
-				DAC_buf_OUT = DAC_buf_DMA_read_local;
+				DAC_buf_OUT = local_DAC_buf_DMA_read;
 
 				// Where to start writing to spk_index? Is that relevant when writing through cache?
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
@@ -1109,16 +1109,16 @@ void mobo_handle_spdif(uint8_t width) {
 			// New co-sample verification routine
 			// FIX: May Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
 			// If so look for "BUF_IS_ONE" in code around 20170227
-			DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+			local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 			num_remaining = spk_pdca_channel->tcr;
 			// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
 			// for a long time. In which we simply read the counter again
-			if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-				DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+			if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 				num_remaining = spk_pdca_channel->tcr;
 			}
 
-			if (DAC_buf_OUT != DAC_buf_DMA_read_local) { 	// DAC DMA and seq. code using same buffer
+			if (DAC_buf_OUT != local_DAC_buf_DMA_read) { 	// DAC DMA and seq. code using same buffer
 				if (spk_index < (DAC_BUFFER_SIZE - num_remaining))
 					gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
 				else
@@ -1132,9 +1132,9 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
-			if (ADC_buf_DMA_write_temp == 1)
+			if (local_ADC_buf_DMA_write == 1)
 				gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-			else if (ADC_buf_DMA_write_temp == 0)
+			else if (local_ADC_buf_DMA_write == 0)
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 
@@ -1154,11 +1154,11 @@ void mobo_handle_spdif(uint8_t width) {
 			
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 				// Fill endpoint with sample raw
-				if (ADC_buf_DMA_write_temp == 0) {		// 0 Seems better than 1, but non-conclusive
+				if (local_ADC_buf_DMA_write == 0) {		// 0 Seems better than 1, but non-conclusive
 					sample_L = audio_buffer_0[i+IN_LEFT];
 					sample_R = audio_buffer_0[i+IN_RIGHT];
 				}
-				else if (ADC_buf_DMA_write_temp == 1) {
+				else if (local_ADC_buf_DMA_write == 1) {
 					sample_L = audio_buffer_1[i+IN_LEFT];
 					sample_R = audio_buffer_1[i+IN_RIGHT];
 				}
