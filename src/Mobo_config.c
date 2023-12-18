@@ -1039,6 +1039,9 @@ void mobo_handle_spdif(uint8_t width) {
 		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2
 	}
 
+// NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
+
+
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
 		spdif_rx_status.silent = 1;
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;			// Respond as soon as .reliable is set
@@ -1049,8 +1052,6 @@ void mobo_handle_spdif(uint8_t width) {
 	// Only bother if .reliable != 0 
 	else if (local_ADC_buf_DMA_write != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
-
-		// S16 iterations was tested here and not used anywhere else...
 
 		// Silence / DC detector 2.0
 		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {

@@ -264,8 +264,10 @@ void wm8804_task(void *pvParameters) {
 						spdif_rx_status.channel = channel;
 						spdif_rx_status.frequency = freq;
 						// spdif_rx_status.powered = 1;			// Written above
-						spdif_rx_status.reliable = 1;			// Critical for mobo_handle_spdif()
+						// spdif_rx_status.reliable = 1;			// Critical for mobo_handle_spdif()
 						spdif_rx_status.silent = 0;				// Modified in mobo_handle_spdif()
+						
+						// Setting spdif_rx_status.reliable = 1 only here - is that OK?
 								
 						// Take semaphore, update status if that went well
 						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
@@ -273,7 +275,7 @@ void wm8804_task(void *pvParameters) {
 							spdif_rx_status.frequency = freq;
 							// No obvious reason to replicate code from just above
 							// spdif_rx_status.powered = 1;		// Written above
-							// spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
+							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
 							// spdif_rx_status.silent = 0;			// Modified in mobo_handle_spdif()
 //							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
