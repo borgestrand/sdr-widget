@@ -295,12 +295,11 @@ void uac2_device_audio_task(void *pvParameters)
 				if (ADC_buf_USB_IN == INIT_ADC_USB)	{						// In initial state. Do something to fire up data collection!
 					if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
 	
-						// ADC_site - this mode (starting with USB plabyack) does not yield USB IN data. Fix that one a little later... 
+						// Using a large ADC buffer to serve data packets picked up by USB timing. A small buffer would be more convenient for SPDIF playback, but we'd put USB data integrity at risk with low latency						
 						
-						// Clear incoming SPDIF before enabling pdca to keep filling it - code also exists in mobo_handle_spdif
-						// mobo_clear_adc_channel();						// Redundant with call below
-
+						mobo_clear_adc_channel();							// Clear buffer before starting to fill it. Old comment said it might be redundant here. True?
 						AK5394A_pdca_rx_enable(mobo_srd());					// ADC_site FMADC_site enable according to detected rate
+						// mobo_start_spdif_tc();							// Probably no need to start spdif timer/counter since data consumption is given by USB packet rate, not timer
 						
 					} // Init DMA for USB IN consumer
 

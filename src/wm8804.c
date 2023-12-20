@@ -359,12 +359,14 @@ void wm8804_init(void) {
 	if (I2S_consumer == I2S_CONSUMER_NONE) {				// No other consumers? Enable DMA - ADC_site with what sample rate??
 		// Enable CPU's processing of produced data
 		// This is needed for the silence detector
+		mobo_clear_adc_channel();							// Clear buffer before pdca starts filling it
 		AK5394A_pdca_rx_enable(FREQ_INVALID);				// Start up without caring about I2S frequency or synchronization - doesn't happen in FMADC code
 		mobo_start_spdif_tc(FREQ_192);						// Fast interrupts -> small packets. That is presumably better than too long packets which may overrun buffer lengths
 		// FEATURE_ADC_EXPERIMENTAL spdif timer/counter is not needed for pure ADC -> USB on a large buffer. But it is needed if spdif loopback is introduced at some time. If there is enough runtime in uac2_dat.c, that is
 	}
 //	I2S_consumer |= I2S_CONSUMER_DAC;						// DAC state machine doesn't really subscribe to incoming I2S, it only scans for it...
 #else
+	mobo_clear_adc_channel();								// Clear buffer before pdca starts filling it
 	AK5394A_pdca_rx_enable(FREQ_INVALID);					// Start up without caring about I2S frequency or synchronization
 	mobo_start_spdif_tc(FREQ_192);							// Fast interrupts -> small packets. That is presumably better than too long packets which may overrun buffer lengths
 #endif
@@ -798,11 +800,13 @@ void wm8804_unmute(void) {
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
+		mobo_clear_adc_channel();								// Clear buffer before pdca starts filling it
 		AK5394A_pdca_rx_enable(spdif_rx_status.frequency);		// New code to test for L/R swap
 		mobo_start_spdif_tc(spdif_rx_status.frequency);			// Turn on the spdif timer/counter interrupt, not needed for pure ADC -> USB
 	}
 	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC subscribes to incoming I2S
 #else
+	mobo_clear_adc_channel();									// Clear buffer before pdca starts filling it
 	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);			// New code to test for L/R swap
 	mobo_start_spdif_tc(spdif_rx_status.frequency);				// Turn on the spdif timer/counter interrupt
 #endif

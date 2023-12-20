@@ -1032,8 +1032,8 @@ void mobo_handle_spdif(uint8_t width) {
 	// Continue writing to consumer's buffer where this routine left of last
 	if ( (prev_ADC_buf_DMA_write == INIT_ADC_I2S) || (ADC_buf_I2S_IN == INIT_ADC_I2S) ) {	// Do the init on synchronous sampling ref. ADC DMA timing
 
-		// Clear incoming SPDIF before enabling pdca to keep filling it
-		mobo_clear_adc_channel();
+		// Clear incoming SPDIF before enabling pdca to keep filling it - moved to pdca rx enable code
+		// mobo_clear_adc_channel();
 
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2
