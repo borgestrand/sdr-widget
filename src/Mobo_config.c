@@ -931,6 +931,27 @@ uint32_t mobo_wait_LRCK_TX_asm(void) {
 
 
 #ifdef HW_GEN_RXMOD
+
+// Convert from pdca report to buffer address
+void mobo_ADC_position(U32 *last_pos, int *last_buf, U32 num_remaining, int buf) {
+	*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
+	// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
+	if (*last_pos < ADC_BUFFER_SIZE) {
+		*last_buf = buf;
+	}
+	// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE? If so, don't overflow but record the last position of the previous buffer
+	// Tests indicate timer_captured_ADC_buf_DMA_write in the range 0..ADC_BUFFER_SIZE-1, and in extremely rare situations 0..ADC_BUFFER_SIZE
+	else {
+		num_remaining = max(num_remaining - 2, ADC_BUFFER_SIZE - 2); // Move back one stereo sample or more. Rather risk deleting samples than overflowing buffer access
+		*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = start with left sample
+		buf = 1  - buf;
+		*last_buf = buf;
+	}
+}
+
+
+
+
 // Handle spdif and toslink input
 void mobo_handle_spdif(uint8_t width) {
 	static int prev_ADC_buf_DMA_write = INIT_ADC_I2S;
@@ -990,23 +1011,9 @@ void mobo_handle_spdif(uint8_t width) {
 
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate time to process spdif data, ideally once per 250us
-		
-		last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
-		// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
-		if (last_written_ADC_pos < ADC_BUFFER_SIZE) {
-			last_written_ADC_buf = local_captured_ADC_buf_DMA_write;
-		}
-		// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE? If so, don't overflow but record the last position of the previous buffer
-		// Tests indicate timer_captured_ADC_buf_DMA_write in the range 0..ADC_BUFFER_SIZE-1, and in extremely rare situations 0..ADC_BUFFER_SIZE
-		else {
-			local_captured_num_remaining = max(local_captured_num_remaining - 2, ADC_BUFFER_SIZE - 2); // Move back one stereo sample or more. Rather risk deleting samples than overflowing buffer access
-			last_written_ADC_pos = (ADC_BUFFER_SIZE - local_captured_num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = start with left sample
-			local_captured_ADC_buf_DMA_write = 1  - local_captured_ADC_buf_DMA_write;
-			last_written_ADC_buf = local_captured_ADC_buf_DMA_write;
-		}
 
-
-
+		// Convert from pdca report to buffer address
+		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
 		
 		if (last_written_ADC_pos < min_last_written_ADC_pos) {
 			min_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x0000000 in initial test
