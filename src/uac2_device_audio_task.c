@@ -178,8 +178,8 @@ void uac2_device_audio_task(void *pvParameters)
 	uint32_t silence_det_L = 0;
 	uint32_t silence_det_R = 0;
 	uint8_t silence_det = 0;
-	int DAC_buf_DMA_read_local = 0;				// Local copy read in atomic operations
-	int ADC_buf_DMA_write_temp = 0;				// Local copy read in atomic operations
+	int local_DAC_buf_DMA_read = 0;				// Local copy read in atomic operations
+	int local_ADC_buf_DMA_write = 0;				// Local copy read in atomic operations
 
 // Start new code for skip/insert
 	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
@@ -318,19 +318,19 @@ void uac2_device_audio_task(void *pvParameters)
 					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
 						
 						// New co-sample verification routine
-						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+						local_ADC_buf_DMA_write = ADC_buf_DMA_write;
 						num_remaining = pdca_channel->tcr;
 									
 						// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
 						// for a long time. In which we simply read the counter again
-						if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
-							ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+						if (local_ADC_buf_DMA_write != ADC_buf_DMA_write) {
+							local_ADC_buf_DMA_write = ADC_buf_DMA_write;
 							num_remaining = pdca_channel->tcr;
 						}
 
 						index = ADC_BUFFER_SIZE - num_remaining;
 						index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
-						ADC_buf_USB_IN = ADC_buf_DMA_write_temp;				// Disable further init, select correct audio_buffer_0/1
+						ADC_buf_USB_IN = local_ADC_buf_DMA_write;				// Disable further init, select correct audio_buffer_0/1
 					}
 
 					// How many stereo samples are present in a 1/4ms USB period on UAC2? 
@@ -395,18 +395,18 @@ void uac2_device_audio_task(void *pvParameters)
 */
 
 // Adoption of DAC side's buffered gap calculation
-					ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+					local_ADC_buf_DMA_write = ADC_buf_DMA_write;
 					num_remaining = pdca_channel->tcr;
 					// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not, interrupt won't strike again
 					// for a long time. In which we simply read the counter again
-					if (ADC_buf_DMA_write_temp != ADC_buf_DMA_write) {
-						ADC_buf_DMA_write_temp = ADC_buf_DMA_write;
+					if (local_ADC_buf_DMA_write != ADC_buf_DMA_write) {
+						local_ADC_buf_DMA_write = ADC_buf_DMA_write;
 						num_remaining = pdca_channel->tcr;
 					}
 
 					// Which buffer is in use, and does it truly correspond to the num_remaining value?
 					// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
-					if (ADC_buf_USB_IN != ADC_buf_DMA_write_temp) {
+					if (ADC_buf_USB_IN != local_ADC_buf_DMA_write) {
 						if ( index < (ADC_BUFFER_SIZE - num_remaining))
 							gap = ADC_BUFFER_SIZE - num_remaining - index;
 						else
@@ -624,15 +624,15 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF
 						audio_OUT_must_sync = 0;
-						DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+						local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 						num_remaining = spk_pdca_channel->tcr;
 						// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
 						// for a long time. In which we simply read the counter again
-						if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+						if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+							local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 							num_remaining = spk_pdca_channel->tcr;
 						}
-						DAC_buf_OUT = DAC_buf_DMA_read_local;
+						DAC_buf_OUT = local_DAC_buf_DMA_read;
 
 						if (DAC_buf_OUT == 1) {
 //							gpio_set_gpio_pin(AVR32_PIN_PX30);
@@ -961,18 +961,18 @@ void uac2_device_audio_task(void *pvParameters)
 						if (usb_alternate_setting_out >= 1) {	// bBitResolution // Used with explicit feedback and not ADC data
 //						if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
-							DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+							local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 							num_remaining = spk_pdca_channel->tcr;
 							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
 							// for a long time. In which we simply read the counter again
-							if (DAC_buf_DMA_read_local != DAC_buf_DMA_read) {
-								DAC_buf_DMA_read_local = DAC_buf_DMA_read;
+							if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+								local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 								num_remaining = spk_pdca_channel->tcr;
 							}
 
 							// Which buffer is in use, and does it truly correspond to the num_remaining value?
 							// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
-							if (DAC_buf_OUT != DAC_buf_DMA_read_local) { 	// CS4344 and USB using same buffer
+							if (DAC_buf_OUT != local_DAC_buf_DMA_read) { 	// CS4344 and USB using same buffer
 								if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
 									gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
 								else
