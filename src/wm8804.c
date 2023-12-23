@@ -221,8 +221,8 @@ void wm8804_task(void *pvParameters) {
 
 					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 
-//						Moved to pdca disable code
-//						mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
+//						Added to pdca disable code, keep it here for good measure
+						mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
 						
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
