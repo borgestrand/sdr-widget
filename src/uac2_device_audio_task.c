@@ -264,7 +264,7 @@ void uac2_device_audio_task(void *pvParameters)
 					 (prev_input_select == MOBO_SRC_TOSLINK0) ||
 					 (prev_input_select == MOBO_SRC_TOSLINK1) ) {
 
-					mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK
+					mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
 					mobo_clock_division(current_freq.frequency);			// Re-configure correct USB sample rate
 				}
 			}

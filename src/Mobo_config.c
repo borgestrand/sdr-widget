@@ -748,36 +748,28 @@ uint32_t mobo_srd_asm2(void) {
 	// Limits range from 0x0153 to 0x062C. If timeout & 0x0000F000 isn't 0 then something went wrong and result should be ignored
 	
 	if ( (timeout >= SLIM_44_LOW) && (timeout <= SLIM_44_HIGH) ) {
-//		print_dbg_char('1');
 		return FREQ_44;
 	}
 	if ( (timeout >= SLIM_48_LOW) && (timeout <= SLIM_48_HIGH) ) {
-//		print_dbg_char('2');
 		return FREQ_48;
 	}
 	if ( (timeout >= SLIM_88_LOW) && (timeout <= SLIM_88_HIGH) ) {
-//		print_dbg_char('3');
 		return FREQ_88;
 	}
 	if ( (timeout >= SLIM_96_LOW) && (timeout <= SLIM_96_HIGH) ) {
-//		print_dbg_char('4');
 		return FREQ_96;
 	}
 	if ( (timeout >= SLIM_176_LOW) && (timeout <= SLIM_176_HIGH) ) {
-//		print_dbg_char('5');
 		return FREQ_176;
 	}
 	if ( (timeout >= SLIM_192_LOW) && (timeout <= SLIM_192_HIGH) ) {
-//		print_dbg_char('6');
 		return FREQ_192;
 	}
 	if (timeout & 0x0000F000) {		// According to tests done. This may be the signature of the RTOS
-//		print_dbg_char('I');
 		return FREQ_INVALID;
 	}
 		
 	else {
-//		print_dbg_char('F');
 		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
 	}
 
