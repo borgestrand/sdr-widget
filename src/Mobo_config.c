@@ -1030,7 +1030,6 @@ void mobo_handle_spdif(uint8_t width) {
 		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
 		i = prev_last_written_ADC_pos;
 		
-		print_dbg_char('s'); // Always printed
 		while ( (i != last_written_ADC_pos) && (i != ADC_BUFFER_SIZE + 10) ) {		// The first sample to not consider for zero detection // termination test
 			if (bufpointer == 0) {	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
@@ -1053,11 +1052,9 @@ void mobo_handle_spdif(uint8_t width) {
 		
 		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
 			spdif_rx_status.silent = 0;
-			print_dbg_char('0'); // Never printed
 		}
 		else {									// Silence was detected, update flag to SPDIF RX code
 			spdif_rx_status.silent = 1;
-			print_dbg_char('1'); // Always printed
 		}
 		// End of silence detector
 
@@ -1147,7 +1144,6 @@ void mobo_handle_spdif(uint8_t width) {
 
 /* Old site for silence detector 2.0
 		// Silence / DC detector 2.0
-		print_dbg_char('S');
 		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
 			if (local_ADC_buf_DMA_write == 0)	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;
@@ -1162,11 +1158,9 @@ void mobo_handle_spdif(uint8_t width) {
 
 		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
 			spdif_rx_status.silent = 0;
-			print_dbg_char('0');
 		}
 		else {									// Silence was detected, update flag to SPDIF RX code
 			spdif_rx_status.silent = 1;
-			print_dbg_char('1');
 		}
 		
  End old site for silence detector */
