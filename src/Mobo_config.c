@@ -960,7 +960,7 @@ void mobo_handle_spdif(uint8_t width) {
 	static S16 gap = DAC_BUFFER_SIZE;
 	S16 prev_gap = DAC_BUFFER_SIZE;
 
-	S16 i;								// Generic counter
+	U32 i;								// Generic counter
 
 	U8 local_DAC_buf_DMA_read;			// Local copy read in atomic operations
 	U16 num_remaining;
@@ -1014,20 +1014,58 @@ void mobo_handle_spdif(uint8_t width) {
 
 		// Convert from pdca report to buffer address
 		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
-		
+
+/* Temporarily repurposed to sniff on playback init in spdif land		
 		if (last_written_ADC_pos < min_last_written_ADC_pos) {
 			min_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x0000000 in initial test
 		}
 		if (last_written_ADC_pos > max_last_written_ADC_pos) {
 			max_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x000017E in initial test - as expected
 		}
+*/ 
+
+
+
+		// New site for silence / DC detector 2.1
+		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
+
+		i = prev_last_written_ADC_pos;
+		while ( (i != last_written_ADC_buf) && (i != last_written_ADC_buf + 1) ) {		// The first sample to not consider for zero detection // termination test
+			if (bufpointer == 0) {	// End as soon as a difference is spotted
+				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
+			}
+			else if (bufpointer == 1) {
+				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+			}
+
+			// Terminate this loop at first "non-zero" sample
+			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
+				i = last_written_ADC_buf + 1;	// Termination
+			}
+			
+			i++; // counts up to last_written_ADC_buf
+			if (i >= ADC_BUFFER_SIZE) {
+				i = 0;							// Start from beginning of next buffer
+				bufpointer = 1 - bufpointer;	// Toggle buffers
+			}
+			
+		}
+		
+		if (i == last_written_ADC_buf + 1) {	// Non-silence was detected and caused termination
+			spdif_rx_status.silent = 0;
+		}
+		else {									// Silence was detected, update flag to SPDIF RX code
+			spdif_rx_status.silent = 1;
+		}
+		// End of silence detector
+
+
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
 		prev_captured_num_remaining = local_captured_num_remaining;
 		prev_last_written_ADC_pos = last_written_ADC_pos;
 		prev_last_written_ADC_buf = last_written_ADC_buf;
-
 	}
 
 	// End new code for timer/counter indicated packet processing
@@ -1041,26 +1079,42 @@ void mobo_handle_spdif(uint8_t width) {
 
 		// Clear incoming SPDIF before enabling pdca to keep filling it - moved to pdca rx enable code
 		// mobo_clear_adc_channel();
-		
 
-/* Start of new code
-æææ 
-which variables to capture from pdca? Same as timer captures? 
-which variables to update? Probably a whole lot of them so that consecutive polling vs. history will work out
+// Start of new code
+
+// which variables to capture from pdca? Let's start with the same as timer captures, and then clear the history
+
+// NBNBNB FIX æææ Remember to reset where the cache will write to when spdif playback through cache starts up. The same goes for gap calculation. Both will take place in uac2_dat
 
 		// What is a valid starting point for ADC buffer readout? wm8804 code supposedly just started the pdca for us to be here
-		local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
-		local_captured_num_remaining = timer_captured_num_remaining;
-		// Interrupt may strike at any time, so re-cache if needed
-		if (local_captured_ADC_buf_DMA_write != timer_captured_ADC_buf_DMA_write ) {
-			local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
-			local_captured_num_remaining = timer_captured_num_remaining;
+		local_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
+		local_captured_num_remaining = pdca_channel->tcr;
+		// Interrupt may strike at any time, so re-cache if needed 
+		if (local_captured_ADC_buf_DMA_write != ADC_buf_DMA_write ) {
+			local_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
+			local_captured_num_remaining = pdca_channel->tcr;
 		}
 
+		// Convert from pdca report to buffer address - initiate the present versions of these variables based on the most updated cached readout of ADC pdca status
+		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
 		
-		// Convert from pdca report to buffer address - initiate the PREV versions of these variables based on the most updated reading of ADC pdca status
-		mobo_ADC_position(&prev_last_written_ADC_pos, &prev_last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
-*/
+		// Clear the history
+		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
+		prev_captured_num_remaining = local_captured_num_remaining;
+		prev_last_written_ADC_pos = last_written_ADC_pos;
+		prev_last_written_ADC_buf = last_written_ADC_buf;
+		
+
+
+		// Temporary logging output
+		if (last_written_ADC_pos < min_last_written_ADC_pos) {
+			min_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x0000000 in initial test
+		}
+		if (last_written_ADC_pos > max_last_written_ADC_pos) {
+			max_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x000017E in initial test - as expected
+		}
+
+
 
 // End of new code
 
@@ -1084,6 +1138,8 @@ which variables to update? Probably a whole lot of them so that consecutive poll
 	else if (local_ADC_buf_DMA_write != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 
+
+/* Old site for silence detector 2.0
 		// Silence / DC detector 2.0
 		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
 			if (local_ADC_buf_DMA_write == 0)	// End as soon as a difference is spotted
@@ -1103,6 +1159,8 @@ which variables to update? Probably a whole lot of them so that consecutive poll
 		else {									// Silence was detected, update flag to SPDIF RX code
 			spdif_rx_status.silent = 1;
 		}
+*/
+
 
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
@@ -1172,8 +1230,8 @@ which variables to update? Probably a whole lot of them so that consecutive poll
 			// Next:
 			// - Processing one packet at a time
 			// - Zero detection here
-			// - New gap calculation
-			// - Write through cache
+			// - New gap calculation, uac2_dat
+			// - Write through cache, init in uac2_dat
 			// - Detect need for s/i here, execute it with reads from cache
 			
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {

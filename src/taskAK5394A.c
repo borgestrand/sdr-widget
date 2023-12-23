@@ -110,7 +110,7 @@ volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content 
 	volatile int timer_captured_ADC_buf_DMA_write = 0;	// SPDIF timer/counter records DMA status
 	volatile U32 timer_captured_num_remaining = 0;
 	
-	// Temporary code for logging purposes
+	// Temporary code for logging purposes, also re-initiate on readout
 	volatile U32 min_last_written_ADC_pos = 0x7FFFFFFF;
 	volatile U32 max_last_written_ADC_pos = 0x00000000;
 

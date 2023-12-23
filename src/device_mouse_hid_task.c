@@ -326,6 +326,10 @@ void device_mouse_hid_task(void)
 				print_dbg_char('\n');
 				print_dbg_hex(max_last_written_ADC_pos);
 				print_dbg_char('\n');
+				
+				// Reset after readout
+				min_last_written_ADC_pos = 0x7FFFFFFF;
+				max_last_written_ADC_pos = 0x00000000;
 			}
 
 			// Detect sample rate of I2S in
