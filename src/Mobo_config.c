@@ -1025,7 +1025,7 @@ void mobo_handle_spdif(uint8_t width) {
 */ 
 
 
-/*
+
 		// New site for silence / DC detector 2.1
 		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
 		i = prev_last_written_ADC_pos;
@@ -1039,15 +1039,15 @@ void mobo_handle_spdif(uint8_t width) {
 				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
 			}
 
-			// Terminate this loop at first "non-zero" sample
-			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
-				i = ADC_BUFFER_SIZE + 10;
-			}
-			
 			i++; // counts up to last_written_ADC_buf
 			if (i >= ADC_BUFFER_SIZE) {
 				i = 0;							// Start from beginning of next buffer
 				bufpointer = 1 - bufpointer;	// Toggle buffers
+			}
+
+			// Terminate this loop at first "non-zero" sample, this messes up the use of i as an index into audio_buffer_? !!
+			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
+				i = ADC_BUFFER_SIZE + 10;
 			}
 		}
 		
@@ -1060,7 +1060,7 @@ void mobo_handle_spdif(uint8_t width) {
 			print_dbg_char('1'); // Always printed
 		}
 		// End of silence detector
-*/
+
 
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
@@ -1145,7 +1145,7 @@ void mobo_handle_spdif(uint8_t width) {
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 
 
-// Old site for silence detector 2.0
+/* Old site for silence detector 2.0
 		// Silence / DC detector 2.0
 		print_dbg_char('S');
 		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
@@ -1169,7 +1169,7 @@ void mobo_handle_spdif(uint8_t width) {
 			print_dbg_char('1');
 		}
 		
-// End old site for silence detector
+ End old site for silence detector */
 
 
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
