@@ -1041,6 +1041,30 @@ void mobo_handle_spdif(uint8_t width) {
 
 		// Clear incoming SPDIF before enabling pdca to keep filling it - moved to pdca rx enable code
 		// mobo_clear_adc_channel();
+		
+
+/* Start of new code
+æææ 
+which variables to capture from pdca? Same as timer captures? 
+which variables to update? Probably a whole lot of them so that consecutive polling vs. history will work out
+
+		// What is a valid starting point for ADC buffer readout? wm8804 code supposedly just started the pdca for us to be here
+		local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
+		local_captured_num_remaining = timer_captured_num_remaining;
+		// Interrupt may strike at any time, so re-cache if needed
+		if (local_captured_ADC_buf_DMA_write != timer_captured_ADC_buf_DMA_write ) {
+			local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
+			local_captured_num_remaining = timer_captured_num_remaining;
+		}
+
+		
+		// Convert from pdca report to buffer address - initiate the PREV versions of these variables based on the most updated reading of ADC pdca status
+		mobo_ADC_position(&prev_last_written_ADC_pos, &prev_last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
+*/
+
+// End of new code
+
+// Old code		
 
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2

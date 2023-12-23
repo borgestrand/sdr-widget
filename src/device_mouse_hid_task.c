@@ -380,6 +380,13 @@ void device_mouse_hid_task(void)
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
             }
 
+            // Try to enter programming mode
+            else if (a == 'P') {							// Uppercase P
+	            gpio_clr_gpio_pin(AVR32_PIN_PB10); 			// PROG button - attempted with 100k pull-up and 0.47uF to GND. Still 68R to button 
+				vTaskDelay(100);							// Is this 10us?
+	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
+            }
+
 
 /* Changing filters. TI says:
 Hello, This is the information you needed: The interpolation filter can be changed with just 3 steps.
@@ -462,8 +469,6 @@ Arash
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
 			
-
-
 #endif // HW_GEN_RXMOD
 
 
