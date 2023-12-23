@@ -1028,9 +1028,9 @@ void mobo_handle_spdif(uint8_t width) {
 
 		// New site for silence / DC detector 2.1
 		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
-
 		i = prev_last_written_ADC_pos;
-		while ( (i != last_written_ADC_buf) && (i != last_written_ADC_buf + 1) ) {		// The first sample to not consider for zero detection // termination test
+		
+		while ( (i != last_written_ADC_pos) && (i != last_written_ADC_pos + 1) ) {		// The first sample to not consider for zero detection // termination test
 			if (bufpointer == 0) {	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
 			}
@@ -1040,7 +1040,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 			// Terminate this loop at first "non-zero" sample
 			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
-				i = last_written_ADC_buf + 1;	// Termination
+				i = last_written_ADC_pos + 1;	// Termination
 			}
 			
 			i++; // counts up to last_written_ADC_buf
@@ -1051,7 +1051,7 @@ void mobo_handle_spdif(uint8_t width) {
 			
 		}
 		
-		if (i == last_written_ADC_buf + 1) {	// Non-silence was detected and caused termination
+		if (i == last_written_ADC_pos + 1) {	// Non-silence was detected and caused termination
 			spdif_rx_status.silent = 0;
 		}
 		else {									// Silence was detected, update flag to SPDIF RX code
@@ -1118,14 +1118,16 @@ void mobo_handle_spdif(uint8_t width) {
 
 // End of new code
 
-// Old code		
+// Begin old code		
 
-		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
+		// Forward state machine
 		ADC_buf_I2S_IN = INIT_ADC_I2S_st2;	// Move on to init stage 2
+
+		// Establish history
+		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 	}
 
 // NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
-
 
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
 		spdif_rx_status.silent = 1;
@@ -1136,6 +1138,8 @@ void mobo_handle_spdif(uint8_t width) {
 	// If so, check it for silence. If selected as source, copy all of producer's data
 	// Only bother if .reliable != 0 
 	else if (local_ADC_buf_DMA_write != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
+
+		// Establish history
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 
 
