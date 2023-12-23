@@ -1025,12 +1025,12 @@ void mobo_handle_spdif(uint8_t width) {
 */ 
 
 
-
+/*
 		// New site for silence / DC detector 2.1
 		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
 		i = prev_last_written_ADC_pos;
 		
-		
+		print_dbg_char('s'); // Always printed
 		while ( (i != last_written_ADC_pos) && (i != ADC_BUFFER_SIZE + 10) ) {		// The first sample to not consider for zero detection // termination test
 			if (bufpointer == 0) {	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
@@ -1049,17 +1049,18 @@ void mobo_handle_spdif(uint8_t width) {
 				i = 0;							// Start from beginning of next buffer
 				bufpointer = 1 - bufpointer;	// Toggle buffers
 			}
-			
 		}
 		
 		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
 			spdif_rx_status.silent = 0;
+			print_dbg_char('0'); // Never printed
 		}
 		else {									// Silence was detected, update flag to SPDIF RX code
 			spdif_rx_status.silent = 1;
+			print_dbg_char('1'); // Always printed
 		}
 		// End of silence detector
-
+*/
 
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
@@ -1126,7 +1127,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 		// Establish history
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
-	}
+	} // end ADC_buffer_DMA_write has changed
 
 // NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
 
@@ -1144,8 +1145,9 @@ void mobo_handle_spdif(uint8_t width) {
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 
 
-/* Old site for silence detector 2.0
+// Old site for silence detector 2.0
 		// Silence / DC detector 2.0
+		print_dbg_char('S');
 		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
 			if (local_ADC_buf_DMA_write == 0)	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;
@@ -1160,11 +1162,14 @@ void mobo_handle_spdif(uint8_t width) {
 
 		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
 			spdif_rx_status.silent = 0;
+			print_dbg_char('0');
 		}
 		else {									// Silence was detected, update flag to SPDIF RX code
 			spdif_rx_status.silent = 1;
+			print_dbg_char('1');
 		}
-*/
+		
+// End old site for silence detector
 
 
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
