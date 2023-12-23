@@ -957,13 +957,11 @@ void mobo_handle_spdif(uint8_t width) {
 	static int prev_ADC_buf_DMA_write = INIT_ADC_I2S;
 	int local_ADC_buf_DMA_write = 0;
 	static U32 spk_index = 0;
-	static S16 gap = DAC_BUFFER_SIZE;
-	S16 prev_gap = DAC_BUFFER_SIZE;
 
 	U32 i;								// Generic counter
 
 	U8 local_DAC_buf_DMA_read;			// Local copy read in atomic operations
-	U16 num_remaining;
+	U32 num_remaining;
 
 	S32 sample_temp = 0;
 	S32 sample_L = 0;
@@ -1027,6 +1025,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 
 		// New site for silence / DC detector 2.1
+		// Minor issue: packets are short. We should perhaps collect more of them
 		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
 		i = prev_last_written_ADC_pos;
 		
@@ -1056,8 +1055,7 @@ void mobo_handle_spdif(uint8_t width) {
 		else {									// Silence was detected, update flag to SPDIF RX code
 			spdif_rx_status.silent = 1;
 		}
-		// End of silence detector
-
+		// End of silence detector 2.1
 
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
@@ -1169,12 +1167,11 @@ void mobo_handle_spdif(uint8_t width) {
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
+			// æææææ does this influence uac2_dat and where cache data is written?
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
 
 				ADC_buf_I2S_IN = local_ADC_buf_DMA_write;	// Disable further init, select correct audio_buffer_0/1
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
-
-				gap = DAC_BUFFER_SIZE; // Ideal gap value
 
 				// New co-sample verification routine
 				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
@@ -1192,31 +1189,6 @@ void mobo_handle_spdif(uint8_t width) {
 			}
 
 
-			// New co-sample verification routine
-			// FIX: May Re-introduce code which samples DAC_buf_DMA_read and num_remaining as part of ADC DMA interrupt routine?
-			// If so look for "BUF_IS_ONE" in code around 20170227
-			local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-			num_remaining = spk_pdca_channel->tcr;
-			// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-			// for a long time. In which we simply read the counter again
-			if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
-				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-				num_remaining = spk_pdca_channel->tcr;
-			}
-
-			if (DAC_buf_OUT != local_DAC_buf_DMA_read) { 	// DAC DMA and seq. code using same buffer
-				if (spk_index < (DAC_BUFFER_SIZE - num_remaining))
-					gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
-				else
-					gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
-			}
-			else // DAC DMA and seq. code working on different buffers
-				gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
-
-			// Establish history
-			prev_gap = gap;
-
-
 			// Prepare to copy all of producer's most recent data to consumer's buffer
 			if (local_ADC_buf_DMA_write == 1)
 				gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
@@ -1229,11 +1201,12 @@ void mobo_handle_spdif(uint8_t width) {
 			// Now: 
 			// - Processing a whole ADC_BUFFER_SIZE audio_buffer_0 or _1
 			// - s/i removed
-			// - Calculated gap not used for any purpose
+			// - Gap calculation completely removed
 			
 			// Next:
 			// - Processing one packet at a time
-			// - Zero detection here
+			// - Replicate "energy" code and sample delay from uac2_dat where it writes to cache
+			// + Zero detection here
 			// - New gap calculation, uac2_dat
 			// - Write through cache, init in uac2_dat
 			// - Detect need for s/i here, execute it with reads from cache
