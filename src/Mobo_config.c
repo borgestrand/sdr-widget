@@ -1030,7 +1030,8 @@ void mobo_handle_spdif(uint8_t width) {
 		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
 		i = prev_last_written_ADC_pos;
 		
-		while ( (i != last_written_ADC_pos) && (i != last_written_ADC_pos + 1) ) {		// The first sample to not consider for zero detection // termination test
+		
+		while ( (i != last_written_ADC_pos) && (i != ADC_BUFFER_SIZE + 10) ) {		// The first sample to not consider for zero detection // termination test
 			if (bufpointer == 0) {	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
 			}
@@ -1040,7 +1041,7 @@ void mobo_handle_spdif(uint8_t width) {
 
 			// Terminate this loop at first "non-zero" sample
 			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
-				i = last_written_ADC_pos + 1;	// Termination
+				i = ADC_BUFFER_SIZE + 10;
 			}
 			
 			i++; // counts up to last_written_ADC_buf
@@ -1051,7 +1052,7 @@ void mobo_handle_spdif(uint8_t width) {
 			
 		}
 		
-		if (i == last_written_ADC_pos + 1) {	// Non-silence was detected and caused termination
+		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
 			spdif_rx_status.silent = 0;
 		}
 		else {									// Silence was detected, update flag to SPDIF RX code
