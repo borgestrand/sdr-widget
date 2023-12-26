@@ -137,7 +137,7 @@ uint32_t mobo_wait_LRCK_TX_asm(void);
 
 #ifdef HW_GEN_RXMOD
 // Process spdif and toslink inputs
-void mobo_handle_spdif(uint8_t width);
+void mobo_handle_spdif(void);
 
 // Start the timer/counter that monitors spdif traffic
 void mobo_start_spdif_tc(U32 frequency);

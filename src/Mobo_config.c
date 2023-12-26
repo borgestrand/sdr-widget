@@ -945,7 +945,8 @@ void mobo_ADC_position(U32 *last_pos, int *last_buf, U32 num_remaining, int buf)
 
 
 // Handle spdif and toslink input
-void mobo_handle_spdif(uint8_t width) {
+// æææ pass cache parameters
+void mobo_handle_spdif(void) {
 	static int prev_ADC_buf_DMA_write = INIT_ADC_I2S;
 	int local_ADC_buf_DMA_write = 0;
 	static U32 spk_index = 0;
