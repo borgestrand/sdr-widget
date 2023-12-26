@@ -183,19 +183,19 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Start new code for skip/insert
 	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
-	#define CACHE_MAX_SAMPLES 60				// Maximum number of stereo samples in one package of 250µs (nominally 48)
-	S32 cache_L[CACHE_MAX_SAMPLES];
-	S32 cache_R[CACHE_MAX_SAMPLES];
+	S32 cache_L[SPK_CACHE_MAX_SAMPLES];
+	S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 	
 	static S32 prev_sample_L = 0;	// Enable delayed writing to cache, initiated to 0, new value survives to next iteration
 	static S32 prev_sample_R = 0;
 	S32 diff_value = 0;
 	S32 diff_sum = 0;
 	S32 si_score_low = 0x7FFFFFFF;
-	int si_index_low = 0;
+	U32 si_index_low = 0;
 	S32 si_score_high = 0;
-	int si_index_high = 0;
+	U32 si_index_high = 0;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
+	Bool cache_holds_silence = FALSE;
 
 	// New code for adaptive USB fallback using skip / insert s/i
 	#define SI_SKIP -1
@@ -242,7 +242,7 @@ void uac2_device_audio_task(void *pvParameters)
 			#endif
 			mobo_clear_dac_channel(); 
 			// Manual cache clear
-			for (i = 0; i < CACHE_MAX_SAMPLES; i++) {
+			for (i = 0; i < SPK_CACHE_MAX_SAMPLES; i++) {
 				cache_L[i] = 0;
 				cache_R[i] = 0; 
 			}
@@ -254,7 +254,8 @@ void uac2_device_audio_task(void *pvParameters)
 		// Process digital input
 		#ifdef HW_GEN_RXMOD
 		// æææ pass cache parameters
-		mobo_handle_spdif(); 
+		mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, cache_L, cache_R, &num_samples, &cache_holds_silence);
+
 			//			Can fit here or in wm8804 task. There is too little time to run two consumers!
 
 			static uint8_t prev_input_select = MOBO_SRC_NONE;
@@ -692,7 +693,7 @@ void uac2_device_audio_task(void *pvParameters)
 					// Test usb alt setting once outside for loop, use tight loops into cache
 
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
-						num_samples = min(num_samples, CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
+						num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
 						for (i = 0; i < num_samples; i++) {
 							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
 							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
@@ -757,7 +758,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
 						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
-							num_samples = min(num_samples, CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
+							num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
 							for (i = 0; i < num_samples; i++) {
 								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
 								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, R MSB
@@ -1192,7 +1193,7 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				mobo_clear_dac_channel();
 				// Manual cache clear when giving up access to outward facing resources
-				for (i = 0; i < CACHE_MAX_SAMPLES; i++) {
+				for (i = 0; i < SPK_CACHE_MAX_SAMPLES; i++) {
 					cache_L[i] = 0;
 					cache_R[i] = 0;
 				}
@@ -1243,7 +1244,7 @@ void uac2_device_audio_task(void *pvParameters)
 		// Start writing from chache to spk_buffer
 		// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
 		//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Start copying cache to spk_buffer_X
-		num_samples = min(num_samples, CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
+		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {								// Only start copying when there is something to legally copy
 						
 			i = 0;

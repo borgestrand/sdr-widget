@@ -945,8 +945,8 @@ void mobo_ADC_position(U32 *last_pos, int *last_buf, U32 num_remaining, int buf)
 
 
 // Handle spdif and toslink input
-// æææ pass cache parameters
-void mobo_handle_spdif(void) {
+void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *cache_L, S32 *cache_R, S32 *num_samples, Bool *cache_holds_silence) {
+// Overwritten parameters, rewrite without '*' if handled inline instead of as function call
 	static int prev_ADC_buf_DMA_write = INIT_ADC_I2S;
 	int local_ADC_buf_DMA_write = 0;
 	static U32 spk_index = 0;
@@ -959,7 +959,15 @@ void mobo_handle_spdif(void) {
 	S32 sample_temp = 0;
 	S32 sample_L = 0;
 	S32 sample_R = 0;
-	
+
+// Reused variables from uac2_dat
+	static S32 prev_sample_L = 0;	// Enable delayed writing to cache, initiated to 0, new value survives to next iteration
+	static S32 prev_sample_R = 0;
+	S32 diff_value = 0;
+	S32 diff_sum = 0;
+	S32 si_score_low = 0x7FFFFFFF;
+	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
+
 	
 	// New variables for timer/counter indicated packet processing
 	volatile int local_captured_ADC_buf_DMA_write = 0;
@@ -988,6 +996,18 @@ void mobo_handle_spdif(void) {
 */
 
 	// Begin new code for timer/counter indicated packet processing
+
+
+/* ææææ initialize, but only when we own the output!
+*si_index_low = 0;
+*si_score_high = 0;
+*si_index_high = 0;
+*num_samples = 0; // A non-zero value means cache contains data to be written to I2S output
+*cache_holds_silence = FALSE; // Exported silence detect
+*/
+
+
+
 
 	// Does spdif timer interrupt indicate that we should process 250-ish µs of incoming SPDIF data?
 	
