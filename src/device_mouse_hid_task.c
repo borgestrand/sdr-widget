@@ -458,8 +458,8 @@ Arash
             // Check source and rate, output to LED and terminal
             else if (a == 'm') {
 	            print_dbg_char_hex(input_select);			// Is source known?
-	            print_dbg_char_hex( (uint8_t)(current_freq.frequency/1000) );			// Is rate known? 
-	            mobo_led_select(current_freq.frequency, input_select);
+	            print_dbg_char_hex( (uint8_t)(spk_current_freq.frequency/1000) );			// Is rate known? 
+	            mobo_led_select(spk_current_freq.frequency, input_select);
             }
 			
 			
@@ -468,11 +468,6 @@ Arash
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
 
-            // Select MCU's outgoing I2S bus
-            else if (a == 'b') {							// Lowercase b
-	            mobo_xo_select(spdif_rx_status.frequency, input_select);
-            }
-			
 #endif // HW_GEN_RXMOD
 
 

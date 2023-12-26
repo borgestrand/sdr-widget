@@ -245,14 +245,15 @@ void uac2_freq_change_handler() {
 			mobo_clear_dac_channel();
 		}
 		if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {	// Only change I2S settings if appropriate
-			mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Give USB the I2S control with proper MCLK
-			mobo_clock_division(current_freq.frequency);	// Re-configure correct USB sample rate
+			print_dbg_char('i');
+			mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);	// Give USB the I2S control with proper MCLK
+			mobo_clock_division(spk_current_freq.frequency);	// Re-configure correct USB sample rate
 
 			// Will this work if we go from SPDIF to USB already playing at different sample rate?
 
 		}
 //		if (input_select == MOBO_SRC_UAC2) {	// Only change I2S settings if appropriate
-//			mobo_led_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO frequency indication on front RGB LED
+//			mobo_led_select(spk_current_freq.frequency, MOBO_SRC_UAC2); // GPIO frequency indication on front RGB LED
 //		}
 #else
 		spk_mute = TRUE; // mute speaker while changing frequency and oscillator
@@ -261,17 +262,17 @@ void uac2_freq_change_handler() {
 		#endif
 		mobo_clear_dac_channel();
 
-		mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
-		mobo_clock_division(current_freq.frequency);
+		mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
+		mobo_clock_division(spk_current_freq.frequency);
 #endif
 
 		/*
 		 poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
-		 FB_rate_int = current_freq.frequency / poolingFreq;
-		 FB_rate_frac = current_freq.frequency % poolingFreq;
+		 FB_rate_int = spk_current_freq.frequency / poolingFreq;
+		 FB_rate_frac = spk_current_freq.frequency % poolingFreq;
 		 FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
 		 */
-		if (current_freq.frequency == FREQ_96) {
+		if (spk_current_freq.frequency == FREQ_96) {
 
 #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering? 
@@ -292,7 +293,7 @@ void uac2_freq_change_handler() {
 			FB_rate_nominal = ((96) << 14) + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system
 		}
 
-		else if (current_freq.frequency == FREQ_88) {
+		else if (spk_current_freq.frequency == FREQ_88) {
 
 #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
@@ -313,7 +314,7 @@ void uac2_freq_change_handler() {
 			FB_rate_nominal = ((88 << 14) + (1 << 14) / 5) + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system
 		}
 
-		else if (current_freq.frequency == FREQ_176) {
+		else if (spk_current_freq.frequency == FREQ_176) {
 
 #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
@@ -327,7 +328,7 @@ void uac2_freq_change_handler() {
 			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
 		}
 
-		else if (current_freq.frequency == FREQ_192) {
+		else if (spk_current_freq.frequency == FREQ_192) {
 
 #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
@@ -341,7 +342,7 @@ void uac2_freq_change_handler() {
 			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
 		}
 
-		else if (current_freq.frequency == FREQ_48) {
+		else if (spk_current_freq.frequency == FREQ_48) {
 
 #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
@@ -355,7 +356,7 @@ void uac2_freq_change_handler() {
 			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
 		}
 
-		else if (current_freq.frequency == FREQ_44) {
+		else if (spk_current_freq.frequency == FREQ_44) {
 
 #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
@@ -875,10 +876,10 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_ack_setup_received_free();
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[3]); // 0x0000bb80 is 48khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[2]); // 0x00017700 is 96khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[1]); // 0x0002ee00 is 192khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[0]);
+						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[3]); // 0x0000bb80 is 48khz
+						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[2]); // 0x00017700 is 96khz
+						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[1]); // 0x0002ee00 is 192khz
+						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[0]);
 						Usb_ack_control_in_ready_send();
 
 						while (!Is_usb_control_out_received())
@@ -936,10 +937,10 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[3]); // 0x0000bb80 is 48khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[2]); // 0x00017700 is 96khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[1]); // 0x0002ee00 is 192khz
-						Usb_write_endpoint_data(EP_CONTROL, 8, current_freq.freq_bytes[0]);
+						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[3]); // 0x0000bb80 is 48khz
+						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[2]); // 0x00017700 is 96khz
+						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[1]); // 0x0002ee00 is 192khz
+						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[0]);
 						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
@@ -1231,13 +1232,13 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 							;
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
-						current_freq.freq_bytes[3]
+						spk_current_freq.freq_bytes[3]
 								=Usb_read_endpoint_data(EP_CONTROL, 8); // read 4 bytes freq to set
-						current_freq.freq_bytes[2]
+						spk_current_freq.freq_bytes[2]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
-						current_freq.freq_bytes[1]
+						spk_current_freq.freq_bytes[1]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
-						current_freq.freq_bytes[0]
+						spk_current_freq.freq_bytes[0]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
 						uac2_freq_change_handler();
 
@@ -1257,13 +1258,13 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						while (!Is_usb_control_out_received())
 							;
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
-						current_freq.freq_bytes[3]
+						spk_current_freq.freq_bytes[3]
 								=Usb_read_endpoint_data(EP_CONTROL, 8); // read 4 bytes freq to set
-						current_freq.freq_bytes[2]
+						spk_current_freq.freq_bytes[2]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
-						current_freq.freq_bytes[1]
+						spk_current_freq.freq_bytes[1]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
-						current_freq.freq_bytes[0]
+						spk_current_freq.freq_bytes[0]
 								=Usb_read_endpoint_data(EP_CONTROL, 8);
 						uac2_freq_change_handler();
 						

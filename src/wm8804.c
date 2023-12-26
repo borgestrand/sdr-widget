@@ -215,6 +215,7 @@ void wm8804_task(void *pvParameters) {
 						
 				// Give away control?
 				if (mustgive) {
+					print_dbg_char('y');
 					wm8804_mute();
 					spdif_rx_status.muted = 1;
 					spdif_rx_status.reliable = 0;				// Critical for mobo_handle_spdif()
@@ -276,6 +277,7 @@ void wm8804_task(void *pvParameters) {
 //							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 
+
 							// Report to cpu and debug terminal
 							switch (input_select) {
 								case MOBO_SRC_SPDIF0:
@@ -296,6 +298,7 @@ void wm8804_task(void *pvParameters) {
 							}
 							
 							// Enable audio, configure clocks (and report), but only if needed
+							print_dbg_char('x');
 							wm8804_unmute();					// No longer including LED change on this TAKE event
 							
 							spdif_rx_status.muted = 0;
@@ -778,7 +781,7 @@ void wm8804_mute(void) {
 
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear outgoing DAC data
 
-	mobo_xo_select(current_freq.frequency, MOBO_SRC_UAC2);	// Same functionality for both UAC sources
+	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
 }
 
 

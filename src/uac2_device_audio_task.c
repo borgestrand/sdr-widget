@@ -267,8 +267,9 @@ void uac2_device_audio_task(void *pvParameters)
 					 (prev_input_select == MOBO_SRC_TOSLINK0) ||
 					 (prev_input_select == MOBO_SRC_TOSLINK1) ) {
 
-					mobo_xo_select(current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
-					mobo_clock_division(current_freq.frequency);			// Re-configure correct USB sample rate
+					print_dbg_char('h');
+					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
+					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
 				}
 				
 				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen
@@ -282,10 +283,10 @@ void uac2_device_audio_task(void *pvParameters)
 				DAC_buf_OUT = local_DAC_buf_DMA_read;
 
 				if (DAC_buf_OUT == 1) {
-					//							gpio_set_gpio_pin(AVR32_PIN_PX30);
+					gpio_set_gpio_pin(AVR32_PIN_PX30);
 				}
 				else {
-					//							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+					gpio_clr_gpio_pin(AVR32_PIN_PX30);
 				}
 						
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
@@ -366,29 +367,29 @@ void uac2_device_audio_task(void *pvParameters)
 					//  44.1 / 4 = 11.025
 					// We can use basic values but must turn 440 -> 441 on average. I.e. add one every 440/11 or 440/22 or 440/44 = 40, 20, 10 respectively
 
-					if (current_freq.frequency == FREQ_44) {
+					if (spk_current_freq.frequency == FREQ_44) {
 						num_samples_adc = 11;
 						limit_44k = 40;
 					}
-					else if (current_freq.frequency == FREQ_48) {
+					else if (spk_current_freq.frequency == FREQ_48) {
 						num_samples_adc = 12;
 					}
-					else if (current_freq.frequency == FREQ_88) {
+					else if (spk_current_freq.frequency == FREQ_88) {
 						num_samples_adc = 22;
 						limit_44k = 20;
 					}
-					else if (current_freq.frequency == FREQ_96) {
+					else if (spk_current_freq.frequency == FREQ_96) {
 						num_samples_adc = 24;
 					}
-					else if (current_freq.frequency == FREQ_176) {
+					else if (spk_current_freq.frequency == FREQ_176) {
 						num_samples_adc = 44;
 						limit_44k = 10;
 					}
-					else if (current_freq.frequency == FREQ_192) {
+					else if (spk_current_freq.frequency == FREQ_192) {
 						num_samples_adc = 48;
 					}
 				
-					if ( (current_freq.frequency == FREQ_44) || (current_freq.frequency == FREQ_88) || (current_freq.frequency == FREQ_176) ) {
+					if ( (spk_current_freq.frequency == FREQ_44) || (spk_current_freq.frequency == FREQ_88) || (spk_current_freq.frequency == FREQ_176) ) {
 						counter_44k++;
 						if (counter_44k == limit_44k) { 
 							counter_44k = 0;
@@ -571,17 +572,17 @@ void uac2_device_audio_task(void *pvParameters)
 
 				if (playerStarted) {
 // 					Original Linux quirk replacement code
-//					if (((current_freq.frequency == FREQ_88) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
-//						((current_freq.frequency == FREQ_96) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
+//					if (((spk_current_freq.frequency == FREQ_88) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
+//						((spk_current_freq.frequency == FREQ_96) && (FB_rate > ((96 << 14) + (6 << 14)/10))))
 //						FB_rate -= FB_RATE_DELTA * 512;
 
 //					Alternative Linux quirk replacement code, insert nominal FB_rate after a short interlude of requesting 99ksps (see uac2_usb_specific_request.c)
 
 					// FIX: Will Linux quirk work with WM8805 input??
-					if ( (current_freq.frequency == FREQ_88) && (FB_rate > (98 << 14) ) ) {
+					if ( (spk_current_freq.frequency == FREQ_88) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = FB_rate_nominal;			// BSB 20131115 restore saved nominal feedback rate
 					}
-					else if ( (current_freq.frequency == FREQ_96) && (FB_rate > (98 << 14) ) ) {
+					else if ( (spk_current_freq.frequency == FREQ_96) && (FB_rate > (98 << 14) ) ) {
 						FB_rate = FB_rate_nominal;			// BSB 20131115 restore saved nominal feedback rate
 					}
 				}
@@ -659,10 +660,10 @@ void uac2_device_audio_task(void *pvParameters)
 						DAC_buf_OUT = local_DAC_buf_DMA_read;
 
 						if (DAC_buf_OUT == 1) {
-//							gpio_set_gpio_pin(AVR32_PIN_PX30);
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
 						}
 						else {
-//							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 						}
 									
 						spk_index = DAC_BUFFER_SIZE - num_remaining;
@@ -869,8 +870,13 @@ void uac2_device_audio_task(void *pvParameters)
 									else if (usb_ch == USB_CH_C) {
 										print_cpu_char(CPU_CHAR_UAC2_C);		// USB audio Class 2 on front USB-C plug
 									}
+									
+									// æææææææ why aren't we calling mobo_xo_select about here?? Or use some other mechanism to report on sample rate
+									
+									print_dbg_char('j');
+									mobo_xo_select(spk_current_freq.frequency, input_select);
 																				
-									mobo_led_select(current_freq.frequency, input_select);
+									mobo_led_select(spk_current_freq.frequency, input_select);
 									#ifdef HW_GEN_RXMOD 
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
@@ -882,7 +888,11 @@ void uac2_device_audio_task(void *pvParameters)
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 									input_select = MOBO_SRC_UAC2;
 									playerStarted = TRUE;						// Is it better off here?
-									mobo_led_select(current_freq.frequency, input_select);
+
+									print_dbg_char('j');
+									mobo_xo_select(spk_current_freq.frequency, input_select);
+
+									mobo_led_select(spk_current_freq.frequency, input_select);
 									#ifdef HW_GEN_RXMOD 
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
@@ -1289,10 +1299,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1325,10 +1335,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1351,10 +1361,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1376,10 +1386,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
@@ -1407,10 +1417,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection

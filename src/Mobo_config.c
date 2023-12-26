@@ -1209,7 +1209,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 
-			gpio_set_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
+//			gpio_set_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 
 			// Now: 
 			// - Processing a whole ADC_BUFFER_SIZE audio_buffer_0 or _1
@@ -1261,7 +1261,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 			} // for ADC_BUFFER_SIZE 
 				
-			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
+//			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 				
 
 		} // ADC_buf_DMA_write toggle

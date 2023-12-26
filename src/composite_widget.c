@@ -369,6 +369,8 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	input_select = MOBO_SRC_UAC2;
 
 //	mobo_xo_select(FREQ_44, input_select);					// Initial GPIO XO control and frequency indication
+
+	print_dbg_char('g');
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 
 #if (defined HW_GEN_RXMOD)

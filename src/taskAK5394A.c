@@ -234,11 +234,11 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		// Fast debug on scope
 		static int test = 0;
 		if (test == 0) {
-			gpio_set_gpio_pin(AVR32_PIN_PX31);
+//			gpio_set_gpio_pin(AVR32_PIN_PX31);
 			test = 1;
 		}
 		else {
-			gpio_clr_gpio_pin(AVR32_PIN_PX31);
+//			gpio_clr_gpio_pin(AVR32_PIN_PX31);
 			test = 0;
 		}
 	}

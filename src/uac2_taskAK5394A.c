@@ -73,8 +73,8 @@ void uac2_AK5394A_task(void*);
 //! required for device CDC task.
 //!
 void uac2_AK5394A_task_init(void) {
-//	current_freq.frequency = FREQ_96;
-	current_freq.frequency = FREQ_44;
+//	spk_current_freq.frequency = FREQ_96;
+	spk_current_freq.frequency = FREQ_44;
 	AK5394A_task_init(FALSE);
 
 //clear samplerate indication FIX: move to different _init() routine
