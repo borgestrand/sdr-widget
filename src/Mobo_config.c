@@ -1038,7 +1038,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				bufpointer = 1 - bufpointer;	// Toggle buffers
 			}
 			
-			// Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
+			// Silence detect v3.0. Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
 			non_silence_det = ( non_silence_det || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
 
 			// It is time consuming to test for each stereo sample!
@@ -1077,38 +1077,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			print_dbg_char('S');
 			spdif_rx_status.silent = 1;
 		}
-		
-		
-/*		
-		// New site for silence / DC detector 2.1
-		// Minor issue: packets are short. We should perhaps collect more of them
-		while ( (i != last_written_ADC_pos) && (i != ADC_BUFFER_SIZE + 10) ) {		// The first sample to not consider for zero detection // termination test
-			if (bufpointer == 0) {	// End as soon as a difference is spotted
-				sample_temp = audio_buffer_0[i];
-			}
-			else if (bufpointer == 1) {
-				sample_temp = audio_buffer_1[i];
-			}
 
-			i++; // counts up to last_written_ADC_buf
-			if (i >= ADC_BUFFER_SIZE) {
-				i = 0;							// Start from beginning of next buffer
-				bufpointer = 1 - bufpointer;	// Toggle buffers
-			}
-			
-			if ( abs(sample_temp) > IS_SILENT ) {	// New definition of what is none-silence
-				i = ADC_BUFFER_SIZE + 10;
-			}
-		}
-		
-		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
-			spdif_rx_status.silent = 0;
-		}
-		else {									// Silence was detected, update flag to SPDIF RX code
-			spdif_rx_status.silent = 1;
-		}
-		// End of silence detector 2.1
-*/
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
