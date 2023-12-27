@@ -594,6 +594,8 @@ void uac2_device_audio_task(void *pvParameters)
 					spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
 					spk_usb_sample_counter += num_samples; 	// track the num of samples received
 					xSemaphoreGive(mutexSpkUSB);
+					
+					// æææ how much of this must be done each time this loop detect input_select == idle?
 
 					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use

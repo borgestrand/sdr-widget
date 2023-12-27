@@ -1056,17 +1056,17 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 				diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
 								
-				if (diff_sum < si_score_low) {
-					si_score_low = diff_sum;
-					*si_index_low = i;
-				}
-								
-				if (diff_sum > *si_score_high) {
-					*si_score_high = diff_sum;
-					*si_index_high = i;
-				}
-								
 				if (cachepointer < SPK_CACHE_MAX_SAMPLES) {
+					if (diff_sum < si_score_low) {
+						si_score_low = diff_sum;
+						*si_index_low = cachepointer;
+					}
+								
+					if (diff_sum > *si_score_high) {
+						*si_score_high = diff_sum;
+						*si_index_high = cachepointer;
+					}
+								
 					cache_L[cachepointer] = prev_sample_L;	// May reuse (*numsamples)
 					cache_R[cachepointer] = prev_sample_R;
 					cachepointer++;
@@ -1085,13 +1085,13 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			spdif_rx_status.silent = 0;
 		}
 		else {
-			print_dbg_char('S');
+//			print_dbg_char('S');
 			spdif_rx_status.silent = 1;
 		}
 		
-		if ((*num_samples) > 0) {
+//		if ((*num_samples) > 0) {
 //			print_dbg_char('-');
-		}
+//		}
 		
 		if (max_last_written_ADC_pos == 0x10101010) {
 			print_dbg_char('\n');
