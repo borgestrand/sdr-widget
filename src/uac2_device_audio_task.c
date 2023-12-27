@@ -1266,30 +1266,27 @@ void uac2_device_audio_task(void *pvParameters)
 		#endif
 
 
+		if (min_last_written_ADC_pos == 0x10101010) {
+			print_dbg_char('\n');
+			print_dbg_char('d');
+			print_dbg_hex((S32)&num_samples);		
+			print_dbg_char('\n');
+			min_last_written_ADC_pos = 0;
+		}
+		
+
+
 		// Start writing from chache to spk_buffer
 		// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
 		//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Start copying cache to spk_buffer_X
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {								// Only start copying when there is something to legally copy
-			
-			print_dbg_char('!');
 						
 			i = 0;
 			while (i < si_index_low) { // before skip/insert
 				// Fetch from cache
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
-				
-				
-				if (abs(cache_L[i]) < min_last_written_ADC_pos) {
-					min_last_written_ADC_pos = abs(cache_L[i]);
-				}
-				if (abs(cache_L[i]) > max_last_written_ADC_pos) {
-					max_last_written_ADC_pos = abs(cache_L[i]);
-				}
-
-				
-				
 
 				if (DAC_buf_OUT == 0) {
 					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]  

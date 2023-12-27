@@ -1091,12 +1091,22 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			print_dbg_char('-');
 		}
 		
+		if (max_last_written_ADC_pos == 0x10101010) {
+			print_dbg_char('\n');
+			print_dbg_char('c');
+			print_dbg_hex((S32)num_samples);
+			print_dbg_char('\n');
+			max_last_written_ADC_pos = 0;
+		}
+		
+		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
 		prev_captured_num_remaining = local_captured_num_remaining;
 		prev_last_written_ADC_pos = last_written_ADC_pos;
 		prev_last_written_ADC_buf = last_written_ADC_buf; 
-	}
+	} // if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
+
 
 	// End new code for timer/counter indicated packet processing
 

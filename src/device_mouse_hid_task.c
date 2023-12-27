@@ -321,6 +321,11 @@ void device_mouse_hid_task(void)
 
 			// Debug spdif packet through timer/counter
 			else if (a == 'q') {							// Lowercase 'q'
+				
+				min_last_written_ADC_pos = 0x10101010;
+				max_last_written_ADC_pos = 0x10101010;
+
+/*				
 				print_dbg_char('\n');
 				print_dbg_hex(min_last_written_ADC_pos);
 				print_dbg_char('\n');
@@ -330,6 +335,7 @@ void device_mouse_hid_task(void)
 				// Reset after readout
 				min_last_written_ADC_pos = 0x7FFFFFFF;
 				max_last_written_ADC_pos = 0x00000000;
+*/				
 			}
 
 			// Detect sample rate of I2S in
