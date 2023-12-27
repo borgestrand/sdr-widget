@@ -1116,14 +1116,14 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		
 
 
-		// Temporary logging output
+/* Logging
 		if (last_written_ADC_pos < min_last_written_ADC_pos) {
-			min_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x0000000 in initial test
+			min_last_written_ADC_pos = last_written_ADC_pos;
 		}
 		if (last_written_ADC_pos > max_last_written_ADC_pos) {
-			max_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x000017E in initial test - as expected
+			max_last_written_ADC_pos = last_written_ADC_pos;
 		}
-
+end logging */ 
 
 
 // End of new code
@@ -1234,6 +1234,16 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					sample_L = audio_buffer_1[i];
 					sample_R = audio_buffer_1[i + 1];
 				}
+				
+
+// Sample value logging				
+				if (abs(sample_L) < min_last_written_ADC_pos) {
+					min_last_written_ADC_pos = abs(sample_L);
+				}
+				if (abs(sample_L) > max_last_written_ADC_pos) {
+					max_last_written_ADC_pos = abs(sample_L);
+				}
+				
 
 				if (dac_must_clear == DAC_READY) {
 					if (DAC_buf_OUT == 0) {

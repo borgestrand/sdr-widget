@@ -745,8 +745,8 @@ void uac2_device_audio_task(void *pvParameters)
 							// Applying volume control to stored sample
 							#ifdef FEATURE_VOLUME_CTRL
 							if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
-								sample_L = 0;
-								sample_R = 0;
+								prev_sample_L = 0;
+								prev_sample_R = 0;
 							}
 							else {
 								if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
@@ -764,6 +764,16 @@ void uac2_device_audio_task(void *pvParameters)
 								}
 							}
 							#endif
+							
+							
+							// Sample value logging
+							if (abs(prev_sample_L) < min_last_written_ADC_pos) {
+								min_last_written_ADC_pos = abs(prev_sample_L);
+							}
+							if (abs(prev_sample_L) > max_last_written_ADC_pos) {
+								max_last_written_ADC_pos = abs(prev_sample_L);
+							}
+							
 
 							// It is time consuming to test for each stereo sample!
 							if (input_select == MOBO_SRC_UAC2) {					// Only write to cache with the right permissions! Double check permission and num_samples
@@ -808,8 +818,8 @@ void uac2_device_audio_task(void *pvParameters)
 								// Applying volume control to stored sample
 								#ifdef FEATURE_VOLUME_CTRL
 								if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
-									sample_L = 0;
-									sample_R = 0;
+									prev_sample_L = 0;
+									prev_sample_R = 0;
 								}
 								else {
 									if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
@@ -827,6 +837,17 @@ void uac2_device_audio_task(void *pvParameters)
 									}
 								}
 								#endif
+								
+								
+								// Sample value logging
+								if (abs(prev_sample_L) < min_last_written_ADC_pos) {
+									min_last_written_ADC_pos = abs(prev_sample_L);
+								}
+								if (abs(prev_sample_L) > max_last_written_ADC_pos) {
+									max_last_written_ADC_pos = abs(prev_sample_L);
+								}
+							
+								
 								
 								// It is time consuming to test for each stereo sample!
 								if (input_select == MOBO_SRC_UAC2) {					// Only write to cache with the right permissions! Double check permission and num_samples
