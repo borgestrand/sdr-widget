@@ -1039,7 +1039,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			}
 			
 			// Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
-			non_silence_det = non_silence_det || (abs(sample_temp) > IS_SILENT) || (abs(sample_temp) > IS_SILENT);
+			non_silence_det = ( non_silence_det || (abs(sample_temp) > IS_SILENT) || (abs(sample_temp) > IS_SILENT) );
 
 			// It is time consuming to test for each stereo sample!
 			if (we_own_cache) {					// Only write to cache with the right permissions! And only bother with enerby math if it's considered by calling function
@@ -1071,10 +1071,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		} // while (i != last_written_ADC_pos) 
 		
 		if (non_silence_det) {
-			spdif_rx_status.silent = 0;
+			print_dbg_char('l');
+			spdif_rx_status.silent = 1;
 		}
 		else {
-			spdif_rx_status.silent = 1;
+			print_dbg_char('o');
+			spdif_rx_status.silent = 0;
 		}
 		
 		

@@ -154,7 +154,8 @@ void wm8804_task(void *pvParameters) {
 				mustgive = 0;									// Not ready to give up playing audio just yet
 						
 				// Poll two silence detectors, WM8804 and buffer transfer code
-				if ( (spdif_rx_status.silent == 1) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
+//				if ( (spdif_rx_status.silent == 1) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {
+				if (spdif_rx_status.silent == 1) {
 					if (silence_counter >= WM8804_SILENCE_PLAYING) {	// Source is paused, moving on
 //						print_dbg_char('m');
 						scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
