@@ -993,7 +993,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		local_captured_num_remaining = timer_captured_num_remaining;
 	}
 	
-	
 
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate time to process spdif data, ideally once per 250us
@@ -1014,9 +1013,9 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			*num_samples = 0;				// Used to validate cache with non-zero length
 		}
 		
-		we_own_cache = FALSE; // Hard overwrite - we're not ready to write to cache just yet
+//		we_own_cache = FALSE; // Hard overwrite - we're not ready to write to cache just yet
 		
-		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection
+		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
 		i = prev_last_written_ADC_pos;
 		U32 cachepointer = 0;								
 		
@@ -1083,7 +1082,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
 		prev_captured_num_remaining = local_captured_num_remaining;
 		prev_last_written_ADC_pos = last_written_ADC_pos;
-		prev_last_written_ADC_buf = last_written_ADC_buf;
+		prev_last_written_ADC_buf = last_written_ADC_buf; 
 	}
 
 	// End new code for timer/counter indicated packet processing
@@ -1140,6 +1139,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		spdif_rx_status.silent = 1;
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;			// Respond as soon as .reliable is set
 	}
+
+
+/*
+
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
 	// If so, check it for silence. If selected as source, copy all of producer's data
@@ -1235,9 +1238,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 				
 
-		} // ADC_buf_DMA_write toggle
+		} // input select
 		
-	} // input select
+	} // ADC_buf_DMA_write toggle
+	
+*/	
 
 } // mobo_handle_spdif(void)
 
