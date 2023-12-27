@@ -1074,6 +1074,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			spdif_rx_status.silent = 0;
 		}
 		else {
+			print_dbg_char('S');
 			spdif_rx_status.silent = 1;
 		}
 		
