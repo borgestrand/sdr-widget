@@ -946,6 +946,8 @@ void mobo_ADC_position(U32 *last_pos, int *last_buf, U32 num_remaining, int buf)
 
 // Handle spdif and toslink input
 void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *cache_L, S32 *cache_R, S32 *num_samples, Bool *cache_holds_silence) {
+	
+	
 // Overwritten parameters, rewrite without '*' if handled inline instead of as function call
 	static int prev_ADC_buf_DMA_write = INIT_ADC_I2S;
 	int local_ADC_buf_DMA_write = 0;
@@ -1068,7 +1070,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					cache_L[cachepointer] = prev_sample_L;	// May reuse *numsamples
 					cache_R[cachepointer] = prev_sample_R;
 					cachepointer++;
-					*num_samples ++;
+					(*num_samples)++;
 				}
 			} // End input_select == MOBO_SRC_UAC2
 								
