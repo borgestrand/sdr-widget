@@ -1234,16 +1234,6 @@ end logging */
 					sample_L = audio_buffer_1[i];
 					sample_R = audio_buffer_1[i + 1];
 				}
-				
-
-// Sample value logging				
-				if (abs(sample_L) < min_last_written_ADC_pos) {
-					min_last_written_ADC_pos = abs(sample_L);
-				}
-				if (abs(sample_L) > max_last_written_ADC_pos) {
-					max_last_written_ADC_pos = abs(sample_L);
-				}
-				
 
 				if (dac_must_clear == DAC_READY) {
 					if (DAC_buf_OUT == 0) {

@@ -765,16 +765,6 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 							#endif
 							
-							
-							// Sample value logging
-							if (abs(prev_sample_L) < min_last_written_ADC_pos) {
-								min_last_written_ADC_pos = abs(prev_sample_L);
-							}
-							if (abs(prev_sample_L) > max_last_written_ADC_pos) {
-								max_last_written_ADC_pos = abs(prev_sample_L);
-							}
-							
-
 							// It is time consuming to test for each stereo sample!
 							if (input_select == MOBO_SRC_UAC2) {					// Only write to cache with the right permissions! Double check permission and num_samples
 								cache_L[i] = prev_sample_L; 
@@ -837,17 +827,6 @@ void uac2_device_audio_task(void *pvParameters)
 									}
 								}
 								#endif
-								
-								
-								// Sample value logging
-								if (abs(prev_sample_L) < min_last_written_ADC_pos) {
-									min_last_written_ADC_pos = abs(prev_sample_L);
-								}
-								if (abs(prev_sample_L) > max_last_written_ADC_pos) {
-									max_last_written_ADC_pos = abs(prev_sample_L);
-								}
-							
-								
 								
 								// It is time consuming to test for each stereo sample!
 								if (input_select == MOBO_SRC_UAC2) {					// Only write to cache with the right permissions! Double check permission and num_samples
