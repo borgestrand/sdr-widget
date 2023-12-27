@@ -228,7 +228,7 @@ void wm8804_task(void *pvParameters) {
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 						silence_counter = 0;					// For good measure, pause not yet detected
-//						print_dbg_char(60); // '<'
+						print_dbg_char(']');
 						
 						// Report to cpu and debug terminal
 						print_cpu_char(CPU_CHAR_IDLE);
@@ -274,7 +274,7 @@ void wm8804_task(void *pvParameters) {
 							spdif_rx_status.channel = channel;
 							spdif_rx_status.frequency = freq;
 							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
-//							print_dbg_char('[');
+							print_dbg_char('[');
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 
 

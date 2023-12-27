@@ -858,7 +858,7 @@ void uac2_device_audio_task(void *pvParameters)
 							#ifdef USB_STATE_MACHINE_DEBUG
 //								print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
-//									print_dbg_char('[');
+									print_dbg_char('[');
 									input_select = MOBO_SRC_UAC2;
 									playerStarted = TRUE;						// Is it better off here?
 
@@ -879,7 +879,6 @@ void uac2_device_audio_task(void *pvParameters)
 									#endif
 								}													// Hopefully, this code won't be called repeatedly. Would there be time??
 								else {
-//									print_dbg_char(']');
 								}
 							#else // not debug
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
@@ -953,7 +952,7 @@ void uac2_device_audio_task(void *pvParameters)
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 									mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-//									print_dbg_char(60); // '<'
+									print_dbg_char(']');
 
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
@@ -966,7 +965,6 @@ void uac2_device_audio_task(void *pvParameters)
 									#endif
 								}
 								else {
-									print_dbg_char(62); // '>'
 								}
 							#else
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -1170,7 +1168,7 @@ void uac2_device_audio_task(void *pvParameters)
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 								mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 								input_select = MOBO_SRC_NONE;
-//								print_dbg_char(60); // '<'
+								print_dbg_char(']');
 
 								// Report to cpu and debug terminal
 								print_cpu_char(CPU_CHAR_IDLE);
@@ -1183,7 +1181,6 @@ void uac2_device_audio_task(void *pvParameters)
 								#endif
 							}
 							else {
-//								print_dbg_char(62); // '>'
 							}
 						#else
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
@@ -1241,7 +1238,7 @@ void uac2_device_audio_task(void *pvParameters)
 //				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-//					print_dbg_char(60); // '<'
+					print_dbg_char(']');
 
 					// Report to cpu and debug terminal
 					print_cpu_char(CPU_CHAR_IDLE);
@@ -1254,7 +1251,6 @@ void uac2_device_audio_task(void *pvParameters)
 					#endif
 				}
 				else {
-//					print_dbg_char(62); // '>'
 				}
 				#else
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
