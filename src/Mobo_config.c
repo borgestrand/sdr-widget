@@ -1068,7 +1068,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			prev_sample_R = sample_R;
 			prev_diff_value = diff_value;
 
-		} // while (i != last_written_ADC_pos)
+		} // while (i != last_written_ADC_pos) 
 		
 		
 /*		
