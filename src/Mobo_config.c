@@ -994,6 +994,14 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	}
 	
 
+	// Reused test based on .reliable from old code below. What is its purpose?
+	// NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
+
+//	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
+//		spdif_rx_status.silent = 1;
+//	}
+//	else 
+	
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate time to process spdif data, ideally once per 250us
 
@@ -1133,7 +1141,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 		// Establish history
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
-	} // end ADC_buffer_DMA_write has changed
+	} // end INIT_ADC_I2S
+
+
+
 
 // NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
 
@@ -1141,12 +1152,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		spdif_rx_status.silent = 1;
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;			// Respond as soon as .reliable is set
 	}
-
-
-
-
-
-
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
 	// If so, check it for silence. If selected as source, copy all of producer's data
