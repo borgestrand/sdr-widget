@@ -1004,7 +1004,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //	}
 //	else 
 
-#define NUM_ADDRESSES 10
+#define NUM_ADDRESSES 30
 U32 addresses[NUM_ADDRESSES];
 int addresses_logger = 0;
 	
@@ -1046,9 +1046,8 @@ int addresses_logger = 0;
 			}
 			
 			
-			addresses[addresses_logger++] = i + (bufpointer << 16);
-			if (addresses_logger >= NUM_ADDRESSES) {
-				addresses_logger = 0;
+			if (addresses_logger < NUM_ADDRESSES) {
+				addresses[addresses_logger++] = i + (bufpointer << 16);
 			}
 				
 			i+=2; // counts up to last_written_ADC_buf
@@ -1111,6 +1110,7 @@ int addresses_logger = 0;
 				print_dbg_hex(addresses[addresses_logger++]);
 				print_dbg_char('\n');
 			}
+			addresses_logger = 0;
 			
 			max_last_written_ADC_pos = 0;
 		}
