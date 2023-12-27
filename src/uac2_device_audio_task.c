@@ -1277,6 +1277,17 @@ void uac2_device_audio_task(void *pvParameters)
 				// Fetch from cache
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
+				
+				
+				if (abs(cache_L[i]) < min_last_written_ADC_pos) {
+					min_last_written_ADC_pos = abs(cache_L[i]);
+				}
+				if (abs(cache_L[i]) > max_last_written_ADC_pos) {
+					max_last_written_ADC_pos = abs(cache_L[i]);
+				}
+
+				
+				
 
 				if (DAC_buf_OUT == 0) {
 					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]  
@@ -1395,6 +1406,15 @@ void uac2_device_audio_task(void *pvParameters)
 				// Fetch from cache
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
+
+				
+				if (abs(cache_L[i]) < min_last_written_ADC_pos) {
+					min_last_written_ADC_pos = abs(cache_L[i]);
+				}
+				if (abs(cache_L[i]) > max_last_written_ADC_pos) {
+					max_last_written_ADC_pos = abs(cache_L[i]);
+				}
+
 
 				if (DAC_buf_OUT == 0) {
 					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
