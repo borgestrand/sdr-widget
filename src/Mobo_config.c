@@ -1013,7 +1013,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			*num_samples = 0;				// Used to validate cache with non-zero length
 		}
 		
-//		we_own_cache = FALSE; // Hard overwrite - we're not ready to write to cache just yet
+		we_own_cache = FALSE; // Hard overwrite - we're not ready to write to cache just yet
 		
 		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
 		i = prev_last_written_ADC_pos;
@@ -1141,7 +1141,9 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	}
 
 
-/*
+
+
+
 
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
@@ -1242,7 +1244,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		
 	} // ADC_buf_DMA_write toggle
 	
-*/	
+
+
+
+
+	
 
 } // mobo_handle_spdif(void)
 
