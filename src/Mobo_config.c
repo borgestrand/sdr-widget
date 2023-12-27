@@ -1012,75 +1012,75 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			*si_index_low = 0;				// Location of "lowest energy", reset for each iteration
 			*si_score_high = 0;				// Lowest positive number, reset for each iteration
 			*si_index_high = 0;				// Location of "highest energy", reset for each iteration
+			*num_samples = 0;				// Used to validate cache with non-zero length
 		}
 		
-		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
+		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection
 		i = prev_last_written_ADC_pos;
+		U32 cachepointer = 0;								
 		
-/* gotta test before we start rewriting and elaborating on this!		
-// Begin legacy copy code
-
-			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
-				// Fill endpoint with sample raw
-				if (local_ADC_buf_DMA_write == 0) {		// 0 Seems better than 1, but non-conclusive
-					sample_L = audio_buffer_0[i];
-					sample_R = audio_buffer_0[i + 1];
-				}
-				else if (local_ADC_buf_DMA_write == 1) {
-					sample_L = audio_buffer_1[i];
-					sample_R = audio_buffer_1[i + 1];
-				}
-
-				if (dac_must_clear == DAC_READY) {
-					if (DAC_buf_OUT == 0) {
-						spk_buffer_0[spk_index] = sample_L;
-						spk_buffer_0[spk_index + 1] = sample_R;
-					}
-					else if (DAC_buf_OUT == 1) {
-						spk_buffer_1[spk_index] = sample_L;
-						spk_buffer_1[spk_index + 1] = sample_R;
-					}
-				}
-
-				spk_index += 2;
-				if (spk_index >= DAC_BUFFER_SIZE) {
-					spk_index -= DAC_BUFFER_SIZE;
-					DAC_buf_OUT = 1 - DAC_buf_OUT;
-				}
-
-			} // for ADC_BUFFER_SIZE
-
-
-// End legacy copy code		
-		
-		
-		
-		while ( (i != last_written_ADC_pos) {
-			
-			
-		}
-		
-		
-		if (we_own_cache) {
-			// Report the number of stereo samples just written to the cache
-			if (last_written_ADC_pos >= prev_last_written_ADC_pos) {
-				*num_samples = last_written_ADC_pos - prev_last_written_ADC_pos;
+/*
+		while (i != last_written_ADC_pos) {
+			// Fill endpoint with sample raw
+			if (bufpointer == 0) {					// 0 Seems better than 1, but non-conclusive
+				sample_L = audio_buffer_0[i];
+				sample_R = audio_buffer_0[i + 1];
 			}
-			else {
-				*num_samples = last_written_ADC_pos - prev_last_written_ADC_pos + ADC_BUFFER_SIZE;
+			else if (bufpointer == 1) {
+				sample_L = audio_buffer_1[i];
+				sample_R = audio_buffer_1[i + 1];
 			}
-		}
-Retest silence detector with proper static use of prev_ variables		
-*/		
+				
+			i+=2; // counts up to last_written_ADC_buf
+			if (i >= ADC_BUFFER_SIZE) {
+				i = 0;							// Start from beginning of next buffer
+				bufpointer = 1 - bufpointer;	// Toggle buffers
+			}
+		
+			// æææ add a zero tester here!
+
+			// Finding packet's point of lowest and highest "energy"
+			diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
+			diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
+								
+			if (diff_sum < si_score_low) {
+				si_score_low = diff_sum;
+				si_index_low = i;
+			}
+								
+			if (diff_sum > si_score_high) {
+				si_score_high = diff_sum;
+				si_index_high = i;
+			}
+								
+			// It is time consuming to test for each stereo sample!
+			if (we_own_cache) {					// Only write to cache with the right permissions! Double check permission and num_samples
+				*num_samples ++;
+				cache_L[cachepointer] = prev_sample_L;	// May reuse *numsamples
+				cache_R[cachepointer] = prev_sample_R;
+				cachepointer++;
+			} // End input_select == MOBO_SRC_UAC2
+								
+			// Establish history
+			prev_sample_L = sample_L;
+			prev_sample_R = sample_R;
+			prev_diff_value = diff_value;
+
+		} // while (i != last_written_ADC_pos)
+*/
+		
+		
 		
 		// New site for silence / DC detector 2.1
 		// Minor issue: packets are short. We should perhaps collect more of them
 		while ( (i != last_written_ADC_pos) && (i != ADC_BUFFER_SIZE + 10) ) {		// The first sample to not consider for zero detection // termination test
 			if (bufpointer == 0) {	// End as soon as a difference is spotted
-				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
+//				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
+				sample_temp = audio_buffer_0[i];
 			}
 			else if (bufpointer == 1) {
-				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+//				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
+				sample_temp = audio_buffer_1[i];
 			}
 
 			i++; // counts up to last_written_ADC_buf
@@ -1088,9 +1088,10 @@ Retest silence detector with proper static use of prev_ variables
 				i = 0;							// Start from beginning of next buffer
 				bufpointer = 1 - bufpointer;	// Toggle buffers
 			}
-
+			
+			if ( abs(sample_temp) > IS_SILENT ) {	// New definition of what is none-silence
 			// Terminate this loop at first "non-zero" sample, this messes up the use of i as an index into audio_buffer_? !!
-			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
+//			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
 				i = ADC_BUFFER_SIZE + 10;
 			}
 		}
