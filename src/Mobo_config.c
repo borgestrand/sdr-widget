@@ -1087,6 +1087,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			spdif_rx_status.silent = 1;
 		}
 		
+		if (*num_samples > 0) {
+			print_dbg_char('-');
+		}
+		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
 		prev_captured_num_remaining = local_captured_num_remaining;
