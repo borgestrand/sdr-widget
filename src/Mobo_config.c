@@ -1004,8 +1004,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
 
 		bool we_own_cache = FALSE;			// Cached if-test result
-		bool silence_det_L = FALSE;			// We're looking for non-zero or non-static audio data.. Not sure exactly how this works.....
-		bool silence_det_R = FALSE;			// We're looking for non-zero or non-static audio data..
+		bool silence_det = FALSE;			// We're looking for first non-zero audio-data
 		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 			we_own_cache = TRUE;
 			si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
@@ -1015,11 +1014,13 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			*num_samples = 0;				// Used to validate cache with non-zero length
 		}
 		
+		we_own_cache = FALSE; // Hard overwrite - we're not ready to write to cache just yet
+		
 		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection
 		i = prev_last_written_ADC_pos;
 		U32 cachepointer = 0;								
 		
-/*
+
 		while (i != last_written_ADC_pos) {
 			// Fill endpoint with sample raw
 			if (bufpointer == 0) {					// 0 Seems better than 1, but non-conclusive
@@ -1036,25 +1037,26 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				i = 0;							// Start from beginning of next buffer
 				bufpointer = 1 - bufpointer;	// Toggle buffers
 			}
-		
-			// æææ add a zero tester here!
+			
+			// Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
+			silence_det = silence_det || (abs(sample_temp) > IS_SILENT) || (abs(sample_temp) > IS_SILENT);
 
-			// Finding packet's point of lowest and highest "energy"
-			diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
-			diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
-								
-			if (diff_sum < si_score_low) {
-				si_score_low = diff_sum;
-				si_index_low = i;
-			}
-								
-			if (diff_sum > si_score_high) {
-				si_score_high = diff_sum;
-				si_index_high = i;
-			}
-								
 			// It is time consuming to test for each stereo sample!
-			if (we_own_cache) {					// Only write to cache with the right permissions! Double check permission and num_samples
+			if (we_own_cache) {					// Only write to cache with the right permissions! And only bother with enerby math if it's considered by calling function
+				// Finding packet's point of lowest and highest "energy"
+				diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
+				diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
+								
+				if (diff_sum < si_score_low) {
+					si_score_low = diff_sum;
+					si_index_low = i;
+				}
+								
+				if (diff_sum > si_score_high) {
+					si_score_high = diff_sum;
+					si_index_high = i;
+				}
+								
 				*num_samples ++;
 				cache_L[cachepointer] = prev_sample_L;	// May reuse *numsamples
 				cache_R[cachepointer] = prev_sample_R;
@@ -1067,19 +1069,16 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			prev_diff_value = diff_value;
 
 		} // while (i != last_written_ADC_pos)
-*/
 		
 		
-		
+/*		
 		// New site for silence / DC detector 2.1
 		// Minor issue: packets are short. We should perhaps collect more of them
 		while ( (i != last_written_ADC_pos) && (i != ADC_BUFFER_SIZE + 10) ) {		// The first sample to not consider for zero detection // termination test
 			if (bufpointer == 0) {	// End as soon as a difference is spotted
-//				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
 				sample_temp = audio_buffer_0[i];
 			}
 			else if (bufpointer == 1) {
-//				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
 				sample_temp = audio_buffer_1[i];
 			}
 
@@ -1090,8 +1089,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			}
 			
 			if ( abs(sample_temp) > IS_SILENT ) {	// New definition of what is none-silence
-			// Terminate this loop at first "non-zero" sample, this messes up the use of i as an index into audio_buffer_? !!
-//			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
 				i = ADC_BUFFER_SIZE + 10;
 			}
 		}
@@ -1103,7 +1100,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			spdif_rx_status.silent = 1;
 		}
 		// End of silence detector 2.1
-
+*/
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
