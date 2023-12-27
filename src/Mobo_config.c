@@ -1096,7 +1096,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		if (max_last_written_ADC_pos == 0x10101010) {
 			print_dbg_char('\n');
 			print_dbg_char('c');
-			print_dbg_hex((S32)num_samples);
+			print_dbg_hex((S32)num_samples); 
 			print_dbg_char('\n');
 			max_last_written_ADC_pos = 0;
 		}
