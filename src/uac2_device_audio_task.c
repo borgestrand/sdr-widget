@@ -153,7 +153,7 @@ void uac2_device_audio_task(void *pvParameters)
 	S32 gap = 0;
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
-		U16 num_samples_adc = 0;
+		S32 num_samples_adc = 0;
 		U8 counter_44k = 0;
 		U8 limit_44k = 11;	// Default setting for 44.1 rounding off into average packet length
 	#endif
@@ -917,8 +917,6 @@ void uac2_device_audio_task(void *pvParameters)
 					
 					// End of writing USB OUT data to cache. Writing takes place at the end of this function
 
-					
-					
 
 					// Detect USB silence. We're counting USB packets. UAC2: 250us, UAC1: 1ms
 					if (silence_det == 1) {

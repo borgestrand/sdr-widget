@@ -924,7 +924,7 @@ uint32_t mobo_wait_LRCK_TX_asm(void) {
 
 #ifdef HW_GEN_RXMOD
 
-// Convert from pdca report to buffer address
+// Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair!
 void mobo_ADC_position(U32 *last_pos, int *last_buf, U32 num_remaining, int buf) {
 	*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
 	// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
@@ -976,38 +976,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	static U32 prev_captured_num_remaining = 0;
 	U32 last_written_ADC_pos = 0;
 	int last_written_ADC_buf = 0;
-	U32 prev_last_written_ADC_pos = 0;
-	int prev_last_written_ADC_buf = 0;
+	static U32 prev_last_written_ADC_pos = 0;
+	static int prev_last_written_ADC_buf = 0;
 
-/*
-// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right. These definitions are written out of the code
-// Didn't we hard-code this for use with caching in UAC2 code?
-#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
-	#define IN_LEFT 0
-	#define IN_RIGHT 1
-	#define OUT_LEFT 0
-	#define OUT_RIGHT 1
-#else
-	const U8 IN_LEFT = FEATURE_IN_NORMAL ? 0 : 1;
-	const U8 IN_RIGHT = FEATURE_IN_NORMAL ? 1 : 0;
-	const U8 OUT_LEFT = FEATURE_OUT_NORMAL ? 0 : 1;
-	const U8 OUT_RIGHT = FEATURE_OUT_NORMAL ? 1 : 0;
-#endif
-*/
 
 	// Begin new code for timer/counter indicated packet processing
-
-
-/* ææææ initialize, but only when we own the output!
-*si_index_low = 0;
-*si_score_high = 0;
-*si_index_high = 0;
-*num_samples = 0; // A non-zero value means cache contains data to be written to I2S output
-*cache_holds_silence = FALSE; // Exported silence detect
-*/
-
-
-
 
 	// Does spdif timer interrupt indicate that we should process 250-ish µs of incoming SPDIF data?
 	
@@ -1019,29 +992,89 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
 		local_captured_num_remaining = timer_captured_num_remaining;
 	}
+	
+	
 
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate time to process spdif data, ideally once per 250us
 
-		// Convert from pdca report to buffer address
+		// Start processing a 250µs chunk of the ADC pdca buffer
+
+		// Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair!
 		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
 
-/* Temporarily repurposed to sniff on playback init in spdif land		
-		if (last_written_ADC_pos < min_last_written_ADC_pos) {
-			min_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x0000000 in initial test
+		bool we_own_cache = FALSE;			// Cached if-test result
+		bool silence_det_L = FALSE;			// We're looking for non-zero or non-static audio data.. Not sure exactly how this works.....
+		bool silence_det_R = FALSE;			// We're looking for non-zero or non-static audio data..
+		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+			we_own_cache = TRUE;
+			si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
+			*si_index_low = 0;				// Location of "lowest energy", reset for each iteration
+			*si_score_high = 0;				// Lowest positive number, reset for each iteration
+			*si_index_high = 0;				// Location of "highest energy", reset for each iteration
 		}
-		if (last_written_ADC_pos > max_last_written_ADC_pos) {
-			max_last_written_ADC_pos = last_written_ADC_pos; // Logged as 0x000017E in initial test - as expected
-		}
-*/ 
-
-
-
-		// New site for silence / DC detector 2.1
-		// Minor issue: packets are short. We should perhaps collect more of them
+		
 		int bufpointer = prev_last_written_ADC_buf;				// The first sample to consider for zero detection
 		i = prev_last_written_ADC_pos;
 		
+/* gotta test before we start rewriting and elaborating on this!		
+// Begin legacy copy code
+
+			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
+				// Fill endpoint with sample raw
+				if (local_ADC_buf_DMA_write == 0) {		// 0 Seems better than 1, but non-conclusive
+					sample_L = audio_buffer_0[i];
+					sample_R = audio_buffer_0[i + 1];
+				}
+				else if (local_ADC_buf_DMA_write == 1) {
+					sample_L = audio_buffer_1[i];
+					sample_R = audio_buffer_1[i + 1];
+				}
+
+				if (dac_must_clear == DAC_READY) {
+					if (DAC_buf_OUT == 0) {
+						spk_buffer_0[spk_index] = sample_L;
+						spk_buffer_0[spk_index + 1] = sample_R;
+					}
+					else if (DAC_buf_OUT == 1) {
+						spk_buffer_1[spk_index] = sample_L;
+						spk_buffer_1[spk_index + 1] = sample_R;
+					}
+				}
+
+				spk_index += 2;
+				if (spk_index >= DAC_BUFFER_SIZE) {
+					spk_index -= DAC_BUFFER_SIZE;
+					DAC_buf_OUT = 1 - DAC_buf_OUT;
+				}
+
+			} // for ADC_BUFFER_SIZE
+
+
+// End legacy copy code		
+		
+		
+		
+		while ( (i != last_written_ADC_pos) {
+			
+			
+		}
+		
+		
+		if (we_own_cache) {
+			// Report the number of stereo samples just written to the cache
+			if (last_written_ADC_pos >= prev_last_written_ADC_pos) {
+				*num_samples = last_written_ADC_pos - prev_last_written_ADC_pos;
+			}
+			else {
+				*num_samples = last_written_ADC_pos - prev_last_written_ADC_pos + ADC_BUFFER_SIZE;
+			}
+		}
+Retest silence detector with proper static use of prev_ variables		
+*/		
+		
+		// New site for silence / DC detector 2.1
+		// Minor issue: packets are short. We should perhaps collect more of them
 		while ( (i != last_written_ADC_pos) && (i != ADC_BUFFER_SIZE + 10) ) {		// The first sample to not consider for zero detection // termination test
 			if (bufpointer == 0) {	// End as soon as a difference is spotted
 				sample_temp = audio_buffer_0[i] & 0x00FFFF00;	// What is the logic behind this ANDing?
@@ -1092,9 +1125,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 // Start of new code
 
-// which variables to capture from pdca? Let's start with the same as timer captures, and then clear the history
-
-// NBNBNB FIX æææ Remember to reset where the cache will write to when spdif playback through cache starts up. The same goes for gap calculation. Both will take place in uac2_dat
 
 		// What is a valid starting point for ADC buffer readout? wm8804 code supposedly just started the pdca for us to be here
 		local_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
@@ -1106,6 +1136,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		}
 
 		// Convert from pdca report to buffer address - initiate the present versions of these variables based on the most updated cached readout of ADC pdca status
+		// _pos always points to left sample in LR stereo pair!
 		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
 		
 		// Clear the history
@@ -1115,15 +1146,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		prev_last_written_ADC_buf = last_written_ADC_buf;
 		
 
-
-/* Logging
-		if (last_written_ADC_pos < min_last_written_ADC_pos) {
-			min_last_written_ADC_pos = last_written_ADC_pos;
-		}
-		if (last_written_ADC_pos > max_last_written_ADC_pos) {
-			max_last_written_ADC_pos = last_written_ADC_pos;
-		}
-end logging */ 
 
 
 // End of new code
@@ -1152,31 +1174,6 @@ end logging */
 		// Establish history
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
 
-
-/* Old site for silence detector 2.0
-		// Silence / DC detector 2.0
-		for (i=0 ; i < ADC_BUFFER_SIZE ; i++) {
-			if (local_ADC_buf_DMA_write == 0)	// End as soon as a difference is spotted
-				sample_temp = audio_buffer_0[i] & 0x00FFFF00;
-			else if (local_ADC_buf_DMA_write == 1)
-				sample_temp = audio_buffer_1[i] & 0x00FFFF00;
-
-			// Terminate this loop at first "non-zero" sample
-			if ( (sample_temp != 0x00000000) && (sample_temp != 0x00FFFF00) ) { // "zero" according to tested sources
-				i = ADC_BUFFER_SIZE + 10;
-			}
-		}
-
-		if (i >= ADC_BUFFER_SIZE + 10) {		// Non-silence was detected
-			spdif_rx_status.silent = 0;
-		}
-		else {									// Silence was detected, update flag to SPDIF RX code
-			spdif_rx_status.silent = 1;
-		}
-		
- End old site for silence detector */
-
-
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 
 			// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
@@ -1200,7 +1197,6 @@ end logging */
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
 				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
 			}
-
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
 			if (local_ADC_buf_DMA_write == 1)
