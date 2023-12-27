@@ -1067,7 +1067,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				}
 								
 				if (cachepointer < SPK_CACHE_MAX_SAMPLES) {
-					cache_L[cachepointer] = prev_sample_L;	// May reuse *numsamples
+					cache_L[cachepointer] = prev_sample_L;	// May reuse (*numsamples)
 					cache_R[cachepointer] = prev_sample_R;
 					cachepointer++;
 					(*num_samples)++;
@@ -1089,8 +1089,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			spdif_rx_status.silent = 1;
 		}
 		
-		if (*num_samples > 0) {
-			print_dbg_char('-');
+		if ((*num_samples) > 0) {
+//			print_dbg_char('-');
 		}
 		
 		if (max_last_written_ADC_pos == 0x10101010) {

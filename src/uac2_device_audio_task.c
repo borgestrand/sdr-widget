@@ -1281,6 +1281,8 @@ void uac2_device_audio_task(void *pvParameters)
 		//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Start copying cache to spk_buffer_X
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {								// Only start copying when there is something to legally copy
+			
+//			print_dbg_char('!');
 						
 			i = 0;
 			while (i < si_index_low) { // before skip/insert
