@@ -1071,11 +1071,9 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		} // while (i != last_written_ADC_pos) 
 		
 		if (non_silence_det) {
-			print_dbg_char('o');
 			spdif_rx_status.silent = 0;
 		}
 		else {
-			print_dbg_char('l');
 			spdif_rx_status.silent = 1;
 		}
 		
