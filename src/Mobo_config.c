@@ -1017,15 +1017,15 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 			we_own_cache = TRUE;
 			si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
-			*si_index_low = 0;				// Location of "lowest energy", reset for each iteration
-			*si_score_high = 0;				// Lowest positive number, reset for each iteration
-			*si_index_high = 0;				// Location of "highest energy", reset for each iteration
-			*num_samples = 0;				// Used to validate cache with non-zero length
+			(*si_index_low) = 0;				// Location of "lowest energy", reset for each iteration
+			(*si_score_high) = 0;				// Lowest positive number, reset for each iteration
+			(*si_index_high) = 0;				// Location of "highest energy", reset for each iteration
+			(*num_samples) = 0;				// Used to validate cache with non-zero length
 		}
 		
 //		we_own_cache = FALSE; // Hard overwrite - we're not ready to write to cache just yet
 		
-		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
+		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
 		i = prev_last_written_ADC_pos;
 		U32 cachepointer = 0;								
 		
@@ -1059,12 +1059,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				if (cachepointer < SPK_CACHE_MAX_SAMPLES) {
 					if (diff_sum < si_score_low) {
 						si_score_low = diff_sum;
-						*si_index_low = cachepointer;
+						(*si_index_low) = cachepointer;
 					}
 								
-					if (diff_sum > *si_score_high) {
-						*si_score_high = diff_sum;
-						*si_index_high = cachepointer;
+					if (diff_sum > (*si_score_high)) {
+						(*si_score_high) = diff_sum;
+						(*si_index_high) = cachepointer;
 					}
 								
 					cache_L[cachepointer] = prev_sample_L;	// May reuse (*numsamples)
@@ -1096,8 +1096,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		if (max_last_written_ADC_pos == 0x10101010) {
 			print_dbg_char('\n');
 			print_dbg_char('c');
-			print_dbg_hex((S32)num_samples); 
-			print_dbg_char('\n');
+			print_dbg_char_hex( (*num_samples) ); 
 			max_last_written_ADC_pos = 0;
 		}
 		
