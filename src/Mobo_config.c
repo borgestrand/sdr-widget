@@ -1057,9 +1057,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				}
 								
 //				*num_samples ++;
-//				cache_L[cachepointer] = prev_sample_L;	// May reuse *numsamples
-//				cache_R[cachepointer] = prev_sample_R;
-//				cachepointer++;
+				if (cachepointer < SPK_CACHE_MAX_SAMPLES) {
+					cache_L[cachepointer] = prev_sample_L;	// May reuse *numsamples
+					cache_R[cachepointer] = prev_sample_R;
+					cachepointer++;
+				}
 			} // End input_select == MOBO_SRC_UAC2
 								
 			// Establish history
