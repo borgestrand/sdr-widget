@@ -215,7 +215,6 @@ void wm8804_task(void *pvParameters) {
 						
 				// Give away control?
 				if (mustgive) {
-					print_dbg_char('y');
 					wm8804_mute();
 					spdif_rx_status.muted = 1;
 					spdif_rx_status.reliable = 0;				// Critical for mobo_handle_spdif()
@@ -225,6 +224,7 @@ void wm8804_task(void *pvParameters) {
 //						Added to pdca disable code, keep it here for good measure
 						mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
 						
+						mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 						silence_counter = 0;					// For good measure, pause not yet detected
@@ -298,7 +298,6 @@ void wm8804_task(void *pvParameters) {
 							}
 							
 							// Enable audio, configure clocks (and report), but only if needed
-							print_dbg_char('x');
 							wm8804_unmute();					// No longer including LED change on this TAKE event
 							
 							spdif_rx_status.muted = 0;
@@ -730,12 +729,10 @@ uint8_t wm8804_clkdivnew(uint32_t freq) {
 	
 	
 	if ( (spdif_rx_status.pllmode != WM8804_PLL_192) && (freq == FREQ_192) ) {
-//		print_dbg_char('z');
 		return WM8804_CLK_PLLMISS;							// Mismatch between input freq and PLL configuration
 	}
 	
 	if ( (spdif_rx_status.pllmode != WM8804_PLL_NORMAL) && ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) ) ) {
-//		print_dbg_char('y');
 		return WM8804_CLK_PLLMISS;							// Mismatch between input freq and PLL configuration
 	}
 	
@@ -743,21 +740,18 @@ uint8_t wm8804_clkdivnew(uint32_t freq) {
 	if ( (freq == FREQ_44) || (freq == FREQ_48) ) {			// 44.1 or 48 from srd() AND... 
 		if ( (temp == 0x20) || (temp == 0x30) )	{			// 44.1, 48, or 32 from chip
 			wm8804_write_byte(0x07, 0x0C);					// 7:0 , 6:0, 5-4:MCLK=512fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
-//			print_dbg_char('x');
 			return WM8804_CLK_SUCCESS;
 		}
 	}
 	else if ( (freq == FREQ_88) || (freq == FREQ_96) ) {	// 88.2 or 96 from srd() AND...
 		if (temp == 0x10) {									// 88.2 or 96 from chip
 			wm8804_write_byte(0x07, 0x1C);					// 7:0 , 6:0, 5-4:MCLK=256fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
-//			print_dbg_char('y');
 			return WM8804_CLK_SUCCESS;
 		}
 	}
 	else if ( (freq == FREQ_176) || (freq == FREQ_192) ) {	// 176.4 or 192 from srd() AND...
 		if (temp == 0x00) {									// 192 from chip, NB: 176.4 not described in datasheet!
 			wm8804_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
-//			print_dbg_char('z');
 			return WM8804_CLK_SUCCESS;
 		}
 	}

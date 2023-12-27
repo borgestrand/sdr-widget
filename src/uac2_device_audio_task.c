@@ -267,7 +267,6 @@ void uac2_device_audio_task(void *pvParameters)
 					 (prev_input_select == MOBO_SRC_TOSLINK0) ||
 					 (prev_input_select == MOBO_SRC_TOSLINK1) ) {
 
-					print_dbg_char('h');
 					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
 					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
 				}
@@ -871,9 +870,7 @@ void uac2_device_audio_task(void *pvParameters)
 										print_cpu_char(CPU_CHAR_UAC2_C);		// USB audio Class 2 on front USB-C plug
 									}
 									
-									// æææææææ why aren't we calling mobo_xo_select about here?? Or use some other mechanism to report on sample rate
-									
-									print_dbg_char('j');
+									// Call it again here for good measure. The one at wm8804_mute() is probably sufficient
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 																				
 									mobo_led_select(spk_current_freq.frequency, input_select);
@@ -889,7 +886,7 @@ void uac2_device_audio_task(void *pvParameters)
 									input_select = MOBO_SRC_UAC2;
 									playerStarted = TRUE;						// Is it better off here?
 
-									print_dbg_char('j');
+									// Call it again here for good measure. The one at wm8804_mute() is probably sufficient
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 
 									mobo_led_select(spk_current_freq.frequency, input_select);
@@ -952,8 +949,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG
-//								print_dbg_char('k');					// Debug semaphore, lowercase letters for USB tasks
+//								print_dbg_char('k');						// Debug semaphore, lowercase letters for USB tasks
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+									mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 //									print_dbg_char(60); // '<'
 
@@ -972,6 +970,7 @@ void uac2_device_audio_task(void *pvParameters)
 								}
 							#else
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+									mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 								
 									#ifdef HW_GEN_RXMOD
@@ -1169,6 +1168,7 @@ void uac2_device_audio_task(void *pvParameters)
 						#ifdef USB_STATE_MACHINE_DEBUG
 //							print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+								mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 								input_select = MOBO_SRC_NONE;
 //								print_dbg_char(60); // '<'
 
@@ -1187,6 +1187,7 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 						#else
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+								mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 								input_select = MOBO_SRC_NONE;
 
 								#ifdef HW_GEN_RXMOD
