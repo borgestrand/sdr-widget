@@ -994,7 +994,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	}
 	
 
-	// Reused test based on .reliable from old code below. What is its purpose?
+	// Reused test based on .reliable from old code below. What is its purpose? It messes up USB playback if it was started during an spdif playback which was later halted
 	// NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
 
 //	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
@@ -1064,11 +1064,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					*si_index_high = i;
 				}
 								
-//				*num_samples ++;
 				if (cachepointer < SPK_CACHE_MAX_SAMPLES) {
 					cache_L[cachepointer] = prev_sample_L;	// May reuse *numsamples
 					cache_R[cachepointer] = prev_sample_R;
 					cachepointer++;
+					*num_samples ++;
 				}
 			} // End input_select == MOBO_SRC_UAC2
 								
@@ -1086,7 +1086,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			print_dbg_char('S');
 			spdif_rx_status.silent = 1;
 		}
-
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
@@ -1099,7 +1098,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 
 
-	local_ADC_buf_DMA_write = ADC_buf_DMA_write; // Interrupt may strike at any time, make cached copy
+	local_ADC_buf_DMA_write = ADC_buf_DMA_write; // Interrupt may strike at any time, make cached copy for testing below
 
 	// Continue writing to consumer's buffer where this routine left of last
 	if ( (prev_ADC_buf_DMA_write == INIT_ADC_I2S) || (ADC_buf_I2S_IN == INIT_ADC_I2S) ) {	// Do the init on synchronous sampling ref. ADC DMA timing
@@ -1220,12 +1219,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 				if (dac_must_clear == DAC_READY) {
 					if (DAC_buf_OUT == 0) {
-						spk_buffer_0[spk_index] = sample_L;
-						spk_buffer_0[spk_index + 1] = sample_R;
+//						spk_buffer_0[spk_index] = sample_L;
+//						spk_buffer_0[spk_index + 1] = sample_R;
 					}
 					else if (DAC_buf_OUT == 1) {
-						spk_buffer_1[spk_index] = sample_L;
-						spk_buffer_1[spk_index + 1] = sample_R;
+//						spk_buffer_1[spk_index] = sample_L;
+//						spk_buffer_1[spk_index + 1] = sample_R;
 					}
 				}
 
