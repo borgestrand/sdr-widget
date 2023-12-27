@@ -1003,6 +1003,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //		spdif_rx_status.silent = 1;
 //	}
 //	else 
+
+#define NUM_ADDRESSES 10
+U32 addresses[NUM_ADDRESSES];
+int addresses_logger = 0;
 	
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate time to process spdif data, ideally once per 250us
@@ -1039,6 +1043,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			else if (bufpointer == 1) {
 				sample_L = audio_buffer_1[i];
 				sample_R = audio_buffer_1[i + 1];
+			}
+			
+			
+			addresses[addresses_logger++] = i + (bufpointer << 16);
+			if (addresses_logger >= NUM_ADDRESSES) {
+				addresses_logger = 0;
 			}
 				
 			i+=2; // counts up to last_written_ADC_buf
@@ -1094,9 +1104,14 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //		}
 		
 		if (max_last_written_ADC_pos == 0x10101010) {
+			
+			addresses_logger = 0;
 			print_dbg_char('\n');
-			print_dbg_char('c');
-			print_dbg_hex( (*si_score_high) ); 
+			while (addresses_logger < NUM_ADDRESSES) {
+				print_dbg_hex(addresses[addresses_logger++]);
+				print_dbg_char('\n');
+			}
+			
 			max_last_written_ADC_pos = 0;
 		}
 		
