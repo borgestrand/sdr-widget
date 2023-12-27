@@ -1004,7 +1004,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
 
 		bool we_own_cache = FALSE;			// Cached if-test result
-		bool silence_det = FALSE;			// We're looking for first non-zero audio-data
+		bool non_silence_det = FALSE;		// We're looking for first non-zero audio-data
 		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 			we_own_cache = TRUE;
 			si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
@@ -1039,7 +1039,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			}
 			
 			// Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
-			silence_det = silence_det || (abs(sample_temp) > IS_SILENT) || (abs(sample_temp) > IS_SILENT);
+			non_silence_det = non_silence_det || (abs(sample_temp) > IS_SILENT) || (abs(sample_temp) > IS_SILENT);
 
 			// It is time consuming to test for each stereo sample!
 			if (we_own_cache) {					// Only write to cache with the right permissions! And only bother with enerby math if it's considered by calling function
@@ -1069,6 +1069,13 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			prev_diff_value = diff_value;
 
 		} // while (i != last_written_ADC_pos) 
+		
+		if (non_silence_det) {
+			spdif_rx_status.silent = 0;
+		}
+		else {
+			spdif_rx_status.silent = 1;
+		}
 		
 		
 /*		
