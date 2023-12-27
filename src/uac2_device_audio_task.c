@@ -1270,7 +1270,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		if (min_last_written_ADC_pos == 0x10101010) {
 			print_dbg_char('d');
-			print_dbg_char_hex(si_index_low);
+			print_dbg_hex(si_score_high);
 			print_dbg_char('\n');
 			min_last_written_ADC_pos = 0;
 		}
