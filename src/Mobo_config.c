@@ -1049,12 +1049,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 								
 				if (diff_sum < si_score_low) {
 					si_score_low = diff_sum;
-					si_index_low = i;
+					*si_index_low = i;
 				}
 								
-				if (diff_sum > si_score_high) {
-					si_score_high = diff_sum;
-					si_index_high = i;
+				if (diff_sum > *si_score_high) {
+					*si_score_high = diff_sum;
+					*si_index_high = i;
 				}
 								
 				*num_samples ++;
@@ -1071,12 +1071,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		} // while (i != last_written_ADC_pos) 
 		
 		if (non_silence_det) {
-			print_dbg_char('l');
-			spdif_rx_status.silent = 1;
-		}
-		else {
 			print_dbg_char('o');
 			spdif_rx_status.silent = 0;
+		}
+		else {
+			print_dbg_char('l');
+			spdif_rx_status.silent = 1;
 		}
 		
 		
