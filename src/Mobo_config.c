@@ -1021,15 +1021,15 @@ int addresses_logger = 0;
 		if ( ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) ) {
 			we_own_cache = TRUE;
 			si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
-			(*si_index_low) = 0;				// Location of "lowest energy", reset for each iteration
-			(*si_score_high) = 0;				// Lowest positive number, reset for each iteration
-			(*si_index_high) = 0;				// Location of "highest energy", reset for each iteration
+			(*si_index_low) = 0;			// Location of "lowest energy", reset for each iteration
+			(*si_score_high) = 0;			// Lowest positive number, reset for each iteration
+			(*si_index_high) = 0;			// Location of "highest energy", reset for each iteration
 			(*num_samples) = 0;				// Used to validate cache with non-zero length
 		}
 		
 		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
 		i = prev_last_written_ADC_pos;
-		U32 cachepointer = 0;								
+//		U32 cachepointer = 0;								
 
 		while (i != last_written_ADC_pos) {
 			// Fill endpoint with sample raw
@@ -1058,26 +1058,26 @@ int addresses_logger = 0;
 			non_silence_det = ( non_silence_det || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
 
 			// It is time consuming to test for each stereo sample!
-			if (we_own_cache) {					// Only write to cache with the right permissions! And only bother with enerby math if it's considered by calling function
+			if (we_own_cache) {					// Only write to cache and num_samples with the right permissions! And only bother with enerby math if it's considered by calling function
 				// Finding packet's point of lowest and highest "energy"
 				diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 				diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
 								
-				if (cachepointer < SPK_CACHE_MAX_SAMPLES) {
+				if ((*num_samples) < SPK_CACHE_MAX_SAMPLES) {
 					if (diff_sum < si_score_low) {
 						si_score_low = diff_sum;
-						(*si_index_low) = cachepointer;
+						(*si_index_low) = (*num_samples);
 					}
 								
 					if (diff_sum > (*si_score_high)) {
 						(*si_score_high) = diff_sum;
-						(*si_index_high) = cachepointer;
+						(*si_index_high) = (*num_samples);
 					}
 								
-					cache_L[cachepointer] = prev_sample_L;	// May reuse (*numsamples) ?
-					cache_R[cachepointer] = prev_sample_R;
-					cachepointer++;
-//					(*num_samples)++;
+					cache_L[(*num_samples)] = prev_sample_L;	// May reuse (*numsamples) 
+					cache_R[(*num_samples)] = prev_sample_R;
+//					cachepointer++;
+					(*num_samples)++;
 				} // cachepointer
 				
 			} // End we_own_cache
@@ -1090,9 +1090,9 @@ int addresses_logger = 0;
 		} // while (i != last_written_ADC_pos) 
 		
 		// Do this once instead of for each sample
-		if (we_own_cache) {
-			*num_samples = cachepointer;
-		}
+//		if (we_own_cache) {
+//			*num_samples = cachepointer;
+//		}
 
 		
 		if (non_silence_det) {
