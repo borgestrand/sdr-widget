@@ -1018,7 +1018,7 @@ int addresses_logger = 0;
 
 		bool we_own_cache = FALSE;			// Cached if-test result
 		bool non_silence_det = FALSE;		// We're looking for first non-zero audio-data
-		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+		if ( ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) ) {
 			we_own_cache = TRUE;
 			si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
 			(*si_index_low) = 0;				// Location of "lowest energy", reset for each iteration
