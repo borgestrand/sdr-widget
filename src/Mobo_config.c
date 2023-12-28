@@ -1027,12 +1027,9 @@ int addresses_logger = 0;
 			(*num_samples) = 0;				// Used to validate cache with non-zero length
 		}
 		
-//		we_own_cache = FALSE; // Hard overwrite - we're not ready to write to cache just yet
-		
 		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
 		i = prev_last_written_ADC_pos;
 		U32 cachepointer = 0;								
-		
 
 		while (i != last_written_ADC_pos) {
 			// Fill endpoint with sample raw
@@ -1045,10 +1042,11 @@ int addresses_logger = 0;
 				sample_R = audio_buffer_1[i + 1];
 			}
 			
-			
+/*			
 			if (addresses_logger < NUM_ADDRESSES) {
 				addresses[addresses_logger++] = i + (bufpointer << 16);
 			}
+*/			
 				
 			i+=2; // counts up to last_written_ADC_buf
 			if (i >= ADC_BUFFER_SIZE) {
@@ -1076,12 +1074,13 @@ int addresses_logger = 0;
 						(*si_index_high) = cachepointer;
 					}
 								
-					cache_L[cachepointer] = prev_sample_L;	// May reuse (*numsamples)
+					cache_L[cachepointer] = prev_sample_L;	// May reuse (*numsamples) ?
 					cache_R[cachepointer] = prev_sample_R;
 					cachepointer++;
-					(*num_samples)++;
-				}
-			} // End input_select == MOBO_SRC_UAC2
+//					(*num_samples)++;
+				} // cachepointer
+				
+			} // End we_own_cache
 								
 			// Establish history
 			prev_sample_L = sample_L;
@@ -1089,6 +1088,12 @@ int addresses_logger = 0;
 			prev_diff_value = diff_value;
 
 		} // while (i != last_written_ADC_pos) 
+		
+		// Do this once instead of for each sample
+		if (we_own_cache) {
+			*num_samples = cachepointer;
+		}
+
 		
 		if (non_silence_det) {
 			spdif_rx_status.silent = 0;
