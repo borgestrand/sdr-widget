@@ -1128,7 +1128,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	// - Analysis of a lot of old variables, spdif_rx_status.reliable, usb_buffer_toggle etc. etc. 
 	// - Thorough verification, particularly on source changes to/from USB that was initiated while the other source was active
 	// - How much of the code from here to the end of the function is actually needed? What must be replicated above?
-	// - What are the excessive cache read events shown on PX31?
 
 
 	local_ADC_buf_DMA_write = ADC_buf_DMA_write; // Interrupt may strike at any time, make cached copy for testing below
