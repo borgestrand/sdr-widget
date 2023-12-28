@@ -1049,6 +1049,14 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			// Silence detect v3.0. Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
 			non_silence_det = ( (non_silence_det) || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
 
+/*
+			// If we're still silent, keep looking for non-silence
+			if (!non_silence_det) {
+				non_silence_det = ( (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
+			}
+*/
+
+
 			// It is time consuming to test for each stereo sample!
 			if (we_own_cache) {					// Only write to cache and num_samples with the right permissions! And only bother with enerby math if it's considered by calling function
 				// Finding packet's point of lowest and highest "energy"
@@ -1111,7 +1119,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		prev_last_written_ADC_pos = last_written_ADC_pos;
 		prev_last_written_ADC_buf = last_written_ADC_buf; 
 		
-		
 		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Indicate end of processing spdif data, ideally once per 250us
 		
 	} // if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
@@ -1119,6 +1126,15 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 	// End new code for timer/counter indicated packet processing
 
+	// Next:
+	// + Processing one packet at a time
+	// + Replicate "energy" code and sample delay from uac2_dat where it writes to cache
+	// + Zero detection here
+	// - New gap calculation, uac2_dat
+	// - New s/i need calculation, uac2_dat
+	// + Write through cache, init in uac2_dat
+	// - Thorough verification!
+	// - How much of the code from here to the end of the function is actually needed? What must be replicated above?
 
 
 	local_ADC_buf_DMA_write = ADC_buf_DMA_write; // Interrupt may strike at any time, make cached copy for testing below
@@ -1130,7 +1146,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		// mobo_clear_adc_channel();
 
 // Start of new code
-
 
 		// What is a valid starting point for ADC buffer readout? wm8804 code supposedly just started the pdca for us to be here
 		local_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
@@ -1151,9 +1166,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		prev_last_written_ADC_pos = last_written_ADC_pos;
 		prev_last_written_ADC_buf = last_written_ADC_buf;
 		
-
-
-
 // End of new code
 
 // Begin old code		
@@ -1166,8 +1178,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	} // end INIT_ADC_I2S
 
 
-
-
 // NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
 
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
@@ -1176,8 +1186,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	}
 
 	// Has producer's buffer been toggled by interrupt driven DMA code?
-	// If so, check it for silence. If selected as source, copy all of producer's data
-	// Only bother if .reliable != 0 
+	// Only bother if .reliable != 0  WHY?
 	else if (local_ADC_buf_DMA_write != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
 
 		// Establish history
@@ -1191,100 +1200,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 				ADC_buf_I2S_IN = local_ADC_buf_DMA_write;	// Disable further init, select correct audio_buffer_0/1
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
-
-
-/*
-				// New co-sample verification routine
-				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-				num_remaining = spk_pdca_channel->tcr;
-				// Did an interrupt strike just ? Check if DAC_buf_DMA_read is valid. If not valid, interrupt won't strike again for a long time. In which we simply read the counter again
-				if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
-					local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-					num_remaining = spk_pdca_channel->tcr;
-				}
-				DAC_buf_OUT = local_DAC_buf_DMA_read;
-
-				// Where to start writing to spk_index? Is that relevant when writing through cache?
-				spk_index = DAC_BUFFER_SIZE - num_remaining;
-				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-				
-*/				
-				
 			} // if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2)
-
-			// Prepare to copy all of producer's most recent data to consumer's buffer
-//			if (local_ADC_buf_DMA_write == 1)
-//				gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-//			else if (local_ADC_buf_DMA_write == 0)
-//				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-
-
-//			gpio_set_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
-
-			// Now: 
-			// - Processing a whole ADC_BUFFER_SIZE audio_buffer_0 or _1
-			// - s/i removed
-			// - Gap calculation completely removed
-			
-			// Next:
-			// - Processing one packet at a time
-			// - Replicate "energy" code and sample delay from uac2_dat where it writes to cache
-			// + Zero detection here
-			// - New gap calculation, uac2_dat
-			// - Write through cache, init in uac2_dat
-			// - Detect need for s/i here, execute it with reads from cache
-
-/*
-			
-			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
-				// Fill endpoint with sample raw
-				if (local_ADC_buf_DMA_write == 0) {		// 0 Seems better than 1, but non-conclusive
-					sample_L = audio_buffer_0[i];
-					sample_R = audio_buffer_0[i + 1];
-				}
-				else if (local_ADC_buf_DMA_write == 1) {
-					sample_L = audio_buffer_1[i];
-					sample_R = audio_buffer_1[i + 1];
-				}
-
-				if (dac_must_clear == DAC_READY) {
-					if (DAC_buf_OUT == 0) {
-//						spk_buffer_0[spk_index] = sample_L;
-//						spk_buffer_0[spk_index + 1] = sample_R;
-					}
-					else if (DAC_buf_OUT == 1) {
-//						spk_buffer_1[spk_index] = sample_L;
-//						spk_buffer_1[spk_index + 1] = sample_R;
-					}
-				}
-
-				spk_index += 2;
-				if (spk_index >= DAC_BUFFER_SIZE) {
-					spk_index -= DAC_BUFFER_SIZE;
-					DAC_buf_OUT = 1 - DAC_buf_OUT;
-
-#ifdef USB_STATE_MACHINE_DEBUG
-//							if (DAC_buf_OUT == 1)
-//								gpio_set_gpio_pin(AVR32_PIN_PX30);
-//							else
-//								gpio_clr_gpio_pin(AVR32_PIN_PX30);
-#endif
-				} // if (spk_index >= DAC_BUFFER_SIZE)
-
-			} // for ADC_BUFFER_SIZE 
-			
-*/			
-				
-//			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
-				
 
 		} // input select
 		
 	} // ADC_buf_DMA_write toggle
 	
-
-
-
 
 	
 
