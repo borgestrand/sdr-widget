@@ -1016,20 +1016,19 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		// Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair!
 		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
 
-		bool we_own_cache = FALSE;			// Cached if-test result
 		bool non_silence_det = FALSE;		// We're looking for first non-zero audio-data
-		if ( ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) ) {
-			we_own_cache = TRUE;
-		}
-		
+		// Cached if-test
+		bool we_own_cache = ( ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) );
 		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
-		i = prev_last_written_ADC_pos;
+
+		// Minor time savings over writing to (*xx) every time - probably further improvements when taken inline in uac2_dat
 		U32 temp_num_samples = 0;
 		U32 temp_si_index_low = 0;
 		S32 temp_si_score_high = 0;
 		U32 temp_si_index_high = 0;
 		S32 si_score_low = 0x7FFFFFFF;
 
+		i = prev_last_written_ADC_pos;
 		while (i != last_written_ADC_pos) {
 			// Fill endpoint with sample raw
 			if (bufpointer == 0) {					// 0 Seems better than 1, but non-conclusive
@@ -1041,12 +1040,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				sample_R = audio_buffer_1[i + 1];
 			}
 			
-/*			
-			if (addresses_logger < NUM_ADDRESSES) {
-				addresses[addresses_logger++] = i + (bufpointer << 16);
-			}
-*/			
-				
 			i+=2; // counts up to last_written_ADC_buf
 			if (i >= ADC_BUFFER_SIZE) {
 				i = 0;							// Start from beginning of next buffer
@@ -1054,7 +1047,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			}
 			
 			// Silence detect v3.0. Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
-			non_silence_det = ( non_silence_det || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
+			non_silence_det = ( (non_silence_det) || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
 
 			// It is time consuming to test for each stereo sample!
 			if (we_own_cache) {					// Only write to cache and num_samples with the right permissions! And only bother with enerby math if it's considered by calling function
@@ -1078,7 +1071,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					temp_num_samples++;
 				} // SPK_CACHE_MAX_SAMPLES
 				else {
-					print_dbg_char('!'); // Buffer length warning
+					print_dbg_char('!'); // Buffer length warning - occurs mainly at playback start and silence detection. Why?
 				}
 				
 			} // End we_own_cache
@@ -1096,32 +1089,21 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			*si_index_low = temp_si_index_low;
 			*si_score_high = temp_si_score_high;
 			*si_index_high = temp_si_index_high;
+			if (non_silence_det) {
+				*cache_holds_silence = FALSE;
+			}
+			else {
+				*cache_holds_silence = TRUE;
+			}
 		}
 
-		
+		// Report silence to wm8804 subsystem
 		if (non_silence_det) {
 			spdif_rx_status.silent = 0;
 		}
 		else {
-//			print_dbg_char('S');
 			spdif_rx_status.silent = 1;
 		}
-		
-/*		
-		if (max_last_written_ADC_pos == 0x10101010) {
-			
-			addresses_logger = 0;
-			print_dbg_char('\n');
-			while (addresses_logger < NUM_ADDRESSES) {
-				print_dbg_hex(addresses[addresses_logger++]);
-				print_dbg_char('\n');
-			}
-			addresses_logger = 0;
-			
-			max_last_written_ADC_pos = 0;
-		}
-*/		
-		
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 		prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
@@ -1188,6 +1170,9 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 // NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
 
+/*
+
+
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
 		spdif_rx_status.silent = 1;
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;			// Respond as soon as .reliable is set
@@ -1247,7 +1232,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			// - Write through cache, init in uac2_dat
 			// - Detect need for s/i here, execute it with reads from cache
 
-/*
 			
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 				// Fill endpoint with sample raw
@@ -1286,7 +1270,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 			} // for ADC_BUFFER_SIZE 
 			
-*/			
 				
 //			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 				
@@ -1296,6 +1279,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	} // ADC_buf_DMA_write toggle
 	
 
+*/
 
 
 

@@ -197,7 +197,7 @@ void uac2_device_audio_task(void *pvParameters)
 	S32 si_score_high = 0;
 	U32 si_index_high = 0;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
-	Bool cache_holds_silence = FALSE;
+	Bool cache_holds_silence = TRUE;
 
 	// New code for adaptive USB fallback using skip / insert s/i
 	#define SI_SKIP -1
@@ -1267,24 +1267,14 @@ void uac2_device_audio_task(void *pvParameters)
 		prev_input_select = input_select;
 		#endif
 
-/*
-		if (min_last_written_ADC_pos == 0x10101010) {
-			print_dbg_char('d');
-			print_dbg_hex(si_score_high);
-			print_dbg_char('\n');
-			min_last_written_ADC_pos = 0;
-		}
-*/
 
+// ææææ consider cache_holds_silence from spdif system, and generate it in USB system!
 
 		// Start writing from chache to spk_buffer
 		// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
 		//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Start copying cache to spk_buffer_X
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {								// Only start copying when there is something to legally copy
-			
-//			print_dbg_char('!');
-						
 			i = 0;
 			while (i < si_index_low) { // before skip/insert
 				// Fetch from cache
@@ -1311,8 +1301,8 @@ void uac2_device_audio_task(void *pvParameters)
 						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
-					// BSB 20131201 attempting improved playerstarted detection
-					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
+					// Actually used and needed?
+					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code. 
 				} // End switching buffers
 				i++;
 			} // end while i - before skip/insert
@@ -1347,7 +1337,7 @@ void uac2_device_audio_task(void *pvParameters)
 						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
-					// BSB 20131201 attempting improved playerstarted detection
+					// Actually used and needed?
 					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
 				} // End switching buffers
 			} // End SI_NORMAL
@@ -1373,7 +1363,7 @@ void uac2_device_audio_task(void *pvParameters)
 						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
-					// BSB 20131201 attempting improved playerstarted detection
+					// Actually used and needed?
 					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
 				} // End switching buffers
 							
@@ -1398,7 +1388,7 @@ void uac2_device_audio_task(void *pvParameters)
 						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
-					// BSB 20131201 attempting improved playerstarted detection
+					// Actually used and needed?
 					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
 				} // End switching buffers
 			}
@@ -1447,13 +1437,8 @@ void uac2_device_audio_task(void *pvParameters)
 			num_samples = 0; // Write is complete. Source must set it to > 0 for next write to spk_buffer_X to happen
 
 		} // end if num_samples > 0
-		// End writing from chache to spk_buffer
+		// End writing from cache to spk_buffer
 		//					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// End copying DAC data from cache to spk_audio_buffer_X
-
-
-
-
-//		gpio_clr_gpio_pin(AVR32_PIN_PA22); // End of task execution
 
 	} // end while vTask
 }
