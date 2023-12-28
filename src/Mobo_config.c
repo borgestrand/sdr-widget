@@ -1170,9 +1170,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 // NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
 
-/*
-
-
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
 		spdif_rx_status.silent = 1;
 		prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;			// Respond as soon as .reliable is set
@@ -1195,6 +1192,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				ADC_buf_I2S_IN = local_ADC_buf_DMA_write;	// Disable further init, select correct audio_buffer_0/1
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 
+
+/*
 				// New co-sample verification routine
 				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 				num_remaining = spk_pdca_channel->tcr;
@@ -1208,13 +1207,16 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				// Where to start writing to spk_index? Is that relevant when writing through cache?
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
 				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+				
+*/				
+				
 			} // if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2)
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
-			if (local_ADC_buf_DMA_write == 1)
-				gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
-			else if (local_ADC_buf_DMA_write == 0)
-				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+//			if (local_ADC_buf_DMA_write == 1)
+//				gpio_set_gpio_pin(AVR32_PIN_PX18);			// Pin 84
+//			else if (local_ADC_buf_DMA_write == 0)
+//				gpio_clr_gpio_pin(AVR32_PIN_PX18);			// Pin 84
 
 
 //			gpio_set_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
@@ -1232,6 +1234,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			// - Write through cache, init in uac2_dat
 			// - Detect need for s/i here, execute it with reads from cache
 
+/*
 			
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 				// Fill endpoint with sample raw
@@ -1270,6 +1273,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 			} // for ADC_BUFFER_SIZE 
 			
+*/			
 				
 //			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 				
@@ -1279,7 +1283,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	} // ADC_buf_DMA_write toggle
 	
 
-*/
 
 
 
