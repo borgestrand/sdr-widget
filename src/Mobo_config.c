@@ -967,7 +967,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	static S32 prev_sample_R = 0;
 	S32 diff_value = 0;
 	S32 diff_sum = 0;
-	S32 si_score_low = 0x7FFFFFFF;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
 
 	
@@ -1021,16 +1020,15 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		bool non_silence_det = FALSE;		// We're looking for first non-zero audio-data
 		if ( ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) ) {
 			we_own_cache = TRUE;
-			si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
-			(*si_index_low) = 0;			// Location of "lowest energy", reset for each iteration
-			(*si_score_high) = 0;			// Lowest positive number, reset for each iteration
-			(*si_index_high) = 0;			// Location of "highest energy", reset for each iteration
-			(*num_samples) = 0;				// Used to validate cache with non-zero length
 		}
 		
 		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
 		i = prev_last_written_ADC_pos;
-		U32 cachepointer = 0;								
+		U32 temp_num_samples = 0;
+		U32 temp_si_index_low = 0;
+		S32 temp_si_score_high = 0;
+		U32 temp_si_index_high = 0;
+		S32 si_score_low = 0x7FFFFFFF;
 
 		while (i != last_written_ADC_pos) {
 			// Fill endpoint with sample raw
@@ -1064,21 +1062,20 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 				diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
 								
-				if (cachepointer < SPK_CACHE_MAX_SAMPLES) {
+				if (temp_num_samples < SPK_CACHE_MAX_SAMPLES) {
 					if (diff_sum < si_score_low) {
 						si_score_low = diff_sum;
-						(*si_index_low) = cachepointer;
+						temp_si_index_low = temp_num_samples;
 					}
 								
-					if (diff_sum > (*si_score_high)) {
-						(*si_score_high) = diff_sum;
-						(*si_index_high) = cachepointer;
+					if (diff_sum > (temp_si_score_high)) {
+						temp_si_score_high = diff_sum;
+						temp_si_index_high = temp_num_samples;
 					}
 								
-					cache_L[cachepointer] = prev_sample_L;	// May reuse (*numsamples) 
-					cache_R[cachepointer] = prev_sample_R;
-					cachepointer++;
-//					(*num_samples)++;
+					cache_L[temp_num_samples] = prev_sample_L;	// May use (*numsamples) instead of temp_num_samples, but that is slower (66.6us vs 60.6us for a 192ksps packet write)
+					cache_R[temp_num_samples] = prev_sample_R;
+					temp_num_samples++;
 				} // SPK_CACHE_MAX_SAMPLES
 				else {
 					print_dbg_char('!'); // Buffer length warning
@@ -1095,7 +1092,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		
 		// Do this once instead of for each sample
 		if (we_own_cache) {
-			*num_samples = cachepointer;
+			*num_samples = temp_num_samples;
+			*si_index_low = temp_si_index_low;
+			*si_score_high = temp_si_score_high;
+			*si_index_high = temp_si_index_high;
 		}
 
 		
