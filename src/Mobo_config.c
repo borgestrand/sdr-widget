@@ -1005,11 +1005,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //	else 
 
 #define NUM_ADDRESSES 10
-U32 addresses[NUM_ADDRESSES];
-int addresses_logger = 0;
+// U32 addresses[NUM_ADDRESSES];
+// int addresses_logger = 0;
 	
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
-		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate time to process spdif data, ideally once per 250us
+
+		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate start of processing spdif data, ideally once per 250us
 
 		// Start processing a 250µs chunk of the ADC pdca buffer
 
@@ -1078,7 +1079,10 @@ int addresses_logger = 0;
 					cache_R[(*num_samples)] = prev_sample_R;
 //					cachepointer++;
 					(*num_samples)++;
-				} // cachepointer
+				} // SPK_CACHE_MAX_SAMPLES
+				else {
+					print_dbg_char('!'); // Buffer length warning
+				}
 				
 			} // End we_own_cache
 								
@@ -1103,10 +1107,7 @@ int addresses_logger = 0;
 			spdif_rx_status.silent = 1;
 		}
 		
-//		if ((*num_samples) > 0) {
-//			print_dbg_char('-');
-//		}
-		
+/*		
 		if (max_last_written_ADC_pos == 0x10101010) {
 			
 			addresses_logger = 0;
@@ -1119,6 +1120,7 @@ int addresses_logger = 0;
 			
 			max_last_written_ADC_pos = 0;
 		}
+*/		
 		
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
@@ -1126,6 +1128,10 @@ int addresses_logger = 0;
 		prev_captured_num_remaining = local_captured_num_remaining;
 		prev_last_written_ADC_pos = last_written_ADC_pos;
 		prev_last_written_ADC_buf = last_written_ADC_buf; 
+		
+		
+		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Indicate end of processing spdif data, ideally once per 250us
+		
 	} // if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 
 

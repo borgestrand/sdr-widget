@@ -1455,17 +1455,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 //		gpio_clr_gpio_pin(AVR32_PIN_PA22); // End of task execution
 
-
-	// Begin new code for timer/counter indicated packet processing
-	// Counterpart is in mobo_handle_spdif()
-
-	// Always clear
-	gpio_clr_gpio_pin(AVR32_PIN_PA22);
-
-	// End new code for timer/counter indicated packet processing
-
-
-
 	} // end while vTask
 }
 
