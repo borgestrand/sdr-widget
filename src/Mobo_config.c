@@ -1030,7 +1030,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		
 		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
 		i = prev_last_written_ADC_pos;
-//		U32 cachepointer = 0;								
+		U32 cachepointer = 0;								
 
 		while (i != last_written_ADC_pos) {
 			// Fill endpoint with sample raw
@@ -1064,21 +1064,21 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 				diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
 								
-				if ((*num_samples) < SPK_CACHE_MAX_SAMPLES) {
+				if (cachepointer < SPK_CACHE_MAX_SAMPLES) {
 					if (diff_sum < si_score_low) {
 						si_score_low = diff_sum;
-						(*si_index_low) = (*num_samples);
+						(*si_index_low) = cachepointer;
 					}
 								
 					if (diff_sum > (*si_score_high)) {
 						(*si_score_high) = diff_sum;
-						(*si_index_high) = (*num_samples);
+						(*si_index_high) = cachepointer;
 					}
 								
-					cache_L[(*num_samples)] = prev_sample_L;	// May reuse (*numsamples) 
-					cache_R[(*num_samples)] = prev_sample_R;
-//					cachepointer++;
-					(*num_samples)++;
+					cache_L[cachepointer] = prev_sample_L;	// May reuse (*numsamples) 
+					cache_R[cachepointer] = prev_sample_R;
+					cachepointer++;
+//					(*num_samples)++;
 				} // SPK_CACHE_MAX_SAMPLES
 				else {
 					print_dbg_char('!'); // Buffer length warning
@@ -1094,9 +1094,9 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		} // while (i != last_written_ADC_pos) 
 		
 		// Do this once instead of for each sample
-//		if (we_own_cache) {
-//			*num_samples = cachepointer;
-//		}
+		if (we_own_cache) {
+			*num_samples = cachepointer;
+		}
 
 		
 		if (non_silence_det) {
