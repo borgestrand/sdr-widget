@@ -1047,14 +1047,14 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			}
 			
 			// Silence detect v3.0. Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
-			non_silence_det = ( (non_silence_det) || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
+//			non_silence_det = ( (non_silence_det) || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
 
-/*
+
 			// If we're still silent, keep looking for non-silence
 			if (!non_silence_det) {
 				non_silence_det = ( (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
 			}
-*/
+
 
 
 			// It is time consuming to test for each stereo sample!
