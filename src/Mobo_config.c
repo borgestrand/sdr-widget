@@ -1212,7 +1212,7 @@ int addresses_logger = 0;
 				// Where to start writing to spk_index? Is that relevant when writing through cache?
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
 				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-			}
+			} // if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2)
 
 			// Prepare to copy all of producer's most recent data to consumer's buffer
 			if (local_ADC_buf_DMA_write == 1)
@@ -1235,6 +1235,8 @@ int addresses_logger = 0;
 			// - New gap calculation, uac2_dat
 			// - Write through cache, init in uac2_dat
 			// - Detect need for s/i here, execute it with reads from cache
+
+/*
 			
 			for (i=0 ; i < ADC_BUFFER_SIZE ; i+=2) {
 				// Fill endpoint with sample raw
@@ -1269,9 +1271,11 @@ int addresses_logger = 0;
 //							else
 //								gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
-				}
+				} // if (spk_index >= DAC_BUFFER_SIZE)
 
 			} // for ADC_BUFFER_SIZE 
+			
+*/			
 				
 //			gpio_clr_gpio_pin(AVR32_PIN_PX30);		// Indicate copying DAC data from audio_buffer_X to spk_audio_buffer_X
 				
