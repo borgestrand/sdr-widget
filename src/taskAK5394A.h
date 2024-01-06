@@ -39,7 +39,7 @@
 Long buffers may take up too much RAM. And clearing and moving their contents take a long time.
 Short buffers give less system latency and poorer synch state machine performance
 */
-	#define ADC_BUFFER_SIZE	384 // (8*2*24) * 1 // = 384 = 192 stereo samples ADC_site requires uncomfortably much fine-tuning in order to work with two consumers
+	#define ADC_BUFFER_SIZE	512 // 384 // (8*2*24) * 1 // = 384 = 192 stereo samples ADC_site requires uncomfortably much fine-tuning in order to work with two consumers
 	#define DAC_BUFFER_SIZE 1536 // (32*2*24) * 1 // = 1536
 	#define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
 
