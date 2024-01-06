@@ -469,7 +469,12 @@ Arash
             }
 			
 			
-			// High-level I2S & MCLK MUX control
+			// High-level I2S & MCLK MUX control, use recovered MCLK from WM8804
+            else if (a == 'b') {							// Lowercase b
+	            mobo_xo_select(FREQ_RXNATIVE, input_select);
+            }
+			
+			// High-level I2S & MCLK MUX control, use recovered XO corresponding to MCLK from WM8804
             else if (a == 'a') {							// Lowercase a
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
