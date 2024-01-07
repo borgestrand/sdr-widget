@@ -955,8 +955,8 @@ void mobo_ADC_position_debug(U32 *last_pos, int *last_buf, U32 num_remaining, in
 		*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = start with left sample
 		buf = 1  - buf;
 		*last_buf = buf;
-		
-		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Does this happen a lot or only with addressing issues?
+// This was not the culprit, no correlation with error		
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Does this happen a lot or only with addressing issues?
 	}
 }
 
