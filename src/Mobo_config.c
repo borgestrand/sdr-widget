@@ -956,7 +956,7 @@ void mobo_ADC_position_debug(U32 *last_pos, int *last_buf, U32 num_remaining, in
 		buf = 1  - buf;
 		*last_buf = buf;
 		
-		gpio_set_gpio_pin(AVR32_PIN_PX33); // Does this happen a lot or only with addressing issues?
+		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Does this happen a lot or only with addressing issues?
 	}
 }
 
