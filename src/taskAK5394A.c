@@ -143,15 +143,22 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		// Register names are different from those used in AVR32108. BUT: it seems pdca_reload_channel() sets the
 		// -next- pointer, the one to be selected automatically after the current one is done. That may be why
 		// we choose the same buffer number here as in the seq. code
-		ADC_buf_DMA_write = 1;
-		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
+
+		Enable_global_interrupt();
+			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
+			ADC_buf_DMA_write = 1;
+		Disable_global_interrupt();
+
 #ifdef USB_STATE_MACHINE_GPIO
     	gpio_set_gpio_pin(AVR32_PIN_PA22); 
 #endif
 	}
 	else if (ADC_buf_DMA_write == 1) {
-		ADC_buf_DMA_write = 0;
-		pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
+		Enable_global_interrupt();
+			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
+			ADC_buf_DMA_write = 0;
+		Disable_global_interrupt();
+
 #ifdef USB_STATE_MACHINE_GPIO
 		gpio_clr_gpio_pin(AVR32_PIN_PA22);
 #endif
@@ -168,9 +175,10 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	if (DAC_buf_DMA_read == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
-		DAC_buf_DMA_read = 1;
-		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
-
+		Disable_global_interrupt();
+			pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
+			DAC_buf_DMA_read = 1;
+		Enable_global_interrupt();
 
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
@@ -179,8 +187,10 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #endif
 	}
 	else if (DAC_buf_DMA_read == 1) {
-		DAC_buf_DMA_read = 0;
-		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
+		Disable_global_interrupt();
+			pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
+			DAC_buf_DMA_read = 0;
+		Enable_global_interrupt();
 
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
