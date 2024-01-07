@@ -941,27 +941,6 @@ void mobo_ADC_position(U32 *last_pos, int *last_buf, U32 num_remaining, int buf)
 	}
 }
 
-// Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair!
-void mobo_ADC_position_debug(U32 *last_pos, int *last_buf, U32 num_remaining, int buf) {
-	*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
-	// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
-	if (*last_pos < ADC_BUFFER_SIZE) {
-		*last_buf = buf;
-	}
-	// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE? If so, don't overflow but record the last position of the previous buffer
-	// Tests indicate timer_captured_ADC_buf_DMA_write in the range 0..ADC_BUFFER_SIZE-1, and in extremely rare situations 0..ADC_BUFFER_SIZE
-	else {
-		num_remaining = max(num_remaining - 2, ADC_BUFFER_SIZE - 2); // Move back one stereo sample or more. Rather risk deleting samples than overflowing buffer access
-		*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = start with left sample
-		buf = 1  - buf;
-		*last_buf = buf;
-// This was not the culprit, no correlation with error		
-//		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Does this happen a lot or only with addressing issues?
-	}
-}
-
-
-
 
 // Handle spdif and toslink input
 void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *cache_L, S32 *cache_R, S32 *num_samples, Bool *cache_holds_silence) {
@@ -1011,6 +990,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	if (local_captured_ADC_buf_DMA_write != timer_captured_ADC_buf_DMA_write ) {
 		local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
 		local_captured_num_remaining = timer_captured_num_remaining;
+		
+		gpio_tgl_gpio_pin(AVR32_PIN_PX33);
 	}
 	
 
@@ -1033,7 +1014,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		// Start processing a 250µs chunk of the ADC pdca buffer
 
 		// Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair!
-		mobo_ADC_position_debug(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
+		mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
 
 		bool non_silence_det = FALSE;		// We're looking for first non-zero audio-data
 		// Cached if-test
