@@ -991,7 +991,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
 		local_captured_num_remaining = timer_captured_num_remaining;
 		
-		gpio_tgl_gpio_pin(AVR32_PIN_PX33);
+		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // No evident correlation with incorrect buffer address
 	}
 	
 
