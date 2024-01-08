@@ -1277,7 +1277,7 @@ void uac2_device_audio_task(void *pvParameters)
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {								// Only start copying when there is something to legally copy
 
-			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
+//			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
 
 			i = 0;
 			while (i < si_index_low) { // before skip/insert
@@ -1440,7 +1440,7 @@ void uac2_device_audio_task(void *pvParameters)
 						
 			num_samples = 0; // Write is complete. Source must set it to > 0 for next write to spk_buffer_X to happen
 
-			gpio_clr_gpio_pin(AVR32_PIN_PX31);		// End copying DAC data from cache to spk_audio_buffer_X
+//			gpio_clr_gpio_pin(AVR32_PIN_PX31);		// End copying DAC data from cache to spk_audio_buffer_X
 
 		} // end if num_samples > 0
 		// End writing from cache to spk_buffer
