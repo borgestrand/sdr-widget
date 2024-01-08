@@ -1015,7 +1015,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate start of processing spdif data, ideally once per 250us
 
 
-// 		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Indicate packet toggle here?
+ 		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Indicate packet toggle here?
 
 
 		// Start processing a 250µs chunk of the ADC pdca buffer
