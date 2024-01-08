@@ -235,22 +235,17 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		if (timer_captured_ADC_buf_DMA_write != ADC_buf_DMA_write) {
 			timer_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
 			timer_captured_num_remaining = pdca_channel->tcr;
+			
+			gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Test correlation with incorrect buffer access
+			
 		}
 		
 		// What is the highest and lowest captured num_remaining?
 		// Practical tests print min, max of timer_captured_num_remaining as 0x0000 and 0x0180, respectively. That is with a buffer length of 0x0180 = 0d384
 
+
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX33);	// Indicate all packets?
 	
-		// Fast debug on scope
-		static int test = 0;
-		if (test == 0) {
-//			gpio_set_gpio_pin(AVR32_PIN_PX31);
-			test = 1;
-		}
-		else {
-//			gpio_clr_gpio_pin(AVR32_PIN_PX31);
-			test = 0;
-		}
 	}
 
 

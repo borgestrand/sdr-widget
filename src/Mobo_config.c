@@ -938,6 +938,9 @@ void mobo_ADC_position(U32 *last_pos, int *last_buf, U32 num_remaining, int buf)
 		*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = start with left sample
 		buf = 1  - buf;
 		*last_buf = buf;
+		
+		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Test correlation with incorrect buffer access - we tested this one before...
+		
 	}
 }
 
@@ -991,7 +994,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
 		local_captured_num_remaining = timer_captured_num_remaining;
 		
-		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // No evident correlation with incorrect buffer address
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // No evident correlation with incorrect buffer address
 	}
 	
 
@@ -1010,6 +1013,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 
 //		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate start of processing spdif data, ideally once per 250us
+
+
+// 		gpio_tgl_gpio_pin(AVR32_PIN_PX33); // Indicate packet toggle here?
+
 
 		// Start processing a 250µs chunk of the ADC pdca buffer
 
