@@ -150,7 +150,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		Disable_global_interrupt();
 
 #ifdef USB_STATE_MACHINE_GPIO
-    	gpio_set_gpio_pin(AVR32_PIN_PA22); 
+    	gpio_set_gpio_pin(AVR32_PIN_PX30); 
 #endif
 	}
 	else if (ADC_buf_DMA_write == 1) {
@@ -160,7 +160,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		Disable_global_interrupt();
 
 #ifdef USB_STATE_MACHINE_GPIO
-		gpio_clr_gpio_pin(AVR32_PIN_PA22);
+		gpio_clr_gpio_pin(AVR32_PIN_PX30);
 #endif
 	}
  

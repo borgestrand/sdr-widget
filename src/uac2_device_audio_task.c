@@ -618,10 +618,10 @@ void uac2_device_audio_task(void *pvParameters)
 						DAC_buf_OUT = local_DAC_buf_DMA_read;
 
 						if (DAC_buf_OUT == 1) {
-							gpio_set_gpio_pin(AVR32_PIN_PX30);
+//							gpio_set_gpio_pin(AVR32_PIN_PX30);
 						}
 						else {
-							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+//							gpio_clr_gpio_pin(AVR32_PIN_PX30);
 						}
 									
 						spk_index = DAC_BUFFER_SIZE - num_remaining;
@@ -1254,10 +1254,10 @@ void uac2_device_audio_task(void *pvParameters)
 			DAC_buf_OUT = local_DAC_buf_DMA_read;
 
 			if (DAC_buf_OUT == 1) {
-				gpio_set_gpio_pin(AVR32_PIN_PX30);
+//				gpio_set_gpio_pin(AVR32_PIN_PX30);
 			}
 			else {
-				gpio_clr_gpio_pin(AVR32_PIN_PX30);
+//				gpio_clr_gpio_pin(AVR32_PIN_PX30);
 			}
 			
 			spk_index = DAC_BUFFER_SIZE - num_remaining;
@@ -1299,10 +1299,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// Actually used and needed?
@@ -1335,10 +1335,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// Actually used and needed?
@@ -1361,10 +1361,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// Actually used and needed?
@@ -1386,10 +1386,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// Actually used and needed?
@@ -1426,10 +1426,10 @@ void uac2_device_audio_task(void *pvParameters)
 					DAC_buf_OUT = 1 - DAC_buf_OUT;
 
 					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+//						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
 					}
 
 					// BSB 20131201 attempting improved playerstarted detection
