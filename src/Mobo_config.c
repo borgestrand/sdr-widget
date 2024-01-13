@@ -992,7 +992,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		local_captured_num_remaining = timer_captured_num_remaining;
 	}
 	
-	
+/*	
 	// Show what we just recorded by timer interrupt
 	if (local_captured_ADC_buf_DMA_write == 0) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX31);
@@ -1000,7 +1000,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	else {
 		gpio_set_gpio_pin(AVR32_PIN_PX31);
 	}
-	
+*/	
 
 	// Reused test based on .reliable from old code below. What is its purpose? It messes up USB playback if it was started during an spdif playback which was later halted
 	// NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
@@ -1010,13 +1010,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //	}
 //	else 
 
-#define NUM_ADDRESSES 10
-// U32 addresses[NUM_ADDRESSES];
-// int addresses_logger = 0;
+	static U32 prev_i = 0;
 	
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 
-//		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate start of processing spdif data, ideally once per 250us
+		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate start of processing spdif data, ideally once per 250us
 
 		// Start processing a 250µs chunk of the ADC pdca buffer
 
@@ -1034,9 +1032,21 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		S32 temp_si_score_high = 0;
 		U32 temp_si_index_high = 0;
 		S32 si_score_low = 0x7FFFFFFF;
-
+		
 		i = prev_last_written_ADC_pos;
 		while (i != last_written_ADC_pos) {
+
+			// Look for gaps in progression of i. Only expect them at buffer overruns. Duration will be very short
+			if (i != (prev_i + 2) ) {
+				gpio_set_gpio_pin(AVR32_PIN_PX31);
+//				gpio_tgl_gpio_pin(AVR32_PIN_PX31); // Alternative check
+			}
+			else {
+				gpio_clr_gpio_pin(AVR32_PIN_PX31);
+			}
+			prev_i = i;
+
+
 			// Fill endpoint with sample raw
 			if (bufpointer == 0) {					// 0 Seems better than 1, but non-conclusive
 				sample_L = audio_buffer_0[i];
@@ -1121,7 +1131,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		prev_last_written_ADC_pos = last_written_ADC_pos;
 		prev_last_written_ADC_buf = last_written_ADC_buf; 
 		
-//		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Indicate end of processing spdif data, ideally once per 250us
+		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Indicate end of processing spdif data, ideally once per 250us
 		
 	} // if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 
