@@ -1039,13 +1039,25 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 			// Look for gaps in progression of i and bufpointer. Expect them to happen at exactly the same time
 			// Use XOR (logical !=) to try to find times when one changes and not the other
+
+/*
+// Works:
 			if ( (bufpointer != prev_bufpointer) != (i != (prev_i + 2) ) ) {
-//				gpio_set_gpio_pin(AVR32_PIN_PX31);
 				gpio_tgl_gpio_pin(AVR32_PIN_PX31); // Alternative check
 			}
-			else {
-//				gpio_clr_gpio_pin(AVR32_PIN_PX31);
+*/
+
+// Framework for more logic:
+
+			if (i != (prev_i + 2) ) {
+				if (bufpointer != prev_bufpointer) {
+				}
+				else {
+					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // Alternative check
+				}
 			}
+
+
 			prev_bufpointer = bufpointer;
 			prev_i = i;
 
