@@ -1010,7 +1010,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //	}
 //	else 
 
-//	static U32 prev_i = 0;
+	static U32 prev_i = 0;
 	static int prev_bufpointer = 0;
 	
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
@@ -1037,8 +1037,9 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		i = prev_last_written_ADC_pos;
 		while (i != last_written_ADC_pos) {
 
-			// Look for gaps in progression of i. Only expect them at buffer overruns. Duration will be very short
-			if (bufpointer != (prev_bufpointer) ) {
+			// Look for gaps in progression of i and bufpointer. Expect them to happen at exactly the same time
+			// Use XOR (logical !=) to try to find times when one changes and not the other
+			if ( (bufpointer != prev_bufpointer) != (i != (prev_i + 2) ) ) {
 //				gpio_set_gpio_pin(AVR32_PIN_PX31);
 				gpio_tgl_gpio_pin(AVR32_PIN_PX31); // Alternative check
 			}
@@ -1046,6 +1047,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //				gpio_clr_gpio_pin(AVR32_PIN_PX31);
 			}
 			prev_bufpointer = bufpointer;
+			prev_i = i;
 
 
 			// Read incoming sample from buffer being filled by DMA
@@ -1098,12 +1100,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				i = 0;							// Start from beginning of next buffer
 				bufpointer = 1 - bufpointer;	// Toggle buffers
 			}
-								
+			
 			// Establish history
 			prev_sample_L = sample_L;
 			prev_sample_R = sample_R;
 			prev_diff_value = diff_value;
-
 		} // while (i != last_written_ADC_pos) 
 		
 		// Do this once instead of for each sample
