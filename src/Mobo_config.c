@@ -1034,6 +1034,24 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		U32 temp_si_index_high = 0;
 		S32 si_score_low = 0x7FFFFFFF;
 		
+		
+		// New buffer handle - populate a debug buffer according to "i2s_cache_debug.xlsx:Debug format"
+		#define  DEBUG_BUFFER_LENGTH 4
+		U32 debug_buffer[DEBUG_BUFFER_LENGTH];
+		debug_buffer[0] = (0x05 << 28) | (0x00 << 25);		// Preamble 0b0101, field ID 0
+		debug_buffer[1] = (0x05 << 28) | (0x01 << 25);		// Preamble 0b0101, field ID 1
+		debug_buffer[2] = (0x05 << 28) | (0x02 << 25);		// Preamble 0b0101, field ID 2
+		debug_buffer[3] = (0x05 << 28) | (0x03 << 25);		// Preamble 0b0101, field ID 3
+		debug_buffer[0] |= (local_captured_ADC_buf_DMA_write << 24) | (local_captured_num_remaining << 14);	// Sampled from timer_captured_XX
+		debug_buffer[1] |= (prev_captured_ADC_buf_DMA_write << 24)  | (prev_captured_num_remaining << 14);	// History of above
+		debug_buffer[2] |= (last_written_ADC_buf << 24)             | (last_written_ADC_pos << 14);			// local_captured_XX -> ADC_pos
+		debug_buffer[3] |= (prev_last_written_ADC_buf << 24)        | (prev_last_written_ADC_pos << 14);	// Sampled from timer_captured_XX
+		int debug_buffer_counter = 0;
+
+		
+		
+		
+		
 		i = prev_last_written_ADC_pos;
 		while (i != last_written_ADC_pos) {
 
@@ -1053,7 +1071,12 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				if (bufpointer != prev_bufpointer) {
 				}
 				else {
-					gpio_tgl_gpio_pin(AVR32_PIN_PX31); // Alternative check
+					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
+					
+					if (debug_buffer < DEBUG_BUFFER_LENGTH) {
+						debug_buffer[debug_buffer_counter] = (debug_buffer[debug_buffer_counter]) & (0x0FFFFFFF); // Removing old preamble
+						debug_buffer[debug_buffer_counter] = (debug_buffer[debug_buffer_counter]) | (0x90000000); // Injecting new preamble at almost negative full-scale
+					}
 				}
 			}
 
@@ -1094,10 +1117,19 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					}
 								
 					cache_L[temp_num_samples] = prev_sample_L;	// May use (*numsamples) instead of temp_num_samples, but that is slower (66.6us vs 60.6us for a 192ksps packet write)
-					// cache_R[temp_num_samples] = prev_sample_R;
+
+					// Normal write - reinstate when code is stable gain
+//					cache_R[temp_num_samples] = prev_sample_R;
 
 					// Debugging with ADC_BUFFER_SIZE = 512 and bufpointer being bit 9. Scaled up			
-					cache_R[temp_num_samples] = ( ( bufpointer << 9 ) + i ) << 19; // 0..1/4 full scale
+//					cache_R[temp_num_samples] = ( ( bufpointer << 9 ) + i ) << 19; // 0..1/4 full scale
+					
+					// Debug with debug_buffer as filled above
+					if (debug_buffer_counter < DEBUG_BUFFER_LENGTH) {
+						cache_R[temp_num_samples] = debug_buffer[debug_buffer_counter] | (debug_buffer_counter << 8);
+						debug_buffer_counter ++;
+					}
+					
 					temp_num_samples++;
 				} // SPK_CACHE_MAX_SAMPLES
 				else {
