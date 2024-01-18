@@ -319,7 +319,7 @@ void device_mouse_hid_task(void)
 				print_cpu_char('\n');
 			}
 
-			else if (a == 'Q') {							// Uppercase 'Q'
+			else if (a == 'Q') {							// Uppercase 'Q' 
 				if (global_debug_buffer_status == GLOBAL_DEBUG_BUFFER_FREE) {
 					global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
 				}
