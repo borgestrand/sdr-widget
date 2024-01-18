@@ -320,7 +320,9 @@ void device_mouse_hid_task(void)
 			}
 
 			else if (a == 'Q') {							// Uppercase 'Q'
-				global_debug_buffer_status = 2;				// Terminate free running debug
+				if (global_debug_buffer_status == GLOBAL_DEBUG_BUFFER_FREE) {
+					global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
+				}
 			}
 
 			// Debug spdif packet through timer/counter
@@ -337,7 +339,7 @@ void device_mouse_hid_task(void)
 					print_dbg_char('\n');
 				}
 
- 				global_debug_buffer_status = 0;				// Free running after printout
+ 				global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_FREE;			// Free running after printout, available to log events
 
 
 /*				

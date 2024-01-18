@@ -1144,27 +1144,48 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 						cache_R[temp_num_samples] = 0;
 					}
 					
-					
+
 					// Debug: Store RIGHT original sample WITHOUT conditions to debug buffer
-					
-					if (global_debug_buffer_status == 0) {	// If free running
+					// Free running: log R raw data
+					if (global_debug_buffer_status == 0) {
 						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
 							debug_buffer_counter = 0;
 						}
-						global_debug_buffer[debug_buffer_counter++] = prev_sample_R; // With our test data, this is a non-repetitive sine
+						global_debug_buffer[debug_buffer_counter++] = prev_sample_R;
 					}
-					else if (global_debug_buffer_status == 2) {	// Halt condition, write two zeros and stop
+/*					// Tail: mark the tail (temporarily) and prepare to wind down - This else if {} is redundant unless tail is to be marked
+					else if (global_debug_buffer_status == GLOBAL_DEBUG_BUFFER_TAIL) {
 						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
 							debug_buffer_counter = 0;
 						}
-						global_debug_buffer[debug_buffer_counter++] = 0;
+						global_debug_buffer[debug_buffer_counter++] = 0x80000000; // Mark the start of the tail end by maximal negative number
+						global_debug_buffer_status--; // Move on to the next part of the tail until we reach terminator
+					}
+*/					
+					// Event detected but not yet terminated: write tail
+					else if (global_debug_buffer_status > GLOBAL_DEBUG_BUFFER_TERMINATE) {
 						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
 							debug_buffer_counter = 0;
 						}
-						global_debug_buffer[debug_buffer_counter++] = 0;
+						global_debug_buffer[debug_buffer_counter++] = prev_sample_R;
+						global_debug_buffer_status--; // Move on to the next part of the tail until we reach terminator
+					}
+					// Terminated: write two zeros to mark end of buffer, then halt state machine
+					else if (global_debug_buffer_status == GLOBAL_DEBUG_BUFFER_TERMINATE) {
+						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
+							debug_buffer_counter = 0;
+						}
+						global_debug_buffer[debug_buffer_counter++] = 0; // Mark end of data with two zero samples
+						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
+							debug_buffer_counter = 0;
+						}
+						global_debug_buffer[debug_buffer_counter++] = 0; // Mark end of data with two zero samples
+						global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_HALT; // Halt the state machine. Get out of halt state by means of readout
+					}
+
+
+					// End of debug logger
 						
-						global_debug_buffer_status = 1;	// Park the state machine until further notice
-					}
 					
 					
 					temp_num_samples++;
