@@ -319,11 +319,26 @@ void device_mouse_hid_task(void)
 				print_cpu_char('\n');
 			}
 
+			else if (a == 'Q') {							// Uppercase 'Q'
+				global_debug_buffer_status = 2;				// Terminate free running debug
+			}
+
 			// Debug spdif packet through timer/counter
 			else if (a == 'q') {							// Lowercase 'q'
 				
 				min_last_written_ADC_pos = 0x10101010;
 				max_last_written_ADC_pos = 0x10101010;
+
+				print_dbg_char('\n');
+				int debug_buffer_counter; // Used to access global_debug_buffer[]
+				for (debug_buffer_counter=0; debug_buffer_counter<GLOBAL_DEBUG_BUFFER_LENGTH; debug_buffer_counter++) {
+					print_dbg_hex(global_debug_buffer[debug_buffer_counter]);
+					vTaskDelay(100);						// Don't hog resources, wait 10us-ish to send next word
+					print_dbg_char('\n');
+				}
+
+ 				global_debug_buffer_status = 0;				// Free running after printout
+
 
 /*				
 				print_dbg_char('\n');

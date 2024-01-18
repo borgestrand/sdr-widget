@@ -113,7 +113,9 @@ volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content 
 	// Temporary code for logging purposes, also re-initiate on readout
 	volatile U32 min_last_written_ADC_pos = 0x7FFFFFFF;
 	volatile U32 max_last_written_ADC_pos = 0x00000000;
-
+	
+	volatile U32 global_debug_buffer[GLOBAL_DEBUG_BUFFER_LENGTH];
+	volatile int global_debug_buffer_status = 0;		// Free running
 #endif
 
 #ifdef FEATURE_ADC_EXPERIMENTAL

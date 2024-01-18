@@ -165,6 +165,11 @@ extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the c
 	// Temporary code for logging purposes
 	extern volatile U32 min_last_written_ADC_pos;
 	extern volatile U32 max_last_written_ADC_pos;
+	
+	#define GLOBAL_DEBUG_BUFFER_LENGTH 100		// Samples total
+	#define GLOBAL_DEBUG_BUFFER_TAIL 30		// Samples after event
+	extern volatile U32 global_debug_buffer[GLOBAL_DEBUG_BUFFER_LENGTH];
+	extern volatile int global_debug_buffer_status;
 #endif
 
 
