@@ -1088,6 +1088,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 						local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) & (0x0FFFFFFF); // Removing old preamble
 						local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) | (0x90000000); // Injecting new preamble at almost negative full-scale
 					}
+					
+					global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
 				}
 			}
 
@@ -1151,7 +1153,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
 							debug_buffer_counter = 0;
 						}
-						global_debug_buffer[debug_buffer_counter++] = prev_sample_R;
+						global_debug_buffer[debug_buffer_counter++] = cache_R[temp_num_samples]; // Log doctored right channel, same as I2S out
 					}
 /*					// Tail: mark the tail (temporarily) and prepare to wind down - This else if {} is redundant unless tail is to be marked
 					else if (global_debug_buffer_status == GLOBAL_DEBUG_BUFFER_TAIL) {
@@ -1167,7 +1169,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
 							debug_buffer_counter = 0;
 						}
-						global_debug_buffer[debug_buffer_counter++] = prev_sample_R;
+						global_debug_buffer[debug_buffer_counter++] = cache_R[temp_num_samples]; // Log doctored right channel, same as I2S out
 						global_debug_buffer_status--; // Move on to the next part of the tail until we reach terminator
 					}
 					// Terminated: write two zeros to mark end of buffer, then halt state machine
