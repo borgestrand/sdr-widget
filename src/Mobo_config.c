@@ -1132,7 +1132,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					cache_L[temp_num_samples] = prev_sample_L;	// May use (*numsamples) instead of temp_num_samples, but that is slower (66.6us vs 60.6us for a 192ksps packet write)
 
 					// Normal write - reinstate when code is stable gain
-//					cache_R[temp_num_samples] = prev_sample_R;
+					cache_R[temp_num_samples] = prev_sample_R;
+
+
+/* // Various debugging on right I2S out
 
 					// Debugging with ADC_BUFFER_SIZE = 512 and bufpointer being bit 9. Scaled up			
 //					cache_R[temp_num_samples] = ( ( bufpointer << 9 ) + i ) << 19; // 0..1/4 full scale
@@ -1145,7 +1148,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					else {
 						cache_R[temp_num_samples] = 0;
 					}
-					
+*/
 
 					// Debug: Store RIGHT original sample WITHOUT conditions to debug buffer
 					// Free running: log R raw data
