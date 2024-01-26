@@ -477,13 +477,13 @@
   Usb_unicode('2'),\
   Usb_unicode('0'),\
   Usb_unicode('2'),\
-  Usb_unicode('3'),\
-  Usb_unicode('1'),\
-  Usb_unicode('1'),\
-  Usb_unicode('2'),\
-  Usb_unicode('5'),\
+  Usb_unicode('4'),\
   Usb_unicode('0'),\
   Usb_unicode('1'),\
+  Usb_unicode('2'),\
+  Usb_unicode('6'),\
+  Usb_unicode('0'),\
+  Usb_unicode('0'),\
   Usb_unicode('B'),\
   Usb_unicode('S'),\
   Usb_unicode('B') \
