@@ -1074,23 +1074,31 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			}
 */
 
-// Framework for more logic:
+// Framework for detection more logic:
 
-			if (i != (prev_i + 2) ) {
-				if (bufpointer != prev_bufpointer) {
-				}
-				else {
+			// Qualifier
+//			if (1) {
+			if (prev_captured_num_remaining == 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Error should still strike
+//			if (prev_captured_num_remaining != 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Does error still strike?
 
-					// Log the error
-					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
-					
-					if (local_debug_buffer_counter < LOCAL_DEBUG_BUFFER_LENGTH) {
-						local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) & (0x0FFFFFFF); // Removing old preamble
-						local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) | (0x90000000); // Injecting new preamble at almost negative full-scale
+
+				if (i != (prev_i + 2) ) {
+					if (bufpointer != prev_bufpointer) {
 					}
+					else {
+
+						// Log the error
+						gpio_tgl_gpio_pin(AVR32_PIN_PX31);
 					
-					global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
+						if (local_debug_buffer_counter < LOCAL_DEBUG_BUFFER_LENGTH) {
+							local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) & (0x0FFFFFFF); // Removing old preamble
+							local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) | (0x90000000); // Injecting new preamble at almost negative full-scale
+						}
+					
+						global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
+					}
 				}
+			
 			}
 
 
