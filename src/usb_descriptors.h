@@ -481,7 +481,7 @@
   Usb_unicode('0'),\
   Usb_unicode('1'),\
   Usb_unicode('2'),\
-  Usb_unicode('6'),\
+  Usb_unicode('7'),\
   Usb_unicode('0'),\
   Usb_unicode('0'),\
   Usb_unicode('B'),\
