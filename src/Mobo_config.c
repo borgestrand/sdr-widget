@@ -1078,8 +1078,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				tester --;	
 			}
 			if (tester != 0) {
-				if (  (bufpointer != prev_bufpointer) != (i != (prev_i + 2) )  ) {
-//				if (  (prev_captured_num_remaining == 512)  ) {
+//				if (  (bufpointer != prev_bufpointer) != (i != (prev_i + 2) )  ) {
+				if (  (prev_captured_num_remaining == 512)  ) {
 //				if (1) {
 				
 					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
