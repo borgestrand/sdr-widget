@@ -1078,8 +1078,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 			// Qualifier
 //			if (1) {
-			if (prev_captured_num_remaining == 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Error should still strike
-//			if (prev_captured_num_remaining != 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Does error still strike?
+//			if (prev_captured_num_remaining == 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Error should still strike
+			if (prev_captured_num_remaining != 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Does error still strike? NO, not for 8h continuous operation!
 
 
 				if (i != (prev_i + 2) ) {
