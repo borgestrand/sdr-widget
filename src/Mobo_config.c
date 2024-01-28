@@ -1065,7 +1065,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		while (i != last_written_ADC_pos) {
 
 
-			//  * ++ / ++ / == 2 / 1             ---- Were both conditions true?                             Expect yes. Running to check logic framework
+			//  * ++ / ++ / == 2 / 1             ---- Were both conditions true?                             Expect yes. Running to check logic framework. Detects
 			//    ++ / -- / != 0 / bufpointer    ---- Was bufpointer mismatch true and not num_remaining?
 			//    ++ / -- / != 0 / num_remaining ---- Was num_remainign true and not bufpointer mismatch? 
 			//    ++ / ++ / == 0 / 1             ---- Is neither condition true? - Expect message storm!
