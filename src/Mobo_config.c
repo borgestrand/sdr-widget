@@ -1064,18 +1064,38 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		i = prev_last_written_ADC_pos;
 		while (i != last_written_ADC_pos) {
 
-			// Look for gaps in progression of i and bufpointer. Expect them to happen at exactly the same time
-			// Use XOR (logical !=) to try to find times when one changes and not the other
+
+			//  * ++ / ++ / == 2 / 1             ---- Were both conditions true?                             Expect yes. Running to check logic framework
+			//    ++ / -- / != 0 / bufpointer    ---- Was bufpointer mismatch true and not num_remaining?
+			//    ++ / -- / != 0 / num_remaining ---- Was num_remainign true and not bufpointer mismatch? 
+			//    ++ / ++ / == 0 / 1             ---- Is neither condition true? - Expect message storm!
+			
+			int8_t tester = 0;
+			if (  (bufpointer != prev_bufpointer) != (i != (prev_i + 2) )  ) {
+				tester ++;
+			}
+			if (  (prev_captured_num_remaining == 512)  ) {
+				tester ++;	
+			}
+			if (tester == 2) {
+//				if (  (bufpointer != prev_bufpointer) != (i != (prev_i + 2) )  ) {
+//				if (  (prev_captured_num_remaining == 512)  ) {
+				if (1) {
+				
+					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
+					if (local_debug_buffer_counter < LOCAL_DEBUG_BUFFER_LENGTH) {
+						local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) & (0x0FFFFFFF); // Removing old preamble
+						local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) | (0x90000000); // Injecting new preamble at almost negative full-scale
+					}
+					global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
+				
+				}
+			}
+
+
+
 
 /*
-// Works:
-			if ( (bufpointer != prev_bufpointer) != (i != (prev_i + 2) ) ) {
-				gpio_tgl_gpio_pin(AVR32_PIN_PX31); // Alternative check
-			}
-*/
-
-// Framework for detection more logic:
-
 			// Qualifier
 //			if (1) {
 //			if (prev_captured_num_remaining == 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Error should still strike
@@ -1100,7 +1120,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 				}
 			
 			}
-
+*/
 
 			prev_bufpointer = bufpointer;
 			prev_i = i;
