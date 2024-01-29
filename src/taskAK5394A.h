@@ -39,7 +39,11 @@
 Long buffers may take up too much RAM. And clearing and moving their contents take a long time.
 Short buffers give less system latency and poorer synch state machine performance
 */
+#ifdef FEATURE_UNI_ADC
+	#define ADC_BUFFER_SIZE_UNI 1024 // Must be divisible by 4
+#else
 	#define ADC_BUFFER_SIZE	512 // 384 // (8*2*24) * 1 // = 384 = 192 stereo samples ADC_site requires uncomfortably much fine-tuning in order to work with two consumers
+#endif
 	#define DAC_BUFFER_SIZE 1536 // (32*2*24) * 1 // = 1536
 	#define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
 
@@ -142,12 +146,16 @@ Short buffers give less system latency and poorer synch state machine performanc
 //extern const pdca_channel_options_t SPK_PDCA_OPTIONS;
 
 // Global buffer variables
-extern volatile S32 audio_buffer_0[ADC_BUFFER_SIZE]; // BSB 20170324 changed to signed
-extern volatile S32 audio_buffer_1[ADC_BUFFER_SIZE];
+#ifdef FEATURE_UNI_ADC
+	extern volatile S32 audio_buffer_uni[ADC_BUFFER_SIZE_UNI];
+#else
+	extern volatile S32 audio_buffer_0[ADC_BUFFER_SIZE]; // BSB 20170324 changed to signed
+	extern volatile S32 audio_buffer_1[ADC_BUFFER_SIZE];
+	extern volatile int ADC_buf_DMA_write;	// Written by interrupt handler, initiated by sequential code, singlebuf redundant
+#endif
 extern volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 extern volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
-extern volatile int ADC_buf_DMA_write;	// Written by interrupt handler, initiated by sequential code, singlebuf redundant
 extern volatile int DAC_buf_DMA_read;	// Written by interrupt handler, initiated by sequential code
 extern volatile int ADC_buf_I2S_IN; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
 extern volatile int ADC_buf_USB_IN;		// Written by sequential code, handles only data IN-to USB host
@@ -158,21 +166,16 @@ extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the c
 
 #ifdef HW_GEN_RXMOD
 	// SPDIF timer/counter records DMA status - global registers move data from interrupt handler
-	extern volatile int timer_captured_ADC_buf_DMA_write;
-	extern volatile U32 timer_captured_num_remaining; // singlebuf redundant
-	
+	#ifdef FEATURE_UNI_ADC
+	#else
+		extern volatile int timer_captured_ADC_buf_DMA_write;
+	#endif
+	extern volatile U32 timer_captured_num_remaining;
 	
 	// Temporary code for logging purposes
 	extern volatile U32 min_last_written_ADC_pos;
 	extern volatile U32 max_last_written_ADC_pos;
 	
-	#define GLOBAL_DEBUG_BUFFER_LENGTH 100+2	// 100 samples total, two zero terminators
-	#define GLOBAL_DEBUG_BUFFER_TAIL 30+2		// 30 tail samples after event, two zero terminators
-	#define GLOBAL_DEBUG_BUFFER_TERMINATE 2		// End with zeros
-	#define GLOBAL_DEBUG_BUFFER_HALT 1			// State machine is halted
-	#define GLOBAL_DEBUG_BUFFER_FREE 0			// Free running
-	extern volatile U32 global_debug_buffer[GLOBAL_DEBUG_BUFFER_LENGTH];
-	extern volatile int global_debug_buffer_status;
 #endif
 
 

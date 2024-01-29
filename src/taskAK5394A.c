@@ -73,31 +73,44 @@ static const gpio_map_t SSC_GPIO_MAP = {
 };
 
 static const pdca_channel_options_t PDCA_OPTIONS = {
-	.addr = (void *)audio_buffer_0,         // memory address
-	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
-	.size = ADC_BUFFER_SIZE,              // transfer counter
-	.r_addr = NULL,                         // next memory address // Is this safe?? What about using audio_buffer_1 here?
-	.r_size = 0,                            // next transfer counter // Is this to force an immediate interrupt?
-	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+	#ifdef FEATURE_UNI_ADC
+		.addr = (void *)audio_buffer_uni,       // memory address
+		.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
+		.size = ADC_BUFFER_SIZE_UNI				// transfer counter
+	#else
+		.addr = (void *)audio_buffer_0,         // memory address
+		.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
+		.size = ADC_BUFFER_SIZE,				// transfer counter
+	#endif
+	.r_addr = NULL,								// next memory address // Is this safe?? What about using audio_buffer_1 here?
+	.r_size = 0,								// next transfer counter // Is this to force an immediate interrupt?
+	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
 };
 
 static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
-	.addr = (void *)spk_buffer_0,         // memory address
-	.pid = AVR32_PDCA_PID_SSC_TX,           // select peripheral
-	.size = DAC_BUFFER_SIZE,              // transfer counter
-	.r_addr = NULL,                         // next memory address // What about using spk_buffer_1 here?
-	.r_size = 0,                            // next transfer counter
-	.transfer_size = PDCA_TRANSFER_SIZE_WORD  // select size of the transfer - 32 bits
+	.addr = (void *)spk_buffer_0,				// memory address
+	.pid = AVR32_PDCA_PID_SSC_TX,				// select peripheral
+	.size = DAC_BUFFER_SIZE,					// transfer counter
+	.r_addr = NULL,								// next memory address // What about using spk_buffer_1 here?
+	.r_size = 0,								// next transfer counter
+	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
 };
 
-volatile S32 audio_buffer_0[ADC_BUFFER_SIZE]; // BSB 20170324 changed to signed
-volatile S32 audio_buffer_1[ADC_BUFFER_SIZE];
+#ifdef FEATURE_UNI_ADC
+	volatile S32 audio_buffer_uni[ADC_BUFFER_SIZE_UNI];
+#else
+#endif
+
 volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
-volatile int ADC_buf_DMA_write = 0;	// Written by interrupt handler, initiated by sequential code
+#ifdef FEATURE_UNI_ADC
+#else
+	volatile int ADC_buf_DMA_write = 0;	// Written by interrupt handler, initiated by sequential code
+#endif
+
 volatile int DAC_buf_DMA_read = 0;	// Written by interrupt handler, initiated by sequential code
 volatile int ADC_buf_I2S_IN = 0; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
 volatile int ADC_buf_USB_IN = 0;	// Written by sequential code, handles only data IN-to USB host
@@ -107,15 +120,15 @@ volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
 #ifdef HW_GEN_RXMOD
+#ifdef FEATURE_UNI_ADC
+#else
 	volatile int timer_captured_ADC_buf_DMA_write = 0;	// SPDIF timer/counter records DMA status
+#endif
 	volatile U32 timer_captured_num_remaining = 0;
 	
 	// Temporary code for logging purposes, also re-initiate on readout
 	volatile U32 min_last_written_ADC_pos = 0x7FFFFFFF;
 	volatile U32 max_last_written_ADC_pos = 0x00000000;
-	
-	volatile U32 global_debug_buffer[GLOBAL_DEBUG_BUFFER_LENGTH];
-	volatile int global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_FREE;		// Free running
 #endif
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
@@ -140,31 +153,47 @@ volatile U8 dig_in_silence;
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void pdca_int_handler(void) {
-	if (ADC_buf_DMA_write == 0) {
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
 		// Register names are different from those used in AVR32108. BUT: it seems pdca_reload_channel() sets the
 		// -next- pointer, the one to be selected automatically after the current one is done. That may be why
 		// we choose the same buffer number here as in the seq. code
 
-		Enable_global_interrupt();
-			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
-			ADC_buf_DMA_write = 1;
-		Disable_global_interrupt();
+#ifdef FEATURE_UNI_ADC
+	pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_uni, ADC_BUFFER_SIZE_UNI);
 
-#ifdef USB_STATE_MACHINE_GPIO
-    	gpio_set_gpio_pin(AVR32_PIN_PX30); 
-#endif
-	}
-	else if (ADC_buf_DMA_write == 1) {
-		Enable_global_interrupt();
-			pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
-			ADC_buf_DMA_write = 0;
-		Disable_global_interrupt();
+	#ifdef USB_STATE_MACHINE_GPIO
+		static int logger = 0;
+		if (logger == 1) {
+			gpio_set_gpio_pin(AVR32_PIN_PX30);
+		}
+		else {
+			gpio_clr_gpio_pin(AVR32_PIN_PX30);
+		
+		}
+		logger = 1 - logger;
+	#endif
+#else
+	if (ADC_buf_DMA_write == 0) {
+			Enable_global_interrupt();
+				pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_1, ADC_BUFFER_SIZE);
+				ADC_buf_DMA_write = 1;
+			Disable_global_interrupt();
 
-#ifdef USB_STATE_MACHINE_GPIO
-		gpio_clr_gpio_pin(AVR32_PIN_PX30);
+	#ifdef USB_STATE_MACHINE_GPIO
+    		gpio_set_gpio_pin(AVR32_PIN_PX30); 
+	#endif
+		}
+		else if (ADC_buf_DMA_write == 1) {
+			Enable_global_interrupt();
+				pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_0, ADC_BUFFER_SIZE);
+				ADC_buf_DMA_write = 0;
+			Disable_global_interrupt();
+
+	#ifdef USB_STATE_MACHINE_GPIO
+			gpio_clr_gpio_pin(AVR32_PIN_PX30);
+	#endif
+		}
 #endif
-	}
  
 }
 
@@ -229,23 +258,44 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		tc_read_sr(&SPDIF_TC_DEVICE, SPDIF_TC_CHANNEL);
 
 		// New co-sample verification routine
-		timer_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
-		timer_captured_num_remaining = pdca_channel->tcr;
-						
-		// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
-		// for a long time. In which we simply read the counter again
-		if (timer_captured_ADC_buf_DMA_write != ADC_buf_DMA_write) {
+		#ifdef FEATURE_UNI_ADC
+		#else
 			timer_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
-			timer_captured_num_remaining = pdca_channel->tcr;
-		}
+		#endif
 		
-		// Show what we just recorded by timer interrupt
-		if (timer_captured_ADC_buf_DMA_write == 0) {
-			gpio_clr_gpio_pin(AVR32_PIN_PX33);
-		}
-		else {
-			gpio_set_gpio_pin(AVR32_PIN_PX33);
-		}
+		timer_captured_num_remaining = pdca_channel->tcr;
+
+		#ifdef FEATURE_UNI_ADC						
+		#else
+			// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
+			// for a long time. In which we simply read the counter again
+			if (timer_captured_ADC_buf_DMA_write != ADC_buf_DMA_write) {
+				timer_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
+				timer_captured_num_remaining = pdca_channel->tcr;
+			}
+		#endif
+
+		#ifdef FEATURE_UNI_ADC		
+			#ifdef USB_STATE_MACHINE_GPIO
+				static int logger = 0;
+				if (logger == 1) {
+					gpio_set_gpio_pin(AVR32_PIN_PX33);
+				}
+				else {
+					gpio_clr_gpio_pin(AVR32_PIN_PX33);
+				}
+				logger = 1 - logger;
+			#endif
+		#else
+			// Show what we just recorded by timer interrupt
+			if (timer_captured_ADC_buf_DMA_write == 0) {
+				gpio_clr_gpio_pin(AVR32_PIN_PX33);
+			}
+			else {
+				gpio_set_gpio_pin(AVR32_PIN_PX33);
+			}
+		#endif
+		
 		
 		
 		// What is the highest and lowest captured num_remaining?
@@ -341,7 +391,11 @@ void AK5394A_pdca_rx_enable(U32 frequency) {
 	Disable_global_interrupt();			// Or taskENTER_CRITICAL();
 
 	pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS);
-	ADC_buf_DMA_write = 0;
+
+	#ifdef FEATURE_UNI_ADC
+	#else
+		ADC_buf_DMA_write = 0;
+	#endif
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
@@ -433,8 +487,6 @@ void AK5394A_task_init(const Bool uac1) {
 	// HSB Bus matrix register MCFG1 is associated with the CPU instruction master interface.
 	AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_CPU_INSN] = 0x1;
 
-// 	ADC_buf_DMA_write = 0; Now done in (global) variable declaration
-//	DAC_buf_DMA_read = 0; Now done in (global) variable declaration
 	// Register PDCA IRQ interruptS. // Plural those are!
 	pdca_set_irq();
 

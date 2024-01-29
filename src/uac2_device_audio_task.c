@@ -181,8 +181,11 @@ void uac2_device_audio_task(void *pvParameters)
 	uint32_t silence_det_R = 0;
 	uint8_t silence_det = 0;
 	int local_DAC_buf_DMA_read = 0;				// Local copy read in atomic operations
-	int local_ADC_buf_DMA_write = 0;				// Local copy read in atomic operations
-
+	#ifdef FEATURE_UNI_ADC
+	#else
+		int local_ADC_buf_DMA_write = 0;		// Local copy read in atomic operations
+	#endif
+	
 // Start new code for skip/insert
 	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
 	S32 cache_L[SPK_CACHE_MAX_SAMPLES];
@@ -291,6 +294,8 @@ void uac2_device_audio_task(void *pvParameters)
 					
 				} // Init synching up USB IN consumer's pointers to I2S RX data producer
 				
+				
+				// Rewrite everything wtih #ifdef FEATURE_UNI_ADC
 				
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready

@@ -319,42 +319,6 @@ void device_mouse_hid_task(void)
 				print_cpu_char('\n');
 			}
 
-			else if (a == 'Q') {							// Uppercase 'Q' 
-				if (global_debug_buffer_status == GLOBAL_DEBUG_BUFFER_FREE) {
-					global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
-				}
-			}
-
-			// Debug spdif packet through timer/counter
-			else if (a == 'q') {							// Lowercase 'q'
-				
-				min_last_written_ADC_pos = 0x10101010;
-				max_last_written_ADC_pos = 0x10101010;
-
-				print_dbg_char('\n');
-				int debug_buffer_counter; // Used to access global_debug_buffer[]
-				for (debug_buffer_counter=0; debug_buffer_counter<GLOBAL_DEBUG_BUFFER_LENGTH; debug_buffer_counter++) {
-					print_dbg_hex(global_debug_buffer[debug_buffer_counter]);
-					vTaskDelay(100);						// Don't hog resources, wait 10us-ish to send next word
-					print_dbg_char('\n');
-				}
-
- 				global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_FREE;			// Free running after printout, available to log events
-
-
-/*				
-				print_dbg_char('\n');
-				print_dbg_hex(min_last_written_ADC_pos);
-				print_dbg_char('\n');
-				print_dbg_hex(max_last_written_ADC_pos);
-				print_dbg_char('\n');
-				
-				// Reset after readout
-				min_last_written_ADC_pos = 0x7FFFFFFF;
-				max_last_written_ADC_pos = 0x00000000;
-*/				
-			}
-
 			// Detect sample rate of I2S in
 			else if (a == MCU_CHAR_FBRATE) {				// Lowercase 'f'
 				print_cpu_char_hex(FB_rate >> 24);			// MSB in 32-bit fixed-point number - not transmitted in UAC2 / Full Speed
