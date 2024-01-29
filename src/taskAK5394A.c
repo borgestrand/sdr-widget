@@ -99,17 +99,15 @@ static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
 #ifdef FEATURE_UNI_ADC
 	volatile S32 audio_buffer_uni[ADC_BUFFER_SIZE_UNI];
 #else
+	volatile S32 audio_buffer_0[ADC_BUFFER_SIZE];
+	volatile S32 audio_buffer_1[ADC_BUFFER_SIZE];
+	volatile int ADC_buf_DMA_write = 0;	// Written by interrupt handler, initiated by sequential code
 #endif
 
 volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
-
-#ifdef FEATURE_UNI_ADC
-#else
-	volatile int ADC_buf_DMA_write = 0;	// Written by interrupt handler, initiated by sequential code
-#endif
 
 volatile int DAC_buf_DMA_read = 0;	// Written by interrupt handler, initiated by sequential code
 volatile int ADC_buf_I2S_IN = 0; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)

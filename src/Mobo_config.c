@@ -1014,7 +1014,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
 			local_captured_num_remaining = timer_captured_num_remaining;
 		}
-	#else
+	#endif
 	
 	// Reused test based on .reliable from old code below. What is its purpose? It messes up USB playback if it was started during an spdif playback which was later halted
 	// NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
