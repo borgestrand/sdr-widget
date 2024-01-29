@@ -1010,8 +1010,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //	}
 //	else 
 
-	static U32 prev_i = 0;
-	static int prev_bufpointer = 0;
 	
 	if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
 
@@ -1034,98 +1032,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		U32 temp_si_index_high = 0;
 		S32 si_score_low = 0x7FFFFFFF;
 		
-		
-		// New buffer handle - populate a debug buffer according to "i2s_cache_debug.xlsx:Debug format"
-		#define  LOCAL_DEBUG_BUFFER_LENGTH 15						// Nominally enough for 44.1 and 48ksps
-		U32 local_debug_buffer[LOCAL_DEBUG_BUFFER_LENGTH];
-		local_debug_buffer[0] = (0x05 << 28) | (0x00 << 25);		// Preamble 0b0101, field ID 0
-		local_debug_buffer[1] = (0x05 << 28) | (0x01 << 25);		// Preamble 0b0101, field ID 1
-		local_debug_buffer[2] = (0x05 << 28) | (0x02 << 25);		// Preamble 0b0101, field ID 2
-		local_debug_buffer[3] = (0x05 << 28) | (0x03 << 25);		// Preamble 0b0101, field ID 3
-		local_debug_buffer[4] = 0x10000000;						// Preamble 0b0001, only leave room for local_debug_buffer_counter and mismatch detect
-		local_debug_buffer[5] = 0x10000000;
-		local_debug_buffer[6] = 0x10000000;
-		local_debug_buffer[7] = 0x10000000;
-		local_debug_buffer[8] = 0x10000000;
-		local_debug_buffer[9] = 0x10000000;
-		local_debug_buffer[10] = 0x10000000;
-		local_debug_buffer[11] = 0x10000000;
-		local_debug_buffer[12] = 0x10000000;
-		local_debug_buffer[13] = 0x10000000;
-		local_debug_buffer[14] = 0x10000000;
-		local_debug_buffer[0] |= (local_captured_ADC_buf_DMA_write << 24) | (local_captured_num_remaining << 14);	// Sampled from timer_captured_XX
-		local_debug_buffer[1] |= (prev_captured_ADC_buf_DMA_write << 24)  | (prev_captured_num_remaining << 14);	// History of above
-		local_debug_buffer[2] |= (last_written_ADC_buf << 24)             | (last_written_ADC_pos << 14);			// local_captured_XX -> ADC_pos
-		local_debug_buffer[3] |= (prev_last_written_ADC_buf << 24)        | (prev_last_written_ADC_pos << 14);	// Sampled from timer_captured_XX
-		int local_debug_buffer_counter = 0;
-		
 		static int debug_buffer_counter = 0; // Used to access global_debug_buffer[]
 		
 		i = prev_last_written_ADC_pos;
 		while (i != last_written_ADC_pos) {
-
-
-			//    ++ / ++ / == 2 / 1             ---- Were both conditions true?                             Expect yes. Running to check logic framework. Detects
-			// *  ++ / -- / != 0 / bufpointer    ---- Was bufpointer mismatch true and not num_remaining?
-			//    ++ / -- / != 0 / num_remaining ---- Was num_remainign true and not bufpointer mismatch? 
-			//    ++ / ++ / == 0 / 1             ---- Is neither condition true? - Expect message storm!
-			
-			int8_t tester = 0;
-			if (  (bufpointer != prev_bufpointer) != (i != (prev_i + 2) )  ) {
-				tester ++;
-			}
-			if (  (prev_captured_num_remaining == 512)  ) {
-				tester --;	
-			}
-			if (tester != 0) {
-//				if (  (bufpointer != prev_bufpointer) != (i != (prev_i + 2) )  ) {
-				if (  (prev_captured_num_remaining == 512)  ) {
-//				if (1) {
-				
-					gpio_tgl_gpio_pin(AVR32_PIN_PX31);
-					if (local_debug_buffer_counter < LOCAL_DEBUG_BUFFER_LENGTH) {
-						local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) & (0x0FFFFFFF); // Removing old preamble
-						local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) | (0x90000000); // Injecting new preamble at almost negative full-scale
-					}
-					global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
-				
-				} 
-			}
-
-
-
-
-/*
-			// Qualifier
-//			if (1) {
-//			if (prev_captured_num_remaining == 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Error should still strike
-			if (prev_captured_num_remaining != 512) {	// Found to always be the case in first 10 log dumps in i2s_cache_debug.xlsx - Does error still strike? NO, not for 8h continuous operation!
-
-
-				if (i != (prev_i + 2) ) {
-					if (bufpointer != prev_bufpointer) {
-					}
-					else {
-
-						// Log the error
-						gpio_tgl_gpio_pin(AVR32_PIN_PX31);
-					
-						if (local_debug_buffer_counter < LOCAL_DEBUG_BUFFER_LENGTH) {
-							local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) & (0x0FFFFFFF); // Removing old preamble
-							local_debug_buffer[local_debug_buffer_counter] = (local_debug_buffer[local_debug_buffer_counter]) | (0x90000000); // Injecting new preamble at almost negative full-scale
-						}
-					
-						global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_TAIL;				// Terminate free running debug
-					}
-				}
-			
-			}
-*/
-
-			prev_bufpointer = bufpointer;
-			prev_i = i;
-
-
 			// Read incoming sample from buffer being filled by DMA
 			if (bufpointer == 0) {					// 0 Seems better than 1, but non-conclusive
 				sample_L = audio_buffer_0[i];
@@ -1158,68 +1068,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					}
 								
 					cache_L[temp_num_samples] = prev_sample_L;	// May use (*numsamples) instead of temp_num_samples, but that is slower (66.6us vs 60.6us for a 192ksps packet write)
-
-					// Normal write - reinstate when code is stable gain
-					// cache_R[temp_num_samples] = prev_sample_R;
-
-
- // Various debugging on right I2S out
-
-					// Debugging with ADC_BUFFER_SIZE = 512 and bufpointer being bit 9. Scaled up			
-//					cache_R[temp_num_samples] = ( ( bufpointer << 9 ) + i ) << 19; // 0..1/4 full scale
-					
-					// Debug with local_debug_buffer as filled above
-					if (local_debug_buffer_counter < LOCAL_DEBUG_BUFFER_LENGTH) {
-						cache_R[temp_num_samples] = local_debug_buffer[local_debug_buffer_counter] | (local_debug_buffer_counter << 8);
-						local_debug_buffer_counter ++;
-					}
-					else {
-						cache_R[temp_num_samples] = 0;
-					}
-
-
-					// Debug: Store RIGHT original sample WITHOUT conditions to debug buffer
-					// Free running: log R raw data
-					if (global_debug_buffer_status == 0) {
-						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
-							debug_buffer_counter = 0;
-						}
-						global_debug_buffer[debug_buffer_counter++] = cache_R[temp_num_samples]; // Log doctored right channel, same as I2S out
-					}
-/*					// Tail: mark the tail (temporarily) and prepare to wind down - This else if {} is redundant unless tail is to be marked
-					else if (global_debug_buffer_status == GLOBAL_DEBUG_BUFFER_TAIL) {
-						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
-							debug_buffer_counter = 0;
-						}
-						global_debug_buffer[debug_buffer_counter++] = 0x80000000; // Mark the start of the tail end by maximal negative number
-						global_debug_buffer_status--; // Move on to the next part of the tail until we reach terminator
-					}
-*/					
-					// Event detected but not yet terminated: write tail
-					else if (global_debug_buffer_status > GLOBAL_DEBUG_BUFFER_TERMINATE) {
-						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
-							debug_buffer_counter = 0;
-						}
-						global_debug_buffer[debug_buffer_counter++] = cache_R[temp_num_samples]; // Log doctored right channel, same as I2S out
-						global_debug_buffer_status--; // Move on to the next part of the tail until we reach terminator
-					}
-					// Terminated: write two zeros to mark end of buffer, then halt state machine
-					else if (global_debug_buffer_status == GLOBAL_DEBUG_BUFFER_TERMINATE) {
-						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
-							debug_buffer_counter = 0;
-						}
-						global_debug_buffer[debug_buffer_counter++] = 0; // Mark end of data with two zero samples
-						if (debug_buffer_counter >= GLOBAL_DEBUG_BUFFER_LENGTH) {
-							debug_buffer_counter = 0;
-						}
-						global_debug_buffer[debug_buffer_counter++] = 0; // Mark end of data with two zero samples
-						global_debug_buffer_status = GLOBAL_DEBUG_BUFFER_HALT; // Halt the state machine. Get out of halt state by means of readout
-					}
-
-
-					// End of debug logger
-						
-					
+					cache_R[temp_num_samples] = prev_sample_R;
 					
 					temp_num_samples++;
 				} // SPK_CACHE_MAX_SAMPLES
