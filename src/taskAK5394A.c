@@ -76,7 +76,7 @@ static const pdca_channel_options_t PDCA_OPTIONS = {
 	#ifdef FEATURE_UNI_ADC
 		.addr = (void *)audio_buffer_uni,       // memory address
 		.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
-		.size = ADC_BUFFER_SIZE_UNI				// transfer counter
+		.size = ADC_BUFFER_SIZE_UNI,				// transfer counter
 	#else
 		.addr = (void *)audio_buffer_0,         // memory address
 		.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral

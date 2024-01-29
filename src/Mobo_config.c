@@ -1044,7 +1044,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		bool non_silence_det = FALSE;		// We're looking for first non-zero audio-data
 		// Cached if-test
 		bool we_own_cache = ( ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) );
-		int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
+
+		#ifdef FEATURE_UNI_ADC
+		#else
+			int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
+		#endif
 
 		// Minor time savings over writing to (*xx) every time - probably further improvements when taken inline in uac2_dat
 		U32 temp_num_samples = 0;
