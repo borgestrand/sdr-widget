@@ -1102,7 +1102,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					temp_num_samples++;
 				} // SPK_CACHE_MAX_SAMPLES
 				else {
-					print_dbg_char('!'); // Buffer length warning - occurs mainly at playback start and silence detection. Why?
+					print_dbg_char('!'); // Buffer length warning - occurs mainly at playback start and silence detection. Why? Update init code!
 				}
 				
 			} // End we_own_cache
@@ -1112,6 +1112,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			#ifdef FEATURE_UNI_ADC
 				if (i >= ADC_BUFFER_SIZE_UNI) {
 					i = 0;							// Start from beginning of same buffer!
+//					gpio_tgl_gpio_pin(AVR32_PIN_PX30);		// Perfect operation: This signal slightly lags producer's interrupt driven code
 				}
 			#else
 				if (i >= ADC_BUFFER_SIZE) {
@@ -1158,7 +1159,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Indicate end of processing spdif data, ideally once per 250us
 		
 		
-		// Puting untested init code here.... "ררר"
+		// Puting untested init code here.... "ררר" זזז
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
 				ADC_buf_I2S_IN = 0;							// Disable further init, select correct audio_buffer_0/1

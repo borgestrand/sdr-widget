@@ -72,7 +72,7 @@ static const gpio_map_t SSC_GPIO_MAP = {
 	{SSC_TX_FRAME_SYNC, SSC_TX_FRAME_SYNC_FUNCTION}
 };
 
-static const pdca_channel_options_t PDCA_OPTIONS = {
+static const pdca_channel_options_t PDCA_OPTIONS = { 
 	#ifdef FEATURE_UNI_ADC
 		.addr = (void *)audio_buffer_uni,       // memory address
 		.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
@@ -160,15 +160,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 	pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_uni, ADC_BUFFER_SIZE_UNI);
 
 	#ifdef USB_STATE_MACHINE_GPIO
-		static int logger = 0;
-		if (logger == 1) {
-			gpio_set_gpio_pin(AVR32_PIN_PX30);
-		}
-		else {
-			gpio_clr_gpio_pin(AVR32_PIN_PX30);
-		
-		}
-		logger = 1 - logger;
+		gpio_tgl_gpio_pin(AVR32_PIN_PX30);		// Perfect operation: This signal is +-90 degrees out of phase with ADC seq. code's consumer indicator! Or it just preceeds spdif handle's recorder!
 	#endif
 #else
 	if (ADC_buf_DMA_write == 0) {
