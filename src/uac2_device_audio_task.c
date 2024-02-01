@@ -384,13 +384,12 @@ void uac2_device_audio_task(void *pvParameters)
 // Adoption of DAC side's buffered gap calculation
 
 					#ifdef FEATURE_UNI_ADC
-						// ææææ simulate this whole gap business!
+						// Simulated in debug03_gap.c
 						num_remaining = pdca_channel->tcr;
-						// for the right polarity:
-						// subtract num_remaining
-						// subtract index
-
-						// Initial assumptions:
+						gap = ADC_BUFFER_SIZE_UNI - index - num_remaining;
+						if (gap < 0) {
+							gap += ADC_BUFFER_SIZE;
+						}
 						if ( gap < ADC_BUFFER_SIZE_UNI/4 ) {
 							// throttle back, transfer less
 							num_samples_adc--;
