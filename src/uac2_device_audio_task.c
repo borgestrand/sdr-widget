@@ -388,7 +388,7 @@ void uac2_device_audio_task(void *pvParameters)
 						num_remaining = pdca_channel->tcr;
 						gap = ADC_BUFFER_SIZE_UNI - index - num_remaining;
 						if (gap < 0) {
-							gap += ADC_BUFFER_SIZE;
+							gap += ADC_BUFFER_SIZE_UNI;
 						}
 						if ( gap < ADC_BUFFER_SIZE_UNI/4 ) {
 							// throttle back, transfer less
@@ -450,7 +450,7 @@ void uac2_device_audio_task(void *pvParameters)
 							#else
 								if (ADC_buf_USB_IN == 0) {
 									sample_left  = audio_buffer_0[index++]; // Was [index + IN_LEFT];
-									sample_right = [index++]; // Was [index + IN_RIGHT];
+									sample_right = audio_buffer_0[index++]; // Was [index + IN_RIGHT];
 								}
 								else if (ADC_buf_USB_IN == 1) {
 									sample_left  = audio_buffer_1[index++]; // Was [index + IN_LEFT];
@@ -1444,15 +1444,6 @@ void uac2_device_audio_task(void *pvParameters)
 				// Fetch from cache
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
-
-				
-				if (abs(cache_L[i]) < min_last_written_ADC_pos) {
-					min_last_written_ADC_pos = abs(cache_L[i]);
-				}
-				if (abs(cache_L[i]) > max_last_written_ADC_pos) {
-					max_last_written_ADC_pos = abs(cache_L[i]);
-				}
-
 
 				if (DAC_buf_OUT == 0) {
 					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]

@@ -171,11 +171,6 @@ extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the c
 		extern volatile int timer_captured_ADC_buf_DMA_write;
 	#endif
 	extern volatile U32 timer_captured_num_remaining;
-	
-	// Temporary code for logging purposes
-	extern volatile U32 min_last_written_ADC_pos;
-	extern volatile U32 max_last_written_ADC_pos;
-	
 #endif
 
 
