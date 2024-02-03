@@ -384,7 +384,7 @@ void uac2_device_audio_task(void *pvParameters)
 // Adoption of DAC side's buffered gap calculation
 
 					#ifdef FEATURE_UNI_ADC
-						// Simulated in debug03_gap.c
+						// Simulated in debug03_gap.c - not verified or thoroughly analyzed
 						num_remaining = pdca_channel->tcr;
 						gap = ADC_BUFFER_SIZE_UNI - index - num_remaining;
 						if (gap < 0) {
@@ -393,10 +393,12 @@ void uac2_device_audio_task(void *pvParameters)
 						if ( gap < ADC_BUFFER_SIZE_UNI/4 ) {
 							// throttle back, transfer less
 							num_samples_adc--;
+							print_dbg_char('-');
 						}
 						else if (gap > (ADC_BUFFER_SIZE_UNI/2 + ADC_BUFFER_SIZE_UNI/4)) {
 							// transfer more
 							num_samples_adc++;
+							print_dbg_char('+');
 						}
 					#else
 						local_ADC_buf_DMA_write = ADC_buf_DMA_write;
@@ -422,15 +424,15 @@ void uac2_device_audio_task(void *pvParameters)
 						if ( gap < ADC_BUFFER_SIZE/2 ) {
 							// throttle back, transfer less
 							num_samples_adc--; // This one can be omitted...
+							print_dbg_char('-');
+
 						}
 						else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
 							// transfer more
 							num_samples_adc++;
+							print_dbg_char('+');
 						}
 					#endif
-
-
-
 // End of gap calculation
 
 
