@@ -926,34 +926,16 @@ uint32_t mobo_wait_LRCK_TX_asm(void) {
 
 
 // Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair! Possible source of bugs!!
-#ifdef FEATURE_UNI_ADC
-	void mobo_ADC_position_uni(U32 *last_pos, U32 num_remaining) {
-		*last_pos = (ADC_BUFFER_SIZE_UNI - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
-		// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
-		if (*last_pos < ADC_BUFFER_SIZE_UNI) {
-		}
-		// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE_UNI? If so, don't overflow but record the last likely position
-		else {
-			*last_pos = (ADC_BUFFER_SIZE_UNI - 2); // Counting mono samples 
-		}
+void mobo_ADC_position_uni(U32 *last_pos, U32 num_remaining) {
+	*last_pos = (ADC_BUFFER_SIZE_UNI - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
+	// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
+	if (*last_pos < ADC_BUFFER_SIZE_UNI) {
 	}
-#else
-	void mobo_ADC_position(U32 *last_pos, int *last_buf, U32 num_remaining, int buf) {
-		*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
-		// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
-		if (*last_pos < ADC_BUFFER_SIZE) {
-			*last_buf = buf;
-		}
-		// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE? If so, don't overflow but record the last position of the previous buffer
-		// Tests indicate timer_captured_ADC_buf_DMA_write in the range 0..ADC_BUFFER_SIZE-1, and in extremely rare situations 0..ADC_BUFFER_SIZE
-		else {
-			num_remaining = max(num_remaining - 2, ADC_BUFFER_SIZE - 2); // Move back one stereo sample or more. Rather risk deleting samples than overflowing buffer access
-			*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = start with left sample
-			buf = 1  - buf;
-			*last_buf = buf;
-		}
+	// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE_UNI? If so, don't overflow but record the last likely position
+	else {
+		*last_pos = (ADC_BUFFER_SIZE_UNI - 2); // Counting mono samples 
 	}
-#endif
+}
 
 
 // Handle spdif and toslink input
@@ -961,11 +943,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	
 	
 // Overwritten parameters, rewrite without '*' if handled inline instead of as function call
-	#ifdef FEATURE_UNI_ADC
-	#else
-		static int prev_ADC_buf_DMA_write = INIT_ADC_I2S;
-		int local_ADC_buf_DMA_write = 0;
-	#endif
 	static U32 spk_index = 0;
 
 	U32 i;								// Generic counter
@@ -991,30 +968,13 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	U32 last_written_ADC_pos = 0;
 	static U32 prev_last_written_ADC_pos = 0;
 	
-	#ifdef FEATURE_UNI_ADC
-	#else
-		volatile int local_captured_ADC_buf_DMA_write = 0;
-		static int prev_captured_ADC_buf_DMA_write = 0;
-		int last_written_ADC_buf = 0;
-		static int prev_last_written_ADC_buf = 0;
-	#endif
 
 	// Begin new code for timer/counter indicated packet processing
 
 	// Does spdif timer interrupt indicate that we should process 250-ish µs of incoming SPDIF data?
 	
 	// First try to establish a local, synchronously-sampled local cache
-	#ifdef FEATURE_UNI_ADC
-		local_captured_num_remaining = timer_captured_num_remaining;
-	#else
-		local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
-		local_captured_num_remaining = timer_captured_num_remaining;
-		// Interrupt may strike at any time, so re-cache if needed
-		if (local_captured_ADC_buf_DMA_write != timer_captured_ADC_buf_DMA_write ) {
-			local_captured_ADC_buf_DMA_write = timer_captured_ADC_buf_DMA_write;
-			local_captured_num_remaining = timer_captured_num_remaining;
-		}
-	#endif
+	local_captured_num_remaining = timer_captured_num_remaining;
 	
 	// Reused test based on .reliable from old code below. What is its purpose? It messes up USB playback if it was started during an spdif playback which was later halted
 	// NB: For now, spdif_rx_status.reliable = 1 is only set after a mutex take in wm8804.c. Is that correct?
@@ -1024,31 +984,18 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //	}
 //	else 
 
-	#ifdef FEATURE_UNI_ADC
 		if (prev_captured_num_remaining != local_captured_num_remaining) {
-	#else
-		if ( (prev_captured_num_remaining != local_captured_num_remaining) || (prev_captured_ADC_buf_DMA_write != local_captured_ADC_buf_DMA_write) ) {
-	#endif
 		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate start of processing spdif data, ideally once per 250us
 
 		// Start processing a 250µs chunk of the ADC pdca buffer
 
 		// Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair!
-		#ifdef FEATURE_UNI_ADC
-			mobo_ADC_position_uni(&last_written_ADC_pos, local_captured_num_remaining);
-		#else
-			mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
-		#endif
+		mobo_ADC_position_uni(&last_written_ADC_pos, local_captured_num_remaining);
 
 
 		bool non_silence_det = FALSE;		// We're looking for first non-zero audio-data
 		// Cached if-test
 		bool we_own_cache = ( ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) );
-
-		#ifdef FEATURE_UNI_ADC
-		#else
-			int bufpointer = prev_last_written_ADC_buf;	// The first sample to consider for zero detection and data fetch - could possibly reuse prev_last_written_ADC_buf but that would obfuscate readability
-		#endif
 
 		// Minor time savings over writing to (*xx) every time - probably further improvements when taken inline in uac2_dat
 		U32 temp_num_samples = 0;
@@ -1061,19 +1008,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		while (i != last_written_ADC_pos) {
 			// Read incoming sample from buffer being filled by DMA
 			
-			#ifdef FEATURE_UNI_ADC
-				sample_L = audio_buffer_uni[i];
-				sample_R = audio_buffer_uni[i + 1];
-			#else
-				if (bufpointer == 0) {					// 0 Seems better than 1, but non-conclusive
-					sample_L = audio_buffer_0[i];
-					sample_R = audio_buffer_0[i + 1];
-				}
-				else if (bufpointer == 1) {
-					sample_L = audio_buffer_1[i];
-					sample_R = audio_buffer_1[i + 1];
-				}
-			#endif
+			sample_L = audio_buffer_uni[i];
+			sample_R = audio_buffer_uni[i + 1];
 			
 			// Silence detect v3.0. Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
 			non_silence_det = ( (non_silence_det) || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
@@ -1109,17 +1045,10 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 			// Index next incoming sample
 			i+=2; // counts up to last_written_ADC_buf
-			#ifdef FEATURE_UNI_ADC
-				if (i >= ADC_BUFFER_SIZE_UNI) {
-					i = 0;							// Start from beginning of same buffer!
-//					gpio_tgl_gpio_pin(AVR32_PIN_PX30);		// Perfect operation: This signal slightly lags producer's interrupt driven code
-				}
-			#else
-				if (i >= ADC_BUFFER_SIZE) {
-					i = 0;							// Start from beginning of next buffer
-					bufpointer = 1 - bufpointer;	// Toggle buffers
-				}
-			#endif
+			if (i >= ADC_BUFFER_SIZE_UNI) {
+				i = 0;							// Start from beginning of same buffer!
+//				gpio_tgl_gpio_pin(AVR32_PIN_PX30);		// Perfect operation: This signal slightly lags producer's interrupt driven code
+			}
 			
 			// Establish history
 			prev_sample_L = sample_L;
@@ -1150,11 +1079,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		}
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
-		#ifdef FEATURE_UNI_ADC
-		#else
-			prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
-			prev_last_written_ADC_buf = last_written_ADC_buf;
-		#endif
 
 		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Indicate end of processing spdif data, ideally once per 250us
 		
@@ -1187,56 +1111,24 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	// - Thorough verification, particularly on source changes to/from USB that was initiated while the other source was active
 	// - How much of the code from here to the end of the function is actually needed? What must be replicated above?
 
-#ifdef FEATURE_UNI_ADC 
 	if (ADC_buf_I2S_IN == INIT_ADC_I2S) {		// INIT code needs reviewing!!
-#else
-	local_ADC_buf_DMA_write = ADC_buf_DMA_write; // Interrupt may strike at any time, make cached copy for testing below
-
-	// Continue writing to consumer's buffer where this routine left off last
-	if ( (prev_ADC_buf_DMA_write == INIT_ADC_I2S) || (ADC_buf_I2S_IN == INIT_ADC_I2S) ) {	// Do the init on synchronous sampling ref. ADC DMA timing
-#endif
-
 		// Clear incoming SPDIF before enabling pdca to keep filling it - moved to pdca rx enable code
 		// mobo_clear_adc_channel();
 
 // Start of new code
 
 		// What is a valid starting point for ADC buffer readout? wm8804 code supposedly just started the pdca for us to be here
-		#ifdef FEATURE_UNI_ADC
-		#else
-			local_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
-		#endif
-		
 		local_captured_num_remaining = pdca_channel->tcr;
-		
-		#ifdef FEATURE_UNI_ADC
-		#else
-			// Interrupt may strike at any time, so re-cache if needed 
-			if (local_captured_ADC_buf_DMA_write != ADC_buf_DMA_write ) {
-				local_captured_ADC_buf_DMA_write = ADC_buf_DMA_write;
-				local_captured_num_remaining = pdca_channel->tcr;
-			}
-		#endif
 
 		// Convert from pdca report to buffer address - initiate the present versions of these variables based on the most updated cached readout of ADC pdca status
 		// _pos always points to left sample in LR stereo pair!
-		#ifdef FEATURE_UNI_ADC
-			mobo_ADC_position_uni(&last_written_ADC_pos, local_captured_num_remaining);
-			last_written_ADC_pos += ADC_BUFFER_SIZE_UNI / 2;	// Starting half a unified buffer away from DMA's write head
-			if (last_written_ADC_pos >= ADC_BUFFER_SIZE_UNI) {	// Stay within bounds
-				last_written_ADC_pos -= ADC_BUFFER_SIZE_UNI;
-			}
-		#else
-			mobo_ADC_position(&last_written_ADC_pos, &last_written_ADC_buf, local_captured_num_remaining, local_captured_ADC_buf_DMA_write);
-		#endif
+		mobo_ADC_position_uni(&last_written_ADC_pos, local_captured_num_remaining);
+		last_written_ADC_pos += ADC_BUFFER_SIZE_UNI / 2;	// Starting half a unified buffer away from DMA's write head
+		if (last_written_ADC_pos >= ADC_BUFFER_SIZE_UNI) {	// Stay within bounds
+			last_written_ADC_pos -= ADC_BUFFER_SIZE_UNI;
+		}
 		
 		// Clear the history
-		#ifdef FEATURE_UNI_ADC
-		#else
-			prev_captured_ADC_buf_DMA_write = local_captured_ADC_buf_DMA_write;
-			prev_last_written_ADC_buf = last_written_ADC_buf;
-			prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
-		#endif
 		prev_captured_num_remaining = local_captured_num_remaining;
 		prev_last_written_ADC_pos = last_written_ADC_pos;
 		
@@ -1256,41 +1148,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 	if (spdif_rx_status.reliable == 0) { // Temporarily unreliable counts as silent and halts processing
 		spdif_rx_status.silent = 1;
-		#ifdef FEATURE_UNI_ADC
-		#else
-			prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;			// Respond as soon as .reliable is set
-		#endif
 	}
 
-	#ifdef FEATURE_UNI_ADC
-	
-		// Moved to above, see "øøøø". How smart was that really?? 
-		
-	#else
-		// Has producer's buffer been toggled by interrupt driven DMA code?
-		// Only bother if .reliable != 0  WHY?
-		else if (local_ADC_buf_DMA_write != prev_ADC_buf_DMA_write) { // Check if producer has sent more data
-
-			// Establish history
-			prev_ADC_buf_DMA_write = local_ADC_buf_DMA_write;
-
-			if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
-
-				// Startup condition: must initiate consumer's write pointer to where-ever its read pointer may be
-				// æææææ does this influence uac2_dat and where cache data is written?
-				if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
-
-					ADC_buf_I2S_IN = local_ADC_buf_DMA_write;	// Disable further init, select correct audio_buffer_0/1
-					dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
-				} // if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2)
-
-			} // input select
-		
-		} // ADC_buf_DMA_write toggle
-	#endif
-	
-
-	
 
 } // mobo_handle_spdif(void)
 
@@ -1627,16 +1486,9 @@ void mobo_clear_adc_channel(void) {
 
 //	gpio_set_gpio_pin(AVR32_PIN_PX18); // ch2
 
-#ifdef FEATURE_UNI_ADC
 	for (i = 0; i < ADC_BUFFER_SIZE_UNI; i++) {
 		audio_buffer_uni[i] = 0;
 	}
-#else
-	for (i = 0; i < ADC_BUFFER_SIZE; i++) {
-		audio_buffer_0[i] = 0;
-		audio_buffer_1[i] = 0;
-	}
-#endif
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX18); // ch2
 }

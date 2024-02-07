@@ -39,13 +39,9 @@
 Long buffers may take up too much RAM. And clearing and moving their contents take a long time.
 Short buffers give less system latency and poorer synch state machine performance
 */
-#ifdef FEATURE_UNI_ADC
-	#define ADC_BUFFER_SIZE_UNI 1024 // Must be divisible by 4
-#else
-	#define ADC_BUFFER_SIZE	512 // 384 // (8*2*24) * 1 // = 384 = 192 stereo samples ADC_site requires uncomfortably much fine-tuning in order to work with two consumers
-#endif
-	#define DAC_BUFFER_SIZE 1536 // (32*2*24) * 1 // = 1536
-	#define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
+#define ADC_BUFFER_SIZE_UNI 1024 // Must be divisible by 4
+#define DAC_BUFFER_SIZE 1536 // (32*2*24) * 1 // = 1536
+#define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
 
 // Trying to provoke bugs in 44.1 SPDIF playback during USB activity. *5 instead of *24 means running DMAs slightly faster than nominal at 192
 //	#define ADC_BUFFER_SIZE	(8*2*3)
@@ -146,13 +142,7 @@ Short buffers give less system latency and poorer synch state machine performanc
 //extern const pdca_channel_options_t SPK_PDCA_OPTIONS;
 
 // Global buffer variables
-#ifdef FEATURE_UNI_ADC
-	extern volatile S32 audio_buffer_uni[ADC_BUFFER_SIZE_UNI];
-#else
-	extern volatile S32 audio_buffer_0[ADC_BUFFER_SIZE]; // BSB 20170324 changed to signed
-	extern volatile S32 audio_buffer_1[ADC_BUFFER_SIZE];
-	extern volatile int ADC_buf_DMA_write;	// Written by interrupt handler, initiated by sequential code, singlebuf redundant
-#endif
+extern volatile S32 audio_buffer_uni[ADC_BUFFER_SIZE_UNI];
 extern volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 extern volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 extern volatile avr32_ssc_t *ssc;
@@ -166,10 +156,6 @@ extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the c
 
 #ifdef HW_GEN_RXMOD
 	// SPDIF timer/counter records DMA status - global registers move data from interrupt handler
-	#ifdef FEATURE_UNI_ADC
-	#else
-		extern volatile int timer_captured_ADC_buf_DMA_write;
-	#endif
 	extern volatile U32 timer_captured_num_remaining;
 #endif
 

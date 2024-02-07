@@ -181,10 +181,6 @@ void uac2_device_audio_task(void *pvParameters)
 	uint32_t silence_det_R = 0;
 	uint8_t silence_det = 0;
 	int local_DAC_buf_DMA_read = 0;				// Local copy read in atomic operations
-	#ifdef FEATURE_UNI_ADC
-	#else
-		int local_ADC_buf_DMA_write = 0;		// Local copy read in atomic operations
-	#endif
 	
 // Start new code for skip/insert
 	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
@@ -295,7 +291,6 @@ void uac2_device_audio_task(void *pvParameters)
 				} // Init synching up USB IN consumer's pointers to I2S RX data producer
 				
 				
-				// Rewrite everything with #ifdef FEATURE_UNI_ADC
 				
 				if (Is_usb_in_ready(EP_AUDIO_IN)) {	// Endpoint ready for data transfer? If so, be quick about it!
 					Usb_ack_in_ready(EP_AUDIO_IN);	// acknowledge in ready
@@ -303,32 +298,13 @@ void uac2_device_audio_task(void *pvParameters)
 				// Must ADC consumer pointers be set up for 1st transfer?
 					// Rewrite init code!
 					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
-						
-
-						#ifdef FEATURE_UNI_ADC
-							num_remaining = pdca_channel->tcr; 
-							index = ADC_BUFFER_SIZE_UNI - num_remaining + ADC_BUFFER_SIZE_UNI / 2;	// Starting half a unified buffer away from DMA's write head
-							index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
-							if (index >= ADC_BUFFER_SIZE_UNI) {						// Stay within bounds
-								index -= ADC_BUFFER_SIZE_UNI;
-							}
-							ADC_buf_USB_IN = 0;										// Done with init, continue ordinary operation where this variable probably isn't touched
-						#else
-							// New co-sample verification routine
-							local_ADC_buf_DMA_write = ADC_buf_DMA_write;
-							num_remaining = pdca_channel->tcr;
-						
-							// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not valid, interrupt won't strike again
-							// for a long time. In which we simply read the counter again
-							if (local_ADC_buf_DMA_write != ADC_buf_DMA_write) {
-								local_ADC_buf_DMA_write = ADC_buf_DMA_write;
-								num_remaining = pdca_channel->tcr;
-							}
-
-							index = ADC_BUFFER_SIZE - num_remaining;
-							index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
-							ADC_buf_USB_IN = local_ADC_buf_DMA_write;				// Disable further init, select correct audio_buffer_0/1
-						#endif
+						num_remaining = pdca_channel->tcr; 
+						index = ADC_BUFFER_SIZE_UNI - num_remaining + ADC_BUFFER_SIZE_UNI / 2;	// Starting half a unified buffer away from DMA's write head
+						index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
+						if (index >= ADC_BUFFER_SIZE_UNI) {						// Stay within bounds
+							index -= ADC_BUFFER_SIZE_UNI;
+						}
+						ADC_buf_USB_IN = 0;										// Done with init, continue ordinary operation where this variable probably isn't touched
 					}
 
 					// How many stereo samples are present in a 1/4ms USB period on UAC2? 
@@ -383,56 +359,22 @@ void uac2_device_audio_task(void *pvParameters)
 
 // Adoption of DAC side's buffered gap calculation
 
-					#ifdef FEATURE_UNI_ADC
-						// Simulated in debug03_gap.c - not verified or thoroughly analyzed
-						num_remaining = pdca_channel->tcr;
-						gap = ADC_BUFFER_SIZE_UNI - index - num_remaining;
-						if (gap < 0) {
-							gap += ADC_BUFFER_SIZE_UNI;
-						}
-						if ( gap < ADC_BUFFER_SIZE_UNI/4 ) {
-							// throttle back, transfer less
-							num_samples_adc--;
-							print_dbg_char('-');
-						}
-						else if (gap > (ADC_BUFFER_SIZE_UNI/2 + ADC_BUFFER_SIZE_UNI/4)) {
-							// transfer more
-							num_samples_adc++;
-							print_dbg_char('+');
-						}
-					#else
-						local_ADC_buf_DMA_write = ADC_buf_DMA_write;
-						num_remaining = pdca_channel->tcr;
-						// Did an interrupt strike just there? Check if ADC_buf_DMA_write is valid. If not, interrupt won't strike again
-						// for a long time. In which we simply read the counter again
-						if (local_ADC_buf_DMA_write != ADC_buf_DMA_write) {
-							local_ADC_buf_DMA_write = ADC_buf_DMA_write;
-							num_remaining = pdca_channel->tcr;
-						}
-
-						// Which buffer is in use, and does it truly correspond to the num_remaining value?
-						// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
-						if (ADC_buf_USB_IN != local_ADC_buf_DMA_write) {
-							if ( index < (ADC_BUFFER_SIZE - num_remaining))
-							gap = ADC_BUFFER_SIZE - num_remaining - index;
-							else
-							gap = ADC_BUFFER_SIZE - index + ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE;
-						}
-						else // usb and pdca working on different buffers
-						gap = (ADC_BUFFER_SIZE - index) + (ADC_BUFFER_SIZE - num_remaining);
-						
-						if ( gap < ADC_BUFFER_SIZE/2 ) {
-							// throttle back, transfer less
-							num_samples_adc--; // This one can be omitted...
-							print_dbg_char('-');
-
-						}
-						else if (gap > (ADC_BUFFER_SIZE + ADC_BUFFER_SIZE/2)) {
-							// transfer more
-							num_samples_adc++;
-							print_dbg_char('+');
-						}
-					#endif
+					// Simulated in debug03_gap.c - not verified or thoroughly analyzed
+					num_remaining = pdca_channel->tcr;
+					gap = ADC_BUFFER_SIZE_UNI - index - num_remaining;
+					if (gap < 0) {
+						gap += ADC_BUFFER_SIZE_UNI;
+					}
+					if ( gap < ADC_BUFFER_SIZE_UNI/4 ) {
+						// throttle back, transfer less
+						num_samples_adc--;
+						print_dbg_char('-');
+					}
+					else if (gap > (ADC_BUFFER_SIZE_UNI/2 + ADC_BUFFER_SIZE_UNI/4)) {
+						// transfer more
+						num_samples_adc++;
+						print_dbg_char('+');
+					}
 // End of gap calculation
 
 
@@ -445,43 +387,15 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_right = 0;
 						}
 						else {
+							sample_left  = audio_buffer_uni[index++];
+							sample_right = audio_buffer_uni[index++];
 							
-							#ifdef FEATURE_UNI_ADC
-								sample_left  = audio_buffer_uni[index++];
-								sample_right = audio_buffer_uni[index++];
-							#else
-								if (ADC_buf_USB_IN == 0) {
-									sample_left  = audio_buffer_0[index++]; // Was [index + IN_LEFT];
-									sample_right = audio_buffer_0[index++]; // Was [index + IN_RIGHT];
-								}
-								else if (ADC_buf_USB_IN == 1) {
-									sample_left  = audio_buffer_1[index++]; // Was [index + IN_LEFT];
-									sample_right = audio_buffer_1[index++]; // Was [index + IN_RIGHT];
-								}
-							#endif
-							
-							#ifdef FEATURE_UNI_ADC
-								if (index >= ADC_BUFFER_SIZE_UNI) {
-									index = 0;
-									#ifdef USB_STATE_MACHINE_GPIO
-//											gpio_tgl_gpio_pin(AVR32_PIN_PA22);		// Perfect operation: This signal is +-90 degrees out of phase with ADC int. code's producer indicator!
-									#endif
-								} // index rolled over
-							#else
-								if (index >= ADC_BUFFER_SIZE) {
-									index = 0;
-									ADC_buf_USB_IN = 1 - ADC_buf_USB_IN;
-									#ifdef USB_STATE_MACHINE_GPIO
-//										if (ADC_buf_USB_IN == 1) {
-//											gpio_set_gpio_pin(AVR32_PIN_PA22);		// FMADC_site OK, 2ms at 96ksps - ADC_BUFFER_SIZE = 384 for 192 stereo samples. That's exactly 2ms worth of data
-//										}
-//										else {
-//											gpio_clr_gpio_pin(AVR32_PIN_PA22);
-//										}
-									#endif
-								} // index rolled over
-							#endif
-
+							if (index >= ADC_BUFFER_SIZE_UNI) {
+								index = 0;
+								#ifdef USB_STATE_MACHINE_GPIO
+//										gpio_tgl_gpio_pin(AVR32_PIN_PA22);		// Perfect operation: This signal is +-90 degrees out of phase with ADC int. code's producer indicator!
+								#endif
+							} // index rolled over
 						} // not muted
 
 						// 3x 16-bit USB accesses are faster than 6x 8-bit accesses. Odd/even sequences of 32-bit plus 16-bit accesses are more complex and slower. See commit history
