@@ -651,7 +651,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF
 						audio_OUT_must_sync = 0;
-						local_DAC_buf_DMA_read = DAC_buf_DMA_read;
+						local_DAC_buf_DMA_read = DAC_buf_DMA_read; 
 						num_remaining = spk_pdca_channel->tcr;
 						// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
 						// for a long time. In which we simply read the counter again
