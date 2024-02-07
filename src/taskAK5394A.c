@@ -156,7 +156,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 	pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_uni, ADC_BUFFER_SIZE_UNI);
 
 	#ifdef USB_STATE_MACHINE_GPIO
-		gpio_tgl_gpio_pin(AVR32_PIN_PX30);		// Perfect operation: This signal is +-90 degrees out of phase with ADC seq. code's consumer indicator! Or it just preceeds spdif handle's recorder!
+//		gpio_tgl_gpio_pin(AVR32_PIN_PX30);		// Perfect operation: This signal is +-90 degrees out of phase with ADC seq. code's consumer indicator! Or it just preceeds spdif handle's recorder!
 	#endif
 #else
 	if (ADC_buf_DMA_write == 0) {
@@ -166,7 +166,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 			Disable_global_interrupt();
 
 	#ifdef USB_STATE_MACHINE_GPIO
-    		gpio_set_gpio_pin(AVR32_PIN_PX30); 
+//    		gpio_set_gpio_pin(AVR32_PIN_PX30); 
 	#endif
 		}
 		else if (ADC_buf_DMA_write == 1) {
@@ -176,7 +176,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 			Disable_global_interrupt();
 
 	#ifdef USB_STATE_MACHINE_GPIO
-			gpio_clr_gpio_pin(AVR32_PIN_PX30);
+//			gpio_clr_gpio_pin(AVR32_PIN_PX30);
 	#endif
 		}
 #endif
@@ -200,7 +200,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-//		gpio_set_gpio_pin(AVR32_PIN_PX33);
+		gpio_set_gpio_pin(AVR32_PIN_PX33);
 #endif
 	}
 	else if (DAC_buf_DMA_read == 1) {
@@ -212,7 +212,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 #ifdef PRODUCT_FEATURE_AMB
 		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
-//		gpio_clr_gpio_pin(AVR32_PIN_PX33);
+		gpio_clr_gpio_pin(AVR32_PIN_PX33);
 #endif
 	}
 
@@ -263,22 +263,15 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 
 		#ifdef FEATURE_UNI_ADC		
 			#ifdef USB_STATE_MACHINE_GPIO
-				static int logger = 0;
-				if (logger == 1) {
-					gpio_set_gpio_pin(AVR32_PIN_PX33);
-				}
-				else {
-					gpio_clr_gpio_pin(AVR32_PIN_PX33);
-				}
-				logger = 1 - logger;
+//				gpio_tgl_gpio_pin(AVR32_PIN_PX33);
 			#endif
 		#else
 			// Show what we just recorded by timer interrupt
 			if (timer_captured_ADC_buf_DMA_write == 0) {
-				gpio_clr_gpio_pin(AVR32_PIN_PX33);
+//				gpio_clr_gpio_pin(AVR32_PIN_PX33);
 			}
 			else {
-				gpio_set_gpio_pin(AVR32_PIN_PX33);
+//				gpio_set_gpio_pin(AVR32_PIN_PX33);
 			}
 		#endif
 		
