@@ -1190,7 +1190,8 @@ void uac2_device_audio_task(void *pvParameters)
 		
 		// The passed parameters are overwritten if input_select is an spdif class
 		mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, cache_L, cache_R, &num_samples, &cache_holds_silence);
-		
+
+/* Temporarily remove code not run on AB-1.2. Is it important in SPRX running USB?		
 		if (input_select == MOBO_SRC_NONE) {
 			// Did SPDIF system just give up I2S control? If so get onto the sample rate of the USB system ASAP
 			if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
@@ -1223,6 +1224,8 @@ void uac2_device_audio_task(void *pvParameters)
 			num_remaining = 0;				// Used to validate cache contents. We have no reason to believe they are valid at the moment!
 		}
 		prev_input_select = input_select;
+		
+*/		
 		#endif
 
 
