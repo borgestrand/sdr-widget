@@ -587,7 +587,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// 	playerStarted = TRUE;				// Moved here from mutex take code
 						
-						// Updated skip/insert system
+						// Updated skip/insert system æææ init apply to spdif playback as well! That happens without Is_usb_out_received()
 						return_to_nominal = FALSE;			// Restart feedback system
 						prev_sample_L = 0;
 						prev_sample_R = 0;
@@ -821,6 +821,7 @@ void uac2_device_audio_task(void *pvParameters)
 					si_action = SI_NORMAL;						// Most of the time, don't apply s/i
 					
 
+//	Rewrite and move this section to apply to spdif reception as well ææææ
 					// Don't process cache and write to spk_buffer_X unless we own output channel
 					// Replacing bool input_select_OK by num_samples dependency
 					if ( (input_select != MOBO_SRC_UAC2) || (dac_must_clear != DAC_READY) ){
@@ -1223,7 +1224,7 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 			
 				spk_index = DAC_BUFFER_SIZE - num_remaining;
-				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample Init code should be applied to USB as well ?!?!
 				num_remaining = 0;				// Used to validate cache contents. We have no reason to believe they are valid at the moment!
 			}
 			prev_input_select = input_select;
@@ -1231,6 +1232,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 // ææææ consider cache_holds_silence from spdif system, and generate it in USB system!
+
+
+// Calculate gap and generate si_action variable contents here, just before they are needed. num_samples is the qualifier for copying from cache. Use that or input_select as qualifier for generating gap?
 
 		// Start writing from chache to spk_buffer
 		// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
