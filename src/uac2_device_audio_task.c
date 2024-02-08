@@ -422,7 +422,7 @@ void uac2_device_audio_task(void *pvParameters)
 #ifdef HW_GEN_RXMOD 
 		if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
 #else
-			if (usb_alternate_setting_out >= 1) { // bBitResolution
+		if (usb_alternate_setting_out >= 1) { // bBitResolution
 #endif
 
 			/* SPDIF reduced OK */
@@ -812,7 +812,7 @@ void uac2_device_audio_task(void *pvParameters)
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
 							#endif
-						#else // not HW_GEN_RXMOD		// No WM8804, take control - is this safe? Only thing that could take us here is ADC code now?
+						#else // not HW_GEN_RXMOD		// No WM8804, take control
 							input_select = MOBO_SRC_UAC2;
 						#endif
 					} // End silence_det == 0 & MOBO_SRC_NONE
@@ -903,134 +903,132 @@ void uac2_device_audio_task(void *pvParameters)
 	/* BSB 20131031 New location of gap calculation code */
 
 					// Calculate gap after N packets, NOT each time feedback endpoint is polled
-					if (time_to_calculate_gap > 0)
+					if (time_to_calculate_gap > 0) {
 						time_to_calculate_gap--;
+					}
 					else {
 						time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
-						if (usb_alternate_setting_out >= 1) {	// bBitResolution // Used with explicit feedback and not ADC data
-//						if (usb_alternate_setting_out == 1) {	// Used with explicit feedback and not ADC data
 
+						local_DAC_buf_DMA_read = DAC_buf_DMA_read;
+						num_remaining = spk_pdca_channel->tcr;
+						// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+						// for a long time. In which we simply read the counter again
+						if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
 							local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 							num_remaining = spk_pdca_channel->tcr;
-							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-							// for a long time. In which we simply read the counter again
-							if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
-								local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-								num_remaining = spk_pdca_channel->tcr;
-							}
+						}
 
-							// Which buffer is in use, and does it truly correspond to the num_remaining value?
-							// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
-							if (DAC_buf_OUT != local_DAC_buf_DMA_read) { 	// CS4344 and USB using same buffer
-								if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
-									gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
-								else
-									gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
-							}
-							else { // usb and pdca working on different buffers
-								gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
-							}
+						// Which buffer is in use, and does it truly correspond to the num_remaining value?
+						// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
+						if (DAC_buf_OUT != local_DAC_buf_DMA_read) { 	// CS4344 and USB using same buffer
+							if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
+								gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+							else
+								gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+						}
+						else { // usb and pdca working on different buffers
+							gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+						}
 
 
-							if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
-								if (gap < old_gap) {
-									if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
-										FB_rate -= 2*FB_RATE_DELTA;
-										old_gap = gap;
+						if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
+							if (gap < old_gap) {
+								if (gap < SPK_GAP_L2) { 			// gap < outer lower bound => 2*FB_RATE_DELTA
+									FB_rate -= 2*FB_RATE_DELTA;
+									old_gap = gap;
 
-										// New code for adaptive USB fallback using skip / insert s/i
-										si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
-										si_pkg_increment ++;
-										si_pkg_direction = SI_SKIP;				// Host must slow down
+									// New code for adaptive USB fallback using skip / insert s/i
+									si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
+									si_pkg_increment ++;
+									si_pkg_direction = SI_SKIP;				// Host must slow down
 	
-										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_DECDEC_FREQ);
-										// print_dbg_char_hex(si_pkg_increment);
+									// Report to cpu and debug terminal
+									print_cpu_char(CPU_CHAR_DECDEC_FREQ);
+									// print_dbg_char_hex(si_pkg_increment);
 										
-										return_to_nominal = TRUE;
-									}
+									return_to_nominal = TRUE;
+								}
 									
-									else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
+								else if (gap < SPK_GAP_L1) { 		// gap < inner lower bound => 1*FB_RATE_DELTA
+									FB_rate -= FB_RATE_DELTA;
+									old_gap = gap;
+
+									// Report to cpu and debug terminal
+									print_cpu_char(CPU_CHAR_DEC_FREQ); 
+
+									return_to_nominal = TRUE;
+								}
+
+								// New feature: gap returning to nominal gap
+								// Goal: approach nominal sample rate without cycles of gap low-high-low
+								// but rather attempt up gaps being low-nominal-low
+								else if (gap < SPK_GAP_NOM) {
+									if (return_to_nominal) {
 										FB_rate -= FB_RATE_DELTA;
 										old_gap = gap;
-
-										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_DEC_FREQ); 
-
-										return_to_nominal = TRUE;
-									}
-
-									// New feature: gap returning to nominal gap
-									// Goal: approach nominal sample rate without cycles of gap low-high-low
-									// but rather attempt up gaps being low-nominal-low
-									else if (gap < SPK_GAP_NOM) {
-										if (return_to_nominal) {
-											FB_rate -= FB_RATE_DELTA;
-											old_gap = gap;
 											
-											// New code for adaptive USB fallback using skip / insert s/i
-											si_pkg_counter = 0;						// No s/i for a while
-											si_pkg_increment = 0;					// Not counting up to next s/i event
-											si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
-
-											// Report to cpu and debug terminal
-											print_cpu_char(CPU_CHAR_NOMDEC_FREQ); 
-											// print_dbg_char_hex(si_pkg_increment);
-
-											return_to_nominal = FALSE;
-										}
-									}
-								}
-								else if (gap > old_gap) {
-									if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
-										FB_rate += 2*FB_RATE_DELTA;
-										old_gap = gap;
-										
 										// New code for adaptive USB fallback using skip / insert s/i
-										si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
-										si_pkg_increment ++;
-										si_pkg_direction = SI_INSERT;			// Host must speed up
+										si_pkg_counter = 0;						// No s/i for a while
+										si_pkg_increment = 0;					// Not counting up to next s/i event
+										si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
 
 										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_INCINC_FREQ); 
+										print_cpu_char(CPU_CHAR_NOMDEC_FREQ); 
 										// print_dbg_char_hex(si_pkg_increment);
 
-										return_to_nominal = TRUE;
+										return_to_nominal = FALSE;
 									}
+								}
+							}
+							else if (gap > old_gap) {
+								if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
+									FB_rate += 2*FB_RATE_DELTA;
+									old_gap = gap;
+										
+									// New code for adaptive USB fallback using skip / insert s/i
+									si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
+									si_pkg_increment ++;
+									si_pkg_direction = SI_INSERT;			// Host must speed up
 
-									else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
+									// Report to cpu and debug terminal
+									print_cpu_char(CPU_CHAR_INCINC_FREQ); 
+									// print_dbg_char_hex(si_pkg_increment);
+
+									return_to_nominal = TRUE;
+								}
+
+								else if (gap > SPK_GAP_U1) { 		// gap > inner upper bound => 1*FB_RATE_DELTA
+									FB_rate += FB_RATE_DELTA;
+									old_gap = gap;
+
+									// Report to cpu and debug terminal
+									print_cpu_char(CPU_CHAR_INC_FREQ); 
+
+									return_to_nominal = TRUE;
+								}
+
+								// New feature: gap returning to nominal gap
+								// Goal: approach nominal sample rate without cycles of gap low-high-low
+								// but rather attempt up gaps being low-nominal-low
+								else if (gap > SPK_GAP_NOM) { 	
+									if (return_to_nominal) {
 										FB_rate += FB_RATE_DELTA;
 										old_gap = gap;
 
+										// New code for adaptive USB fallback using skip / insert s/i
+										si_pkg_counter = 0;						// No s/i for a while
+										si_pkg_increment = 0;					// Not counting up to next s/i event
+										si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
+	
 										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_INC_FREQ); 
-
-										return_to_nominal = TRUE;
-									}
-
-									// New feature: gap returning to nominal gap
-									// Goal: approach nominal sample rate without cycles of gap low-high-low
-									// but rather attempt up gaps being low-nominal-low
-									else if (gap > SPK_GAP_NOM) { 	
-										if (return_to_nominal) {
-											FB_rate += FB_RATE_DELTA;
-											old_gap = gap;
-
-											// New code for adaptive USB fallback using skip / insert s/i
-											si_pkg_counter = 0;						// No s/i for a while
-											si_pkg_increment = 0;					// Not counting up to next s/i event
-											si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
+										print_cpu_char(CPU_CHAR_NOMINC_FREQ); 
+										// print_dbg_char_hex(si_pkg_increment);
 	
-											// Report to cpu and debug terminal
-											print_cpu_char(CPU_CHAR_NOMINC_FREQ); 
-											// print_dbg_char_hex(si_pkg_increment);
-	
-											return_to_nominal = FALSE;
-										}
+										return_to_nominal = FALSE;
 									}
 								}
-							} // end if(playerStarted)
-						} // end if (usb_alternate_setting_out >= 1)
+							}
+						} // end if(playerStarted)
 
 					} // end if time_to_calculate_gap == 0
 

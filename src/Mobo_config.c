@@ -1274,6 +1274,34 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(SAMPLEFREQ_VAL1);
 			break;
 		} // switch
+		
+		// Report to debug terminal
+		switch (frequency) {
+			case FREQ_44:
+			print_dbg_char(CPU_CHAR_44); // Inform CPU (when present)
+			break;
+			case FREQ_48:
+			print_dbg_char(CPU_CHAR_48); // Inform CPU (when present)
+			break;
+			case FREQ_88:
+			print_dbg_char(CPU_CHAR_88); // Inform CPU (when present)
+			break;
+			case FREQ_96:
+			print_dbg_char(CPU_CHAR_96); // Inform CPU (when present)
+			break;
+			case FREQ_176:
+			print_dbg_char(CPU_CHAR_176); // Inform CPU (when present)
+			break;
+			case FREQ_192:
+			print_dbg_char(CPU_CHAR_192); // Inform CPU (when present)
+			break;
+			case FREQ_RXNATIVE:
+			print_dbg_char(CPU_CHAR_REGEN); // Inform CPU (when present)
+			break;
+			default:
+			print_dbg_char(CPU_CHAR_RATE_DEF); // Inform CPU (when present)
+			break;
+		}
 
 	#elif (defined HW_GEN_RXMOD) 
 
