@@ -231,7 +231,7 @@ void uac2_device_audio_task(void *pvParameters)
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
-		gpio_set_gpio_pin(AVR32_PIN_PX31); // Start of task execution
+//		gpio_set_gpio_pin(AVR32_PIN_PX31); // Start of task execution
 		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents? 
@@ -1401,7 +1401,7 @@ void uac2_device_audio_task(void *pvParameters)
 		} // end if num_samples > 0
 		// End writing from cache to spk_buffer
 
-		gpio_clr_gpio_pin(AVR32_PIN_PX31); // End of task execution
+//		gpio_clr_gpio_pin(AVR32_PIN_PX31); // End of task execution
 
 	} // end while vTask
 }
