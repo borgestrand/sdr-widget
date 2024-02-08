@@ -34,7 +34,6 @@
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
 // Keep buffer sizes belov 2^14
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
 /* Nominal values are (8*2*24) and (32*2*24)
 Long buffers may take up too much RAM. And clearing and moving their contents take a long time.
 Short buffers give less system latency and poorer synch state machine performance
@@ -43,22 +42,11 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define DAC_BUFFER_SIZE 1536 // (32*2*24) * 1 // = 1536
 #define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
 
-// Trying to provoke bugs in 44.1 SPDIF playback during USB activity. *5 instead of *24 means running DMAs slightly faster than nominal at 192
-//	#define ADC_BUFFER_SIZE	(8*2*3)
-//	#define DAC_BUFFER_SIZE (32*2*3)
-
-// Are larger buffer less error prone?
-//	#define ADC_BUFFER_SIZE	(8*2*48)
-//	#define DAC_BUFFER_SIZE (32*2*48)
-
-// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing
-// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
-#define SPDIF_TC_DEVICE		AVR32_TC1	// Using TC1 where we have CLK0 available on PA05
-#define SPDIF_TC_CHANNEL	0			// Timer counter -channel-
-
-#else
-	#define ADC_BUFFER_SIZE	48*2*8 // 48 khz, stereo, 8 ms worth
-	#define DAC_BUFFER_SIZE 48*2*16
+#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
+	// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing
+	// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
+	#define SPDIF_TC_DEVICE		AVR32_TC1	// Using TC1 where we have CLK0 available on PA05
+	#define SPDIF_TC_CHANNEL	0			// Timer counter -channel-
 #endif
 
 
