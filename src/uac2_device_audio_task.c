@@ -229,11 +229,9 @@ void uac2_device_audio_task(void *pvParameters)
 	xLastWakeTime = xTaskGetTickCount();
 
 	while (TRUE) {
-		
-
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
-//		gpio_set_gpio_pin(AVR32_PIN_PA22); // Start of task execution = TP_TP18 on SPRX rev. B
+		gpio_set_gpio_pin(AVR32_PIN_PX31); // Start of task execution
 		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents? 
@@ -1188,44 +1186,42 @@ void uac2_device_audio_task(void *pvParameters)
 		// Process digital input
 		#ifdef HW_GEN_RXMOD
 		
-		// The passed parameters are overwritten if input_select is an spdif class
-		mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, cache_L, cache_R, &num_samples, &cache_holds_silence);
+			// The passed parameters are overwritten if input_select is an spdif class
+			mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, cache_L, cache_R, &num_samples, &cache_holds_silence);
 
-/* Temporarily remove code not run on AB-1.2. Is it important in SPRX running USB?		
-		if (input_select == MOBO_SRC_NONE) {
-			// Did SPDIF system just give up I2S control? If so get onto the sample rate of the USB system ASAP
-			if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
-			(prev_input_select == MOBO_SRC_TOSLINK0) ||
-			(prev_input_select == MOBO_SRC_TOSLINK1) ) {
+			// æææ must get this working with AB-1.2 		
+			if (input_select == MOBO_SRC_NONE) {
+				// Did SPDIF system just give up I2S control? If so get onto the sample rate of the USB system ASAP
+				if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
+				(prev_input_select == MOBO_SRC_TOSLINK0) ||
+				(prev_input_select == MOBO_SRC_TOSLINK1) ) {
 
-				mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
-				mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
-			}
+					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
+					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
+				}
 			
-			// Whenever we're idle, reset where in outgoing DMA any cache writes will happen
-			local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-			num_remaining = spk_pdca_channel->tcr;
-			// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again for a long time. In which we simply read the counter again
-			if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen
 				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 				num_remaining = spk_pdca_channel->tcr;
-			}
-			DAC_buf_OUT = local_DAC_buf_DMA_read;
+				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again for a long time. In which we simply read the counter again
+				if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+					local_DAC_buf_DMA_read = DAC_buf_DMA_read;
+					num_remaining = spk_pdca_channel->tcr;
+				}
+				DAC_buf_OUT = local_DAC_buf_DMA_read;
 
-			if (DAC_buf_OUT == 1) {
-				gpio_set_gpio_pin(AVR32_PIN_PX30);
-			}
-			else {
-				gpio_clr_gpio_pin(AVR32_PIN_PX30);
-			}
+				if (DAC_buf_OUT == 1) {
+					gpio_set_gpio_pin(AVR32_PIN_PX30);
+				}
+				else {
+					gpio_clr_gpio_pin(AVR32_PIN_PX30);
+				}
 			
-			spk_index = DAC_BUFFER_SIZE - num_remaining;
-			spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
-			num_remaining = 0;				// Used to validate cache contents. We have no reason to believe they are valid at the moment!
-		}
-		prev_input_select = input_select;
-		
-*/		
+				spk_index = DAC_BUFFER_SIZE - num_remaining;
+				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+				num_remaining = 0;				// Used to validate cache contents. We have no reason to believe they are valid at the moment!
+			}
+			prev_input_select = input_select;
 		#endif
 
 
@@ -1233,7 +1229,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 		// Start writing from chache to spk_buffer
 		// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
-
 
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {								// Only start copying when there is something to legally copy
@@ -1396,7 +1391,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 		} // end if num_samples > 0
 		// End writing from cache to spk_buffer
-		
+
+		gpio_clr_gpio_pin(AVR32_PIN_PX31); // End of task execution
 
 	} // end while vTask
 }

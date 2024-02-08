@@ -462,6 +462,11 @@ Arash
 
 #endif // HW_GEN_RXMOD
 
+            // Check source and rate, output to terminal
+            else if (a == 'M') {
+	            print_dbg_char_hex(input_select);			// Is source known?
+	            print_dbg_char_hex( (uint8_t)(spk_current_freq.frequency/1000) );			// Is rate known?
+            }
 
             else if (a == 'v') {
             	static S16 temp = VOL_MIN;
