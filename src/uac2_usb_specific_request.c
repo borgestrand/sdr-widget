@@ -239,7 +239,8 @@ void uac2_freq_change_handler() {
 
 	if (freq_changed) {
 
-#ifdef HW_GEN_RXMOD
+// #ifdef HW_GEN_RXMOD
+#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) )
 		if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
 			spk_mute = TRUE; // mute speaker while changing frequency and oscillator
 			mobo_clear_dac_channel();

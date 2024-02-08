@@ -36,10 +36,9 @@
 #include "taskAK5394A.h"
 
 
-#if (defined  HW_GEN_RXMOD)
+#if (defined HW_GEN_RXMOD)
 #include "wm8804.h"
 #include "pcm5142.h"
-#include "device_audio_task.h"
 #endif
 
 
@@ -131,8 +130,11 @@ static void vtaskMoboCtrl( void * pcParameters )
 			mobo_fmadc_gain(0x02, 0x02);			// Channel 2, gain setting 2
 		#endif
 
-		#if (defined HW_GEN_RXMOD)
+		#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 			input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
+		#endif
+
+		#if (defined HW_GEN_RXMOD)
 			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
 
 			// Initialie PCM5142

@@ -812,7 +812,7 @@ void uac2_device_audio_task(void *pvParameters)
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
 							#endif
-						#else // not HW_GEN_RXMOD		// No WM8804, take control
+						#else // not HW_GEN_RXMOD		// No WM8804, take control - is this safe? Only thing that could take us here is ADC code now?
 							input_select = MOBO_SRC_UAC2;
 						#endif
 					} // End silence_det == 0 & MOBO_SRC_NONE

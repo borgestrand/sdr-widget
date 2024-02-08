@@ -15,9 +15,6 @@
 #include <stdio.h>
 #endif
 
-// #ifdef HW_GEN_RXMOD
-// 	#include "wm8804.h"
-// #endif
 
 #include "compiler.h"
 #include "board.h"
