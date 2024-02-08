@@ -365,26 +365,19 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 //		input_select = MOBO_SRC_UAC1;
 //	else
 
-// UAC2 only
-	input_select = MOBO_SRC_UAC2;
+
+// UAC2 only - was default in AB1X
+//	input_select = MOBO_SRC_UAC2;
+
+// Default in RXMOD ("SPRX") and AB1X ("AB-1.2")
+	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
 
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 
 #if (defined HW_GEN_RXMOD)
-
-//	gpio_clr_gpio_pin(AVR32_PIN_PX31);						// Starting with clean debug pins
-
-
-//	print_dbg_char('s');									// RXMODFIX input_select debug
-	print_dbg_char_hex(input_select);
-	
 	mobo_led_select(FREQ_44, MOBO_SRC_NONE);				// Front RGB LED, default indication of 44.1kHz and scanning
 	
-	
 //	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
-
-	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
-	// mobodebug
 #endif
 
 

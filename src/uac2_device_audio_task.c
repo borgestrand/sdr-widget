@@ -433,9 +433,10 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_full_speed_mode()) {
 					// FB rate is 3 bytes in 10.14 format
 
-	#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+	// #ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+	#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 					if (input_select != MOBO_SRC_UAC2) {
-	#else
+	#else // Probably redundant now
 					if (0) {
 	#endif
 						sample_LSB = FB_rate_nominal;		// but not consider it. Emulate this by sending the nominal
@@ -459,9 +460,10 @@ void uac2_device_audio_task(void *pvParameters)
 					// So for 250us microframes it is same amount of shifting as 10.14 for 1ms frames
 
 
-	#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+	//#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+	#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 					if (input_select != MOBO_SRC_UAC2) {
-	#else
+	#else // Probably redundant now
 					if (0) {
 	#endif
 						sample_LSB = FB_rate_nominal;
@@ -769,7 +771,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 					// New site for setting playerStarted and aligning buffers
 					if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
-						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+//						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+						#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG
 //								print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
@@ -777,19 +780,20 @@ void uac2_device_audio_task(void *pvParameters)
 									input_select = MOBO_SRC_UAC2;
 									playerStarted = TRUE;						// Is it better off here?
 
-									// Report to cpu and debug terminal
-									if (usb_ch == USB_CH_B) {
-										print_cpu_char(CPU_CHAR_UAC2_B);		// USB audio Class 2 on rear USB-B plug 
-									}
-									else if (usb_ch == USB_CH_C) {
-										print_cpu_char(CPU_CHAR_UAC2_C);		// USB audio Class 2 on front USB-C plug
-									}
 									
 									// Call it again here for good measure. The one at wm8804_mute() is probably sufficient
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 																				
-									mobo_led_select(spk_current_freq.frequency, input_select);
 									#ifdef HW_GEN_RXMOD 
+										// Report to cpu and debug terminal
+										if (usb_ch == USB_CH_B) {
+											print_cpu_char(CPU_CHAR_UAC2_B);		// USB audio Class 2 on rear USB-B plug
+										}
+										else if (usb_ch == USB_CH_C) {
+											print_cpu_char(CPU_CHAR_UAC2_C);		// USB audio Class 2 on front USB-C plug
+										}
+
+										mobo_led_select(spk_current_freq.frequency, input_select);
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
 								}													// Hopefully, this code won't be called repeatedly. Would there be time??
@@ -803,8 +807,8 @@ void uac2_device_audio_task(void *pvParameters)
 									// Call it again here for good measure. The one at wm8804_mute() is probably sufficient
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 
-									mobo_led_select(spk_current_freq.frequency, input_select);
 									#ifdef HW_GEN_RXMOD 
+										mobo_led_select(spk_current_freq.frequency, input_select);
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
 							#endif
@@ -859,7 +863,8 @@ void uac2_device_audio_task(void *pvParameters)
 						mobo_clear_dac_channel();
 						// mobodebug Could this be the spot which sucks up CPU time with input_select == MOBO_SRC_UAC2
 
-						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+//						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+						#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG
 //								print_dbg_char('k');						// Debug semaphore, lowercase letters for USB tasks
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -1075,7 +1080,8 @@ void uac2_device_audio_task(void *pvParameters)
 					mobo_clear_dac_channel();
 					// mobodebug is this another scheduler thief?
 
-					#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+//					#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+					#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 						#ifdef USB_STATE_MACHINE_DEBUG
 //							print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
@@ -1146,37 +1152,38 @@ void uac2_device_audio_task(void *pvParameters)
 #endif
 
 				// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
-				#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
-				#ifdef USB_STATE_MACHINE_DEBUG
-//				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
-				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-					print_dbg_char(']');
+//				#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+				#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
+					#ifdef USB_STATE_MACHINE_DEBUG
+//						print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
+						if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+							input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+							print_dbg_char(']');
 
-					// Report to cpu and debug terminal
-					print_cpu_char(CPU_CHAR_IDLE);
+							// Report to cpu and debug terminal
+							print_cpu_char(CPU_CHAR_IDLE);
 							
-					#ifdef HW_GEN_RXMOD
-					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-						// mobo_led(FLED_SCANNING);
-						mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
-					#endif
-					#endif
-				}
-				else {
-				}
-				#else
-				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+							#ifdef HW_GEN_RXMOD
+							#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+								// mobo_led(FLED_SCANNING);
+								mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+							#endif
+							#endif
+						}
+						else {
+						}
+					#else
+						if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+							input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 							
-					#ifdef HW_GEN_RXMOD
-					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-						// mobo_led(FLED_SCANNING);
-						mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+							#ifdef HW_GEN_RXMOD
+							#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+								// mobo_led(FLED_SCANNING);
+								mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+							#endif
+							#endif
+						}
 					#endif
-					#endif
-				}
-				#endif
 				#endif
 
 			} // end if usb buffer toggle limit reach
