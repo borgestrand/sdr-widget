@@ -93,7 +93,7 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 // For adaptive USB fallback, set this to 0 and experiment with MCU_CHAR_RATEUP and MCU_CHAR_RATEDOWN
-#define FB_RATE_DELTA   64 // 0 for UAC2 adaptive testing
+#define FB_RATE_DELTA   0 // 64 // 0 for UAC2 adaptive testing
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -203,10 +203,10 @@ void uac2_device_audio_task(void *pvParameters)
 	#define SI_NORMAL 0
 	#define SI_INSERT 1
 	#define SI_PKG_RESOLUTION	1000			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
-	uint8_t si_action = SI_NORMAL;
-	uint32_t si_pkg_counter = 0;
-	uint8_t si_pkg_increment = 0;				// Reset at sample rate change
-	uint8_t si_pkg_direction = SI_NORMAL;		// Reset at sample rate change
+	int8_t si_action = SI_NORMAL;
+	int32_t si_pkg_counter = 0;
+	int8_t si_pkg_increment = 0;				// Reset at sample rate change
+	int8_t si_pkg_direction = SI_NORMAL;		// Reset at sample rate change
 
 	
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
