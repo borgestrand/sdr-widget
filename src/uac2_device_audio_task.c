@@ -1238,16 +1238,15 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 //						} // end if(playerStarted)
 
-						si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
-						if (si_pkg_counter > SI_PKG_RESOLUTION) {
-							si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
-							si_action = si_pkg_direction;		// Apply only once in a while
-						}
-
 
 					} // end if time_to_calculate_gap == 0
 
 
+					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
+					if (si_pkg_counter > SI_PKG_RESOLUTION) {
+						si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
+						si_action = si_pkg_direction;		// Apply only once in a while
+					}
 
 
 /* End newest site of gap calculation */
