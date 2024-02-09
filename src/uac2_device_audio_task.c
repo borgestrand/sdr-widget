@@ -1202,7 +1202,7 @@ void uac2_device_audio_task(void *pvParameters)
 							else if (gap > old_gap) {
 								if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
 									if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
-										FB_rate += 2*FB_RATE_DELTA;
+										FB_rate += 2*FB_RATE_DELTA; 
 									}
 									old_gap = gap;
 									
