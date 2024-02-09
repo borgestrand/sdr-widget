@@ -1096,6 +1096,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 /* Begin newest site of gap calculation */
 
+					si_action = SI_NORMAL;						// Most of the time, don't apply s/i. Only determine whether to s/i when time_to_calculate_gap == 0
 
 					// Calculate gap after N packets, NOT each time feedback endpoint is polled
 					if (time_to_calculate_gap > 0) {
@@ -1236,7 +1237,6 @@ void uac2_device_audio_task(void *pvParameters)
 								}
 							}
 //						} // end if(playerStarted)
-
 
 						si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
 						if (si_pkg_counter > SI_PKG_RESOLUTION) {
