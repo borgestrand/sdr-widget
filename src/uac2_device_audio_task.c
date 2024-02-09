@@ -203,8 +203,8 @@ void uac2_device_audio_task(void *pvParameters)
 	#define SI_NORMAL 0
 	#define SI_INSERT 1
 	#define SI_PKG_RESOLUTION	1000			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
-	int8_t si_action = SI_NORMAL;
-	int32_t si_pkg_counter = 0;
+	uint8_t si_action = SI_NORMAL;
+	uint32_t si_pkg_counter = 0;
 	uint8_t si_pkg_increment = 0;				// Reset at sample rate change
 	uint8_t si_pkg_direction = SI_NORMAL;		// Reset at sample rate change
 
@@ -817,24 +817,6 @@ void uac2_device_audio_task(void *pvParameters)
 						#endif
 					} // End silence_det == 0 & MOBO_SRC_NONE
 
-					
-					si_action = SI_NORMAL;						// Most of the time, don't apply s/i
-					
-
-//	Rewrite and move this section to apply to spdif reception as well ææææ
-					// Don't process cache and write to spk_buffer_X unless we own output channel
-					// Replacing bool input_select_OK by num_samples dependency
-					if ( (input_select != MOBO_SRC_UAC2) || (dac_must_clear != DAC_READY) ){
-						num_samples = 0;						// Only process samples if we own the outgoing (toward DAC) cache and the speaker buffer is ready
-					}
-					else {										
-						si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
-						if (si_pkg_counter > SI_PKG_RESOLUTION) {
-							si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
-							si_action = si_pkg_direction;		// Apply only once in a while					
-						}
-					}
-					
 					// End of writing USB OUT data to cache. Writing takes place at the end of this function
 
 
@@ -1212,7 +1194,7 @@ void uac2_device_audio_task(void *pvParameters)
 									si_pkg_direction = SI_INSERT;			// Host must speed up
 
 									// Report to cpu and debug terminal
-									print_cpu_char(CPU_CHAR_INCINC_FREQ);
+									print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
 									// print_dbg_char_hex(si_pkg_increment);
 
 									return_to_nominal = TRUE;
@@ -1258,9 +1240,36 @@ void uac2_device_audio_task(void *pvParameters)
 					} // end if time_to_calculate_gap == 0
 
 
+					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
+					if (si_pkg_counter > SI_PKG_RESOLUTION) {
+						si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
+						si_action = si_pkg_direction;		// Apply only once in a while
+					}
 
 
 /* End newest site of gap calculation */
+
+/* Begin this code was moved here after only having been used for UAC2 
+
+//	Rewrite and move this section to apply to spdif reception as well ææææ
+// Don't process cache and write to spk_buffer_X unless we own output channel
+
+si_action = SI_NORMAL;						// Most of the time, don't apply s/i
+
+if ( (input_select != MOBO_SRC_UAC2) || (dac_must_clear != DAC_READY) ){
+	num_samples = 0;						// Only process samples if we own the outgoing (toward DAC) cache and the speaker buffer is ready
+}
+else {
+	si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
+	if (si_pkg_counter > SI_PKG_RESOLUTION) {
+		si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
+		si_action = si_pkg_direction;		// Apply only once in a while
+	}
+}
+
+ End this code was moved here after only having been used for UAC2 */
+
+
 
 //			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
 
