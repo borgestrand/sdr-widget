@@ -93,7 +93,7 @@
 //_____ D E F I N I T I O N S ______________________________________________
 
 // For adaptive USB fallback, set this to 0 and experiment with MCU_CHAR_RATEUP and MCU_CHAR_RATEDOWN
-#define FB_RATE_DELTA   0 // 64 // 0 for UAC2 adaptive testing
+#define FB_RATE_DELTA   64 // 0 for UAC2 adaptive testing
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
@@ -1241,7 +1241,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 					} // end if time_to_calculate_gap == 0
 
-
 					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
 					if (si_pkg_counter > SI_PKG_RESOLUTION) {
 						si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
@@ -1250,28 +1249,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 /* End newest site of gap calculation */
-
-/* Begin this code was moved here after only having been used for UAC2 
-
-//	Rewrite and move this section to apply to spdif reception as well ææææ
-// Don't process cache and write to spk_buffer_X unless we own output channel
-
-si_action = SI_NORMAL;						// Most of the time, don't apply s/i
-
-if ( (input_select != MOBO_SRC_UAC2) || (dac_must_clear != DAC_READY) ){
-	num_samples = 0;						// Only process samples if we own the outgoing (toward DAC) cache and the speaker buffer is ready
-}
-else {
-	si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
-	if (si_pkg_counter > SI_PKG_RESOLUTION) {
-		si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
-		si_action = si_pkg_direction;		// Apply only once in a while
-	}
-}
-
- End this code was moved here after only having been used for UAC2 */
-
-
 
 //			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
 
