@@ -95,6 +95,10 @@ volatile S32 audio_buffer_uni[ADC_BUFFER_SIZE_UNI];
 volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
 
+volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
+volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
+
+
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
 volatile int DAC_buf_DMA_read = 0;	// Written by interrupt handler, initiated by sequential code

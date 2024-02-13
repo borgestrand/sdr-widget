@@ -939,7 +939,7 @@ void mobo_ADC_position_uni(U32 *last_pos, U32 num_remaining) {
 
 
 // Handle spdif and toslink input
-void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *cache_L, S32 *cache_R, S32 *num_samples, Bool *cache_holds_silence) {
+void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *num_samples, Bool *cache_holds_silence) {
 	
 	
 // Overwritten parameters, rewrite without '*' if handled inline instead of as function call

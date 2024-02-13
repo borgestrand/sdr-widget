@@ -69,8 +69,6 @@ void mobo_clear_dac_channel(void);
 #define MCU_CHAR_RATEUP				'U' // CPU asks MCU to increase feedback rate by 64 = FB_RATE_DELTA
 #define MCU_CHAR_RATEDOWN			'u' // CPU asks MCU to increase feedback rate by 64 = FB_RATE_DELTA
 
-// Size of playback cache
-#define SPK_CACHE_MAX_SAMPLES 60			// Maximum number of stereo samples in one package of 250µs (nominally 48 at 192ksps)
 
 #ifdef HW_GEN_RXMOD
 // USB multiplexer definitions
@@ -139,7 +137,7 @@ uint32_t mobo_wait_LRCK_TX_asm(void);
 
 #ifdef HW_GEN_RXMOD
 // Process spdif and toslink inputs
-void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *cache_L, S32 *cache_R, S32 *num_samples, Bool *cache_holds_silence);
+void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *num_samples, Bool *cache_holds_silence);
 
 // Start the timer/counter that monitors spdif traffic
 void mobo_start_spdif_tc(U32 frequency);

@@ -38,8 +38,10 @@
 Long buffers may take up too much RAM. And clearing and moving their contents take a long time.
 Short buffers give less system latency and poorer synch state machine performance
 */
-#define ADC_BUFFER_SIZE_UNI 1024 // Must be divisible by 4
-#define DAC_BUFFER_SIZE 1536 // (32*2*24) * 1 // = 1536
+#define ADC_BUFFER_SIZE_UNI 1024	// Must be divisible by 4
+#define DAC_BUFFER_SIZE 1024		// 1536 // (32*2*24) * 1 // = 1536
+#define SPK_CACHE_MAX_SAMPLES 120	// Maximum number of stereo samples in two package of 250µs (nominally 48 at 192ksps). That way we can miss one. As global 120 is OK. As local it refused to run above 60
+
 #define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
 
 #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
@@ -133,6 +135,10 @@ Short buffers give less system latency and poorer synch state machine performanc
 extern volatile S32 audio_buffer_uni[ADC_BUFFER_SIZE_UNI];
 extern volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 extern volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
+
+extern volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
+extern volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
+
 extern volatile avr32_ssc_t *ssc;
 extern volatile int DAC_buf_DMA_read;	// Written by interrupt handler, initiated by sequential code
 extern volatile int ADC_buf_I2S_IN; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)

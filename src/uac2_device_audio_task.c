@@ -184,8 +184,6 @@ void uac2_device_audio_task(void *pvParameters)
 	
 // Start new code for skip/insert
 	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
-	S32 cache_L[SPK_CACHE_MAX_SAMPLES];
-	S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 	
 	static S32 prev_sample_L = 0;	// Enable delayed writing to cache, initiated to 0, new value survives to next iteration
 	static S32 prev_sample_R = 0;
@@ -563,7 +561,7 @@ void uac2_device_audio_task(void *pvParameters)
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
-						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF
+						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF ææææ apply to spdif playback as well. Eventually, rewrite as one buffer
 						audio_OUT_must_sync = 0;
 						local_DAC_buf_DMA_read = DAC_buf_DMA_read; 
 						num_remaining = spk_pdca_channel->tcr;
@@ -1046,7 +1044,7 @@ void uac2_device_audio_task(void *pvParameters)
 		#ifdef HW_GEN_RXMOD
 		
 			// The passed parameters are overwritten if input_select is an spdif class
-			mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, cache_L, cache_R, &num_samples, &cache_holds_silence);
+			mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, &num_samples, &cache_holds_silence);
 
 			// æææ must get this working with AB-1.2 		
 			if (input_select == MOBO_SRC_NONE) {
@@ -1059,7 +1057,7 @@ void uac2_device_audio_task(void *pvParameters)
 					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
 				}
 			
-				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen
+				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen æææ merge with USB init logic for this same purpose
 				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 				num_remaining = spk_pdca_channel->tcr;
 				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again for a long time. In which we simply read the counter again
