@@ -1038,7 +1038,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					temp_num_samples++;
 				} // SPK_CACHE_MAX_SAMPLES
 				else {
-					print_dbg_char('!'); // Buffer length warning - occurs mainly at playback start and silence detection. Why? Update init code!
+					// print_dbg_char('!'); // Buffer length warning - occurs mainly at playback start and silence detection. Why? Update init code!
 				}
 				
 			} // End we_own_cache
