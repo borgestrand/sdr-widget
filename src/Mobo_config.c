@@ -947,7 +947,11 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 	U32 i;								// Generic counter
 
-	U8 local_DAC_buf_DMA_read;			// Local copy read in atomic operations
+	#ifdef FEATURE_DAC_UNIFIED
+	#else
+		U8 local_DAC_buf_DMA_read;		// Local copy read in atomic operations
+	#endif
+
 	U32 num_remaining;
 
 	S32 sample_temp = 0;
@@ -1532,10 +1536,18 @@ void mobo_clear_dac_channel(void) {
 
 //	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
 
-	for (i = 0; i < DAC_BUFFER_SIZE; i++) {
-		spk_buffer_0[i] = 0;
-		spk_buffer_1[i] = 0;
-	}
+
+	#ifdef FEATURE_DAC_UNIFIED
+		for (i = 0; i < DAC_BUFFER_SIZE_UNI; i++) {
+			spk_buffer_uni[i] = 0;
+		}
+	#else
+		for (i = 0; i < DAC_BUFFER_SIZE; i++) {
+			spk_buffer_0[i] = 0;
+			spk_buffer_1[i] = 0;
+		}
+	#endif
+
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
 }

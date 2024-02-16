@@ -99,7 +99,12 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 static U32  index, spk_index;
-static S16  old_gap = DAC_BUFFER_SIZE;
+#ifdef FEATURE_DAC_UNIFIED
+	static S16  old_gap = DAC_BUFFER_SIZE_UNI / 2; // Assumed to be OK... 
+#else
+	static S16  old_gap = DAC_BUFFER_SIZE;
+#endif
+
 // static U8 ADC_buf_USB_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out
 												// to the USB and reading from USB
 
@@ -114,7 +119,12 @@ void uac2_device_audio_task_init(U8 ep_in, U8 ep_out, U8 ep_out_fb)
 	index     =0;
 	ADC_buf_USB_IN = INIT_ADC_USB;				// Must initialize before it can be used for any good!
 	spk_index = 0;
-	DAC_buf_OUT = 0;
+
+	#ifdef FEATURE_DAC_UNIFIED
+	#else
+		DAC_buf_OUT = 0;
+	#endif
+
 	mute = FALSE; // applies to ADC OUT endpoint
 	spk_mute = FALSE;
 	ep_audio_in = ep_in;
@@ -177,10 +187,14 @@ void uac2_device_audio_task(void *pvParameters)
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
-	uint32_t silence_det_L = 0;
+	uint32_t silence_det_L = 0;		// æææ Rewrite silence detection within cache context
 	uint32_t silence_det_R = 0;
 	uint8_t silence_det = 0;
-	int local_DAC_buf_DMA_read = 0;				// Local copy read in atomic operations
+
+	#ifdef FEATURE_DAC_UNIFIED
+	#else
+		int local_DAC_buf_DMA_read = 0;				// Local copy read in atomic operations
+	#endif
 	
 // Start new code for skip/insert
 	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
@@ -557,31 +571,50 @@ void uac2_device_audio_task(void *pvParameters)
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
 						FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
-						old_gap = DAC_BUFFER_SIZE;			// BSB 20131115 moved here
+						
+						#ifdef FEATURE_DAC_UNIFIED
+							old_gap = DAC_BUFFER_SIZE_UNI / 2; // Assumed OK
+						#else
+							old_gap = DAC_BUFFER_SIZE;
+						#endif
+						
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
 						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF ææææ apply to spdif playback as well. Eventually, rewrite as one buffer
 						audio_OUT_must_sync = 0;
-						local_DAC_buf_DMA_read = DAC_buf_DMA_read; 
-						num_remaining = spk_pdca_channel->tcr;
-						// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-						// for a long time. In which we simply read the counter again
-						if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
-							local_DAC_buf_DMA_read = DAC_buf_DMA_read;
+						
+						#ifdef FEATURE_DAC_UNIFIED
 							num_remaining = spk_pdca_channel->tcr;
-						}
-						DAC_buf_OUT = local_DAC_buf_DMA_read;
+						#else
+							local_DAC_buf_DMA_read = DAC_buf_DMA_read; 
+							num_remaining = spk_pdca_channel->tcr;
+							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+							// for a long time. In which we simply read the counter again
+							if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+								local_DAC_buf_DMA_read = DAC_buf_DMA_read;
+								num_remaining = spk_pdca_channel->tcr;
+							}
+							DAC_buf_OUT = local_DAC_buf_DMA_read;
 
-						if (DAC_buf_OUT == 1) {
-							gpio_set_gpio_pin(AVR32_PIN_PX30);
-						}
-						else {
-							gpio_clr_gpio_pin(AVR32_PIN_PX30);
-						}
-									
-						spk_index = DAC_BUFFER_SIZE - num_remaining;
-						spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+							if (DAC_buf_OUT == 1) {
+								gpio_set_gpio_pin(AVR32_PIN_PX30);
+							}
+							else {
+								gpio_clr_gpio_pin(AVR32_PIN_PX30);
+							}
+						#endif
+
+						#ifdef FEATURE_DAC_UNIFIED
+							spk_index = DAC_BUFFER_SIZE_UNI - num_remaining + DAC_BUFFER_SIZE_UNI / 2; // Starting half a unified buffer away from DMA's read head
+							spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
+							if (spk_index >= DAC_BUFFER_SIZE_UNI) {				// Stay within bounds
+								spk_index -= DAC_BUFFER_SIZE_UNI;
+							}
+						#else
+							spk_index = DAC_BUFFER_SIZE - num_remaining; // This will likely yield 0..DAC_BUFFER_SIZE and mess up C! 
+							spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+						#endif
 
 						// 	playerStarted = TRUE;				// Moved here from mutex take code
 						
@@ -1046,36 +1079,49 @@ void uac2_device_audio_task(void *pvParameters)
 			// The passed parameters are overwritten if input_select is an spdif class
 			mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, &num_samples, &cache_holds_silence);
 
-			// æææ must get this working with AB-1.2 		
+			// æææ must get this working with AB-1.2 and verify where this code belongs	
 			if (input_select == MOBO_SRC_NONE) {
 				// Did SPDIF system just give up I2S control? If so get onto the sample rate of the USB system ASAP
 				if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
 				(prev_input_select == MOBO_SRC_TOSLINK0) ||
 				(prev_input_select == MOBO_SRC_TOSLINK1) ) {
-
 					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
 					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
 				}
-			
-				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen æææ merge with USB init logic for this same purpose
-				local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-				num_remaining = spk_pdca_channel->tcr;
-				// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again for a long time. In which we simply read the counter again
-				if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
-					local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-					num_remaining = spk_pdca_channel->tcr;
-				}
-				DAC_buf_OUT = local_DAC_buf_DMA_read;
 
-				if (DAC_buf_OUT == 1) {
-					gpio_set_gpio_pin(AVR32_PIN_PX30);
-				}
-				else {
-					gpio_clr_gpio_pin(AVR32_PIN_PX30);
-				}
-			
-				spk_index = DAC_BUFFER_SIZE - num_remaining;
-				spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample Init code should be applied to USB as well ?!?!
+				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen æææ merge with USB init logic for this same purpose
+				#ifdef FEATURE_DAC_UNIFIED
+					num_remaining = spk_pdca_channel->tcr;
+				#else
+					local_DAC_buf_DMA_read = DAC_buf_DMA_read; 
+					num_remaining = spk_pdca_channel->tcr;
+					// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+					// for a long time. In which we simply read the counter again
+					if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+						local_DAC_buf_DMA_read = DAC_buf_DMA_read;
+						num_remaining = spk_pdca_channel->tcr;
+					}
+					DAC_buf_OUT = local_DAC_buf_DMA_read;
+
+					if (DAC_buf_OUT == 1) {
+						gpio_set_gpio_pin(AVR32_PIN_PX30);
+					}
+					else {
+						gpio_clr_gpio_pin(AVR32_PIN_PX30);
+					}
+				#endif
+
+				#ifdef FEATURE_DAC_UNIFIED
+					spk_index = DAC_BUFFER_SIZE_UNI - num_remaining + DAC_BUFFER_SIZE_UNI / 2; // Starting half a unified buffer away from DMA's read head
+					spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
+					if (spk_index >= DAC_BUFFER_SIZE_UNI) {				// Stay within bounds
+						spk_index -= DAC_BUFFER_SIZE_UNI;
+					}
+				#else
+					spk_index = DAC_BUFFER_SIZE - num_remaining; // This will likely yield 0..DAC_BUFFER_SIZE and mess up C! 
+					spk_index = spk_index & ~((U32)1); 	// Clear LSB in order to start with L sample
+				#endif
+
 				num_remaining = 0;				// Used to validate cache contents. We have no reason to believe they are valid at the moment!
 			}
 			prev_input_select = input_select;
@@ -1103,27 +1149,34 @@ void uac2_device_audio_task(void *pvParameters)
 					else {
 						time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
 
-						local_DAC_buf_DMA_read = DAC_buf_DMA_read;
-						num_remaining = spk_pdca_channel->tcr;
-						// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
-						// for a long time. In which we simply read the counter again
-						if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+						#ifdef FEATURE_DAC_UNIFIED
+							num_remaining = spk_pdca_channel->tcr;
+							gap = DAC_BUFFER_SIZE_UNI - spk_index - num_remaining;
+							if (gap < 0) {
+								gap += DAC_BUFFER_SIZE_UNI;
+							}
+						#else
 							local_DAC_buf_DMA_read = DAC_buf_DMA_read;
 							num_remaining = spk_pdca_channel->tcr;
-						}
+							// Did an interrupt strike just there? Check if DAC_buf_DMA_read is valid. If not, interrupt won't strike again
+							// for a long time. In which we simply read the counter again
+							if (local_DAC_buf_DMA_read != DAC_buf_DMA_read) {
+								local_DAC_buf_DMA_read = DAC_buf_DMA_read;
+								num_remaining = spk_pdca_channel->tcr;
+							}
 
-						// Which buffer is in use, and does it truly correspond to the num_remaining value?
-						// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
-						if (DAC_buf_OUT != local_DAC_buf_DMA_read) { 	// CS4344 and USB using same buffer
-							if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
-							gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
-							else
-							gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
-						}
-						else { // usb and pdca working on different buffers
-							gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
-						}
-
+							// Which buffer is in use, and does it truly correspond to the num_remaining value?
+							// Read DAC_buf_DMA_read before and after num_remaining in order to determine validity
+							if (DAC_buf_OUT != local_DAC_buf_DMA_read) { 	// CS4344 and USB using same buffer
+								if ( spk_index < (DAC_BUFFER_SIZE - num_remaining))
+									gap = DAC_BUFFER_SIZE - num_remaining - spk_index;
+								else
+									gap = DAC_BUFFER_SIZE - spk_index + DAC_BUFFER_SIZE - num_remaining + DAC_BUFFER_SIZE;
+							}
+							else { // usb and pdca working on different buffers
+								gap = (DAC_BUFFER_SIZE - spk_index) + (DAC_BUFFER_SIZE - num_remaining);
+							}
+						#endif
 
 //						if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
 							if (gap < old_gap) {
@@ -1255,31 +1308,45 @@ void uac2_device_audio_task(void *pvParameters)
 				// Fetch from cache
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
+				
+				#ifdef FEATURE_DAC_UNIFIED
+					spk_buffer_uni[spk_index++] = sample_L;
+					spk_buffer_uni[spk_index++] = sample_R;
+				
+					if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+						spk_index = 0;
+						gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
-				if (DAC_buf_OUT == 0) {
-					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]  
-					spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-				else {
-					spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-							
-				if (spk_index >= DAC_BUFFER_SIZE) {
-					spk_index = 0;
-					DAC_buf_OUT = 1 - DAC_buf_OUT;
-
-					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						// Actually used and needed? Now it's running at half the rate compared to non-unified spk buffer
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#else
+					if (DAC_buf_OUT == 0) {
+						spk_buffer_0[spk_index++] = sample_L;
+						spk_buffer_0[spk_index++] = sample_R;
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						spk_buffer_1[spk_index++] = sample_L;
+						spk_buffer_1[spk_index++] = sample_R;
 					}
+				
+					if (spk_index >= DAC_BUFFER_SIZE) {
+						spk_index = 0;
+						DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-					// Actually used and needed?
-					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code. 
-				} // End switching buffers
-				i++;
+						if (DAC_buf_OUT == 1) {
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
+						}
+						else {
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+						}
+
+						// Actually used and needed?
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#endif
+
+				i++;	// Next sample from cache
 			} // end while i - before skip/insert
 
 
@@ -1290,82 +1357,124 @@ void uac2_device_audio_task(void *pvParameters)
 			if (si_action == SI_SKIP) {
 				// Do nothing
 			}
+			
 			else if (si_action == SI_NORMAL) {
 				// Single stereo sample
-				if (DAC_buf_OUT == 0) {
-					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-				else {
-					spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-							
-				if (spk_index >= DAC_BUFFER_SIZE) {
-					spk_index = 0;
-					DAC_buf_OUT = 1 - DAC_buf_OUT;
+				#ifdef FEATURE_DAC_UNIFIED
+					spk_buffer_uni[spk_index++] = sample_L;
+					spk_buffer_uni[spk_index++] = sample_R;
+				
+					if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+						spk_index = 0;
+						gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
-					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						// Actually used and needed? Now it's running at half the rate compared to non-unified spk buffer
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#else
+					if (DAC_buf_OUT == 0) {
+						spk_buffer_0[spk_index++] = sample_L;
+						spk_buffer_0[spk_index++] = sample_R;
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						spk_buffer_1[spk_index++] = sample_L;
+						spk_buffer_1[spk_index++] = sample_R;
 					}
+				
+					if (spk_index >= DAC_BUFFER_SIZE) {
+						spk_index = 0;
+						DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-					// Actually used and needed?
-					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-				} // End switching buffers
+						if (DAC_buf_OUT == 1) {
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
+						}
+						else {
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+						}
+
+						// Actually used and needed?
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#endif
+				
 			} // End SI_NORMAL
+			
 			else if (si_action == SI_INSERT) {
 				// First of two insertions:
-				if (DAC_buf_OUT == 0) {
-					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-				else {
-					spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-							
-				if (spk_index >= DAC_BUFFER_SIZE) {
-					spk_index = 0;
-					DAC_buf_OUT = 1 - DAC_buf_OUT;
+				#ifdef FEATURE_DAC_UNIFIED
+					spk_buffer_uni[spk_index++] = sample_L;
+					spk_buffer_uni[spk_index++] = sample_R;
+				
+					if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+						spk_index = 0;
+						gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
-					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						// Actually used and needed? Now it's running at half the rate compared to non-unified spk buffer
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#else
+					if (DAC_buf_OUT == 0) {
+						spk_buffer_0[spk_index++] = sample_L;
+						spk_buffer_0[spk_index++] = sample_R;
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						spk_buffer_1[spk_index++] = sample_L;
+						spk_buffer_1[spk_index++] = sample_R;
 					}
+				
+					if (spk_index >= DAC_BUFFER_SIZE) {
+						spk_index = 0;
+						DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-					// Actually used and needed?
-					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-				} // End switching buffers
+						if (DAC_buf_OUT == 1) {
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
+						}
+						else {
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+						}
+
+						// Actually used and needed?
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#endif
 							
 				// Second insertion:
-				if (DAC_buf_OUT == 0) {
-					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-				else {
-					spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-							
-				if (spk_index >= DAC_BUFFER_SIZE) {
-					spk_index = 0;
-					DAC_buf_OUT = 1 - DAC_buf_OUT;
+				#ifdef FEATURE_DAC_UNIFIED
+					spk_buffer_uni[spk_index++] = sample_L;
+					spk_buffer_uni[spk_index++] = sample_R;
+				
+					if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+						spk_index = 0;
+						gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
-					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						// Actually used and needed? Now it's running at half the rate compared to non-unified spk buffer
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#else
+					if (DAC_buf_OUT == 0) {
+						spk_buffer_0[spk_index++] = sample_L;
+						spk_buffer_0[spk_index++] = sample_R;
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						spk_buffer_1[spk_index++] = sample_L;
+						spk_buffer_1[spk_index++] = sample_R;
 					}
+				
+					if (spk_index >= DAC_BUFFER_SIZE) {
+						spk_index = 0;
+						DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-					// Actually used and needed?
-					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-				} // End switching buffers
+						if (DAC_buf_OUT == 1) {
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
+						}
+						else {
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+						}
+
+						// Actually used and needed?
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#endif
 			}
 			i++; // Point to the sample after the one which was skipped or inserted
 						
@@ -1374,29 +1483,43 @@ void uac2_device_audio_task(void *pvParameters)
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
 
-				if (DAC_buf_OUT == 0) {
-					spk_buffer_0[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_0[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-				else {
-					spk_buffer_1[spk_index++] = sample_L; // Was: [spk_index+OUT_LEFT]
-					spk_buffer_1[spk_index++] = sample_R; // Was: [spk_index+OUT_RIGHT]
-				}
-							
-				if (spk_index >= DAC_BUFFER_SIZE) {
-					spk_index = 0;
-					DAC_buf_OUT = 1 - DAC_buf_OUT;
+				#ifdef FEATURE_DAC_UNIFIED
+					spk_buffer_uni[spk_index++] = sample_L;
+					spk_buffer_uni[spk_index++] = sample_R;
+				
+					if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+						spk_index = 0;
+						gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
-					if (DAC_buf_OUT == 1) {
-						gpio_set_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						// Actually used and needed? Now it's running at half the rate compared to non-unified spk buffer
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#else
+					if (DAC_buf_OUT == 0) {
+						spk_buffer_0[spk_index++] = sample_L;
+						spk_buffer_0[spk_index++] = sample_R;
 					}
 					else {
-						gpio_clr_gpio_pin(AVR32_PIN_PX30); // BSB 20140820 debug on GPIO_06/TP71 (was PX55 / GPIO_03)
+						spk_buffer_1[spk_index++] = sample_L;
+						spk_buffer_1[spk_index++] = sample_R;
 					}
+				
+					if (spk_index >= DAC_BUFFER_SIZE) {
+						spk_index = 0;
+						DAC_buf_OUT = 1 - DAC_buf_OUT;
 
-					// BSB 20131201 attempting improved playerstarted detection
-					usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code
-				} // End switching buffers
+						if (DAC_buf_OUT == 1) {
+							gpio_set_gpio_pin(AVR32_PIN_PX30);
+						}
+						else {
+							gpio_clr_gpio_pin(AVR32_PIN_PX30);
+						}
+
+						// Actually used and needed?
+						usb_buffer_toggle--;			// Counter is increased by DMA, decreased by seq. code.
+					} // End switching buffers
+				#endif
+
 				i++;
 			} // end while i - after skip/insert
 						

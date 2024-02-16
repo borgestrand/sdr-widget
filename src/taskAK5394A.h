@@ -39,7 +39,13 @@ Long buffers may take up too much RAM. And clearing and moving their contents ta
 Short buffers give less system latency and poorer synch state machine performance
 */
 #define ADC_BUFFER_SIZE 1024	// Must be divisible by 4
-#define DAC_BUFFER_SIZE 1024		// 1536 // (32*2*24) * 1 // = 1536
+
+#ifdef FEATURE_DAC_UNIFIED
+	#define DAC_BUFFER_SIZE_UNI 1536*2 		// Was: 1536*2 // (32*2*24) * 1 // = 1536
+#else
+	#define DAC_BUFFER_SIZE 1536		// 1536 // (32*2*24) * 1 // = 1536
+#endif
+
 #define SPK_CACHE_MAX_SAMPLES 120	// Maximum number of stereo samples in two package of 250µs (nominally 48 at 192ksps). That way we can miss one. As global 120 is OK. As local it refused to run above 60
 
 #define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
@@ -104,8 +110,6 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define	FREQ_96				96000
 #define	FREQ_176			176400
 #define	FREQ_192			192000
-#define BUF_IS_ONE			0x8000	// Encode DAC_buf_DMA_read (or any other buffer) in U16 variable above bits used to count up to 2xDAC_BUFFER_SIZE
-#define NOT_BUF_IS_ONE		0x7FFF
 #define DAC_MUST_CLEAR		1		// Immediately clear the content of outgoing DAC buffers
 #define DAC_CLEARED			2		// Outgoing DAC buffers are cleared, don't write to DAC buffers
 #define DAC_READY			3		// Outgoing DAC buffers are ready to be written to
@@ -133,14 +137,24 @@ Short buffers give less system latency and poorer synch state machine performanc
 
 // Global buffer variables
 extern volatile S32 audio_buffer[ADC_BUFFER_SIZE];
-extern volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
-extern volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
+
+#ifdef FEATURE_DAC_UNIFIED
+	extern volatile S32 spk_buffer_uni[DAC_BUFFER_SIZE_UNI];
+#else
+	extern volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
+	extern volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
+#endif
 
 extern volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 extern volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 
 extern volatile avr32_ssc_t *ssc;
-extern volatile int DAC_buf_DMA_read;	// Written by interrupt handler, initiated by sequential code
+
+#ifdef FEATURE_DAC_UNIFIED
+#else
+	extern volatile int DAC_buf_DMA_read;	// Written by interrupt handler, initiated by sequential code
+#endif
+
 extern volatile int ADC_buf_I2S_IN; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
 extern volatile int ADC_buf_USB_IN;		// Written by sequential code, handles only data IN-to USB host
 extern volatile int DAC_buf_OUT;		// Written by sequential code

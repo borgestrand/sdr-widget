@@ -76,24 +76,37 @@ static const pdca_channel_options_t PDCA_OPTIONS = {
 	.addr = (void *)audio_buffer,       // memory address
 	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
 	.size = ADC_BUFFER_SIZE,				// transfer counter
-	.r_addr = NULL,								// next memory address // Is this safe?? What about using audio_buffer_1 here?
+	.r_addr = NULL,								// next memory address // Is this safe?? What about using audio_buffer here? æææ
 	.r_size = 0,								// next transfer counter // Is this to force an immediate interrupt?
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
 };
 
 static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
-	.addr = (void *)spk_buffer_0,				// memory address
-	.pid = AVR32_PDCA_PID_SSC_TX,				// select peripheral
-	.size = DAC_BUFFER_SIZE,					// transfer counter
-	.r_addr = NULL,								// next memory address // What about using spk_buffer_1 here?
-	.r_size = 0,								// next transfer counter
-	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
+	#ifdef FEATURE_DAC_UNIFIED
+		.addr = (void *)spk_buffer_uni,				// memory address
+		.pid = AVR32_PDCA_PID_SSC_TX,				// select peripheral
+		.size = DAC_BUFFER_SIZE_UNI,				// transfer counter
+		.r_addr = NULL,								// next memory address // What about using spk_buffer here? æææ
+		.r_size = 0,								// next transfer counter
+		.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
+	#else
+		.addr = (void *)spk_buffer_0,				// memory address
+		.pid = AVR32_PDCA_PID_SSC_TX,				// select peripheral
+		.size = DAC_BUFFER_SIZE,					// transfer counter
+		.r_addr = NULL,								// next memory address // What about using spk_buffer_1 here?
+		.r_size = 0,								// next transfer counter
+		.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
+	#endif
 };
 
 volatile S32 audio_buffer[ADC_BUFFER_SIZE];
 
-volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
-volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
+#ifdef FEATURE_DAC_UNIFIED
+	volatile S32 spk_buffer_uni[DAC_BUFFER_SIZE_UNI];
+#else
+	volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
+	volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
+#endif
 
 volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
@@ -101,7 +114,11 @@ volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
-volatile int DAC_buf_DMA_read = 0;	// Written by interrupt handler, initiated by sequential code
+#ifdef FEATURE_DAC_UNIFIED
+#else
+	volatile int DAC_buf_DMA_read = 0;	// Written by interrupt handler, initiated by sequential code
+#endif
+
 volatile int ADC_buf_I2S_IN = 0; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)
 volatile int ADC_buf_USB_IN = 0;	// Written by sequential code, handles only data IN-to USB host
 volatile int DAC_buf_OUT = 0; 		// Written by sequential code, handles both USB OUT -> spk_buffer_0/1 -and- I2S input -> spk_buffer_0/1
@@ -154,31 +171,44 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
  * The interrupt will happen when the reload counter reaches 0
  */
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
-	if (DAC_buf_DMA_read == 0) {
+	
+	#ifdef FEATURE_DAC_UNIFIED
 		// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
-		Disable_global_interrupt();
+		pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_uni, DAC_BUFFER_SIZE_UNI);
+
+		#ifdef PRODUCT_FEATURE_AMB
+			gpio_tgl_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
+		#else
+			gpio_tgl_gpio_pin(AVR32_PIN_PX33);	// Ideal operation: This signal is 90 degrees out of phase with that of sequential producer. Bad operation: This signal is 0 or 180 degrees out of phase with seq. prod. 
+		#endif
+	#else
+		if (DAC_buf_DMA_read == 0) {
+			// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
+			Disable_global_interrupt();
 			pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_1, DAC_BUFFER_SIZE);
 			DAC_buf_DMA_read = 1;
-		Enable_global_interrupt();
+			Enable_global_interrupt();
 
-#ifdef PRODUCT_FEATURE_AMB
-		gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
-#else
-		gpio_set_gpio_pin(AVR32_PIN_PX33);
-#endif
-	}
-	else if (DAC_buf_DMA_read == 1) {
-		Disable_global_interrupt();
+			#ifdef PRODUCT_FEATURE_AMB
+			gpio_set_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
+			#else
+			gpio_set_gpio_pin(AVR32_PIN_PX33);
+			#endif
+		}
+		else if (DAC_buf_DMA_read == 1) {
+			Disable_global_interrupt();
 			pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_0, DAC_BUFFER_SIZE);
 			DAC_buf_DMA_read = 0;
-		Enable_global_interrupt();
+			Enable_global_interrupt();
 
-#ifdef PRODUCT_FEATURE_AMB
-		gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
-#else
-		gpio_clr_gpio_pin(AVR32_PIN_PX33);
-#endif
+			#ifdef PRODUCT_FEATURE_AMB
+			gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
+			#else
+			gpio_clr_gpio_pin(AVR32_PIN_PX33);
+			#endif
 	}
+	#endif
+	
 
 	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
@@ -330,7 +360,10 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 	Disable_global_interrupt();			// Or taskENTER_CRITICAL();
 
 	pdca_init_channel(PDCA_CHANNEL_SSC_TX, &SPK_PDCA_OPTIONS);
-	DAC_buf_DMA_read = 0;				// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
+	#ifdef FEATURE_DAC_UNIFIED
+	#else
+		DAC_buf_DMA_read = 0;				// pdca_init_channel will force start from spk_buffer_0[] as NEXT buffer to use after int
+	#endif
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
