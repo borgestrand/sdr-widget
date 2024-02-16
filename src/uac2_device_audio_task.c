@@ -295,10 +295,10 @@ void uac2_device_audio_task(void *pvParameters)
 					// Rewrite init code!
 					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
 						num_remaining = pdca_channel->tcr; 
-						index = ADC_BUFFER_SIZE_UNI - num_remaining + ADC_BUFFER_SIZE_UNI / 2;	// Starting half a unified buffer away from DMA's write head
+						index = ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE / 2;	// Starting half a unified buffer away from DMA's write head
 						index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
-						if (index >= ADC_BUFFER_SIZE_UNI) {						// Stay within bounds
-							index -= ADC_BUFFER_SIZE_UNI;
+						if (index >= ADC_BUFFER_SIZE) {						// Stay within bounds
+							index -= ADC_BUFFER_SIZE;
 						}
 						ADC_buf_USB_IN = 0;										// Done with init, continue ordinary operation where this variable probably isn't touched
 					}
@@ -357,16 +357,16 @@ void uac2_device_audio_task(void *pvParameters)
 
 					// Simulated in debug03_gap.c - not verified or thoroughly analyzed
 					num_remaining = pdca_channel->tcr;
-					gap = ADC_BUFFER_SIZE_UNI - index - num_remaining;
+					gap = ADC_BUFFER_SIZE - index - num_remaining;
 					if (gap < 0) {
-						gap += ADC_BUFFER_SIZE_UNI;
+						gap += ADC_BUFFER_SIZE;
 					}
-					if ( gap < ADC_BUFFER_SIZE_UNI/4 ) {
+					if ( gap < ADC_BUFFER_SIZE/4 ) {
 						// throttle back, transfer less
 						num_samples_adc--;
 						print_dbg_char('-');
 					}
-					else if (gap > (ADC_BUFFER_SIZE_UNI/2 + ADC_BUFFER_SIZE_UNI/4)) {
+					else if (gap > (ADC_BUFFER_SIZE/2 + ADC_BUFFER_SIZE/4)) {
 						// transfer more
 						num_samples_adc++;
 						print_dbg_char('+');
@@ -383,10 +383,10 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_right = 0;
 						}
 						else {
-							sample_left  = audio_buffer_uni[index++];
-							sample_right = audio_buffer_uni[index++];
+							sample_left  = audio_buffer[index++];
+							sample_right = audio_buffer[index++];
 							
-							if (index >= ADC_BUFFER_SIZE_UNI) {
+							if (index >= ADC_BUFFER_SIZE) {
 								index = 0;
 								#ifdef USB_STATE_MACHINE_GPIO
 //										gpio_tgl_gpio_pin(AVR32_PIN_PA22);		// Perfect operation: This signal is +-90 degrees out of phase with ADC int. code's producer indicator!

@@ -927,13 +927,13 @@ uint32_t mobo_wait_LRCK_TX_asm(void) {
 
 // Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair! Possible source of bugs!!
 void mobo_ADC_position_uni(U32 *last_pos, U32 num_remaining) {
-	*last_pos = (ADC_BUFFER_SIZE_UNI - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
+	*last_pos = (ADC_BUFFER_SIZE - num_remaining) & ~((U32)1); // Counting mono samples. Clearing LSB = indicate the last written left sample in L/R pair
 	// Are we operating from 0 to < ADC_BUFFER_SIZE? That is safe, record the position and buffer last written to
-	if (*last_pos < ADC_BUFFER_SIZE_UNI) {
+	if (*last_pos < ADC_BUFFER_SIZE) {
 	}
-	// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE_UNI? If so, don't overflow but record the last likely position
+	// Did timer_captured_ADC_buf_DMA_write count up to or beyond ADC_BUFFER_SIZE? If so, don't overflow but record the last likely position
 	else {
-		*last_pos = (ADC_BUFFER_SIZE_UNI - 2); // Counting mono samples 
+		*last_pos = (ADC_BUFFER_SIZE - 2); // Counting mono samples 
 	}
 }
 
@@ -1008,8 +1008,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		while (i != last_written_ADC_pos) {
 			// Read incoming sample from buffer being filled by DMA
 			
-			sample_L = audio_buffer_uni[i];
-			sample_R = audio_buffer_uni[i + 1];
+			sample_L = audio_buffer[i];
+			sample_R = audio_buffer[i + 1];
 			
 			// Silence detect v3.0. Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
 			non_silence_det = ( (non_silence_det) || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
@@ -1045,7 +1045,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 			// Index next incoming sample
 			i+=2; // counts up to last_written_ADC_buf
-			if (i >= ADC_BUFFER_SIZE_UNI) {
+			if (i >= ADC_BUFFER_SIZE) {
 				i = 0;							// Start from beginning of same buffer!
 //				gpio_tgl_gpio_pin(AVR32_PIN_PX30);		// Perfect operation: This signal slightly lags producer's interrupt driven code
 			}
@@ -1123,9 +1123,9 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		// Convert from pdca report to buffer address - initiate the present versions of these variables based on the most updated cached readout of ADC pdca status
 		// _pos always points to left sample in LR stereo pair!
 		mobo_ADC_position_uni(&last_written_ADC_pos, local_captured_num_remaining);
-		last_written_ADC_pos += ADC_BUFFER_SIZE_UNI / 2;	// Starting half a unified buffer away from DMA's write head
-		if (last_written_ADC_pos >= ADC_BUFFER_SIZE_UNI) {	// Stay within bounds
-			last_written_ADC_pos -= ADC_BUFFER_SIZE_UNI;
+		last_written_ADC_pos += ADC_BUFFER_SIZE / 2;	// Starting half a unified buffer away from DMA's write head
+		if (last_written_ADC_pos >= ADC_BUFFER_SIZE) {	// Stay within bounds
+			last_written_ADC_pos -= ADC_BUFFER_SIZE;
 		}
 		
 		// Clear the history
@@ -1514,8 +1514,8 @@ void mobo_clear_adc_channel(void) {
 
 //	gpio_set_gpio_pin(AVR32_PIN_PX18); // ch2
 
-	for (i = 0; i < ADC_BUFFER_SIZE_UNI; i++) {
-		audio_buffer_uni[i] = 0;
+	for (i = 0; i < ADC_BUFFER_SIZE; i++) {
+		audio_buffer[i] = 0;
 	}
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX18); // ch2

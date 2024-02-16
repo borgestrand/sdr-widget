@@ -73,9 +73,9 @@ static const gpio_map_t SSC_GPIO_MAP = {
 };
 
 static const pdca_channel_options_t PDCA_OPTIONS = { 
-	.addr = (void *)audio_buffer_uni,       // memory address
+	.addr = (void *)audio_buffer,       // memory address
 	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
-	.size = ADC_BUFFER_SIZE_UNI,				// transfer counter
+	.size = ADC_BUFFER_SIZE,				// transfer counter
 	.r_addr = NULL,								// next memory address // Is this safe?? What about using audio_buffer_1 here?
 	.r_size = 0,								// next transfer counter // Is this to force an immediate interrupt?
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
@@ -90,7 +90,7 @@ static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
 };
 
-volatile S32 audio_buffer_uni[ADC_BUFFER_SIZE_UNI];
+volatile S32 audio_buffer[ADC_BUFFER_SIZE];
 
 volatile S32 spk_buffer_0[DAC_BUFFER_SIZE];
 volatile S32 spk_buffer_1[DAC_BUFFER_SIZE];
@@ -140,7 +140,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 		// -next- pointer, the one to be selected automatically after the current one is done. That may be why
 		// we choose the same buffer number here as in the seq. code
 
-	pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer_uni, ADC_BUFFER_SIZE_UNI);
+	pdca_reload_channel(PDCA_CHANNEL_SSC_RX, (void *)audio_buffer, ADC_BUFFER_SIZE);
 
 	#ifdef USB_STATE_MACHINE_GPIO
 //		gpio_tgl_gpio_pin(AVR32_PIN_PX30);		// Perfect operation: This signal is +-90 degrees out of phase with ADC seq. code's consumer indicator! Or it just preceeds spdif handle's recorder!
