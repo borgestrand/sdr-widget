@@ -228,7 +228,7 @@ void wm8804_task(void *pvParameters) {
 						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 						silence_counter = 0;					// For good measure, pause not yet detected
-						print_dbg_char(']');
+						print_dbg_char('}');					// WM8804 gives
 						
 						// Report to cpu and debug terminal
 						print_cpu_char(CPU_CHAR_IDLE);
@@ -274,7 +274,7 @@ void wm8804_task(void *pvParameters) {
 							spdif_rx_status.channel = channel;
 							spdif_rx_status.frequency = freq;
 							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
-							print_dbg_char('[');
+							print_dbg_char('{');				// WM8804 takes
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 
 
@@ -775,6 +775,7 @@ void wm8804_mute(void) {
 
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear outgoing DAC data
 
+	print_dbg_char('U');
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
 }
 
@@ -783,6 +784,7 @@ void wm8804_mute(void) {
 void wm8804_unmute(void) {
 	// For now, frequency changes totally mess up ADC_site
 	
+	print_dbg_char('V');
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 //	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
@@ -822,11 +824,9 @@ uint8_t wm8804_multiwrite(uint8_t no_bytes, uint8_t *int_data) {
 		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
 		}
 		else {
-//			print_dbg_char('P');
 		}
 	}
 	else {
-//		print_dbg_char('Q');
 	}
 	return status;
 }
@@ -849,11 +849,9 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
 		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
 		}
 		else {
-//			print_dbg_char('P');
 		}
 	}
 	else {
-//		print_dbg_char('Q');
 	}
 
 	return status;
@@ -879,16 +877,12 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 		
 		// End of blocking code
 
-//		print_dbg_char('g');
 		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
-//			print_dbg_char(60); // '<'
 		}
 		else {
-//			print_dbg_char('R');
 		}
 	}
 	else {
-//		print_dbg_char('S');
 	}
 
 	return dev_data[0];

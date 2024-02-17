@@ -762,7 +762,7 @@ void uac2_device_audio_task(void *pvParameters)
 							#ifdef USB_STATE_MACHINE_DEBUG
 //								print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 								if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
-									print_dbg_char('[');
+									print_dbg_char('[');						// USB takes
 									input_select = MOBO_SRC_UAC2;
 									playerStarted = TRUE;						// Is it better off here?
 									
@@ -840,7 +840,7 @@ void uac2_device_audio_task(void *pvParameters)
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 									mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-									print_dbg_char(']');
+									print_dbg_char(']');					// USB takes
 
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
@@ -926,7 +926,7 @@ void uac2_device_audio_task(void *pvParameters)
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 								mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 								input_select = MOBO_SRC_NONE;
-								print_dbg_char(']');
+								print_dbg_char(']');					// USB gives after silence
 
 								// Report to cpu and debug terminal
 								print_cpu_char(CPU_CHAR_IDLE);
@@ -997,7 +997,7 @@ void uac2_device_audio_task(void *pvParameters)
 //						print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
 						if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 							input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-							print_dbg_char(']');
+							print_dbg_char(')');					// USB gives after toggle timeout
 
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);

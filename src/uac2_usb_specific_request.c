@@ -239,7 +239,6 @@ void uac2_freq_change_handler() {
 
 	if (freq_changed) {
 
-// #ifdef HW_GEN_SPRX
 #if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )
 		if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
 			spk_mute = TRUE; // mute speaker while changing frequency and oscillator
@@ -253,9 +252,6 @@ void uac2_freq_change_handler() {
 			// Will this work if we go from SPDIF to USB already playing at different sample rate?
 
 		}
-//		if (input_select == MOBO_SRC_UAC2) {	// Only change I2S settings if appropriate
-//			mobo_led_select(spk_current_freq.frequency, MOBO_SRC_UAC2); // GPIO frequency indication on front RGB LED
-//		}
 #else
 		spk_mute = TRUE; // mute speaker while changing frequency and oscillator
 		#ifdef USB_STATE_MACHINE_DEBUG
