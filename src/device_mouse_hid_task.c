@@ -302,7 +302,7 @@ void device_mouse_hid_task(void)
 			}
 #endif
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 
 // Also available in reduced debug system
             else if (a == MCU_CHAR_ALIVE) {					// Uppercase 'L' - live detect
@@ -460,7 +460,7 @@ Arash
 	            mobo_xo_select(spdif_rx_status.frequency, input_select);
             }
 
-#endif // HW_GEN_RXMOD
+#endif // HW_GEN_SPRX
 
             // Check source and rate, output to terminal
             else if (a == 'M') {

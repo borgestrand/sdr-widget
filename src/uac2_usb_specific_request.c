@@ -239,8 +239,8 @@ void uac2_freq_change_handler() {
 
 	if (freq_changed) {
 
-// #ifdef HW_GEN_RXMOD
-#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) )
+// #ifdef HW_GEN_SPRX
+#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )
 		if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
 			spk_mute = TRUE; // mute speaker while changing frequency and oscillator
 			mobo_clear_dac_channel();
@@ -274,7 +274,7 @@ void uac2_freq_change_handler() {
 		 */
 		if (spk_current_freq.frequency == FREQ_96) {
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering? 
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -295,7 +295,7 @@ void uac2_freq_change_handler() {
 
 		else if (spk_current_freq.frequency == FREQ_88) {
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -316,7 +316,7 @@ void uac2_freq_change_handler() {
 
 		else if (spk_current_freq.frequency == FREQ_176) {
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -330,7 +330,7 @@ void uac2_freq_change_handler() {
 
 		else if (spk_current_freq.frequency == FREQ_192) {
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -344,7 +344,7 @@ void uac2_freq_change_handler() {
 
 		else if (spk_current_freq.frequency == FREQ_48) {
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -358,7 +358,7 @@ void uac2_freq_change_handler() {
 
 		else if (spk_current_freq.frequency == FREQ_44) {
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // FMADC_site
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering?
 #else
 			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);

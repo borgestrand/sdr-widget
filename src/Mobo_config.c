@@ -59,7 +59,7 @@ void mobo_sleep_rtc_ms(uint16_t time_ms) {
 
 
 // Generic I2C single-byte read
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
 int8_t mobo_i2c_read (uint8_t *data, uint8_t device_address, uint8_t internal_address) {
 	uint8_t dev_datar[1];
 	int8_t retval = 0;
@@ -139,7 +139,7 @@ int8_t mobo_i2c_write (uint8_t device_address, uint8_t internal_address, uint8_t
 
 	return retval;
 }
-#endif // #if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
+#endif // #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
 
 
 
@@ -281,9 +281,9 @@ uint8_t mobo_fmadc_gain(uint8_t channel, uint8_t gain) {
 #endif
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 
-// Control USB multiplexer in HW_GEN_RXMOD 
+// Control USB multiplexer in HW_GEN_SPRX 
 void mobo_usb_select(uint8_t usb_ch) {
 	if (usb_ch == USB_CH_C) {
 		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
@@ -322,7 +322,7 @@ uint8_t mobo_usb_detect(void) {
 
 
 // For the moment do nothing!
-#if (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_SPRX)
 void  mobo_i2s_enable(uint8_t i2s_mode) {
 	if (i2s_mode == MOBO_I2S_ENABLE) {
 		//		gpio_set_gpio_pin(AVR32_PIN_PX58); 					// Enable I2S data
@@ -341,9 +341,9 @@ void  mobo_i2s_enable(uint8_t i2s_mode) {
 
 
 
-#if (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_SPRX)
 
-// Audio Widget HW_GEN_RXMOD LED control
+// Audio Widget HW_GEN_SPRX LED control
 void mobo_led(uint8_t fled0) {
 	// red:1, green:2, blue:4
 	
@@ -489,11 +489,11 @@ RATE_LED[2 1 0] = 1 1 1 TBD
 	}
 }
 
-#endif // LED for HW_GEN_RXMOD
+#endif // LED for HW_GEN_SPRX
 
 
 
-#if (defined  HW_GEN_RXMOD)
+#if (defined  HW_GEN_SPRX)
 
 // RXmod SPDIF mux control
 void mobo_rxmod_input(uint8_t input_sel) {
@@ -622,7 +622,7 @@ uint32_t mobo_srd_asm2(void) {
 
 	// see srd_test03.c and srd_test03.lst
 
-	// HW_GEN_RXMOD: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
+	// HW_GEN_SPRX: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
 
 	// Recompile prototype c to change io pin!
 	// Test is done for up to 1 half period, then 2 full periods
@@ -784,7 +784,7 @@ uint32_t mobo_wait_LRCK_RX_asm(void) {
 
 	// see srd_test03.c and srd_test03.lst
 
-	// HW_GEN_RXMOD: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
+	// HW_GEN_SPRX: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
 
 	// Recompile prototype c to change io pin!
 	// Test is done for up to 1 half period, then 2 full periods
@@ -855,7 +855,7 @@ uint32_t mobo_wait_LRCK_TX_asm(void) {
 
 	// see srd_test03.c and srd_test03.lst
 
-	// HW_GEN_RXMOD: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
+	// HW_GEN_SPRX: Moved from PX09, pin 49 to PA05, pin 124, to PX36, pin 44 same as used by other code
 
 	// Recompile prototype c to change io pin!
 	// Test is done for up to 1 half period, then 2 full periods
@@ -922,7 +922,7 @@ uint32_t mobo_wait_LRCK_TX_asm(void) {
 
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 
 
 // Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair! Possible source of bugs!!
@@ -1307,7 +1307,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			break;
 		}
 
-	#elif (defined HW_GEN_RXMOD) 
+	#elif (defined HW_GEN_SPRX) 
 
 		// New version, without I2S mux, with buffering via MCU's ADC interface
 		// RXmod_t1_B has the MUX built-in but sets SEL_USBP_RXN = PC01 to always select MCU's outgoing I2S port toward the DAC chip
@@ -1381,13 +1381,13 @@ void mobo_clock_division(U32 frequency) {
 
 	if ( (frequency != prev_frequency) || (prev_frequency == FREQ_INVALID) ) { 	// Only run at startup or when things change
 		
-/* 20230930: Clock division option re-introduced in HW_GEN_RXMOD. NBNBNB Detect pin polarity is the opposite from that of AB-1.2 series. FMADC has no division!*/
+/* 20230930: Clock division option re-introduced in HW_GEN_SPRX. NBNBNB Detect pin polarity is the opposite from that of AB-1.2 series. FMADC has no division!*/
 		
 		gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
 	
 		pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-		#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
+		#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
 			// RXMOD: Pulling down PA03 indicates division. Floating indicates NO division.
 			if (gpio_get_pin_value(AVR32_PIN_PA03) == 0) {
 		#else

@@ -22,7 +22,7 @@
 
 
 
-#if (defined HW_GEN_RXMOD)		// Functions here only make sense for WM8804
+#if (defined HW_GEN_SPRX)		// Functions here only make sense for WM8804
 
 #include "pcm5142.h"
 #include "gpio.h"
@@ -68,7 +68,7 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 		vTaskDelay(5);							// Wait 0.5ms
 
 		// Start of blocking code
-		#ifdef HW_GEN_RXMOD_PATCH_02
+		#ifdef HW_GEN_SPRX_PATCH_02
 			gpio_set_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN enable I2C to DAC
 			vTaskDelay(10);							// Wild guess at delay time
 		#endif
@@ -77,7 +77,7 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 		dev_data[1] = int_data;
 		status = twi_write_out(PCM5142_DEV_ADR, dev_data, 2);
 
-		#ifdef HW_GEN_RXMOD_PATCH_02
+		#ifdef HW_GEN_SPRX_PATCH_02
 			gpio_clr_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN, cut off I2C noise to DAC
 		#endif
 		// End of blocking code
@@ -116,7 +116,7 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 		vTaskDelay(5);							// Wait 0.5ms
 
 		// Start of blocking code
-		#ifdef HW_GEN_RXMOD_PATCH_02
+		#ifdef HW_GEN_SPRX_PATCH_02
 			gpio_set_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN enable I2C to DAC
 			vTaskDelay(10);							// Wild guess at delay time
 		#endif
@@ -128,7 +128,7 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 		else
 			dev_data[0] = 0 ;	// Randomly chosen failure state
 
-		#ifdef HW_GEN_RXMOD_PATCH_02
+		#ifdef HW_GEN_SPRX_PATCH_02
 			gpio_clr_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN, cut off I2C noise to DAC
 		#endif
 		// End of blocking code
@@ -152,4 +152,4 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 }
 
 
-#endif  // HW_GEN_RXMOD
+#endif  // HW_GEN_SPRX

@@ -36,7 +36,7 @@
 #include "taskAK5394A.h"
 
 
-#if (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_SPRX)
 #include "wm8804.h"
 #include "pcm5142.h"
 #endif
@@ -104,7 +104,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 	uint32_t time;					// Time management
 
-#ifdef  HW_GEN_RXMOD
+#ifdef  HW_GEN_SPRX
 	uint8_t usb_ch_counter = 0;						// How many poll periods have passed since a USB change detection?
 #endif
 
@@ -130,11 +130,11 @@ static void vtaskMoboCtrl( void * pcParameters )
 			mobo_fmadc_gain(0x02, 0x02);			// Channel 2, gain setting 2
 		#endif
 
-		#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
+		#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 			input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
 		#endif
 
-		#if (defined HW_GEN_RXMOD)
+		#if (defined HW_GEN_SPRX)
 			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
 
 			// Initialie PCM5142
@@ -229,7 +229,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 						mobo_led(FLED_GREEN);
 					}
 
-				#elif (defined HW_GEN_RXMOD)
+				#elif (defined HW_GEN_SPRX)
 					if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio)
 						mobo_led(FLED_RED);							// With UAC1
 					else
@@ -260,7 +260,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 					if (btn_poll_temp == 100) {
 						#if defined(HW_GEN_AB1X)
 							mobo_led(FLED_DARK);
-						#elif (defined HW_GEN_RXMOD)
+						#elif (defined HW_GEN_SPRX)
 							mobo_led(FLED_DARK);
 							// FIX: Make sure automatic sample rate or source change doesn't turn LEDs back on!
 						#elif (defined HW_GEN_FMADC)
@@ -288,7 +288,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 						else {										// With UAC != 1
 							mobo_led(FLED_RED);
 						}
-					#elif (defined HW_GEN_RXMOD)
+					#elif (defined HW_GEN_SPRX)
 						if (feature_get_nvram(feature_image_index) == feature_image_uac1_audio) {
 							mobo_led(FLED_YELLOW);	// With UAC1:
 						}
@@ -319,7 +319,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 		
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 		if (mobo_usb_detect() != usb_ch) {
 			print_dbg_char('#');
 

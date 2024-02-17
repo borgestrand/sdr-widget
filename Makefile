@@ -11,9 +11,9 @@
 #
 # -DHW_GEN_AB1X					Pure USB DAC - all marketed Henry Audio / QNKTC hardware versions
 # -DHW_GEN_WFADC				Whisperfloor ADC data collection based on old USB module
-# -DHW_GEN_RXMOD				Latest revision of SPDIF receiver
-# -DHW_GEN_RXMOD_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
-# -DHW_GEN_RXMOD_PATCH_02		Hardware development, RXmod_T1_C boards
+# -DHW_GEN_SPRX				Latest revision of SPDIF receiver
+# -DHW_GEN_SPRX_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
+# -DHW_GEN_SPRX_PATCH_02		Hardware development, RXmod_T1_C boards
 #
 # -DFEATURE_HID					USB HID functions AND debug development system - FIX: split them in two... 
 # -DFEATURE_VOLUME_CTRL			Software volume control in DAC
@@ -56,9 +56,9 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	\
 	-DFEATURE_PRODUCT_HA256 \
 	-DFEATURE_ALT2_16BIT \
-	-DHW_GEN_RXMOD \
-	-DHW_GEN_RXMOD_PATCH_01 \
-	-DHW_GEN_RXMOD_PATCH_02 \
+	-DHW_GEN_SPRX \
+	-DHW_GEN_SPRX_PATCH_01 \
+	-DHW_GEN_SPRX_PATCH_02 \
 	-DFEATURE_VOLUME_CTRL 
 
 # Experimental feature to become mainstream
@@ -78,18 +78,18 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 # Henry Audio USB DAC 256 (SPRX) after "\" 
 #	-DFEATURE_PRODUCT_HA256 \
 #	-DFEATURE_ALT2_16BIT \
-#	-DHW_GEN_RXMOD \
-#	-DHW_GEN_RXMOD_PATCH_01 \
-#	-DHW_GEN_RXMOD_PATCH_02 \
+#	-DHW_GEN_SPRX \
+#	-DHW_GEN_SPRX_PATCH_01 \
+#	-DHW_GEN_SPRX_PATCH_02 \
 #	-DFEATURE_VOLUME_CTRL 
 
 # Boenicke (SPRX) after "\"
 #	-DFEATURE_PRODUCT_BOEC1 \
 #	-DUSB_REDUCED_DEBUG \
 #	-DFEATURE_ALT2_16BIT \
-#	-DHW_GEN_RXMOD \
-#	-DHW_GEN_RXMOD_PATCH_01 \
-#	-DHW_GEN_RXMOD_PATCH_02
+#	-DHW_GEN_SPRX \
+#	-DHW_GEN_SPRX_PATCH_01 \
+#	-DHW_GEN_SPRX_PATCH_02
 	
 
 audio-widget::

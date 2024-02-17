@@ -7,7 +7,7 @@
 */
 
 #include <stdio.h>
-// #ifdef HW_GEN_RXMOD	// For WM8804 task control
+// #ifdef HW_GEN_SPRX	// For WM8804 task control
 //	#include "wm8804.h"
 // #endif
 
@@ -96,7 +96,7 @@ static void x_image_task_init(void) {
   mutexEP_IN = xSemaphoreCreateMutex(); // for co-ordinating multiple tasks using EP IN
 
 
-// #ifdef HW_GEN_RXMOD
+// #ifdef HW_GEN_SPRX
 //	wm8804_task_init();	// Rather done in controlled WM8804 startup sequence
 // #endif
 

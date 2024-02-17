@@ -440,7 +440,7 @@ void device_mouse_hid_task(void)
 
 #endif
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 
             else if (a == 'T') {							// Upper T
 				// Print some Toslink buffer contents
@@ -762,7 +762,7 @@ Arash
 							input_select = MOBO_SRC_NONE;	// Indicate USB may  over control, but don't power down!
 							print_dbg_char(60); // '<'
 							
-							#ifdef HW_GEN_RXMOD
+							#ifdef HW_GEN_SPRX
 							#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 								mobo_led(FLED_SCANNING);
 							#endif
@@ -889,7 +889,7 @@ Arash
 								input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 								print_dbg_char(60); // '<'
 								
-								#ifdef HW_GEN_RXMOD
+								#ifdef HW_GEN_SPRX
 								#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 									// mobo_led(FLED_SCANNING);
 									mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
@@ -1101,7 +1101,7 @@ Arash
 			
 
 
-#endif // HW_GEN_RXMOD
+#endif // HW_GEN_SPRX
 
 
             else if (a == 'v') {
