@@ -765,9 +765,9 @@ void uac2_device_audio_task(void *pvParameters)
 									print_dbg_char('[');
 									input_select = MOBO_SRC_UAC2;
 									playerStarted = TRUE;						// Is it better off here?
-
 									
-									// Call it again here for good measure. The one at wm8804_mute() is probably sufficient
+									// Call it here for the benefit of AB-1.2
+									print_dbg_char('P');
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 																				
 									#ifdef HW_GEN_SPRX 
@@ -790,7 +790,8 @@ void uac2_device_audio_task(void *pvParameters)
 									input_select = MOBO_SRC_UAC2;
 									playerStarted = TRUE;						// Is it better off here?
 
-									// Call it again here for good measure. The one at wm8804_mute() is probably sufficient
+									// Call it here for the benefit of AB-1.2
+									print_dbg_char('Q');
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 
 									#ifdef HW_GEN_SPRX 
@@ -798,7 +799,7 @@ void uac2_device_audio_task(void *pvParameters)
 										mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
 									#endif
 							#endif
-						#else // not HW_GEN_SPRX		// No WM8804, take control
+						#else // not ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 							input_select = MOBO_SRC_UAC2;
 						#endif
 					} // End silence_det == 0 & MOBO_SRC_NONE
@@ -1040,6 +1041,7 @@ void uac2_device_audio_task(void *pvParameters)
 				if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
 				(prev_input_select == MOBO_SRC_TOSLINK0) ||
 				(prev_input_select == MOBO_SRC_TOSLINK1) ) {
+					print_dbg_char('R');
 					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
 					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
 				}
