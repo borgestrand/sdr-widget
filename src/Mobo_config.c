@@ -27,7 +27,7 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
-// To access DAC_BUFFER_SIZE and clear audio buffer
+// To access DAC_BUFFER and clear audio buffer
 #include "taskAK5394A.h"
 #include "usb_specific_request.h"
 
@@ -946,12 +946,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 	static U32 spk_index = 0;
 
 	U32 i;								// Generic counter
-
-	#ifdef FEATURE_DAC_UNIFIED
-	#else
-		U8 local_DAC_buf_DMA_read;		// Local copy read in atomic operations
-	#endif
-
 	U32 num_remaining;
 
 	S32 sample_temp = 0;
@@ -1536,18 +1530,9 @@ void mobo_clear_dac_channel(void) {
 
 //	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
 
-
-	#ifdef FEATURE_DAC_UNIFIED
-		for (i = 0; i < DAC_BUFFER_SIZE_UNI; i++) {
-			spk_buffer_uni[i] = 0;
-		}
-	#else
-		for (i = 0; i < DAC_BUFFER_SIZE; i++) {
-			spk_buffer_0[i] = 0;
-			spk_buffer_1[i] = 0;
-		}
-	#endif
-
+	for (i = 0; i < DAC_BUFFER_UNI; i++) {
+		spk_buffer[i] = 0;
+	}
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3
 }
