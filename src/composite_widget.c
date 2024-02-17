@@ -189,7 +189,7 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
-#if (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_SPRX)
 #include "wm8804.h"
 #include "pcm5142.h"
 #endif
@@ -228,7 +228,7 @@ xSemaphoreHandle mutexEP_IN;
 int main(void)
 {
 	
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 	// Attempting extremely early USB configuration, B plug is prioritized
 	gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB C to MCU's VBUS pin
 	gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
@@ -268,7 +268,7 @@ int main(void)
 #endif
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 //	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
 // print_dbg_char('j');
 wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 because GPIO is interpreted for config
@@ -277,7 +277,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 #endif
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 	gpio_set_gpio_pin(AVR32_PIN_PA25);						// Reset pin override inactive. Should have external pull-up!
 
 	gpio_clr_gpio_pin(AVR32_PIN_PB04);						// Disable SPDIF receiver counters
@@ -352,9 +352,9 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	// Initialize usart comm
 	init_dbg_rs232(pm_freq_param.pba_f);
 
-#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) || (defined HW_GEN_FMADC) )
+#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) || (defined HW_GEN_FMADC) )
 #else
-	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware Verified HW_GEN_RXMOD
+	gpio_clr_gpio_pin(AVR32_PIN_PX52);						// Not used in QNKTC / Henry Audio hardware Verified HW_GEN_SPRX
 #endif
 
 // Get going from known default state.
@@ -374,7 +374,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 
-#if (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_SPRX)
 	mobo_led_select(FREQ_44, MOBO_SRC_NONE);				// Front RGB LED, default indication of 44.1kHz and scanning
 	
 //	wm8805_reset(WM8805_RESET_START);						// Early hardware reset of WM8805 because GPIO is interpreted for config
@@ -412,12 +412,12 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	// Initialize features management
 	// features_init();
 
-#if (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_SPRX)
 	wm8804_reset(WM8804_RESET_END);				// Early hardware reset of WM8804 because GPIO is interpreted for config
 //	print_dbg_char('k');
 #endif
 
-#ifdef HW_GEN_RXMOD_PATCH_02
+#ifdef HW_GEN_SPRX_PATCH_02
 	gpio_clr_gpio_pin(AVR32_PIN_PX17);			// M_DAC_I2C_EN, cut off I2C noise to DAC
 #endif
 

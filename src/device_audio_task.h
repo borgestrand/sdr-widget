@@ -69,7 +69,7 @@
 #include "gpio.h"
 
 // To access SPDIF RX status
-#if (defined HW_GEN_RXMOD)
+#if (defined HW_GEN_SPRX)
 #include "wm8804.h"
 #include "pcm5142.h"
 #endif
@@ -106,17 +106,17 @@ extern volatile uint8_t wm8804_TRANS_ERR_FAILURE;
 
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 extern volatile uint8_t usb_ch;						// Front or rear USB channel
 extern volatile uint8_t usb_ch_swap;				// Front or rear USB channel
 extern volatile spdif_rx_status_t spdif_rx_status;
 #endif
 
-#if ( (defined HW_GEN_RXMOD) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
+#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio channel selection semaphore
 #endif
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
 extern volatile xSemaphoreHandle I2C_busy; 			// One semaphore covers entire I2C message, not just function calls. Not yet ported to all I2C callers
 #endif
 

@@ -86,7 +86,7 @@ int foo(void) {
 
 	// Code to determine GPIO constants, rewrite this (2 positions!) first, compile this section, then modify asm
 	// GEN_DIN20 / SP_DAC02 moved to PX09
-	// HW_GEN_RXMOD moved to PA05
+	// HW_GEN_SPRX moved to PA05
 /*
 	volatile avr32_gpio_port_t *gpio_port1 = &GPIO.port[AVR32_PIN_PX09 >> 5];
 	while ( (timeout != 0) && ( ((gpio_port1->pvr >> (AVR32_PIN_PX09 & 0x1F)) & 1) == 0) ) {

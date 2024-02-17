@@ -70,7 +70,7 @@ void mobo_clear_dac_channel(void);
 #define MCU_CHAR_RATEDOWN			'u' // CPU asks MCU to increase feedback rate by 64 = FB_RATE_DELTA
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 // USB multiplexer definitions
 #define USB_DATA_ENABLE_PIN_INV		AVR32_PIN_PA31		// USB_OE0, inverted MUX output enable pin
 #define USB_DATA_C0_B1_PIN			AVR32_PIN_PA02		// USB_C0_B1, MUX address control
@@ -86,7 +86,7 @@ void mobo_clear_dac_channel(void);
 void mobo_km(uint8_t enable);
 */
 
-// Control USB multiplexer in HW_GEN_RXMOD
+// Control USB multiplexer in HW_GEN_SPRX
 void mobo_usb_select(uint8_t usb_ch);
 
 // Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
@@ -94,7 +94,7 @@ uint8_t mobo_usb_detect(void);
 #endif
 
 // Generic I2C functionality
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
 int8_t mobo_i2c_read (uint8_t *data, uint8_t device_address, uint8_t internal_address);
 int8_t mobo_i2c_write (uint8_t device_address, uint8_t internal_address, uint8_t data);
 #endif
@@ -118,15 +118,15 @@ void mobo_led(uint8_t fled);
 #endif
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 // LED control
 void mobo_led(uint8_t fled0);
 #endif
 
 
-#if (defined  HW_GEN_RXMOD)
+#if (defined  HW_GEN_SPRX)
 // RXmod SPDIF mux control
-void mobo_rxmod_input(uint8_t input_sel);
+void mobo_SPRX_input(uint8_t input_sel);
 #endif
 
 // Sample rate detection on ADC interface
@@ -135,7 +135,7 @@ uint32_t mobo_srd_asm2(void);
 uint32_t mobo_wait_LRCK_RX_asm(void);
 uint32_t mobo_wait_LRCK_TX_asm(void);
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 // Process spdif and toslink inputs
 void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *num_samples, Bool *cache_holds_silence);
 
@@ -151,7 +151,7 @@ void mobo_led_select(U32 frequency, uint8_t source);
 // I2S hard mute control
 void  mobo_i2s_enable(uint8_t i2s_mode);
 
-#endif // HW_GEN_RXMOD
+#endif // HW_GEN_SPRX
 
 
 

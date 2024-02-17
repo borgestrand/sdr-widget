@@ -126,7 +126,7 @@ volatile avr32_pdca_channel_t *pdca_channel; // Initiated below
 volatile avr32_pdca_channel_t *spk_pdca_channel; // Initiated below
 volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 	volatile U32 timer_captured_num_remaining = 0;
 #endif
 
@@ -221,7 +221,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 }
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 	// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing
 	// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
 	#define TC1_CLK0_PIN		AVR32_TC1_CLK0_0_PIN
@@ -318,7 +318,7 @@ static void pdca_set_irq(void) {
 	INTC_register_interrupt( (__int_handler) &pdca_int_handler, AVR32_PDCA_IRQ_0, AVR32_INTC_INT0); //2
 	INTC_register_interrupt( (__int_handler) &spk_pdca_int_handler, AVR32_PDCA_IRQ_1, AVR32_INTC_INT0); //1
 
-	#ifdef HW_GEN_RXMOD	
+	#ifdef HW_GEN_SPRX	
 		// New code to configure spdif timer interrupt
 		spdif_packet_SetupTimerInterrupt();
 	#endif
@@ -436,7 +436,7 @@ void AK5394A_task_init(const Bool uac1) {
 
 /* Old noisy code!?
 	// Init ADC channel for SPDIF buffering, HW_GEN_FMADC turns it on in separate state machine FMADC_site
-	#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
+	#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
 	//  Empty for now....
 //		pdca_init_channel(PDCA_CHANNEL_SSC_RX, &PDCA_OPTIONS); // init PDCA channel with options.
 //		pdca_enable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
@@ -456,7 +456,7 @@ void AK5394A_task_init(const Bool uac1) {
 	mobo_clock_division(FREQ_INVALID);
 
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 // No such power control yet
 #endif
 

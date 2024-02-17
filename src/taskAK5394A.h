@@ -50,7 +50,7 @@ Short buffers give less system latency and poorer synch state machine performanc
 
 #define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
 
-#if (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
 	// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing
 	// MCU has "Two Three-Channel 16-bit Timer/Counter (TC)" Each timer has three channels
 	#define SPDIF_TC_DEVICE		AVR32_TC1	// Using TC1 where we have CLK0 available on PA05
@@ -62,7 +62,7 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define USB_BUFFER_TOGGLE_LIM 4		// Changed from 2 to 4 after hassle with Sue's phone. DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
 #define USB_BUFFER_TOGGLE_PARK 10	// The error is detected in sequential code
 
-// Available digital audio sources, 3 and 4 only available in HW_GEN_DIN10 and ..20. Source 5 only available in HW_GEN_DIN20n and HW_GEN_RXMOD
+// Available digital audio sources, 3 and 4 only available in HW_GEN_DIN10 and ..20. Source 5 only available in HW_GEN_DIN20n and HW_GEN_SPRX
 #define MOBO_SRC_NONE		0
 #define MOBO_SRC_UAC2		2
 #define MOBO_SRC_SPDIF0		3
@@ -85,14 +85,14 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define FLED_WHITE			7
 #define FLED_DARK			0
 #define FLED_NO_CHG			9
-#define FLED_SCANNING		FLED_WHITE	// While scanning for an input, should there be a default light? Implemented only on HW_GEN_RXMOD
+#define FLED_SCANNING		FLED_WHITE	// While scanning for an input, should there be a default light? Implemented only on HW_GEN_SPRX
 
 // USB channels
 #define USB_CH_NONE			0		// No USB port has been detected
 #define USB_CH_DEACTIVATE	1		// Actively disconnecting USB mux for debug purposes
 #define USB_CH_A			2		// Name used in HW_GEN_DIN20 for front USB-C plug
 #define USB_CH_B			3
-#define USB_CH_C			4		// Name used in HW_GEN_RXMOD for front USB-C plug
+#define USB_CH_C			4		// Name used in HW_GEN_SPRX for front USB-C plug
 #define USB_CH_NOSWAP		0		// NO USB channel swapping happening
 #define USB_CH_SWAPDET		1		// Need for channel swap detected
 #define USB_CH_SWAPACK		2		// Channel swap detect acknowledged by uac?_device_audio_task
@@ -162,7 +162,7 @@ extern volatile avr32_pdca_channel_t *pdca_channel;
 extern volatile avr32_pdca_channel_t *spk_pdca_channel;
 extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the content of outgoing DAC buffers
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 	// SPDIF timer/counter records DMA status - global registers move data from interrupt handler
 	extern volatile U32 timer_captured_num_remaining;
 #endif

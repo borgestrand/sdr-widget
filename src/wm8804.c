@@ -35,7 +35,7 @@ If this project is of interest to you, please let me know! I hope to see you at 
 */
 
 
-#if (defined HW_GEN_RXMOD)		// Functions here only make sense for WM8804
+#if (defined HW_GEN_SPRX)		// Functions here only make sense for WM8804
 
 #include "wm8804.h"
 #include "gpio.h"
@@ -64,7 +64,7 @@ void wm8804_reset(uint8_t reset_type) {
 	if (reset_type == WM8804_RESET_START) {
 		// 20170423 new
 		gpio_set_gpio_pin(AVR32_PIN_PA15);			// SDA must be 1 at reset for SW. NB This will conflict with I2C!
-		gpio_clr_gpio_pin(WM8804_SWIFMODE_PIN);		// HW_GEN_RXMOD new feature under software control, hard pull down, 1k on PCB, AKA WM8804_ZERO_PIN
+		gpio_clr_gpio_pin(WM8804_SWIFMODE_PIN);		// HW_GEN_SPRX new feature under software control, hard pull down, 1k on PCB, AKA WM8804_ZERO_PIN
 
 		gpio_clr_gpio_pin(WM8804_RESET_PIN);		// Clear reset pin WM8804 active low reset
 		gpio_clr_gpio_pin(WM8804_CSB_PIN);			// CSB/GPO2 pin sets 2W address. Make sure CSB outputs 0.
@@ -72,7 +72,7 @@ void wm8804_reset(uint8_t reset_type) {
 	else {
 		gpio_set_gpio_pin(WM8804_RESET_PIN);		// Set reset pin WM8804 active low reset
 		gpio_enable_gpio_pin(WM8804_CSB_PIN);		// CSB/GPO2 should now be an MCU input...
-		gpio_enable_gpio_pin(WM8804_SWIFMODE_PIN);	// HW_GEN_RXMOD new feature under software control, should now be an MCU input
+		gpio_enable_gpio_pin(WM8804_SWIFMODE_PIN);	// HW_GEN_SPRX new feature under software control, should now be an MCU input
 
 		// 20170423 new
 		gpio_enable_gpio_pin(AVR32_PIN_PA15);		// SDA should now be an MCU input... Or functional I2C or something....
@@ -391,8 +391,8 @@ void wm8804_sleep(void) {
 
 
 // Course detection of AC vs. DC on SPDIF input lines
-// Sequential code supports both baseline HW_GEN_RXMOD = initial build 
-// of RXmod_t1_A, and HW_GEN_RXMOD_PATCH_01 = strap from U1:13 to U6:CP via R117
+// Sequential code supports both baseline HW_GEN_SPRX = initial build 
+// of RXmod_t1_A, and HW_GEN_SPRX_PATCH_01 = strap from U1:13 to U6:CP via R117
 // which enables only a single live detection flip-flop
 uint8_t wm8804_live_detect(uint8_t input_sel) {
 	#define WM8804_SPDIF_LIVE_COUNT	0x20			// Detection takes about 50µs
@@ -405,14 +405,14 @@ uint8_t wm8804_live_detect(uint8_t input_sel) {
 	// Poll SPDIF/TOSLINK data signal a number of times. Only bother with one of them in shared counter
 	while (counter--) {
 		// Unified approach in PATCH_01, one flip-flop after MUX
-		// replace by defined(HW_GEN_RXMOD_PATCH_01)
+		// replace by defined(HW_GEN_SPRX_PATCH_01)
 		if (input_sel == MOBO_SRC_MUXED) {
 			if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// PCB patch from MUX output to net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF0
 				chx++;
 			}
 		}
 		// Initial approach in RXmod_t1_A, one detector for each source
-		// Replace by not defined (HW_GEN_RXMOD_PATCH_01)
+		// Replace by not defined (HW_GEN_SPRX_PATCH_01)
 		else {
 			if (input_sel == MOBO_SRC_TOSLINK1) {
 				if (gpio_get_pin_value(AVR32_PIN_PX21) == 1) {	// Schematic net TOSLINK1_TO_MCU / input MOBO_SRC_TOSLINK1
@@ -530,7 +530,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 
 
 
-#ifdef HW_GEN_RXMOD_PATCH_01
+#ifdef HW_GEN_SPRX_PATCH_01
 // PATCH_01 of RXmod_t1_A and RXmod_t1_C will multiplex first and then check if MUX output is alive. 
 // This saves two flip-flops and a shitload of routing
 // PATCH_01 consists of:
@@ -540,7 +540,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 // If this all works, change code for fourth digital input. Rewrite variables to match schematic
 
 // If given input is not alive, terminate
-mobo_rxmod_input(input_sel);			// Hardware MUX control
+mobo_SPRX_input(input_sel);			// Hardware MUX control
 
 if (!(wm8804_live_detect(MOBO_SRC_MUXED))) {
 	return (FREQ_INVALID);
@@ -556,7 +556,7 @@ else {
 	}
 	// If given input is alive, do things
 	else {
-		mobo_rxmod_input(input_sel);			// Hardware MUX control
+		mobo_SPRX_input(input_sel);			// Hardware MUX control
 #endif
 
 	
@@ -895,4 +895,4 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 }
 
 
-#endif  // HW_GEN_RXMOD
+#endif  // HW_GEN_SPRX

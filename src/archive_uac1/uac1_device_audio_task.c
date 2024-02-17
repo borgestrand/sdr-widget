@@ -169,7 +169,7 @@ void uac1_device_audio_task(void *pvParameters)
 	U8 DAC_buf_DMA_read_local = 0;					// Local copy read in atomic operations
 
 	// The Henry Audio and QNKTC series of hardware only use NORMAL I2S with left before right
-	#if (defined HW_GEN_AB1X) || (defined HW_GEN_RXMOD) || (defined HW_GEN_FMADC)
+	#if (defined HW_GEN_AB1X) || (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
 		#define IN_LEFT 0
 		#define IN_RIGHT 1
 		#define OUT_LEFT 0
@@ -202,7 +202,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 		// Process digital input
-		#ifdef HW_GEN_RXMOD
+		#ifdef HW_GEN_SPRX
 			mobo_handle_spdif(24); // UAC1 uses 24-bit data
 //			Can fit here or in wm8804 task. There is too little time to run two consumers!
 
@@ -314,7 +314,7 @@ void uac1_device_audio_task(void *pvParameters)
 			*/ 
 			
 
-#ifdef HW_GEN_RXMOD
+#ifdef HW_GEN_SPRX
 			if ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) ) { // bBitResolution
 //			if ( (usb_alternate_setting_out == 1) && (usb_ch_swap == USB_CH_NOSWAP) ) {
 #else
@@ -330,7 +330,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 					if (Is_usb_full_speed_mode()) {
 						// FB rate is 3 bytes in 10.14 format
-#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+#ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 						if (input_select != MOBO_SRC_UAC1) {	// BSB 20131101
 #else
 						if (0)
@@ -351,7 +351,7 @@ void uac1_device_audio_task(void *pvParameters)
 					else {
 						// HS mode - Not likely to ever be used in UAC1 - UNTESTED code!
 						// FB rate is 4 bytes in 12.14 format
-#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+#ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 						if (input_select != MOBO_SRC_UAC1) {	// BSB 20131101
 #else
 						if (0) {
@@ -378,7 +378,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 				/* SPDIF reduced */
-#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+#ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 				if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 
 					// Do minimal USB action to make Host believe Device is actually receiving
@@ -550,7 +550,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 							// New site for setting playerStarted and aligning buffers
 							if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
-								#ifdef HW_GEN_RXMOD			// With WM8805/WM8804 subsystem, handle semaphore
+								#ifdef HW_GEN_SPRX			// With WM8805/WM8804 subsystem, handle semaphore
 									#ifdef USB_STATE_MACHINE_DEBUG
 //										print_dbg_char('t');							// Debug semaphore, lowercase letters in USB tasks
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
@@ -566,7 +566,7 @@ void uac1_device_audio_task(void *pvParameters)
 											}
 
 											mobo_led_select(current_freq.frequency, input_select);
-											#ifdef HW_GEN_RXMOD
+											#ifdef HW_GEN_SPRX
 												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
 											#endif
 										}												// Hopefully, this code won't be called repeatedly. Would there be time??
@@ -577,11 +577,11 @@ void uac1_device_audio_task(void *pvParameters)
 										if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE)
 											input_select = MOBO_SRC_UAC1;
 											mobo_led_select(current_freq.frequency, input_select);
-											#ifdef HW_GEN_RXMOD
+											#ifdef HW_GEN_SPRX
 												mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
 											#endif
 									#endif
-								#else // not HW_GEN_RXMOD						// No WM8804, take control
+								#else // not HW_GEN_SPRX						// No WM8804, take control
 									input_select = MOBO_SRC_UAC1;
 								#endif
 							}
@@ -661,7 +661,7 @@ void uac1_device_audio_task(void *pvParameters)
 						if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC1) && (playerStarted != FALSE) ) { // Oops, we just went silent, probably from pause
 							playerStarted = FALSE;
 
-							#ifdef HW_GEN_RXMOD
+							#ifdef HW_GEN_SPRX
 								mobo_i2s_enable(MOBO_I2S_DISABLE);	// // Dedicated mute pin Hard-mute of I2S pin
 							#endif
 
@@ -672,7 +672,7 @@ void uac1_device_audio_task(void *pvParameters)
 							mobo_clear_dac_channel();
 							// mobodebug possible cycle thief ???
 
-							#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+							#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 								#ifdef USB_STATE_MACHINE_DEBUG
 //									print_dbg_char('k');						// Debug semaphore, lowercase letters for USB tasks
 									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -682,7 +682,7 @@ void uac1_device_audio_task(void *pvParameters)
 										// Report to cpu and debug terminal
 										print_cpu_char(CPU_CHAR_IDLE);
 										
-										#ifdef HW_GEN_RXMOD
+										#ifdef HW_GEN_SPRX
 										#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 											// mobo_led(FLED_SCANNING);
 											mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
@@ -696,7 +696,7 @@ void uac1_device_audio_task(void *pvParameters)
 									if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 										input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 
-										#ifdef HW_GEN_RXMOD
+										#ifdef HW_GEN_SPRX
 										#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 											// mobo_led(FLED_SCANNING);
 											mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
@@ -824,7 +824,7 @@ void uac1_device_audio_task(void *pvParameters)
 			else { // opposite of ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) )
 
 				/* SPDIF reduced */
-#ifdef HW_GEN_RXMOD 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
+#ifdef HW_GEN_SPRX 	// With WM8805 input, USB subsystem will be running off a completely wacko MCLK!
 				if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 					// Do nothing at this stage
 				}
@@ -835,7 +835,7 @@ void uac1_device_audio_task(void *pvParameters)
 //					playerStarted = FALSE;  // mobodebug, commented out here and included below
 					silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence
 
-					#ifdef HW_GEN_RXMOD
+					#ifdef HW_GEN_SPRX
 						if (usb_ch_swap == USB_CH_SWAPDET)			// We have dedicated mute pin
 							usb_ch_swap = USB_CH_SWAPACK;			// Acknowledge a USB channel swap, that takes this task into startup
 					#endif
@@ -845,7 +845,7 @@ void uac1_device_audio_task(void *pvParameters)
 					if ( (input_select == MOBO_SRC_UAC1) && (playerStarted != FALSE) ) {			// Set from playing nonzero USB
 						playerStarted = FALSE;	// Inserted here in mobodebug untested fix, removed above
 
-						#ifdef HW_GEN_RXMOD
+						#ifdef HW_GEN_SPRX
 							mobo_i2s_enable(MOBO_I2S_DISABLE);		// We have dedicated mute pin hard-mute of I2S pin
 						#endif
 
@@ -858,7 +858,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 
 
-						#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+						#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 							#ifdef USB_STATE_MACHINE_DEBUG
 //								print_dbg_char('h');				// Debug semaphore, lowercase letters for USB tasks
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
@@ -868,7 +868,7 @@ void uac1_device_audio_task(void *pvParameters)
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
 
-									#ifdef HW_GEN_RXMOD
+									#ifdef HW_GEN_SPRX
 									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 										// mobo_led(FLED_SCANNING);
 										mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
@@ -882,7 +882,7 @@ void uac1_device_audio_task(void *pvParameters)
 								if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 									input_select = MOBO_SRC_NONE;
 
-									#ifdef HW_GEN_RXMOD
+									#ifdef HW_GEN_SPRX
 									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 										// mobo_led(FLED_SCANNING);
 										mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
@@ -902,7 +902,7 @@ void uac1_device_audio_task(void *pvParameters)
 
 			// BSB 20131201 attempting improved playerstarted detection
 			/* SPDIF reduced */
-#ifdef HW_GEN_RXMOD 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+#ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 		// On new hardware, don't do this if spdif is playing
 		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 			// Do nothing at this stage
@@ -924,7 +924,7 @@ void uac1_device_audio_task(void *pvParameters)
 #endif
 
 				// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
-				#ifdef HW_GEN_RXMOD		// With WM8805/WM8804 present, handle semaphores
+				#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 				#ifdef USB_STATE_MACHINE_DEBUG
 //				print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
@@ -934,7 +934,7 @@ void uac1_device_audio_task(void *pvParameters)
 					// Report to cpu and debug terminal
 					print_cpu_char(CPU_CHAR_IDLE);
 						
-					#ifdef HW_GEN_RXMOD
+					#ifdef HW_GEN_SPRX
 					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 						// mobo_led(FLED_SCANNING);
 						mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
@@ -948,7 +948,7 @@ void uac1_device_audio_task(void *pvParameters)
 				if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 					input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 						
-					#ifdef HW_GEN_RXMOD
+					#ifdef HW_GEN_SPRX
 					#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
 						// mobo_led(FLED_SCANNING);
 						mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
