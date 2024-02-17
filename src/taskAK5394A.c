@@ -73,19 +73,19 @@ static const gpio_map_t SSC_GPIO_MAP = {
 };
 
 static const pdca_channel_options_t PDCA_OPTIONS = { 
-	.addr = (void *)audio_buffer,       // memory address
-	.pid = AVR32_PDCA_PID_SSC_RX,           // select peripheral
-	.size = ADC_BUFFER_SIZE,				// transfer counter
-	.r_addr = NULL,								// next memory address // Is this safe?? What about using audio_buffer here? æææ
+	.addr = (void *)audio_buffer,				// memory address
+	.pid = AVR32_PDCA_PID_SSC_RX,				// select peripheral
+	.size = ADC_BUFFER_SIZE,					// transfer counter
+	.r_addr = (void *)audio_buffer,				// Was: NULL next memory address // Is this safe?? What about using audio_buffer here? æææ
 	.r_size = 0,								// next transfer counter // Is this to force an immediate interrupt?
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
 };
 
 static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
-	.addr = (void *)spk_buffer,				// memory address
+	.addr = (void *)spk_buffer,					// memory address
 	.pid = AVR32_PDCA_PID_SSC_TX,				// select peripheral
-	.size = DAC_BUFFER_UNI,				// transfer counter
-	.r_addr = NULL,								// next memory address // What about using spk_buffer here? æææ
+	.size = DAC_BUFFER_UNI,						// transfer counter
+	.r_addr = (void *)spk_buffer,				// Was: NULL next memory address // What about using spk_buffer here? æææ
 	.r_size = 0,								// next transfer counter
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
 };

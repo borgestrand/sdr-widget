@@ -11,7 +11,7 @@
 #
 # -DHW_GEN_AB1X					Pure USB DAC - all marketed Henry Audio / QNKTC hardware versions
 # -DHW_GEN_WFADC				Whisperfloor ADC data collection based on old USB module
-# -DHW_GEN_SPRX				Latest revision of SPDIF receiver
+# -DHW_GEN_SPRX					Latest revision of SPDIF receiver
 # -DHW_GEN_SPRX_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
 # -DHW_GEN_SPRX_PATCH_02		Hardware development, RXmod_T1_C boards
 #
@@ -73,11 +73,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 # Henry Audio USB DAC 256 (SPRX) after "\" 
 #	-DFEATURE_PRODUCT_HA256 \
 #	-DFEATURE_ALT2_16BIT \
-<<<<<<< HEAD
 #	-DHW_GEN_SPRX \ 
-=======
-#	-DHW_GEN_SPRX \
->>>>>>> c
 #	-DHW_GEN_SPRX_PATCH_01 \
 #	-DHW_GEN_SPRX_PATCH_02 \
 #	-DFEATURE_VOLUME_CTRL 
