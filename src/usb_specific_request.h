@@ -111,24 +111,24 @@ extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_
 #define VOL_WRITE		0x02
 
 // USB skip/insert limits
-#define SPK_GAP_USKIP DAC_BUFFER_SIZE_UNI * 7 / 8	// Almost a full buffer up in distance => enable skip/insert
-#define SPK_GAP_U2	  DAC_BUFFER_SIZE_UNI * 6 / 8	// A half buffer up in distance	=> Speed up host a lot
-#define	SPK_GAP_U1	  DAC_BUFFER_SIZE_UNI * 5 / 8	// A quarter buffer up in distance => Speed up host a bit
-#define SPK_GAP_NOM	  DAC_BUFFER_SIZE_UNI * 4 / 8	// Ideal distance is half the size of linear buffer
-#define SPK_GAP_L1	  DAC_BUFFER_SIZE_UNI * 3 / 8  	// A quarter buffer down in distance => Slow down host a bit
-#define SPK_GAP_L2	  DAC_BUFFER_SIZE_UNI * 2 / 8  	// A half buffer down in distance => Slow down host a lot
-#define SPK_GAP_LSKIP DAC_BUFFER_SIZE_UNI * 1 / 8	// Almost a full buffer down in distance => enable skip/insert
+#define SPK_GAP_USKIP DAC_BUFFER_UNI * 7 / 8	// Almost a full buffer up in distance => enable skip/insert
+#define SPK_GAP_U2	  DAC_BUFFER_UNI * 6 / 8	// A half buffer up in distance	=> Speed up host a lot
+#define	SPK_GAP_U1	  DAC_BUFFER_UNI * 5 / 8	// A quarter buffer up in distance => Speed up host a bit
+#define SPK_GAP_NOM	  DAC_BUFFER_UNI * 4 / 8	// Ideal distance is half the size of linear buffer
+#define SPK_GAP_L1	  DAC_BUFFER_UNI * 3 / 8  	// A quarter buffer down in distance => Slow down host a bit
+#define SPK_GAP_L2	  DAC_BUFFER_UNI * 2 / 8  	// A half buffer down in distance => Slow down host a lot
+#define SPK_GAP_LSKIP DAC_BUFFER_UNI * 1 / 8	// Almost a full buffer down in distance => enable skip/insert
 
 // SPDIF buffer skip/insert limits
-#define SPK_GAP_L3	DAC_BUFFER_SIZE_UNI * 2.0 / 8	// Lower limit for safe operation, starting point for skip/insert
-#define SPK_GAP_LD	DAC_BUFFER_SIZE_UNI * 2.1 / 8	// Mega skip/insert landing position
-#define SPK_GAP_LM	DAC_BUFFER_SIZE_UNI * 2.4 / 8	// Narrowest starting point for mega skip/insert
-#define SPK_GAP_LX	DAC_BUFFER_SIZE_UNI * 1.8 / 8	// Starting point for oscillator toggle
+#define SPK_GAP_L3	DAC_BUFFER_UNI * 2.0 / 8	// Lower limit for safe operation, starting point for skip/insert
+#define SPK_GAP_LD	DAC_BUFFER_UNI * 2.1 / 8	// Mega skip/insert landing position
+#define SPK_GAP_LM	DAC_BUFFER_UNI * 2.4 / 8	// Narrowest starting point for mega skip/insert
+#define SPK_GAP_LX	DAC_BUFFER_UNI * 1.8 / 8	// Starting point for oscillator toggle
 
-#define SPK_GAP_U3	DAC_BUFFER_SIZE_UNI * 6.0 / 8	// Upper limit for safe operation, starting point for skip/insert
-#define SPK_GAP_UD	DAC_BUFFER_SIZE_UNI * 5.9 / 8	// Mega skip/insert landing position
-#define SPK_GAP_UM	DAC_BUFFER_SIZE_UNI * 5.6 / 8	// Narrowest starting point for mega skip/insert
-#define SPK_GAP_UX	DAC_BUFFER_SIZE_UNI * 6.2 / 8	// Starting point for oscillator toggle
+#define SPK_GAP_U3	DAC_BUFFER_UNI * 6.0 / 8	// Upper limit for safe operation, starting point for skip/insert
+#define SPK_GAP_UD	DAC_BUFFER_UNI * 5.9 / 8	// Mega skip/insert landing position
+#define SPK_GAP_UM	DAC_BUFFER_UNI * 5.6 / 8	// Narrowest starting point for mega skip/insert
+#define SPK_GAP_UX	DAC_BUFFER_UNI * 6.2 / 8	// Starting point for oscillator toggle
 
 // Various other defines
 #define	SPK_PACKETS_PER_GAP_CALCULATION 8		// This is UAC1 which counts in ms. Gap calculation every 8ms, EP reporting every 32

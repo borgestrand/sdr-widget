@@ -39,7 +39,7 @@ Long buffers may take up too much RAM. And clearing and moving their contents ta
 Short buffers give less system latency and poorer synch state machine performance
 */
 #define ADC_BUFFER_SIZE 1024	// Must be divisible by 4
-#define DAC_BUFFER_SIZE_UNI 1536*2 		// Was: 1536*2 // (32*2*24) * 1 // = 1536
+#define DAC_BUFFER_UNI 1536*2 		// Was: 1536*2 // (32*2*24) * 1 // = 1536
 
 #define SPK_CACHE_MAX_SAMPLES 120	// Maximum number of stereo samples in two package of 250µs (nominally 48 at 192ksps). That way we can miss one. As global 120 is OK. As local it refused to run above 60
 
@@ -132,7 +132,7 @@ Short buffers give less system latency and poorer synch state machine performanc
 
 // Global buffer variables
 extern volatile S32 audio_buffer[ADC_BUFFER_SIZE];
-extern volatile S32 spk_buffer_uni[DAC_BUFFER_SIZE_UNI];
+extern volatile S32 spk_buffer[DAC_BUFFER_UNI];
 extern volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 extern volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 

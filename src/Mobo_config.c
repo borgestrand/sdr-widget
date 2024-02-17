@@ -27,7 +27,7 @@
 // To access global input source variable
 #include "device_audio_task.h"
 
-// To access DAC_BUFFER_SIZE and clear audio buffer
+// To access DAC_BUFFER and clear audio buffer
 #include "taskAK5394A.h"
 #include "usb_specific_request.h"
 
@@ -1530,8 +1530,8 @@ void mobo_clear_dac_channel(void) {
 
 //	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
 
-	for (i = 0; i < DAC_BUFFER_SIZE_UNI; i++) {
-		spk_buffer_uni[i] = 0;
+	for (i = 0; i < DAC_BUFFER_UNI; i++) {
+		spk_buffer[i] = 0;
 	}
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3

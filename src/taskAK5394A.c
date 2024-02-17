@@ -82,16 +82,16 @@ static const pdca_channel_options_t PDCA_OPTIONS = {
 };
 
 static const pdca_channel_options_t SPK_PDCA_OPTIONS = {
-	.addr = (void *)spk_buffer_uni,				// memory address
+	.addr = (void *)spk_buffer,				// memory address
 	.pid = AVR32_PDCA_PID_SSC_TX,				// select peripheral
-	.size = DAC_BUFFER_SIZE_UNI,				// transfer counter
+	.size = DAC_BUFFER_UNI,				// transfer counter
 	.r_addr = NULL,								// next memory address // What about using spk_buffer here? æææ
 	.r_size = 0,								// next transfer counter
 	.transfer_size = PDCA_TRANSFER_SIZE_WORD	// select size of the transfer - 32 bits
 };
 
 volatile S32 audio_buffer[ADC_BUFFER_SIZE];
-volatile S32 spk_buffer_uni[DAC_BUFFER_SIZE_UNI];
+volatile S32 spk_buffer[DAC_BUFFER_UNI];
 volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 
@@ -151,7 +151,7 @@ __attribute__((__interrupt__)) static void pdca_int_handler(void) {
 __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	
 	// Set PDCA channel reload values with address where data to load are stored, and size of the data block to load.
-	pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer_uni, DAC_BUFFER_SIZE_UNI);
+	pdca_reload_channel(PDCA_CHANNEL_SSC_TX, (void *)spk_buffer, DAC_BUFFER_UNI);
 
 	#ifdef PRODUCT_FEATURE_AMB
 		gpio_tgl_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04

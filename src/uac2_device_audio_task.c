@@ -99,7 +99,7 @@
 //_____ D E C L A R A T I O N S ____________________________________________
 
 static U32  index, spk_index;
-static S16  old_gap = DAC_BUFFER_SIZE_UNI / 2; // Assumed to be OK... 
+static S16  old_gap = DAC_BUFFER_UNI / 2; // Assumed to be OK... 
 
 // static U8 ADC_buf_USB_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out
 												// to the USB and reading from USB
@@ -557,7 +557,7 @@ void uac2_device_audio_task(void *pvParameters)
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
 						FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
-						old_gap = DAC_BUFFER_SIZE_UNI / 2;	// Assumed and tested OK
+						old_gap = DAC_BUFFER_UNI / 2;	// Assumed and tested OK
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
@@ -565,10 +565,10 @@ void uac2_device_audio_task(void *pvParameters)
 						audio_OUT_must_sync = 0;
 						num_remaining = spk_pdca_channel->tcr;
 
-						spk_index = DAC_BUFFER_SIZE_UNI - num_remaining + DAC_BUFFER_SIZE_UNI / 2; // Starting half a unified buffer away from DMA's read head
+						spk_index = DAC_BUFFER_UNI - num_remaining + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 						spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-						if (spk_index >= DAC_BUFFER_SIZE_UNI) {				// Stay within bounds
-							spk_index -= DAC_BUFFER_SIZE_UNI;
+						if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
+							spk_index -= DAC_BUFFER_UNI;
 						}
 
 						// 	playerStarted = TRUE;				// Moved here from mutex take code
@@ -1047,10 +1047,10 @@ void uac2_device_audio_task(void *pvParameters)
 				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen æææ merge with USB init logic for this same purpose
 				num_remaining = spk_pdca_channel->tcr;
 
-				spk_index = DAC_BUFFER_SIZE_UNI - num_remaining + DAC_BUFFER_SIZE_UNI / 2; // Starting half a unified buffer away from DMA's read head
+				spk_index = DAC_BUFFER_UNI - num_remaining + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 				spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-				if (spk_index >= DAC_BUFFER_SIZE_UNI) {				// Stay within bounds
-					spk_index -= DAC_BUFFER_SIZE_UNI;
+				if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
+					spk_index -= DAC_BUFFER_UNI;
 				}
 
 				num_remaining = 0;				// Used to validate cache contents. We have no reason to believe they are valid at the moment!
@@ -1081,9 +1081,9 @@ void uac2_device_audio_task(void *pvParameters)
 						time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
 
 						num_remaining = spk_pdca_channel->tcr;
-						gap = DAC_BUFFER_SIZE_UNI - spk_index - num_remaining;
+						gap = DAC_BUFFER_UNI - spk_index - num_remaining;
 						if (gap < 0) {
-							gap += DAC_BUFFER_SIZE_UNI;
+							gap += DAC_BUFFER_UNI;
 						}
 
 //						if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
@@ -1217,10 +1217,10 @@ void uac2_device_audio_task(void *pvParameters)
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
 				
-				spk_buffer_uni[spk_index++] = sample_L;
-				spk_buffer_uni[spk_index++] = sample_R;
+				spk_buffer[spk_index++] = sample_L;
+				spk_buffer[spk_index++] = sample_R;
 				
-				if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+				if (spk_index >= DAC_BUFFER_UNI) {
 					spk_index = 0;
 					gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
@@ -1242,10 +1242,10 @@ void uac2_device_audio_task(void *pvParameters)
 			
 			else if (si_action == SI_NORMAL) {
 				// Single stereo sample
-				spk_buffer_uni[spk_index++] = sample_L;
-				spk_buffer_uni[spk_index++] = sample_R;
+				spk_buffer[spk_index++] = sample_L;
+				spk_buffer[spk_index++] = sample_R;
 				
-				if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+				if (spk_index >= DAC_BUFFER_UNI) {
 					spk_index = 0;
 					gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
@@ -1256,10 +1256,10 @@ void uac2_device_audio_task(void *pvParameters)
 			
 			else if (si_action == SI_INSERT) {
 				// First of two insertions:
-				spk_buffer_uni[spk_index++] = sample_L;
-				spk_buffer_uni[spk_index++] = sample_R;
+				spk_buffer[spk_index++] = sample_L;
+				spk_buffer[spk_index++] = sample_R;
 				
-				if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+				if (spk_index >= DAC_BUFFER_UNI) {
 					spk_index = 0;
 					gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
@@ -1268,10 +1268,10 @@ void uac2_device_audio_task(void *pvParameters)
 				} // End switching buffers
 							
 				// Second insertion:
-				spk_buffer_uni[spk_index++] = sample_L;
-				spk_buffer_uni[spk_index++] = sample_R;
+				spk_buffer[spk_index++] = sample_L;
+				spk_buffer[spk_index++] = sample_R;
 				
-				if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+				if (spk_index >= DAC_BUFFER_UNI) {
 					spk_index = 0;
 					gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
@@ -1286,10 +1286,10 @@ void uac2_device_audio_task(void *pvParameters)
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
 
-				spk_buffer_uni[spk_index++] = sample_L;
-				spk_buffer_uni[spk_index++] = sample_R;
+				spk_buffer[spk_index++] = sample_L;
+				spk_buffer[spk_index++] = sample_R;
 				
-				if (spk_index >= DAC_BUFFER_SIZE_UNI) {
+				if (spk_index >= DAC_BUFFER_UNI) {
 					spk_index = 0;
 					gpio_tgl_gpio_pin(AVR32_PIN_PX30); // Ideally 90 or 270 deg out of phase with interrupt based producer. Bad: 0 or 180 deg out of phase!
 
