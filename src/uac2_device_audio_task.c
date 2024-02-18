@@ -840,7 +840,8 @@ void uac2_device_audio_task(void *pvParameters)
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 									mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-									print_dbg_char(']');					// USB takes
+									print_dbg_char(']');					// USB gives
+									print_dbg_char('\n');					// USB gives
 
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
@@ -927,6 +928,7 @@ void uac2_device_audio_task(void *pvParameters)
 								mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 								input_select = MOBO_SRC_NONE;
 								print_dbg_char(']');					// USB gives after silence
+								print_dbg_char('\n');					// USB gives
 
 								// Report to cpu and debug terminal
 								print_cpu_char(CPU_CHAR_IDLE);
@@ -998,6 +1000,7 @@ void uac2_device_audio_task(void *pvParameters)
 						if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 							input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
 							print_dbg_char(')');					// USB gives after toggle timeout
+							print_dbg_char('\n');					// USB gives after toggle timeout
 
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
@@ -1102,8 +1105,7 @@ void uac2_device_audio_task(void *pvParameters)
 									si_pkg_direction = SI_SKIP;				// Host must slow down
 									
 									// Report to cpu and debug terminal
-									print_cpu_char(CPU_CHAR_DECDEC_FREQ);
-									// print_dbg_char_hex(si_pkg_increment);
+									// no_gap_report print_cpu_char(CPU_CHAR_DECDEC_FREQ);
 									
 									return_to_nominal = TRUE;
 								}
@@ -1114,7 +1116,7 @@ void uac2_device_audio_task(void *pvParameters)
 										old_gap = gap;
 
 										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_DEC_FREQ);
+										// no_gap_report print_cpu_char(CPU_CHAR_DEC_FREQ);
 
 										return_to_nominal = TRUE;
 									}
@@ -1136,8 +1138,7 @@ void uac2_device_audio_task(void *pvParameters)
 										si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
 
 										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_NOMDEC_FREQ);
-										// print_dbg_char_hex(si_pkg_increment);
+										// no_gap_report print_cpu_char(CPU_CHAR_NOMDEC_FREQ);
 
 										return_to_nominal = FALSE;
 									}
@@ -1156,8 +1157,7 @@ void uac2_device_audio_task(void *pvParameters)
 									si_pkg_direction = SI_INSERT;			// Host must speed up
 
 									// Report to cpu and debug terminal
-									print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
-									// print_dbg_char_hex(si_pkg_increment);
+									// no_gap_report print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
 
 									return_to_nominal = TRUE;
 								}
@@ -1168,7 +1168,7 @@ void uac2_device_audio_task(void *pvParameters)
 										old_gap = gap;
 
 										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_INC_FREQ);
+										// no_gap_report print_cpu_char(CPU_CHAR_INC_FREQ);
 
 										return_to_nominal = TRUE;
 									}
@@ -1190,8 +1190,7 @@ void uac2_device_audio_task(void *pvParameters)
 										si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
 										
 										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_NOMINC_FREQ);
-										// print_dbg_char_hex(si_pkg_increment);
+										// no_gap_report print_cpu_char(CPU_CHAR_NOMINC_FREQ);
 										
 										return_to_nominal = FALSE;
 									}
