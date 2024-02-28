@@ -88,13 +88,11 @@ static void x_image_init(void) {
 static void x_image_task_init(void) {
 	// Initialize USB task
 
-#ifdef USB_STATE_MACHINE_DEBUG
 #ifdef FEATURE_PRODUCT_AMB
 	gpio_clr_gpio_pin(AVR32_PIN_PX56); // For AMB use PX56/GPIO_04
 #else
 //	gpio_clr_gpio_pin(AVR32_PIN_PX33); // Set GPIO_09/TP70 during usb interrupt handling
 #endif
-#endif	// USB_STATE_MACHINE_DEBUG
 
 	usb_task_init();
 

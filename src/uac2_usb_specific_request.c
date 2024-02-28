@@ -254,9 +254,7 @@ void uac2_freq_change_handler() {
 		}
 #else
 		spk_mute = TRUE; // mute speaker while changing frequency and oscillator
-		#ifdef USB_STATE_MACHINE_DEBUG
-			print_dbg_char_char('=');
-		#endif
+		print_dbg_char_char('=');
 		mobo_clear_dac_channel();
 
 		print_dbg_char('T');
@@ -451,10 +449,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	U8 string_type;
 	U16 wInterface;
 
-#ifdef USB_STATE_MACHINE_DEBUG
 //	print_dbg_char('a'); // xperia
-#endif
-
 	zlp = FALSE; /* no zero length packet */
 	string_type = Usb_read_endpoint_data(EP_CONTROL, 8); /* read LSB of wValue    */
 	descriptor_type = Usb_read_endpoint_data(EP_CONTROL, 8); /* read MSB of wValue    */
@@ -463,26 +458,12 @@ static Bool uac2_user_get_interface_descriptor() {
 	switch (descriptor_type) {
 	case HID_DESCRIPTOR:
 
-#ifdef USB_STATE_MACHINE_DEBUG
-//		print_dbg_char('b'); // xperia
-#endif
-
 		if (wInterface == DSC_INTERFACE_HID) {
 #if (USB_HIGH_SPEED_SUPPORT==DISABLED)
-
-#ifdef USB_STATE_MACHINE_DEBUG
-//			print_dbg_char('c'); // xperia
-#endif
-
 			data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
 			pbuffer = (const U8*)&uac2_usb_conf_desc_fs.hid;
 			break;
 #else
-
-#ifdef USB_STATE_MACHINE_DEBUG
-//			print_dbg_char('d'); // xperia
-#endif
-
 			if (Is_usb_full_speed_mode()) {
 				data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
 				pbuffer = (const U8*) &uac2_usb_conf_desc_fs.hid;
@@ -496,27 +477,15 @@ static Bool uac2_user_get_interface_descriptor() {
 		return FALSE;
 	case HID_REPORT_DESCRIPTOR:
 
-#ifdef USB_STATE_MACHINE_DEBUG
-//		print_dbg_char('e'); // xperia
-#endif
-
 		//? Why doesn't this test for wInterface == DSC_INTERFACE_HID ?
 		data_to_transfer = sizeof(usb_hid_report_descriptor);
 		pbuffer = usb_hid_report_descriptor;
 		break;
 	case HID_PHYSICAL_DESCRIPTOR:
 
-#ifdef USB_STATE_MACHINE_DEBUG
-//		print_dbg_char('f'); // xperia
-#endif
 		// TODO
 		return FALSE;
 	default:
-
-#ifdef USB_STATE_MACHINE_DEBUG
-//		print_dbg_char('g'); // xperia
-#endif
-
 		return FALSE;
 	}
 
@@ -527,12 +496,7 @@ static Bool uac2_user_get_interface_descriptor() {
 	Usb_ack_setup_received_free(); //!< clear the setup received flag
 	send_descriptor(wLength, zlp); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 
-#ifdef USB_STATE_MACHINE_DEBUG
-//	print_dbg_char('h'); // xperia
-#endif
-
 	return TRUE;
-
 #else
 	return TRUE;
 #endif // FEATURE_HID
