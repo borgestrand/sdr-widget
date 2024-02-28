@@ -237,145 +237,139 @@ const U8 Speedx[38] = {
 
 void uac2_freq_change_handler() {
 
-//	if (freq_changed) {
-
 #if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )
-		if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
-			spk_mute = TRUE; // mute speaker while changing frequency and oscillator
-			mobo_clear_dac_channel();
-		}
-		if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {	// Only change I2S settings if appropriate
-			print_dbg_char('S');
-			mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);	// Give USB the I2S control with proper MCLK
-			mobo_clock_division(spk_current_freq.frequency);	// Re-configure correct USB sample rate
-
-			// Will this work if we go from SPDIF to USB already playing at different sample rate?
-
-		}
-#else
+	if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
 		spk_mute = TRUE; // mute speaker while changing frequency and oscillator
-		print_dbg_char_char('=');
 		mobo_clear_dac_channel();
+	}
+	if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {	// Only change I2S settings if appropriate
+		print_dbg_char('S');
+		mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);	// Give USB the I2S control with proper MCLK
+		mobo_clock_division(spk_current_freq.frequency);	// Re-configure correct USB sample rate
 
-		print_dbg_char('T');
-		mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
-		mobo_clock_division(spk_current_freq.frequency);
+		// Will this work if we go from SPDIF to USB already playing at different sample rate?
+
+	}
+#else
+	spk_mute = TRUE; // mute speaker while changing frequency and oscillator
+	print_dbg_char_char('=');
+	mobo_clear_dac_channel();
+
+	print_dbg_char('T');
+	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
+	mobo_clock_division(spk_current_freq.frequency);
 #endif
 
-		/*
-		 poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
-		 FB_rate_int = spk_current_freq.frequency / poolingFreq;
-		 FB_rate_frac = spk_current_freq.frequency % poolingFreq;
-		 FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
-		 */
-		if (spk_current_freq.frequency == FREQ_96) {
+	/*
+		poolingFreq = 8000 / (1 << (EP_INTERVAL_2_HS - 1));
+		FB_rate_int = spk_current_freq.frequency / poolingFreq;
+		FB_rate_frac = spk_current_freq.frequency % poolingFreq;
+		FB_rate = (FB_rate_int << 16) | (FB_rate_frac << 4);
+		*/
+	if (spk_current_freq.frequency == FREQ_96) {
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
 			// Avoid when using SSC_RX for SPDIF buffering? 
 #else
-			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-			pdca_disable(PDCA_CHANNEL_SSC_RX);
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_disable(PDCA_CHANNEL_SSC_RX);
 #endif
 
-			/*
-			 if (FEATURE_LINUX_QUIRK_ON)
-			 FB_rate = (96) << 15;
-			 else
-			 */
+		/*
+			if (FEATURE_LINUX_QUIRK_ON)
+			FB_rate = (96) << 15;
+			else
+			*/
 
-			//				FB_rate = (96) << 14; // Generic OS, supported by linux OS patch...
-			FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement, in initial, not in nominal
-			FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
-			FB_rate_nominal = ((96) << 14) + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system
-		}
+		//				FB_rate = (96) << 14; // Generic OS, supported by linux OS patch...
+		FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement, in initial, not in nominal
+		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
+		FB_rate_nominal = ((96) << 14) + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system
+	}
 
-		else if (spk_current_freq.frequency == FREQ_88) {
+	else if (spk_current_freq.frequency == FREQ_88) {
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
-			// Avoid when using SSC_RX for SPDIF buffering?
+		// Avoid when using SSC_RX for SPDIF buffering?
 #else
-			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-			pdca_disable(PDCA_CHANNEL_SSC_RX);
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_disable(PDCA_CHANNEL_SSC_RX);
 #endif
 
-			/*
-			 if (FEATURE_LINUX_QUIRK_ON)
-			 FB_rate = (88 << 15) + (1<<15)/5;
-			 else
-			 */
+		/*
+			if (FEATURE_LINUX_QUIRK_ON)
+			FB_rate = (88 << 15) + (1<<15)/5;
+			else
+			*/
 
-			//				FB_rate = (88 << 14) + (1<<14)/5; // Generic code, supported by linux OS patch
-			FB_rate = (99 << 14); // Needed by Linux, Linux-quirk replacement, in initial, not in nominal
-			FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
-			FB_rate_nominal = ((88 << 14) + (1 << 14) / 5) + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system
-		}
+		//				FB_rate = (88 << 14) + (1<<14)/5; // Generic code, supported by linux OS patch
+		FB_rate = (99 << 14); // Needed by Linux, Linux-quirk replacement, in initial, not in nominal
+		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
+		FB_rate_nominal = ((88 << 14) + (1 << 14) / 5) + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system
+	}
 
-		else if (spk_current_freq.frequency == FREQ_176) {
+	else if (spk_current_freq.frequency == FREQ_176) {
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
-			// Avoid when using SSC_RX for SPDIF buffering?
+		// Avoid when using SSC_RX for SPDIF buffering?
 #else
-			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-			pdca_disable(PDCA_CHANNEL_SSC_RX);
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_disable(PDCA_CHANNEL_SSC_RX);
 #endif
 
-			FB_rate = (176 << 14) + ((1 << 14) * 4) / 10;
-			FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
-			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
-		}
+		FB_rate = (176 << 14) + ((1 << 14) * 4) / 10;
+		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
+		FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
+	}
 
-		else if (spk_current_freq.frequency == FREQ_192) {
+	else if (spk_current_freq.frequency == FREQ_192) {
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
-			// Avoid when using SSC_RX for SPDIF buffering?
+		// Avoid when using SSC_RX for SPDIF buffering?
 #else
-			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-			pdca_disable(PDCA_CHANNEL_SSC_RX);
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_disable(PDCA_CHANNEL_SSC_RX);
 #endif
 
-			FB_rate = (192) << 14;
-			FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
-			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
-		}
+		FB_rate = (192) << 14;
+		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
+		FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
+	}
 
-		else if (spk_current_freq.frequency == FREQ_48) {
+	else if (spk_current_freq.frequency == FREQ_48) {
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
-			// Avoid when using SSC_RX for SPDIF buffering?
+		// Avoid when using SSC_RX for SPDIF buffering?
 #else
-			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-			pdca_disable(PDCA_CHANNEL_SSC_RX);
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_disable(PDCA_CHANNEL_SSC_RX);
 #endif
 
-			FB_rate = (48) << 14;
-			FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
-			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
-		}
+		FB_rate = (48) << 14;
+		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
+		FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
+	}
 
-		else if (spk_current_freq.frequency == FREQ_44) {
+	else if (spk_current_freq.frequency == FREQ_44) {
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
-			// Avoid when using SSC_RX for SPDIF buffering?
+		// Avoid when using SSC_RX for SPDIF buffering?
 #else
-			pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
-			pdca_disable(PDCA_CHANNEL_SSC_RX);
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_disable(PDCA_CHANNEL_SSC_RX);
 #endif
 
-			FB_rate = (44 << 14) + (1 << 14) / 10;
-			FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
-			FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
-		}
+		FB_rate = (44 << 14) + (1 << 14) / 10;
+		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
+		FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
+	}
 
-		spk_mute = FALSE;
+	spk_mute = FALSE;
 		
 		
-		// Record incoming frequency request from USB control system
-		print_dbg_char('W');
-		mobo_print_selected_frequency(spk_current_freq.frequency);
-		
-		// reset freq_changed flag
-//		freq_changed = FALSE;
-//	} // 	if (freq_changed) {
+	// Record incoming frequency request from USB control system
+	print_dbg_char('W');
+	mobo_print_selected_frequency(spk_current_freq.frequency);
 } // uac2_freq_change_handler
 
 
@@ -1147,7 +1141,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 				case CSD_ID_1: // set CUR freq of Mic - UNUSED clock generator!
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
-						//freq_changed = TRUE;
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received())
 							;
@@ -1174,7 +1167,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 				case CSD_ID_2: // set CUR freq - Actual clock generator, merge with above code! ADC_site
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
-//						freq_changed = TRUE;
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received())
 							;
