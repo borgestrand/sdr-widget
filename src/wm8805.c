@@ -291,7 +291,6 @@ void wm8805_poll(void) {
 			wm8805_mute();
 			spdif_rx_status.muted = 1;
 
-#ifdef USB_STATE_MACHINE_DEBUG
 			print_dbg_char('G');						// Debug semaphore, capital letters for WM8805 task
 			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 
@@ -303,15 +302,6 @@ void wm8805_poll(void) {
 			}
 			else
 				print_dbg_char(62); // '>'
-#else
-			if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-
-				// Highly experimental
-//				gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
-
-				input_select = MOBO_SRC_NONE;				// Indicate USB may take over control, but don't power down!
-			}
-#endif
 		}
 
 		// Try other WM8805 channel

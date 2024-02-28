@@ -326,15 +326,11 @@ uint8_t mobo_usb_detect(void) {
 void  mobo_i2s_enable(uint8_t i2s_mode) {
 	if (i2s_mode == MOBO_I2S_ENABLE) {
 		//		gpio_set_gpio_pin(AVR32_PIN_PX58); 					// Enable I2S data
-		#ifdef USB_STATE_MACHINE_DEBUG
 		//		print_dbg_char('m');								// Indicate unmute
-		#endif
 	}
 	else if (i2s_mode == MOBO_I2S_DISABLE) {
 		//		gpio_clr_gpio_pin(AVR32_PIN_PX58); 					// Disable I2S data pin
-		#ifdef USB_STATE_MACHINE_DEBUG
 		//		print_dbg_char('M');								// Indicate mute
-		#endif
 	}
 }
 #endif
@@ -1504,10 +1500,7 @@ void mobo_clear_adc_channel(void) {
 void mobo_clear_dac_channel(void) {
 	int i;
 
-#ifdef USB_STATE_MACHINE_DEBUG
 //	print_dbg_char('C');
-#endif
-
 //	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
 
 	for (i = 0; i < DAC_BUFFER_UNI; i++) {

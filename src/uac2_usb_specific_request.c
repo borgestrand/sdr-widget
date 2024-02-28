@@ -554,13 +554,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	uint8_t temp1 = 0;
 	uint8_t temp2 = 0;
 
-/*
-#ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('t'); // xperia
-	print_dbg_char_hex(type); // xperia
-	print_dbg_char_hex(request); // xperia
-#endif
-*/
 	// BSB 20120720 added
 	// this should vector to specified interface handler
 	if (type == IN_INTERFACE && request == GET_DESCRIPTOR)
@@ -575,18 +568,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 	wLength
 			= usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL, 16));
 
-/*
-#ifdef USB_STATE_MACHINE_DEBUG
-	print_dbg_char('w'); // xperia
-	print_dbg_char_hex(wValue_lsb); // xperia
-	print_dbg_char_hex(wValue_msb); // xperia
-	print_dbg_char('v'); // xperia
-	print_dbg_char_hex(wIndex / 256); // xperia MSB
-	print_dbg_char_hex(wIndex % 256); // xperia LSB
-	print_dbg_char_hex(wLength); // xperia
-	print_dbg_char('\n'); // xperia
-#endif
-*/
 
 	// Mute button push
 	// R2101.0114 type=OUT_CL_INTERFACE request=1 wIndex = 0x1401
@@ -900,10 +881,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_CUR) {
 
-#ifdef USB_STATE_MACHINE_DEBUG
-						print_dbg_char('k'); // BSB debug 20120910 Xperia
-#endif
-
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 						Usb_write_endpoint_data(EP_CONTROL, 8, spk_current_freq.freq_bytes[3]); // 0x0000bb80 is 48khz
@@ -917,10 +894,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else if (wValue_msb == AUDIO_CS_CONTROL_CLOCK_VALID //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_CUR) {
-
-// #ifdef USB_STATE_MACHINE_DEBUG
-//						print_dbg_char('i'); // BSB debug 20120910 Xperia
-// #endif
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -936,10 +909,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						return TRUE;
 					} else if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ //&& wValue_lsb == 0
 							&& request == AUDIO_CS_REQUEST_RANGE) {
-
-// #ifdef USB_STATE_MACHINE_DEBUG
-//						print_dbg_char('j'); // BSB debug 20120910 Xperia
-// #endif
 
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
@@ -1018,13 +987,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 //						print_dbg_char('m'); // bBitResolution
 
-#ifdef USB_STATE_MACHINE_DEBUG
-						// Trying to catch mute event
-//						print_dbg_char('m');
-//						print_dbg_char_hex(usb_spk_mute);
-//						print_dbg_char(' ');
-#endif
-
 						Usb_ack_control_in_ready_send();
 						while (!Is_usb_control_out_received())
 							;
@@ -1050,16 +1012,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 											spk_vol_usb_L);
 								}
 								Usb_write_endpoint_data(EP_CONTROL, 16, Usb_format_mcu_to_usb_data(16, spk_vol_usb_L));
-
-/*
-#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('g');
-								print_dbg_char('L');
-								print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
-								print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
-								print_dbg_char('\n');
-#endif
-*/
 
 							} else if (wValue_lsb == CH_RIGHT) {
 								// Be on the safe side here, even though fetch is done in uac1_device_audio_task.c init
@@ -1307,14 +1259,10 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						print_dbg_char('M'); // bBitResolution
 
-
-#ifdef USB_STATE_MACHINE_DEBUG
 						// Trying to catch Win10 mute event
 						print_dbg_char('M');
 						print_dbg_char_hex(usb_spk_mute);
 						print_dbg_char(' ');
-#endif
-
 
 						Usb_ack_control_out_received_free();
 						Usb_ack_control_in_ready_send(); //!< send a ZLP for STATUS phase
@@ -1339,15 +1287,6 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 								MSB( spk_vol_usb_L) = temp2;
 								spk_vol_mult_L = usb_volume_format(
 										spk_vol_usb_L);
-/*
-#ifdef USB_STATE_MACHINE_DEBUG
-								print_dbg_char('s');
-								print_dbg_char('L');
-								print_dbg_char_hex(((spk_vol_usb_L >> 8) & 0xff));
-								print_dbg_char_hex(((spk_vol_usb_L >> 0) & 0xff));
-								print_dbg_char('\n');
-#endif
-*/
 							} else if (wValue_lsb == CH_RIGHT) {
 								LSB( spk_vol_usb_R) = temp1;
 								MSB( spk_vol_usb_R) = temp2;
@@ -1365,7 +1304,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 					else
 						return FALSE;
-#endif
+#endif // #ifdef FEATURE_VOLUME_CTRL
 
 				default:
 					return FALSE;

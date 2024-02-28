@@ -107,7 +107,6 @@
     //! @brief DEFINE to activate audio feedback state machine debugging on GPIO and UART
     //!
     //! Possible values defined and commented out
-// #define USB_STATE_MACHINE_DEBUG // Depreciated here, moved to Makefile
 
 
 // BSB 20160311 demoing metallic noise
