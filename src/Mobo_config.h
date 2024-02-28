@@ -19,6 +19,9 @@
 // Use only during init, before any MCU hardware (including application use of RTC) is enabled.
 void mobo_sleep_rtc_ms(uint16_t time_ms);
 
+// Print the frequency
+void mobo_print_selected_frequency(U32 frequency);
+
 // Audio Widget select oscillator
 void mobo_xo_select(U32 frequency, uint8_t source);
 

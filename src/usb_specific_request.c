@@ -110,7 +110,7 @@ volatile  U8	usb_alternate_setting, usb_alternate_setting_out;
 volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_changed;
 
 S_freq spk_current_freq;
-Bool freq_changed = FALSE;
+// Bool freq_changed = FALSE;
 
 // static U8    wValue_msb;
 // static U8    wValue_lsb;

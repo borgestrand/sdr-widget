@@ -1208,6 +1208,38 @@ void mobo_stop_spdif_tc(void) {
  *
  * \retval none
  */
+
+void mobo_print_selected_frequency(U32 frequency) {
+	// Report to CPU (when present) and debug terminal
+	switch (frequency) {
+		case FREQ_44:
+		print_cpu_char(CPU_CHAR_44); // Inform CPU (when present)
+		break;
+		case FREQ_48:
+		print_cpu_char(CPU_CHAR_48); // Inform CPU (when present)
+		break;
+		case FREQ_88:
+		print_cpu_char(CPU_CHAR_88); // Inform CPU (when present)
+		break;
+		case FREQ_96:
+		print_cpu_char(CPU_CHAR_96); // Inform CPU (when present)
+		break;
+		case FREQ_176:
+		print_cpu_char(CPU_CHAR_176); // Inform CPU (when present)
+		break;
+		case FREQ_192:
+		print_cpu_char(CPU_CHAR_192); // Inform CPU (when present)
+		break;
+		case FREQ_RXNATIVE:
+		print_cpu_char(CPU_CHAR_REGEN); // Inform CPU (when present)
+		break;
+		default:
+		print_cpu_char(CPU_CHAR_RATE_DEF); // Inform CPU (when present)
+		break;
+	}
+}
+
+
 void mobo_xo_select(U32 frequency, uint8_t source) {
 // XO control and SPI muxing on ab1x hardware generation
 	static U32 prev_frequency = FREQ_INVALID;
@@ -1273,33 +1305,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			break;
 		} // switch
 		
-		// Report to debug terminal
-		switch (frequency) {
-			case FREQ_44:
-			print_dbg_char(CPU_CHAR_44); // Inform CPU (when present)
-			break;
-			case FREQ_48:
-			print_dbg_char(CPU_CHAR_48); // Inform CPU (when present)
-			break;
-			case FREQ_88:
-			print_dbg_char(CPU_CHAR_88); // Inform CPU (when present)
-			break;
-			case FREQ_96:
-			print_dbg_char(CPU_CHAR_96); // Inform CPU (when present)
-			break;
-			case FREQ_176:
-			print_dbg_char(CPU_CHAR_176); // Inform CPU (when present)
-			break;
-			case FREQ_192:
-			print_dbg_char(CPU_CHAR_192); // Inform CPU (when present)
-			break;
-			case FREQ_RXNATIVE:
-			print_dbg_char(CPU_CHAR_REGEN); // Inform CPU (when present)
-			break;
-			default:
-			print_dbg_char(CPU_CHAR_RATE_DEF); // Inform CPU (when present)
-			break;
-		}
+		mobo_print_selected_frequency(frequency);
 
 	#elif (defined HW_GEN_SPRX) 
 
@@ -1327,33 +1333,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 		}
 
-		// Report to CPU (when present) and debug terminal
-		switch (frequency) {
-			case FREQ_44:
-				print_cpu_char(CPU_CHAR_44); // Inform CPU (when present)
-			break;
-			case FREQ_48:
-				print_cpu_char(CPU_CHAR_48); // Inform CPU (when present)
-			break;
-			case FREQ_88:
-				print_cpu_char(CPU_CHAR_88); // Inform CPU (when present)
-			break;
-			case FREQ_96:
-				print_cpu_char(CPU_CHAR_96); // Inform CPU (when present)
-			break;
-			case FREQ_176:
-				print_cpu_char(CPU_CHAR_176); // Inform CPU (when present)
-			break;
-			case FREQ_192:
-				print_cpu_char(CPU_CHAR_192); // Inform CPU (when present)
-			break;
-			case FREQ_RXNATIVE:
-				print_cpu_char(CPU_CHAR_REGEN); // Inform CPU (when present)
-			break;
-			default:
-				print_cpu_char(CPU_CHAR_RATE_DEF); // Inform CPU (when present)
-			break;
-		}			
+		mobo_print_selected_frequency(frequency);
 
 	#elif (defined HW_GEN_FMADC)
 		// FMADC_site 
@@ -1532,6 +1512,11 @@ void mobo_clear_dac_channel(void) {
 
 	for (i = 0; i < DAC_BUFFER_UNI; i++) {
 		spk_buffer[i] = 0;
+	}
+	
+	for (i = 0; i < SPK_CACHE_MAX_SAMPLES; i++) {
+		cache_L[i] = 0;
+		cache_R[i] = 0;
 	}
 
 //	gpio_clr_gpio_pin(AVR32_PIN_PX17); // ch3

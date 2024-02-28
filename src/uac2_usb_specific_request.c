@@ -237,7 +237,7 @@ const U8 Speedx[38] = {
 
 void uac2_freq_change_handler() {
 
-	if (freq_changed) {
+//	if (freq_changed) {
 
 #if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )
 		if (input_select == MOBO_SRC_UAC2) { // Only mute if appropriate. Perhaps input has changed to NONE before this can execute
@@ -370,9 +370,10 @@ void uac2_freq_change_handler() {
 
 		spk_mute = FALSE;
 		// reset freq_changed flag
-		freq_changed = FALSE;
-	}
-}
+//		freq_changed = FALSE;
+//	} // 	if (freq_changed) {
+} // uac2_freq_change_handler
+
 
 //! @brief This function configures the endpoints of the device application.
 //! This function is called when the set configuration request has been received.
@@ -1224,7 +1225,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 				case CSD_ID_1: // set CUR freq of Mic - UNUSED clock generator!
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
-						freq_changed = TRUE;
+						//freq_changed = TRUE;
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received())
 							;
@@ -1251,7 +1252,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 				case CSD_ID_2: // set CUR freq - Actual clock generator, merge with above code! ADC_site
 					if (wValue_msb == AUDIO_CS_CONTROL_SAM_FREQ && wValue_lsb
 							== 0 && request == AUDIO_CS_REQUEST_CUR) {
-						freq_changed = TRUE;
+//						freq_changed = TRUE;
 						Usb_ack_setup_received_free();
 						while (!Is_usb_control_out_received())
 							;

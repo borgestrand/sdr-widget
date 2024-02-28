@@ -238,11 +238,6 @@ void uac2_device_audio_task(void *pvParameters)
 //				print_dbg_char('7');
 			#endif
 			mobo_clear_dac_channel(); 
-			// Manual cache clear
-			for (i = 0; i < SPK_CACHE_MAX_SAMPLES; i++) {
-				cache_L[i] = 0;
-				cache_R[i] = 0; 
-			}
 			
 			dac_must_clear = DAC_CLEARED;
 		}
@@ -982,11 +977,6 @@ void uac2_device_audio_task(void *pvParameters)
 				playerStarted = FALSE;
 				
 				mobo_clear_dac_channel();
-				// Manual cache clear when giving up access to outward facing resources
-				for (i = 0; i < SPK_CACHE_MAX_SAMPLES; i++) {
-					cache_L[i] = 0;
-					cache_R[i] = 0;
-				}
 
 #ifdef USB_STATE_MACHINE_DEBUG
 				print_dbg_char('q');
