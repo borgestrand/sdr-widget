@@ -246,12 +246,7 @@ void uac2_freq_change_handler() {
 		print_dbg_char('S');
 		mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);	// Give USB the I2S control with proper MCLK
 		mobo_clock_division(spk_current_freq.frequency);	// Re-configure correct USB sample rate
-
-		spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-		spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-		if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
-			spk_index -= DAC_BUFFER_UNI;
-		}
+		must_init_spk_index = TRUE;							// New frequency setting means resync DAC DMA
 	}
 #else
 	spk_mute = TRUE; // mute speaker while changing frequency and oscillator
@@ -261,12 +256,7 @@ void uac2_freq_change_handler() {
 	print_dbg_char('T');
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
 	mobo_clock_division(spk_current_freq.frequency);
-
-	spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-	spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-	if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
-		spk_index -= DAC_BUFFER_UNI;
-	}
+	must_init_spk_index = TRUE;							// New frequency setting means resync DAC DMA
 #endif
 
 	/*

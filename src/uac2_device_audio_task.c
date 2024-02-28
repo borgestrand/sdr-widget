@@ -98,8 +98,9 @@
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
-static U32  index;
-static S16  old_gap = DAC_BUFFER_UNI / 2; // Assumed to be OK... 
+static U32 index = 0;
+static U32 spk_index = 0;
+static S16 old_gap = DAC_BUFFER_UNI / 2; // Assumed to be OK... 
 
 // static U8 ADC_buf_USB_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out
 												// to the USB and reading from USB
@@ -753,25 +754,19 @@ void uac2_device_audio_task(void *pvParameters)
 					// New site for setting playerStarted and aligning buffers
 					if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
 //						#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
-						#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
+						#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )	// For USB playback, handle semaphores
 //							print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 							if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
-								print_dbg_char('[');						// USB takes
+								print_dbg_char('[');							// USB takes
 								input_select = MOBO_SRC_UAC2;
-								playerStarted = TRUE;						// Is it better off here?
+								playerStarted = TRUE;							// Is it better off here?
 									
 								// Call it here for the benefit of AB-1.2
 								print_dbg_char('P');
 								mobo_xo_select(spk_current_freq.frequency, input_select);
 								mobo_clock_division(spk_current_freq.frequency);
+								must_init_spk_index = TRUE;						// New frequency setting means resync DAC DMA
 								
-								// New location of sync code. ææææ also move other init stuff here?
-								spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-								spk_index = spk_index & ~((U32)1); 				// Clear LSB in order to start with L sample
-								if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
-									spk_index -= DAC_BUFFER_UNI;
-								}
-																				
 								#ifdef HW_GEN_SPRX 
 									// Report to cpu and debug terminal
 									if (usb_ch == USB_CH_B) {
@@ -982,16 +977,10 @@ void uac2_device_audio_task(void *pvParameters)
 					print_dbg_char('R');
 					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
 					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
-
-					spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-					spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-					if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
-						spk_index -= DAC_BUFFER_UNI;
-					}
+					must_init_spk_index = TRUE;									// New frequency setting means resync DAC DMA
 				}
 
 				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen æææ merge with USB init logic for this same purpose
-
 			}
 			prev_input_select = input_select;
 		#endif
@@ -1008,141 +997,151 @@ void uac2_device_audio_task(void *pvParameters)
 		if (num_samples > 0) {								// Only start copying when there is something to legally copy
 
 /* Begin newest site of gap calculation */
+			si_action = SI_NORMAL;						// Most of the time, don't apply s/i. Only determine whether to s/i when time_to_calculate_gap == 0
 
-					si_action = SI_NORMAL;						// Most of the time, don't apply s/i. Only determine whether to s/i when time_to_calculate_gap == 0
+			// Calculate gap after N packets, NOT each time feedback endpoint is polled
+			if (time_to_calculate_gap > 0) {
+				time_to_calculate_gap--;
+			}
+			else if (!must_init_spk_index) {			// Time to calculate gap AND normal operation
+				time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
 
-					// Calculate gap after N packets, NOT each time feedback endpoint is polled
-					if (time_to_calculate_gap > 0) {
-						time_to_calculate_gap--;
-					}
-					else {
-						time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
-
-						gap = DAC_BUFFER_UNI - spk_index - (spk_pdca_channel->tcr);
-						if (gap < 0) {
-							gap += DAC_BUFFER_UNI;
-						}
+				gap = DAC_BUFFER_UNI - spk_index - (spk_pdca_channel->tcr);
+				if (gap < 0) {
+					gap += DAC_BUFFER_UNI;
+				}
 
 //						if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
-							if (gap < old_gap) {
-								if (gap < SPK_GAP_L2) { 					// gap < outer lower bound => 2*FB_RATE_DELTA
-									if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
-										FB_rate -= 2*FB_RATE_DELTA;
-									}
-									old_gap = gap;
+					if (gap < old_gap) {
+						if (gap < SPK_GAP_L2) { 					// gap < outer lower bound => 2*FB_RATE_DELTA
+							if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
+								FB_rate -= 2*FB_RATE_DELTA;
+							}
+							old_gap = gap;
 
-									// Aadaptive USB fallback using skip = SPDIF insert s/i
-									si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
-									si_pkg_increment ++;
-									si_pkg_direction = SI_SKIP;				// Host must slow down
+							// Aadaptive USB fallback using skip = SPDIF insert s/i
+							si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
+							si_pkg_increment ++;
+							si_pkg_direction = SI_SKIP;				// Host must slow down
 									
-									// Report to cpu and debug terminal
-									print_cpu_char(CPU_CHAR_DECDEC_FREQ);
+							// Report to cpu and debug terminal
+							print_cpu_char(CPU_CHAR_DECDEC_FREQ);
 									
-									return_to_nominal = TRUE;
-								}
+							return_to_nominal = TRUE;
+						}
 								
-								else if (gap < SPK_GAP_L1) { 				// gap < inner lower bound => 1*FB_RATE_DELTA
-									if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2, as is this limit for adaptive feedback
-										FB_rate -= FB_RATE_DELTA;
-										old_gap = gap;
+						else if (gap < SPK_GAP_L1) { 				// gap < inner lower bound => 1*FB_RATE_DELTA
+							if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2, as is this limit for adaptive feedback
+								FB_rate -= FB_RATE_DELTA;
+								old_gap = gap;
 
-										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_DEC_FREQ);
+								// Report to cpu and debug terminal
+								print_cpu_char(CPU_CHAR_DEC_FREQ);
 
-										return_to_nominal = TRUE;
-									}
-								}
-
-								// New feature: gap returning to nominal gap
-								// Goal: approach nominal sample rate without cycles of gap low-high-low
-								// but rather attempt up gaps being low-nominal-low
-								else if (gap < SPK_GAP_NOM) {
-									if (return_to_nominal) {
-										if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
-											FB_rate -= FB_RATE_DELTA;
-										}
-										old_gap = gap;
-										
-										// Aadaptive USB fallback using skip = SPDIF insert s/i
-										si_pkg_counter = 0;						// No s/i for a while
-										si_pkg_increment = 0;					// Not counting up to next s/i event
-										si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
-
-										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_NOMDEC_FREQ);
-
-										return_to_nominal = FALSE;
-									}
-								}
+								return_to_nominal = TRUE;
 							}
-							else if (gap > old_gap) {
-								if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
-									if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
-										FB_rate += 2*FB_RATE_DELTA; 
-									}
-									old_gap = gap;
+						}
+
+						// New feature: gap returning to nominal gap
+						// Goal: approach nominal sample rate without cycles of gap low-high-low
+						// but rather attempt up gaps being low-nominal-low
+						else if (gap < SPK_GAP_NOM) {
+							if (return_to_nominal) {
+								if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
+									FB_rate -= FB_RATE_DELTA;
+								}
+								old_gap = gap;
+										
+								// Aadaptive USB fallback using skip = SPDIF insert s/i
+								si_pkg_counter = 0;						// No s/i for a while
+								si_pkg_increment = 0;					// Not counting up to next s/i event
+								si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
+
+								// Report to cpu and debug terminal
+								print_cpu_char(CPU_CHAR_NOMDEC_FREQ);
+
+								return_to_nominal = FALSE;
+							}
+						}
+					}
+					else if (gap > old_gap) {
+						if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
+							if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
+								FB_rate += 2*FB_RATE_DELTA; 
+							}
+							old_gap = gap;
 									
-									// New code for adaptive USB fallback using skip / insert s/i
-									si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
-									si_pkg_increment ++;
-									si_pkg_direction = SI_INSERT;			// Host must speed up
+							// New code for adaptive USB fallback using skip / insert s/i
+							si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
+							si_pkg_increment ++;
+							si_pkg_direction = SI_INSERT;			// Host must speed up
 
-									// Report to cpu and debug terminal
-									print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
+							// Report to cpu and debug terminal
+							print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
 
-									return_to_nominal = TRUE;
-								}
+							return_to_nominal = TRUE;
+						}
 
-								else if (gap > SPK_GAP_U1) { 				// gap > inner upper bound => 1*FB_RATE_DELTA
-									if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2, as is this limit for adaptive feedback
-										FB_rate += FB_RATE_DELTA;
-										old_gap = gap;
+						else if (gap > SPK_GAP_U1) { 				// gap > inner upper bound => 1*FB_RATE_DELTA
+							if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2, as is this limit for adaptive feedback
+								FB_rate += FB_RATE_DELTA;
+								old_gap = gap;
 
-										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_INC_FREQ);
+								// Report to cpu and debug terminal
+								print_cpu_char(CPU_CHAR_INC_FREQ);
 
-										return_to_nominal = TRUE;
-									}
-								}
-
-								// New feature: gap returning to nominal gap
-								// Goal: approach nominal sample rate without cycles of gap low-high-low
-								// but rather attempt up gaps being low-nominal-low
-								else if (gap > SPK_GAP_NOM) {
-									if (return_to_nominal) {
-										if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
-											FB_rate += FB_RATE_DELTA;
-										}
-										old_gap = gap;
-
-										// New code for adaptive USB fallback using skip / insert s/i
-										si_pkg_counter = 0;						// No s/i for a while
-										si_pkg_increment = 0;					// Not counting up to next s/i event
-										si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
-										
-										// Report to cpu and debug terminal
-										print_cpu_char(CPU_CHAR_NOMINC_FREQ);
-										
-										return_to_nominal = FALSE;
-									}
-								}
+								return_to_nominal = TRUE;
 							}
+						}
+
+						// New feature: gap returning to nominal gap
+						// Goal: approach nominal sample rate without cycles of gap low-high-low
+						// but rather attempt up gaps being low-nominal-low
+						else if (gap > SPK_GAP_NOM) {
+							if (return_to_nominal) {
+								if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
+									FB_rate += FB_RATE_DELTA;
+								}
+								old_gap = gap;
+
+								// New code for adaptive USB fallback using skip / insert s/i
+								si_pkg_counter = 0;						// No s/i for a while
+								si_pkg_increment = 0;					// Not counting up to next s/i event
+								si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
+										
+								// Report to cpu and debug terminal
+								print_cpu_char(CPU_CHAR_NOMINC_FREQ);
+										
+								return_to_nominal = FALSE;
+							}
+						}
+					}
 //						} // end if(playerStarted)
 
 
-					} // end if time_to_calculate_gap == 0
+			} // end if time_to_calculate_gap == 0
 
-					si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
-					if (si_pkg_counter > SI_PKG_RESOLUTION) {
-						si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
-						si_action = si_pkg_direction;		// Apply only once in a while
-					}
+			si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
+			if (si_pkg_counter > SI_PKG_RESOLUTION) {
+				si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
+				si_action = si_pkg_direction;		// Apply only once in a while
+			}
 
 
 /* End newest site of gap calculation */
 
 //			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
+
+			if (must_init_spk_index) {
+				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
+				spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
+				if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
+					spk_index -= DAC_BUFFER_UNI;
+				}
+				
+				must_init_spk_index = FALSE;
+			}
+
 
 			i = 0;
 			while (i < si_index_low) { // before skip/insert

@@ -778,12 +778,7 @@ void wm8804_mute(void) {
 	print_dbg_char('U');
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
 	mobo_clock_division(spk_current_freq.frequency);	// 20240229 inserted here
-
-	spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-	spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-	if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
-		spk_index -= DAC_BUFFER_UNI;
-	}
+	must_init_spk_index = TRUE;						// New frequency setting means resync DAC DMA
 }
 
 
@@ -794,12 +789,7 @@ void wm8804_unmute(void) {
 	print_dbg_char('V');
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
-
-	spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-	spk_index = spk_index & ~((U32)1); 				// Clear LSB in order to start with L sample
-	if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
-		spk_index -= DAC_BUFFER_UNI;
-	}
+	must_init_spk_index = TRUE;									// New frequency setting means resync DAC DMA
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
