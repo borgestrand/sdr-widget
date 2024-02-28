@@ -278,7 +278,6 @@ void wm8804_task(void *pvParameters) {
 							print_dbg_char('{');				// WM8804 takes
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 
-
 							// Report to cpu and debug terminal
 							switch (input_select) {
 								case MOBO_SRC_SPDIF0:
@@ -779,6 +778,12 @@ void wm8804_mute(void) {
 	print_dbg_char('U');
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
 	mobo_clock_division(spk_current_freq.frequency);	// 20240229 inserted here
+
+	spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
+	spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
+	if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
+		spk_index -= DAC_BUFFER_UNI;
+	}
 }
 
 
@@ -788,12 +793,13 @@ void wm8804_unmute(void) {
 	
 	print_dbg_char('V');
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
-//	mobo_led_select(spdif_rx_status.frequency, input_select);	// User interface channel indicator - Moved from TAKE event to detection of non-silence
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 
-//  Moved to pdca enable code
-//	mobo_start_spdif_tc(spdif_rx_status.frequency);				// Turn on the spdif timer/counter interrupt
-
+	spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
+	spk_index = spk_index & ~((U32)1); 				// Clear LSB in order to start with L sample
+	if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
+		spk_index -= DAC_BUFFER_UNI;
+	}
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??

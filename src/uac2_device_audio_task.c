@@ -98,7 +98,7 @@
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
-static U32  index, spk_index;
+static U32  index;
 static S16  old_gap = DAC_BUFFER_UNI / 2; // Assumed to be OK... 
 
 // static U8 ADC_buf_USB_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out
@@ -547,19 +547,24 @@ void uac2_device_audio_task(void *pvParameters)
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
 						FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
-						old_gap = DAC_BUFFER_UNI / 2;	// Assumed and tested OK
+						old_gap = DAC_BUFFER_UNI / 2;		// Assumed and tested OK
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
 						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF ææææ apply to spdif playback as well. Eventually, rewrite as one buffer
 						audio_OUT_must_sync = 0;
 
-						print_dbg_char('#');
+/* Move code to mutex take				
+						print_dbg_char('%');
 						spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 						spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
 						if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
 							spk_index -= DAC_BUFFER_UNI;
 						}
+
+æææ move more init shit there!
+
+*/	
 
 						// 	playerStarted = TRUE;				// Moved here from mutex take code
 						
@@ -759,7 +764,13 @@ void uac2_device_audio_task(void *pvParameters)
 								print_dbg_char('P');
 								mobo_xo_select(spk_current_freq.frequency, input_select);
 								mobo_clock_division(spk_current_freq.frequency);
-
+								
+								// New location of sync code. ææææ also move other init stuff here?
+								spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
+								spk_index = spk_index & ~((U32)1); 				// Clear LSB in order to start with L sample
+								if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
+									spk_index -= DAC_BUFFER_UNI;
+								}
 																				
 								#ifdef HW_GEN_SPRX 
 									// Report to cpu and debug terminal
@@ -971,16 +982,16 @@ void uac2_device_audio_task(void *pvParameters)
 					print_dbg_char('R');
 					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
 					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
+
+					spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
+					spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
+					if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
+						spk_index -= DAC_BUFFER_UNI;
+					}
 				}
 
 				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen æææ merge with USB init logic for this same purpose
 
-				print_dbg_char('#');
-				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-				spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-				if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
-					spk_index -= DAC_BUFFER_UNI;
-				}
 			}
 			prev_input_select = input_select;
 		#endif

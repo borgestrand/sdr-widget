@@ -133,6 +133,7 @@ Short buffers give less system latency and poorer synch state machine performanc
 // Global buffer variables
 extern volatile S32 audio_buffer[ADC_BUFFER_SIZE];
 extern volatile S32 spk_buffer[DAC_BUFFER_UNI];
+extern volatile U32 spk_index;
 extern volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 extern volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 
