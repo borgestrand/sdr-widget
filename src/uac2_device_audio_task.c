@@ -150,7 +150,6 @@ void uac2_device_audio_task(void *pvParameters)
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i = 0;
 	S32 num_samples = 0;
-	S32 num_remaining = 0;
 	S32 gap = 0;
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
@@ -287,8 +286,7 @@ void uac2_device_audio_task(void *pvParameters)
 				// Must ADC consumer pointers be set up for 1st transfer?
 					// Rewrite init code!
 					if (ADC_buf_USB_IN == INIT_ADC_USB_st2) {
-						num_remaining = pdca_channel->tcr; 
-						index = ADC_BUFFER_SIZE - num_remaining + ADC_BUFFER_SIZE / 2;	// Starting half a unified buffer away from DMA's write head
+						index = ADC_BUFFER_SIZE - (pdca_channel->tcr) + ADC_BUFFER_SIZE / 2;	// Starting half a unified buffer away from DMA's write head
 						index = index & ~((U32)1); 								// Clear LSB in order to start with L sample
 						if (index >= ADC_BUFFER_SIZE) {						// Stay within bounds
 							index -= ADC_BUFFER_SIZE;
@@ -349,8 +347,7 @@ void uac2_device_audio_task(void *pvParameters)
 // Adoption of DAC side's buffered gap calculation
 
 					// Simulated in debug03_gap.c - not verified or thoroughly analyzed
-					num_remaining = pdca_channel->tcr;
-					gap = ADC_BUFFER_SIZE - index - num_remaining;
+					gap = ADC_BUFFER_SIZE - index - (pdca_channel->tcr);
 					if (gap < 0) {
 						gap += ADC_BUFFER_SIZE;
 					}
@@ -556,9 +553,9 @@ void uac2_device_audio_task(void *pvParameters)
 
 						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF ææææ apply to spdif playback as well. Eventually, rewrite as one buffer
 						audio_OUT_must_sync = 0;
-						num_remaining = spk_pdca_channel->tcr;
 
-						spk_index = DAC_BUFFER_UNI - num_remaining + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
+						print_dbg_char('#');
+						spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 						spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
 						if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
 							spk_index -= DAC_BUFFER_UNI;
@@ -977,15 +974,13 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 
 				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen æææ merge with USB init logic for this same purpose
-				num_remaining = spk_pdca_channel->tcr;
 
-				spk_index = DAC_BUFFER_UNI - num_remaining + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
+				print_dbg_char('#');
+				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 				spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
 				if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
 					spk_index -= DAC_BUFFER_UNI;
 				}
-
-				num_remaining = 0;				// Used to validate cache contents. We have no reason to believe they are valid at the moment!
 			}
 			prev_input_select = input_select;
 		#endif
@@ -1012,8 +1007,7 @@ void uac2_device_audio_task(void *pvParameters)
 					else {
 						time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
 
-						num_remaining = spk_pdca_channel->tcr;
-						gap = DAC_BUFFER_UNI - spk_index - num_remaining;
+						gap = DAC_BUFFER_UNI - spk_index - (spk_pdca_channel->tcr);
 						if (gap < 0) {
 							gap += DAC_BUFFER_UNI;
 						}
