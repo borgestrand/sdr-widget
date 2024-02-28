@@ -369,6 +369,12 @@ void uac2_freq_change_handler() {
 		}
 
 		spk_mute = FALSE;
+		
+		
+		// Record incoming frequency request from USB control system
+		print_dbg_char('W');
+		mobo_print_selected_frequency(spk_current_freq.frequency);
+		
 		// reset freq_changed flag
 //		freq_changed = FALSE;
 //	} // 	if (freq_changed) {

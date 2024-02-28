@@ -778,6 +778,7 @@ void wm8804_mute(void) {
 
 	print_dbg_char('U');
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
+	mobo_clock_division(spk_current_freq.frequency);	// 20240229 inserted here
 }
 
 

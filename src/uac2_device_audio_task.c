@@ -764,6 +764,8 @@ void uac2_device_audio_task(void *pvParameters)
 									// Call it here for the benefit of AB-1.2
 									print_dbg_char('P');
 									mobo_xo_select(spk_current_freq.frequency, input_select);
+									mobo_clock_division(spk_current_freq.frequency);
+
 																				
 									#ifdef HW_GEN_SPRX 
 										// Report to cpu and debug terminal
@@ -788,6 +790,7 @@ void uac2_device_audio_task(void *pvParameters)
 									// Call it here for the benefit of AB-1.2
 									print_dbg_char('Q');
 									mobo_xo_select(spk_current_freq.frequency, input_select);
+									mobo_clock_division(spk_current_freq.frequency);
 
 									#ifdef HW_GEN_SPRX 
 										mobo_led_select(spk_current_freq.frequency, input_select);
