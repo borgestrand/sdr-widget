@@ -1032,7 +1032,7 @@ void uac2_device_audio_task(void *pvParameters)
 									si_pkg_direction = SI_SKIP;				// Host must slow down
 									
 									// Report to cpu and debug terminal
-									// no_gap_report print_cpu_char(CPU_CHAR_DECDEC_FREQ);
+									print_cpu_char(CPU_CHAR_DECDEC_FREQ);
 									
 									return_to_nominal = TRUE;
 								}
@@ -1043,7 +1043,7 @@ void uac2_device_audio_task(void *pvParameters)
 										old_gap = gap;
 
 										// Report to cpu and debug terminal
-										// no_gap_report print_cpu_char(CPU_CHAR_DEC_FREQ);
+										print_cpu_char(CPU_CHAR_DEC_FREQ);
 
 										return_to_nominal = TRUE;
 									}
@@ -1065,7 +1065,7 @@ void uac2_device_audio_task(void *pvParameters)
 										si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
 
 										// Report to cpu and debug terminal
-										// no_gap_report print_cpu_char(CPU_CHAR_NOMDEC_FREQ);
+										print_cpu_char(CPU_CHAR_NOMDEC_FREQ);
 
 										return_to_nominal = FALSE;
 									}
@@ -1084,7 +1084,7 @@ void uac2_device_audio_task(void *pvParameters)
 									si_pkg_direction = SI_INSERT;			// Host must speed up
 
 									// Report to cpu and debug terminal
-									// no_gap_report print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
+									print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
 
 									return_to_nominal = TRUE;
 								}
@@ -1095,7 +1095,7 @@ void uac2_device_audio_task(void *pvParameters)
 										old_gap = gap;
 
 										// Report to cpu and debug terminal
-										// no_gap_report print_cpu_char(CPU_CHAR_INC_FREQ);
+										print_cpu_char(CPU_CHAR_INC_FREQ);
 
 										return_to_nominal = TRUE;
 									}
@@ -1117,7 +1117,7 @@ void uac2_device_audio_task(void *pvParameters)
 										si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
 										
 										// Report to cpu and debug terminal
-										// no_gap_report print_cpu_char(CPU_CHAR_NOMINC_FREQ);
+										print_cpu_char(CPU_CHAR_NOMINC_FREQ);
 										
 										return_to_nominal = FALSE;
 									}
