@@ -1133,6 +1133,9 @@ void uac2_device_audio_task(void *pvParameters)
 //			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
 
 			if (must_init_spk_index) {
+				
+				// USB startup has this square in the middle of the output buffer. But SPDIF startup seems to let it start a bit too soon (about 2.8ms at 44.1, 0.9ms at 192)
+				// æææ understand that before code can be fully trusted!
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 				spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
 				if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
