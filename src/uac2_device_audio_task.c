@@ -169,6 +169,9 @@ void uac2_device_audio_task(void *pvParameters)
 	S32 sample_R = 0; // BSB 20131102 Expanded for skip/insert, 20160322 changed to S32
 	static uint8_t prev_input_select = MOBO_SRC_NONE; // Source history
 
+	// Temporary debug variables
+	uint32_t temp32_a = 0;
+	uint32_t temp32_b = 0;
 	
 	// Trying to speed up ADC DMA to USB copy
 	uint32_t sample_left = 0; 					// Must be unsigned for zeros to be right-shifted into MSBs ??
@@ -996,7 +999,6 @@ void uac2_device_audio_task(void *pvParameters)
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {								// Only start copying when there is something to legally copy
 
-/* Begin newest site of gap calculation */
 			si_action = SI_NORMAL;						// Most of the time, don't apply s/i. Only determine whether to s/i when time_to_calculate_gap == 0
 
 			// Calculate gap after N packets, NOT each time feedback endpoint is polled
@@ -1116,8 +1118,6 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 						}
 					}
-//						} // end if(playerStarted)
-
 
 			} // end if time_to_calculate_gap == 0
 
@@ -1127,20 +1127,22 @@ void uac2_device_audio_task(void *pvParameters)
 				si_action = si_pkg_direction;		// Apply only once in a while
 			}
 
-
-/* End newest site of gap calculation */
-
 //			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
 
 			if (must_init_spk_index) {
 				
 				// USB startup has this square in the middle of the output buffer. But SPDIF startup seems to let it start a bit too soon (about 2.8ms at 44.1, 0.9ms at 192)
 				// æææ understand that before code can be fully trusted!
+				
+				temp32_a = spk_pdca_channel->tcr;
+				
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 				spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
 				if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
 					spk_index -= DAC_BUFFER_UNI;
 				}
+
+				temp32_b = spk_index;
 				
 				must_init_spk_index = FALSE;
 			}
@@ -1243,6 +1245,19 @@ void uac2_device_audio_task(void *pvParameters)
 		// End writing from cache to spk_buffer
 
 //		gpio_clr_gpio_pin(AVR32_PIN_PX31); // End of task execution
+
+	if ( (temp32_a | temp32_b) != 0){
+		// Print status of spk_index reset
+		
+		print_dbg_char('\n');
+		print_dbg_hex(temp32_a);
+		print_dbg_char('\n');
+		print_dbg_hex(temp32_b);
+		print_dbg_char('\n');
+		
+		temp32_a = 0;
+		temp32_b = 0;
+	}
 
 	} // end while vTask
 }

@@ -1340,6 +1340,8 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 
 		// Establish history
 		prev_frequency = frequency;
+		
+		print_dbg_char('c'); // Clock setting changed
 	} // if (frequency != prev_frequency)
 }
 
@@ -1478,7 +1480,9 @@ void mobo_clock_division(U32 frequency) {
 		AK5394A_pdca_tx_enable(frequency);			// LRCK inversion will occur with FREQ_INVALID
 
 		prev_frequency = frequency;
-	}
+
+		print_dbg_char('c'); // Clock setting changed
+	} // End frequency != prev_frequency
 }
 
 
