@@ -231,12 +231,10 @@ void wm8804_task(void *pvParameters) {
 
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
-						
-							#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-								// mobo_led(FLED_SCANNING);			// Avoid raw LED-control!
-								mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+							#ifdef HW_GEN_SPRX
+								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 							#endif
-							input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
+							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 						}
 						else {
 							print_dbg_char('*');

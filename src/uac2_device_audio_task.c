@@ -834,14 +834,10 @@ void uac2_device_audio_task(void *pvParameters)
 
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
-									
 									#ifdef HW_GEN_SPRX
-									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-										// mobo_led(FLED_SCANNING);
-										mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+										mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator 
 									#endif
-									#endif
-									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+									input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 								}
 								else {
 									print_dbg_char('*');
@@ -908,14 +904,10 @@ void uac2_device_audio_task(void *pvParameters)
 
 								// Report to cpu and debug terminal
 								print_cpu_char(CPU_CHAR_IDLE);
-								
 								#ifdef HW_GEN_SPRX
-								#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-									// mobo_led(FLED_SCANNING);
-									mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+									mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 								#endif
-								#endif
-								input_select = MOBO_SRC_NONE;			// WM may take over
+								input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 							}
 							else {
 								print_dbg_char('*');
@@ -962,14 +954,10 @@ void uac2_device_audio_task(void *pvParameters)
 
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
-							
 							#ifdef HW_GEN_SPRX
-							#ifdef FLED_SCANNING				// Should we default to some color while waiting for an input?
-								// mobo_led(FLED_SCANNING);
-								mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 							#endif
-							#endif
-							input_select = MOBO_SRC_NONE;		// Indicate WM may take over control
+							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 						}
 						else {
 							print_dbg_char('*');
