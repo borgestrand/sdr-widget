@@ -929,16 +929,18 @@ void uac2_device_audio_task(void *pvParameters)
 			/* SPDIF reduced */
 #ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 		// On new hardware, don't do this if spdif is playing
-		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 			// Do nothing at this stage
 		}
 		else {
 #else
-		// On old hardware always do this for USB inputs
+		// On old hardware always do this for USB inputs and idle
 		if (1) {
 #endif
 
 			// Execute here if input is any USB input or no input at all
+			// Practically, do mobo_clear_channel() with input_select == MOBO_SRC_NONE, but only touch semaphore controlled stuff with input_select == MOBO_SRC_UAC2
+			// We should rephrase if() statements!			
 
 			if (usb_buffer_toggle == USB_BUFFER_TOGGLE_LIM)	{	// Counter is increased by DMA and uacX_taskAK5394A.c, decreased by seq. code
 				usb_buffer_toggle = USB_BUFFER_TOGGLE_PARK;		// When it reaches limit, stop counting and park this mechanism
@@ -946,31 +948,32 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				mobo_clear_dac_channel();
 				print_dbg_char('q');
+				
+				if (input_select == MOBO_SRC_UAC2) {			// We must own input_select before we can give it away!
+					// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
+//					#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
+					#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
+						if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+							input_select = MOBO_SRC_NONE;		// Indicate WM may take over control
+							print_dbg_char(')');				// USB gives after toggle timeout
+							print_dbg_char('\n');				// USB gives after toggle timeout
 
-				// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
-//				#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
-				#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
-//					print_dbg_char('p');						// Debug semaphore, lowercase letters for USB tasks
-					if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-						input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-						print_dbg_char(')');					// USB gives after toggle timeout
-						print_dbg_char('\n');					// USB gives after toggle timeout
-
-						// Report to cpu and debug terminal
-						print_cpu_char(CPU_CHAR_IDLE);
+							// Report to cpu and debug terminal
+							print_cpu_char(CPU_CHAR_IDLE);
 							
-						#ifdef HW_GEN_SPRX
-						#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-							// mobo_led(FLED_SCANNING);
-							mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
-						#endif
-						#endif
-					}
-					else {
-						print_dbg_char('*');
-						print_dbg_char('d');
-					}
-				#endif
+							#ifdef HW_GEN_SPRX
+							#ifdef FLED_SCANNING				// Should we default to some color while waiting for an input?
+								// mobo_led(FLED_SCANNING);
+								mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+							#endif
+							#endif
+						}
+						else {
+							print_dbg_char('*');
+							print_dbg_char('d');
+						}
+					#endif
+				} // input_select == MOBO_SRC_UAC2
 
 			} // end if usb buffer toggle limit reach
 		} // end if USB playback or no playback
