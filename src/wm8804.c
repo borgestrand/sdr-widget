@@ -220,12 +220,9 @@ void wm8804_task(void *pvParameters) {
 					spdif_rx_status.reliable = 0;				// Critical for mobo_handle_spdif()
 
 					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-
 //						Added to pdca disable code, keep it here for good measure
 						mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
-						
 						mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
-						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
 						silence_counter = 0;					// For good measure, pause not yet detected
 						print_dbg_char('}');					// WM8804 gives
@@ -238,6 +235,7 @@ void wm8804_task(void *pvParameters) {
 							// mobo_led(FLED_SCANNING);			// Avoid raw LED-control!
 							mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
 						#endif
+						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
 					}
 					else {
 						print_dbg_char('*');
