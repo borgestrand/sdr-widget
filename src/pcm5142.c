@@ -59,7 +59,7 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('a'); 
-	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+	if (xSemaphoreTake(I2C_busy_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 //		print_dbg_char('A');
 
 
@@ -86,7 +86,7 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 		vTaskDelay(5);							// Wait 0.5ms
 
 //		print_dbg_char('g');
-		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+		if( xSemaphoreGive(I2C_busy_semphr) == pdTRUE ) {
 //			print_dbg_char(60); // '<'
 		}
 		else {
@@ -108,7 +108,7 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 	
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('b');
-	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+	if (xSemaphoreTake(I2C_busy_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 //		print_dbg_char('B');
 
 		// How long delay is needed? Should we bring this out of semaphore code? That might interfere with ongoing transfers, but not take up time
@@ -137,7 +137,7 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 		vTaskDelay(5);							// Wait 0.5ms
 
 //		print_dbg_char('g');
-		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+		if( xSemaphoreGive(I2C_busy_semphr) == pdTRUE ) {
 //			print_dbg_char(60); // '<'
 		}
 		else {

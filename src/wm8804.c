@@ -811,12 +811,12 @@ uint8_t wm8804_multiwrite(uint8_t no_bytes, uint8_t *int_data) {
     uint8_t status = 0xFF;							// Far from 0 reported as I2C success
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
-	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+	if (xSemaphoreTake(I2C_busy_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 		// Start of blocking code
 		status = twi_write_out(WM8804_DEV_ADR, int_data, no_bytes);
 		// End of blocking code
 
-		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+		if( xSemaphoreGive(I2C_busy_semphr) == pdTRUE ) {
 		}
 		else {
 		}
@@ -833,7 +833,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
     uint8_t status = 0xFF;							// Far from 0 reported as I2C success
 
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
-	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+	if (xSemaphoreTake(I2C_busy_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 
 		// Start of blocking code
 		dev_data[0] = int_adr;
@@ -841,7 +841,7 @@ uint8_t wm8804_write_byte(uint8_t int_adr, uint8_t int_data) {
 		status = twi_write_out(WM8804_DEV_ADR, dev_data, 2);
 		// End of blocking code
 
-		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+		if( xSemaphoreGive(I2C_busy_semphr) == pdTRUE ) {
 		}
 		else {
 		}
@@ -859,7 +859,7 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 	
 	// Wrap entire I2C transfer in semaphore, not just each I2C/twi function call
 //	print_dbg_char('b');
-	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+	if (xSemaphoreTake(I2C_busy_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 //		print_dbg_char('B');
 
 		// Start of blocking code
@@ -872,7 +872,7 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 		
 		// End of blocking code
 
-		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+		if( xSemaphoreGive(I2C_busy_semphr) == pdTRUE ) {
 		}
 		else {
 		}

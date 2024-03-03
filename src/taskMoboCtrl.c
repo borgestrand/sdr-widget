@@ -116,26 +116,24 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 
 	// Create I2C comms semaphore
-	// mutexI2C = xSemaphoreCreateMutex();  // Switching to mutex I2C_busy
+	// mutexI2C = xSemaphoreCreateMutex();  // Switching to mutex I2C_busy_semphr
 
  	// Initialize I2C communications
 	#if I2C
 		twi_init(); // RXMODFIX vs. WM8804 config!! // i2c_init() <- this is where you should come if you search for this!
 
 		#if (defined HW_GEN_FMADC)
-			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
+//			I2C_busy_semphr = xSemaphoreCreateMutex();		// Separate whole I2C packets
+			vSemaphoreCreateBinary(I2C_busy_semphr);	// Separate whole I2C packets - supposedly better semaphore creation
+
 			
 			mobo_pcm1863_init();					// Enable ADC over I2C *** Do we have I2C yet?
 			mobo_fmadc_gain(0x01, 0x02);			// Channel 1, gain setting 2
 			mobo_fmadc_gain(0x02, 0x02);			// Channel 2, gain setting 2
 		#endif
 
-		#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
-			input_select_semphr = xSemaphoreCreateMutex();		// Tasks may take input select semaphore after init
-		#endif
-
 		#if (defined HW_GEN_SPRX)
-			I2C_busy = xSemaphoreCreateMutex();		// Separate whole I2C packets
+			I2C_busy_semphr = xSemaphoreCreateMutex();		// Separate whole I2C packets
 
 			// Initialie PCM5142
 			pcm5142_filter(02); // Selected from listening 20230429
@@ -150,6 +148,12 @@ static void vtaskMoboCtrl( void * pcParameters )
 
 	#endif
 
+	// Access to input_select is guarded
+	#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )	// For USB playback, handle semaphores
+		// input_select_semphr = xSemaphoreCreateMutex();	
+		vSemaphoreCreateBinary(input_select_semphr);		// Tasks may take input select semaphore after init - supposedly better semaphore creation
+	#endif
+	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
 
 
 

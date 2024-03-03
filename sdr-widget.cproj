@@ -446,6 +446,10 @@
     <None Include="watch-card3.sh">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="src\pcm5142.c">
+      <SubType>compile</SubType>
+      <Link>pcm5142.c</Link>
+    </Compile>
     <Compile Include="src\wm8804.c">
       <SubType>compile</SubType>
     </Compile>

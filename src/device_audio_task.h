@@ -117,7 +117,7 @@ extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio cha
 #endif
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
-extern volatile xSemaphoreHandle I2C_busy; 			// One semaphore covers entire I2C message, not just function calls. Not yet ported to all I2C callers
+extern volatile xSemaphoreHandle I2C_busy_semphr; 			// One semaphore covers entire I2C message, not just function calls. Not yet ported to all I2C callers
 #endif
 
 

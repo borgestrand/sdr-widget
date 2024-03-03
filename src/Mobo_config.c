@@ -66,7 +66,7 @@ int8_t mobo_i2c_read (uint8_t *data, uint8_t device_address, uint8_t internal_ad
 	
 	dev_datar[0] = internal_address;
 	
-	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+	if (xSemaphoreTake(I2C_busy_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 //		print_dbg_char('[');
 
 		// Start of blocking code
@@ -84,7 +84,7 @@ int8_t mobo_i2c_read (uint8_t *data, uint8_t device_address, uint8_t internal_ad
 		}
 		// End of blocking code
 
-		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+		if( xSemaphoreGive(I2C_busy_semphr) == pdTRUE ) {
 			if (retval == 0) {						// No error detected
 				retval = 1;							// Everything went OK
 			}
@@ -110,7 +110,7 @@ int8_t mobo_i2c_write (uint8_t device_address, uint8_t internal_address, uint8_t
 	int8_t retval = 0;
 	dev_dataw[0] = internal_address;
 	dev_dataw[1] = data;
-	if (xSemaphoreTake(I2C_busy, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+	if (xSemaphoreTake(I2C_busy_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
 
 		// Start of blocking code
 		if (twi_write_out(device_address, dev_dataw, 2) == TWI_SUCCESS) {
@@ -120,7 +120,7 @@ int8_t mobo_i2c_write (uint8_t device_address, uint8_t internal_address, uint8_t
 		}
 		// End of blocking code
 
-		if( xSemaphoreGive(I2C_busy) == pdTRUE ) {
+		if( xSemaphoreGive(I2C_busy_semphr) == pdTRUE ) {
 			if (retval == 0) {						// No error detected
 				retval = 1;							// Everything went OK
 			}

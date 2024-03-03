@@ -370,7 +370,9 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 //	input_select = MOBO_SRC_UAC2;
 
 // Default in RXMOD ("SPRX") and AB1X ("AB-1.2")
-	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
+
+//  Moved to creation of input_select_semphr because the two belong together
+//	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
 
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 	must_init_spk_index = TRUE;								// New frequency setting means resync DAC DMA

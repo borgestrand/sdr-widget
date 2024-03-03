@@ -18,7 +18,7 @@
 #include "I2C.h"
 
 portBASE_TYPE xStatus;
-// xSemaphoreHandle mutexI2C; // Switching to mutex I2C_busy
+// xSemaphoreHandle mutexI2C; // Switching to mutex I2C_busy_semphr
 
 
 void twi_init(void)
@@ -62,7 +62,7 @@ uint8_t twi_write_out(uint8_t i2c_address, uint8_t *payload, uint8_t size)
 	uint8_t	status;
 
 	// Wait for I2C port to become free
-	// xSemaphoreTake( mutexI2C, portMAX_DELAY ); // Switching to semmutex I2C_busy
+	// xSemaphoreTake( mutexI2C, portMAX_DELAY ); // Switching to semmutex I2C_busy_semphr
 
 	twi_package_t packet =
 	{
@@ -76,7 +76,7 @@ uint8_t twi_write_out(uint8_t i2c_address, uint8_t *payload, uint8_t size)
 	status=twi_master_write(MOBO_TWI, &packet);
 
 	// Release I2C port
-	// xSemaphoreGive( mutexI2C ); // Switching to mutex  I2C_busy
+	// xSemaphoreGive( mutexI2C ); // Switching to mutex  I2C_busy_semphr
 
 	return status;
 }
@@ -86,7 +86,7 @@ uint8_t twi_read_in(uint8_t i2c_address, uint8_t *data_to_return, uint8_t size)
 	uint8_t status;
 
 	// Wait for I2C port to become free
-//	xSemaphoreTake( mutexI2C, portMAX_DELAY ); // Switching to mutex I2C_busy
+//	xSemaphoreTake( mutexI2C, portMAX_DELAY ); // Switching to mutex I2C_busy_semphr
 
 	twi_package_t packet =
 	{
@@ -101,7 +101,7 @@ uint8_t twi_read_in(uint8_t i2c_address, uint8_t *data_to_return, uint8_t size)
 	status = twi_master_read(MOBO_TWI, &packet);
 
 	// Release I2C port
-//	xSemaphoreGive( mutexI2C );  // Switching to mutex I2C_busy
+//	xSemaphoreGive( mutexI2C );  // Switching to mutex I2C_busy_semphr
 
 	return status;
 }

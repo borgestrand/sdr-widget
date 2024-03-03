@@ -44,6 +44,6 @@ volatile xSemaphoreHandle input_select_semphr = NULL; // BSB 20150626 audio chan
 #endif
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
-volatile xSemaphoreHandle I2C_busy = NULL; 
+volatile xSemaphoreHandle I2C_busy_semphr = NULL; 
 #endif
 
