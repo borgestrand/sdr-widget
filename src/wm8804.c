@@ -270,7 +270,7 @@ void wm8804_task(void *pvParameters) {
 						// Setting spdif_rx_status.reliable = 1 only here - is that OK?
 								
 						// Take semaphore, update status if that went well
-						if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {	// Re-take of taken semaphore returns false
+						if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {	// Re-take of taken semaphore returns false
 							spdif_rx_status.channel = channel;
 							spdif_rx_status.frequency = freq;
 							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
