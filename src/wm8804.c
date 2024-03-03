@@ -219,28 +219,30 @@ void wm8804_task(void *pvParameters) {
 					spdif_rx_status.muted = 1;
 					spdif_rx_status.reliable = 0;				// Critical for mobo_handle_spdif()
 
-					if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-//						Added to pdca disable code, keep it here for good measure
-						mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
-						mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
-						playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
-						silence_counter = 0;					// For good measure, pause not yet detected
-						print_dbg_char('}');					// WM8804 gives
-						print_dbg_char('\n');					// WM8804 gives
+					if (input_select != MOBO_SRC_NONE) {		// Always directly preceding give for RT reasons
+						if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+	//						Added to pdca disable code, keep it here for good measure
+							mobo_stop_spdif_tc();					// Disable spdif receive timer/counter
+							mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
+							playing_counter = 0;					// No music being heard at the moment FIX: isn't this assuming the give() below will work?
+							silence_counter = 0;					// For good measure, pause not yet detected
+							print_dbg_char('}');					// WM8804 gives
+							print_dbg_char('\n');					// WM8804 gives
 
-						// Report to cpu and debug terminal
-						print_cpu_char(CPU_CHAR_IDLE);
+							// Report to cpu and debug terminal
+							print_cpu_char(CPU_CHAR_IDLE);
 						
-						#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-							// mobo_led(FLED_SCANNING);			// Avoid raw LED-control!
-							mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
-						#endif
-						input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
-					}
-					else {
-						print_dbg_char('*');
-						print_dbg_char('e');
-					}
+							#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+								// mobo_led(FLED_SCANNING);			// Avoid raw LED-control!
+								mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+							#endif
+							input_select = MOBO_SRC_NONE;			// Indicate USB or next WM8804 channel may take over control, but don't power down WM8804 yet
+						}
+						else {
+							print_dbg_char('*');
+							print_dbg_char('e');
+						}
+					} // if (input_select != MOBO_SRC_NONE)
 				}
 			}
 
@@ -268,43 +270,45 @@ void wm8804_task(void *pvParameters) {
 						// Setting spdif_rx_status.reliable = 1 only here - is that OK?
 								
 						// Take semaphore, update status if that went well
-						if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {	// Re-take of taken semaphore returns false
-							spdif_rx_status.channel = channel;
-							spdif_rx_status.frequency = freq;
-							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
-							print_dbg_char('\n');				// WM8804 takes
-							print_dbg_char('{');				// WM8804 takes
-							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
+						if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take
+							if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {	// Re-take of taken semaphore returns false
+								input_select = channel;						// Owning semaphore we may write to master variable input_select and take control of hardware
+								spdif_rx_status.channel = channel;
+								spdif_rx_status.frequency = freq;
+								spdif_rx_status.reliable = 1;				// Critical for mobo_handle_spdif()
+								print_dbg_char('\n');						// WM8804 takes
+								print_dbg_char('{');						// WM8804 takes
 
-							// Report to cpu and debug terminal
-							switch (input_select) {
-								case MOBO_SRC_SPDIF0:
-									print_cpu_char(CPU_CHAR_SPDIF0);	// SPDIF0
-								break;
-								case MOBO_SRC_SPDIF1:
-									print_cpu_char(CPU_CHAR_SPDIF1);	// SPDIF1
-								break;
-								case MOBO_SRC_TOSLINK0:
-									print_cpu_char(CPU_CHAR_TOSLINK0);	// TOSLINK0
-								break;
-								case MOBO_SRC_TOSLINK1:
-									print_cpu_char(CPU_CHAR_TOSLINK1);	// TOSLINK1
-								break;
-								default:
-									print_cpu_char(CPU_CHAR_SRC_DEF);	// Inform CPU (when present)
-								break;
+								// Report to cpu and debug terminal
+								switch (input_select) {
+									case MOBO_SRC_SPDIF0:
+										print_cpu_char(CPU_CHAR_SPDIF0);	// SPDIF0
+									break;
+									case MOBO_SRC_SPDIF1:
+										print_cpu_char(CPU_CHAR_SPDIF1);	// SPDIF1
+									break;
+									case MOBO_SRC_TOSLINK0:
+										print_cpu_char(CPU_CHAR_TOSLINK0);	// TOSLINK0
+									break;
+									case MOBO_SRC_TOSLINK1:
+										print_cpu_char(CPU_CHAR_TOSLINK1);	// TOSLINK1
+									break;
+									default:
+										print_cpu_char(CPU_CHAR_SRC_DEF);	// Inform CPU (when present)
+									break;
+								}
+							
+								// Enable audio, configure clocks (and report), but only if needed
+								wm8804_unmute();					// No longer including LED change on this TAKE event
+							
+								spdif_rx_status.muted = 0;
+								silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
 							}
-							
-							// Enable audio, configure clocks (and report), but only if needed
-							wm8804_unmute();					// No longer including LED change on this TAKE event
-							
-							spdif_rx_status.muted = 0;
-							silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
-						}
-						else {
-							print_dbg_char('*');
-							print_dbg_char('f');
-						}
+							else {
+								print_dbg_char('*');
+								print_dbg_char('f');
+							}
+						} // if (input_select = MOBO_SRC_NONE)
 					} // Scan success
 				}
 			} // Done processing no selected input source

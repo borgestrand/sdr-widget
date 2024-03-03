@@ -757,39 +757,40 @@ void uac2_device_audio_task(void *pvParameters)
 						silence_det = 0;
 
 					// New site for setting playerStarted and aligning buffers
-					if ( (silence_det == 0) && (input_select == MOBO_SRC_NONE) ) {	// There is actual USB audio.
+					if (silence_det == 0) {		// There is actual USB audio.
 //						#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 						#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )	// For USB playback, handle semaphores
-//							print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
-							if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {		// Re-take of taken semaphore returns false
-								input_select = MOBO_SRC_UAC2;					// Claim input_select ASAP so that WM won't take it
-								print_dbg_char('\n');							// USB takes
-								print_dbg_char('[');							// USB takes
-								playerStarted = TRUE;							// Is it better off here?
+							if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take for RT reasons
+								if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {		// Re-take of taken semaphore returns false
+									input_select = MOBO_SRC_UAC2;				// Claim input_select ASAP so that WM won't take it
+									print_dbg_char('\n');						// USB takes
+									print_dbg_char('[');						// USB takes
+									playerStarted = TRUE;						// Is it better off here?
 									
-								// Call it here for the benefit of AB-1.2
-								print_dbg_char('P');
-								mobo_xo_select(spk_current_freq.frequency, input_select);
-								mobo_clock_division(spk_current_freq.frequency);
-								must_init_spk_index = TRUE;						// New frequency setting means resync DAC DMA
+									// Call it here for the benefit of AB-1.2
+									print_dbg_char('P');
+									mobo_xo_select(spk_current_freq.frequency, input_select);
+									mobo_clock_division(spk_current_freq.frequency);
+									must_init_spk_index = TRUE;					// New frequency setting means resync DAC DMA
 								
-								#ifdef HW_GEN_SPRX 
-									// Report to cpu and debug terminal
-									if (usb_ch == USB_CH_B) {
-										print_cpu_char(CPU_CHAR_UAC2_B);		// USB audio Class 2 on rear USB-B plug
-									}
-									else if (usb_ch == USB_CH_C) {
-										print_cpu_char(CPU_CHAR_UAC2_C);		// USB audio Class 2 on front USB-C plug
-									}
+									#ifdef HW_GEN_SPRX 
+										// Report to cpu and debug terminal
+										if (usb_ch == USB_CH_B) {
+											print_cpu_char(CPU_CHAR_UAC2_B);	// USB audio Class 2 on rear USB-B plug
+										}
+										else if (usb_ch == USB_CH_C) {
+											print_cpu_char(CPU_CHAR_UAC2_C);	// USB audio Class 2 on front USB-C plug
+										}
 
-									mobo_led_select(spk_current_freq.frequency, input_select);
-									mobo_i2s_enable(MOBO_I2S_ENABLE);			// Hard-unmute of I2S pin
-								#endif
-							}													// Hopefully, this code won't be called repeatedly. Would there be time??
-							else {
-								print_dbg_char('*');
-								print_dbg_char('a');
-							}
+										mobo_led_select(spk_current_freq.frequency, input_select);
+										mobo_i2s_enable(MOBO_I2S_ENABLE);		// Hard-unmute of I2S pin
+									#endif
+								}												// Hopefully, this code won't be called repeatedly. Would there be time??
+								else {
+									print_dbg_char('*');
+									print_dbg_char('a');
+								}
+							} // if (input_select == MOBO_SRC_NONE)
 						#else // not ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 							input_select = MOBO_SRC_UAC2;
 						#endif
@@ -825,27 +826,28 @@ void uac2_device_audio_task(void *pvParameters)
 
 //						#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 						#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
-//							print_dbg_char('k');						// Debug semaphore, lowercase letters for USB tasks
-							if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
-								mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
-								print_dbg_char(']');					// USB gives
-								print_dbg_char('\n');					// USB gives
+							if (input_select != MOBO_SRC_NONE) {		// Always directly preceding give for RT reasons
+								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
+									mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
+									print_dbg_char(']');					// USB gives
+									print_dbg_char('\n');					// USB gives
 
-								// Report to cpu and debug terminal
-								print_cpu_char(CPU_CHAR_IDLE);
+									// Report to cpu and debug terminal
+									print_cpu_char(CPU_CHAR_IDLE);
 									
-								#ifdef HW_GEN_SPRX
-								#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-									// mobo_led(FLED_SCANNING);
-									mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
-								#endif
-								#endif
-								input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
-							}
-							else {
-								print_dbg_char('*');
-								print_dbg_char('b');
-							}
+									#ifdef HW_GEN_SPRX
+									#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+										// mobo_led(FLED_SCANNING);
+										mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+									#endif
+									#endif
+									input_select = MOBO_SRC_NONE;			// Indicate WM may take over control
+								}
+								else {
+									print_dbg_char('*');
+									print_dbg_char('b');
+								}
+							} // if (input_select != MOBO_SRC_NONE)
 						#endif
 					}
 
@@ -898,27 +900,28 @@ void uac2_device_audio_task(void *pvParameters)
 
 //					#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 					#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
-//						print_dbg_char('h');						// Debug semaphore, lowercase letters for USB tasks
-						if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
-							mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
-							print_dbg_char(62); // '>'				// USB gives after silence
-							print_dbg_char('\n');					// USB gives
+						if (input_select != MOBO_SRC_NONE) {		// Always directly preceding give for RT reasons						
+							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
+								mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
+								print_dbg_char(62); // '>'				// USB gives after silence
+								print_dbg_char('\n');					// USB gives
 
-							// Report to cpu and debug terminal
-							print_cpu_char(CPU_CHAR_IDLE);
+								// Report to cpu and debug terminal
+								print_cpu_char(CPU_CHAR_IDLE);
 								
-							#ifdef HW_GEN_SPRX
-							#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
-								// mobo_led(FLED_SCANNING);
-								mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
-							#endif
-							#endif
-							input_select = MOBO_SRC_NONE;			// WM may take over
-						}
-						else {
-							print_dbg_char('*');
-							print_dbg_char('c');
-						}
+								#ifdef HW_GEN_SPRX
+								#ifdef FLED_SCANNING					// Should we default to some color while waiting for an input?
+									// mobo_led(FLED_SCANNING);
+									mobo_led_select(FREQ_NOCHANGE, input_select);	// User interface NO-channel indicator 
+								#endif
+								#endif
+								input_select = MOBO_SRC_NONE;			// WM may take over
+							}
+							else {
+								print_dbg_char('*');
+								print_dbg_char('c');
+							}
+						} // if (input_select != MOBO_SRC_NONE)
 					#endif
 				}
 			}
