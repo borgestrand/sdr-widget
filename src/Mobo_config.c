@@ -978,8 +978,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 //	}
 //	else 
 
-		if (prev_captured_num_remaining != local_captured_num_remaining) {
-		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate start of processing spdif data, ideally once per 250us
+	if (prev_captured_num_remaining != local_captured_num_remaining) {
+//		gpio_set_gpio_pin(AVR32_PIN_PA22); // Indicate start of processing spdif data, ideally once per 250us
 
 		// Start processing a 250µs chunk of the ADC pdca buffer
 
@@ -1074,18 +1074,16 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
 
-		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Indicate end of processing spdif data, ideally once per 250us
+//		gpio_clr_gpio_pin(AVR32_PIN_PA22); // Indicate end of processing spdif data, ideally once per 250us
 		
 		
 		// Puting untested init code here.... "øøø" æææ
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
-				ADC_buf_I2S_IN = 0;							// Disable further init, select correct audio_buffer_0/1
+				ADC_buf_I2S_IN = 0;							// Disable further init
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
 			}
 		} // input select
-
-		
 		
 		prev_captured_num_remaining = local_captured_num_remaining;
 		prev_last_written_ADC_pos = last_written_ADC_pos;

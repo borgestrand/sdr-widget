@@ -578,10 +578,12 @@ void uac2_device_audio_task(void *pvParameters)
 						prev_sample_R = 0;
 						diff_value = 0;
 						diff_sum = 0;
-						si_action = SI_NORMAL;				// No skip/insert yet
-						si_pkg_counter = 0;					// Count to when we must s/i
-						si_pkg_increment = 0;				// Not yet waiting for s/i
-						si_pkg_direction = SI_NORMAL;		// No rate mismatch detected yet		
+						
+						// Moved to spk_index normalization after gap calculation
+//						si_action = SI_NORMAL;				// No skip/insert yet
+//						si_pkg_counter = 0;					// Count to when we must s/i
+//						si_pkg_increment = 0;				// Not yet waiting for s/i
+//						si_pkg_direction = SI_NORMAL;		// No rate mismatch detected yet		
 					} // end if (!playerStarted) || (audio_OUT_must_sync)
 
 
@@ -760,6 +762,7 @@ void uac2_device_audio_task(void *pvParameters)
 						#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )	// For USB playback, handle semaphores
 //							print_dbg_char('t');								// Debug semaphore, lowercase letters in USB tasks
 							if (xSemaphoreTake(input_select_semphr, 0) == pdTRUE) {		// Re-take of taken semaphore returns false
+								print_dbg_char('\n');							// USB takes
 								print_dbg_char('[');							// USB takes
 								input_select = MOBO_SRC_UAC2;
 								playerStarted = TRUE;							// Is it better off here?
@@ -784,6 +787,8 @@ void uac2_device_audio_task(void *pvParameters)
 								#endif
 							}													// Hopefully, this code won't be called repeatedly. Would there be time??
 							else {
+								print_dbg_char('*');
+								print_dbg_char('a');
 							}
 						#else // not ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 							input_select = MOBO_SRC_UAC2;
@@ -838,6 +843,8 @@ void uac2_device_audio_task(void *pvParameters)
 								#endif
 							}
 							else {
+								print_dbg_char('*');
+								print_dbg_char('b');
 							}
 						#endif
 					}
@@ -895,7 +902,7 @@ void uac2_device_audio_task(void *pvParameters)
 						if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 							mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 							input_select = MOBO_SRC_NONE;
-							print_dbg_char(']');					// USB gives after silence
+							print_dbg_char(62); // '>'				// USB gives after silence
 							print_dbg_char('\n');					// USB gives
 
 							// Report to cpu and debug terminal
@@ -909,6 +916,8 @@ void uac2_device_audio_task(void *pvParameters)
 							#endif
 						}
 						else {
+							print_dbg_char('*');
+							print_dbg_char('c');
 						}
 					#endif
 				}
@@ -958,6 +967,8 @@ void uac2_device_audio_task(void *pvParameters)
 						#endif
 					}
 					else {
+						print_dbg_char('*');
+						print_dbg_char('d');
 					}
 				#endif
 
@@ -997,15 +1008,15 @@ void uac2_device_audio_task(void *pvParameters)
 		// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
 
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
-		if (num_samples > 0) {								// Only start copying when there is something to legally copy
+		if (num_samples > 0) {									// Only start copying when there is something to legally copy
 
-			si_action = SI_NORMAL;						// Most of the time, don't apply s/i. Only determine whether to s/i when time_to_calculate_gap == 0
+			si_action = SI_NORMAL;								// Most of the time, don't apply s/i. Only determine whether to s/i when time_to_calculate_gap == 0
 
 			// Calculate gap after N packets, NOT each time feedback endpoint is polled
 			if (time_to_calculate_gap > 0) {
 				time_to_calculate_gap--;
 			}
-			else if (!must_init_spk_index) {			// Time to calculate gap AND normal operation
+			else if (!must_init_spk_index) {					// Time to calculate gap AND normal operation
 				time_to_calculate_gap = SPK_PACKETS_PER_GAP_CALCULATION - 1;
 
 				gap = DAC_BUFFER_UNI - spk_index - (spk_pdca_channel->tcr);
@@ -1123,26 +1134,39 @@ void uac2_device_audio_task(void *pvParameters)
 
 			si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
 			if (si_pkg_counter > SI_PKG_RESOLUTION) {
-				si_pkg_counter = 0;					// instead of -= SI_PKG_RESOLUTION
-				si_action = si_pkg_direction;		// Apply only once in a while
+				si_pkg_counter = 0;						// instead of -= SI_PKG_RESOLUTION
+				si_action = si_pkg_direction;			// Apply only once in a while
 			}
 
-//			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
+//			gpio_set_gpio_pin(AVR32_PIN_PX31);			// Start copying cache to spk_buffer_X
 
+			// spk_index normalization
 			if (must_init_spk_index) {
 				
-				// USB startup has this square in the middle of the output buffer. But SPDIF startup seems to let it start a bit too soon (about 2.8ms at 44.1, 0.9ms at 192)
+				gpio_tgl_gpio_pin(AVR32_PIN_PA22);		// Indicate resetting
+				
+				// USB startup has this a little past the middle of the output buffer. But SPDIF startup seems to let it start a bit too soon
 				// æææ understand that before code can be fully trusted!
 				
-				temp32_a = spk_pdca_channel->tcr;
+				temp32_a = spk_pdca_channel->tcr;		// Debug
 				
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-				spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-				if (spk_index >= DAC_BUFFER_UNI) {					// Stay within bounds
+				spk_index = spk_index & ~((U32)1); 		// Clear LSB in order to start with L sample
+				if (spk_index >= DAC_BUFFER_UNI) {		// Stay within bounds
 					spk_index -= DAC_BUFFER_UNI;
 				}
+				else if (spk_index < 0) {			// Stay within bounds
+					spk_index += DAC_BUFFER_UNI;
+				}
 
-				temp32_b = spk_index;
+				temp32_b = spk_index;	// Debug
+				
+				gap = SPK_GAP_NOM;
+				old_gap = SPK_GAP_NOM;
+				si_pkg_counter = 0;						// No s/i for a while
+				si_pkg_increment = 0;					// Not counting up to next s/i event
+				si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
+				si_action = SI_NORMAL;
 				
 				must_init_spk_index = FALSE;
 			}
@@ -1246,18 +1270,20 @@ void uac2_device_audio_task(void *pvParameters)
 
 //		gpio_clr_gpio_pin(AVR32_PIN_PX31); // End of task execution
 
-	if ( (temp32_a | temp32_b) != 0){
-		// Print status of spk_index reset
+/*
+		if ( (temp32_a | temp32_b) != 0){
+			// Print status of spk_index reset
 		
-		print_dbg_char('\n');
-		print_dbg_hex(temp32_a);
-		print_dbg_char('\n');
-		print_dbg_hex(temp32_b);
-		print_dbg_char('\n');
+			print_dbg_char('\n');
+			print_dbg_hex(temp32_a);
+			print_dbg_char('\n');
+			print_dbg_hex(temp32_b);
+			print_dbg_char('\n');
 		
-		temp32_a = 0;
-		temp32_b = 0;
-	}
+			temp32_a = 0;
+			temp32_b = 0;
+		}
+*/
 
 	} // end while vTask
 }

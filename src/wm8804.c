@@ -240,11 +240,10 @@ void wm8804_task(void *pvParameters) {
 						#endif
 					}
 					else {
-//						print_dbg_char(62); // '>'
+						print_dbg_char('*');
+						print_dbg_char('e');
 					}
-
 				}
-						
 			}
 
 			// USB and WM8804 have given away active control, see if WM8804 can grab it
@@ -275,6 +274,7 @@ void wm8804_task(void *pvParameters) {
 							spdif_rx_status.channel = channel;
 							spdif_rx_status.frequency = freq;
 							spdif_rx_status.reliable = 1;		// Critical for mobo_handle_spdif()
+							print_dbg_char('\n');				// WM8804 takes
 							print_dbg_char('{');				// WM8804 takes
 							input_select = channel;				// Owning semaphore we may write to master variable input_select and take control of hardware
 
@@ -304,7 +304,8 @@ void wm8804_task(void *pvParameters) {
 							silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
 						}
 						else {
-//							print_dbg_char(']');
+							print_dbg_char('*');
+							print_dbg_char('f');
 						}
 					} // Scan success
 				}
@@ -559,9 +560,6 @@ else {
 		mobo_SPRX_input(input_sel);			// Hardware MUX control
 #endif
 
-	
-
-
 		// RXMODFIX Also power cycle PLL? Also verify that detected sample rate matches present PLL configuration?
 //LeavePLL		wm8804_write_byte(0x1E, 0x06);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:1 _RX, 0:0 PLL // WM8804 same bit use, not verified here
 
@@ -620,7 +618,7 @@ else {
 			vTaskDelay(50);									// How long time does this take? 50 -> 5.00ms
 		}
 
-		//	print_dbg_char('*');
+		//	print_dbg_char('!');
 	
 		return (FREQ_TIMEOUT);					// Couldn't get lock = timeout Maybe return FREQ_INVALID for unstable PLL?
 	}	// End of do-stuff-if-alive
@@ -768,7 +766,6 @@ void wm8804_mute(void) {
 	if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 		mobo_clear_dac_channel();
 	}
-
 
 													// Dedicated mute pin, leaves clocks etc intact
 	mobo_i2s_enable(MOBO_I2S_DISABLE);				// Hard-mute of I2S pin, try to avoid using this hardware!
