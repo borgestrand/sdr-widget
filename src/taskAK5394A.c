@@ -119,7 +119,6 @@ volatile S32 usb_buffer_toggle;
 
 // BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 volatile U8 audio_OUT_alive;
-volatile U8 audio_OUT_must_sync;
 
 // BSB 20170324 SPDIF buffer processor detects silence
 volatile U8 dig_in_silence;
@@ -165,9 +164,6 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		usb_buffer_toggle++;
 
 	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-	if (!audio_OUT_alive) {				// If no packet has been received since last DMA reset,
-//		audio_OUT_must_sync = 1;		// indicate that next arriving packet must enter mid-buffer
-	}
 	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
 }
 

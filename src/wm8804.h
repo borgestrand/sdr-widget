@@ -66,6 +66,9 @@
 #define WM8804_SILENCE_PLAYING		150			// 20ms*150 = 3s of pause needed in a previously playing channel to resume searching
 #define WM8804_SILENCE_LINKING		10			// 10ms*20 = 200ms of pause needed in recently linked channel to resume searching
 
+#define WM8804_CLKOUT_ENABLE		1			// Parameter to enable MCLK out on the CLKOUT pin
+#define WM8804_CLKOUT_DISABLE		0			// Parameter to disable MCLK out on the CLKOUT pin
+
 
 typedef struct spdif_rx_status {				// Definition of global variable
 	uint8_t powered;
@@ -86,6 +89,9 @@ void wm8804_init(void);
 
 // Start up the WM8804 config task
 extern void wm8804_task_init(void);
+
+// Enable and disable MCLK output on the CLKOUT (9) pin
+extern void wm8804_CLKOUT(uint8_t mode);
 
 // The config task itself
 extern void wm8804_task(void *pvParameters);

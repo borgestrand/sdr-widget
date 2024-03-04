@@ -543,7 +543,6 @@ void uac2_device_audio_task(void *pvParameters)
 					
 					// æææ how much of this must be done each time this loop detect input_select == idle?
 
-//					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 					if (!playerStarted) {	
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
@@ -552,22 +551,7 @@ void uac2_device_audio_task(void *pvParameters)
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
-						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF ææææ apply to spdif playback as well. Eventually, rewrite as one buffer
-//						audio_OUT_must_sync = 0;
-
-/* Move code to mutex take				
-						print_dbg_char('%');
-						spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-						spk_index = spk_index & ~((U32)1); 					// Clear LSB in order to start with L sample
-						if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
-							spk_index -= DAC_BUFFER_UNI;
-						}
-*/	
-
-						// 	playerStarted = TRUE;				// Moved here from mutex take code
-						
-						// Moved to spk_index normalization after gap calculation
-
+// Moved to spk_index normalization after gap calculation
 // Updated skip/insert system init apply to spdif playback as well! That happens without Is_usb_out_received()
 //						return_to_nominal = FALSE;			// Restart feedback system
 //						prev_sample_L = 0;

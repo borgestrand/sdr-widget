@@ -98,6 +98,20 @@ void wm8804_task_init(void) {
 	#endif  // FREERTOS_USED
 }
 
+
+// Enable and disable MCLK output on the CLKOUT (9) pin
+void wm8804_CLKOUT(uint8_t mode) {
+	uint8_t temp = wm8804_read_byte(0x08);
+	
+	if (mode == WM8804_CLKOUT_ENABLE) {
+		temp = temp | 0b00010000;
+	}
+	else if (mode == WM8804_CLKOUT_DISABLE) {
+		temp = temp & 0b11101111;
+	}
+	wm8804_write_byte(0x08, temp);
+}
+
  
 // The config task itself
 void wm8804_task(void *pvParameters) {

@@ -449,7 +449,17 @@ Arash
 	            mobo_led_select(spk_current_freq.frequency, input_select);
             }
 			
-			
+
+			// Enable WM8804 MCLK output on CLKOUT (9) pin - prerequisite for mobo_xo_select(FREQ_RXNATIVE, input_select);
+            else if (a == 'c') {
+				wm8804_CLKOUT(WM8804_CLKOUT_ENABLE);
+			}
+
+			// Disable WM8804 MCLK output on CLKOUT (9) pin
+			else if (a == 'd') {
+				wm8804_CLKOUT(WM8804_CLKOUT_DISABLE);
+			}
+						
 			// High-level I2S & MCLK MUX control, use recovered MCLK from WM8804
             else if (a == 'b') {							// Lowercase b
 	            mobo_xo_select(FREQ_RXNATIVE, input_select);

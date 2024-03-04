@@ -64,7 +64,7 @@ void mobo_clear_dac_channel(void);
 #define CPU_CHAR_DECDEC_FREQ		'/' // MCU intensely requests decreased-decreased sample rate from Host
 #define CPU_CHAR_ALIVE				'l' // MCU is alive
 #define MCU_CHAR_SI_ENABLE			'I' // CPU instructs MCU to enable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
-#define MCU_CHAR_SI_DISABLE			'i' // CPU instructs MCU to disable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED!
+#define MCU_CHAR_SI_DISABLE			'i' // CPU instructs MCU to disable sample skip/insert on SPDIF/TOSLINK reception. NOT IMPLEMENTED! - Probably entails wm8804_CLKOUT(WM8804_CLKOUT_ENABLE)
 #define MCU_CHAR_RESET				'R'	// CPU resets MCU over UART
 #define MCU_CHAR_ALIVE				'L' // CPU asks MCU if it is alive
 #define MCU_CHAR_SPRATE				's' // CPU asks MCU about sample rate on SPDIF/TOSLINK receiver - response is rate in Hz as 32-bit signed, then \n
