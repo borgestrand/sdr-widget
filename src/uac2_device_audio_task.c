@@ -169,10 +169,6 @@ void uac2_device_audio_task(void *pvParameters)
 	S32 sample_R = 0; // BSB 20131102 Expanded for skip/insert, 20160322 changed to S32
 	static uint8_t prev_input_select = MOBO_SRC_NONE; // Source history
 
-	// Temporary debug variables
-	uint32_t temp32_a = 0;
-	uint32_t temp32_b = 0;
-	
 	// Trying to speed up ADC DMA to USB copy
 	uint32_t sample_left = 0; 					// Must be unsigned for zeros to be right-shifted into MSBs ??
 	uint32_t sample_right = 0;					// ææææ convert to signed to merge with sample_R and spdif code
@@ -547,16 +543,17 @@ void uac2_device_audio_task(void *pvParameters)
 					
 					// æææ how much of this must be done each time this loop detect input_select == idle?
 
-					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+//					if( (!playerStarted) || (audio_OUT_must_sync) ) {	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
+					if (!playerStarted) {	
 						time_to_calculate_gap = 0;			// BSB 20131031 moved gap calculation for DAC use
 						FB_error_acc = 0;					// BSB 20131102 reset feedback error
 						FB_rate = FB_rate_initial;			// BSB 20131113 reset feedback rate
-						old_gap = DAC_BUFFER_UNI / 2;		// Assumed and tested OK
+//						old_gap = DAC_BUFFER_UNI / 2;		// Assumed and tested OK
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
 
 						// Align buffers at arrival of USB OUT audio packets as well. But only when we're not playing SPDIF ææææ apply to spdif playback as well. Eventually, rewrite as one buffer
-						audio_OUT_must_sync = 0;
+//						audio_OUT_must_sync = 0;
 
 /* Move code to mutex take				
 						print_dbg_char('%');
@@ -565,21 +562,19 @@ void uac2_device_audio_task(void *pvParameters)
 						if (spk_index >= DAC_BUFFER_UNI) {				// Stay within bounds
 							spk_index -= DAC_BUFFER_UNI;
 						}
-
-æææ move more init shit there!
-
 */	
 
 						// 	playerStarted = TRUE;				// Moved here from mutex take code
 						
-						// Updated skip/insert system æææ init apply to spdif playback as well! That happens without Is_usb_out_received()
-						return_to_nominal = FALSE;			// Restart feedback system
-						prev_sample_L = 0;
-						prev_sample_R = 0;
-						diff_value = 0;
-						diff_sum = 0;
-						
 						// Moved to spk_index normalization after gap calculation
+
+// Updated skip/insert system init apply to spdif playback as well! That happens without Is_usb_out_received()
+//						return_to_nominal = FALSE;			// Restart feedback system
+//						prev_sample_L = 0;
+//						prev_sample_R = 0;
+//						diff_value = 0;
+//						diff_sum = 0;
+//						
 //						si_action = SI_NORMAL;				// No skip/insert yet
 //						si_pkg_counter = 0;					// Count to when we must s/i
 //						si_pkg_increment = 0;				// Not yet waiting for s/i
@@ -845,18 +840,9 @@ void uac2_device_audio_task(void *pvParameters)
 							} // if (input_select != MOBO_SRC_NONE)
 						#endif
 					}
-
-	/* BSB 20131031 New location of gap calculation code */
-
-
-	/* BSB 20131031 End of new location for gap calculation code */
-
 				}	// end if (Is_usb_out_received(EP_AUDIO_OUT))
-
 			} // end if(1) / input_select on RX chip
-
 		} // end if (usb_alternate_setting_out >= 1)
-
 
 		else { // ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) )
 			/* SPDIF reduced */
@@ -868,7 +854,6 @@ void uac2_device_audio_task(void *pvParameters)
 #else
 			if (1) {
 #endif
-
 				// Execute from here with USB input or no input
 				
 //				playerStarted = FALSE;  // mobodebug, commented out here and included below
@@ -1141,8 +1126,6 @@ void uac2_device_audio_task(void *pvParameters)
 				// USB startup has this a little past the middle of the output buffer. But SPDIF startup seems to let it start a bit too soon
 				// æææ understand that before code can be fully trusted!
 				
-				temp32_a = spk_pdca_channel->tcr;		// Debug
-				
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 				spk_index = spk_index & ~((U32)1); 		// Clear LSB in order to start with L sample
 				if (spk_index >= DAC_BUFFER_UNI) {		// Stay within bounds
@@ -1152,14 +1135,19 @@ void uac2_device_audio_task(void *pvParameters)
 					spk_index += DAC_BUFFER_UNI;
 				}
 
-				temp32_b = spk_index;	// Debug
-				
 				gap = SPK_GAP_NOM;
 				old_gap = SPK_GAP_NOM;
 				si_pkg_counter = 0;						// No s/i for a while
 				si_pkg_increment = 0;					// Not counting up to next s/i event
 				si_pkg_direction = SI_NORMAL;			// Host will operate at nominal speed
 				si_action = SI_NORMAL;
+
+				// Updated skip/insert system init apply to spdif playback as well! That happens without Is_usb_out_received()
+				return_to_nominal = FALSE;				// Restart feedback system
+				prev_sample_L = 0;
+				prev_sample_R = 0;
+				diff_value = 0;
+				diff_sum = 0;
 				
 				must_init_spk_index = FALSE;
 			}
@@ -1262,21 +1250,6 @@ void uac2_device_audio_task(void *pvParameters)
 		// End writing from cache to spk_buffer
 
 //		gpio_clr_gpio_pin(AVR32_PIN_PX31); // End of task execution
-
-/*
-		if ( (temp32_a | temp32_b) != 0){
-			// Print status of spk_index reset
-		
-			print_dbg_char('\n');
-			print_dbg_hex(temp32_a);
-			print_dbg_char('\n');
-			print_dbg_hex(temp32_b);
-			print_dbg_char('\n');
-		
-			temp32_a = 0;
-			temp32_b = 0;
-		}
-*/
 
 	} // end while vTask
 }
