@@ -579,7 +579,7 @@ void uac2_device_audio_task(void *pvParameters)
 //						si_pkg_counter = 0;					// Count to when we must s/i
 //						si_pkg_increment = 0;				// Not yet waiting for s/i
 //						si_pkg_direction = SI_NORMAL;		// No rate mismatch detected yet		
-					} // end if (!playerStarted) || (audio_OUT_must_sync)
+					} // end if (!playerStarted)
 
 
 					// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
