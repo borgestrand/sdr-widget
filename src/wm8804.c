@@ -327,7 +327,11 @@ void wm8804_init(void) {
 
 	spdif_rx_status.channel = MOBO_SRC_NONE;	// Start from a known state on wakeup
 
-	wm8804_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
+	// With CLKOUT
+//	wm8804_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
+
+	// Without CLKOUT export. (MCLK pin is not connected in SPRX D and E)
+	wm8804_write_byte(0x08, 0x60);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:0 CLKOUT disable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
 
 	wm8804_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ? // WM8804 same
 
@@ -565,7 +569,16 @@ else {
 
 		// Is this needed in WM8804 where it does not select input channel?
 		// When input is selected, turn on executive functions in WM8804
-		wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
+		
+		// With CLKOUT
+//		wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
+
+		// Without CLKOUT export. (MCLK pin is not connected in SPRX D and E)
+		wm8804_write_byte(0x08, 0x20);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:0 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
+		
+		
+		
+		
 		wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here
 
 		// The time it takes to verify a channel is very much different when the WM8804 is cold (up to 300ms seen in measurements) vs warm (70-100ms)
@@ -749,7 +762,7 @@ uint8_t wm8804_clkdivnew(uint32_t freq) {
 	}
 	else if ( (freq == FREQ_176) || (freq == FREQ_192) ) {	// 176.4 or 192 from srd() AND...
 		if (temp == 0x00) {									// 192 from chip, NB: 176.4 not described in datasheet!
-			wm8804_write_byte(0x07, 0x2C);	// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
+			wm8804_write_byte(0x07, 0x2C);					// 7:0 , 6:0, 5-4:MCLK=128fs , 3:1 MCLKDIV=1 , 2:1 FRACEN , 1-0:0
 			return WM8804_CLK_SUCCESS;
 		}
 	}
@@ -772,7 +785,7 @@ void wm8804_mute(void) {
 
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear outgoing DAC data
 
-	print_dbg_char('U');
+//	print_dbg_char('U');
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
 	mobo_clock_division(spk_current_freq.frequency);	// 20240229 inserted here
 	must_init_spk_index = TRUE;						// New frequency setting means resync DAC DMA
@@ -783,7 +796,7 @@ void wm8804_mute(void) {
 void wm8804_unmute(void) {
 	// For now, frequency changes totally mess up ADC_site
 	
-	print_dbg_char('V');
+//	print_dbg_char('V');
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 	must_init_spk_index = TRUE;									// New frequency setting means resync DAC DMA

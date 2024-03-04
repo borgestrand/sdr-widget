@@ -767,8 +767,7 @@ void uac2_device_audio_task(void *pvParameters)
 									print_dbg_char('[');						// USB takes
 									playerStarted = TRUE;						// Is it better off here?
 									
-									// Call it here for the benefit of AB-1.2
-									print_dbg_char('P');
+//									print_dbg_char('P');
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 									mobo_clock_division(spk_current_freq.frequency);
 									must_init_spk_index = TRUE;					// New frequency setting means resync DAC DMA
@@ -982,7 +981,7 @@ void uac2_device_audio_task(void *pvParameters)
 				if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
 				(prev_input_select == MOBO_SRC_TOSLINK0) ||
 				(prev_input_select == MOBO_SRC_TOSLINK1) ) {
-					print_dbg_char('R');
+//					print_dbg_char('R');
 					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
 					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
 					must_init_spk_index = TRUE;									// New frequency setting means resync DAC DMA

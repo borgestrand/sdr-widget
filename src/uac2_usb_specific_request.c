@@ -243,7 +243,7 @@ void uac2_freq_change_handler() {
 		mobo_clear_dac_channel();
 	}
 	if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_NONE) ) {	// Only change I2S settings if appropriate
-		print_dbg_char('S');
+//		print_dbg_char('S');
 		mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);	// Give USB the I2S control with proper MCLK
 		mobo_clock_division(spk_current_freq.frequency);	// Re-configure correct USB sample rate
 		must_init_spk_index = TRUE;							// New frequency setting means resync DAC DMA
@@ -253,7 +253,7 @@ void uac2_freq_change_handler() {
 	print_dbg_char_char('=');
 	mobo_clear_dac_channel();
 
-	print_dbg_char('T');
+//	print_dbg_char('T');
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2); // GPIO XO control and frequency indication
 	mobo_clock_division(spk_current_freq.frequency);
 	must_init_spk_index = TRUE;							// New frequency setting means resync DAC DMA
@@ -367,8 +367,8 @@ void uac2_freq_change_handler() {
 		
 		
 	// Record incoming frequency request from USB control system
-	print_dbg_char('W');
-	mobo_print_selected_frequency(spk_current_freq.frequency);
+//	print_dbg_char('W');
+//	mobo_print_selected_frequency(spk_current_freq.frequency);
 } // uac2_freq_change_handler
 
 
