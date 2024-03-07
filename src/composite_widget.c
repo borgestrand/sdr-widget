@@ -376,6 +376,7 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 	mobo_xo_select(FREQ_INVALID, input_select);				// Initial GPIO XO control and frequency indication
 	must_init_spk_index = TRUE;								// New frequency setting means resync DAC DMA
+	print_dbg_char('P');
 
 #if (defined HW_GEN_SPRX)
 	mobo_led_select(FREQ_44, MOBO_SRC_NONE);				// Front RGB LED, default indication of 44.1kHz and scanning
