@@ -567,7 +567,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 					// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-					audio_OUT_alive = 1;					// Indicate samples arriving on audio OUT endpoint. Do this after syncing
+					// audio_OUT_alive = 1;					// Indicate samples arriving on audio OUT endpoint. Do this after syncing
 
 					// Received samples in 10.14 is num_samples * 1<<14. In 16.16 it is num_samples * 1<<16 ???????
 					// Error increases when Host (in average) sends too much data compared to FB_rate

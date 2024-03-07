@@ -166,7 +166,7 @@ extern xSemaphoreHandle mutexSpkUSB;
 extern volatile S32 usb_buffer_toggle;
 
 // BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-extern volatile U8 audio_OUT_alive;
+// extern volatile U8 audio_OUT_alive;
 
 // BSB 20170324 SPDIF buffer processor detects silence
 extern volatile U8 dig_in_silence;

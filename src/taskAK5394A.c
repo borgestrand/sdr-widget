@@ -164,7 +164,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 		usb_buffer_toggle++;
 
 	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
+//	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
 }
 
 
