@@ -120,10 +120,6 @@ volatile S32 usb_buffer_toggle;
 // BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
 volatile U8 audio_OUT_alive;
 
-// BSB 20170324 SPDIF buffer processor detects silence
-volatile U8 dig_in_silence;
-
-
 /*! \brief The PDCA interrupt handler for the ADC interface.
  *
  * The handler reload the PDCA settings with the correct address and size using the reload register.
@@ -162,9 +158,6 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
 		usb_buffer_toggle++;
-
-	// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-//	audio_OUT_alive = 0;				// Start detecting packets on audio OUT endpoint at DMA reset
 }
 
 

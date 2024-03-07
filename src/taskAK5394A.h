@@ -165,12 +165,6 @@ extern xSemaphoreHandle mutexSpkUSB;
 // BSB 20131201 attempting improved playerstarted detection 
 extern volatile S32 usb_buffer_toggle;
 
-// BSB 20140917 attempting to help uacX_device_audio_task.c synchronize to DMA
-// extern volatile U8 audio_OUT_alive;
-
-// BSB 20170324 SPDIF buffer processor detects silence
-extern volatile U8 dig_in_silence;
-
 void AK5394A_task_init(Bool uac2);
 
 // New code polls DAC LRCK
