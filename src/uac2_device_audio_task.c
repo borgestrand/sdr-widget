@@ -1150,9 +1150,9 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				must_init_spk_index = FALSE;
 			}
-			else {
-				 prev_si_score_high = si_score_high;	// Establish energy history
-			}
+
+//			prev_si_score_high = si_score_high;			// Establish energy history, replace by IIR mechanism
+			prev_si_score_high = (prev_si_score_high + si_score_high) >> 1;			// Establish energy history, primitive IIR, out(n) = 0.5*out(n-1) + 0.5*in(n)
 
 
 			i = 0;
