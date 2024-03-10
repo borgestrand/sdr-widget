@@ -1100,15 +1100,12 @@ void uac2_device_audio_task(void *pvParameters)
 			if (si_pkg_counter > SI_PKG_RESOLUTION_F) { 
 				si_pkg_counter = 0;							// instead of -= SI_PKG_RESOLUTION
 				si_action = si_pkg_direction;				// Apply only once in a while
-				print_dbg_char('F');						// Forced data alteration
 			}
-			// ... or can we allow a peak into the recent history of packet energy? Enhance with IIR filter!
+			// ... or can we allow a peak into the recent history of packet energy? Enhanced with IIR filter!
 			else if (si_pkg_counter > SI_PKG_RESOLUTION) {
 				if (si_score_high < prev_si_score_high) {	// si_score_high follows packet, prev_si_score_high is static
-//				if (si_score_high < 0) {					// Unit test to detect 'F' above
 					si_pkg_counter = 0;						// instead of -= SI_PKG_RESOLUTION
 					si_action = si_pkg_direction;			// Apply only once in a while
-					print_dbg_char('f');					// Kind-ish data alteration
 				}
 			}
 
@@ -1151,9 +1148,7 @@ void uac2_device_audio_task(void *pvParameters)
 				must_init_spk_index = FALSE;
 			}
 
-//			prev_si_score_high = si_score_high;			// Establish energy history, replace by IIR mechanism
-			prev_si_score_high = (prev_si_score_high + si_score_high) >> 1;			// Establish energy history, primitive IIR, out(n) = 0.5*out(n-1) + 0.5*in(n)
-
+			prev_si_score_high = (si_score_high >> 2) + (prev_si_score_high >> 2) + (prev_si_score_high >> 1);			// Establish energy history, primitive IIR, out(n) = 0.25*out(n-1) + 0.75*in(n)
 
 			i = 0;
 			while (i < si_index_low) { // before skip/insert
