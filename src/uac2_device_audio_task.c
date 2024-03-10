@@ -1104,8 +1104,8 @@ void uac2_device_audio_task(void *pvParameters)
 			}
 			// ... or can we allow a peak into the recent history of packet energy? Enhance with IIR filter!
 			else if (si_pkg_counter > SI_PKG_RESOLUTION) {
-//				if (si_score_high < prev_si_score_high) {	// si_score_high follows packet, prev_si_score_high is static
-				if (si_score_high < 0) {					// Unit test to detect 'F' above
+				if (si_score_high < prev_si_score_high) {	// si_score_high follows packet, prev_si_score_high is static
+//				if (si_score_high < 0) {					// Unit test to detect 'F' above
 					si_pkg_counter = 0;						// instead of -= SI_PKG_RESOLUTION
 					si_action = si_pkg_direction;			// Apply only once in a while
 					print_dbg_char('f');					// Kind-ish data alteration
