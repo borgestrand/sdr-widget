@@ -191,6 +191,7 @@ void uac2_device_audio_task(void *pvParameters)
 	S32 si_score_low = 0x7FFFFFFF;
 	U32 si_index_low = 0;
 	S32 si_score_high = 0;
+	static S32 prev_si_score_high = 0;	
 	U32 si_index_high = 0;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
 	Bool cache_holds_silence = TRUE;
@@ -200,6 +201,7 @@ void uac2_device_audio_task(void *pvParameters)
 	#define SI_NORMAL 0
 	#define SI_INSERT 1
 	#define SI_PKG_RESOLUTION	1000			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
+	#define SI_PKG_RESOLUTION_F	1200			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs FORCE action
 	int8_t si_action = SI_NORMAL;
 	int32_t si_pkg_counter = 0;
 	int8_t si_pkg_increment = 0;				// Reset at sample rate change
@@ -994,6 +996,8 @@ void uac2_device_audio_task(void *pvParameters)
 						si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
 						si_pkg_increment ++;
 						si_pkg_direction = SI_SKIP;				// Host must slow down
+						
+						// rate/channel write status
 									
 						// Report to cpu and debug terminal
 						print_cpu_char(CPU_CHAR_DECDEC_FREQ);
@@ -1046,6 +1050,8 @@ void uac2_device_audio_task(void *pvParameters)
 						si_pkg_counter = SI_PKG_RESOLUTION;		// Start s/i immediately
 						si_pkg_increment ++;
 						si_pkg_direction = SI_INSERT;			// Host must speed up
+						
+						// rate/channel write status
 
 						// Report to cpu and debug terminal
 						print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
@@ -1090,12 +1096,22 @@ void uac2_device_audio_task(void *pvParameters)
 			} // end if time_to_calculate_gap == 0
 
 			si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
-			if (si_pkg_counter > SI_PKG_RESOLUTION) {
-				si_pkg_counter = 0;						// instead of -= SI_PKG_RESOLUTION
-				si_action = si_pkg_direction;			// Apply only once in a while
+			// Must we force action?
+			if (si_pkg_counter > SI_PKG_RESOLUTION_F) { 
+				si_pkg_counter = 0;							// instead of -= SI_PKG_RESOLUTION
+				si_action = si_pkg_direction;				// Apply only once in a while
+				print_dbg_char('F');						// Forced data alteration
+			}
+			// ... or can we allow a peak into the recent history of packet energy? Enhance with IIR filter!
+			else if (si_pkg_counter > SI_PKG_RESOLUTION) {
+				if (si_score_high < prev_si_score_high) {	// si_score_high follows packet, prev_si_score_high is static
+					si_pkg_counter = 0;						// instead of -= SI_PKG_RESOLUTION
+					si_action = si_pkg_direction;			// Apply only once in a while
+					print_dbg_char('f');					// Kind-ish data alteration
+				}
 			}
 
-//			gpio_set_gpio_pin(AVR32_PIN_PX31);			// Start copying cache to spk_buffer_X
+//			gpio_set_gpio_pin(AVR32_PIN_PX31);				// Start copying cache to spk_buffer_X
 
 			// spk_index normalization
 			if (must_init_spk_index) {
@@ -1104,6 +1120,8 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				// USB startup has this a little past the middle of the output buffer. But SPDIF startup seems to let it start a bit too soon
 				// æææ understand that before code can be fully trusted!
+				
+				// rate/channel read status and adapt starting point in buffer
 				
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 				spk_index = spk_index & ~((U32)1); 		// Clear LSB in order to start with L sample
@@ -1125,10 +1143,14 @@ void uac2_device_audio_task(void *pvParameters)
 				return_to_nominal = FALSE;				// Restart feedback system
 				prev_sample_L = 0;
 				prev_sample_R = 0;
+				prev_si_score_high = 0;					// Clear energy history
 				diff_value = 0;
 				diff_sum = 0;
 				
 				must_init_spk_index = FALSE;
+			}
+			else {
+				 prev_si_score_high = si_score_high;	// Establish energy history
 			}
 
 
