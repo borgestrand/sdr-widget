@@ -74,7 +74,7 @@ void pcm5142_filter(uint8_t filter_sel) {
 
 
 // Write a single byte to PCM5142
-uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
+uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) { 
     uint8_t dev_data[2];
     uint8_t status = 0xFF;							// Far from 0 reported as I2C success
 
