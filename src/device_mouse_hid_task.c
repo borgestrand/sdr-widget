@@ -371,6 +371,14 @@ void device_mouse_hid_task(void)
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
             }
 
+            else if (a == 'n') {							// Lowercase n
+	            pcm5142_unmute() ;
+            }
+
+            else if (a == 'N') {							// Uppercase N
+	            pcm5142_mute() ;
+            }
+
             // Try to enter programming mode
             else if (a == 'P') {							// Uppercase P
 	            gpio_clr_gpio_pin(AVR32_PIN_PB10); 			// PROG button - attempted with 100k pull-up and 0.47uF to GND. Still 68R to button 
