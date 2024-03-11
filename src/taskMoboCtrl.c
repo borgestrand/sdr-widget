@@ -136,7 +136,8 @@ static void vtaskMoboCtrl( void * pcParameters )
 			I2C_busy_semphr = xSemaphoreCreateMutex();		// Separate whole I2C packets
 
 			// Initialie PCM5142
-			pcm5142_filter(02); // Selected from listening 20230429
+			pcm5142_init();							// Set up mute control
+			pcm5142_filter(02);						// Selected from listening 20230429
 
 			// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
 //			print_dbg_char('p');

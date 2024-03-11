@@ -36,6 +36,25 @@
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 
+// Initiate the PCM5142
+void pcm5142_init(void) {
+	// Mute is controlled in register 59 and onwards
+	pcm5142_write_byte(60, 0x01);				// Right channel follows left, this can be moved to init
+}
+
+
+// Mute the PCM5142
+void pcm5142_mute(void) {
+	// Mute is controlled in register 59 and onwards
+	pcm5142_write_byte(61, 0xFF);				// Left channel fully muted
+}
+
+
+// Un-mute the PCM5142
+void pcm5142_unmute(void) {
+	pcm5142_write_byte(61, 0x30);				// Left channel at 0dB
+}
+
 
 // Select input built-in interpolation filter
 void pcm5142_filter(uint8_t filter_sel) {

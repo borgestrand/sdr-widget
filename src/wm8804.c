@@ -246,6 +246,7 @@ void wm8804_task(void *pvParameters) {
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
 							#ifdef HW_GEN_SPRX
+								pcm5142_mute();						// Experiment to prevent tick-pop during silence
 								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
@@ -799,7 +800,6 @@ void wm8804_mute(void) {
 
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear outgoing DAC data
 
-//	print_dbg_char('U');
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
 	mobo_clock_division(spk_current_freq.frequency);	// 20240229 inserted here
 	must_init_spk_index = TRUE;						// New frequency setting means resync DAC DMA
@@ -811,7 +811,6 @@ void wm8804_mute(void) {
 void wm8804_unmute(void) {
 	// For now, frequency changes totally mess up ADC_site
 	
-//	print_dbg_char('V');
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 	must_init_spk_index = TRUE;									// New frequency setting means resync DAC DMA

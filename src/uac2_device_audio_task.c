@@ -744,7 +744,6 @@ void uac2_device_audio_task(void *pvParameters)
 									print_dbg_char('[');						// USB takes
 									playerStarted = TRUE;						// Is it better off here?
 									
-//									print_dbg_char('P');
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 									mobo_clock_division(spk_current_freq.frequency);
 									must_init_spk_index = TRUE;					// New frequency setting means resync DAC DMA
@@ -812,6 +811,7 @@ void uac2_device_audio_task(void *pvParameters)
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
 									#ifdef HW_GEN_SPRX
+										pcm5142_mute();						// Experiment to prevent tick-pop during silence
 										mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator 
 									#endif
 									input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
@@ -872,6 +872,7 @@ void uac2_device_audio_task(void *pvParameters)
 								// Report to cpu and debug terminal
 								print_cpu_char(CPU_CHAR_IDLE);
 								#ifdef HW_GEN_SPRX
+									pcm5142_mute();						// Experiment to prevent tick-pop during silence
 									mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 								#endif
 								input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
@@ -922,6 +923,7 @@ void uac2_device_audio_task(void *pvParameters)
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
 							#ifdef HW_GEN_SPRX
+								pcm5142_mute();						// Experiment to prevent tick-pop during silence
 								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
@@ -949,7 +951,6 @@ void uac2_device_audio_task(void *pvParameters)
 				if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
 				(prev_input_select == MOBO_SRC_TOSLINK0) ||
 				(prev_input_select == MOBO_SRC_TOSLINK1) ) {
-//					print_dbg_char('R');
 					mobo_xo_select(spk_current_freq.frequency, input_select);	// Give USB the I2S control with proper MCLK, print status
 					mobo_clock_division(spk_current_freq.frequency);			// Re-configure correct USB sample rate
 					must_init_spk_index = TRUE;									// New frequency setting means resync DAC DMA
@@ -1144,6 +1145,8 @@ void uac2_device_audio_task(void *pvParameters)
 				prev_si_score_high = 0;					// Clear energy history
 				diff_value = 0;
 				diff_sum = 0;
+				
+				pcm5142_unmute();						// Experiment to prevent tick-pop during silence
 				
 				must_init_spk_index = FALSE;
 			}

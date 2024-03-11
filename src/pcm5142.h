@@ -27,6 +27,15 @@
 
 #define PCM5142_DEV_ADR		0x4C 				// 0x4C with various address selectors grounded
 
+// Initiate the PCM5142
+void pcm5142_init(void);
+
+// Mute the PCM5142
+void pcm5142_mute(void);
+
+// Un-mute the PCM5142
+void pcm5142_unmute(void);
+
 // Select input built-in interpolation filter
 void pcm5142_filter(uint8_t filter_sel);
 
