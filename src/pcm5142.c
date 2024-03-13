@@ -46,7 +46,8 @@ void pcm5142_init(void) {
 // Mute the PCM5142
 void pcm5142_mute(void) {
 	// Mute is controlled in register 59 and onwards
-	pcm5142_write_byte(61, 0xFF);				// Left channel fully muted
+	// Calling functions are not yet under control!
+	// pcm5142_write_byte(61, 0xFF);				// Left channel fully muted
 	print_dbg_char(',');
 }
 
