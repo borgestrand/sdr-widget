@@ -48,21 +48,19 @@ void pcm5142_mute(void) {
 	// Mute is controlled in register 59 and onwards
 	// Calling functions are not yet under control!
 	// pcm5142_write_byte(61, 0xFF);				// Left channel fully muted
-	print_dbg_char(',');
+	print_dbg_char('N');
 }
 
 
 // Un-mute the PCM5142
 void pcm5142_unmute(void) {
 	pcm5142_write_byte(61, 0x30);				// Left channel at 0dB
-	print_dbg_char('.');
+	print_dbg_char('n');
 }
 
 
 // Select input built-in interpolation filter
 void pcm5142_filter(uint8_t filter_sel) {
-//	print_dbg_char(0x30 + filter_sel);
-
 	// For valid filters see datasheet section 8.3.4.2 / Register 43 (dec) / 0x2B
 	if ( (filter_sel == 0x01) || (filter_sel == 0x02) || (filter_sel == 0x03) || (filter_sel == 0x07) ) {
 		pcm5142_write_byte(0x00, 0x00);			// Page 0

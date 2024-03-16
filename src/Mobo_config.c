@@ -509,7 +509,8 @@ void mobo_SPRX_input(uint8_t input_sel) {
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
 	}
-	else if (input_sel == MOBO_SRC_NONE) {
+	// SPDIF1 isn't yet implemented on all boards. Selecting this will disable power to actual TOS and SPDIF inputs on experimental builds of revisions E and F
+	else if ( (input_sel == MOBO_SRC_NONE) || (input_sel == MOBO_SRC_SPDIF1) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
 	}

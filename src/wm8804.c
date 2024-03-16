@@ -99,16 +99,18 @@ void wm8804_task_init(void) {
 }
 
 
-// Enable and disable MCLK output on the CLKOUT (9) pin
-void wm8804_CLKOUT(uint8_t mode) {
+// Enable MCLK output on the CLKOUT (9) pin
+void wm8804_mclk_out_enable(void) {
 	uint8_t temp = wm8804_read_byte(0x08);
-	
-	if (mode == WM8804_CLKOUT_ENABLE) {
-		temp = temp | 0b00010000;
-	}
-	else if (mode == WM8804_CLKOUT_DISABLE) {
-		temp = temp & 0b11101111;
-	}
+	temp = temp | 0b00010000;
+	wm8804_write_byte(0x08, temp);
+}
+
+
+// Disable MCLK output on the CLKOUT (9) pin
+void wm8804_mclk_out_disable(void) {
+	uint8_t temp = wm8804_read_byte(0x08);
+	temp = temp & 0b11101111;
 	wm8804_write_byte(0x08, temp);
 }
 
@@ -281,6 +283,8 @@ void wm8804_task(void *pvParameters) {
 						spdif_rx_status.silent = 0;				// Continuously modified in mobo_handle_spdif() Is it important to write it here?
 						
 						// Setting spdif_rx_status.reliable = 1 only here - is that OK?
+						
+						// async spdif start: Wait for verified non-zero audio and then take!!
 								
 						// Take semaphore, update status if that went well
 						if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take
@@ -291,6 +295,13 @@ void wm8804_task(void *pvParameters) {
 								spdif_rx_status.reliable = 1;				// Critical for mobo_handle_spdif()
 								print_dbg_char('\n');						// WM8804 takes
 								print_dbg_char('{');						// WM8804 takes
+
+								// Trying this as only setup site in wm8804 code...
+								mobo_xo_select(spdif_rx_status.frequency, input_select);
+								mobo_clock_division(spdif_rx_status.frequency);
+								must_init_spk_index = TRUE;					// New frequency setting means resync DAC DMA
+								print_dbg_char('Z');
+								// End only site of setup code
 
 								// Report to cpu and debug terminal
 								switch (input_select) {
@@ -312,7 +323,7 @@ void wm8804_task(void *pvParameters) {
 								}
 							
 								// Enable audio, configure clocks (and report), but only if needed
-								wm8804_unmute();					// No longer including LED change on this TAKE event
+								wm8804_unmute();							// No longer including LED change on this TAKE event
 							
 								spdif_rx_status.muted = 0;
 								silence_counter = WM8804_SILENCE_PLAYING - WM8804_SILENCE_LINKING; // Detector counts up to WM8804_SILENCE_PLAYING
@@ -800,10 +811,12 @@ void wm8804_mute(void) {
 
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear outgoing DAC data
 
+/*	Applying only with mutex take...
 	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
 	mobo_clock_division(spk_current_freq.frequency);	// 20240229 inserted here
 	must_init_spk_index = TRUE;						// New frequency setting means resync DAC DMA
 	print_dbg_char('V');
+*/
 }
 
 
@@ -811,10 +824,12 @@ void wm8804_mute(void) {
 void wm8804_unmute(void) {
 	// For now, frequency changes totally mess up ADC_site
 	
+/*	Applying only with mutex take...
 	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
 	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
 	must_init_spk_index = TRUE;									// New frequency setting means resync DAC DMA
 	print_dbg_char('W');
+*/
 
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??

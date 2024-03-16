@@ -379,6 +379,18 @@ void device_mouse_hid_task(void)
 	            pcm5142_mute() ;
             }
 
+            else if (a == 'x') {							// Lowercase x
+				/* Select input					
+				MOBO_SRC_SPDIF0		3
+				MOBO_SRC_TOSLINK1	4
+				MOBO_SRC_TOSLINK0	5
+				MOBO_SRC_SPDIF1		6
+				*/
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				mobo_SPRX_input(temp);
+            }
+
+
             // Try to enter programming mode
             else if (a == 'P') {							// Uppercase P
 	            gpio_clr_gpio_pin(AVR32_PIN_PB10); 			// PROG button - attempted with 100k pull-up and 0.47uF to GND. Still 68R to button 
@@ -460,12 +472,12 @@ Arash
 
 			// Enable WM8804 MCLK output on CLKOUT (9) pin - prerequisite for mobo_xo_select(FREQ_RXNATIVE, input_select);
             else if (a == 'c') {
-				wm8804_CLKOUT(WM8804_CLKOUT_ENABLE);
+				wm8804_mclk_out_enable();
 			}
 
 			// Disable WM8804 MCLK output on CLKOUT (9) pin
 			else if (a == 'd') {
-				wm8804_CLKOUT(WM8804_CLKOUT_DISABLE);
+				wm8804_mclk_out_disable();
 			}
 						
 			// High-level I2S & MCLK MUX control, use recovered MCLK from WM8804
