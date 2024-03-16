@@ -945,6 +945,7 @@ void uac2_device_audio_task(void *pvParameters)
 			// The passed parameters are overwritten if input_select is an spdif class
 			mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, &num_samples, &cache_holds_silence);
 
+/* // Trying to reduce sites that initiate playback
 			// æææ must get this working with AB-1.2 and verify where this code belongs	
 			if (input_select == MOBO_SRC_NONE) {
 				// Did SPDIF system just give up I2S control? If so get onto the sample rate of the USB system ASAP
@@ -959,6 +960,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 				// Whenever we're idle, reset where in outgoing DMA any cache writes will happen æææ merge with USB init logic for this same purpose
 			}
+			
+*/			
 			prev_input_select = input_select;
 		#endif
 
