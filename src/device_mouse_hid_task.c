@@ -386,93 +386,14 @@ void device_mouse_hid_task(void)
 				MOBO_SRC_TOSLINK0	5
 				MOBO_SRC_SPDIF1		6
 				*/
-//				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-//				mobo_SPRX_input(temp);
-
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_UAC2,       0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_SPDIF0,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_SPDIF1,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK0,   0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK1,   0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_NONE,       0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_UAC2,       0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_SPDIF0,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_SPDIF1,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_TOSLINK0,   0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_TOSLINK1,   0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_NONE,       0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_UAC2,       0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_SPDIF0,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_SPDIF1,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_TOSLINK0,   0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_TOSLINK1,   0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_NONE,       0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_UAC2,       0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_SPDIF0,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_SPDIF1,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_TOSLINK0,   0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_TOSLINK1,   0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_NONE,       0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_UAC2,      0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_SPDIF0,    0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_SPDIF1,    0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_TOSLINK0,  0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_TOSLINK1,  0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_NONE,      0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_UAC2,      0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_SPDIF0,    0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_SPDIF1,    0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_TOSLINK0,  0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_TOSLINK1,  0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_NONE,      0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_INVALID, MOBO_SRC_SPDIF0,     0, RATE_RETRIEVE) ); print_dbg_char(' ');
-				print_dbg_char('\n');
-
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				mobo_SPRX_input(temp);
             }
 			
 			else if (a == 'X') {							// Uppercase X
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_UAC2,       1, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_SPDIF0,     2, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_SPDIF1,     3, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK0,   4, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK1,   5, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_44, MOBO_SRC_NONE,       6, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_UAC2,       7, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_SPDIF0,     8, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_SPDIF1,     9, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_TOSLINK0,  10, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_TOSLINK1,  11, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_48, MOBO_SRC_NONE,      12, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_UAC2,      13, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_SPDIF0,    14, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_SPDIF1,    15, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_TOSLINK0,  16, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_TOSLINK1,  17, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_88, MOBO_SRC_NONE,      18, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_UAC2,      19, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_SPDIF0,    20, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_SPDIF1,    21, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_TOSLINK0,  22, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_TOSLINK1,  23, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_96, MOBO_SRC_NONE,      24, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_UAC2,     25, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_SPDIF0,   26, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_SPDIF1,   27, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_TOSLINK0, 28, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_TOSLINK1, 29, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_176, MOBO_SRC_NONE,     30, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_UAC2,     31, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_SPDIF0,   32, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_SPDIF1,   33, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_TOSLINK0, 34, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_TOSLINK1, 35, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_192, MOBO_SRC_NONE,     36, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char_hex(	mobo_rate_storage(FREQ_INVALID, MOBO_SRC_SPDIF0,     36, RATE_STORE) ); print_dbg_char(' ');
-				print_dbg_char('\n');
+				mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK0, SI_INSERT, RATE_STORE);	// 't' reported as source
+				mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK1, SI_SKIP, RATE_STORE);		// 'T' reported as source
 			}
-
-
-
 
             // Try to enter programming mode
             else if (a == 'P') {							// Uppercase P

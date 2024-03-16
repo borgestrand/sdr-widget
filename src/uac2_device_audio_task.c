@@ -494,7 +494,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				/* SPDIF reduced */
 #ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
-			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 
 				// Do minimal USB action to make Host believe Device is actually receiving
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
@@ -998,6 +998,12 @@ void uac2_device_audio_task(void *pvParameters)
 						si_pkg_direction = SI_SKIP;				// Host must slow down
 						
 						// rate/channel write status
+						if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+							mobo_rate_storage(spdif_rx_status.frequency, input_select, si_pkg_direction, RATE_STORE);
+						}
+						else if (input_select == MOBO_SRC_UAC2) {	// Only applies to broken
+							mobo_rate_storage(spk_current_freq.frequency, input_select, si_pkg_direction, RATE_STORE);
+						}
 									
 						// Report to cpu and debug terminal
 						print_cpu_char(CPU_CHAR_DECDEC_FREQ);
@@ -1052,6 +1058,12 @@ void uac2_device_audio_task(void *pvParameters)
 						si_pkg_direction = SI_INSERT;			// Host must speed up
 						
 						// rate/channel write status
+						if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+							mobo_rate_storage(spdif_rx_status.frequency, input_select, si_pkg_direction, RATE_STORE);
+						}
+						else if (input_select == MOBO_SRC_UAC2) {	// Only applies to broken 
+							mobo_rate_storage(spk_current_freq.frequency, input_select, si_pkg_direction, RATE_STORE);
+						}
 
 						// Report to cpu and debug terminal
 						print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
@@ -1118,10 +1130,24 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				// USB startup has this a little past the middle of the output buffer. But SPDIF startup seems to let it start a bit too soon
 				// æææ understand that before code can be fully trusted!
-				
+
 				// rate/channel read status and adapt starting point in buffer
+				int8_t stored_direction;
+				if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+					stored_direction = mobo_rate_storage(spdif_rx_status.frequency, input_select, 0, RATE_RETRIEVE);
+				}
+				else if (input_select == MOBO_SRC_UAC2) {	// Only broken feedback system ever wrote to this one
+					stored_direction = mobo_rate_storage(spk_current_freq.frequency, input_select, 0, RATE_RETRIEVE);
+				}
 				
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
+				if (stored_direction == SI_INSERT) {	// Source is known to be slow and we should start late in buffer
+					spk_index += 2*SPK_GAP_SIOFS;
+				}
+				else if (stored_direction == SI_SKIP) {	// Source is known to be fast and we should start early in buffer
+					spk_index -= 2*SPK_GAP_SIOFS;
+				}
+				
 				spk_index = spk_index & ~((U32)1); 		// Clear LSB in order to start with L sample
 				if (spk_index >= DAC_BUFFER_UNI) {		// Stay within bounds
 					spk_index -= DAC_BUFFER_UNI;

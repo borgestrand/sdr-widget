@@ -42,7 +42,7 @@ void mobo_clear_dac_channel(void);
 #define CPU_CHAR_SPDIF0				's'	// MCU reports that SPDIF0 is input
 #define CPU_CHAR_SPDIF1				'S'	// MCU reports that SPDIF1 is input
 #define CPU_CHAR_TOSLINK0			't'	// MCU reports that TOSLINK0 is input
-#define CPU_CHAR_TOSLINK1			'T'	// MCU reports that TOSLINK0 is input
+#define CPU_CHAR_TOSLINK1			'T'	// MCU reports that TOSLINK1 is input
 #define CPU_CHAR_UAC1_B				'b'	// MCU reports that Rear USB-B USB Audio Class 1 is input
 #define CPU_CHAR_UAC2_B				'B'	// MCU reports that Rear USB-B USB Audio Class 2 is input
 #define CPU_CHAR_UAC1_C				'c'	// MCU reports that Front USB-C USB Audio Class 1 is input
