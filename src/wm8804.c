@@ -293,14 +293,14 @@ void wm8804_task(void *pvParameters) {
 								spdif_rx_status.channel = channel;
 								spdif_rx_status.frequency = freq;
 								spdif_rx_status.reliable = 1;				// Critical for mobo_handle_spdif()
-								print_dbg_char('\n');						// WM8804 takes
+//								print_dbg_char('\n');						// WM8804 takes
 								print_dbg_char('{');						// WM8804 takes
 
 								// Trying this as only setup site in wm8804 code...
 								mobo_xo_select(spdif_rx_status.frequency, input_select);
 								mobo_clock_division(spdif_rx_status.frequency);
 								must_init_spk_index = TRUE;					// New frequency setting means resync DAC DMA
-								print_dbg_char('Z');
+//								print_dbg_char('Z');
 								// End only site of setup code
 
 								// Report to cpu and debug terminal

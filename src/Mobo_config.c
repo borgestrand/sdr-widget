@@ -1340,7 +1340,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		// Establish history
 		prev_frequency = frequency;
 		
-		print_dbg_char('c'); // Clock setting changed
+//		print_dbg_char('c'); // Clock setting changed
 	} // if (frequency != prev_frequency)
 }
 
@@ -1480,7 +1480,7 @@ void mobo_clock_division(U32 frequency) {
 
 		prev_frequency = frequency;
 
-		print_dbg_char('d'); // Clock setting changed
+//		print_dbg_char('d'); // Clock setting changed
 	} // End frequency != prev_frequency
 }
 

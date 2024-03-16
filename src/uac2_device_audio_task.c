@@ -740,14 +740,14 @@ void uac2_device_audio_task(void *pvParameters)
 							if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take for RT reasons
 								if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {		// Re-take of taken semaphore returns false
 									input_select = MOBO_SRC_UAC2;				// Claim input_select ASAP so that WM won't take it
-									print_dbg_char('\n');						// USB takes
+//									print_dbg_char('\n');						// USB takes
 									print_dbg_char('[');						// USB takes
 									playerStarted = TRUE;						// Is it better off here?
 									
 									mobo_xo_select(spk_current_freq.frequency, input_select);
 									mobo_clock_division(spk_current_freq.frequency);
 									must_init_spk_index = TRUE;					// New frequency setting means resync DAC DMA
-									print_dbg_char('R');
+//									print_dbg_char('R');
 
 									#ifdef HW_GEN_SPRX 
 										// Report to cpu and debug terminal
@@ -946,7 +946,6 @@ void uac2_device_audio_task(void *pvParameters)
 			mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, &num_samples, &cache_holds_silence);
 
 /* // Trying to reduce sites that initiate playback
-			// æææ must get this working with AB-1.2 and verify where this code belongs	
 			if (input_select == MOBO_SRC_NONE) {
 				// Did SPDIF system just give up I2S control? If so get onto the sample rate of the USB system ASAP
 				if ( (prev_input_select == MOBO_SRC_SPDIF0) ||
