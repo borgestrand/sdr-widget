@@ -197,9 +197,6 @@ void uac2_device_audio_task(void *pvParameters)
 	Bool cache_holds_silence = TRUE;
 
 	// New code for adaptive USB fallback using skip / insert s/i
-	#define SI_SKIP -1
-	#define SI_NORMAL 0
-	#define SI_INSERT 1
 	#define SI_PKG_RESOLUTION	1000			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
 	#define SI_PKG_RESOLUTION_F	1200			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs FORCE action
 	int8_t si_action = SI_NORMAL;

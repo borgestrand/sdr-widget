@@ -72,6 +72,17 @@ void mobo_clear_dac_channel(void);
 #define MCU_CHAR_RATEUP				'U' // CPU asks MCU to increase feedback rate by 64 = FB_RATE_DELTA
 #define MCU_CHAR_RATEDOWN			'u' // CPU asks MCU to increase feedback rate by 64 = FB_RATE_DELTA
 
+// New code for adaptive USB fallback using skip / insert s/i
+#define SI_SKIP						-1
+#define SI_NORMAL					0
+#define SI_INSERT					1
+#define RATE_STORE					0
+#define RATE_RETRIEVE				1
+#define RATE_INIT					2
+#define RATE_INVALID				0x3F
+#define RATE_FREQUENCIES			6 // The number of relevant frequencies
+#define RATE_SOURCES				5 // The number of relevant sources
+
 
 #ifdef HW_GEN_SPRX
 // USB multiplexer definitions
@@ -122,6 +133,9 @@ void mobo_led(uint8_t fled);
 
 
 #ifdef HW_GEN_SPRX
+// Store and retrieve the relative frequency shift of the source
+int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mode);
+
 // LED control
 void mobo_led(uint8_t fled0);
 #endif

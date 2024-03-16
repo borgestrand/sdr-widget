@@ -283,6 +283,74 @@ uint8_t mobo_fmadc_gain(uint8_t channel, uint8_t gain) {
 
 #ifdef HW_GEN_SPRX
 
+// Store and retrieve the relative frequency shift of the source
+int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mode) {
+	static int8_t storage[RATE_FREQUENCIES][RATE_SOURCES];		// frequency, source
+	uint8_t a0 = RATE_INVALID;
+	uint8_t a1 = RATE_INVALID;
+
+	// On startup, initiate contents
+	if (mode == RATE_INIT) {
+		for (a0 = 0; a0 < RATE_FREQUENCIES; a0++) {
+			for (a1 = 0; a1 < RATE_SOURCES; a1++)
+			storage[a0][a1] = SI_NORMAL;
+		}
+		return 0;
+	}
+
+	// Otherwise, store and retrieve information in array
+	switch (frequency) {
+		case FREQ_44:
+			a0 = 0;
+		break;
+		case FREQ_48:
+			a0 = 1;
+		break;
+		case FREQ_88:
+			a0 = 2;
+		break;
+		case FREQ_96:
+			a0 = 3;
+		break;
+		case FREQ_176:
+			a0 = 4;
+		break;
+		case FREQ_192:
+			a0 = 5;
+		break;
+	}
+
+	switch (source) {
+		case MOBO_SRC_UAC2:
+			a1 = 0;
+		break;
+		case MOBO_SRC_SPDIF0:
+			a1 = 1;
+		break;
+		case MOBO_SRC_SPDIF1:
+			a1 = 2;
+		break;
+		case MOBO_SRC_TOSLINK0:
+			a1 = 3;
+		break;
+		case MOBO_SRC_TOSLINK1:
+			a1 = 4;
+		break;
+	}
+
+	if ( (a0 < RATE_FREQUENCIES) && (a1 < RATE_SOURCES) ) {
+		if (mode == RATE_STORE) {
+			storage[a0][a1] = state;
+			return 0;
+		}
+		else if (mode == RATE_RETRIEVE) {
+			return storage[a0][a1];
+		}
+	}
+	
+	return RATE_INVALID;	// Faulty address or input parameter
+}
+
 // Control USB multiplexer in HW_GEN_SPRX 
 void mobo_usb_select(uint8_t usb_ch) {
 	if (usb_ch == USB_CH_C) {

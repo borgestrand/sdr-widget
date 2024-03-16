@@ -155,6 +155,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 		vSemaphoreCreateBinary(input_select_semphr);		// Tasks may take input select semaphore after init - supposedly better semaphore creation
 	#endif
 	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
+	
+	#ifdef HW_GEN_SPRX										// Initiate table of source's rate of change
+		mobo_rate_storage(0, 0, 0, RATE_INIT);
+	#endif
 
 
 
