@@ -248,7 +248,7 @@ void wm8804_task(void *pvParameters) {
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
 							#ifdef HW_GEN_SPRX
-								pcm5142_mute();						// Experiment to prevent tick-pop during silence
+//								pcm5142_mute();						// Experiment to prevent tick-pop during silence, this doesn't help
 								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
@@ -799,24 +799,13 @@ uint8_t wm8804_clkdivnew(uint32_t freq) {
 
 // Mute the WM8804 output
 void wm8804_mute(void) {
-//	print_dbg_char('M');
-
 	// Empty outgoing buffers if owned by WM8804 code
 	if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 		mobo_clear_dac_channel();
 	}
-
 													// Dedicated mute pin, leaves clocks etc intact
 	mobo_i2s_enable(MOBO_I2S_DISABLE);				// Hard-mute of I2S pin, try to avoid using this hardware!
-
 	dac_must_clear = DAC_MUST_CLEAR;				// Instruct uacX_device_audio_task.c to clear outgoing DAC data
-
-/*	Applying only with mutex take...
-	mobo_xo_select(spk_current_freq.frequency, MOBO_SRC_UAC2);
-	mobo_clock_division(spk_current_freq.frequency);	// 20240229 inserted here
-	must_init_spk_index = TRUE;						// New frequency setting means resync DAC DMA
-	print_dbg_char('V');
-*/
 }
 
 
@@ -824,13 +813,6 @@ void wm8804_mute(void) {
 void wm8804_unmute(void) {
 	// For now, frequency changes totally mess up ADC_site
 	
-/*	Applying only with mutex take...
-	mobo_xo_select(spdif_rx_status.frequency, input_select);	// Outgoing I2S XO selector (and legacy MUX control)
-	mobo_clock_division(spdif_rx_status.frequency);				// Outgoing I2S clock division selector
-	must_init_spk_index = TRUE;									// New frequency setting means resync DAC DMA
-	print_dbg_char('W');
-*/
-
 #ifdef FEATURE_ADC_EXPERIMENTAL
 	if (I2S_consumer == I2S_CONSUMER_NONE) {					// No other consumers? Enable DMA - ADC_site with what sample rate??
 		mobo_clear_adc_channel();								// Clear buffer before pdca starts filling it
@@ -848,6 +830,7 @@ void wm8804_unmute(void) {
 
 	mobo_i2s_enable(MOBO_I2S_ENABLE);							// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 }
+
 
 // Write multiple bytes to WM8804
 uint8_t wm8804_multiwrite(uint8_t no_bytes, uint8_t *int_data) {

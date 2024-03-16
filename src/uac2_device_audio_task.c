@@ -811,7 +811,7 @@ void uac2_device_audio_task(void *pvParameters)
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
 									#ifdef HW_GEN_SPRX
-										pcm5142_mute();						// Experiment to prevent tick-pop during silence
+//										pcm5142_mute();						// Experiment to prevent tick-pop during silence, this doesn't help!
 										mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator 
 									#endif
 									input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
@@ -872,7 +872,7 @@ void uac2_device_audio_task(void *pvParameters)
 								// Report to cpu and debug terminal
 								print_cpu_char(CPU_CHAR_IDLE);
 								#ifdef HW_GEN_SPRX
-									pcm5142_mute();						// Experiment to prevent tick-pop during silence
+//									pcm5142_mute();						// Experiment to prevent tick-pop during silence. This doesn't help
 									mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 								#endif
 								input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
@@ -923,7 +923,7 @@ void uac2_device_audio_task(void *pvParameters)
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
 							#ifdef HW_GEN_SPRX
-								pcm5142_mute();						// Experiment to prevent tick-pop during silence
+//								pcm5142_mute();						// Experiment to prevent tick-pop during silence, this doesn't help
 								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
@@ -1146,7 +1146,7 @@ void uac2_device_audio_task(void *pvParameters)
 				diff_value = 0;
 				diff_sum = 0;
 				
-				pcm5142_unmute();						// Experiment to prevent tick-pop during silence
+//				pcm5142_unmute();						// Experiment to prevent tick-pop during silence. This alone doesn't help!
 				
 				must_init_spk_index = FALSE;
 			}
