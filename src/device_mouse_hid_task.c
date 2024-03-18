@@ -391,8 +391,24 @@ void device_mouse_hid_task(void)
             }
 			
 			else if (a == 'X') {							// Uppercase X
-				mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK0, SI_INSERT, RATE_STORE);	// 't' reported as source
-				mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK1, SI_SKIP, RATE_STORE);		// 'T' reported as source
+				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				if (temp == 0) {
+					print_dbg_char(' ');
+					mobo_rate_storage(0, 0, 0, RATE_PRINT);	// Show contents of rate storage
+				}
+				else if (temp == 1) {
+					mobo_rate_storage(0, MOBO_SRC_TOSLINK0, SI_INSERT, RATE_CH_INIT);	// Set all frequencies of Toslink 0 to INSERT
+				}
+				else if (temp == 2) {
+					mobo_rate_storage(0, MOBO_SRC_TOSLINK0, SI_SKIP, RATE_CH_INIT);	// Set all frequencies of Toslink 0 to SKIP
+				}
+				else if (temp == 3) {
+					mobo_rate_storage(0, MOBO_SRC_TOSLINK0, SI_NORMAL, RATE_CH_INIT);	// Set all frequencies of Toslink 0 to NORMAL
+				}
+
+
+//				mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK0, SI_INSERT, RATE_STORE);	// 't' reported as source
+//				mobo_rate_storage(FREQ_44, MOBO_SRC_TOSLINK1, SI_SKIP, RATE_STORE);		// 'T' reported as source
 			}
 
             // Try to enter programming mode

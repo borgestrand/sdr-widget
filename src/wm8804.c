@@ -574,15 +574,17 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 mobo_SPRX_input(input_sel);			// Hardware MUX control
 
 if (!(wm8804_live_detect(MOBO_SRC_MUXED))) {
+	mobo_rate_storage(0, input_sel, SI_NORMAL, RATE_CH_INIT);	// Set all frequencies of input_sel to NORMAL = we know nothing about this input's rate relative to own XOs
 	return (FREQ_INVALID);
 }
 // If given input is alive, do things
 else {
 
-#else
+#else // not PATCH_01
 // Initial build of RXmod_t1_A will check multiple channels first and MUX later
 	// If given input is not alive, terminate
 	if (!(wm8804_live_detect(input_sel))) {
+		mobo_rate_storage(0, input_sel, SI_NORMAL, RATE_CH_INIT);	// Set all frequencies of input_sel to NORMAL = we know nothing about this input's rate relative to own XOs
 		return (FREQ_INVALID);
 	}
 	// If given input is alive, do things

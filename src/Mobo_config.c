@@ -290,15 +290,54 @@ int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mo
 	uint8_t a1 = RATE_INVALID;
 
 	// On startup, initiate contents
-	if (mode == RATE_INIT) {
+	if (mode == RATE_ALL_INIT) {
 		for (a0 = 0; a0 < RATE_FREQUENCIES; a0++) {
 			for (a1 = 0; a1 < RATE_SOURCES; a1++)
-			storage[a0][a1] = SI_NORMAL;
+			storage[a0][a1] = state;
+		}
+		return 0;
+	}
+	else if (mode == RATE_PRINT) {
+		for (a0 = 0; a0 < RATE_FREQUENCIES; a0++) {
+			for (a1 = 0; a1 < RATE_SOURCES; a1++)
+			print_dbg_char_hex(storage[a0][a1]);
+			print_dbg_char(' ');
 		}
 		return 0;
 	}
 
-	// Otherwise, store and retrieve information in array
+	// Otherwise consider which channel to access
+	switch (source) {
+		case MOBO_SRC_UAC2:
+			a1 = 0;
+		break;
+		case MOBO_SRC_SPDIF0:
+			a1 = 1;
+		break;
+		case MOBO_SRC_SPDIF1:
+			a1 = 2;
+		break;
+		case MOBO_SRC_TOSLINK0:
+			a1 = 3;
+		break;
+		case MOBO_SRC_TOSLINK1:
+			a1 = 4;
+		break;
+	}
+	if (a1 >= RATE_SOURCES) {
+		return RATE_INVALID;	// Faulty channel
+	}
+	
+
+	// Influence all frequencies of a given channel, don't decode frequency parameter until needed
+	if (mode == RATE_CH_INIT) {
+		for (a0 = 0; a0 < RATE_FREQUENCIES; a0++) {
+			storage[a0][a1] = state;
+		}
+		return 0;
+	}
+
+	// Decode frequency parameter to access individual registers
 	switch (frequency) {
 		case FREQ_44:
 			a0 = 0;
@@ -319,36 +358,25 @@ int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mo
 			a0 = 5;
 		break;
 	}
-
-	switch (source) {
-		case MOBO_SRC_UAC2:
-			a1 = 0;
-		break;
-		case MOBO_SRC_SPDIF0:
-			a1 = 1;
-		break;
-		case MOBO_SRC_SPDIF1:
-			a1 = 2;
-		break;
-		case MOBO_SRC_TOSLINK0:
-			a1 = 3;
-		break;
-		case MOBO_SRC_TOSLINK1:
-			a1 = 4;
-		break;
-	}
-
-	if ( (a0 < RATE_FREQUENCIES) && (a1 < RATE_SOURCES) ) {
-		if (mode == RATE_STORE) {
-			storage[a0][a1] = state;
-			return 0;
-		}
-		else if (mode == RATE_RETRIEVE) {
-			return storage[a0][a1];
-		}
+	if (a0 >= RATE_FREQUENCIES) {
+		return RATE_INVALID;	// Faulty frequency
 	}
 	
-	return RATE_INVALID;	// Faulty address or input parameter
+	// Access individual registers
+	if (mode == RATE_STORE) {
+		// Warn if we're suddenly inverting state. That should NOT happen! At least not if storage[][] is properly reset by detection of disconnected input
+		if ( ( (storage[a0][a1] == SI_INSERT) && (state == SI_SKIP) ) ||
+		     ( (storage[a0][a1] == SI_SKIP) && (state == SI_INSERT) ) ) {
+			print_dbg_char('!');
+		}
+		storage[a0][a1] = state;
+		return 0;
+	}
+	else if (mode == RATE_RETRIEVE) {
+		return storage[a0][a1];
+	}
+	
+	return RATE_INVALID;	// Faulty input parameter
 }
 
 // Control USB multiplexer in HW_GEN_SPRX 

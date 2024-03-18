@@ -78,7 +78,9 @@ void mobo_clear_dac_channel(void);
 #define SI_INSERT					1
 #define RATE_STORE					0
 #define RATE_RETRIEVE				1
-#define RATE_INIT					2
+#define RATE_ALL_INIT				2
+#define RATE_CH_INIT				3
+#define RATE_PRINT					4
 #define RATE_INVALID				0x3F
 #define RATE_FREQUENCIES			6 // The number of relevant frequencies
 #define RATE_SOURCES				5 // The number of relevant sources

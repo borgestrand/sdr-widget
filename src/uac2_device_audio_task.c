@@ -1142,10 +1142,10 @@ void uac2_device_audio_task(void *pvParameters)
 				
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 				if (stored_direction == SI_INSERT) {	// Source is known to be slow and we should start late in buffer
-					spk_index += 2*SPK_GAP_SIOFS;
+					spk_index += SPK_GAP_SIOFS;
 				}
 				else if (stored_direction == SI_SKIP) {	// Source is known to be fast and we should start early in buffer
-					spk_index -= 2*SPK_GAP_SIOFS;
+					spk_index -= SPK_GAP_SIOFS;
 				}
 				
 				spk_index = spk_index & ~((U32)1); 		// Clear LSB in order to start with L sample

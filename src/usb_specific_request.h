@@ -118,7 +118,7 @@ extern volatile  Bool  usb_alternate_setting_changed, usb_alternate_setting_out_
 #define SPK_GAP_L1	  DAC_BUFFER_UNI * 3 / 8  	// A quarter buffer down in distance => Slow down host a bit
 #define SPK_GAP_L2	  DAC_BUFFER_UNI * 2 / 8  	// A half buffer down in distance => Slow down host a lot
 #define SPK_GAP_LSKIP DAC_BUFFER_UNI * 1 / 8	// Almost a full buffer down in distance => enable skip/insert
-#define SPK_GAP_SIOFS DAC_BUFFER_UNI * 1 / 8	// How far to move back or ahead based on known information on source
+#define SPK_GAP_SIOFS DAC_BUFFER_UNI * 1.2 / 8	// How far to move back or ahead based on known information on source
 
 // SPDIF buffer skip/insert limits
 #define SPK_GAP_L3	DAC_BUFFER_UNI * 2.0 / 8	// Lower limit for safe operation, starting point for skip/insert

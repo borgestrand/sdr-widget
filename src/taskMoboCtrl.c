@@ -157,7 +157,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
 	
 	#ifdef HW_GEN_SPRX										// Initiate table of source's rate of change
-		mobo_rate_storage(0, 0, 0, RATE_INIT);
+		mobo_rate_storage(0, 0, SI_NORMAL, RATE_ALL_INIT);
 	#endif
 
 
