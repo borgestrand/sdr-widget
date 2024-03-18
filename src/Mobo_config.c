@@ -368,8 +368,11 @@ int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mo
 		if ( ( (storage[a0][a1] == SI_INSERT) && (state == SI_SKIP) ) ||
 		     ( (storage[a0][a1] == SI_SKIP) && (state == SI_INSERT) ) ) {
 			print_dbg_char('!');
+			storage[a0][a1] = SI_NORMAL;				// Prevent crazy cycling back and forth. Start nominally every other time or so. Not a great improvement if the error strikes, but should cut the occurence in half
 		}
-		storage[a0][a1] = state;
+		else {
+			storage[a0][a1] = state;
+		}
 		return 0;
 	}
 	else if (mode == RATE_RETRIEVE) {

@@ -197,8 +197,8 @@ void uac2_device_audio_task(void *pvParameters)
 	Bool cache_holds_silence = TRUE;
 
 	// New code for adaptive USB fallback using skip / insert s/i
-	#define SI_PKG_RESOLUTION	1000			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250탎
-	#define SI_PKG_RESOLUTION_F	1200			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250탎 FORCE action
+	#define SI_PKG_RESOLUTION	2000 // 1000			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250탎
+	#define SI_PKG_RESOLUTION_F	2200 // 1200			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250탎 FORCE action
 	int8_t si_action = SI_NORMAL;
 	int32_t si_pkg_counter = 0;
 	int8_t si_pkg_increment = 0;				// Reset at sample rate change
@@ -1112,6 +1112,7 @@ void uac2_device_audio_task(void *pvParameters)
 			if (si_pkg_counter > SI_PKG_RESOLUTION_F) { 
 				si_pkg_counter = 0;							// instead of -= SI_PKG_RESOLUTION
 				si_action = si_pkg_direction;				// Apply only once in a while
+				print_dbg_char('F');
 			}
 			// ... or can we allow a peak into the recent history of packet energy? Enhanced with IIR filter!
 			else if (si_pkg_counter > SI_PKG_RESOLUTION) {
