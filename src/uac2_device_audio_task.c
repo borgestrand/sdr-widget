@@ -1143,15 +1143,15 @@ void uac2_device_audio_task(void *pvParameters)
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
 				if (stored_direction == SI_INSERT) {	// Source is known to be slow and we should start late in buffer
 					spk_index += SPK_GAP_SIOFS;
-					print_dbg_char('i');
+//					print_dbg_char('i');
 				}
 				else if (stored_direction == SI_SKIP) {	// Source is known to be fast and we should start early in buffer
 					spk_index -= SPK_GAP_SIOFS;
-					print_dbg_char('s');
+//					print_dbg_char('s');
 				}
 				
-				print_dbg_hex(spk_index);
-				print_dbg_char(' ');
+//				print_dbg_hex(spk_index);
+//				print_dbg_char(' ');
 				
 				spk_index = spk_index & ~((U32)1); 		// Clear LSB in order to start with L sample
 				if (spk_index >= DAC_BUFFER_UNI) {		// Stay within bounds
@@ -1161,8 +1161,8 @@ void uac2_device_audio_task(void *pvParameters)
 					spk_index += DAC_BUFFER_UNI;
 				}
 
-				print_dbg_hex(spk_index);
-				print_dbg_char(' ');
+//				print_dbg_hex(spk_index);
+//				print_dbg_char(' ');
 
 				gap = SPK_GAP_NOM;
 				old_gap = SPK_GAP_NOM;
