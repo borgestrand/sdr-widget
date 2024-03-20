@@ -191,14 +191,16 @@ void uac2_device_audio_task(void *pvParameters)
 	S32 si_score_low = 0x7FFFFFFF;
 	U32 si_index_low = 0;
 	S32 si_score_high = 0;
-	static S32 prev_si_score_high = 0;	
+	static S32 prev_si_score_high_025 = 0;	
+	static S32 prev_si_score_high_050 = 0;
 	U32 si_index_high = 0;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
 	Bool cache_holds_silence = TRUE;
 
 	// New code for adaptive USB fallback using skip / insert s/i
-	#define SI_PKG_RESOLUTION	2000 // 1000			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs
-	#define SI_PKG_RESOLUTION_F	2200 // 1200			// USB feedback resolution is 1kHz / 256 ~= 3.9Hz comparable to once every 1000 packets at 250µs FORCE action
+	#define SI_PKG_RESOLUTION	2000 // 1000			// Apply 025 IIR filter. 1000: Resolution: once every 2000 packets at 250µs packet rate
+	#define SI_PKG_RESOLUTION_H	2200 					// Apply 025 IIR filter
+	#define SI_PKG_RESOLUTION_F	2400 // 1200			// Force override
 	int8_t si_action = SI_NORMAL;
 	int32_t si_pkg_counter = 0;
 	int8_t si_pkg_increment = 0;				// Reset at sample rate change
@@ -1109,16 +1111,22 @@ void uac2_device_audio_task(void *pvParameters)
 
 			si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
 			// Must we force action?
-			if (si_pkg_counter > SI_PKG_RESOLUTION_F) { 
-				si_pkg_counter = 0;							// instead of -= SI_PKG_RESOLUTION
-				si_action = si_pkg_direction;				// Apply only once in a while
+			if (si_pkg_counter > SI_PKG_RESOLUTION_F) {			// "Force", apply skip/insert regardless
+				si_pkg_counter = 0;								// instead of -= SI_PKG_RESOLUTION
+				si_action = si_pkg_direction;					// Apply only once in a while
 				print_dbg_char('F');
 			}
-			// ... or can we allow a peak into the recent history of packet energy? Enhanced with IIR filter!
-			else if (si_pkg_counter > SI_PKG_RESOLUTION) {
-				if (si_score_high < prev_si_score_high) {	// si_score_high follows packet, prev_si_score_high is static
-					si_pkg_counter = 0;						// instead of -= SI_PKG_RESOLUTION
-					si_action = si_pkg_direction;			// Apply only once in a while
+			else if (si_pkg_counter > SI_PKG_RESOLUTION_H) {	// "Hint", apply sharper IIR filter when time may run out
+				if (si_score_high < prev_si_score_high_050) {	// si_score_high follows packet, prev_si_score_high is static
+					si_pkg_counter = 0;							// instead of -= SI_PKG_RESOLUTION
+					si_action = si_pkg_direction;				// Apply only once in a while
+				}
+				print_dbg_char('H');
+			}
+			else if (si_pkg_counter > SI_PKG_RESOLUTION) {		// Preferred: apply soft IIR filter
+				if (si_score_high < prev_si_score_high_025) {	// si_score_high follows packet, prev_si_score_high is static
+					si_pkg_counter = 0;							// instead of -= SI_PKG_RESOLUTION
+					si_action = si_pkg_direction;				// Apply only once in a while
 				}
 			}
 
@@ -1176,7 +1184,8 @@ void uac2_device_audio_task(void *pvParameters)
 				return_to_nominal = FALSE;				// Restart feedback system
 				prev_sample_L = 0;
 				prev_sample_R = 0;
-				prev_si_score_high = 0;					// Clear energy history
+				prev_si_score_high_025 = 0;				// Clear energy history
+				prev_si_score_high_050 = 0;				// Clear energy history
 				diff_value = 0;
 				diff_sum = 0;
 				
@@ -1185,7 +1194,8 @@ void uac2_device_audio_task(void *pvParameters)
 				must_init_spk_index = FALSE;
 			}
 
-			prev_si_score_high = (si_score_high >> 2) + (prev_si_score_high >> 2) + (prev_si_score_high >> 1);			// Establish energy history, primitive IIR, out(n) = 0.25*out(n-1) + 0.75*in(n)
+			prev_si_score_high_025 = (si_score_high >> 2) + (prev_si_score_high_025 >> 2) + (prev_si_score_high_025 >> 1);			// Establish energy history, primitive IIR, out(n) = 0.7ho5*out(n-1) + 0.25*in(n)
+			prev_si_score_high_050 = (si_score_high >> 1) + (prev_si_score_high_050 >> 1);											// Establish energy history, primitive IIR, out(n) = 0.5*out(n-1) + 0.5*in(n)
 
 			i = 0;
 			while (i < si_index_low) { // before skip/insert

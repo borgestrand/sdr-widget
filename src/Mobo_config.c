@@ -299,8 +299,9 @@ int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mo
 	}
 	else if (mode == RATE_PRINT) {
 		for (a0 = 0; a0 < RATE_FREQUENCIES; a0++) {
-			for (a1 = 0; a1 < RATE_SOURCES; a1++)
-			print_dbg_char_hex(storage[a0][a1]);
+			for (a1 = 0; a1 < RATE_SOURCES; a1++) {
+				print_dbg_char_hex(storage[a0][a1]);
+			}
 			print_dbg_char(' ');
 		}
 		return 0;
