@@ -198,7 +198,7 @@ void uac2_device_audio_task(void *pvParameters)
 	Bool cache_holds_silence = TRUE;
 
 	// New code for adaptive USB fallback using skip / insert s/i
-	#define SI_PKG_RESOLUTION	2000 // 1000			// Apply 025 IIR filter. 1000: Resolution: once every 2000 packets at 250µs packet rate
+	#define SI_PKG_RESOLUTION	2000 // 1000			// Apply 025 IIR filter. Resolution: once every 2000 packets at 250µs packet rate
 	#define SI_PKG_RESOLUTION_H	2200 					// Apply 025 IIR filter
 	#define SI_PKG_RESOLUTION_F	2400 // 1200			// Force override
 	int8_t si_action = SI_NORMAL;
@@ -988,7 +988,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 //				if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
 				if (gap < old_gap) {
-					if (gap < SPK_GAP_L2) { 					// gap < outer lower bound => 2*FB_RATE_DELTA
+					if (gap < SPK_GAP_LSKIP) { 					// gap < outer lower bound => 2*FB_RATE_DELTA, SI_SKIP
 						if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
 							FB_rate -= 2*FB_RATE_DELTA;
 						}
@@ -1048,7 +1048,7 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 				}
 				else if (gap > old_gap) {
-					if (gap > SPK_GAP_U2) { 			// gap > outer upper bound => 2*FB_RATE_DELTA
+					if (gap > SPK_GAP_USKIP) { 			// gap > outer upper bound => 2*FB_RATE_DELTA and SI_INSERT
 						if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
 							FB_rate += 2*FB_RATE_DELTA; 
 						}
