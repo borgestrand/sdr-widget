@@ -657,6 +657,9 @@ void uac2_device_audio_task(void *pvParameters)
 							for (i = 0; i < temp_num_samples; i++) {
 								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
 								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, R MSB
+
+								sample_L = (((U32) (uint8_t)(usb_16_0) ) << 24) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 16);
+								sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
 								
 								// Finding packet's point of lowest and highest "energy"
 								diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
