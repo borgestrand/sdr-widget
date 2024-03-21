@@ -663,7 +663,7 @@ void uac2_device_audio_task(void *pvParameters)
 								
 								// Finding packet's point of lowest and highest "energy"
 								diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
-								diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
+								diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample. 
 							
 								if (diff_sum < si_score_low) {
 									si_score_low = diff_sum;
