@@ -1011,13 +1011,15 @@ void uac2_device_audio_task(void *pvParameters)
 						si_pkg_increment ++;
 						si_pkg_direction = SI_SKIP;				// Host must slow down
 						
-						// rate/channel write status
-						if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
-							mobo_rate_storage(spdif_rx_status.frequency, input_select, si_pkg_direction, RATE_STORE);
-						}
-						else if (input_select == MOBO_SRC_UAC2) {	// Only applies to broken
-							mobo_rate_storage(spk_current_freq.frequency, input_select, si_pkg_direction, RATE_STORE);
-						}
+						#ifdef HW_GEN_SPRX 
+							// rate/channel write status
+							if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+								mobo_rate_storage(spdif_rx_status.frequency, input_select, si_pkg_direction, RATE_STORE);
+							}
+							else if (input_select == MOBO_SRC_UAC2) {	// Only applies to broken
+								mobo_rate_storage(spk_current_freq.frequency, input_select, si_pkg_direction, RATE_STORE);
+							}
+						#endif
 									
 						// Report to cpu and debug terminal
 						print_cpu_char(CPU_CHAR_DECDEC_FREQ);
@@ -1071,13 +1073,15 @@ void uac2_device_audio_task(void *pvParameters)
 						si_pkg_increment ++;
 						si_pkg_direction = SI_INSERT;			// Host must speed up
 						
-						// rate/channel write status
-						if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
-							mobo_rate_storage(spdif_rx_status.frequency, input_select, si_pkg_direction, RATE_STORE);
-						}
-						else if (input_select == MOBO_SRC_UAC2) {	// Only applies to broken 
-							mobo_rate_storage(spk_current_freq.frequency, input_select, si_pkg_direction, RATE_STORE);
-						}
+						#ifdef HW_GEN_SPRX
+							// rate/channel write status
+							if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+								mobo_rate_storage(spdif_rx_status.frequency, input_select, si_pkg_direction, RATE_STORE);
+							}
+							else if (input_select == MOBO_SRC_UAC2) {	// Only applies to broken 
+								mobo_rate_storage(spk_current_freq.frequency, input_select, si_pkg_direction, RATE_STORE);
+							}
+						#endif
 
 						// Report to cpu and debug terminal
 						print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
@@ -1152,25 +1156,31 @@ void uac2_device_audio_task(void *pvParameters)
 				// USB startup has this a little past the middle of the output buffer. But SPDIF startup seems to let it start a bit too soon
 				// æææ understand that before code can be fully trusted!
 
-				// rate/channel read status and adapt starting point in buffer
-				int8_t stored_direction = SI_NORMAL;
-				if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
-					stored_direction = mobo_rate_storage(spdif_rx_status.frequency, input_select, 0, RATE_RETRIEVE);
-				}
-				else if (input_select == MOBO_SRC_UAC2) {	// Only broken feedback system ever wrote to this one
-					stored_direction = mobo_rate_storage(spk_current_freq.frequency, input_select, 0, RATE_RETRIEVE);
-				}
-				
+				// Starting point basics
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-				if (stored_direction == SI_INSERT) {	// Source is known to be slow and we should start late in buffer
-					spk_index += SPK_GAP_SIOFS;
-//					print_dbg_char('i');
-				}
-				else if (stored_direction == SI_SKIP) {	// Source is known to be fast and we should start early in buffer
-					spk_index -= SPK_GAP_SIOFS;
-//					print_dbg_char('s');
-				}
+
+				// Starting point offset depending on detected source speed
+				#ifdef HW_GEN_SPRX
+					// rate/channel read status and adapt starting point in buffer
+					int8_t stored_direction = SI_NORMAL;
+					if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+						stored_direction = mobo_rate_storage(spdif_rx_status.frequency, input_select, 0, RATE_RETRIEVE);
+					}
+					else if (input_select == MOBO_SRC_UAC2) {	// Only broken feedback system ever wrote to this one
+						stored_direction = mobo_rate_storage(spk_current_freq.frequency, input_select, 0, RATE_RETRIEVE);
+					}
 				
+					if (stored_direction == SI_INSERT) {	// Source is known to be slow and we should start late in buffer
+						spk_index += SPK_GAP_SIOFS;
+//						print_dbg_char('i');
+					}
+					else if (stored_direction == SI_SKIP) {	// Source is known to be fast and we should start early in buffer
+						spk_index -= SPK_GAP_SIOFS;
+//						print_dbg_char('s');
+					}
+				#endif
+				
+				// Starting point adjustments
 				spk_index = spk_index & ~((U32)1); 		// Clear LSB in order to start with L sample
 				if (spk_index >= DAC_BUFFER_UNI) {		// Stay within bounds
 					spk_index -= DAC_BUFFER_UNI;
