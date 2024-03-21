@@ -43,7 +43,7 @@ Short buffers give less system latency and poorer synch state machine performanc
 
 #define SPK_CACHE_MAX_SAMPLES 120	// Maximum number of stereo samples in two package of 250µs (nominally 48 at 192ksps). That way we can miss one. As global 120 is OK. As local it refused to run above 60
 
-#define IS_SILENT		0x00040000 // Compare abs(sample) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
+#define IS_SILENT		0x00040000 >> 6 // Approximately: compare (si_score_high + abs(sample_L >> 8) + abs(sample_R) >> 8) to 4 LSBs at 16-bit audio, 1024 LSBs at 24-bit audio
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // ADC must be at least 4 times as fast as DAC in order to monitor SPDIF buffering
 	// Set up spdif receive timer to fire approximately once every 250µs (UAC2) or 1ms (UAC1) during SPDIF packet processing

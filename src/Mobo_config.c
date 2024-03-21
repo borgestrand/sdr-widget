@@ -1087,8 +1087,8 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		// Convert from pdca report to buffer address. _pos always points to left sample in LR stereo pair!
 		mobo_ADC_position_uni(&last_written_ADC_pos, local_captured_num_remaining);
 
+		bool silence_det = TRUE;		// We're looking for first non-zero audio-data
 
-		bool non_silence_det = FALSE;		// We're looking for first non-zero audio-data
 		// Cached if-test
 		bool we_own_cache = ( ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) );
 
@@ -1106,9 +1106,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			sample_L = audio_buffer[i];
 			sample_R = audio_buffer[i + 1];
 			
-			// Silence detect v3.0. Starts out as FALSE, remains TRUE after 1st detection of non-zero audio data 
-			non_silence_det = ( (non_silence_det) || (abs(sample_L) > IS_SILENT) || (abs(sample_R) > IS_SILENT) );
-
 			// Fill outgoing cache
 			// It is time consuming to test for each stereo sample!
 			if (we_own_cache) {					// Only write to cache and num_samples with the right permissions! And only bother with enerby math if it's considered by calling function
@@ -1150,6 +1147,16 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			prev_sample_R = sample_R;
 			prev_diff_value = diff_value;
 		} // while (i != last_written_ADC_pos) 
+
+
+		// Silence detector v.4 reuses energy detection code
+		// L = 0 0 0 256 0 0 0
+		// R = 0 0 0 256 0 0 0
+		// -> si_score_high = 4
+		// It is practically a right-shift by 6 bits
+		if ( (si_score_high + abs(sample_L >> 8) + abs(sample_R) >> 8) > IS_SILENT) {
+			silence_det = FALSE;
+		}
 		
 		// Do this once instead of for each sample
 		if (we_own_cache) {
@@ -1157,20 +1164,15 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			*si_index_low = temp_si_index_low;
 			*si_score_high = temp_si_score_high;
 			*si_index_high = temp_si_index_high;
-			if (non_silence_det) {
-				*cache_holds_silence = FALSE;
-			}
-			else {
-				*cache_holds_silence = TRUE;
-			}
+			*cache_holds_silence = silence_det;		// Use this to determine how to use contents of cache
 		}
 
 		// Report silence to wm8804 subsystem
-		if (non_silence_det) {
-			spdif_rx_status.silent = 0;
+		if (silence_det) {
+			spdif_rx_status.silent = 1;
 		}
 		else {
-			spdif_rx_status.silent = 1;
+			spdif_rx_status.silent = 0;
 		}
 		
 		// Establish history - What to do at player start? Should it be continuously updated at idle? What about spdif source toggle?
@@ -1179,6 +1181,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		
 		
 		// Puting untested init code here.... "øøø" æææ
+		// Can we 
 		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
 				ADC_buf_I2S_IN = 0;							// Disable further init

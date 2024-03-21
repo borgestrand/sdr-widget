@@ -150,7 +150,8 @@ void uac2_device_audio_task(void *pvParameters)
 //	static Bool startup=TRUE;
 	Bool playerStarted = FALSE; // BSB 20150516: changed into global variable
 	int i = 0;
-	S32 num_samples = 0;
+	S32 num_samples = 0;	// Used only to validate cache contents!
+	S32 temp_num_samples = 0;
 	S32 gap = 0;
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
@@ -504,8 +505,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 					/*
 					// Needed in minimal USB functionality?
-					num_samples = Usb_byte_count(EP_AUDIO_OUT);
-					for (i = 0; i < num_samples; i++) {
+					temp_num_samples = Usb_byte_count(EP_AUDIO_OUT);
+					for (i = 0; i < temp_num_samples; i++) {
 						Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
 					}
 					*/
@@ -521,25 +522,25 @@ void uac2_device_audio_task(void *pvParameters)
 				if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-					num_samples = Usb_byte_count(EP_AUDIO_OUT);
+					temp_num_samples = Usb_byte_count(EP_AUDIO_OUT);
 					
-					// num_samples != 0 is needed for non-silence detection of first USB packet. But unless we own the output DMA channel, reset num_samples to 0 and don't write to cache!
+					// temp_num_samples != 0 is needed for non-silence detection of first USB packet. But unless we own the output DMA channel, reset temp_num_samples to 0 and don't write to cache!
 
 					// bBitResolution
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample with FORMAT_SUBSLOT_SIZE_1 = 4. Must use /6 with FORMAT_SUBSLOT_SIZE_1 = 3
-						num_samples = num_samples / 6;
+						temp_num_samples = temp_num_samples / 6;
 					}
 					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) { // Alternate 2 16 bits/sample, 4 bytes per stereo sample
-							num_samples = num_samples / 4;
+							temp_num_samples = temp_num_samples / 4;
 						}
 					#endif
 					else
-						num_samples = 0;											// Should never get here...
+						temp_num_samples = 0;											// Should never get here...
 
 					xSemaphoreTake( mutexSpkUSB, portMAX_DELAY ); // Isn't this horribly time consuming? 
 					spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
-					spk_usb_sample_counter += num_samples; 	// track the num of samples received
+					spk_usb_sample_counter += temp_num_samples; 	// track the num of samples received
 					xSemaphoreGive(mutexSpkUSB);
 					
 					// æææ how much of this must be done each time this loop detect input_select == idle?
@@ -588,25 +589,17 @@ void uac2_device_audio_task(void *pvParameters)
 					si_index_low = 0;				// Location of "lowest energy", reset for each iteration
 					si_score_high = 0;				// Lowest positive number, reset for each iteration
 					si_index_high = 0;				// Location of "highest energy", reset for each iteration
-					silence_det_L = 0;				// We're looking for non-zero or non-static audio data.. Not sure exactly how this works.....
-					silence_det_R = 0;				// We're looking for non-zero or non-static audio data..
-
-
-					// Test usb alt setting once outside for loop, use tight loops into cache
+					silence_det = TRUE;				// We're looking for first non-zero audio-data
 
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
-						num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
-						for (i = 0; i < num_samples; i++) {
+						temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
+						for (i = 0; i < (temp_num_samples; i++) {
 							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
 							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
 							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
 							
 							sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
-							silence_det_L |= sample_L;
-
 							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
-							silence_det_R |= sample_R;
-
 
 							// Finding packet's point of lowest and highest "energy"
 							diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
@@ -655,22 +648,17 @@ void uac2_device_audio_task(void *pvParameters)
 							prev_sample_L = sample_L;
 							prev_sample_R = sample_R;
 							prev_diff_value = diff_value;
-						} // end for num_samples
+						} // end for temp_num_samples
 					} // end if alt setting 1
 
-					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio						
+					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
+										
 						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
-							num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
-							for (i = 0; i < num_samples; i++) {
+							temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
+							for (i = 0; i < temp_num_samples; i++) {
 								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
 								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, R MSB
 								
-								sample_L = (((U32) (uint8_t)(usb_16_0) ) << 24) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 16);
-								silence_det_L |= sample_L;
-
-								sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
-								silence_det_R |= sample_R; 							
-
 								// Finding packet's point of lowest and highest "energy"
 								diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 								diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
@@ -718,22 +706,23 @@ void uac2_device_audio_task(void *pvParameters)
 								prev_sample_L = sample_L;
 								prev_sample_R = sample_R;
 								prev_diff_value = diff_value;
-							} // end for num_samples
+							} // end for temp_num_samples
 						} // end if alt setting 2
 					#endif // UAC2 ALT 2 for 16-bit audio						
 
 //					gpio_clr_gpio_pin(AVR32_PIN_PX31);		// End copying DAC data from USB OUT to cache
 
-
-					// Moved to outside for loop
-
-					if ( (silence_det_L == sample_L) && (silence_det_R == sample_R) )	// What does this test really do???
-						silence_det = 1;
-					else
-						silence_det = 0;
+					// Silence detector v.4 reuses energy detection code
+					// L = 0 0 0 256 0 0 0
+					// R = 0 0 0 256 0 0 0
+					// -> si_score_high = 4
+					// It is practically a right-shift by 6 bits
+					if ( (si_score_high + abs(sample_L >> 8) + abs(sample_R) >> 8) > IS_SILENT) {
+						silence_det = FALSE;
+					}
 
 					// New site for setting playerStarted and aligning buffers
-					if (silence_det == 0) {		// There is actual USB audio.
+					if (!silence_det) {		// There is actual USB audio.
 //						#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 						#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )	// For USB playback, handle semaphores
 							if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take for RT reasons
@@ -770,6 +759,14 @@ void uac2_device_audio_task(void *pvParameters)
 							input_select = MOBO_SRC_UAC2;
 						#endif
 					} // End silence_det == 0 & MOBO_SRC_NONE
+
+
+					// Validate the data we just put into the cache so that it can be read from there
+					if (input_select == MOBO_SRC_UAC2) {
+						cache_holds_silence = silence_det;		// Use this to determine how to use contents of cache
+						num_samples = temp_num_samples;
+					}
+
 
 					// End of writing USB OUT data to cache. Writing takes place at the end of this function
 
