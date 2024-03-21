@@ -178,9 +178,7 @@ void uac2_device_audio_task(void *pvParameters)
 	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
-	uint32_t silence_det_L = 0;		// æææ Rewrite silence detection within cache context
-	uint32_t silence_det_R = 0;
-	uint8_t silence_det = 0;
+	Bool silence_det = 0;
 
 // Start new code for skip/insert
 	static bool return_to_nominal = FALSE;		// Tweak frequency feedback system
@@ -197,6 +195,7 @@ void uac2_device_audio_task(void *pvParameters)
 	U32 si_index_high = 0;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
 	Bool cache_holds_silence = TRUE;
+	uint16_t cache_silence_counter = 0;
 
 	// New code for adaptive USB fallback using skip / insert s/i
 	#define SI_PKG_RESOLUTION	2000 // 1000			// Apply 025 IIR filter. Resolution: once every 2000 packets at 250µs packet rate
@@ -593,7 +592,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 						temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
-						for (i = 0; i < (temp_num_samples; i++) {
+						for (i = 0; i < temp_num_samples; i++) {
 							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
 							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
 							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
@@ -717,7 +716,7 @@ void uac2_device_audio_task(void *pvParameters)
 					// R = 0 0 0 256 0 0 0
 					// -> si_score_high = 4
 					// It is practically a right-shift by 6 bits
-					if ( (si_score_high + abs(sample_L >> 8) + abs(sample_R) >> 8) > IS_SILENT) {
+					if ( (si_score_high + (abs(sample_L) >> 8) + (abs(sample_R) >> 8) ) > IS_SILENT) {
 						silence_det = FALSE;
 					}
 
@@ -960,14 +959,31 @@ void uac2_device_audio_task(void *pvParameters)
 			prev_input_select = input_select;
 		#endif
 
-
-// ææææ consider cache_holds_silence from spdif system, and generate it in USB system!
-
 		// Start checking gap adn then writing from chache to spk_buffer
 		// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
 
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {									// Only start copying when there is something to legally copy
+
+// ææææ consider cache_holds_silence
+
+			#define CACHE_SILENCE_LIMIT	200						// 50ms of silence at 250µs packet rate
+
+			if (cache_holds_silence) {
+				gpio_set_gpio_pin(AVR32_PIN_PX20);
+				if (cache_silence_counter < CACHE_SILENCE_LIMIT) {
+					cache_silence_counter ++;
+				}
+				else {
+					must_init_spk_index = TRUE;					// Long silence written through cache = may extend or shorten silence period
+					// must_init_spk_index == TRUE will set cache_silence_counter = 0; so that we don't clear again and again
+				}
+			} 
+			else {
+				gpio_clr_gpio_pin(AVR32_PIN_PX20);
+				cache_silence_counter = 0;
+			}
+
 
 			si_action = SI_NORMAL;								// Most of the time, don't apply s/i. Only determine whether to s/i when time_to_calculate_gap == 0
 
@@ -983,7 +999,6 @@ void uac2_device_audio_task(void *pvParameters)
 					gap += DAC_BUFFER_UNI;
 				}
 
-//				if(playerStarted) {		// æææ rather depend on input_select == MOBO_SRC_UAC2 ?
 				if (gap < old_gap) {
 					if (gap < SPK_GAP_LSKIP) { 					// gap < outer lower bound => 2*FB_RATE_DELTA, SI_SKIP
 						if (usb_alternate_setting_out >= 1) {	// Rate system is only used by UAC2
@@ -1106,7 +1121,7 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 			} // end if time_to_calculate_gap == 0
 
-			si_pkg_counter += si_pkg_increment;		// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
+			si_pkg_counter += si_pkg_increment;					// When must we perform s/i? This doesn't yet account for zero packages or historical energy levels
 			// Must we force action?
 			if (si_pkg_counter > SI_PKG_RESOLUTION_F) {			// "Force", apply skip/insert regardless
 				si_pkg_counter = 0;								// instead of -= SI_PKG_RESOLUTION
@@ -1138,7 +1153,7 @@ void uac2_device_audio_task(void *pvParameters)
 				// æææ understand that before code can be fully trusted!
 
 				// rate/channel read status and adapt starting point in buffer
-				int8_t stored_direction;
+				int8_t stored_direction = SI_NORMAL;
 				if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 					stored_direction = mobo_rate_storage(spdif_rx_status.frequency, input_select, 0, RATE_RETRIEVE);
 				}
@@ -1156,9 +1171,6 @@ void uac2_device_audio_task(void *pvParameters)
 //					print_dbg_char('s');
 				}
 				
-//				print_dbg_hex(spk_index);
-//				print_dbg_char(' ');
-				
 				spk_index = spk_index & ~((U32)1); 		// Clear LSB in order to start with L sample
 				if (spk_index >= DAC_BUFFER_UNI) {		// Stay within bounds
 					spk_index -= DAC_BUFFER_UNI;
@@ -1166,9 +1178,6 @@ void uac2_device_audio_task(void *pvParameters)
 				else if (spk_index < 0) {			// Stay within bounds
 					spk_index += DAC_BUFFER_UNI;
 				}
-
-//				print_dbg_hex(spk_index);
-//				print_dbg_char(' ');
 
 				gap = SPK_GAP_NOM;
 				old_gap = SPK_GAP_NOM;
@@ -1185,6 +1194,7 @@ void uac2_device_audio_task(void *pvParameters)
 				prev_si_score_high_050 = 0;				// Clear energy history
 				diff_value = 0;
 				diff_sum = 0;
+				cache_silence_counter = 0;				// Don't look for cached silence for a little while
 				
 //				pcm5142_unmute();						// Experiment to prevent tick-pop during silence. This alone doesn't help!
 				

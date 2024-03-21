@@ -1154,7 +1154,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		// R = 0 0 0 256 0 0 0
 		// -> si_score_high = 4
 		// It is practically a right-shift by 6 bits
-		if ( (si_score_high + abs(sample_L >> 8) + abs(sample_R) >> 8) > IS_SILENT) {
+		if ( (temp_si_score_high + (abs(sample_L) >> 8) + (abs(sample_R) >> 8) ) > IS_SILENT ) {
 			silence_det = FALSE;
 		}
 		
