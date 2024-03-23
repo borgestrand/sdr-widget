@@ -968,12 +968,9 @@ void uac2_device_audio_task(void *pvParameters)
 		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
 		if (num_samples > 0) {									// Only start copying when there is something to legally copy
 
-// ææææ consider cache_holds_silence
-
+			// Consider long periods of silence to cause buffer reset
 			#define CACHE_SILENCE_LIMIT	200						// 50ms of silence at 250µs packet rate
-
 			if (cache_holds_silence) {
-				gpio_set_gpio_pin(AVR32_PIN_PX20);
 				if (cache_silence_counter < CACHE_SILENCE_LIMIT) {
 					cache_silence_counter ++;
 				}
@@ -983,7 +980,6 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 			} 
 			else {
-				gpio_clr_gpio_pin(AVR32_PIN_PX20);
 				cache_silence_counter = 0;
 			}
 
