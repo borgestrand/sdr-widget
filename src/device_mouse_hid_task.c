@@ -379,7 +379,7 @@ void device_mouse_hid_task(void)
 	            pcm5142_mute() ;
             }
 
-            else if (a == 'x') {							// Lowercase x
+            else if (a == 'j') {							// Lowercase j
 				/* Select input					
 				MOBO_SRC_SPDIF0		3
 				MOBO_SRC_TOSLINK1	4
@@ -390,7 +390,7 @@ void device_mouse_hid_task(void)
 				mobo_SPRX_input(temp);
             }
 			
-			else if (a == 'X') {							// Uppercase X
+			else if (a == 'J') {							// Uppercase J
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				if (temp == 0) {
 					print_dbg_char(' ');
