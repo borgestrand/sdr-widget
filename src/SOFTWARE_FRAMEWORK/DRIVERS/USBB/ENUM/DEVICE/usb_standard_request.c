@@ -462,6 +462,75 @@ void usb_get_status(void)
 }
 
 
+// BSB 20240717 splitting tests out as separate functions
+void usb_test_J(void) {
+	Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
+	Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTJ_MASK);
+}
+
+void usb_test_K(void) {
+	Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
+	Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTK_MASK);
+}
+
+void usb_test_SE0_NAK(void) {
+	Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
+}
+
+void usb_test_packet(void) {
+/*	Original test_packet
+    static const U8 test_packet[] =
+    {
+	    // 00000000 * 9
+	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	    // 01010101 * 8
+	    0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
+	    // 01110111 * 8
+	    0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE,
+	    // 0, {111111S * 15}, 111111
+	    0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+	    // S, 111111S, {0111111S * 7}
+	    0x7F, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD,
+	    // 00111111, {S0111111 * 9}, S0
+	    0xFC, 0x7E, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD, 0x7E
+    };
+*/		
+	// test_packet inspired by usb_20.pdf section 7.1.20
+    static const U8 test_packet[] =
+    {
+		// {00000000 * 3}, 00000001
+		0x00, 0x00, 0x00, 0x01,	
+		// 11000011
+		0xC3,
+	    // 00000000 * 9
+	    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	    // 01010101 * 8
+	    0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
+	    // 01110111 * 8
+	    0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE,
+	    // 0, {111111S * 15}, 111111
+	    0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+	    // S, 111111S, {0111111S * 7}
+	    0x7F, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD,
+	    // 00111111, {S0111111 * 9}, S0
+	    0xFC, 0x7E, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD, 0x7E,
+		// 01101101   01110011
+		0x6D, 0x73,
+		// 01111111
+		0x7F
+    };
+
+	Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
+	Usb_disable_endpoint(EP_CONTROL);
+	Usb_unallocate_memory(EP_CONTROL);
+	(void)Usb_configure_endpoint(EP_CONTROL, TYPE_BULK, DIRECTION_IN, 64, SINGLE_BANK, 0);
+	Usb_reset_endpoint(EP_CONTROL);
+	Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTPCKT_MASK);
+	usb_write_ep_txpacket(EP_CONTROL, &test_packet, sizeof(test_packet), NULL);
+	Usb_send_in(EP_CONTROL);
+}
+
+
 //! This function manages the SET FEATURE request. The USB test modes are
 //! supported by this function.
 //!
@@ -500,80 +569,29 @@ void usb_set_feature(void)
       Usb_ack_setup_received_free();
       Usb_ack_control_in_ready_send();
       while (!Is_usb_control_in_ready());
-      Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
-      Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTJ_MASK);
+	  usb_test_J();
       break;
 
     case TEST_K:
       Usb_ack_setup_received_free();
       Usb_ack_control_in_ready_send();
       while (!Is_usb_control_in_ready());
-      Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
-      Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTK_MASK);
+      usb_test_K();	  
       break;
 
     case TEST_SE0_NAK:
       Usb_ack_setup_received_free();
       Usb_ack_control_in_ready_send();
       while (!Is_usb_control_in_ready());
-      Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
-      break;
+      usb_test_SE0_NAK();
+	  break;
 
     case TEST_PACKET:
       {
-/*	Original test_packet
-        static const U8 test_packet[] =
-        {
-	        // 00000000 * 9
-	        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	        // 01010101 * 8
-	        0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
-	        // 01110111 * 8
-	        0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE,
-	        // 0, {111111S * 15}, 111111
-	        0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	        // S, 111111S, {0111111S * 7}
-	        0x7F, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD,
-	        // 00111111, {S0111111 * 9}, S0
-	        0xFC, 0x7E, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD, 0x7E
-        };
-*/		
-		// test_packet inspired by usb_20.pdf section 7.1.20
-        static const U8 test_packet[] =
-        {
-			// {00000000 * 3}, 00000001
-			0x00, 0x00, 0x00, 0x01,	
-			// 11000011
-			0xC3,
-	        // 00000000 * 9
-	        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	        // 01010101 * 8
-	        0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0xAA,
-	        // 01110111 * 8
-	        0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE, 0xEE,
-	        // 0, {111111S * 15}, 111111
-	        0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
-	        // S, 111111S, {0111111S * 7}
-	        0x7F, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD,
-	        // 00111111, {S0111111 * 9}, S0
-	        0xFC, 0x7E, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD, 0x7E,
-			// 01101101   01110011
-			0x6D, 0x73,
-			// 01111111
-			0x7F
-        };
-
         Usb_ack_setup_received_free();
         Usb_ack_control_in_ready_send();
         while (!Is_usb_control_in_ready());
-        Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
-        Usb_disable_endpoint(EP_CONTROL);
-        Usb_unallocate_memory(EP_CONTROL);
-        (void)Usb_configure_endpoint(EP_CONTROL, TYPE_BULK, DIRECTION_IN, 64, SINGLE_BANK, 0);
-        Usb_reset_endpoint(EP_CONTROL);
-        Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTPCKT_MASK);
-        usb_write_ep_txpacket(EP_CONTROL, &test_packet, sizeof(test_packet), NULL);
-        Usb_send_in(EP_CONTROL);
+		usb_test_packet();
       }
       break;
 
