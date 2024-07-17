@@ -249,11 +249,11 @@ void uac2_freq_change_handler() {
 		samples_per_package_max = (spk_current_freq.frequency >> 12) + (spk_current_freq.frequency >> 14);
 		must_init_xo = TRUE;
 //		must_init_spk_index = TRUE;							// New frequency setting means resync DAC DMA
-		print_dbg_char('V');		
+//		print_dbg_char('V');		
 	}
 #else
 	spk_mute = TRUE; // mute speaker while changing frequency and oscillator
-	print_dbg_char_char('=');
+//	print_dbg_char_char('=');
 	mobo_clear_dac_channel();
 
 	samples_per_package_min = (spk_current_freq.frequency >> 12) - (spk_current_freq.frequency >> 14);
@@ -261,7 +261,7 @@ void uac2_freq_change_handler() {
 	mobo_xo_select(spk_current_freq.frequency, input_select);				// GPIO XO control and frequency indication
 	mobo_clock_division(spk_current_freq.frequency);
 	must_init_spk_index = TRUE;								// New frequency setting means resync DAC DMA
-	print_dbg_char('W');
+//	print_dbg_char('W');
 #endif
 
 	/*
