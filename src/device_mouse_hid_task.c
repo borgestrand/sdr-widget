@@ -430,6 +430,15 @@ void device_mouse_hid_task(void)
 				vTaskDelay(100);							// Is this 10us?
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
             }
+			
+            // USB test modes called from UART debug - not from USB command
+			else if (a == 'T') {							// Uppercase T
+				usb_test_J();
+				usb_test_K();
+				usb_test_SE0_NAK();
+				usb_test_packet();
+            }
+            
 
 			#ifdef I2S_POLARITY_CHECK
 				else if (a == 'p') {							// Lowercase p

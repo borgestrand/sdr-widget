@@ -89,6 +89,11 @@
 #include "usb_task.h"
 #include "usb_descriptors.h"
 
+// BSB 20240717 splitting tests out as separate functions
+void usb_test_J(void);
+void usb_test_K(void);
+void usb_test_SE0_NAK(void);
+void usb_test_packet(void);
 
 //-----------------------------------------------------------------------------
 // Definition of Standard device request

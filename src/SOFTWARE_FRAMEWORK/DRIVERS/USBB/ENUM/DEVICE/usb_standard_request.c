@@ -102,7 +102,7 @@ static  void    usb_get_descriptor   (void);
 static  void    usb_set_address      (void);
 static  void    usb_set_configuration(void);
 static  void    usb_clear_feature    (void);
-static  void    usb_set_feature      (void);
+static  void    usb_set_feature      (void); // Its constituent parts are declared in usb_standard_request.h
 static  void    usb_get_status       (void);
 static  void    usb_get_configuration(void);
 static  Bool    usb_get_interface    (void);
