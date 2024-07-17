@@ -1,6 +1,6 @@
 
 # These defaults are compiled into code, not necessarily forced
-# into flash. To force them into flash, reboot with  
+# into flash. To force them into flash, reboot with 
 # feature_quirk_ptest set in flash, which will lead to flash being
 # overwritten with defaults
 #
@@ -56,9 +56,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_GPIO \
 	-DFEATURE_HID \
 	\
-	-DI2S_POLARITY_CHECK \
-	-DFEATURE_PRODUCT_BOEC1 \
-	-DUSB_REDUCED_DEBUG \
+	-DFEATURE_PRODUCT_HA256 \
 	-DFEATURE_ALT2_16BIT \
 	-DHW_GEN_SPRX
 	
@@ -74,17 +72,17 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 #	-DHW_GEN_AB1X \
 #	-DFEATURE_VOLUME_CTRL
 
-# Henry Audio USB DAC 256 (SPRX) after "\" 
+# Henry Audio USB DA 256 (SPRX) after "\" 
 ##	-DFEATURE_VOLUME_CTRL \
 ##	-DI2S_POLARITY_CHECK \
-#	-DBOOT_SIGNAL_LED \
+##	-DBOOT_SIGNAL_LED \
 #	-DFEATURE_PRODUCT_HA256 \
 #	-DFEATURE_ALT2_16BIT \
 #	-DHW_GEN_SPRX
 
 # Boenicke (SPRX) after "\" NB: check register 0x08 / R8 of WM8804 to enable regenerated MCLK when that is needed 
-#	-DFEATURE_UNINVERT_LRCK \
 #	-DFEATURE_PRODUCT_BOEC1 \
+#	-DI2S_POLARITY_CHECK \
 #	-DUSB_REDUCED_DEBUG \
 #	-DFEATURE_ALT2_16BIT \
 #	-DHW_GEN_SPRX
