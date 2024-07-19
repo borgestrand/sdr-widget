@@ -240,6 +240,35 @@ void device_mouse_hid_task(void)
 
             // If you need the UART for something other than HID, this is where you interpret it!
 
+            // USB test modes called from UART debug - not from USB command
+            else if (a == 'T') {							// Uppercase T
+	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+	            
+				#ifdef HW_GEN_SPRX 
+					// First digit determines USB port, B, C or no change from VBUS based detection code
+					if ((temp >> 8) == 0x0B) {
+						mobo_usb_select(USB_CH_B);
+						print_dbg_char('B');
+					}
+					else if ((temp >> 8) == 0x0C) {
+						mobo_usb_select(USB_CH_C);
+						print_dbg_char('C');
+					}
+					else {
+						print_dbg_char('0');
+					}
+				#else
+		            print_dbg_char('0');
+				#endif
+	            
+	            // Second digit determines test to execute
+	            temp &= 0x0F;
+	            if (temp == 0)		print_dbg_char('X');	// Dry run
+	            else if (temp == 1)	usb_test_J();
+	            else if (temp == 2)	usb_test_K();
+	            else if (temp == 3)	usb_test_SE0_NAK();
+	            else if (temp == 4)	usb_test_packet();
+            }
 
 
 #ifdef HW_GEN_FMADC
@@ -431,15 +460,6 @@ void device_mouse_hid_task(void)
 	            gpio_clr_gpio_pin(AVR32_PIN_PA25); 			// RESET_N / NSRST = 0
             }
 			
-            // USB test modes called from UART debug - not from USB command
-			else if (a == 'T') {							// Uppercase T
-				usb_test_J();
-				usb_test_K();
-				usb_test_SE0_NAK();
-				usb_test_packet();
-            }
-            
-
 			#ifdef I2S_POLARITY_CHECK
 				else if (a == 'p') {							// Lowercase p
 					uint8_t lrck_counter = 0;
