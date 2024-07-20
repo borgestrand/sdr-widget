@@ -1197,7 +1197,9 @@ void uac2_device_audio_task(void *pvParameters)
 					#endif
 							mobo_xo_select(spk_current_freq.frequency, input_select);
 							mobo_clock_division(spk_current_freq.frequency);
-							// mobo_led_select(spk_current_freq.frequency, input_select); // Not used in non-sprx hardware
+							#ifdef HW_GEN_SPRX
+								mobo_led_select(spk_current_freq.frequency, input_select); // Not used in non-sprx hardware
+							#endif
 						}
 
 					must_init_xo = FALSE;

@@ -504,7 +504,12 @@ void mobo_led_select(U32 frequency, uint8_t source) {
 		break;
 
 		case MOBO_SRC_UAC2:
-			mobo_led(FLED_RED);		// Classical color UAC2
+			if (usb_ch == USB_CH_C) {
+				mobo_led(FLED_BLUE);	// USB-C UAC2
+			}
+			else {
+				mobo_led(FLED_RED);		// USB-B UAC2
+			}
 		break;
 
 		case MOBO_SRC_SPDIF0:

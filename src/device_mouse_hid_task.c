@@ -529,7 +529,7 @@ Arash
 			
 			
             // LED debug
-            else if (a == 'L') {							// Uppercase L
+            else if (a == 'l') {							// Lowercase l
 	            // 1 hex characters to LED. 0x00-0x07 are valid.
 	            // RED			1
 	            // GREEN		2

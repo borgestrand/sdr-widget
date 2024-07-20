@@ -494,9 +494,33 @@ void usb_test_packet(void) {
 	    0xFC, 0x7E, 0xBF, 0xDF, 0xEF, 0xF7, 0xFB, 0xFD, 0x7E
     };
 
+
+	// Moved from USB response code - isn't this just to verify reception of test command? Will it still make sense when initiated from UART debug?	Yep, with these lines here the UART won't start test modes!
+//    Usb_ack_setup_received_free();
+//    Usb_ack_control_in_ready_send();
+//    while (!Is_usb_control_in_ready());
+	
+
 	Wr_bitfield(AVR32_USBB_udcon, AVR32_USBB_UDCON_SPDCONF_MASK, 2);
+
+	// Disable control endpoint in original code
 	Usb_disable_endpoint(EP_CONTROL);
 	Usb_unallocate_memory(EP_CONTROL);
+	
+	// Disable all other endpoints for good measure
+	Usb_disable_endpoint(EP_1);
+	Usb_unallocate_memory(EP_1);
+	Usb_disable_endpoint(EP_2);
+	Usb_unallocate_memory(EP_2);
+	Usb_disable_endpoint(EP_3);
+	Usb_unallocate_memory(EP_3);
+	Usb_disable_endpoint(EP_4);
+	Usb_unallocate_memory(EP_4);
+	Usb_disable_endpoint(EP_5);
+	Usb_unallocate_memory(EP_5);
+	Usb_disable_endpoint(EP_6);
+	Usb_unallocate_memory(EP_6);
+	
 	(void)Usb_configure_endpoint(EP_CONTROL, TYPE_BULK, DIRECTION_IN, 64, SINGLE_BANK, 0);
 	Usb_reset_endpoint(EP_CONTROL);
 	Set_bits(AVR32_USBB_udcon, AVR32_USBB_UDCON_TSTPCKT_MASK);
@@ -562,6 +586,7 @@ void usb_set_feature(void)
 
     case TEST_PACKET:
       {
+		// Ack reception of test mode command
         Usb_ack_setup_received_free();
         Usb_ack_control_in_ready_send();
         while (!Is_usb_control_in_ready());
