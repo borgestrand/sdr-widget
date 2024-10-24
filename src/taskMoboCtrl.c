@@ -217,9 +217,6 @@ static void vtaskMoboCtrl( void * pcParameters )
     		}
 */
 
-    		if (gpio_get_pin_value(PRG_BUTTON) == 0) {
-				print_dbg_char('p');
-    		}
 
  /* UAC2 only - remove Prog pin UAC toggle
     		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) && (btn_poll_temp != 100) ) {	// If Prog button pressed and not yet handled..

@@ -173,7 +173,7 @@ void device_mouse_hid_task(void)
   const U8 ReportByte0 = 0x01;	// Report ID doesn't change
   U8 ReportByte1 = 0;			// 1st variable byte of HID report
   U8 ReportByte2 = 0; 			// 2nd variable byte of HID report
-  U8 ReportByte1_prev = 0;		// Previous ReportByte1
+  U8 Button_history	= 0;		// Previous button action
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
   uint8_t temp, temp2;			// Temporary debug data
@@ -576,6 +576,45 @@ Arash
 
     	} // if (readkey())
 
+
+		// Establish PRG_BUTTON history with software debounce and edge detect
+		Button_history = Button_history << 1;
+		
+		static uint8_t button_filter_counter = 0;
+
+    	if ( (gpio_get_pin_value(PRG_BUTTON) == 0) ) {		// Check if Prog button is pushed down
+			Button_history |= 0x01;							// Button presses stored as '1'
+    	}
+		if (Button_history == 0b00001111) {					// Detected Press
+			print_dbg_char('P');							// Indicate press
+			
+			// Use key press to toggle DAC filters
+			button_filter_counter++;
+			button_filter_counter &= 0x03;					// Circle 0 through 3
+			
+			if (button_filter_counter == 0) {
+				mobo_led(FLED_RED);
+				pcm5142_filter(1);
+			}
+			else if (button_filter_counter == 1) {
+				mobo_led(FLED_GREEN);
+				pcm5142_filter(2);
+			}
+			else if (button_filter_counter == 2) {
+				mobo_led(FLED_BLUE);
+				pcm5142_filter(3);
+			}
+			else if (button_filter_counter == 3) {
+				mobo_led(FLED_WHITE);
+				pcm5142_filter(7);
+			}
+
+		}
+		else if (Button_history == 0b11110000) {			// Detected Release
+			print_dbg_char('R');							// Indicate release
+		}
+
+
     	else { 											   	// GPIO pin _changes_ are sent to Host
 /*
     		if ( (gpio_get_pin_value(PRG_BUTTON) == 0) ) {	// Check if Prog button is pushed down
@@ -589,12 +628,6 @@ Arash
 			}
 */
 
-			// Add more pins to poll here!
-
-			if (ReportByte1 != ReportByte1_prev) {			// Did we record a button change to send to Host?
-				gotcmd = 1;
-				ReportByte1_prev = ReportByte1;
-			}
 
     	} // else, !readkey
 
