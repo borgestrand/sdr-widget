@@ -173,7 +173,7 @@ void device_mouse_hid_task(void)
   const U8 ReportByte0 = 0x01;	// Report ID doesn't change
   U8 ReportByte1 = 0;			// 1st variable byte of HID report
   U8 ReportByte2 = 0; 			// 2nd variable byte of HID report
-  U8 Button_history	= 0;		// Previous button action
+  U8 button_history	= 0;		// Previous button action
   char a = 0;					// ASCII character as part of HID protocol over uart
   char gotcmd = 0;				// Initially, no user command was recorded
   uint8_t temp, temp2;			// Temporary debug data
@@ -578,16 +578,21 @@ Arash
 
 
 		// Establish PRG_BUTTON history with software debounce and edge detect
-		Button_history = Button_history << 1;
+		button_history = button_history << 1;
 		
 		static uint8_t button_filter_counter = 0;
 
     	if ( (gpio_get_pin_value(PRG_BUTTON) == 0) ) {		// Check if Prog button is pushed down
-			Button_history |= 0x01;							// Button presses stored as '1'
+			button_history |= 0x01;							// Button presses stored as '1'
     	}
-		if (Button_history == 0b00001111) {					// Detected Press
+		if (button_history == 0b00001111) {					// Detected Press
 			print_dbg_char('P');							// Indicate press
 			
+			
+			mobo_led(button_filter_counter++);				// LED test
+			
+			
+/*
 			// Use key press to toggle DAC filters
 			button_filter_counter++;
 			button_filter_counter &= 0x03;					// Circle 0 through 3
@@ -608,9 +613,9 @@ Arash
 				mobo_led(FLED_WHITE);
 				pcm5142_filter(7);
 			}
-
+*/
 		}
-		else if (Button_history == 0b11110000) {			// Detected Release
+		else if (button_history == 0b11110000) {			// Detected Release
 			print_dbg_char('R');							// Indicate release
 		}
 
