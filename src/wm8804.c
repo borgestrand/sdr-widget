@@ -704,11 +704,11 @@ void wm8804_pllnew(uint8_t pll_sel) {
 	uint8_t dev_data[5];
 	
 	// Are we forcing an update?
-	if (pll_sel_prev & WM8804_PLL_FORCE) {	
+	if (pll_sel & WM8804_PLL_FORCE) {	
 		pll_sel_prev = WM8804_PLL_FORCE;
-		pll_sel = pll_sel & (!WM8804_PLL_FORCE);
-		print_dbg_char_hex(pll_sel);
-		print_dbg_char_hex(pll_sel_prev);
+		pll_sel = pll_sel & (~WM8804_PLL_FORCE);		// And after bitwise invert with the mask
+		// print_dbg_char_hex(pll_sel);
+		// print_dbg_char_hex(pll_sel_prev);
 	}
 	
 
@@ -731,7 +731,9 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 		if (pll_sel == WM8804_PLL_NORMAL) {
-			print_dbg_char('_');
+			#ifdef FEATURE_SPDIF_CMD
+				print_dbg_char('_');
+			#endif
 
 			dev_data[0] = 0x03;
 			dev_data[1] = 0x21; // 0x03 data PLL_K[7:0] 21
@@ -752,7 +754,9 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 		// Special PLL setup for 192
 		else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-			print_dbg_char('#');
+			#ifdef FEATURE_SPDIF_CMD
+				print_dbg_char('#');
+			#endif
 
 			dev_data[0] = 0x03;
 			dev_data[1] = 0xBA; // 0x03 data PLL_K[7:0] BA

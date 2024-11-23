@@ -155,7 +155,10 @@ static void vtaskMoboCtrl( void * pcParameters )
 		vSemaphoreCreateBinary(input_select_semphr);		// Tasks may take input select semaphore after init - supposedly better semaphore creation
 	#endif
 	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
-	spdif_cmd = SPDIF_CMD_IDLE;								// Enables SPDIF debug system
+
+	#ifdef FEATURE_SPDIF_CMD
+		spdif_cmd = SPDIF_CMD_IDLE;							// Enables SPDIF debug system
+	#endif
 	
 	#ifdef HW_GEN_SPRX										// Initiate table of source's rate of change
 		mobo_rate_storage(0, 0, SI_NORMAL, RATE_ALL_INIT);
