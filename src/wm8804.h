@@ -52,7 +52,7 @@
 #define SPDIF_WM_PLL_192	0xD1
 #define SPDIF_WM_PLL_ALL_F	0xD2	// Forced PLL update to general mode
 #define SPDIF_WM_PLL_192_F	0xD3	// Forced PLL update to 192ksps mode
-
+#define SPDIF_WM_PLL_TOGGLE	0xD4	// Toggle PLL status, no forcing
 
 
 

@@ -234,7 +234,7 @@ void device_mouse_hid_task(void)
 
 		if (spdif_cmd == SPDIF_CMD_MUSTACK) {
 			spdif_cmd = SPDIF_CMD_IDLE;
-			print_dbg_char('.');
+			print_dbg_char(';');
 		}
 		#endif
 

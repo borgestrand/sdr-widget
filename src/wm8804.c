@@ -181,8 +181,14 @@ void wm8804_task(void *pvParameters) {
 				case SPDIF_WM_PLL_192_F:	// 192ksps PLL, function overwrites
 					wm8804_pllnew(WM8804_PLL_192 | WM8804_PLL_FORCE);
 				break;
+				case SPDIF_WM_PLL_TOGGLE:	// Toggle PLL status, no forcing
+					wm8804_pllnew(WM8804_PLL_TOGGLE);
+				break;
 			}
-			spdif_cmd = SPDIF_CMD_MUSTACK;	// Command has been executed
+			
+			if ( (spdif_cmd != SPDIF_CMD_MUSTACK) && (spdif_cmd != SPDIF_CMD_IDLE) ) {
+				spdif_cmd = SPDIF_CMD_MUSTACK;	// Command has been executed
+			}
 		#endif
 		// End of command handler
 		
@@ -698,10 +704,13 @@ void wm8804_pllnew(uint8_t pll_sel) {
 	uint8_t dev_data[5];
 	
 	// Are we forcing an update?
-	if (pll_sel_prev && WM8804_PLL_FORCE) {	
+	if (pll_sel_prev & WM8804_PLL_FORCE) {	
 		pll_sel_prev = WM8804_PLL_FORCE;
 		pll_sel = pll_sel & (!WM8804_PLL_FORCE);
+		print_dbg_char_hex(pll_sel);
+		print_dbg_char_hex(pll_sel_prev);
 	}
+	
 
 	// Ignore no change 
 	if (pll_sel == pll_sel_prev) {
