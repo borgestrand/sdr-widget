@@ -144,11 +144,46 @@ void wm8804_task(void *pvParameters) {
 		
 		
 		// Start of command handler
-
-
-
-		
-		
+		#ifdef FEATURE_SPDIF_CMD
+			switch (spdif_cmd) {
+				case SPDIF_CMD_TAKE:
+					// Semaphore input_select take
+				break;
+				case SPDIF_CMD_GIVE:
+					// Semaphore input_select give
+				break;
+				case SPDIF_CMD_NONE:
+				case SPDIF_CMD_UAC2:
+				case SPDIF_CMD_SPDIF0:
+				case SPDIF_CMD_TOSLINK1:
+				case SPDIF_CMD_TOSLINK0:
+				case SPDIF_CMD_SPDIF1:
+					mobo_SPRX_input(spdif_cmd - 0x10);	
+				break;
+				case SPDIF_CMD_LINKSTATS:
+					wm8804_linkstats();
+				break;
+				case SPDIF_CMD_I2SDIS:		// Not active at the moment
+					mobo_i2s_enable(MOBO_I2S_DISABLE);
+				break;
+				case SPDIF_CMD_I2SEN:		// Not active at the moment
+					mobo_i2s_enable(MOBO_I2S_ENABLE);
+				break;
+				case SPDIF_WM_PLL_ALL:		// General purpose PLL, function only overwrites if needed
+					wm8804_pllnew(WM8804_PLL_NORMAL);
+				break;
+				case SPDIF_WM_PLL_192:		// 192ksps PLL, function only overwrites if needed
+					wm8804_pllnew(WM8804_PLL_192);
+				break;
+				case SPDIF_WM_PLL_ALL_F:	// General purpose PLL, function overwrites
+					wm8804_pllnew(WM8804_PLL_NORMAL | WM8804_PLL_FORCE);
+				break;
+				case SPDIF_WM_PLL_192_F:	// 192ksps PLL, function overwrites
+					wm8804_pllnew(WM8804_PLL_192 | WM8804_PLL_FORCE);
+				break;
+			}
+			spdif_cmd = SPDIF_CMD_MUSTACK;	// Command has been executed
+		#endif
 		// End of command handler
 		
 		
@@ -661,6 +696,12 @@ void wm8804_linkstats(void) {
 void wm8804_pllnew(uint8_t pll_sel) {
 	static uint8_t pll_sel_prev = WM8804_PLL_NORMAL;	// Chip default value
 	uint8_t dev_data[5];
+	
+	// Are we forcing an update?
+	if (pll_sel_prev && WM8804_PLL_FORCE) {	
+		pll_sel_prev = WM8804_PLL_FORCE;
+		pll_sel = pll_sel & (!WM8804_PLL_FORCE);
+	}
 
 	// Ignore no change 
 	if (pll_sel == pll_sel_prev) {
@@ -681,7 +722,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 		if (pll_sel == WM8804_PLL_NORMAL) {
-//			print_dbg_char('_');
+			print_dbg_char('_');
 
 			dev_data[0] = 0x03;
 			dev_data[1] = 0x21; // 0x03 data PLL_K[7:0] 21
@@ -702,7 +743,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 		// Special PLL setup for 192
 		else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-//			print_dbg_char('#');
+			print_dbg_char('#');
 
 			dev_data[0] = 0x03;
 			dev_data[1] = 0xBA; // 0x03 data PLL_K[7:0] BA
@@ -804,8 +845,7 @@ void wm8804_unmute(void) {
 	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC subscribes to incoming I2S
 #else
 	mobo_clear_adc_channel();									// Clear buffer before pdca starts filling it
-	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);			// New code to test for L/R swap
-	mobo_start_spdif_tc(spdif_rx_status.frequency);				// Turn on the spdif timer/counter interrupt
+
 #endif
 
 	ADC_buf_I2S_IN = INIT_ADC_I2S;								// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..

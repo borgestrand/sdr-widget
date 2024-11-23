@@ -37,10 +37,21 @@
 #define SPDIF_CMD_TOSLINK1	0x10 + MOBO_SRC_TOSLINK1	// 0x14
 #define SPDIF_CMD_TOSLINK0	0x10 + MOBO_SRC_TOSLINK0	// 0x15
 #define SPDIF_CMD_SPDIF1	0x10 + MOBO_SRC_SPDIF1		// 0x16		// Future auxilliary SPDIF channel on computer header or for HDMI for now: disconnect SPDIF sources
-#define SPDIF_CMD_MUXED		0x10 + MOBO_SRC_MUXED		// 0x1F
 #define SPDIF_CMD_LINKSTATS	0x20
+#define SPDIF_CMD_SLEEP		0x21
+#define SPDIF_CMD_WAKE		0x22
+#define SPDIF_CMD_MUTE		0x23
+#define SPDIF_CMD_UNMUTE	0x24
+#define SPDIF_CMD_SM_OFF	0x25	// Disable state machine
+#define SPDIF_CMD_SM_ON		0x26
+#define SPDIF_CMD_MSRD		0x27	// Sample rate detect from MOBO code
+#define SPDIF_CMD_RSRD		0x27	// Sample rate detect from RECEIVER code
+#define SPDIF_CMD_I2SEN		0x28	// Enable outgoing I2S
+#define SPDIF_CMD_I2SDIS	0x29	// Disable outgoing I2S
 #define SPDIF_WM_PLL_ALL	0xD0
 #define SPDIF_WM_PLL_192	0xD1
+#define SPDIF_WM_PLL_ALL_F	0xD2	// Forced PLL update to general mode
+#define SPDIF_WM_PLL_192_F	0xD3	// Forced PLL update to 192ksps mode
 
 
 
@@ -67,6 +78,7 @@
 #define WM8804_PLL_192		2					// PLL mode is for 192ksps
 #define WM8804_PLL_EXP		2					// Experimental PLL mode
 #define WM8804_PLL_TOGGLE	3					// Switch to opposite PLL mode
+#define WM8804_PLL_FORCE	0x80				// A bit to mask forced PLL write
 #define WM8804_UNLOCK_LIM	2					// Number of poll cycles to determine that an unlock has taken place, in order to start searching
 #define WM8804_HICKUP_LIM	6 // 6				// Number of poll cycles to permit hickups in selected audio channel before searching
 #define WM8804_PAUSE_LIM	350	// 400 // 200	// Poll cycles to determine that a currently  playing input is silent. NB: Signed 16-bit number!
