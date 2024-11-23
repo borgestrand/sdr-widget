@@ -26,6 +26,11 @@
 #include <stdint.h>
 
 
+// SPDIF debug commands - replicate in .h file for each receiver chip
+#define	SPDIF_CMD_IDLE		0x00
+#define SPDIF_CMD_MUSTACK	0xFF
+
+
 // Various WM8804 functions are drafted here and later moved somewhere better.....
 // Using the WM8804 requires intimate knowledge of the chip and its datasheet. For this
 // reason we use a lot of raw hex rather than naming of its internal registers.

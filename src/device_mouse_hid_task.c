@@ -222,9 +222,21 @@ void device_mouse_hid_task(void)
  *
  */
 
+
+
     gotcmd = 0;												// No HID button change recorded yet
 
     while (gotcmd == 0) {
+
+		#ifdef HW_GEN_SPRX
+		// spdif debug ack - This file records command -> some handler executes on it and sets it to ack -> this file acks and resets to idle
+		// Not perfect in a mutex sense but for debug it should be ok most of the time....
+
+		if (spdif_cmd == SPDIF_CMD_MUSTACK) {
+			spdif_cmd = SPDIF_CMD_IDLE;
+			print_dbg_char('.');
+		}
+		#endif
 
     	// These are test sequences. Move automated stuff to taskMoboCtrl.c
 
@@ -421,21 +433,19 @@ void device_mouse_hid_task(void)
 	            pcm5142_mute() ;
             }
 
-            else if (a == 'j') {							// Lowercase j
-				/* Select input					
-				MOBO_SRC_SPDIF0		3
-				MOBO_SRC_TOSLINK1	4
-				MOBO_SRC_TOSLINK0	5
-				MOBO_SRC_SPDIF1		6
-				*/
-				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				mobo_SPRX_input(temp);
+            else if (a == 'j') {							// Lowercase j - forward command to spdif receiver. 
+				if (spdif_cmd == SPDIF_CMD_IDLE) {
+					spdif_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				}
+				else {
+					print_dbg_char('-');					// Not ready to receive spdif command
+				}
             }
 			
 			else if (a == 'J') {							// Uppercase J
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				if (temp == 0) {
-					print_dbg_char(' ');
+					
 					mobo_rate_storage(0, 0, 0, RATE_PRINT);	// Show contents of rate storage
 				}
 				else if (temp == 1) {
@@ -634,7 +644,7 @@ Arash
     	if (gotcmd == 0)									// Nothing recorded:
 			vTaskDelay(120);								// Polling cycle gives 12ms to RTOS. WM8804 needs that, HID doesn't
     } //while (gotcmd == 0)
-
+	
 
 //  Tested ReportByte1 content with JRiver and VLC on Win7-32
 //  ReportByte1 = 0b00000001; // Encode volup according to usb_hid_report_descriptor[USB_HID_REPORT_DESC] works!
