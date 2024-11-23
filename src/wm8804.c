@@ -175,7 +175,8 @@ void wm8804_task(void *pvParameters) {
 					spdif_enable_state_machine = FALSE;
 				break;
 				case SPDIF_CMD_MSRD:
-					print_dbg_char_hex(mobo_srd());
+					print_dbg_char_char('.');
+					print_dbg_char_hex(mobo_srd() >> 10);	// Output is hex ~ksps
 				break;
 				case SPDIF_CMD_RSRD: // update!
 					print_dbg_char_hex(mobo_srd());
