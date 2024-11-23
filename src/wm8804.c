@@ -880,5 +880,4 @@ uint8_t wm8804_read_byte(uint8_t int_adr) {
 	return dev_data[0];
 }
 
-
 #endif  // HW_GEN_SPRX
