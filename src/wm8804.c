@@ -858,13 +858,15 @@ void wm8804_unmute(void) {
 	I2S_consumer |= I2S_CONSUMER_DAC;							// DAC subscribes to incoming I2S
 #else
 	mobo_clear_adc_channel();									// Clear buffer before pdca starts filling it
-
+	AK5394A_pdca_rx_enable(spdif_rx_status.frequency);			// New code to test for L/R swap
+	mobo_start_spdif_tc(spdif_rx_status.frequency);				// Turn on the spdif timer/counter interrupt
 #endif
 
 	ADC_buf_I2S_IN = INIT_ADC_I2S;								// Force init of MCU's ADC DMA port. Until this point it is NOT detecting zeros..
 
 	mobo_i2s_enable(MOBO_I2S_ENABLE);							// Hard-unmute of I2S pin. NB: we should qualify outgoing data as 0 or valid music!!
 }
+
 
 
 // Write multiple bytes to WM8804
