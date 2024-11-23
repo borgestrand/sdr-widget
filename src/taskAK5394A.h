@@ -65,7 +65,7 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define MOBO_SRC_SPDIF1		6		// Future auxilliary SPDIF channel on computer header or for HDMI FIX: propagate throughout code!
 #define MOBO_SRC_HIGH		5		// Highest source indicator for SPDIF/TOSLINK RX FIX: increase to 6 with aux SPDIF
 #define MOBO_SRC_LOW		3		// Lowest source indicator for SPDIF/TOSLINK RX
-#define MOBO_SRC_MUXED		0xFE	// Whatever channel is selected by passive MUX
+#define MOBO_SRC_MUXED		0x0F	// Whatever channel is selected by passive MUX
 
 
 // Front led colors for RGB LEDs

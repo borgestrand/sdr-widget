@@ -228,7 +228,7 @@ void device_mouse_hid_task(void)
 
     while (gotcmd == 0) {
 
-		#ifdef HW_GEN_SPRX
+		#ifdef FEATURE_SPDIF_NO_SM
 		// spdif debug ack - This file records command -> some handler executes on it and sets it to ack -> this file acks and resets to idle
 		// Not perfect in a mutex sense but for debug it should be ok most of the time....
 
@@ -434,12 +434,14 @@ void device_mouse_hid_task(void)
             }
 
             else if (a == 'j') {							// Lowercase j - forward command to spdif receiver. 
-				if (spdif_cmd == SPDIF_CMD_IDLE) {
-					spdif_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				}
-				else {
-					print_dbg_char('-');					// Not ready to receive spdif command
-				}
+				#ifdef FEATURE_SPDIF_NO_SM
+					if (spdif_cmd == SPDIF_CMD_IDLE) {
+						spdif_cmd = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+					}
+					else {
+						print_dbg_char('-');				// Not ready to receive spdif command, the last one was not acked
+					}
+				#endif
             }
 			
 			else if (a == 'J') {							// Uppercase J

@@ -29,6 +29,19 @@
 // SPDIF debug commands - replicate in .h file for each receiver chip
 #define	SPDIF_CMD_IDLE		0x00
 #define SPDIF_CMD_MUSTACK	0xFF
+#define SPDIF_CMD_TAKE		0x01
+#define SPDIF_CMD_GIVE		0x02
+#define SPDIF_CMD_NONE		0x10 + MOBO_SRC_NONE
+#define SPDIF_CMD_UAC2		0x10 + MOBO_SRC_UAC2		// 0x12
+#define SPDIF_CMD_SPDIF0	0x10 + MOBO_SRC_SPDIF0		// 0x13
+#define SPDIF_CMD_TOSLINK1	0x10 + MOBO_SRC_TOSLINK1	// 0x14
+#define SPDIF_CMD_TOSLINK0	0x10 + MOBO_SRC_TOSLINK0	// 0x15
+#define SPDIF_CMD_SPDIF1	0x10 + MOBO_SRC_SPDIF1		// 0x16		// Future auxilliary SPDIF channel on computer header or for HDMI for now: disconnect SPDIF sources
+#define SPDIF_CMD_MUXED		0x10 + MOBO_SRC_MUXED		// 0x1F
+#define SPDIF_WM_PLL_ALL	0xD0
+#define SPDIF_WM_PLL_192	0xD1
+
+
 
 
 // Various WM8804 functions are drafted here and later moved somewhere better.....

@@ -96,7 +96,8 @@ extern S16 spk_vol_usb_L, spk_vol_usb_R;			// BSB 20160320 added stereo volume c
 extern S32 spk_vol_mult_L, spk_vol_mult_R;
 
 extern volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
-#ifdef HW_GEN_SPRX
+
+#ifdef FEATURE_SPDIF_NO_SM
 	extern volatile uint8_t spdif_cmd;				// BSB 20241123 global variable for debugging SPDIF receiver
 #endif
 

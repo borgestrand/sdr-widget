@@ -21,7 +21,7 @@
 # -DFEATURE_ALT2_16BIT			UAC2 has both ALT1 (24 bit) and ALT2 (16 bit). Applies to both ADC and DAC code in UAC2. Does NOT! apply to UAC1
 #
 # -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
-# -DFEATURE_SPDIF_NO_SM			Experimental disable state machine in SPDIF receiver code
+# -DFEATURE_SPDIF_NO_SM			Experimental disable state machine in SPDIF receiver code - only makes sense in SPRX context
 #
 # -DUSB_REDUCED_DEBUG			Reduce debug and use UART only for CPU communication
 # -DFEATURE_UNINVERT_LRCK		Reverse the effect of an inverted LRCK signal on the I2S output

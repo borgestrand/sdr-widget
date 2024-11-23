@@ -25,7 +25,8 @@ S32 spk_vol_mult_L = 0;						// Full mute for now, re-formated in uac?_device_au
 S32 spk_vol_mult_R = 0;
 
 volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
-#ifdef HW_GEN_SPRX
+
+#ifdef FEATURE_SPDIF_NO_SM
 	volatile uint8_t spdif_cmd;				// BSB 20241123 global variable for debugging SPDIF receiver
 #endif
 
