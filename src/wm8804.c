@@ -703,16 +703,13 @@ void wm8804_pllnew(uint8_t pll_sel) {
 	static uint8_t pll_sel_prev = WM8804_PLL_NORMAL;	// Chip default value
 	uint8_t dev_data[5];
 	
-	#ifdef FEATURE_SPDIF_CMD
-		// Are we forcing an update?
-		if (pll_sel & WM8804_PLL_FORCE) {	
-			pll_sel_prev = WM8804_PLL_FORCE;
-			pll_sel = pll_sel & (~WM8804_PLL_FORCE);		// And after bitwise invert with the mask
-			// print_dbg_char_hex(pll_sel);
-			// print_dbg_char_hex(pll_sel_prev);
-		}
-	#endif
-	
+	// Are we forcing an update?
+	if (pll_sel & WM8804_PLL_FORCE) {	
+		pll_sel_prev = WM8804_PLL_FORCE;
+		pll_sel = pll_sel & (~WM8804_PLL_FORCE);		// And after bitwise invert with the mask
+		// print_dbg_char_hex(pll_sel);
+		// print_dbg_char_hex(pll_sel_prev);
+	}
 
 	// Ignore no change 
 	if (pll_sel == pll_sel_prev) {
@@ -723,7 +720,8 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			if (pll_sel_prev == WM8804_PLL_NORMAL) {
 				pll_sel = WM8804_PLL_192;
 			}
-			else if (pll_sel_prev == WM8804_PLL_192) {
+//			else if (pll_sel_prev == WM8804_PLL_192) {
+			else {							// Force and toggle shouldn't be used. It defaults to WM8804_PLL_NORMAL
 				pll_sel = WM8804_PLL_NORMAL;
 			}
 		}
