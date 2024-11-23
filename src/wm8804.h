@@ -38,6 +38,7 @@
 #define SPDIF_CMD_TOSLINK0	0x10 + MOBO_SRC_TOSLINK0	// 0x15
 #define SPDIF_CMD_SPDIF1	0x10 + MOBO_SRC_SPDIF1		// 0x16		// Future auxilliary SPDIF channel on computer header or for HDMI for now: disconnect SPDIF sources
 #define SPDIF_CMD_MUXED		0x10 + MOBO_SRC_MUXED		// 0x1F
+#define SPDIF_CMD_LINKSTATS	0x20
 #define SPDIF_WM_PLL_ALL	0xD0
 #define SPDIF_WM_PLL_192	0xD1
 

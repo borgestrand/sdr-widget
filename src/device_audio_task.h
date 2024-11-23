@@ -97,7 +97,7 @@ extern S32 spk_vol_mult_L, spk_vol_mult_R;
 
 extern volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
 
-#ifdef FEATURE_SPDIF_NO_SM
+#ifdef FEATURE_SPDIF_CMD
 	extern volatile uint8_t spdif_cmd;				// BSB 20241123 global variable for debugging SPDIF receiver
 #endif
 
