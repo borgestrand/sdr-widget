@@ -55,6 +55,11 @@ volatile spdif_rx_status_t spdif_rx_status = {0, SILENCE_SPDIF_LIMIT, FREQ_TIMEO
 volatile uint8_t link_attempts_max = 0;				// Counting up to determine max poll cycles for linkup success
 volatile uint8_t link_attempts_min = 0xFF;			// Counting down to determine min poll cycles for linkup success
 
+#ifdef FEATURE_SPDIF_CMD
+	volatile uint8_t spdif_enable_state_machine = FALSE;
+#else
+	volatile uint8_t spdif_enable_state_machine = TRUE;
+#endif
 
 // Using the WM8804 requires intimate knowledge of the chip and its datasheet. For this
 // reason we use a lot of raw hex rather than naming of its internal registers.
@@ -163,11 +168,26 @@ void wm8804_task(void *pvParameters) {
 				case SPDIF_CMD_LINKSTATS:
 					wm8804_linkstats();
 				break;
+				case SPDIF_CMD_SM_ON:
+					spdif_enable_state_machine = TRUE;				
+				break;
+				case SPDIF_CMD_SM_OFF:
+					spdif_enable_state_machine = FALSE;
+				break;
+				case SPDIF_CMD_MSRD:
+					print_dbg_char_hex(mobo_srd());
+				break;
+				case SPDIF_CMD_RSRD: // update!
+					print_dbg_char_hex(mobo_srd());
+				break;
 				case SPDIF_CMD_I2SDIS:		// Not active at the moment
 					mobo_i2s_enable(MOBO_I2S_DISABLE);
 				break;
 				case SPDIF_CMD_I2SEN:		// Not active at the moment
 					mobo_i2s_enable(MOBO_I2S_ENABLE);
+				break;
+				case SPDIF_CMD_LIVEDET:
+					print_dbg_char_hex(wm8804_live_detect());
 				break;
 				case SPDIF_WM_PLL_ALL:		// General purpose PLL, function only overwrites if needed
 					wm8804_pllnew(WM8804_PLL_NORMAL);

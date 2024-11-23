@@ -45,9 +45,10 @@
 #define SPDIF_CMD_SM_OFF	0x25	// Disable state machine
 #define SPDIF_CMD_SM_ON		0x26
 #define SPDIF_CMD_MSRD		0x27	// Sample rate detect from MOBO code
-#define SPDIF_CMD_RSRD		0x27	// Sample rate detect from RECEIVER code
-#define SPDIF_CMD_I2SEN		0x28	// Enable outgoing I2S
-#define SPDIF_CMD_I2SDIS	0x29	// Disable outgoing I2S
+#define SPDIF_CMD_RSRD		0x28	// Sample rate detect from RECEIVER code
+#define SPDIF_CMD_I2SEN		0x29	// Enable outgoing I2S
+#define SPDIF_CMD_I2SDIS	0x2a	// Disable outgoing I2S
+#define SPDIF_CMD_LIVEDET	0x2b
 #define SPDIF_WM_PLL_ALL	0xD0
 #define SPDIF_WM_PLL_192	0xD1
 #define SPDIF_WM_PLL_ALL_F	0xD2	// Forced PLL update to general mode
