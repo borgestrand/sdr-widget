@@ -261,7 +261,6 @@ void wm8804_task(void *pvParameters) {
 		#endif
 		// End of command handler
 		
-		
 
 
 /*
@@ -284,18 +283,10 @@ void wm8804_task(void *pvParameters) {
 				
 		// USB has assumed control, power down WM8804 if it was on
 		if (input_select == MOBO_SRC_UAC2) {
-				
-			#ifdef FEATURE_SPDIF_CMD
-			if (spdif_enable_state_machine) {
-				#else
-					if (1) {
-				#endif
-						if (spdif_rx_status.powered == 1) {
-							spdif_rx_status.powered = 0;
-							wm8804_sleep();
-						}
-					} // ifdef FEATURE_SPDIF_CMD .. if()
-				
+			if (spdif_rx_status.powered == 1) {
+				spdif_rx_status.powered = 0;
+				wm8804_sleep();
+			}
 		}
 				
 		// USB does NOT have control. So consider what is going on with WM8804
@@ -340,32 +331,20 @@ void wm8804_task(void *pvParameters) {
 				// Poll interrupt pin
 				if  (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) {
 					wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
-					
-					#ifdef FEATURE_SPDIF_CMD
-						print_cpu_char('!');
-						print_cpu_char_hex(wm8804_int);
-					#endif
-					
+							
 					if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
-						
-						#ifdef FEATURE_SPDIF_CMD
-							if (spdif_enable_state_machine) {
-						#else
-							if (1) {
-						#endif
-								wm8804_pllnew(WM8804_PLL_TOGGLE);
-								scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
-								mustgive = 1;
+						wm8804_pllnew(WM8804_PLL_TOGGLE);
+						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
+						mustgive = 1;
 
-								#ifdef LOOSE_SIGNAL_LED
-									mobo_led(FLED_RED);
-									vTaskDelay(1000);
-									mobo_led(FLED_BLUE);
-									vTaskDelay(1000);
-									mobo_led(FLED_RED);
-									vTaskDelay(1000);
-								#endif
-							} // ifdef FEATURE_SPDIF_CMD .. if()
+						#ifdef LOOSE_SIGNAL_LED
+							mobo_led(FLED_RED);
+							vTaskDelay(1000);
+							mobo_led(FLED_BLUE);
+							vTaskDelay(1000);
+							mobo_led(FLED_RED);
+							vTaskDelay(1000);
+						#endif
 					}
 				}
 				
@@ -420,31 +399,16 @@ void wm8804_task(void *pvParameters) {
 
 			// USB and WM8804 have given away active control, see if WM8804 can grab it
 			if (input_select == MOBO_SRC_NONE) {
-
-				#ifdef FEATURE_SPDIF_CMD
-					if (spdif_enable_state_machine) {
-				#else
-					if (1) {
-				#endif
-						if (spdif_rx_status.powered == 0) {
-							wm8804_init();								// WM8804 was probably put to sleep before this. Hence re-init
-							spdif_rx_status.powered = 1;
-						}
-					} // ifdef FEATURE_SPDIF_CMD .. if()
+				if (spdif_rx_status.powered == 0) {
+					wm8804_init();								// WM8804 was probably put to sleep before this. Hence re-init
+					spdif_rx_status.powered = 1;
+				}
 
 				// RXMODFIX: Newly enabled WM8804 takes much longer time to lock on to audio stream!
 
 				else {											// Don't start scanning immediately after power-on
 					channel = spdif_rx_status.channel;			// Use receiver scan history if it is of any use
-					
-					#ifdef FEATURE_SPDIF_CMD
-						if (spdif_enable_state_machine) {
-					#else
-						if (1) {
-					#endif
-							wm8804_scannew(&channel, &freq, scanmode);
-						} // ifdef FEATURE_SPDIF_CMD .. if()
-					
+					wm8804_scannew(&channel, &freq, scanmode);
 					if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
 						wm8804_read_byte(0x0B);					// Clear interrupts for good measure
 								
@@ -674,15 +638,7 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 			return;
 		}
 		else if (temp_freq == FREQ_PLLMISS) {	// Linkup but PLL mismatch: try same channel again after toggling PLL setting
-			
-			#ifdef FEATURE_SPDIF_CMD
-				if (spdif_enable_state_machine) {
-			#else
-				if (1) {
-			#endif
-					wm8804_pllnew(WM8804_PLL_TOGGLE);
-				} // ifdef FEATURE_SPDIF_CMD .. if()
-
+			wm8804_pllnew(WM8804_PLL_TOGGLE);
 		}
 		
 		else {									// Select a new channel to try
@@ -781,16 +737,8 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 			// Check TRANS_ERR bit to determine if we must change PLL settings
 			if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
 				if (trans_err_detect++ == wm8804_TRANS_ERR_FAILURE-1) {
-					
-					#ifdef FEATURE_SPDIF_CMD
-						if (spdif_enable_state_machine) {
-					#else
-						if (1) {
-					#endif
-							wm8804_pllnew(WM8804_PLL_TOGGLE);
-							trans_err_detect = 0;		// New try with new setting!
-						} // ifdef FEATURE_SPDIF_CMD .. if()
-					
+					wm8804_pllnew(WM8804_PLL_TOGGLE);
+					trans_err_detect = 0;		// New try with new setting!
 				}
 			}
 			else {											// No link, temporary, glitch or permanent. Forget detections until now
@@ -874,7 +822,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 		// Special PLL setup for 192
 		else if (pll_sel == WM8804_PLL_192) {	// PLL setting 8.192
-			#ifdef FEATURE_SPDIF_CMD
+			#ifdef FEATURE_SPDIF_CMD 
 				print_dbg_char('#');
 			#endif
 
