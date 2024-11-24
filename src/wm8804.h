@@ -40,8 +40,8 @@
 #define SPDIF_CMD_LINKSTATS	0x20
 #define SPDIF_CMD_SLEEP		0x21
 #define SPDIF_CMD_WAKE		0x22
-#define SPDIF_CMD_MUTE		0x23
-#define SPDIF_CMD_UNMUTE	0x24
+#define SPDIF_CMD_INIT		0x23
+
 #define SPDIF_CMD_SM_OFF	0x25	// Disable state machine
 #define SPDIF_CMD_SM_ON		0x26
 #define SPDIF_CMD_MSRD		0x27	// Sample rate detect from MOBO code
@@ -49,11 +49,16 @@
 #define SPDIF_CMD_I2SEN		0x29	// Enable outgoing I2S
 #define SPDIF_CMD_I2SDIS	0x2a	// Disable outgoing I2S
 #define SPDIF_CMD_LIVEDET	0x2b
+#define SPDIF_CMD_INTS		0x2c	// Report interrupts
+#define SPDIF_CMD_MUTE		0x2d
+#define SPDIF_CMD_UNMUTE	0x2e
+#define SPDIF_CMD_CLK_START	0x2f
 #define SPDIF_WM_PLL_ALL	0xD0
 #define SPDIF_WM_PLL_192	0xD1
 #define SPDIF_WM_PLL_ALL_F	0xD2	// Forced PLL update to general mode
 #define SPDIF_WM_PLL_192_F	0xD3	// Forced PLL update to 192ksps mode
 #define SPDIF_WM_PLL_TOGGLE	0xD4	// Toggle PLL status, no forcing
+#define SPDIF_WM_SPDSTAT	0xD5
 
 
 
