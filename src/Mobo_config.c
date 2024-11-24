@@ -631,15 +631,15 @@ uint32_t mobo_srd(void) {
 	uint32_t temp;
 	uint8_t freqs[6];
 	uint8_t attempts = 0;
-	freqs[0] = 1;					// 44.1 hits
-	freqs[1] = 1;					// 48 hits
-	freqs[2] = 1;					// 88.2 hits
-	freqs[3] = 1;					// 96 hits
-	freqs[4] = 1;					// 176.4 hits
-	freqs[5] = 1;					// 196 hits
+	freqs[0] = 0;						// 44.1 hits
+	freqs[1] = 0;						// 48 hits
+	freqs[2] = 0;						// 88.2 hits
+	freqs[3] = 0;						// 96 hits
+	freqs[4] = 0;						// 176.4 hits
+	freqs[5] = 0;						// 196 hits
 
-	#define SRD_MAX_ATTEMPTS	5		// How many total attempts
-	#define SRD_AFE_DETECTS		3		// How many attempts to declare a safe detection?
+	#define SRD_MAX_ATTEMPTS	7		// How many total attempts
+	#define SRD_AFE_DETECTS		4		// How many attempts to declare a safe detection?
 
 	while (attempts++ < SRD_MAX_ATTEMPTS) {
 		temp = mobo_srd_asm2();
