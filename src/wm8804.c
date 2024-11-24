@@ -396,14 +396,14 @@ void wm8804_task(void *pvParameters) {
 					if ( ( (freq >= FREQ_44) && (freq <= FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
 						freq = mobo_srd();
 						#ifdef FEATURE_SPDIF_CMD
-							print_cpu_char('e');
+							print_cpu_char('g');
 						#endif
 					}
 					// If there is a mismatch, acquire it again! The mobo_srd() function is not perfect
 					if ( ( (freq >= FREQ_44) && (freq <= FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
 						freq = mobo_srd();
 						#ifdef FEATURE_SPDIF_CMD
-							print_cpu_char('E');
+							print_cpu_char('G');
 						#endif
 					}
 
