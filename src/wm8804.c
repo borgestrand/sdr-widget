@@ -788,8 +788,17 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 			// Check TRANS_ERR bit to determine if we must change PLL settings
 			if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
 				if (trans_err_detect++ == wm8804_TRANS_ERR_FAILURE-1) {
-					wm8804_pllnew(WM8804_PLL_TOGGLE);
-					trans_err_detect = 0;		// New try with new setting!
+
+					#ifdef FEATURE_SPDIF_CMD
+						print_cpu_char('%');
+						if (spdif_enable_state_machine) {
+					#else
+						if (1) {
+					#endif
+							wm8804_pllnew(WM8804_PLL_TOGGLE);
+							trans_err_detect = 0;		// New try with new setting!
+						} // ifdef FEATURE_SPDIF_CMD .. if()
+
 				}
 			}
 			else {											// No link, temporary, glitch or permanent. Forget detections until now
