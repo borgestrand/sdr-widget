@@ -337,21 +337,35 @@ void wm8804_task(void *pvParameters) {
 				// Poll interrupt pin
 				if  (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) {
 					wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
-							
-					if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
-						wm8804_pllnew(WM8804_PLL_TOGGLE);
-						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
-						mustgive = 1;
 
-						#ifdef LOOSE_SIGNAL_LED
-							mobo_led(FLED_RED);
-							vTaskDelay(1000);
-							mobo_led(FLED_BLUE);
-							vTaskDelay(1000);
-							mobo_led(FLED_RED);
-							vTaskDelay(1000);
-						#endif
-					}
+					#ifdef FEATURE_SPDIF_CMD
+						print_cpu_char('!');
+						print_cpu_char_hex(wm8804_int);
+					#endif
+
+					#ifdef FEATURE_SPDIF_CMD
+						if (spdif_enable_state_machine) {
+					#else
+						if (1) {
+					#endif
+
+							if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
+								wm8804_pllnew(WM8804_PLL_TOGGLE);
+								scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
+								mustgive = 1;
+
+								#ifdef LOOSE_SIGNAL_LED
+								mobo_led(FLED_RED);
+								vTaskDelay(1000);
+								mobo_led(FLED_BLUE);
+								vTaskDelay(1000);
+								mobo_led(FLED_RED);
+								vTaskDelay(1000);
+								#endif
+							}
+
+						} // ifdef FEATURE_SPDIF_CMD .. if()
+					
 				}
 				
 				// Sometimes poll sample rate - dude, this happens a lot!
