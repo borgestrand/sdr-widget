@@ -395,6 +395,7 @@ void wm8804_task(void *pvParameters) {
 
 						#ifdef FEATURE_SPDIF_CMD
 							print_cpu_char('f');					// Log source of mustgive
+							print_dbg_char_hex(freq >> 10);			// Output is hex ~ksps
 						#endif
 
 						mustgive = 1;
