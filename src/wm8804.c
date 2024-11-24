@@ -386,10 +386,29 @@ void wm8804_task(void *pvParameters) {
 				
 				// Sometimes poll sample rate - dude, this happens a lot!
 				if ( (poll_counter & 0x0003) == 0) {				// Once every 80ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 200
-					freq = mobo_srd();
 
 					// If srd() returned a valid frequency that is different from the one we believe we're at, do something!					
-					if ( ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) || (freq == FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
+// 					freq = mobo_srd();
+// 					if ( ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) || (freq == FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
+
+					freq = mobo_srd();
+					// If there is a mismatch, acquire it again! The mobo_srd() function is not perfect
+					if ( ( (freq >= FREQ_44) && (freq <= FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
+						freq = mobo_srd();
+						#ifdef FEATURE_SPDIF_CMD
+							print_cpu_char('e');
+						#endif
+					}
+					// If there is a mismatch, acquire it again! The mobo_srd() function is not perfect
+					if ( ( (freq >= FREQ_44) && (freq <= FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
+						freq = mobo_srd();
+						#ifdef FEATURE_SPDIF_CMD
+							print_cpu_char('E');
+						#endif
+					}
+
+					// The actual test						
+					if ( ( (freq >= FREQ_44) && (freq <= FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
 						// wm8804_pllnew(WM8804_PLL_TOGGLE);		// No PLL toggle -> quick to return to present setting
 						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel to prevent consequences of false detects. Run up to 5x4 scan attempts
 
