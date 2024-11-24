@@ -305,6 +305,17 @@ void wm8804_task(void *pvParameters) {
 				// Poll two silence detectors, WM8804 and buffer transfer code
 				if ( (SPDIF_IS_SILENT()) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {	// Either own SW based test and RX chip's zero detect
 //				if ( (SPDIF_IS_SILENT()) || (0)                                        ) {	// Only own SW based test
+
+					#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
+						print_dbg_char('s');
+						if (SPDIF_IS_SILENT()) {
+							print_dbg_char('C');				// CPU sees silence
+						}
+						if (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) {
+							print_dbg_char('R');				// Receiver sees silence
+						}
+					#endif
+
 					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
 					mustgive = 1;
 
@@ -320,6 +331,11 @@ void wm8804_task(void *pvParameters) {
 
 				// Poll lost lock pin
 				if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
+					
+					#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
+						print_dbg_char('L');
+					#endif
+					
 					// Count to more than one error?
 					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
 					mustgive = 1;
@@ -339,7 +355,7 @@ void wm8804_task(void *pvParameters) {
 					wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
 
 					#ifdef FEATURE_SPDIF_CMD
-						print_cpu_char('!');
+						print_cpu_char('!');					// Log source of mustgive below
 						print_cpu_char_hex(wm8804_int);
 					#endif
 
@@ -376,6 +392,11 @@ void wm8804_task(void *pvParameters) {
 					if ( ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) || (freq == FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
 						// wm8804_pllnew(WM8804_PLL_TOGGLE);		// No PLL toggle -> quick to return to present setting
 						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel to prevent consequences of false detects. Run up to 5x4 scan attempts
+
+						#ifdef FEATURE_SPDIF_CMD
+							print_cpu_char('f');					// Log source of mustgive
+						#endif
+
 						mustgive = 1;
 
 						#ifdef LOOSE_SIGNAL_LED
