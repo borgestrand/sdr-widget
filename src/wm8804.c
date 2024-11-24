@@ -56,7 +56,7 @@ volatile uint8_t link_attempts_max = 0;				// Counting up to determine max poll 
 volatile uint8_t link_attempts_min = 0xFF;			// Counting down to determine min poll cycles for linkup success
 
 #ifdef FEATURE_SPDIF_CMD
-	volatile uint8_t spdif_enable_state_machine = FALSE;
+	volatile uint8_t spdif_enable_state_machine = TRUE; // Run with SM to begin with 
 #endif
 
 // Using the WM8804 requires intimate knowledge of the chip and its datasheet. For this
@@ -396,7 +396,7 @@ void wm8804_task(void *pvParameters) {
 						if (spdif_enable_state_machine) {
 					#else
 						if (1) {
-						#endif
+					#endif
 							wm8804_mute();
 						} // ifdef FEATURE_SPDIF_CMD .. if()
 		
@@ -681,7 +681,15 @@ void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 			return;
 		}
 		else if (temp_freq == FREQ_PLLMISS) {	// Linkup but PLL mismatch: try same channel again after toggling PLL setting
-			wm8804_pllnew(WM8804_PLL_TOGGLE);
+			
+			#ifdef FEATURE_SPDIF_CMD
+				if (spdif_enable_state_machine) {
+			#else
+				if (1) {
+			#endif
+					wm8804_pllnew(WM8804_PLL_TOGGLE);
+				} // ifdef FEATURE_SPDIF_CMD .. if()
+
 		}
 		
 		else {									// Select a new channel to try
