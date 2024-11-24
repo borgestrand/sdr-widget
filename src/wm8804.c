@@ -387,11 +387,14 @@ void wm8804_task(void *pvParameters) {
 				// Sometimes poll sample rate - dude, this happens a lot!
 				if ( (poll_counter & 0x0003) == 0) {				// Once every 80ms while playing check if sample rate is correct with configTSK_WM8804_PERIOD = 200
 
+// Old format for test
 					// If srd() returned a valid frequency that is different from the one we believe we're at, do something!					
 // 					freq = mobo_srd();
 // 					if ( ( (freq == FREQ_44) || (freq == FREQ_48) || (freq == FREQ_88) || (freq == FREQ_96) || (freq == FREQ_176) || (freq == FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
 
 					freq = mobo_srd();
+
+/* Re-acquire. Replaced by better majority vote mechanism in mobo_srd()
 					// If there is a mismatch, acquire it again! The mobo_srd() function is not perfect
 					if ( ( (freq >= FREQ_44) && (freq <= FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
 						freq = mobo_srd();
@@ -406,6 +409,7 @@ void wm8804_task(void *pvParameters) {
 							print_cpu_char('G');
 						#endif
 					}
+*/
 
 					// The actual test						
 					if ( ( (freq >= FREQ_44) && (freq <= FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
