@@ -860,7 +860,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 		// Default PLL setup for 44.1, 48, 88.2, 96, 176.4
 		if (pll_sel == WM8804_PLL_NORMAL) {
 			#ifdef FEATURE_SPDIF_CMD
-				print_dbg_char('_');
+				print_dbg_char('_'); 
 			#endif
 
 			dev_data[0] = 0x03;
