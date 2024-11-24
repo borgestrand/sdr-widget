@@ -57,8 +57,6 @@ volatile uint8_t link_attempts_min = 0xFF;			// Counting down to determine min p
 
 #ifdef FEATURE_SPDIF_CMD
 	volatile uint8_t spdif_enable_state_machine = FALSE;
-#else
-	volatile uint8_t spdif_enable_state_machine = TRUE;
 #endif
 
 // Using the WM8804 requires intimate knowledge of the chip and its datasheet. For this
@@ -283,10 +281,18 @@ void wm8804_task(void *pvParameters) {
 				
 		// USB has assumed control, power down WM8804 if it was on
 		if (input_select == MOBO_SRC_UAC2) {
-			if (spdif_rx_status.powered == 1) {
-				spdif_rx_status.powered = 0;
-				wm8804_sleep();
-			}
+			
+			
+			#ifdef FEATURE_SPDIF_CMD
+				if (spdif_enable_state_machine) {
+			#else
+				if (1) {
+			#endif
+					if (spdif_rx_status.powered == 1) {
+						spdif_rx_status.powered = 0;
+						wm8804_sleep();
+					}
+				} // ifdef FEATURE_SPDIF_CMD .. if()
 		}
 				
 		// USB does NOT have control. So consider what is going on with WM8804
