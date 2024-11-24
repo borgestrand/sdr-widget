@@ -796,8 +796,9 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 						if (1) {
 					#endif
 							wm8804_pllnew(WM8804_PLL_TOGGLE);
-							trans_err_detect = 0;		// New try with new setting!
 						} // ifdef FEATURE_SPDIF_CMD .. if()
+
+					trans_err_detect = 0;					// New try with new setting! - dependant on spdif_enable_state_machine?
 
 				}
 			}
