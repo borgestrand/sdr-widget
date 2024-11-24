@@ -391,8 +391,15 @@ void wm8804_task(void *pvParameters) {
 						
 				// Give away control?
 				if (mustgive) {
-					wm8804_mute();
-
+					
+					#ifdef FEATURE_SPDIF_CMD
+						if (spdif_enable_state_machine) {
+					#else
+						if (1) {
+						#endif
+							wm8804_mute();
+						} // ifdef FEATURE_SPDIF_CMD .. if()
+		
 					if (input_select != MOBO_SRC_NONE) {		// Always directly preceding give for RT reasons
 						if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 	//						Added to pdca disable code, keep it here for good measure
@@ -420,15 +427,31 @@ void wm8804_task(void *pvParameters) {
 			// USB and WM8804 have given away active control, see if WM8804 can grab it
 			if (input_select == MOBO_SRC_NONE) {
 				if (spdif_rx_status.powered == 0) {
-					wm8804_init();								// WM8804 was probably put to sleep before this. Hence re-init
-					spdif_rx_status.powered = 1;
+
+					#ifdef FEATURE_SPDIF_CMD
+						if (spdif_enable_state_machine) {
+					#else
+						if (1) {
+					#endif
+							wm8804_init();								// WM8804 was probably put to sleep before this. Hence re-init
+							spdif_rx_status.powered = 1;
+						} // ifdef FEATURE_SPDIF_CMD .. if()
+
 				}
 
 				// RXMODFIX: Newly enabled WM8804 takes much longer time to lock on to audio stream!
 
 				else {											// Don't start scanning immediately after power-on
 					channel = spdif_rx_status.channel;			// Use receiver scan history if it is of any use
-					wm8804_scannew(&channel, &freq, scanmode);
+					
+					#ifdef FEATURE_SPDIF_CMD
+						if (spdif_enable_state_machine) {
+					#else
+						if (1) {
+					#endif
+							wm8804_scannew(&channel, &freq, scanmode);
+						} // ifdef FEATURE_SPDIF_CMD .. if()
+					
 					if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
 						wm8804_read_byte(0x0B);					// Clear interrupts for good measure
 								
