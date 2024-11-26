@@ -57,6 +57,7 @@ volatile uint8_t link_attempts_min = 0xFF;			// Counting down to determine min p
 
 #ifdef FEATURE_SPDIF_CMD
 	volatile uint8_t spdif_enable_state_machine = TRUE; // Run with SM to begin with 
+	volatile uint8_t spdif_react_to_interrupts = SPDIF_WM_INT_09_OB; 	// React to either 0x09 or 0x0B interrupt
 #endif
 
 // Using the WM8804 requires intimate knowledge of the chip and its datasheet. For this
@@ -250,7 +251,11 @@ void wm8804_task(void *pvParameters) {
 					print_dbg_char_char('.');
 					print_dbg_char_hex(temp_spdif_u8);
 				break;
-				
+				case SPDIF_WM_INT_09:
+				case SPDIF_WM_INT_0B:
+				case SPDIF_WM_INT_09_OB:
+					spdif_react_to_interrupts = spdif_cmd;
+				break; 
 			}
 			
 			if ( (spdif_cmd != SPDIF_CMD_MUSTACK) && (spdif_cmd != SPDIF_CMD_IDLE) ) {
@@ -355,8 +360,8 @@ void wm8804_task(void *pvParameters) {
 					wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
 
 					#ifdef FEATURE_SPDIF_CMD
-						print_cpu_char('!');					// Log source of mustgive below
-						print_cpu_char_hex(wm8804_int);
+						print_cpu_char('!');					// An interrupt happened. Save time by only printing (below) the ones that are considered
+//						print_cpu_char_hex(wm8804_int);			// Print considered interrupt
 					#endif
 
 					#ifdef FEATURE_SPDIF_CMD
@@ -364,8 +369,18 @@ void wm8804_task(void *pvParameters) {
 					#else
 						if (1) {
 					#endif
+//							Original test, it over-reacts to errors that are probably not audible
+//							if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
 
-							if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
+							if (
+								(  (wm8804_int == 0x09) && (spdif_react_to_interrupts == SPDIF_WM_INT_09)  ) ||
+								(  (wm8804_int == 0x0B) && (spdif_react_to_interrupts == SPDIF_WM_INT_0B)  ) ||
+								(  ( (wm8804_int == 0x0B) || (wm8804_int == 0x09) ) && (spdif_react_to_interrupts == SPDIF_WM_INT_09_OB)  )
+							) {
+								#ifdef FEATURE_SPDIF_CMD
+									print_cpu_char_hex(wm8804_int);			// Print considered interrupt
+								#endif
+
 								wm8804_pllnew(WM8804_PLL_TOGGLE);
 								scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
 								mustgive = 1;

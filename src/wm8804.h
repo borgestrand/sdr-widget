@@ -60,6 +60,10 @@
 #define SPDIF_WM_PLL_TOGGLE	0xD4	// Toggle PLL status, no forcing
 #define SPDIF_WM_SPDSTAT	0xD5
 
+#define SPDIF_WM_INT_09		0xD9	// React only to 0x09 interrupt
+#define SPDIF_WM_INT_0B		0xDB	// React only to 0x0B interrupt
+#define SPDIF_WM_INT_09_OB	0xDC	// React to either 0x09 or 0x0B interrupt - default setting. Reaction to 0x08 is disabled
+
 
 
 // Various WM8804 functions are drafted here and later moved somewhere better.....
