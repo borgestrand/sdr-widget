@@ -361,8 +361,9 @@ void wm8804_task(void *pvParameters) {
 					wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
 
 					#ifdef FEATURE_SPDIF_CMD
-						print_cpu_char('!');					// An interrupt happened. Save time by only printing (below) the ones that are considered
-//						print_cpu_char_hex(wm8804_int);			// Print considered interrupt
+						// Removed in converged test, lower verbosity
+						// print_cpu_char('!');					// An interrupt happened. Save time by only printing (below) the ones that are considered
+						// print_cpu_char_hex(wm8804_int);		// Print considered interrupt
 					#endif
 
 					#ifdef FEATURE_SPDIF_CMD
@@ -373,14 +374,23 @@ void wm8804_task(void *pvParameters) {
 //							Original test, it over-reacts to errors that are probably not audible
 //							if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
 
-							if (
-								(  (wm8804_int == 0x09) && (spdif_react_to_interrupts == SPDIF_WM_INT_09)  ) ||								// Only react to 0x09
-								(  (wm8804_int == 0x0B) && (spdif_react_to_interrupts == SPDIF_WM_INT_0B)  ) ||								// Only react to 0x0B
-								(  ( (wm8804_int == 0x0B) || (wm8804_int == 0x09) ) && (spdif_react_to_interrupts == SPDIF_WM_INT_09_OB)  )	// React to both
-								// Not testing for SPDIF_WM_INT_NONE - react to none of them
-							) {
+//							CLI configurable test to develop converged test
+//							if (
+//								(  (wm8804_int == 0x09) && (spdif_react_to_interrupts == SPDIF_WM_INT_09)  ) ||								// Only react to 0x09
+//								(  (wm8804_int == 0x0B) && (spdif_react_to_interrupts == SPDIF_WM_INT_0B)  ) ||								// Only react to 0x0B
+//								(  ( (wm8804_int == 0x0B) || (wm8804_int == 0x09) ) && (spdif_react_to_interrupts == SPDIF_WM_INT_09_OB)  )	// React to both
+//								// Not testing for SPDIF_WM_INT_NONE - react to none of them
+//							) {
+								
+							// Converged test based on experiments with various sources (Xonar U7, Xonar SE, Juli@, ASUS main board bracket, SMSL PO100 Pro
+							if (wm8804_int == 0x09)	{
+								
 								#ifdef FEATURE_SPDIF_CMD
-									print_cpu_char_hex(wm8804_int);			// Print considered interrupt
+									// Removed in converged test, lower verbosity
+									// print_cpu_char_hex(wm8804_int);			// Print considered interrupt
+									
+									// Added to converged test
+									print_cpu_char('!');
 								#endif
 
 								wm8804_pllnew(WM8804_PLL_TOGGLE);
@@ -388,12 +398,12 @@ void wm8804_task(void *pvParameters) {
 								mustgive = 1;
 
 								#ifdef LOOSE_SIGNAL_LED
-								mobo_led(FLED_RED);
-								vTaskDelay(1000);
-								mobo_led(FLED_BLUE);
-								vTaskDelay(1000);
-								mobo_led(FLED_RED);
-								vTaskDelay(1000);
+									mobo_led(FLED_RED);
+									vTaskDelay(1000);
+									mobo_led(FLED_BLUE);
+									vTaskDelay(1000);
+									mobo_led(FLED_RED);
+									vTaskDelay(1000);
 								#endif
 							}
 
