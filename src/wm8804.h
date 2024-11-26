@@ -63,6 +63,7 @@
 #define SPDIF_WM_INT_09		0xD9	// React only to 0x09 interrupt
 #define SPDIF_WM_INT_0B		0xDB	// React only to 0x0B interrupt
 #define SPDIF_WM_INT_09_OB	0xDC	// React to either 0x09 or 0x0B interrupt - default setting. Reaction to 0x08 is disabled
+#define SPDIF_WM_INT_NONE	0xDE	// React to neither 0x09 nor 0x0B interrupt
 
 
 

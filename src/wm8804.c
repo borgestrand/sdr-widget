@@ -254,6 +254,7 @@ void wm8804_task(void *pvParameters) {
 				case SPDIF_WM_INT_09:
 				case SPDIF_WM_INT_0B:
 				case SPDIF_WM_INT_09_OB:
+				case SPDIF_WM_INT_NONE:
 					spdif_react_to_interrupts = spdif_cmd;
 				break; 
 			}
@@ -373,9 +374,10 @@ void wm8804_task(void *pvParameters) {
 //							if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
 
 							if (
-								(  (wm8804_int == 0x09) && (spdif_react_to_interrupts == SPDIF_WM_INT_09)  ) ||
-								(  (wm8804_int == 0x0B) && (spdif_react_to_interrupts == SPDIF_WM_INT_0B)  ) ||
-								(  ( (wm8804_int == 0x0B) || (wm8804_int == 0x09) ) && (spdif_react_to_interrupts == SPDIF_WM_INT_09_OB)  )
+								(  (wm8804_int == 0x09) && (spdif_react_to_interrupts == SPDIF_WM_INT_09)  ) ||								// Only react to 0x09
+								(  (wm8804_int == 0x0B) && (spdif_react_to_interrupts == SPDIF_WM_INT_0B)  ) ||								// Only react to 0x0B
+								(  ( (wm8804_int == 0x0B) || (wm8804_int == 0x09) ) && (spdif_react_to_interrupts == SPDIF_WM_INT_09_OB)  )	// React to both
+								// Not testing for SPDIF_WM_INT_NONE - react to none of them
 							) {
 								#ifdef FEATURE_SPDIF_CMD
 									print_cpu_char_hex(wm8804_int);			// Print considered interrupt
