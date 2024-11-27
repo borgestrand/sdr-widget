@@ -392,19 +392,24 @@ void wm8804_task(void *pvParameters) {
 									// Added to converged test
 									print_cpu_char('!');
 								#endif
+								
+								// Trying to qualify interrupt by checking if the received frequency has changed
+								// Another option to consider: qualify interrupt by measuring time between interrupts
+								if (mobo_srd() != spdif_rx_status.frequency) {
 
-								wm8804_pllnew(WM8804_PLL_TOGGLE);
-								scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
-								mustgive = 1;
+									wm8804_pllnew(WM8804_PLL_TOGGLE);
+									scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
+									mustgive = 1;
 
-								#ifdef LOOSE_SIGNAL_LED
-									mobo_led(FLED_RED);
-									vTaskDelay(1000);
-									mobo_led(FLED_BLUE);
-									vTaskDelay(1000);
-									mobo_led(FLED_RED);
-									vTaskDelay(1000);
-								#endif
+									#ifdef LOOSE_SIGNAL_LED
+										mobo_led(FLED_RED);
+										vTaskDelay(1000);
+										mobo_led(FLED_BLUE);
+										vTaskDelay(1000);
+										mobo_led(FLED_RED);
+										vTaskDelay(1000);
+									#endif
+								}
 							}
 
 						} // ifdef FEATURE_SPDIF_CMD .. if()
