@@ -815,7 +815,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 		mobo_SPRX_input(MOBO_SRC_NONE);	// Disable power to input circuits until another one is enabled. Was: MOBO_SRC_SPDIF0
 		return (FREQ_INVALID);
 	}
-	// If given input is alive, do things
+	// If given input is alive, do things 
 	else {
 		if (wm8804_mclk_out(WM8804_MCLK_TEST) == WM8804_MCLK_ENABLE) {
 			// With CLKOUT
