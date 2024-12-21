@@ -592,7 +592,7 @@ void uac2_device_audio_task(void *pvParameters)
 					silence_det = TRUE;				// We're looking for first non-zero audio-data, updated for each package
 					
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
-						temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
+						temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_unified, cache_L and cache_R
 						for (i = 0; i < temp_num_samples; i++) {
 							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
 							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
@@ -657,9 +657,13 @@ void uac2_device_audio_task(void *pvParameters)
 								#ifdef FEATURE_UNINVERT_LRCK
 									cache_L[i] = prev_prev_sample_R;
 									cache_R[i] = prev_sample_L;
+									cache_unified[2*temp_num_samples] = prev_prev_sample_R;
+									cache_unified[2*temp_num_samples+1] = prev_sample_L;
 								#else
 									cache_L[i] = prev_sample_L; 
 									cache_R[i] = prev_sample_R;
+									cache_unified[2*temp_num_samples] = prev_sample_L;
+									cache_unified[2*temp_num_samples+1] = prev_sample_R;
 								#endif
 							
 								// Establish history
@@ -678,7 +682,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 					#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio
 						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
-							temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_L and cache_R
+							temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_unified, cache_L and cache_R
 							for (i = 0; i < temp_num_samples; i++) {
 								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
 								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, R MSB
@@ -742,9 +746,13 @@ void uac2_device_audio_task(void *pvParameters)
 									#ifdef FEATURE_UNINVERT_LRCK
 										cache_L[i] = prev_prev_sample_R;
 										cache_R[i] = prev_sample_L;
+										cache_unified[2*temp_num_samples] = prev_prev_sample_R;
+										cache_unified[2*temp_num_samples+1] = prev_sample_L;
 									#else
 										cache_L[i] = prev_sample_L; 
 										cache_R[i] = prev_sample_R;
+										cache_unified[2*temp_num_samples] = prev_sample_L;
+										cache_unified[2*temp_num_samples+1] = prev_sample_R;
 									#endif
 							
 									// Establish history
@@ -998,7 +1006,7 @@ void uac2_device_audio_task(void *pvParameters)
 		// Start checking gap and then writing from cache to spk_buffer
 		// Don't check input_source again, trust that num_samples > 0 only occurs when cache was legally written to
 
-		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_L and cache_R
+		num_samples = min(num_samples, SPK_CACHE_MAX_SAMPLES);	// prevent overshoot of cache_unified, cache_L and cache_R
 		if (num_samples > 0) {									// Only start copying when there is something to legally copy
 
 			// Consider long periods of silence to cause buffer reset
@@ -1275,6 +1283,10 @@ void uac2_device_audio_task(void *pvParameters)
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
 				
+// *** Fixing here
+				sample_L = cache_unified[2*temp_num_samples];
+				sample_R = cache_unified[2*temp_num_samples+1];
+				
 				spk_buffer[spk_index++] = sample_L;
 				spk_buffer[spk_index++] = sample_R;
 				
@@ -1292,6 +1304,10 @@ void uac2_device_audio_task(void *pvParameters)
 			// i now points at sample to be skipped or inserted
 			sample_L = cache_L[i];
 			sample_R = cache_R[i];
+
+// *** Fixing here
+			sample_L = cache_unified[2*temp_num_samples];
+			sample_R = cache_unified[2*temp_num_samples+1];
 
 			if (si_action == SI_SKIP) {
 				// Do nothing
@@ -1341,6 +1357,10 @@ void uac2_device_audio_task(void *pvParameters)
 				// Fetch from cache
 				sample_L = cache_L[i];
 				sample_R = cache_R[i];
+
+// *** Fixing here
+				sample_L = cache_unified[2*temp_num_samples];
+				sample_R = cache_unified[2*temp_num_samples+1];
 
 				spk_buffer[spk_index++] = sample_L;
 				spk_buffer[spk_index++] = sample_R;

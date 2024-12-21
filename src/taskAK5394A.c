@@ -98,6 +98,7 @@ volatile S32 samples_per_package_min = 0;
 volatile S32 samples_per_package_max = 0;
 volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
+volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
