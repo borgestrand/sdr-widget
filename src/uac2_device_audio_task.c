@@ -657,13 +657,13 @@ void uac2_device_audio_task(void *pvParameters)
 								#ifdef FEATURE_UNINVERT_LRCK
 									cache_L[i] = prev_prev_sample_R;
 									cache_R[i] = prev_sample_L;
-									cache_unified[2*temp_num_samples] = prev_prev_sample_R;
-									cache_unified[2*temp_num_samples+1] = prev_sample_L;
+									cache_unified[2*i] = prev_prev_sample_R;
+									cache_unified[2*i+1] = prev_sample_L;
 								#else
 									cache_L[i] = prev_sample_L; 
 									cache_R[i] = prev_sample_R;
-									cache_unified[2*temp_num_samples] = prev_sample_L;
-									cache_unified[2*temp_num_samples+1] = prev_sample_R;
+									cache_unified[2*i] = prev_sample_L;
+									cache_unified[2*i+1] = prev_sample_R;
 								#endif
 							
 								// Establish history
@@ -746,13 +746,13 @@ void uac2_device_audio_task(void *pvParameters)
 									#ifdef FEATURE_UNINVERT_LRCK
 										cache_L[i] = prev_prev_sample_R;
 										cache_R[i] = prev_sample_L;
-										cache_unified[2*temp_num_samples] = prev_prev_sample_R;
-										cache_unified[2*temp_num_samples+1] = prev_sample_L;
+										cache_unified[2*i] = prev_prev_sample_R;
+										cache_unified[2*i+1] = prev_sample_L;
 									#else
 										cache_L[i] = prev_sample_L; 
 										cache_R[i] = prev_sample_R;
-										cache_unified[2*temp_num_samples] = prev_sample_L;
-										cache_unified[2*temp_num_samples+1] = prev_sample_R;
+										cache_unified[2*i] = prev_sample_L;
+										cache_unified[2*i+1] = prev_sample_R;
 									#endif
 							
 									// Establish history
@@ -1284,8 +1284,8 @@ void uac2_device_audio_task(void *pvParameters)
 				sample_R = cache_R[i];
 				
 // *** Fixing here
-				sample_L = cache_unified[2*temp_num_samples];
-				sample_R = cache_unified[2*temp_num_samples+1];
+				sample_L = cache_unified[2*i];
+				sample_R = cache_unified[2*i+1];
 				
 				spk_buffer[spk_index++] = sample_L;
 				spk_buffer[spk_index++] = sample_R;
@@ -1306,8 +1306,8 @@ void uac2_device_audio_task(void *pvParameters)
 			sample_R = cache_R[i];
 
 // *** Fixing here
-			sample_L = cache_unified[2*temp_num_samples];
-			sample_R = cache_unified[2*temp_num_samples+1];
+			sample_L = cache_unified[2*i];
+			sample_R = cache_unified[2*i+1];
 
 			if (si_action == SI_SKIP) {
 				// Do nothing
@@ -1359,8 +1359,8 @@ void uac2_device_audio_task(void *pvParameters)
 				sample_R = cache_R[i];
 
 // *** Fixing here
-				sample_L = cache_unified[2*temp_num_samples];
-				sample_R = cache_unified[2*temp_num_samples+1];
+				sample_L = cache_unified[2*i];
+				sample_R = cache_unified[2*i+1];
 
 				spk_buffer[spk_index++] = sample_L;
 				spk_buffer[spk_index++] = sample_R;
