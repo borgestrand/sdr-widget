@@ -655,13 +655,13 @@ void uac2_device_audio_task(void *pvParameters)
 								#endif
 							
 								#ifdef FEATURE_UNINVERT_LRCK
-									cache_L[i] = prev_prev_sample_R;
-									cache_R[i] = prev_sample_L;
+//									cache_L[i] = prev_prev_sample_R;
+//									cache_R[i] = prev_sample_L;
 									cache_unified[2*i] = prev_prev_sample_R;
 									cache_unified[2*i+1] = prev_sample_L;
 								#else
-									cache_L[i] = prev_sample_L; 
-									cache_R[i] = prev_sample_R;
+//									cache_L[i] = prev_sample_L; 
+//									cache_R[i] = prev_sample_R;
 									cache_unified[2*i] = prev_sample_L;
 									cache_unified[2*i+1] = prev_sample_R;
 								#endif
@@ -744,13 +744,13 @@ void uac2_device_audio_task(void *pvParameters)
 									#endif
 								
 									#ifdef FEATURE_UNINVERT_LRCK
-										cache_L[i] = prev_prev_sample_R;
-										cache_R[i] = prev_sample_L;
+//										cache_L[i] = prev_prev_sample_R;
+//										cache_R[i] = prev_sample_L;
 										cache_unified[2*i] = prev_prev_sample_R;
 										cache_unified[2*i+1] = prev_sample_L;
 									#else
-										cache_L[i] = prev_sample_L; 
-										cache_R[i] = prev_sample_R;
+//										cache_L[i] = prev_sample_L; 
+//										cache_R[i] = prev_sample_R;
 										cache_unified[2*i] = prev_sample_L;
 										cache_unified[2*i+1] = prev_sample_R;
 									#endif
@@ -1280,8 +1280,8 @@ void uac2_device_audio_task(void *pvParameters)
 			i = 0;
 			while (i < si_index_low) { // before skip/insert
 				// Fetch from cache
-				sample_L = cache_L[i];
-				sample_R = cache_R[i];
+//				sample_L = cache_L[i];
+//				sample_R = cache_R[i];
 				
 // *** Fixing here
 				sample_L = cache_unified[2*i];
@@ -1302,8 +1302,8 @@ void uac2_device_audio_task(void *pvParameters)
 			} // end while i - before skip/insert
 
 			// i now points at sample to be skipped or inserted
-			sample_L = cache_L[i];
-			sample_R = cache_R[i];
+//			sample_L = cache_L[i];
+//			sample_R = cache_R[i];
 
 // *** Fixing here
 			sample_L = cache_unified[2*i];
@@ -1355,8 +1355,8 @@ void uac2_device_audio_task(void *pvParameters)
 						
 			while (i < num_samples) { // after skip/insert
 				// Fetch from cache
-				sample_L = cache_L[i];
-				sample_R = cache_R[i];
+//				sample_L = cache_L[i];
+//				sample_R = cache_R[i];
 
 // *** Fixing here
 				sample_L = cache_unified[2*i];

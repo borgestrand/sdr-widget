@@ -1120,13 +1120,13 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					}
 
 					#ifdef FEATURE_UNINVERT_LRCK
-						cache_L[temp_num_samples] = prev_prev_sample_R;	// May use (*numsamples) instead of temp_num_samples, but that is slower (66.6us vs 60.6us for a 192ksps packet write)
-						cache_R[temp_num_samples] = prev_sample_L;
+//						cache_L[temp_num_samples] = prev_prev_sample_R;	// May use (*numsamples) instead of temp_num_samples, but that is slower (66.6us vs 60.6us for a 192ksps packet write)
+//						cache_R[temp_num_samples] = prev_sample_L;
 						cache_unified[2*temp_num_samples] = prev_prev_sample_R;
 						cache_unified[2*temp_num_samples+1] = prev_sample_L;
 					#else
-						cache_L[temp_num_samples] = prev_sample_L;	// May use (*numsamples) instead of temp_num_samples, but that is slower (66.6us vs 60.6us for a 192ksps packet write)
-						cache_R[temp_num_samples] = prev_sample_R;
+//						cache_L[temp_num_samples] = prev_sample_L;	// May use (*numsamples) instead of temp_num_samples, but that is slower (66.6us vs 60.6us for a 192ksps packet write)
+//						cache_R[temp_num_samples] = prev_sample_R;
 						cache_unified[2*temp_num_samples] = prev_sample_L;
 						cache_unified[2*temp_num_samples+1] = prev_sample_R;
 					#endif
@@ -1629,8 +1629,8 @@ void mobo_clear_dac_channel(void) {
 	}
 	
 	for (i = 0; i < SPK_CACHE_MAX_SAMPLES; i++) {
-		cache_L[i] = 1;
-		cache_R[i] = -2;		// Delayed SDATA should be in-phase with LRCK
+//		cache_L[i] = 1;
+//		cache_R[i] = -2;		// Delayed SDATA should be in-phase with LRCK
 		cache_unified[2*i] = 1;
 		cache_unified[2*i+1] = -2;
 	}
@@ -1640,8 +1640,8 @@ void mobo_clear_dac_channel(void) {
 	}
 	
 	for (i = 0; i < SPK_CACHE_MAX_SAMPLES; i++) {
-		cache_L[i] = 0;
-		cache_R[i] = 0;
+//		cache_L[i] = 0;
+//		cache_R[i] = 0;
 		cache_unified[2*i] = 0;
 		cache_unified[2*i+1] = 0;
 	}
