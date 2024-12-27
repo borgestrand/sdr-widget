@@ -802,9 +802,15 @@ void uac2_device_audio_task(void *pvParameters)
 										// Report to cpu and debug terminal
 										if (usb_ch == USB_CH_B) {
 											print_cpu_char(CPU_CHAR_UAC2_B);	// USB audio Class 2 on rear USB-B plug
+											#ifdef I2S_METADATA
+												mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_B);
+											#endif
 										}
 										else if (usb_ch == USB_CH_C) {
 											print_cpu_char(CPU_CHAR_UAC2_C);	// USB audio Class 2 on front USB-C plug
+											#ifdef I2S_METADATA
+												mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_C);
+											#endif
 										}
 
 //										mobo_led_select(spk_current_freq.frequency, input_select);
@@ -818,6 +824,9 @@ void uac2_device_audio_task(void *pvParameters)
 							} // if (input_select == MOBO_SRC_NONE)
 						#else // not ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 							input_select = MOBO_SRC_UAC2;
+							#ifdef I2S_METADATA
+								mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+							#endif
 						#endif
 					} // End silence_det == 0 & MOBO_SRC_NONE
 
@@ -873,6 +882,9 @@ void uac2_device_audio_task(void *pvParameters)
 										mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator 
 									#endif
 									input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
+									#ifdef I2S_METADATA
+										mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+									#endif
 								}
 								else {
 									print_dbg_char('*');
@@ -933,6 +945,9 @@ void uac2_device_audio_task(void *pvParameters)
 									mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 								#endif
 								input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
+								#ifdef I2S_METADATA
+									mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+								#endif
 							}
 							else {
 								print_dbg_char('*');
@@ -985,6 +1000,9 @@ void uac2_device_audio_task(void *pvParameters)
 								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
+							#ifdef I2S_METADATA
+								mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+							#endif
 						}
 						else {
 							print_dbg_char('*');
@@ -1012,10 +1030,16 @@ void uac2_device_audio_task(void *pvParameters)
 			// Consider long periods of silence to cause buffer reset
 			#define CACHE_SILENCE_LIMIT	200						// 50ms of silence at 250µs packet rate
 			if (cache_holds_silence) {
+				#ifdef I2S_METADATA
+					mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_ON);
+				#endif
 				if (cache_silence_counter < CACHE_SILENCE_LIMIT) {
 					cache_silence_counter ++;
 				}
 				else {
+					#ifdef I2S_METADATA
+						mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_OFF);
+					#endif
 					must_init_spk_index = TRUE;					// Long silence written through cache = may extend or shorten silence period
 					// must_init_spk_index == TRUE will set cache_silence_counter = 0; so that we don't clear again and again
 				}

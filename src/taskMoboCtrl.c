@@ -155,6 +155,9 @@ static void vtaskMoboCtrl( void * pcParameters )
 		vSemaphoreCreateBinary(input_select_semphr);		// Tasks may take input select semaphore after init - supposedly better semaphore creation
 	#endif
 	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
+	#ifdef I2S_METADATA
+		mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+	#endif
 
 	#ifdef FEATURE_SPDIF_CMD
 		spdif_cmd = SPDIF_CMD_IDLE;							// Enables SPDIF debug system

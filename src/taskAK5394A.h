@@ -57,15 +57,19 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define USB_BUFFER_TOGGLE_LIM 4		// Changed from 2 to 4 after hassle with Sue's phone. DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
 #define USB_BUFFER_TOGGLE_PARK 10	// The error is detected in sequential code
 
-// Available digital audio sources, 3 and 4 only available in HW_GEN_DIN10 and ..20. Source 5 only available in HW_GEN_DIN20n and HW_GEN_SPRX
+// Available digital audio sources, 4 and 5 only available in HW_GEN_DIN10 and ..20. Source 6 only available in HW_GEN_DIN20n and HW_GEN_SPRX
 #define MOBO_SRC_NONE		0
+#define MOBO_SRC_UAC1		1		// Obsolete, rear UAC1 plug
 #define MOBO_SRC_UAC2		2
-#define MOBO_SRC_SPDIF0		3
-#define MOBO_SRC_TOSLINK1	4
-#define MOBO_SRC_TOSLINK0	5
-#define MOBO_SRC_SPDIF1		6		// Future auxilliary SPDIF channel on computer header or for HDMI FIX: propagate throughout code!
-#define MOBO_SRC_HIGH		5		// Highest source indicator for SPDIF/TOSLINK RX FIX: increase to 6 with aux SPDIF
-#define MOBO_SRC_LOW		3		// Lowest source indicator for SPDIF/TOSLINK RX
+#define MOBO_SRC_UAC2_B		2		// Duplicate, only use for I2S metadata reporting
+#define MOBO_SRC_UAC2_C		3		// Special case, only use for I2S metadata reporting
+#define MOBO_SRC_SPDIF0		4
+#define MOBO_SRC_TOSLINK1	5
+#define MOBO_SRC_TOSLINK0	6
+#define MOBO_SRC_SPDIF1		8		// Future auxilliary SPDIF channel on computer header or for HDMI FIX: propagate throughout code!
+
+#define MOBO_SRC_HIGH		MOBO_SRC_TOSLINK0		// Highest source indicator for SPDIF/TOSLINK RX FIX: increase to 6 with aux SPDIF
+#define MOBO_SRC_LOW		MOBO_SRC_SPDIF0			// Lowest source indicator for SPDIF/TOSLINK RX
 
 
 // Front led colors for RGB LEDs

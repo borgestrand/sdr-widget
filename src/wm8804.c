@@ -175,6 +175,9 @@ void wm8804_task(void *pvParameters) {
 					mobo_SPRX_input(spdif_cmd - 0x10);
 					if (input_select == MOBO_SRC_NONE) {
 						input_select = spdif_cmd - 0x10;
+						#ifdef I2S_METADATA
+							mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+						#endif
 					}
 					print_dbg_char_char('.');
 					print_dbg_char_hex(input_select);
@@ -492,6 +495,9 @@ void wm8804_task(void *pvParameters) {
 								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
+							#ifdef I2S_METADATA
+								mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+							#endif
 						}
 						else {
 							print_dbg_char('*');
@@ -542,6 +548,9 @@ void wm8804_task(void *pvParameters) {
 						if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take
 							if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {	// Re-take of taken semaphore returns false
 								input_select = channel;						// Owning semaphore we may write to master variable input_select and take control of hardware
+								#ifdef I2S_METADATA
+									mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+								#endif
 								spdif_rx_status.channel = channel;
 								spdif_rx_status.frequency = freq;
 								print_dbg_char('{');						// WM8804 takes
