@@ -100,6 +100,11 @@ volatile S32 samples_per_package_max = 0;
 // volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 
+#ifdef I2S_METADATA
+	volatile uint8_t i2s_meta_L = 0;
+	volatile uint8_t i2s_meta_R = 0;
+#endif
+
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
 
 volatile int ADC_buf_I2S_IN = 0; 	// Written by sequential code, handles only data coming in from I2S interface (ADC or SPDIF rx)

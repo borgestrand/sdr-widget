@@ -1286,6 +1286,11 @@ void uac2_device_audio_task(void *pvParameters)
 // *** Fixing here
 				sample_L = cache_unified[2*i];
 				sample_R = cache_unified[2*i+1];
+
+				#ifdef I2S_METADATA
+					sample_L = (sample_L & 0xFFFFFF00) | i2s_meta_L;
+					sample_R = (sample_R & 0xFFFFFF00) | i2s_meta_R;
+				#endif
 				
 				spk_buffer[spk_index++] = sample_L;
 				spk_buffer[spk_index++] = sample_R;
@@ -1308,6 +1313,11 @@ void uac2_device_audio_task(void *pvParameters)
 // *** Fixing here
 			sample_L = cache_unified[2*i];
 			sample_R = cache_unified[2*i+1];
+
+			#ifdef I2S_METADATA
+				sample_L = (sample_L & 0xFFFFFF00) | i2s_meta_L;
+				sample_R = (sample_R & 0xFFFFFF00) | i2s_meta_R;
+			#endif
 
 			if (si_action == SI_SKIP) {
 				// Do nothing
@@ -1361,6 +1371,11 @@ void uac2_device_audio_task(void *pvParameters)
 // *** Fixing here
 				sample_L = cache_unified[2*i];
 				sample_R = cache_unified[2*i+1];
+
+				#ifdef I2S_METADATA
+					sample_L = (sample_L & 0xFFFFFF00) | i2s_meta_L;
+					sample_R = (sample_R & 0xFFFFFF00) | i2s_meta_R;
+				#endif
 
 				spk_buffer[spk_index++] = sample_L;
 				spk_buffer[spk_index++] = sample_R;

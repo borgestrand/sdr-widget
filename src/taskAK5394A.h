@@ -144,6 +144,11 @@ extern volatile S32 samples_per_package_max;
 // extern volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 
+#ifdef I2S_METADATA
+	extern volatile uint8_t i2s_meta_L;
+	extern volatile uint8_t i2s_meta_L;
+#endif
+
 
 extern volatile avr32_ssc_t *ssc;
 
