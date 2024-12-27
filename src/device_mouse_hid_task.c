@@ -282,10 +282,16 @@ void device_mouse_hid_task(void)
 	            else if (temp == 4)	usb_test_packet();
             }
 
+#ifdef I2S_METADATA
+			// Collect I2S metadata
+			else if (a == 'i') {
+				i2s_meta_L = temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+				i2s_meta_R = temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
+			}
+#endif
+
 
 #ifdef HW_GEN_FMADC
-
-
 			// Set preamp gain
             else if (a == 'g') {									// Lowercase g
 	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);		// Channel 1 or 2, two hex nibbles

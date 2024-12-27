@@ -28,6 +28,7 @@
 # -DI2S_POLARITY_CHECK			Output SDATA in phase with LRCK for debugging
 # -DBOOT_SIGNAL_LED				Use front LED to indicate reboot
 # -DLOOSE_SIGNAL_LED			Use front LED to indicate SPDIF signal loss
+# -DI2S_METADATA				Send 8 bits of metadata below each 24-bit audio data sample
 
 
 
@@ -60,8 +61,9 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_PRODUCT_HA256 \
 	-DFEATURE_ALT2_16BIT \
 	-DHW_GEN_SPRX \
+	-DI2S_METADATA \
 	\
-#	-DFEATURE_SPDIF_CMD\
+#	-DFEATURE_SPDIF_CMD \
 	\
 	
 

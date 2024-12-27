@@ -101,8 +101,8 @@ volatile S32 samples_per_package_max = 0;
 volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 
 #ifdef I2S_METADATA
-	volatile uint8_t i2s_meta_L = 0;
-	volatile uint8_t i2s_meta_R = 0;
+	volatile uint8_t i2s_meta_L = 0x55;
+	volatile uint8_t i2s_meta_R = 0xaa;
 #endif
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;

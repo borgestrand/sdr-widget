@@ -30,6 +30,7 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "stdint.h"
 
 #define PDCA_CHANNEL_SSC_RX	   0	// highest priority of 8 channels
 #define PDCA_CHANNEL_SSC_TX	   1
@@ -146,7 +147,7 @@ extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 
 #ifdef I2S_METADATA
 	extern volatile uint8_t i2s_meta_L;
-	extern volatile uint8_t i2s_meta_L;
+	extern volatile uint8_t i2s_meta_R;
 #endif
 
 
