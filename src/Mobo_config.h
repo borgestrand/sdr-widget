@@ -24,7 +24,7 @@ void mobo_print_selected_frequency(U32 frequency);
 
 // Share selected frequency as part of I2S metadata
 #ifdef I2S_METADATA
-	void mobo_frequency_i2s_metadata(U32 frequency) {
+	void mobo_frequency_i2s_metadata(U32 frequency);
 #endif
 
 // Audio Widget select oscillator

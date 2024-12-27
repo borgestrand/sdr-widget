@@ -1314,6 +1314,39 @@ void mobo_print_selected_frequency(U32 frequency) {
 }
 
 
+// Share selected frequency as part of I2S metadata
+#ifdef I2S_METADATA
+	void mobo_frequency_i2s_metadata(U32 frequency) {
+		
+		// Report to I2S consumer
+		switch (frequency) {
+			case FREQ_44:
+				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_44);
+			break;
+			case FREQ_48:
+				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_48);
+			break;
+			case FREQ_88:
+				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_88);
+			break;
+			case FREQ_96:
+				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_96);
+			break;
+			case FREQ_176:
+				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_176);
+			break;
+			case FREQ_192:
+				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_192);
+			break;
+			default:
+				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_UNKNOWN);
+			break;
+		} // switch
+	}
+#endif
+
+
+
 void mobo_xo_select(U32 frequency, uint8_t source) {
 // XO and MCLK control
 
@@ -1380,6 +1413,10 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			} // switch
 		
 			mobo_print_selected_frequency(frequency);
+			#ifdef I2S_METADATA
+				void mobo_frequency_i2s_metadata(U32 frequency);
+			#endif
+
 		} // frequency != prev_frequency
 
 		prev_frequency = frequency;					// Establish history based on frequency, not XO selection. That can be improved upon like for SPRX below
@@ -1401,6 +1438,9 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		if ( (frequency == FREQ_44) || (frequency == FREQ_48) || (frequency == FREQ_88) || (frequency == FREQ_96) || (frequency == FREQ_176) || (frequency == FREQ_192) ) {
 			xo_frequency = frequency;					// Which XO should be used? Good to know if we're running on regenerated clock for a while
 			mobo_print_selected_frequency(frequency);	// Always show which (among valid rates) is desired by source
+			#ifdef I2S_METADATA
+				void mobo_frequency_i2s_metadata(U32 frequency);
+			#endif
 		}
 
 		// Choose XO or regenerated clock
