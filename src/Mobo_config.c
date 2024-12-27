@@ -1614,6 +1614,36 @@ void mobo_clear_adc_channel(void) {
 }
 
 
+
+#ifdef I2S_METADATA
+	// Updates global metadata variables based on input
+	void mobo_set_i2s_metadata(uint8_t version, uint8_t parameter, uint8_t value) {
+		// Only implemented for version 0 for now
+		if (version == I2S_META_VERSION_0) {
+			i2s_meta_L = (i2s_meta_L & 0b01111111);	// Left zero bit
+			i2s_meta_R = (i2s_meta_R & 0b01111111);	// Right zero bit
+			i2s_meta_L = (i2s_meta_L & 0b10011111) | ( (version & 0b00000011) << 5); // Clear left bits 6 and 5. Shift in version
+						
+			switch (parameter) {
+				case I2S_META_RATE:
+					i2s_meta_L = (i2s_meta_L & 0b11111000) | ( (parameter & 0b00000111) << 0); // Clear left bits 2, 1 and 0. Shift in sample rate. See I2S_META_VALUES
+				break;
+				case I2S_META_SOURCE:
+					i2s_meta_R = (i2s_meta_R & 0b11111000) | ( (parameter & 0b00000111) << 0); // Clear right bits 2, 1 and 0. Shift in source. See definition of MOBO_SRC_NONE and onward
+				break;
+				case I2S_META_MUTED:
+					i2s_meta_L = (i2s_meta_L & 0b11101111) | ( (parameter & 0b00000001) << 4); // Clear left bit 3. Shift in muted. See I2S_META_VALUES
+				break;
+				case I2S_META_CLOCK:
+					i2s_meta_R = (i2s_meta_R & 0b10011111) | ( (parameter & 0b00000011) << 5); // Clear right bits 6 and 5. Shift in clock source. See I2S_META_VALUES
+				break;
+			}
+		}
+	}
+#endif
+
+
+
 // Empty the contents of the outgoing pdca buffers
 void mobo_clear_dac_channel(void) {
 	int i;
@@ -1622,7 +1652,7 @@ void mobo_clear_dac_channel(void) {
 //	gpio_set_gpio_pin(AVR32_PIN_PX17); // ch3
 
 
-#ifdef I2S_POLARITY_CHECK
+#ifdef I2S_POLARITY_CHECK // overrides I2S_METADATA
 	for (i = 0; i < DAC_BUFFER_UNI; i=i+2) {
 		spk_buffer[i] = 1; 
 		spk_buffer[i+1] = -2;		// Delayed SDATA should be in-phase with LRCK
@@ -1635,15 +1665,33 @@ void mobo_clear_dac_channel(void) {
 		cache_unified[2*i+1] = -2;
 	}
 #else
-	for (i = 0; i < DAC_BUFFER_UNI; i++) {
-		spk_buffer[i] = 0;
+//	for (i = 0; i < DAC_BUFFER_UNI; i++) {
+//		spk_buffer[i] = 0;
+//	}
+
+	// Assuming DAC_BUFFER_UNI is an even number
+	for (i = 0; i < ( DAC_BUFFER_UNI / 2); i++) {
+		#ifdef I2S_METADATA
+			spk_buffer[2*i] = i2s_meta_L;	// Left
+			spk_buffer[2*i+1] = i2s_meta_R;	// Right
+		#else
+			spk_buffer[2*i] = 0;	// Left
+			spk_buffer[2*i+1] = 0;	// Right
+		#endif
 	}
+
 	
 	for (i = 0; i < SPK_CACHE_MAX_SAMPLES; i++) {
 //		cache_L[i] = 0;
 //		cache_R[i] = 0;
-		cache_unified[2*i] = 0;
-		cache_unified[2*i+1] = 0;
+
+		#ifdef I2S_METADATA
+			cache_unified[2*i] = i2s_meta_L;
+			cache_unified[2*i+1] = i2s_meta_R;
+		#else
+			cache_unified[2*i] = 0;
+			cache_unified[2*i+1] = 0;
+		#endif
 	}
 #endif	
 	

@@ -32,6 +32,11 @@ void mobo_clock_division(U32 frequency);
 // Empty the contents of the incoming pdca buffers
 void mobo_clear_adc_channel(void);
 
+#ifdef I2S_METADATA
+	// Updates global metadata variables based on input
+	void mobo_set_i2s_metadata(uint8_t version, uint8_t parameter, uint8_t value);
+#endif
+
 // Empty the contents of the outgoing pdca buffers
 void mobo_clear_dac_channel(void);
 

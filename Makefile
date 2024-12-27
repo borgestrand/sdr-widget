@@ -25,12 +25,10 @@
 #
 # -DUSB_REDUCED_DEBUG			Reduce debug and use UART only for CPU communication
 # -DFEATURE_UNINVERT_LRCK		Reverse the effect of an inverted LRCK signal on the I2S output
-# -DI2S_POLARITY_CHECK			Output SDATA in phase with LRCK for debugging
 # -DBOOT_SIGNAL_LED				Use front LED to indicate reboot
 # -DLOOSE_SIGNAL_LED			Use front LED to indicate SPDIF signal loss
 # -DI2S_METADATA				Send 8 bits of metadata below each 24-bit audio data sample
-
-
+# -DI2S_POLARITY_CHECK			Output SDATA in phase with LRCK for debugging. It will override -DI2S_METADATA for paused content
 
 
 # PARTNAME=-mpart=uc3a3256
