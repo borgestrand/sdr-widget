@@ -22,6 +22,11 @@ void mobo_sleep_rtc_ms(uint16_t time_ms);
 // Print the frequency
 void mobo_print_selected_frequency(U32 frequency);
 
+// Share selected frequency as part of I2S metadata
+#ifdef I2S_METADATA
+	void mobo_frequency_i2s_metadata(U32 frequency) {
+#endif
+
 // Audio Widget select oscillator
 void mobo_xo_select(U32 frequency, uint8_t source);
 
