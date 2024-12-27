@@ -1626,16 +1626,16 @@ void mobo_clear_adc_channel(void) {
 						
 			switch (parameter) {
 				case I2S_META_RATE:
-					i2s_meta_L = (i2s_meta_L & 0b11111000) | ( (parameter & 0b00000111) << 0); // Clear left bits 2, 1 and 0. Shift in sample rate. See I2S_META_VALUES
+					i2s_meta_R = (i2s_meta_R & 0b11111000) | ( (value & 0b00000111) << 0); // Clear right bits 2, 1 and 0. Shift in sample rate. See I2S_META_VALUES
 				break;
 				case I2S_META_SOURCE:
-					i2s_meta_R = (i2s_meta_R & 0b11111000) | ( (parameter & 0b00000111) << 0); // Clear right bits 2, 1 and 0. Shift in source. See definition of MOBO_SRC_NONE and onward
+					i2s_meta_L = (i2s_meta_L & 0b11111000) | ( (value & 0b00000111) << 0); // Clear left bits 2, 1 and 0. Shift in source. See definition of MOBO_SRC_NONE and onward
 				break;
 				case I2S_META_MUTED:
-					i2s_meta_L = (i2s_meta_L & 0b11101111) | ( (parameter & 0b00000001) << 4); // Clear left bit 3. Shift in muted. See I2S_META_VALUES
+					i2s_meta_L = (i2s_meta_L & 0b11101111) | ( (value & 0b00000001) << 4); // Clear left bit 3. Shift in muted. See I2S_META_VALUES
 				break;
 				case I2S_META_CLOCK:
-					i2s_meta_R = (i2s_meta_R & 0b10011111) | ( (parameter & 0b00000011) << 5); // Clear right bits 6 and 5. Shift in clock source. See I2S_META_VALUES
+					i2s_meta_R = (i2s_meta_R & 0b10011111) | ( (value & 0b00000011) << 5); // Clear right bits 6 and 5. Shift in clock source. See I2S_META_VALUES
 				break;
 			}
 		}

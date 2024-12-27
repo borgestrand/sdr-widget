@@ -101,8 +101,8 @@ volatile S32 samples_per_package_max = 0;
 volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 
 #ifdef I2S_METADATA
-	volatile uint8_t i2s_meta_L = 0x55;
-	volatile uint8_t i2s_meta_R = 0xaa;
+	volatile uint8_t i2s_meta_L = 0b00010000;	// Version 0 encoding for muted, no source
+	volatile uint8_t i2s_meta_R = 0b00000000;	// Version 0 encoding for 44.1ksps XO, no sample rate
 #endif
 
 volatile avr32_ssc_t *ssc = &AVR32_SSC;
