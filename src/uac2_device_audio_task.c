@@ -822,7 +822,7 @@ void uac2_device_audio_task(void *pvParameters)
 									print_dbg_char('a');
 								}
 							} // if (input_select == MOBO_SRC_NONE)
-						#else // not ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
+						#else // not ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores. This code has not been tested since that has only been done in SPRX context
 							input_select = MOBO_SRC_UAC2;
 							#ifdef I2S_METADATA
 								mobo_set_i2s_metadata('n', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
@@ -882,7 +882,7 @@ void uac2_device_audio_task(void *pvParameters)
 										mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator 
 									#endif
 									input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
-									#ifdef I2S_METADATA
+									#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'o'
 										mobo_set_i2s_metadata('o', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 									#endif
 								}
@@ -945,8 +945,8 @@ void uac2_device_audio_task(void *pvParameters)
 									mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
 								#endif
 								input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
-								#ifdef I2S_METADATA
-									mobo_set_i2s_metadata('p', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+								#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'p'
+									mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 								#endif
 							}
 							else {
