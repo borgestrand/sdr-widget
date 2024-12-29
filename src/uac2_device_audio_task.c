@@ -802,14 +802,14 @@ void uac2_device_audio_task(void *pvParameters)
 										// Report to cpu and debug terminal
 										if (usb_ch == USB_CH_B) {
 											print_cpu_char(CPU_CHAR_UAC2_B);	// USB audio Class 2 on rear USB-B plug
-											#ifdef I2S_METADATA
-												mobo_set_i2s_metadata('l', I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_B);
+											#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'l'
+												mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_B);
 											#endif
 										}
 										else if (usb_ch == USB_CH_C) {
 											print_cpu_char(CPU_CHAR_UAC2_C);	// USB audio Class 2 on front USB-C plug
-											#ifdef I2S_METADATA
-												mobo_set_i2s_metadata('m', I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_C);
+											#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'm'
+												mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_C);
 											#endif
 										}
 
