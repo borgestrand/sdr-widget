@@ -1317,29 +1317,28 @@ void mobo_print_selected_frequency(U32 frequency) {
 // Share selected frequency as part of I2S metadata
 #ifdef I2S_METADATA
 	void mobo_frequency_i2s_metadata(U32 frequency) {
-
 		// Report to I2S consumer
 		switch (frequency) {
 			case FREQ_44:
-				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_44);
+				mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_44); // NOT REPORTED to terminal - tested OK - was 'j'
 			break;
 			case FREQ_48:
-				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_48);
+				mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_48);
 			break;
 			case FREQ_88:
-				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_88);
+				mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_88);
 			break;
 			case FREQ_96:
-				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_96);
+				mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_96);
 			break;
 			case FREQ_176:
-				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_176);
+				mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_176);
 			break;
 			case FREQ_192:
-				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_192);
+				mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_192);
 			break;
 			default:
-				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_UNKNOWN);
+				mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_UNKNOWN);
 			break;
 		} // switch
 	}
@@ -1414,7 +1413,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 		
 			mobo_print_selected_frequency(frequency);
 			#ifdef I2S_METADATA
-				void mobo_frequency_i2s_metadata(U32 frequency);
+				mobo_frequency_i2s_metadata(frequency);
 			#endif
 
 		} // frequency != prev_frequency
@@ -1439,7 +1438,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			xo_frequency = frequency;					// Which XO should be used? Good to know if we're running on regenerated clock for a while
 			mobo_print_selected_frequency(frequency);	// Always show which (among valid rates) is desired by source
 			#ifdef I2S_METADATA
-				void mobo_frequency_i2s_metadata(U32 frequency);
+				mobo_frequency_i2s_metadata(frequency);
 			#endif
 		}
 
