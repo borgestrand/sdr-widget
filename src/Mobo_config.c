@@ -1693,7 +1693,7 @@ void mobo_clear_adc_channel(void) {
 
 			// Verbose I2S_METADATA
 			if (verbose != 0) {
-				print_cpu_char('verbose');
+				print_cpu_char(verbose);
 				print_cpu_char_hex(i2s_meta_L);
 				print_cpu_char_hex(i2s_meta_R);
 				print_cpu_char('\n');

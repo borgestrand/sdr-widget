@@ -287,7 +287,7 @@ void device_mouse_hid_task(void)
 			else if (a == 'i') {
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-				mobo_set_i2s_metadata ('i', I2S_META_VERSION_0, temp, temp2);
+				mobo_set_i2s_metadata('i', I2S_META_VERSION_0, temp, temp2);
 //				i2s_meta_L = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 //				i2s_meta_R = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 			}
