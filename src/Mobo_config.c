@@ -1685,7 +1685,7 @@ void mobo_clear_adc_channel(void) {
 				case I2S_META_SOURCE:
 					i2s_meta_L = (i2s_meta_L & 0b11111000) | ( (value & 0b00000111) << 0); // Clear left bits 2, 1 and 0. Shift in source. See definition of MOBO_SRC_NONE and onward
 				break;
-				case I2S_META_MUTED: // Not used - considered too expensive for now
+				case I2S_META_MUTED: // Too expensive?
 					i2s_meta_L = (i2s_meta_L & 0b11101111) | ( (value & 0b00000001) << 4); // Clear left bit 3. Shift in muted. See I2S_META_VALUES
 				break;
 				case I2S_META_CLOCK:
