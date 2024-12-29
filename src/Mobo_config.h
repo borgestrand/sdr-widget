@@ -39,14 +39,15 @@ I2S from the receiver code transfers 32 bits to DAC or processor. The upper 24 b
 S Source	3 bits
 R Rate		3 bits
 Z Zero pad	2 bits
-M Muted		1 bit
+M Muted		1 bit				// NB: not used, considered too expensive for now!
 V Version	2 bits
 C Clock		2 bits
+T Toggle	1 bit				// NB: not implemented. Expand to toggle once every packet, approx 250µs. Considered too expensive for now
 x Unused	3 bits
    
    7 6 5 4 3 2 1 0
 L: Z V V M x S S S
-R: Z C C x x R R R
+R: Z C C T x R R R
 */
 
 	extern volatile uint8_t i2s_meta_L;
@@ -54,7 +55,7 @@ R: Z C C x x R R R
 	typedef enum {
 		I2S_META_RATE = 10,
 		I2S_META_SOURCE,
-		I2S_META_MUTED,
+		I2S_META_MUTED,				// NB: not used, considered too expensive for now!
 		I2S_META_CLOCK,
 	} I2S_META_PARAMS;
 	typedef enum {

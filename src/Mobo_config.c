@@ -1479,8 +1479,8 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 				prev_frequency = frequency;				// Establish history among valid XO settings
-				#ifdef I2S_METADATA
-					mobo_set_i2s_metadata('k', I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_44);
+				#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'k'
+					mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_44);
 				#endif
 			}
 			// FREQ_INVALID defaults to 48kHz domain? Is that consistent in code?
@@ -1491,8 +1491,8 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 				prev_frequency = frequency;				// Establish history among valid XO settings
-				#ifdef I2S_METADATA
-					mobo_set_i2s_metadata('l', I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_48);
+				#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'l'
+					mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_48);
 				#endif
 			}
 		}
@@ -1671,10 +1671,13 @@ void mobo_clear_adc_channel(void) {
 	void mobo_set_i2s_metadata(uint8_t verbose, uint8_t version, uint8_t parameter, uint8_t value) {
 		// Only implemented for version 0 for now
 		if (version == I2S_META_VERSION_0) {
+			
+/* Don't modify Zero and Version bits until we start supporting multiple versions			
 			i2s_meta_L = (i2s_meta_L & 0b01111111);	// Left zero bit
 			i2s_meta_R = (i2s_meta_R & 0b01111111);	// Right zero bit
 			i2s_meta_L = (i2s_meta_L & 0b10011111) | ( (version & 0b00000011) << 5); // Clear left bits 6 and 5. Shift in version
-						
+*/
+
 			switch (parameter) {
 				case I2S_META_RATE:
 					i2s_meta_R = (i2s_meta_R & 0b11111000) | ( (value & 0b00000111) << 0); // Clear right bits 2, 1 and 0. Shift in sample rate. See I2S_META_VALUES
@@ -1682,7 +1685,7 @@ void mobo_clear_adc_channel(void) {
 				case I2S_META_SOURCE:
 					i2s_meta_L = (i2s_meta_L & 0b11111000) | ( (value & 0b00000111) << 0); // Clear left bits 2, 1 and 0. Shift in source. See definition of MOBO_SRC_NONE and onward
 				break;
-				case I2S_META_MUTED:
+				case I2S_META_MUTED: // Not used - considered too expensive for now
 					i2s_meta_L = (i2s_meta_L & 0b11101111) | ( (value & 0b00000001) << 4); // Clear left bit 3. Shift in muted. See I2S_META_VALUES
 				break;
 				case I2S_META_CLOCK:

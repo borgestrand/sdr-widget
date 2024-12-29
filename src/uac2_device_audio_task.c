@@ -1030,8 +1030,8 @@ void uac2_device_audio_task(void *pvParameters)
 			// Consider long periods of silence to cause buffer reset
 			#define CACHE_SILENCE_LIMIT	200						// 50ms of silence at 250µs packet rate
 			if (cache_holds_silence) {
-				#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'u'
-					mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_ON);
+				#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'u' - Considered too expensive for now!
+//					mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_ON);
 				#endif
 				if (cache_silence_counter < CACHE_SILENCE_LIMIT) {
 					cache_silence_counter ++;
@@ -1043,8 +1043,8 @@ void uac2_device_audio_task(void *pvParameters)
 			} 
 			else {
 				cache_silence_counter = 0;
-				#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'z'
-					mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_OFF);
+				#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'z' - Considered too expensive for now!
+//					mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_OFF);
 				#endif
 			}
 
