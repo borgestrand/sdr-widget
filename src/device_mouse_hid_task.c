@@ -288,9 +288,6 @@ void device_mouse_hid_task(void)
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				mobo_set_i2s_metadata (I2S_META_VERSION_0, temp, temp2);
-				print_cpu_char_hex(i2s_meta_L);
-				print_cpu_char_hex(i2s_meta_R);
-				print_cpu_char('\n');
 //				i2s_meta_L = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 //				i2s_meta_R = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 			}

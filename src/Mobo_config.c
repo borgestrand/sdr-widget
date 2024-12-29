@@ -1317,7 +1317,9 @@ void mobo_print_selected_frequency(U32 frequency) {
 // Share selected frequency as part of I2S metadata
 #ifdef I2S_METADATA
 	void mobo_frequency_i2s_metadata(U32 frequency) {
-		
+
+		print_cpu_char('j'); // Verbose I2S_METADATA
+
 		// Report to I2S consumer
 		switch (frequency) {
 			case FREQ_44:
@@ -1481,6 +1483,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 				prev_frequency = frequency;				// Establish history among valid XO settings
 				#ifdef I2S_METADATA
+					print_cpu_char('k'); // Verbose I2S_METADATA
 					mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_44);
 				#endif
 			}
@@ -1493,6 +1496,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 				prev_frequency = frequency;				// Establish history among valid XO settings
 				#ifdef I2S_METADATA
+					print_cpu_char('l'); // Verbose I2S_METADATA
 					mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_48);
 				#endif
 			}
@@ -1690,6 +1694,11 @@ void mobo_clear_adc_channel(void) {
 					i2s_meta_R = (i2s_meta_R & 0b10011111) | ( (value & 0b00000011) << 5); // Clear right bits 6 and 5. Shift in clock source. See I2S_META_VALUES
 				break;
 			}
+
+			// Verbose I2S_METADATA
+			print_cpu_char('\n');
+			print_cpu_char_hex(i2s_meta_L);
+			print_cpu_char_hex(i2s_meta_R);
 		}
 	}
 #endif

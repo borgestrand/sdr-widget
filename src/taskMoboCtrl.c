@@ -156,6 +156,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 	#endif
 	input_select = MOBO_SRC_NONE;							// No input selected, allows state machines to grab it
 	#ifdef I2S_METADATA
+		print_cpu_char('k'); // Verbose I2S_METADATA
 		mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 	#endif
 
