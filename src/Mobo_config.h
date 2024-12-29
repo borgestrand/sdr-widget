@@ -22,11 +22,6 @@ void mobo_sleep_rtc_ms(uint16_t time_ms);
 // Print the frequency
 void mobo_print_selected_frequency(U32 frequency);
 
-// Share selected frequency as part of I2S metadata
-#ifdef I2S_METADATA
-	void mobo_frequency_i2s_metadata(U32 frequency);
-#endif
-
 // Audio Widget select oscillator
 void mobo_xo_select(U32 frequency, uint8_t source);
 
@@ -38,8 +33,51 @@ void mobo_clock_division(U32 frequency);
 void mobo_clear_adc_channel(void);
 
 #ifdef I2S_METADATA
+
+/* I2S metadata format Version 0:
+I2S from the receiver code transfers 32 bits to DAC or processor. The upper 24 bits are used for audio. The lower 8 bits are used for metadata. 
+S Source	3 bits
+R Rate		3 bits
+Z Zero pad	2 bits
+M Muted		1 bit
+V Version	2 bits
+C Clock		2 bits
+x Unused	3 bits
+   
+   7 6 5 4 3 2 1 0
+L: Z V V M x S S S
+R: Z C C x x R R R
+*/
+
+	extern volatile uint8_t i2s_meta_L;
+	extern volatile uint8_t i2s_meta_R;
+	typedef enum {
+		I2S_META_RATE = 10,
+		I2S_META_SOURCE,
+		I2S_META_MUTED,
+		I2S_META_CLOCK,
+	} I2S_META_PARAMS;
+	typedef enum {
+		I2S_META_VERSION_0 = 0,		// Only defined version of i2s metadata format
+		I2S_META_XO_44 = 0,			// Version 0 has 2 bits for clocks
+		I2S_META_XO_48,
+		I2S_META_REGEN_RX,
+		I2S_META_MUTE_ON = 1,		// Version 0 has 1 bit for mute
+		I2S_META_MUTE_OFF = 0,
+		I2S_META_FREQ_44 = 1,
+		I2S_META_FREQ_48,
+		I2S_META_FREQ_88,
+		I2S_META_FREQ_96,
+		I2S_META_FREQ_176,
+		I2S_META_FREQ_192,
+		I2S_META_FREQ_UNKNOWN
+	} I2S_META_VALUES;
+
 	// Updates global metadata variables based on input
 	void mobo_set_i2s_metadata(uint8_t verbose, uint8_t version, uint8_t parameter, uint8_t value);
+
+	// Share selected frequency as part of I2S metadata
+	void mobo_frequency_i2s_metadata(U32 frequency);
 #endif
 
 // Empty the contents of the outgoing pdca buffers

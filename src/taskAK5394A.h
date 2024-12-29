@@ -60,16 +60,18 @@ Short buffers give less system latency and poorer synch state machine performanc
 // Available digital audio sources, 4 and 5 only available in HW_GEN_DIN10 and ..20. Source 6 only available in HW_GEN_DIN20n and HW_GEN_SPRX
 #define MOBO_SRC_NONE		0
 #define MOBO_SRC_UAC1		1		// Obsolete, rear UAC1 plug
-#define MOBO_SRC_UAC2		2
-#define MOBO_SRC_UAC2_B		2		// Duplicate, only use for I2S metadata reporting
-#define MOBO_SRC_UAC2_C		3		// Special case, only use for I2S metadata reporting
-#define MOBO_SRC_SPDIF0		4
-#define MOBO_SRC_TOSLINK1	5
-#define MOBO_SRC_TOSLINK0	6
-#define MOBO_SRC_SPDIF1		8		// Future auxilliary SPDIF channel on computer header or for HDMI FIX: propagate throughout code!
+#define MOBO_SRC_UAC1_B		1		// Duplicate, obsolete UAC1 USB B rear, metadata only
+#define MOBO_SRC_UAC1_C		2		// Duplicate, obsolete UAC1 USB C front, metadata only
+#define MOBO_SRC_UAC2		3
+#define MOBO_SRC_UAC2_B		3		// Duplicate, only use for I2S metadata reporting
+#define MOBO_SRC_UAC2_C		4		// Special case, only use for I2S metadata reporting
+#define MOBO_SRC_SPDIF0		5
+#define MOBO_SRC_TOSLINK1	6
+#define MOBO_SRC_TOSLINK0	7
+#define MOBO_SRC_SPDIF1		8		// Future auxilliary SPDIF channel on computer header or for HDMI FIX: propagate throughout code! Update I2S metatata VERSION and format before this is used!
 
-#define MOBO_SRC_HIGH		MOBO_SRC_TOSLINK0		// Highest source indicator for SPDIF/TOSLINK RX FIX: increase to 6 with aux SPDIF
 #define MOBO_SRC_LOW		MOBO_SRC_SPDIF0			// Lowest source indicator for SPDIF/TOSLINK RX
+#define MOBO_SRC_HIGH		MOBO_SRC_TOSLINK0		// Highest source indicator for SPDIF/TOSLINK RX
 
 
 // Front led colors for RGB LEDs
@@ -148,50 +150,6 @@ extern volatile S32 samples_per_package_max;
 // extern volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 // extern volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
-
-#ifdef I2S_METADATA
-
-/* I2S metadata format Version 0:
-I2S from the receiver code transfers 32 bits to DAC or processor. The upper 24 bits are used for audio. The lower 8 bits are used for metadata. 
-S Source	3 bits
-R Rate		3 bits
-Z Zero pad	2 bits
-M Muted		1 bit
-V Version	2 bits
-C Clock		2 bits
-x Unused	3 bits
-   
-   7 6 5 4 3 2 1 0
-L: Z V V M x S S S
-R: Z C C x x R R R
-*/
-
-	extern volatile uint8_t i2s_meta_L;
-	extern volatile uint8_t i2s_meta_R;
-	typedef enum {
-		I2S_META_RATE = 10,
-		I2S_META_SOURCE,
-		I2S_META_MUTED,
-		I2S_META_CLOCK,
-	} I2S_META_PARAMS;
-	typedef enum {
-		I2S_META_VERSION_0 = 0,		// Only defined version of i2s metadata format
-		I2S_META_XO_44 = 0,			// Version 0 has 2 bits for clocks
-		I2S_META_XO_48,
-		I2S_META_REGEN_RX,
-		I2S_META_MUTE_ON = 1,		// Version 0 has 1 bit for mute
-		I2S_META_MUTE_OFF = 0,
-		I2S_META_FREQ_44 = 1,
-		I2S_META_FREQ_48,
-		I2S_META_FREQ_88,
-		I2S_META_FREQ_96,
-		I2S_META_FREQ_176,
-		I2S_META_FREQ_192,
-		I2S_META_FREQ_UNKNOWN
-	} I2S_META_VALUES;
-#endif
-
-
 extern volatile avr32_ssc_t *ssc;
 
 // ææææ old buffer ids ripe for renaming or removal
