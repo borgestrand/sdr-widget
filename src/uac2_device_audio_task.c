@@ -803,15 +803,13 @@ void uac2_device_audio_task(void *pvParameters)
 										if (usb_ch == USB_CH_B) {
 											print_cpu_char(CPU_CHAR_UAC2_B);	// USB audio Class 2 on rear USB-B plug
 											#ifdef I2S_METADATA
-												print_cpu_char('l'); // Verbose I2S_METADATA
-												mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_B);
+												mobo_set_i2s_metadata ('l', I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_B);
 											#endif
 										}
 										else if (usb_ch == USB_CH_C) {
 											print_cpu_char(CPU_CHAR_UAC2_C);	// USB audio Class 2 on front USB-C plug
 											#ifdef I2S_METADATA
-												print_cpu_char('m'); // Verbose I2S_METADATA
-												mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_C);
+												mobo_set_i2s_metadata ('m', I2S_META_VERSION_0, I2S_META_SOURCE, MOBO_SRC_UAC2_C);
 											#endif
 										}
 
@@ -827,8 +825,7 @@ void uac2_device_audio_task(void *pvParameters)
 						#else // not ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 							input_select = MOBO_SRC_UAC2;
 							#ifdef I2S_METADATA
-								print_cpu_char('n'); // Verbose I2S_METADATA
-								mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+								mobo_set_i2s_metadata ('n', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 							#endif
 						#endif
 					} // End silence_det == 0 & MOBO_SRC_NONE
@@ -886,8 +883,7 @@ void uac2_device_audio_task(void *pvParameters)
 									#endif
 									input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 									#ifdef I2S_METADATA
-										print_cpu_char('n'); // Verbose I2S_METADATA
-										mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+										mobo_set_i2s_metadata ('o', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 									#endif
 								}
 								else {
@@ -950,8 +946,7 @@ void uac2_device_audio_task(void *pvParameters)
 								#endif
 								input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 								#ifdef I2S_METADATA
-									print_cpu_char('o'); // Verbose I2S_METADATA
-									mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+									mobo_set_i2s_metadata ('p', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 								#endif
 							}
 							else {
@@ -1006,8 +1001,7 @@ void uac2_device_audio_task(void *pvParameters)
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 							#ifdef I2S_METADATA
-								print_cpu_char('p'); // Verbose I2S_METADATA
-								mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+								mobo_set_i2s_metadata ('q', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 							#endif
 						}
 						else {
@@ -1037,23 +1031,21 @@ void uac2_device_audio_task(void *pvParameters)
 			#define CACHE_SILENCE_LIMIT	200						// 50ms of silence at 250µs packet rate
 			if (cache_holds_silence) {
 				#ifdef I2S_METADATA
-					print_cpu_char('q'); // Verbose I2S_METADATA
-					mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_ON);
+					mobo_set_i2s_metadata('r', I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_ON);
 				#endif
 				if (cache_silence_counter < CACHE_SILENCE_LIMIT) {
 					cache_silence_counter ++;
 				}
 				else {
-					#ifdef I2S_METADATA
-						print_cpu_char('r'); // Verbose I2S_METADATA
-						mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_OFF);
-					#endif
 					must_init_spk_index = TRUE;					// Long silence written through cache = may extend or shorten silence period
 					// must_init_spk_index == TRUE will set cache_silence_counter = 0; so that we don't clear again and again
 				}
 			} 
 			else {
 				cache_silence_counter = 0;
+				#ifdef I2S_METADATA
+					mobo_set_i2s_metadata('s', I2S_META_VERSION_0, I2S_META_MUTED, I2S_META_MUTE_OFF);
+				#endif
 			}
 
 

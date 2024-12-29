@@ -1318,30 +1318,28 @@ void mobo_print_selected_frequency(U32 frequency) {
 #ifdef I2S_METADATA
 	void mobo_frequency_i2s_metadata(U32 frequency) {
 
-		print_cpu_char('j'); // Verbose I2S_METADATA
-
 		// Report to I2S consumer
 		switch (frequency) {
 			case FREQ_44:
-				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_44);
+				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_44);
 			break;
 			case FREQ_48:
-				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_48);
+				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_48);
 			break;
 			case FREQ_88:
-				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_88);
+				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_88);
 			break;
 			case FREQ_96:
-				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_96);
+				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_96);
 			break;
 			case FREQ_176:
-				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_176);
+				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_176);
 			break;
 			case FREQ_192:
-				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_192);
+				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_192);
 			break;
 			default:
-				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_UNKNOWN);
+				mobo_set_i2s_metadata('j', I2S_META_VERSION_0, I2S_META_RATE, I2S_META_FREQ_UNKNOWN);
 			break;
 		} // switch
 	}
@@ -1461,7 +1459,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			gpio_clr_gpio_pin(AVR32_PIN_PA21); 			// Disable 48 control
 			prev_frequency = FREQ_INVALID;				// Force XO pin update whenever USB is enabled
 			#ifdef I2S_METADATA
-				mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_REGEN_RX);
+				mobo_set_i2s_metadata('w', I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_REGEN_RX);
 			#endif
 		}
 		if (frequency == FREQ_RXNATIVE_DIS) {			// Revert to MCLK from crystal. This may have changed!
@@ -1483,8 +1481,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 				prev_frequency = frequency;				// Establish history among valid XO settings
 				#ifdef I2S_METADATA
-					print_cpu_char('k'); // Verbose I2S_METADATA
-					mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_44);
+					mobo_set_i2s_metadata('k', I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_44);
 				#endif
 			}
 			// FREQ_INVALID defaults to 48kHz domain? Is that consistent in code?
@@ -1496,8 +1493,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 				gpio_clr_gpio_pin(AVR32_PIN_PX22); 		// Disable RX recovered MCLK
 				prev_frequency = frequency;				// Establish history among valid XO settings
 				#ifdef I2S_METADATA
-					print_cpu_char('l'); // Verbose I2S_METADATA
-					mobo_set_i2s_metadata(I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_48);
+					mobo_set_i2s_metadata('l', I2S_META_VERSION_0, I2S_META_CLOCK, I2S_META_XO_48);
 				#endif
 			}
 		}
@@ -1673,7 +1669,7 @@ void mobo_clear_adc_channel(void) {
 
 #ifdef I2S_METADATA
 	// Updates global metadata variables based on input
-	void mobo_set_i2s_metadata(uint8_t version, uint8_t parameter, uint8_t value) {
+	void mobo_set_i2s_metadata(uint8_t verbose, uint8_t version, uint8_t parameter, uint8_t value) {
 		// Only implemented for version 0 for now
 		if (version == I2S_META_VERSION_0) {
 			i2s_meta_L = (i2s_meta_L & 0b01111111);	// Left zero bit
@@ -1696,9 +1692,12 @@ void mobo_clear_adc_channel(void) {
 			}
 
 			// Verbose I2S_METADATA
-			print_cpu_char('\n');
-			print_cpu_char_hex(i2s_meta_L);
-			print_cpu_char_hex(i2s_meta_R);
+			if (verbose != 0) {
+				print_cpu_char('verbose');
+				print_cpu_char_hex(i2s_meta_L);
+				print_cpu_char_hex(i2s_meta_R);
+				print_cpu_char('\n');
+			}
 		}
 	}
 #endif

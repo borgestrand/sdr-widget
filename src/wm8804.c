@@ -176,8 +176,7 @@ void wm8804_task(void *pvParameters) {
 					if (input_select == MOBO_SRC_NONE) {
 						input_select = spdif_cmd - 0x10;
 						#ifdef I2S_METADATA
-							print_cpu_char('s'); // Verbose I2S_METADATA
-							mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+							mobo_set_i2s_metadata ('t', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 						#endif
 					}
 					print_dbg_char_char('.');
@@ -497,8 +496,7 @@ void wm8804_task(void *pvParameters) {
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 							#ifdef I2S_METADATA
-								print_cpu_char('t'); // Verbose I2S_METADATA
-								mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+								mobo_set_i2s_metadata ('u', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 							#endif
 						}
 						else {
@@ -551,8 +549,7 @@ void wm8804_task(void *pvParameters) {
 							if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {	// Re-take of taken semaphore returns false
 								input_select = channel;						// Owning semaphore we may write to master variable input_select and take control of hardware
 								#ifdef I2S_METADATA
-									print_cpu_char('u'); // Verbose I2S_METADATA
-									mobo_set_i2s_metadata (I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
+									mobo_set_i2s_metadata ('v', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 								#endif
 								spdif_rx_status.channel = channel;
 								spdif_rx_status.frequency = freq;
