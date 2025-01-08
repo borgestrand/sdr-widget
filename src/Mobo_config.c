@@ -1673,7 +1673,7 @@ void mobo_clear_adc_channel(void) {
 		if (version == I2S_META_VERSION_0) {
 			
 /* Don't modify Zero and Version bits until we start supporting multiple versions			
-			i2s_meta_L = (i2s_meta_L & 0b01111111);	// Left zero bit
+			i2s_meta_L = (i2s_meta_L & 0b11111111);	// Left one bit <- This line of code currently does nothing!
 			i2s_meta_R = (i2s_meta_R & 0b01111111);	// Right zero bit
 			i2s_meta_L = (i2s_meta_L & 0b10011111) | ( (version & 0b00000011) << 5); // Clear left bits 6 and 5. Shift in version
 */

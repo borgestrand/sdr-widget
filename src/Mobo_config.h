@@ -38,7 +38,8 @@ void mobo_clear_adc_channel(void);
 I2S from the receiver code transfers 32 bits to DAC or processor. The upper 24 bits are used for audio. The lower 8 bits are used for metadata. 
 S Source	3 bits
 R Rate		3 bits
-Z Zero pad	2 bits
+L Left		1 bit, left indicator 
+Z Zero pad	1 bit, right indicator
 M Muted		1 bit				// Too expensive?
 V Version	2 bits
 C Clock		2 bits
@@ -46,7 +47,7 @@ T Toggle	1 bit				// NB: not implemented. Expand to toggle once every packet, ap
 x Unused	3 bits
    
    7 6 5 4 3 2 1 0
-L: Z V V M x S S S
+L: L V V M x S S S
 R: Z C C T x R R R
 */
 
