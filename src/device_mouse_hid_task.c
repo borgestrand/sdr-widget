@@ -609,7 +609,6 @@ Arash
 		if (Button_history == 0b00001111) {					// Detected Press
 			print_dbg_char('P');							// Indicate press
 			
-			
 			// Use key press to report sample rate
 			switch (spk_current_freq.frequency) {
 				case FREQ_44:
@@ -632,7 +631,7 @@ Arash
 				break;
 			}
 			
-			
+/*			
 			// Use key press to toggle DAC filters
 			button_filter_counter++;
 			button_filter_counter &= 0x03;					// Circle 0 through 3
@@ -653,6 +652,7 @@ Arash
 				mobo_led(FLED_WHITE);
 				pcm5142_filter(7);
 			}
+*/
 
 		}
 		else if (Button_history == 0b11110000) {			// Detected Release
