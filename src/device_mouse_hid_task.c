@@ -609,6 +609,30 @@ Arash
 		if (Button_history == 0b00001111) {					// Detected Press
 			print_dbg_char('P');							// Indicate press
 			
+			
+			// Use key press to report sample rate
+			switch (spk_current_freq.frequency) {
+				case FREQ_44:
+					mobo_led(FLED_RED);
+				break;
+				case FREQ_48:
+					mobo_led(FLED_GREEN);
+				break;
+				case FREQ_88:
+					mobo_led(FLED_BLUE);
+				break;
+				case FREQ_96:
+					mobo_led(FLED_YELLOW);
+				break;
+				case FREQ_176:
+					mobo_led(FLED_PURPLE);
+				break;
+				case FREQ_192:
+					mobo_led(FLED_WHITE);
+				break;
+			}
+			
+			
 			// Use key press to toggle DAC filters
 			button_filter_counter++;
 			button_filter_counter &= 0x03;					// Circle 0 through 3
