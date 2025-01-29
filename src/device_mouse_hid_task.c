@@ -609,27 +609,42 @@ Arash
 		if (Button_history == 0b00001111) {					// Detected Press
 			print_dbg_char('P');							// Indicate press
 			
-			// Use key press to report sample rate
-			switch (spk_current_freq.frequency) {
-				case FREQ_44:
-					mobo_led(FLED_RED);
-				break;
-				case FREQ_48:
-					mobo_led(FLED_GREEN);
-				break;
-				case FREQ_88:
-					mobo_led(FLED_BLUE);
-				break;
-				case FREQ_96:
-					mobo_led(FLED_YELLOW);
-				break;
-				case FREQ_176:
-					mobo_led(FLED_PURPLE);
-				break;
-				case FREQ_192:
-					mobo_led(FLED_WHITE);
-				break;
-			}
+			#ifdef HW_GEN_SPRX
+				mobo_led(FLED_DARK);
+				vTaskDelay(1200); // 120ms of darkness to indicate action
+
+				if (input_select == MOBO_SRC_NONE) {
+					temp32 = FREQ_INVALID;
+				}
+				else if ( (input_select == MOBO_SRC_UAC2) || (input_select == MOBO_SRC_UAC1) ) {
+					temp32 = spk_current_freq.frequency;
+				}
+				else {
+					temp32 = spdif_rx_status.frequency;
+				}
+
+				// Use key press to report sample rate
+				switch (temp32) {
+					case FREQ_44:
+						mobo_led(FLED_RED);
+					break;
+					case FREQ_48:
+						mobo_led(FLED_GREEN);
+					break;
+					case FREQ_88:
+						mobo_led(FLED_BLUE);
+					break;
+					case FREQ_96:
+						mobo_led(FLED_YELLOW);
+					break;
+					case FREQ_176:
+						mobo_led(FLED_PURPLE);
+					break;
+					case FREQ_192:
+						mobo_led(FLED_WHITE);
+					break;
+				}
+			#endif			
 			
 /*			
 			// Use key press to toggle DAC filters
