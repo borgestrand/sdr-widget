@@ -635,12 +635,15 @@ Arash
 						mobo_led(FLED_BLUE);
 					break;
 					case FREQ_96:
-						mobo_led(FLED_YELLOW);
+						mobo_led(FLED_CYAN);
 					break;
 					case FREQ_176:
 						mobo_led(FLED_PURPLE);
 					break;
 					case FREQ_192:
+						mobo_led(FLED_YELLOW);
+					break;
+					default:
 						mobo_led(FLED_WHITE);
 					break;
 				}
