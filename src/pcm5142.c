@@ -96,6 +96,11 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 		dev_data[1] = int_data;
 		status = twi_write_out(PCM5142_DEV_ADR, dev_data, 2);
 
+		// Initially, write same content to both DAC chips if two are present
+		#ifdef SECONDARY_DAC
+			status = twi_write_out(PCM5142_DEV_ADR_SECONDARY, dev_data, 2);
+		#endif
+
 		#ifdef HW_GEN_SPRX_PATCH_02
 			gpio_clr_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN, cut off I2C noise to DAC
 		#endif
@@ -146,6 +151,12 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 		}
 		else
 			dev_data[0] = 0 ;	// Randomly chosen failure state
+			
+		// Do nothing to second DAC chip if present, placeholder for later expansion
+		#ifdef SECONDARY_DAC
+			// PCM5142_DEV_ADR_SECONDARY
+		#endif
+
 
 		#ifdef HW_GEN_SPRX_PATCH_02
 			gpio_clr_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN, cut off I2C noise to DAC

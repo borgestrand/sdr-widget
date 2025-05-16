@@ -25,7 +25,11 @@
 
 #include <stdint.h>
 
-#define PCM5142_DEV_ADR		0x4C 				// 0x4C with various address selectors grounded
+#define PCM5142_DEV_ADR					0x4C 				// 0x4C with ADR1 = ADR2 = '0'
+
+#ifdef SECONDARY_DAC
+#define PCM5142_DEV_ADR_SECONDARY		0x4E 				// 0x4E with ADR1 = '0', ADR2 = '1'
+#endif
 
 // Initiate the PCM5142
 void pcm5142_init(void);

@@ -30,6 +30,7 @@
 # -DI2S_METADATA				Send 8 bits of metadata below each 24-bit audio data sample
 # -DI2S_POLARITY_CHECK			Output SDATA in phase with LRCK for debugging. It will override -DI2S_METADATA for paused content
 
+# -DSECONDARY_DAC				Experimenting with two DAC chips on one DAC board
 
 # PARTNAME=-mpart=uc3a3256
 # Use "prog.bat" or RATHER "prog256.bat"
@@ -58,6 +59,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	\
 	-DFEATURE_PRODUCT_HA256 \
 	-DFEATURE_ALT2_16BIT \
+	-DSECONDARY_DAC \
 	-DHW_GEN_SPRX
 	
 
