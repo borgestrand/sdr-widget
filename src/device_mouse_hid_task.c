@@ -294,18 +294,9 @@ void device_mouse_hid_task(void)
 #endif
 
 
-#ifdef HW_GEN_FMADC
-			// Set preamp gain
-            else if (a == 'g') {									// Lowercase g
-	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);		// Channel 1 or 2, two hex nibbles
-	            temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);		// Gain 0, 1, 2 or 3, two hex nibbles
-				temp = mobo_fmadc_gain(temp, temp2);
-				print_dbg_char('g');
-				print_dbg_char_hex(temp);
-				print_dbg_char('\n');
-			}
-	
 
+// Shared low-level I2C debug
+#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) )
 			// I2C device address
 			else if (a == 'r') {			// Static debug device address
 				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
@@ -349,16 +340,28 @@ void device_mouse_hid_task(void)
 				}
 				else  {
 					print_dbg_char('-');
-				}				
+				}
 
 				gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC in rev. C-F, unused control pin in rev. A and B
 				vTaskDelay(5);							// Wait 0.5ms
 
-
 				print_dbg_char('\n');
 			}
-			            
+#endif
 
+
+
+#ifdef HW_GEN_FMADC
+			// Set preamp gain
+            else if (a == 'g') {									// Lowercase g
+	            temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);		// Channel 1 or 2, two hex nibbles
+	            temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);		// Gain 0, 1, 2 or 3, two hex nibbles
+				temp = mobo_fmadc_gain(temp, temp2);
+				print_dbg_char('g');
+				print_dbg_char_hex(temp);
+				print_dbg_char('\n');
+			}
+	
 			// Detect sample rate of I2S in
             else if (a == 's') {							// Lowercase s
 				temp32 = mobo_srd();
@@ -528,44 +531,12 @@ Kind Regards,
 Arash
 */
             
-            else if (a == 'r') {			// Static debug device address
-				I2C_device_address = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
-			}
 
             else if (a == 'k') {			// PCM5142 filter selection. Valid: 01, 02, 03, 07
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);
 				pcm5142_filter(temp);
             }
 
-
-			// I2C read
-			else if (a == 'w') {								// Lowercase w - read (silly!)
-				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-				if (mobo_i2c_read (&temp, I2C_device_address, temp) > 0) {
-					print_dbg_char_hex(temp);
-					print_dbg_char('+');
-				}
-				else {
-					print_dbg_char('-');
-				}
-				print_dbg_char('\n');
-			}
-
-
-			// I2C write
-			else if (a == 'W') {								// Uppercase W - write
-				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
-				temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
-				if (mobo_i2c_write (I2C_device_address, temp, temp2) > 0) {
-					print_dbg_char('+');
-				}
-				else  {
-					print_dbg_char('-');
-				}
-				print_dbg_char('\n');
-			}
-			
-			
             // LED debug
             else if (a == 'l') {							// Lowercase l
 	            // 1 hex characters to LED. 0x00-0x07 are valid.
