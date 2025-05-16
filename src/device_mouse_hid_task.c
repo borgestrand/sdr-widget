@@ -317,6 +317,10 @@ void device_mouse_hid_task(void)
 			// I2C read
 			else if (a == 'w') {								// Lowercase w - read (silly!)
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
+				
+				gpio_set_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC in rev. C-F, unused control pin in rev. A and B
+				vTaskDelay(5);							// Wait 0.5ms
+				
 				if (mobo_i2c_read (&temp, I2C_device_address, temp) > 0) {
 					print_dbg_char_hex(temp);
 					print_dbg_char('+');
@@ -324,6 +328,10 @@ void device_mouse_hid_task(void)
 				else {
 					print_dbg_char('-');
 				}
+
+				gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC in rev. C-F, unused control pin in rev. A and B
+				vTaskDelay(5);							// Wait 0.5ms
+
 				print_dbg_char('\n');
 			}
 
@@ -332,12 +340,21 @@ void device_mouse_hid_task(void)
 			else if (a == 'W') {								// Uppercase W - write
 				temp = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch local address
 				temp2 = read_dbg_char_hex(DBG_ECHO, RTOS_WAIT);	// Fetch data to write
+
+				gpio_set_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC in rev. C-F, unused control pin in rev. A and B
+				vTaskDelay(5);							// Wait 0.5ms
+
 				if (mobo_i2c_write (I2C_device_address, temp, temp2) > 0) {
 					print_dbg_char('+');
 				}
 				else  {
 					print_dbg_char('-');
 				}				
+
+				gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC in rev. C-F, unused control pin in rev. A and B
+				vTaskDelay(5);							// Wait 0.5ms
+
+
 				print_dbg_char('\n');
 			}
 			            
