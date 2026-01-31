@@ -1249,7 +1249,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 				// Starting point basics
 				spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2; // Starting half a unified buffer away from DMA's read head
-
+				spk_index &= ~1UL; // Forcing LSB to 0 to align stereo samples BSB 20260131
+				
 				// Starting point offset depending on detected source speed
 				#ifdef HW_GEN_SPRX
 					// rate/channel read status and adapt starting point in buffer
