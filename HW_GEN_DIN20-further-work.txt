@@ -1,3 +1,35 @@
+Buffer debugging 20260131
+
+Ring buffer holds 1536 stereo samples
+#define DAC_BUFFER_UNI 1536*2 
+
+Stereos samples pr 250µs packets
+11 to 48
+
+One packet is 1/32 to 1/139 full buffer.
+
+
+Is the response much too slow? 1 correction in 2000*11 to 2000*48 samples
+#define SI_PKG_RESOLUTION	2000 // 1000			// Apply 1/2 IIR filter. Resolution: once every 2000 packets at 250µs packet rate
+
+
+
+To do list:
+
+Calculate the maximum clock deviation that the system can correct
+
+Measure the maximum clock deviation 
+- Use frequency counter to characterize oscillators, generator
+- Use USB mux and cables on spare board to switch between generator channels
+- Force the correction system into failure
+
+Add hard brakes for writing within +-2 max packet lengths from reading head
+
+
+
+
+
+
 Reusing ADC input I2S port toward SPDIF receiver.
 
 Clock configuration
