@@ -202,9 +202,9 @@ void uac2_device_audio_task(void *pvParameters)
 	uint16_t cache_silence_counter = 0;
 
 	// New code for adaptive USB fallback using skip / insert s/i
-	#define SI_PKG_RESOLUTION	2000 // 1000			// Apply 1/2 IIR filter. Resolution: once every 2000 packets at 250µs packet rate
-	#define SI_PKG_RESOLUTION_H	2200 					// Apply 1/1 IIR filter
-	#define SI_PKG_RESOLUTION_F	2400 // 1200			// Force override
+	#define SI_PKG_RESOLUTION	1000 // 2000			// Apply 1/2 IIR filter. Resolution: once every 1000 packets at 250µs packet rate
+	#define SI_PKG_RESOLUTION_H	1200 // 2200			// Apply 1/1 IIR filter
+	#define SI_PKG_RESOLUTION_F	1400 // 2400			// Force override
 	int8_t si_action = SI_NORMAL;
 	int32_t si_pkg_counter = 0;
 	int8_t si_pkg_increment = 0;				// Reset at sample rate change
@@ -1090,6 +1090,11 @@ void uac2_device_audio_task(void *pvParameters)
 						print_cpu_char(CPU_CHAR_DECDEC_FREQ);
 									
 						return_to_nominal = TRUE;
+
+						#ifdef INDICATE_EXTREME_SI				// Indicate extreme need for skipping or host speed-down
+							mobo_led(FLED_RED);
+							mobo_led_select(FREQ_NOCHANGE, input_select);
+						#endif
 					}
 								
 					else if (gap < SPK_GAP_L1) { 				// gap < inner lower bound => 1*FB_RATE_DELTA
@@ -1123,6 +1128,10 @@ void uac2_device_audio_task(void *pvParameters)
 							print_cpu_char(CPU_CHAR_NOMDEC_FREQ);
 
 							return_to_nominal = FALSE;
+
+							#ifdef INDICATE_EXTREME_SI				// Return to nominal input indication
+								mobo_led_select(FREQ_NOCHANGE, input_select);
+							#endif
 						}
 					}
 				}
@@ -1152,6 +1161,11 @@ void uac2_device_audio_task(void *pvParameters)
 						print_cpu_char(CPU_CHAR_INCINC_FREQ);	// This is '*'
 
 						return_to_nominal = TRUE;
+
+						#ifdef INDICATE_EXTREME_SI				// Indicate extreme need for insertion or host speed-up
+							mobo_led(FLED_GREEN);
+							mobo_led_select(FREQ_NOCHANGE, input_select);
+						#endif
 					}
 
 					else if (gap > SPK_GAP_U1) { 				// gap > inner upper bound => 1*FB_RATE_DELTA
@@ -1185,6 +1199,10 @@ void uac2_device_audio_task(void *pvParameters)
 							print_cpu_char(CPU_CHAR_NOMINC_FREQ);
 										
 							return_to_nominal = FALSE;
+
+							#ifdef INDICATE_EXTREME_SI				// Return to nominal indication
+								mobo_led_select(FREQ_NOCHANGE, input_select);
+							#endif
 						}
 					}
 				}
