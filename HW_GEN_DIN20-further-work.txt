@@ -30,6 +30,17 @@ Usb_unicode('7')
 
 
 
+# -DINDICATE_EXTREME_SI			Indication of extreme skip/insert events
+							#ifdef INDICATE_EXTREME_SI
+								mobo_led(FLED_GREEN);
+								mobo_led(FLED_RED);
+								mobo_led_select(FREQ_NOCHANGE, input_select);
+							#endif
+
+SPK_GAP_USKIP green
+SPK_GAP_LSKIP
+
+
 
 To do list:
 
