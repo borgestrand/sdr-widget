@@ -14,31 +14,19 @@ Is the response much too slow? 1 correction in 2000*11 to 2000*48 samples
 
 
 Max' device is
-2024071703BSB
+202602020xBSB
 
-and is likely this:
-	
-commit 4d164b3e02bd5b66d27b976aad46db9fd2454d30
+commit b806a47dfe50d361f6d3c8925089f7f1da353440 (HEAD -> awx-local)
 Author: Borge Strand-Bergesen <borge.strand@gmail.com>
-Date:   Sat Jul 20 19:06:00 2024 +0200
-	
-Head as of 20260202
-3caaf2e302c12f10aac8b460ce5a9fbc48753266	
+Date:   Mon Feb 2 09:16:00 2026 +0100
 
-Look for 
-Usb_unicode('7')
+    Returning to nominal feature set.  Building 2026020201BSB
 
+commit 2801e008342b7d43d4ad55a42ff6af2affc81acf
+Author: Borge Strand-Bergesen <borge.strand@gmail.com>
+Date:   Mon Feb 2 09:10:52 2026 +0100
 
-
-# -DINDICATE_EXTREME_SI			Indication of extreme skip/insert events
-							#ifdef INDICATE_EXTREME_SI
-								mobo_led(FLED_GREEN);
-								mobo_led(FLED_RED);
-								mobo_led_select(FREQ_NOCHANGE, input_select);
-							#endif
-
-SPK_GAP_USKIP green
-SPK_GAP_LSKIP
+    Special indication of extreme skip/insert for Max prototype device. Building 202602020xBSB
 
 
 
