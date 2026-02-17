@@ -97,8 +97,8 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define USB_CH_SWAPACK		2		// Channel swap detect acknowledged by uac?_device_audio_task
 
 // Frequency definitions, move and change to make compatible with USB system!
-#define	FREQ_TIMEOUT		0x00
-#define FREQ_INVALID		1
+#define	FREQ_TIMEOUT		192001	// All return values, from 32000 to 192002 are way above the limits defined in mobo_srd_asm2()
+#define FREQ_INVALID		192002
 #define FREQ_RXNATIVE_EN	2		// Use recovered MCLK of SPDIF receiver. Only used as parameter to mobo_xo_select()
 #define FREQ_RXNATIVE_DIS	3		// Revert to XO. Only used as parameter to mobo_xo_select()
 #define FREQ_PLLMISS		4

@@ -639,41 +639,56 @@ uint32_t mobo_srd(void) {
 	freqs[5] = 0;						// 196 hits
 
 	#define SRD_MAX_ATTEMPTS	7		// How many total attempts
-	#define SRD_AFE_DETECTS		4		// How many attempts to declare a safe detection?
+	#define SRD_SAFE_DETECTS	4		// How many attempts to declare a safe detection?
 
 	while (attempts++ < SRD_MAX_ATTEMPTS) {
 		temp = mobo_srd_asm2();
+		print_cpu_char('.'); // Signature of a detection attempt
 		switch (temp) {
 			case FREQ_44:
-				if (freqs[0]++ >= SRD_AFE_DETECTS) {
+				if (freqs[0]++ >= SRD_SAFE_DETECTS) {
 					return FREQ_44;
 				}
 			break;
 			case FREQ_48:
-				if (freqs[1]++ >= SRD_AFE_DETECTS) {
+				if (freqs[1]++ >= SRD_SAFE_DETECTS) {
 					return FREQ_48;
 				}
 			break;
 			case FREQ_88:
-				if (freqs[2]++ >= SRD_AFE_DETECTS) {
+				if (freqs[2]++ >= SRD_SAFE_DETECTS) {
 					return FREQ_88;
 				}
 			break;
 			case FREQ_96:
-				if (freqs[3]++ >= SRD_AFE_DETECTS) {
+				if (freqs[3]++ >= SRD_SAFE_DETECTS) {
 					return FREQ_96;
 				}
 			break;
 			case FREQ_176:
-				if (freqs[4]++ >= SRD_AFE_DETECTS) {
+				if (freqs[4]++ >= SRD_SAFE_DETECTS) {
 					return FREQ_176;
 				}
 			break;
 			case FREQ_192:
-				if (freqs[5]++ >= SRD_AFE_DETECTS) {
+				if (freqs[5]++ >= SRD_SAFE_DETECTS) {
 					return FREQ_192;
 				}
 			break;
+			#ifdef FEATURE_SPDIF_CMD
+				// Ignore invalid (probably RTOS intervention)
+				case FREQ_INVALID:
+				break;
+
+				// Print debug information
+				default:
+					print_cpu_char('\n');
+					print_cpu_char('x');
+					print_dbg_char_hex((temp >> 8) & 0xFF);
+					print_dbg_char_hex((temp) & 0xFF);
+					print_cpu_char('y');
+				break;
+			#endif
 		}
 		
 	}
@@ -716,6 +731,9 @@ int foo(void) {
 */
 uint32_t mobo_srd_asm2(void) {
 	uint32_t timeout;
+	
+	// Update 20260217: return a valid frequency or the value of the counter for downstream debug
+	// Frequency report is always larger than counter value
 
 	// see srd_test03.c and srd_test03.lst
 
@@ -863,12 +881,13 @@ uint32_t mobo_srd_asm2(void) {
 	if ( (timeout >= SLIM_192_LOW) && (timeout <= SLIM_192_HIGH) ) {
 		return FREQ_192;
 	}
-	if (timeout & 0x0000F000) {		// According to tests done. This may be the signature of the RTOS
+	if (timeout & 0x0000F000) {	// According to tests done. This may be the signature of the RTOS
 		return FREQ_INVALID;
 	}
 		
 	else {
-		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
+//		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
+		return timeout;			// Downstream test checks for valid sample rates which are all above largest timeout value
 	}
 
 } // mobo_srd_asm2()
