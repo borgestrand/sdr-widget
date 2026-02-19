@@ -667,7 +667,12 @@ void wm8804_init(void) {
 	wm8804_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ? // WM8804 same
 
 //	wm8804_write_byte(0x1D, 0xC0);	// 7 SPD_192K_EN = 1, Change 6:1, disable data truncation, run on 24 bit I2S // WM8804 ignores bit 5
-	wm8804_write_byte(0x1D, 0b11001000); // Same as above, with CONT enabled
+
+// Production	wm8804_write_byte(0x1D, 0b11001000); // Same as above, with CONT enabled
+
+// Raumeld
+	wm8804_write_byte(0x1D, 0x00);
+
 
 	wm8804_write_byte(0x18, 0x07);	// 3:0 GPO1=UNLOCK (=SPIO_05_GPO1, PX15, WM8804_CSB_PIN) // WM8804 ported
 
@@ -740,7 +745,7 @@ uint8_t wm8804_live_detect(void) {
 	// Poll SPDIF/TOSLINK data signal SPDIF_RX_CNT a number of times. Only bother with one of them in shared counter
 	while (counter--) {
 		if (gpio_get_pin_value(AVR32_PIN_PX16) == 1) {	// PCB patch from MUX output to net SPDIF0_TO_MCU / input MOBO_SRC_SPDIF0
-			chx++;
+			chx++; 
 		}
 	}
 	gpio_clr_gpio_pin(AVR32_PIN_PB04);					// Count disable
@@ -1001,13 +1006,6 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			dev_data[3] = 0x36; // 0x05      7:0 , 6:0, 5-0:PLL_K[21:16] 36
 			dev_data[4] = 0x07; // 0x06      7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
 			wm8804_multiwrite(5, dev_data);
-
-/*			Old single-write code
-			wm8804_write_byte(0x03, 0x21);	// PLL_K[7:0] 21
-			wm8804_write_byte(0x04, 0xFD);	// PLL_K[15:8] FD
-			wm8804_write_byte(0x05, 0x36);	// 7:0 , 6:0, 5-0:PLL_K[21:16] 36
-			wm8804_write_byte(0x06, 0x07);	// 7:0 , 6:0 , 5:0 , 4:0 Prescale/1 , 3-2:PLL_N[3:0] 7
-*/			
 			
 			spdif_rx_status.pllmode = pll_sel; 
 		}
@@ -1024,13 +1022,6 @@ void wm8804_pllnew(uint8_t pll_sel) {
 			dev_data[3] = 0x0C; // 0x05      7:0,  6:0, 5-0:PLL_K[21:16] 0C
 			dev_data[4] = 0x08; // 0x06      7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
 			wm8804_multiwrite(5, dev_data);
-			
-/*			Old single-write code
-			wm8804_write_byte(0x03, 0xBA);	// PLL_K[7:0] BA
-			wm8804_write_byte(0x04, 0x49);	// PLL_K[15:8] 49
-			wm8804_write_byte(0x05, 0x0C);	// 7:0,  6:0, 5-0:PLL_K[21:16] 0C
-			wm8804_write_byte(0x06, 0x08);	// 7: , 6: , 5: , 4: , 3-2:PLL_N[3:0] 8
-*/
 
 			spdif_rx_status.pllmode = pll_sel;
 		}
