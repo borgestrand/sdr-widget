@@ -34,6 +34,10 @@ If this project is of interest to you, please let me know! I hope to see you at 
 
 */
 
+// #define BYTE08 0x00
+// #define BYTE08 0x20
+#define BYTE08 0x60
+
 
 #if (defined HW_GEN_SPRX)		// Functions here only make sense for WM8804
 
@@ -141,6 +145,8 @@ void wm8804_task(void *pvParameters) {
 	uint32_t freq;
 	static uint8_t channel;	// Must be static here?
 	uint8_t wm8804_int;
+	uint16_t wm8804_interrupt_history = 0;
+	uint16_t wm8804_CSB_history = 0;
 	uint8_t mustgive = 0;
 	int16_t poll_counter = 0;
 
@@ -341,43 +347,61 @@ void wm8804_task(void *pvParameters) {
 				} // Silence not detected
 
 				// Poll lost lock pin
-				if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
+//				if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
 					
-					// Count to more than one error?
-					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+				// Temporarily ignoring the CSB pin completely
+				if (0) {
 
-					mustgive = 1;
+					// wm8804_CSB_history = 0;
 					
-					// FIX record polled history before giving up 'L'
-					#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
-						print_dbg_char('L');
-					#endif
+					wm8804_CSB_history |= 0b0000000000000001;		// Record this particular interrupt
+													
+					if (wm8804_CSB_history & 0b0000001111111111) { // Only respond if last 10 polls were true CSB_PIN == 1 interrupts
 					
-					#ifdef LOOSE_SIGNAL_LED
-						mobo_led(FLED_RED);
-						vTaskDelay(1000);
-						mobo_led(FLED_GREEN);
-						vTaskDelay(1000);
-						mobo_led(FLED_RED);
-						vTaskDelay(1000);
-					#endif
+						// Count to more than one error?
+						scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+
+						mustgive = 1;
+					
+						// FIX record polled history before giving up 'L'
+						#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
+							print_dbg_char('L');
+						#endif
+					
+						#ifdef LOOSE_SIGNAL_LED
+							mobo_led(FLED_RED);
+							vTaskDelay(1000);
+							mobo_led(FLED_GREEN);
+							vTaskDelay(1000);
+							mobo_led(FLED_RED);
+							vTaskDelay(1000);
+						#endif
+					} // End of respond if last 6 polls were true CSB_PIN == 1 interrupts
 				}
 
 				// Poll interrupt pin
+				wm8804_interrupt_history = wm8804_interrupt_history << 1;
+
 				if  (gpio_get_pin_value(WM8804_INT_N_PIN) == 0) {
 					wm8804_int = wm8804_read_byte(0x0B);		// Read and clear interrupts
 
-					#ifdef FEATURE_SPDIF_CMD
-						// Removed in converged test, lower verbosity
-						print_cpu_char('!');					// An interrupt happened. Save time by only printing (below) the ones that are considered
-						print_cpu_char_hex(wm8804_int);			// Print considered interrupt
-					#endif
+
+				// Temporarily ignoring the interrupt pin completely after clearing it!
+				}
+				if (0) {
+
 
 					#ifdef FEATURE_SPDIF_CMD
 						if (spdif_enable_state_machine) {
 					#else
-						if (1) {
+//						if (1) {
 					#endif
+
+							#ifdef FEATURE_SPDIF_CMD
+//								print_cpu_char('!');					// A qualified interrupt happened. Save time by only printing (below) the ones that are considered
+//								print_cpu_char_hex(wm8804_int);			// Print considered interrupt
+							#endif
+
 //							Original test, it over-reacts to errors that are probably not audible
 //							if (wm8804_int & 0x08) {					// Transmit error bit -> Try same channel next, with inverted PLL setting
 
@@ -393,36 +417,42 @@ void wm8804_task(void *pvParameters) {
 							// FIX MUST verify with Raumfeld Streamer connected over WiFi and over Ethernet!!
 							if (wm8804_int == 0x09)	{
 								
-								#ifdef FEATURE_SPDIF_CMD
-									// Removed in converged test, lower verbosity
-									// print_cpu_char_hex(wm8804_int);			// Print considered interrupt
-									
-									// Added to converged test
-									// print_cpu_char('!');
-								#endif
+								wm8804_interrupt_history |= 0b0000000000000001;		// Record this particular interrupt
 								
-								// Trying to qualify interrupt by checking if the received frequency has changed
-								// Another option to consider: qualify interrupt by measuring time between interrupts
-								if (mobo_srd() != spdif_rx_status.frequency) {
-
-									wm8804_pllnew(WM8804_PLL_TOGGLE);
-									scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
-
-									mustgive = 1;
+								if (wm8804_interrupt_history & 0b0000001111111111) { // Only respond if last 10 polls were true 0x09 interrupts
+								
+									#ifdef FEATURE_SPDIF_CMD
+										// Removed in converged test, lower verbosity
+										// print_cpu_char_hex(wm8804_int);			// Print considered interrupt
 									
-									// FIX record polled history before giving up 'K'
-									#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
-										print_dbg_char('K');
+										// Added to converged test
+										// print_cpu_char('!');
 									#endif
+								
+									// Trying to qualify interrupt by checking if the received frequency has changed
+									// Another option to consider: qualify interrupt by measuring time between interrupts
+									if (mobo_srd() != spdif_rx_status.frequency) {
 
-									#ifdef LOOSE_SIGNAL_LED
-										mobo_led(FLED_RED);
-										vTaskDelay(1000);
-										mobo_led(FLED_BLUE);
-										vTaskDelay(1000);
-										mobo_led(FLED_RED);
-										vTaskDelay(1000);
-									#endif
+										wm8804_pllnew(WM8804_PLL_TOGGLE);
+										scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
+
+										mustgive = 1;
+									
+										// FIX record polled history before giving up 'K'
+										#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
+											print_dbg_char('K');
+										#endif
+
+										#ifdef LOOSE_SIGNAL_LED
+											mobo_led(FLED_RED);
+											vTaskDelay(1000);
+											mobo_led(FLED_BLUE);
+											vTaskDelay(1000);
+											mobo_led(FLED_RED);
+											vTaskDelay(1000);
+										#endif
+									
+									}	// End of respond if last 2 polls were true 0x09 interrupts
 								}
 							}
 
@@ -626,12 +656,12 @@ void wm8804_init(void) {
 	if (wm8804_mclk_out(WM8804_MCLK_TEST) == WM8804_MCLK_ENABLE) {
 		// With CLKOUT
 //		wm8804_write_byte(0x08, 0x70);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
-		wm8804_write_byte(0x08, 0x10);	// 7:0 CLK2, 6:0 auto error handling enable, 5:0 static@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
+		wm8804_write_byte(0x08, BYTE08); // 0x10);	// 7:0 CLK2, 6:0 auto error handling enable, 5:0 static@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
 	}
 	else if (wm8804_mclk_out(WM8804_MCLK_TEST) == WM8804_MCLK_DISABLE) {
 		// Without CLKOUT export. (MCLK pin is not connected in SPRX D and E)
 //		wm8804_write_byte(0x08, 0x60);	// 7:0 CLK2, 6:1 auto error handling disable, 5:1 zeros@error, 4:0 CLKOUT disable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
-		wm8804_write_byte(0x08, 0x00);	// 7:0 CLK2, 6:0 auto error handling disable, 5:0 static@error, 4:0 CLKOUT disable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
+		wm8804_write_byte(0x08, BYTE08); // 0x00);	// 7:0 CLK2, 6:0 auto error handling enable, 5:0 static@error, 4:0 CLKOUT disable, 3:0 CLK1 out, 2-0:000 ignored // WM8804 rewrite
 	}
 
 	wm8804_write_byte(0x1C, 0xCE);	// 7:1 I2S alive, 6:1 master, 5:0 normal pol, 4:0 normal, 3-2:11 or 10 24 bit, 1-0:10 I2S ? CE or CA ? // WM8804 same
@@ -840,12 +870,12 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 		if (wm8804_mclk_out(WM8804_MCLK_TEST) == WM8804_MCLK_ENABLE) {
 			// With CLKOUT
 //			wm8804_write_byte(0x08, 0x30);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804 
-			wm8804_write_byte(0x08, 0x10);			// 7:0 CLK2, 6:0 auto error handling enable, 5:0 static@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
+			wm8804_write_byte(0x08, BYTE08); //0x10);			// 7:0 CLK2, 6:0 auto error handling enable, 5:0 static@error, 4:1 CLKOUT enable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
 		}
 		else if (wm8804_mclk_out(WM8804_MCLK_TEST) == WM8804_MCLK_DISABLE) {
 			// Default: without CLKOUT export. (MCLK pin is not connected in SPRX D and E)
 //			wm8804_write_byte(0x08, 0x20);			// 7:0 CLK2, 6:0 auto error handling enable, 5:1 zeros@error, 4:0 CLKOUT disable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
-			wm8804_write_byte(0x08, 0x00);			// 7:0 CLK2, 6:0 auto error handling enable, 5:0 static@error, 4:0 CLKOUT disable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
+			wm8804_write_byte(0x08, BYTE08); //0x00);			// 7:0 CLK2, 6:0 auto error handling enable, 5:0 static@error, 4:0 CLKOUT disable, 3:0 CLK1 out, 2-0:0 no RX mux in WM8804
 		}
 		
 		wm8804_write_byte(0x1E, 0x04);			// 7-6:0, 5:0 OUT, 4:0 IF, 3:0 OSC, 2:1 _TX, 1:0 RX, 0:0 PLL // WM8804 same bit use, not verified here

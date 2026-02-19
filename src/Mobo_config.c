@@ -644,9 +644,11 @@ uint32_t mobo_srd(void) {
 	while (attempts++ < SRD_MAX_ATTEMPTS) {
 		temp = mobo_srd_asm2();
 
+/*
 		#ifdef FEATURE_SPDIF_CMD
 			print_cpu_char('.'); // Signature of a detection attempt
 		#endif
+*/
 
 		switch (temp) {
 			case FREQ_44:
@@ -679,6 +681,7 @@ uint32_t mobo_srd(void) {
 					return FREQ_192;
 				}
 			break;
+/*
 			#ifdef FEATURE_SPDIF_CMD
 				// Ignore invalid (probably RTOS intervention)
 				case FREQ_INVALID:
@@ -693,6 +696,7 @@ uint32_t mobo_srd(void) {
 					print_cpu_char('y');
 				break;
 			#endif
+*/			
 		}
 		
 	}
