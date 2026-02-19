@@ -315,6 +315,11 @@ void wm8804_task(void *pvParameters) {
 				if ( (SPDIF_IS_SILENT()) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {	// Either own SW based test and RX chip's zero detect
 //				if ( (SPDIF_IS_SILENT()) || (0)                                        ) {	// Only own SW based test
 
+					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+
+					mustgive = 1;
+					
+					// FIX record polled history before giving up 's'
 					#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
 						print_dbg_char('s');
 						if (SPDIF_IS_SILENT()) {
@@ -324,9 +329,6 @@ void wm8804_task(void *pvParameters) {
 							print_dbg_char('R');				// Receiver sees silence
 						}
 					#endif
-
-					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
-					mustgive = 1;
 
 					#ifdef LOOSE_SIGNAL_LED									// Indicate startup with WHITE-RED-BLUE-(WHITE)
 						mobo_led(FLED_RED);
@@ -341,13 +343,15 @@ void wm8804_task(void *pvParameters) {
 				// Poll lost lock pin
 				if (gpio_get_pin_value(WM8804_CSB_PIN) == 1) {	// Lost lock
 					
+					// Count to more than one error?
+					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+
+					mustgive = 1;
+					
+					// FIX record polled history before giving up 'L'
 					#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
 						print_dbg_char('L');
 					#endif
-					
-					// Count to more than one error?
-					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
-					mustgive = 1;
 					
 					#ifdef LOOSE_SIGNAL_LED
 						mobo_led(FLED_RED);
@@ -365,8 +369,8 @@ void wm8804_task(void *pvParameters) {
 
 					#ifdef FEATURE_SPDIF_CMD
 						// Removed in converged test, lower verbosity
-						// print_cpu_char('!');					// An interrupt happened. Save time by only printing (below) the ones that are considered
-						// print_cpu_char_hex(wm8804_int);		// Print considered interrupt
+						print_cpu_char('!');					// An interrupt happened. Save time by only printing (below) the ones that are considered
+						print_cpu_char_hex(wm8804_int);			// Print considered interrupt
 					#endif
 
 					#ifdef FEATURE_SPDIF_CMD
@@ -385,7 +389,8 @@ void wm8804_task(void *pvParameters) {
 //								// Not testing for SPDIF_WM_INT_NONE - react to none of them
 //							) {
 								
-							// Converged test based on experiments with various sources (Xonar U7, Xonar SE, Juli@, ASUS main board bracket, SMSL PO100 Pro
+							// Converged test based on experiments with various sources (Xonar U7, Xonar SE, Juli@, ASUS main board bracket, SMSL PO100 Pro)
+							// FIX MUST verify with Raumfeld Streamer connected over WiFi and over Ethernet!!
 							if (wm8804_int == 0x09)	{
 								
 								#ifdef FEATURE_SPDIF_CMD
@@ -393,7 +398,7 @@ void wm8804_task(void *pvParameters) {
 									// print_cpu_char_hex(wm8804_int);			// Print considered interrupt
 									
 									// Added to converged test
-									print_cpu_char('!');
+									// print_cpu_char('!');
 								#endif
 								
 								// Trying to qualify interrupt by checking if the received frequency has changed
@@ -402,7 +407,13 @@ void wm8804_task(void *pvParameters) {
 
 									wm8804_pllnew(WM8804_PLL_TOGGLE);
 									scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
+
 									mustgive = 1;
+									
+									// FIX record polled history before giving up 'K'
+									#ifdef FEATURE_SPDIF_CMD					// Log source of mustgive
+										print_dbg_char('K');
+									#endif
 
 									#ifdef LOOSE_SIGNAL_LED
 										mobo_led(FLED_RED);
@@ -451,12 +462,13 @@ void wm8804_task(void *pvParameters) {
 						// wm8804_pllnew(WM8804_PLL_TOGGLE);		// No PLL toggle -> quick to return to present setting
 						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel to prevent consequences of false detects. Run up to 5x4 scan attempts
 
+						mustgive = 1;
+						
+						// FIX record polled history before giving up 'f'
 						#ifdef FEATURE_SPDIF_CMD
 							print_cpu_char('f');					// Log source of mustgive
 							print_dbg_char_hex(freq >> 10);			// Output is hex ~ksps
 						#endif
-
-						mustgive = 1;
 
 						#ifdef LOOSE_SIGNAL_LED
 							mobo_led(FLED_RED);
@@ -588,8 +600,7 @@ void wm8804_task(void *pvParameters) {
 								spdif_rx_status.silence_SPDIF = SILENCE_SPDIF_LIMIT - SILENCE_SPDIF_SCANNING; // Detector counts up to SILENCE_SPDIF_LIMIT during 200ms of linking time
 							}
 							else {
-								print_dbg_char('*');
-								print_dbg_char('f');
+								print_dbg_char('g');
 							}
 						} // if (input_select = MOBO_SRC_NONE)
 					} // Scan success

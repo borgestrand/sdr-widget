@@ -643,7 +643,11 @@ uint32_t mobo_srd(void) {
 
 	while (attempts++ < SRD_MAX_ATTEMPTS) {
 		temp = mobo_srd_asm2();
-		print_cpu_char('.'); // Signature of a detection attempt
+
+		#ifdef FEATURE_SPDIF_CMD
+			print_cpu_char('.'); // Signature of a detection attempt
+		#endif
+
 		switch (temp) {
 			case FREQ_44:
 				if (freqs[0]++ >= SRD_SAFE_DETECTS) {
