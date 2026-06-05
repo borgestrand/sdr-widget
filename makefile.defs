@@ -1,0 +1,21 @@
+#
+# Local build settings. This file is included by Release/makefile.
+#
+AVR32_TOOLCHAIN ?=
+
+ifeq ($(strip $(ATMEL_HEADERS)),)
+ifneq ($(strip $(AVR32_TOOLCHAIN)),)
+ATMEL_HEADERS := $(firstword $(wildcard $(AVR32_TOOLCHAIN)/atmel-headers/atmel-headers-*))
+endif
+endif
+
+ifneq ($(strip $(ATMEL_HEADERS)),)
+CFLAGS += -I$(ATMEL_HEADERS)
+ASFLAGS += -I$(ATMEL_HEADERS)
+endif
+
+OBJS += ./src/newlib_compat.o
+
+src/newlib_compat.o: ../src/newlib_compat.c
+	@echo Compile $(CFLAGS) $<
+	@avr32-gcc $(CFLAGS) -O2 -fdata-sections -Wall -c -fmessage-length=0 -ffunction-sections -o"$@" "$<"
