@@ -39,6 +39,8 @@ const char usage[] = {
 
 int verbose = 0;
 
+int finish(int return_value);
+
 /*
 ** features
 */
@@ -123,7 +125,7 @@ int find_feature_value(int index, char *value) {
 char *usb_serial_id = NULL;
 libusb_device_handle *usb_handle;
 char *usb_device = "none";
-char usb_data[1024];
+unsigned char usb_data[1024];
 unsigned int usb_timeout = 2000;
 
 
@@ -188,13 +190,15 @@ libusb_device_handle *find_device(int list_all) {
 				libusb_close(h);
 				continue;
 			}
-			unsigned char serialId[1024];
-			if ((status = libusb_get_string_descriptor_ascii(h, desc.iSerialNumber, serialId, sizeof(serialId))) <= 0) {
-				if (verbose)
-					if (status == 0)
+			char serialId[1024];
+			if ((status = libusb_get_string_descriptor_ascii(h, desc.iSerialNumber, (unsigned char *)serialId, sizeof(serialId))) <= 0) {
+				if (verbose) {
+					if (status == 0) {
 						fprintf(stderr, "find_device: libusb_get_string_descriptor_ascii(%04x:%04x, ...) returned 0 bytes", desc.idVendor, desc.idProduct);
-					else
+					} else {
 						fprintf(stderr, "find_device: libusb_get_string_descriptor_ascii(%04x:%04x, ...) failed: %s", desc.idVendor, desc.idProduct, error_string(status));
+					}
+				}
 				libusb_release_interface(h, 0);
 				libusb_close(h);
 				continue;
@@ -430,7 +434,11 @@ int set_nvram(int argc, char *argv[]) {
 		fprintf(stderr, "widget-control: wrong number (%d) of features specified, should be %d features to set\n", argc, true_feature_end_index);
 		exit(1);
 	}
-	features = (uint8_t *)calloc(true_feature_major_index, sizeof(uint8_t));
+	features = (uint8_t *)calloc(true_feature_end_index, sizeof(uint8_t));
+	if (features == NULL) {
+		fprintf(stderr, "widget-control: unable to allocate feature values\n");
+		exit(finish(1));
+	}
 	for (i = true_feature_minor_index+1; i < true_feature_end_index; i += 1) {
 		j = find_feature_value(i, argv[i]);
 		if (j >= first_value(i) && j <= last_value(i)) {

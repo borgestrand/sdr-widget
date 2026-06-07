@@ -1,6 +1,4 @@
-#
 # Local build settings. This file is included by Release/makefile.
-#
 AVR32_TOOLCHAIN ?=
 
 ifeq ($(strip $(ATMEL_HEADERS)),)
@@ -12,6 +10,7 @@ endif
 ifneq ($(strip $(ATMEL_HEADERS)),)
 CFLAGS += -I$(ATMEL_HEADERS)
 ASFLAGS += -I$(ATMEL_HEADERS)
+export CPATH := $(ATMEL_HEADERS):$(CPATH)
 endif
 
 OBJS += ./src/newlib_compat.o
