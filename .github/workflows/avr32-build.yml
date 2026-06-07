@@ -1,0 +1,60 @@
+name: AVR32 firmware build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  TOOLCHAIN_REPO: cozycactus/avr32-toolchain-macos-arm64
+  TOOLCHAIN_TAG: v2026.06.03
+  TOOLCHAIN_ARCHIVE: avr32-tools-src-macos-arm64-20260603.tar.gz
+  ATMEL_HEADERS_VERSION: 6.1.3.1475
+
+jobs:
+  avr32:
+    name: Build SDR Widget with avr32-gcc
+    runs-on: macos-26
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install host dependencies
+        run: brew install libusb
+
+      - name: Download AVR32 toolchain
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$TOOLCHAIN_TAG" \
+            --repo "$TOOLCHAIN_REPO" \
+            --pattern "$TOOLCHAIN_ARCHIVE" \
+            --pattern "$TOOLCHAIN_ARCHIVE.sha256"
+          expected="$(awk '{print $1}' "$TOOLCHAIN_ARCHIVE.sha256")"
+          actual="$(shasum -a 256 "$TOOLCHAIN_ARCHIVE" | awk '{print $1}')"
+          test "$actual" = "$expected"
+          mkdir -p toolchain
+          tar -xzf "$TOOLCHAIN_ARCHIVE" -C toolchain
+
+      - name: Download Atmel headers
+        run: |
+          toolchain_root="$PWD/toolchain/avr32-tools-src"
+          headers_zip="atmel-headers-${ATMEL_HEADERS_VERSION}.zip"
+          mkdir -p "$toolchain_root/downloads" "$toolchain_root/atmel-headers"
+          curl -L \
+            "https://ww1.microchip.com/downloads/archive/${headers_zip}" \
+            -o "$toolchain_root/downloads/${headers_zip}"
+          unzip -q -o "$toolchain_root/downloads/${headers_zip}" \
+            -d "$toolchain_root/atmel-headers"
+
+      - name: Build firmware and host control tool
+        run: |
+          toolchain_root="$PWD/toolchain/avr32-tools-src"
+          export PATH="$toolchain_root/bin:$PATH"
+          avr32-gcc --version
+          make clean
+          make all AVR32_TOOLCHAIN="$toolchain_root"

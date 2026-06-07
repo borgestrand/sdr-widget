@@ -5,6 +5,13 @@
 ##
 ## assumes that you've set the AVR32BIN environment
 ## to point to the directory containing avr32-gcc
+HOST_CC ?= gcc
+PKG_CONFIG ?= pkg-config
+LIBUSB_CFLAGS ?= $(shell $(PKG_CONFIG) --variable=includedir libusb-1.0 2>/dev/null | sed 's|^|-I|')
+LIBUSB_LIBS ?= $(shell $(PKG_CONFIG) --libs libusb-1.0 2>/dev/null || echo -lusb-1.0)
+HOST_CFLAGS ?=
+HOST_LDFLAGS ?=
+
 all:: Release/widget.elf widget-control
 
 Release/widget.elf::
@@ -19,7 +26,7 @@ sdr-widget::
 	CFLAGS=-DFEATURE_DEFAULT_BOARD=feature_board_widget ./make-widget
 
 widget-control: widget-control.c src/features.h
-	gcc -o widget-control widget-control.c -lusb-1.0
+	$(HOST_CC) $(HOST_CFLAGS) $(LIBUSB_CFLAGS) -o widget-control widget-control.c $(HOST_LDFLAGS) $(LIBUSB_LIBS)
 
 clean::
 	cd Release && make clean
