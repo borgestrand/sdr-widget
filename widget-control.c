@@ -62,6 +62,8 @@ int *feature_first_value;
 // int feature_last_value[feature_end_index];
 int *feature_last_value;
 
+int finish(int return_value);
+
 void feature_first_and_last_init(void) {
 	int i, j;
 	feature_first_value[true_feature_major_index] = -1;
