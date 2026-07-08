@@ -557,6 +557,34 @@ Arash
 	            print_dbg_char_hex( (uint8_t)(spk_current_freq.frequency/1000) );			// Is rate known? 
 	            mobo_led_select(spk_current_freq.frequency, input_select);
             }
+			
+			
+			// I2C bus scan
+			else if (a == 'S') {						// Uppercase S - scan bus for responding devices
+				uint8_t scan_adr;
+				uint8_t scan_dummy;
+
+				gpio_set_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC (DAC only visible when high)
+				vTaskDelay(5);							// Wait 0.5ms
+
+				print_dbg_char('S');
+				print_dbg_char('\n');
+
+				for (scan_adr = 0x08; scan_adr <= 0x77; scan_adr++) {	// Standard scan range, skip reserved
+					// mobo_i2c_read returns 1 when the chip ACKs its address (present),
+					// -2 when NACKed (absent). It takes the I2C semaphore internally.
+					if (mobo_i2c_read(&scan_dummy, scan_adr, 0x00) == 1) {
+						print_dbg_char_hex(scan_adr);	// 7-bit address of responder, e.g. "4C"
+						print_dbg_char('+');
+					}
+				}
+
+				gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC
+				vTaskDelay(5);							// Wait 0.5ms
+
+				print_dbg_char('\n');
+			}
+			
 		
 #endif // HW_GEN_SPRX
 

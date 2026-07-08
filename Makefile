@@ -34,8 +34,8 @@
 # -DINDICATE_EXTREME_SI			Indication of extreme skip/insert events
 
 # PARTNAME=-mpart=uc3a3256
-# Use "prog.bat" or RATHER "prog256.bat"
-# NB: the use of "prog128.bat" may brick the processor!!
+# Use "prog128.bat". The command "prog.bat" has been updated to tell you it is obsolete
+# NB: the use of "prog256.bat" or the initial versions of "prog.bat" will brick an AT32UC3A3128 processor!!
 
 PARTNAME=-mpart=uc3a3128
 # This HW target seems to work on uc3a3256 hardware as well
