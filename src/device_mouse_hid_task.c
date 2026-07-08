@@ -574,11 +574,13 @@ Arash
 				for (scan_adr = 0x08; scan_adr <= 0x77; scan_adr++) {	// Standard scan range, skip reserved
 					// mobo_i2c_read returns 1 when the chip ACKs its address (present),
 					// -2 when NACKed (absent). It takes the I2C semaphore internally.
-					
-					if (mobo_i2c_read(&scan_dummy, scan_adr, 0x00) >= -1) {   // 1 = full ACK, -1 = addr ACK but read NACK; -2 = absent
-						print_dbg_char_hex(scan_adr);	// 7-bit address of responder, e.g. "4C"
-						print_dbg_char('+');
+
+					int8_t r = mobo_i2c_read(&scan_dummy, scan_adr, 0x00);
+					if (r >= -1) {
+						print_dbg_char_hex(scan_adr);
+						print_dbg_char( (r == 1) ? '+' : '?' );   // '+' = full ACK (real), '?' = addr-only ACK (suspect)
 					}
+
 				}
 
 //				gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC
