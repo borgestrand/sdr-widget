@@ -98,8 +98,8 @@
 
 //_____ D E C L A R A T I O N S ____________________________________________
 
-static U32 index = 0;
-static U32 spk_index = 0;
+static S32 index = 0;		// Switched to S32 after Claude analysis
+static S32 spk_index = 0;	// Switched to S32 after Claude analysis
 static S16 old_gap = DAC_BUFFER_UNI / 2; // Assumed to be OK... 
 
 // static U8 ADC_buf_USB_IN, DAC_buf_OUT;		// These are now global the ID number of the buffer used for sending out
@@ -393,14 +393,14 @@ void uac2_device_audio_task(void *pvParameters)
 						// Always LSB first, MSB last. Either as sequences of 8-bit transfers or as 16-bit transfers read left-to-right
 						// Left LSB is first right-shifted 8 bits, then AND'ed with 0x00FF, then left-shifted 8 bits. It is less costly to just AND out the bits without shifting
 						if (usb_alternate_setting == ALT1_AS_INTERFACE_INDEX) {				// Stereo 24-bit data, least significant byte first, left before right
-							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left       ) & 0xFF00) ) | ((sample_left  >> 16) & 0x00FF) )); // left  LSB (>> 8) into MSB of 16-bit word (<<8), left   SB (>>16) into LSB of 16-bit word
-							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left  >> 16) & 0xFF00) ) | ((sample_right >>  8) & 0x00FF) )); // left  MSB (>>24) into MSB of 16-bit word (<<8), right LSB (>> 8) into LSB of 16-bit word
-							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_right >>  8) & 0xFF00) ) | ((sample_right >> 24) & 0x00FF) )); // right  SB (>>16) into MSB of 16-bit word (<<8), right MSB (>>24) into LSB of 16-bit word
+							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left       ) & 0xFF00) ) | ((sample_left  >> 16) & 0x00FF) ) ); // left  LSB (>> 8) into MSB of 16-bit word (<<8), left   SB (>>16) into LSB of 16-bit word
+							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left  >> 16) & 0xFF00) ) | ((sample_right >>  8) & 0x00FF) ) ); // left  MSB (>>24) into MSB of 16-bit word (<<8), right LSB (>> 8) into LSB of 16-bit word
+							Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_right >>  8) & 0xFF00) ) | ((sample_right >> 24) & 0x00FF) ) ); // right  SB (>>16) into MSB of 16-bit word (<<8), right MSB (>>24) into LSB of 16-bit word
 						}
 						#ifdef FEATURE_ALT2_16BIT // UAC2 ALT 2 for 16-bit audio, MUST VERIFY!
 							else if (usb_alternate_setting == ALT2_AS_INTERFACE_INDEX) {	// Stereo 16-bit data
-								Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left  >>  8) & 0xFF00) ) | ( ((sample_left  >> 24) & 0x00FF) );
-								Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_right >>  8) & 0xFF00) ) | ( ((sample_right >> 24) & 0x00FF) );
+								Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_left  >>  8) & 0xFF00) ) | ( ((sample_left  >> 24) & 0x00FF) ) );
+								Usb_write_endpoint_data(EP_AUDIO_IN, 16, (uint16_t) ( ( ((sample_right >>  8) & 0xFF00) ) | ( ((sample_right >> 24) & 0x00FF) ) );
 							}
 						#endif
 

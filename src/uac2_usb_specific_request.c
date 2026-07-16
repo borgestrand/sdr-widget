@@ -486,6 +486,25 @@ static Bool uac2_user_get_interface_descriptor() {
 	default:
 		return FALSE;
 	}
+	
+	/*
+	Claude analysis not implemented:
+		
+	**A2 — `uac2_usb_specific_request.c:490-492` ?verified [LIVE][Confirmed] High**
+	In the HID GET_DESCRIPTOR handler, the SETUP fields left in EP0 after the standard layer
+	are `wValue(2) + wIndex(2) + wLength(2)`. The code reads `wValue` (`string_type` +
+	`descriptor_type`) and `wIndex` (`wInterface`) — then reads **two** more 16-bit words:
+	```c
+	wIndex  = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL,16)); // = real wLength
+	wLength = usb_format_usb_to_mcu_data(16, Usb_read_endpoint_data(EP_CONTROL,16)); // reads PAST the packet
+	send_descriptor(wLength, zlp);                                                    // uses garbage
+	```
+	The real `wLength` lands in the variable named `wIndex`; `wLength` gets whatever an
+	over-read of the FIFO yields. HID enumerates today (impact is masked by whatever the empty
+	FIFO returns), but the read sequence is wrong. **Fix:** delete the redundant `wIndex`
+	re-read; read `wLength` once.
+
+	*/
 
 	wIndex = Usb_read_endpoint_data(EP_CONTROL, 16);
 	wIndex = usb_format_usb_to_mcu_data(16, wIndex);

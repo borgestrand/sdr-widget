@@ -157,7 +157,7 @@ void wm8804_task(void *pvParameters) {
 		// Start of command handler
 		#ifdef FEATURE_SPDIF_CMD
 			uint8_t temp_spdif_u8 = 0;
-			uint8_t temp_spdif_u32 = 0;
+			uint32_t temp_spdif_u32 = 0;
 
 			switch (spdif_cmd) {
 				case SPDIF_CMD_TAKE:
@@ -232,6 +232,7 @@ void wm8804_task(void *pvParameters) {
 					spdif_rx_status.frequency = temp_spdif_u32;
 					wm8804_clkdivnew(temp_spdif_u32);
 					// We should (have) set input_select by now or around here
+					// NB: Claude analysis discovered incorrect data type. Fixed above. Test functionality!
 					must_init_xo = TRUE;
 				break;
 				case SPDIF_WM_PLL_ALL:		// General purpose PLL, function only overwrites if needed

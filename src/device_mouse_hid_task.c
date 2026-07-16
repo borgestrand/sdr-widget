@@ -258,11 +258,11 @@ void device_mouse_hid_task(void)
 	            
 				#ifdef HW_GEN_SPRX 
 					// First digit determines USB port, B, C or no change from VBUS based detection code
-					if ((temp >> 8) == 0x0B) {
+					if ((temp >> 4) == 0x0B) { // Was >> 8 before Claude analysis
 						mobo_usb_select(USB_CH_B);
 						print_dbg_char('B');
 					}
-					else if ((temp >> 8) == 0x0C) {
+					else if ((temp >> 4) == 0x0C) {  // Was >> 8 before Claude analysis
 						mobo_usb_select(USB_CH_C);
 						print_dbg_char('C');
 					}
@@ -502,10 +502,10 @@ void device_mouse_hid_task(void)
             }
 			
 			#ifdef I2S_POLARITY_CHECK
-				else if (a == 'p') {							// Lowercase p
+				else if (a == 'p') {						// Lowercase p
 					uint8_t lrck_counter = 0;
 					temp = 32;
-					while (temp > 0) {
+					while (temp > 0) {						// What is really going on here? Double testing of the pins
 						if ( ( gpio_get_pin_value(AVR32_PIN_PX27) == gpio_get_pin_value(AVR32_PIN_PX24) ) && ( gpio_get_pin_value(AVR32_PIN_PX24) == gpio_get_pin_value(AVR32_PIN_PX27) ) ) {
 							lrck_counter++;
 							temp--;
