@@ -163,7 +163,7 @@ void wm8804_task(void *pvParameters) {
 		// Start of command handler
 		#ifdef FEATURE_SPDIF_CMD
 			uint8_t temp_spdif_u8 = 0;
-			uint8_t temp_spdif_u32 = 0;
+			uint32_t temp_spdif_u32 = 0;
 
 			switch (spdif_cmd) {
 				case SPDIF_CMD_TAKE:
