@@ -258,11 +258,11 @@ void device_mouse_hid_task(void)
 	            
 				#ifdef HW_GEN_SPRX 
 					// First digit determines USB port, B, C or no change from VBUS based detection code
-					if ((temp >> 8) == 0x0B) {
+					if ((temp >> 4) == 0x0B) { // Was >> 8 before Claude analysis
 						mobo_usb_select(USB_CH_B);
 						print_dbg_char('B');
 					}
-					else if ((temp >> 8) == 0x0C) {
+					else if ((temp >> 4) == 0x0C) {  // Was >> 8 before Claude analysis
 						mobo_usb_select(USB_CH_C);
 						print_dbg_char('C');
 					}
@@ -502,10 +502,10 @@ void device_mouse_hid_task(void)
             }
 			
 			#ifdef I2S_POLARITY_CHECK
-				else if (a == 'p') {							// Lowercase p
+				else if (a == 'p') {						// Lowercase p
 					uint8_t lrck_counter = 0;
 					temp = 32;
-					while (temp > 0) {
+					while (temp > 0) {						// What is really going on here? Double testing of the pins
 						if ( ( gpio_get_pin_value(AVR32_PIN_PX27) == gpio_get_pin_value(AVR32_PIN_PX24) ) && ( gpio_get_pin_value(AVR32_PIN_PX24) == gpio_get_pin_value(AVR32_PIN_PX27) ) ) {
 							lrck_counter++;
 							temp--;
@@ -557,6 +557,38 @@ Arash
 	            print_dbg_char_hex( (uint8_t)(spk_current_freq.frequency/1000) );			// Is rate known? 
 	            mobo_led_select(spk_current_freq.frequency, input_select);
             }
+			
+			
+			// I2C bus scan
+			else if (a == 'S') {						// Uppercase S - scan bus for responding devices
+				uint8_t scan_adr;
+				uint8_t scan_dummy;
+
+				gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC
+//				gpio_set_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC (DAC only visible when high)
+				vTaskDelay(5);							// Wait 0.5ms
+
+				print_dbg_char('S');
+				print_dbg_char('\n');
+
+				for (scan_adr = 0x08; scan_adr <= 0x77; scan_adr++) {	// Standard scan range, skip reserved
+					// mobo_i2c_read returns 1 when the chip ACKs its address (present),
+					// -2 when NACKed (absent). It takes the I2C semaphore internally.
+
+					int8_t r = mobo_i2c_read(&scan_dummy, scan_adr, 0x00);
+					if (r >= -1) {
+						print_dbg_char_hex(scan_adr);
+						print_dbg_char( (r == 1) ? '+' : '?' );   // '+' = full ACK (real), '?' = addr-only ACK (suspect)
+					}
+
+				}
+
+//				gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC
+				vTaskDelay(5);							// Wait 0.5ms
+
+				print_dbg_char('\n');
+			}
+			
 		
 #endif // HW_GEN_SPRX
 

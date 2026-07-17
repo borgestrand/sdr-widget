@@ -1164,14 +1164,15 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 					// print_dbg_char('!'); // Buffer length warning - occurs mainly at playback start and silence detection. Why? Update init code!
 				}
 				
+			
 				// Establish history
+				#ifdef FEATURE_UNINVERT_LRCK
+					prev_prev_sample_L = prev_sample_L;
+					prev_prev_sample_R = prev_sample_R;
+				#endif
+				
 				prev_sample_L = sample_L;
 				prev_sample_R = sample_R;
-			
-				#ifdef FEATURE_UNINVERT_LRCK
-				prev_prev_sample_L = prev_sample_L;
-				prev_prev_sample_R = prev_sample_R;
-				#endif
 				prev_diff_value = diff_value;
 			} // End we_own_cache
 
@@ -1601,6 +1602,7 @@ void mobo_clock_division(U32 frequency) {
 									1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
 									1,                  // diven - enabled
 									1);                 // divided by 4
+					break;
 					default : // Treated as 44.1
 						pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
 									0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
@@ -1655,6 +1657,7 @@ void mobo_clock_division(U32 frequency) {
 								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
 								1,                  // diven - enabled
 								3);                 // divided by 8
+				break;
 				default :		// Treated as 44.1
 					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
 								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
