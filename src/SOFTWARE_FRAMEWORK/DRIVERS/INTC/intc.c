@@ -212,3 +212,4 @@ void INTC_register_interrupt(__int_handler handler, unsigned int irq, unsigned i
   // core interrupt system and the user interrupt handler.
   AVR32_INTC.ipr[int_grp] = ipr_val[int_level & (AVR32_INTC_IPR_INTLEVEL_MASK >> AVR32_INTC_IPR_INTLEVEL_OFFSET)];
 }
+

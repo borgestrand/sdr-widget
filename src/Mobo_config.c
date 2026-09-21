@@ -21,6 +21,9 @@
 // Timer/counter control
 #include "tc.h"
 
+// CPU cycle counter delay
+#include "cycle_counter.h"
+
 // Real-time counter management
 #include "rtc.h"
 
@@ -33,7 +36,6 @@
 
 // I2C functions
 #include "I2C.h"
-
 
 
 // Low-power sleep for a number of milliseconds by means of RTC
@@ -625,6 +627,12 @@ void mobo_SPRX_input(uint8_t input_sel) {
 
 #endif // RXmod hardware controls
 
+#ifndef MOBO_SRD_OSCILLATOR_HZ
+#define MOBO_SRD_OSCILLATOR_HZ FREQ_48
+#endif
+
+const uint32_t sample_oscillator_ticks = FCPU_HZ / 48000;
+
 // Sample rate detector based on ADC LRCK polling
 // You may be looking for the USB sample rate definition, Speedx_hs
 uint32_t mobo_srd(void) {
@@ -705,6 +713,15 @@ uint32_t mobo_srd(void) {
 
 } // mobo_srd()
 
+
+ 
+typedef struct 
+{ 
+	uint32_t low; 
+	uint32_t high; 
+} detected_frequency_t; 
+ 
+#define DETECT_SPREAD(LOW, HIGH, N) ((HIGH) - (LOW)) / (N)	 
 // Sample rate detection test
 // This is MCU assembly code which replaces the non-functional sample rate detector inside the WM8804.
 // It uses the same code for 44.1 and 48, and for 88.2 and 96. 176.4 and 192 are messed up too.
@@ -741,6 +758,17 @@ int foo(void) {
 // for bench calibration with a signal generator patched into PA05 (see UART CLI 'F'). raw=FALSE
 // is the normal, existing lookup-based behavior (returns a FREQ_* constant).
 uint32_t mobo_srd_asm2(bool raw) {
+	static const detected_frequency_t detected_frequency_ranges[] = { 
+		{ .low = (FREQ_44 - DETECT_SPREAD(FREQ_44, FREQ_48, 1)), .high = (FREQ_44 + DETECT_SPREAD(FREQ_44, FREQ_48, 1))}, 
+		{ .low = (FREQ_48 - DETECT_SPREAD(FREQ_44, FREQ_48, 1)), .high = (FREQ_48 + DETECT_SPREAD(FREQ_44, FREQ_48, 1))}, 
+		{ .low = (FREQ_88 - DETECT_SPREAD(FREQ_44, FREQ_48, 2)), .high = (FREQ_88 + DETECT_SPREAD(FREQ_44, FREQ_48, 2))}, 
+		{ .low = (FREQ_96 - DETECT_SPREAD(FREQ_44, FREQ_48, 2)), .high = (FREQ_96 + DETECT_SPREAD(FREQ_44, FREQ_48, 2))}, 
+		{ .low = (FREQ_176 - DETECT_SPREAD(FREQ_44, FREQ_48,4)), .high = (FREQ_176 + DETECT_SPREAD(FREQ_44, FREQ_48,4))}, 
+		{ .low = (FREQ_192 - DETECT_SPREAD(FREQ_44, FREQ_48,4)), .high = (FREQ_192 + DETECT_SPREAD(FREQ_44, FREQ_48,4))} 
+	}; 
+	static uint32_t detected_frequency[] = { 
+		FREQ_44, FREQ_48, FREQ_88, FREQ_96, FREQ_176, FREQ_192 
+	}; 
 	uint32_t timeout;
 
 	// Update 20260217: return a valid frequency or the value of the counter for downstream debug
@@ -864,71 +892,20 @@ uint32_t mobo_srd_asm2(bool raw) {
 	// 176.4  369- 396 ( 374.2)
 	// 192.0  339- 363 ( 343.8)
 
-	// 20260914: FEATURE_84MHz linearly scales these x14/11 for FCPU_HZ 66MHz->84MHz bring-up.
-	// The scaled set is a first-pass ESTIMATE, not bench-verified - re-measure on the scope per
-	// the original method (comment above) once the CPU is actually running at 84MHz, then replace
-	// with real numbers. Default (flag undefined) keeps the original 66MHz-measured values.
-#ifdef FEATURE_84MHz
-	#define SLIM_44_LOW		1881
-	#define SLIM_44_HIGH	2011 		// Gives timeout of 2545
-	#define SLIM_48_LOW		1728
-	#define SLIM_48_HIGH	1848
-	#define SLIM_88_LOW		941
-	#define SLIM_88_HIGH	1005
-	#define SLIM_96_LOW		864
-	#define SLIM_96_HIGH	924
-	#define SLIM_176_LOW	470			// Add margin??
-	#define SLIM_176_HIGH	504
-	#define SLIM_192_LOW	431
-	#define SLIM_192_HIGH	467			// Analysis saw up to 366 (pre-scale)
-#else
-	#define SLIM_44_LOW		1478
-	#define SLIM_44_HIGH	1580 		// Gives timeout of 2000
-	#define SLIM_48_LOW		1358
-	#define SLIM_48_HIGH	1452
-	#define SLIM_88_LOW		739
-	#define SLIM_88_HIGH	790
-	#define SLIM_96_LOW		679
-	#define SLIM_96_HIGH	726
-	#define SLIM_176_LOW	369			// Add margin??
-	#define SLIM_176_HIGH	396
-	#define SLIM_192_LOW	339
-	#define SLIM_192_HIGH	367			// Analysis saw up to 366
-#endif
-	
 	// Limits range from 0x0153 to 0x062C. If timeout & 0x0000F000 isn't 0 then something went wrong and result should be ignored
-
 	if (raw) {
 		return timeout;		// Bench calibration mode: bypass classification, report the bare count
 	}
 
-	if ( (timeout >= SLIM_44_LOW) && (timeout <= SLIM_44_HIGH) ) {
-		return FREQ_44;
-	}
-	if ( (timeout >= SLIM_48_LOW) && (timeout <= SLIM_48_HIGH) ) {
-		return FREQ_48;
-	}
-	if ( (timeout >= SLIM_88_LOW) && (timeout <= SLIM_88_HIGH) ) {
-		return FREQ_88;
-	}
-	if ( (timeout >= SLIM_96_LOW) && (timeout <= SLIM_96_HIGH) ) {
-		return FREQ_96;
-	}
-	if ( (timeout >= SLIM_176_LOW) && (timeout <= SLIM_176_HIGH) ) {
-		return FREQ_176;
-	}
-	if ( (timeout >= SLIM_192_LOW) && (timeout <= SLIM_192_HIGH) ) {
-		return FREQ_192;
-	}
-	if (timeout & 0x0000F000) {	// According to tests done. This may be the signature of the RTOS
-		return FREQ_INVALID;
-	}
-		
-	else {
-//		return FREQ_TIMEOUT;	// Every uncertainty treated as timeout...
-		return timeout;			// Downstream test checks for valid sample rates which are all above largest timeout value
-	}
+	uint32_t frequency = MOBO_SRD_OSCILLATOR_HZ * sample_oscillator_ticks / timeout;
+	int i;
+	for (i = 0; i < 6; i++) 
+	{ 
+		if (frequency >= detected_frequency_ranges[i].low && frequency <= detected_frequency_ranges[i].high) 
+			return detected_frequency[i]; 
+	} 
 
+	return FREQ_INVALID;
 } // mobo_srd_asm2()
 
 
