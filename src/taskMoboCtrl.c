@@ -139,6 +139,7 @@ static void vtaskMoboCtrl( void * pcParameters )
 			pcm5142_init();							// Set up mute control
 			pcm5142_filter(02);						// Selected from listening 20230429
 
+			mobo_srd_init();
 			// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
 //			print_dbg_char('p');
 //			wm8804_init();							// Start up the WM8805 in a fairly dead mode

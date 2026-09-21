@@ -203,6 +203,7 @@ void mobo_SPRX_input(uint8_t input_sel);
 #endif
 
 // Sample rate detection on ADC interface
+void mobo_srd_init(void);
 uint32_t mobo_srd(void);
 uint32_t mobo_srd_asm2(bool raw);
 uint32_t mobo_wait_LRCK_RX_asm(void);

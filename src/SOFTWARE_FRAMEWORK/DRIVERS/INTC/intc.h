@@ -94,6 +94,10 @@ extern void INTC_init_interrupts(void);
  */
 extern void INTC_register_interrupt(__int_handler handler, unsigned int irq, unsigned int int_level);
 
+extern __int_handler INTC_get_interrupt(unsigned int irq);
+
+extern void INTC_restore_interrupt(unsigned int irq, __int_handler handler, unsigned int ipr);
+
 #endif  // __AVR32_ABI_COMPILER__
 
 

@@ -282,6 +282,16 @@
 #define GPIO_PCM5102_FILTER	 AVR32_PIN_PX56	 // 0=FIR 1=IIR
 //! @}
 
+#if defined(HW_GEN_SPRX)
+/*! \name Sample rate detector reference oscillator (48 kHz domain)
+ */
+//! @{
+#define MOBO_SRD_OSCILLATOR_HZ           48000
+#define MOBO_SRD_OSCILLATOR_ENABLE_PIN   AVR32_PIN_PA21
+#define MOBO_SRD_OSCILLATOR_MEASURE_PIN  AVR32_PIN_PX45
+//! @}
+#endif
+
 /*! \name GPIO Connections of the sample freq
  */
 //! @{

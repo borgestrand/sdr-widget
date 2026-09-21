@@ -212,3 +212,20 @@ void INTC_register_interrupt(__int_handler handler, unsigned int irq, unsigned i
   // core interrupt system and the user interrupt handler.
   AVR32_INTC.ipr[int_grp] = ipr_val[int_level & (AVR32_INTC_IPR_INTLEVEL_MASK >> AVR32_INTC_IPR_INTLEVEL_OFFSET)];
 }
+
+
+__int_handler INTC_get_interrupt(unsigned int irq)
+{
+  unsigned int int_grp = irq / AVR32_INTC_MAX_NUM_IRQS_PER_GRP;
+
+  return _int_handler_table[int_grp]._int_line_handler_table[irq % AVR32_INTC_MAX_NUM_IRQS_PER_GRP];
+}
+
+
+void INTC_restore_interrupt(unsigned int irq, __int_handler handler, unsigned int ipr)
+{
+  unsigned int int_grp = irq / AVR32_INTC_MAX_NUM_IRQS_PER_GRP;
+
+  _int_handler_table[int_grp]._int_line_handler_table[irq % AVR32_INTC_MAX_NUM_IRQS_PER_GRP] = handler;
+  AVR32_INTC.ipr[int_grp] = ipr;
+}
