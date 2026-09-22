@@ -363,9 +363,11 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
     // is today, in uac2_device_audio_task.c, after the data is actually read out) - only
     // disables the interrupt so it can't re-fire until the poller re-enables it post-
     // processing. That disable/enable pairing is what keeps a single flag race-free.
-    if (Is_usb_out_received(EP_AUDIO_OUT) && Is_usb_out_received_interrupt_enabled(EP_AUDIO_OUT))
+    // NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task() (see uac2_device_audio_task.c),
+    // not visible here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
+    if (Is_usb_out_received(UAC2_EP_AUDIO_OUT) && Is_usb_out_received_interrupt_enabled(UAC2_EP_AUDIO_OUT))
     {
-      Usb_disable_out_received_interrupt(EP_AUDIO_OUT);
+      Usb_disable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
       usb_audio_out_received_flag = TRUE;
 #ifdef FEATURE_TICK_BLINK
       // 20260922: PA22 repurposed from the (now-commented-out) 1s RTOS-tick blinker to

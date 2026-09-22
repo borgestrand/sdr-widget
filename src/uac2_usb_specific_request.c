@@ -415,7 +415,9 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 	// 20260921: arm EP_AUDIO_OUT's receive interrupt once, regardless of FS/HS - stage 1 of
 	// 8kHz bring-up. See usb_general_interrupt_non_naked() in usb_task.c and the two
 	// isr_Is_usb_out_received() call sites in uac2_device_audio_task.c.
-	Usb_enable_out_received_interrupt(EP_AUDIO_OUT);
+	// NB: EP_AUDIO_OUT itself is a local const inside uac2_device_audio_task() and not visible
+	// here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
+	Usb_enable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
 
 #ifdef FEATURE_TICK_BLINK
 	// 20260922: one-time pin-mode setup for the PA22 scope signal, now toggled from
