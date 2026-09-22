@@ -174,6 +174,17 @@ extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;
 extern xSemaphoreHandle mutexSpkUSB;
 
+// 20260921: stage 1 of 8kHz USB packet rate bring-up - interrupt-driven EP_AUDIO_OUT
+// notification, replacing the polled Is_usb_out_received(EP_AUDIO_OUT) in
+// uac2_device_audio_task.c. Set (only) by usb_general_interrupt_non_naked() in usb_task.c,
+// after disabling the interrupt so it can't re-fire until the poller re-enables it post-
+// processing - that disable/enable pairing is what keeps this race-free with a single flag,
+// no two-way protocol needed. Cleared (only) by the poller. See the two call sites in
+// uac2_device_audio_task.c (the SPDIF/TOSLINK "empty round" and the main USB audio path).
+extern volatile bool usb_audio_out_received_flag;
+#define isr_Is_usb_out_received(ep)          (usb_audio_out_received_flag)
+#define clear_isr_Is_usb_out_received_flag() (usb_audio_out_received_flag = FALSE)
+
 // BSB 20131201 attempting improved playerstarted detection 
 extern volatile S32 usb_buffer_toggle;
 

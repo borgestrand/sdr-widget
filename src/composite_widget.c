@@ -222,14 +222,18 @@ xSemaphoreHandle mutexEP_IN;
 
 
 #ifdef FEATURE_TICK_BLINK
-// 20260917: toggles PA22 purely off vTaskDelay()/the RTOS tick, for scope verification that the
+// 20260917: toggled PA22 purely off vTaskDelay()/the RTOS tick, for scope verification that the
 // scheduler itself is timed correctly - independent of UART baud rate, which depends on the same
 // clock config this is meant to verify (so it must not be trusted as the measurement tool here).
 // vTaskDelay(configTICK_RATE_HZ) is exactly 1 second BY DEFINITION of the tick rate, so a correct
 // build should measure exactly 2.000s period on the scope; anything else means the tick timer
 // itself is mistimed, before UART/audio/anything else built on top of it is worth trusting.
-// Enable with -DFEATURE_TICK_BLINK; not part of any active Makefile target by default - add it to
-// either audio-widget or audio-widget-84mhz's CFLAGS to compare before/after the clock change.
+//
+// 20260922: VERIFIED on real hardware - tick timer confirmed correct. Commented out (not
+// deleted) now that FEATURE_TICK_BLINK's PA22 signal has been repurposed to indicate the USB
+// OUT reception interrupt instead (see usb_general_interrupt_non_naked() in usb_task.c) - the
+// next thing worth scope-verifying. Uncomment to go back to RTOS-tick verification.
+/*
 static void task_tick_blink(void *pvParameters) {
 	gpio_enable_gpio_pin(AVR32_PIN_PA22);
 
@@ -238,6 +242,7 @@ static void task_tick_blink(void *pvParameters) {
 		vTaskDelay(configTICK_RATE_HZ);	// Exactly 1 second, by definition of the tick rate
 	}
 }
+*/
 #endif
 
 
@@ -481,12 +486,17 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	image_task_init();
 
 #ifdef FEATURE_TICK_BLINK
+	// 20260922: commented out along with task_tick_blink() itself - see composite_widget.c
+	// definition site. PA22 is now driven from usb_general_interrupt_non_naked() instead,
+	// so it still needs enabling as a GPIO output - see uac2_usb_specific_request.c.
+	/*
 	xTaskCreate(task_tick_blink,
 				configTSK_TICKBLINK_NAME,
 				configTSK_TICKBLINK_STACK_SIZE,
 				NULL,
 				configTSK_TICKBLINK_PRIORITY,
 				NULL);
+	*/
 #endif
 
 	// Start OS scheduler

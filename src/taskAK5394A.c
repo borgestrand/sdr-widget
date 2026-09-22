@@ -63,6 +63,8 @@ volatile U32 spk_usb_heart_beat = 0, old_spk_usb_heart_beat = 0;
 volatile U32 spk_usb_sample_counter = 0, old_spk_usb_sample_counter = 0;
 xSemaphoreHandle mutexSpkUSB;
 
+volatile bool usb_audio_out_received_flag = FALSE;	// See taskAK5394A.h for the full story
+
 static const gpio_map_t SSC_GPIO_MAP = {
 	{SSC_RX_CLOCK, SSC_RX_CLOCK_FUNCTION},
 	{SSC_RX_DATA, SSC_RX_DATA_FUNCTION},
