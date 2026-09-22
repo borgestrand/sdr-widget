@@ -88,7 +88,7 @@
 #include "device_audio_task.h"
 #include "uac2_device_audio_task.h"
 #include "taskAK5394A.h"
-#include "gpio.h" // 20260922: AVR32_PIN_PA22 setup for FEATURE_TICK_BLINK, see below
+#include "gpio.h" // AVR32_PIN_PA22 setup for the EP_AUDIO_OUT reception indicator
 
 //_____ M A C R O S ________________________________________________________
 
@@ -412,19 +412,16 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 		// BSB 20120720 HID insert attempt end
 	}
 
-	// 20260921: arm EP_AUDIO_OUT's receive interrupt once, regardless of FS/HS - stage 1 of
-	// 8kHz bring-up. See usb_general_interrupt_non_naked() in usb_task.c and the two
-	// isr_Is_usb_out_received() call sites in uac2_device_audio_task.c.
-	// NB: EP_AUDIO_OUT itself is a local const inside uac2_device_audio_task() and not visible
-	// here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
+	// 20260922: verified safe with EP_AUDIO_OUT's receive interrupt permanently armed -
+	// this is now part of the primary build, not gated. NB: EP_AUDIO_OUT itself is a local
+	// const inside uac2_device_audio_task() and not visible here - UAC2_EP_AUDIO_OUT is the
+	// actual global constant it's assigned from.
 	Usb_enable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
 
-#ifdef FEATURE_TICK_BLINK
-	// 20260922: one-time pin-mode setup for the PA22 scope signal, now toggled from
-	// usb_general_interrupt_non_naked() - this used to happen inside the (now commented
-	// out) task_tick_blink() in composite_widget.c, which no longer runs.
+	// One-time pin-mode setup for the PA22 scope signal toggled in
+	// usb_general_interrupt_non_naked() (usb_task.c) - a permanent indicator of actual
+	// EP_AUDIO_OUT reception timing, not gated behind a debug flag.
 	gpio_enable_gpio_pin(AVR32_PIN_PA22);
-#endif
 }
 
 //! @brief This function handles usb_set_interface side effects.

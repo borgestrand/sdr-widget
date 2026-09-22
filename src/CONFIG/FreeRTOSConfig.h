@@ -211,9 +211,4 @@ to exclude the API function. */
 #define configTSK_EXERCISE_PRIORITY			(tskIDLE_PRIORITY + 1 )
 #define configTSK_EXERCISE_PERIOD			100	// 10ms
 
-/* 20260917: tick-blink definitions - see FEATURE_TICK_BLINK in composite_widget.c */
-#define configTSK_TICKBLINK_NAME				((const signed portCHAR *)"Tick Blink")
-#define configTSK_TICKBLINK_STACK_SIZE			256
-#define configTSK_TICKBLINK_PRIORITY			(tskIDLE_PRIORITY + 1)
-
 #endif /* FREERTOS_CONFIG_H */

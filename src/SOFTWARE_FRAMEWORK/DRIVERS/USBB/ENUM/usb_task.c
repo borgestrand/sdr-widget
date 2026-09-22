@@ -100,7 +100,6 @@
 
 #include "usb_descriptors.h"
 #include "usb_device_task.h"
-#include "taskAK5394A.h" // 20260921: usb_audio_out_received_flag, stage 1 of 8kHz bring-up
 
 #if UC3C
 #include "pm_uc3c.h"
@@ -358,24 +357,17 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
       Usb_send_event(EVT_USB_RESET);
     }
 
-    // 20260921: EP_AUDIO_OUT data received - stage 1 of 8kHz USB packet rate bring-up.
-    // Deliberately does NOT ack the hardware condition here (that stays exactly where it
-    // is today, in uac2_device_audio_task.c, after the data is actually read out) - only
-    // disables the interrupt so it can't re-fire until the poller re-enables it post-
-    // processing. That disable/enable pairing is what keeps a single flag race-free.
-    // NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task() (see uac2_device_audio_task.c),
-    // not visible here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
-    if (Is_usb_out_received(UAC2_EP_AUDIO_OUT) && Is_usb_out_received_interrupt_enabled(UAC2_EP_AUDIO_OUT))
+    // 20260922: EP_AUDIO_OUT's receive interrupt is armed unconditionally now (see
+    // uac2_usb_specific_request.c) - verified it can be enabled without disturbing USB
+    // playback. Its only job is this GPIO toggle - a permanent scope-visible indicator of
+    // actual EP_AUDIO_OUT reception timing (today ~4kHz, later ~8kHz), not gated behind a
+    // debug flag. Real handler logic (flag/DMA notification) comes back deliberately in a
+    // later, separate stage - this ISR does nothing else on purpose right now.
+    // NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task() and not visible
+    // here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
+    if (Is_usb_out_received(UAC2_EP_AUDIO_OUT))
     {
-      Usb_disable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
-      usb_audio_out_received_flag = TRUE;
-#ifdef FEATURE_TICK_BLINK
-      // 20260922: PA22 repurposed from the (now-commented-out) 1s RTOS-tick blinker to
-      // indicate this interrupt firing instead - scope-verifies the actual EP_AUDIO_OUT
-      // reception rate (today ~4kHz, later ~8kHz) rather than the RTOS tick, which is
-      // already confirmed correct. See composite_widget.c for the disabled tick blinker.
       gpio_tgl_gpio_pin(AVR32_PIN_PA22);
-#endif
     }
 
   return task_woken;

@@ -503,8 +503,7 @@ void uac2_device_audio_task(void *pvParameters)
 			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 
 				// Do minimal USB action to make Host believe Device is actually receiving
-				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {
-					clear_isr_Is_usb_out_received_flag();
+				if (Is_usb_out_received(EP_AUDIO_OUT)) {
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
 					/*
@@ -516,7 +515,6 @@ void uac2_device_audio_task(void *pvParameters)
 					*/
 
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
-					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// Re-arm for the next packet
 				}
 			}
 			else {
@@ -524,8 +522,7 @@ void uac2_device_audio_task(void *pvParameters)
 			if (1) {
 #endif
 
-				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {
-					clear_isr_Is_usb_out_received_flag();
+				if (Is_usb_out_received(EP_AUDIO_OUT)) {
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					temp_num_samples = Usb_byte_count(EP_AUDIO_OUT);
@@ -855,7 +852,6 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
-					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// Re-arm for the next packet
 
 //					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
 					// mobodebug untested fix

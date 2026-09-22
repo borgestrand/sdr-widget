@@ -19,7 +19,6 @@
 # -DFEATURE_VOLUME_CTRL			Software volume control in DAC
 # -DFEATURE_CLOCK_SELECTOR		Clock selector, don't enable unless you wish to experiment with different clocks for ADC and DAC
 # -DFEATURE_ALT2_16BIT			UAC2 has both ALT1 (24 bit) and ALT2 (16 bit). Applies to both ADC and DAC code in UAC2. Does NOT! apply to UAC1
-# -DFEATURE_TICK_BLINK			A 2s period ticker on PA22 for FreeRTOS timer debug
 #
 # -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
 # -DFEATURE_SPDIF_CMD			Experimental disable state machine in SPDIF receiver code - only makes sense in SPRX context
@@ -72,7 +71,6 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DVDD_SENSE \
 	-DUSB_STATE_MACHINE_GPIO \
 	-DFEATURE_HID \
-	-DFEATURE_TICK_BLINK \
 	$(BUILD_INFO_DEFS) \
 	\
 	-DFEATURE_PRODUCT_HA256 \
