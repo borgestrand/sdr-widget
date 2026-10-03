@@ -864,23 +864,27 @@ uint32_t mobo_srd_asm2(bool raw) {
 	// 176.4  369- 396 ( 374.2)
 	// 192.0  339- 363 ( 343.8)
 
-	// 20260914: FEATURE_84MHz linearly scales these x14/11 for FCPU_HZ 66MHz->84MHz bring-up.
-	// The scaled set is a first-pass ESTIMATE, not bench-verified - re-measure on the scope per
-	// the original method (comment above) once the CPU is actually running at 84MHz, then replace
-	// with real numbers. Default (flag undefined) keeps the original 66MHz-measured values.
+	// 20260914: FEATURE_84MHz first scaled these x14/11 for FCPU_HZ 66MHz->84MHz bring-up.
+	// 20261003: replaced with bench-measured values below. Signal-generator fine tuning still pending.
+	// Default (flag undefined) keeps the original 66MHz-measured values.
 #ifdef FEATURE_84MHz
-	#define SLIM_44_LOW		1881
-	#define SLIM_44_HIGH	2011 		// Gives timeout of 2545
-	#define SLIM_48_LOW		1728
-	#define SLIM_48_HIGH	1848
-	#define SLIM_88_LOW		941
-	#define SLIM_88_HIGH	1005
-	#define SLIM_96_LOW		864
-	#define SLIM_96_HIGH	924
-	#define SLIM_176_LOW	470			// Add margin??
-	#define SLIM_176_HIGH	504
-	#define SLIM_192_LOW	431
-	#define SLIM_192_HIGH	467			// Analysis saw up to 366 (pre-scale)
+	// 20261003: re-centred on bench data ('s' command, 160 samples per rate, SPDIF and TOSLINK sources).
+	// Measured raw core spread (median): 44.1 1891-1923 (1909), 48 1737-1765 (1753), 88.2 939-979 (957),
+	// 96 855-901 (873), 176.4 459-501 (479), 192 421-461 (439). Boundaries at midpoints between clusters.
+	// Outliers of +-150..160 cycles are single ISRs (~1.9us) and are left to the majority vote.
+	// Previous (x14/11 estimate) values in comments
+	#define SLIM_44_LOW		1828		// 1881
+	#define SLIM_44_HIGH	1990		// 2011 	// Gives timeout of 2545
+	#define SLIM_48_LOW		1680		// 1728
+	#define SLIM_48_HIGH	1827		// 1848
+	#define SLIM_88_LOW		916			// 941
+	#define SLIM_88_HIGH	1000		// 1005
+	#define SLIM_96_LOW		830			// 864
+	#define SLIM_96_HIGH	915			// 924
+	#define SLIM_176_LOW	460			// 470		// Add margin??
+	#define SLIM_176_HIGH	520			// 504
+	#define SLIM_192_LOW	400			// 431
+	#define SLIM_192_HIGH	459			// 467		// Analysis saw up to 366 (pre-scale)
 #else
 	#define SLIM_44_LOW		1478
 	#define SLIM_44_HIGH	1580 		// Gives timeout of 2000
