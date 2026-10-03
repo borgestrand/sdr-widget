@@ -143,6 +143,7 @@ void wm8804_task(void *pvParameters) {
 	uint8_t wm8804_int;
 	uint8_t mustgive = 0;
 	int16_t poll_counter = 0;
+	uint8_t had_audio = FALSE;					// 20261003: did the currently taken input carry valid (non-silent) audio?
 
 	portTickType xLastWakeTime;
 	xLastWakeTime = xTaskGetTickCount();			// Currently happens every 20ms with configTSK_WM8804_PERIOD = 200, every 1.2ms with configTSK_WM8804_PERIOD = 12
@@ -310,7 +311,13 @@ void wm8804_task(void *pvParameters) {
 			// (Trying to be) playing music from WM8804 - is everything OK?
 			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
 				mustgive = 0;									// Not ready to give up playing audio just yet
-						
+
+				// 20261003: read-only observation of the silence detector. It starts at LIMIT - SCANNING on take
+				// and is reset to INIT by non-silent audio, so a value below the take value means valid audio was seen
+				if (spdif_rx_status.silence_SPDIF < (SILENCE_SPDIF_LIMIT - SILENCE_SPDIF_SCANNING)) {
+					had_audio = TRUE;
+				}
+
 				// Poll two silence detectors, WM8804 and buffer transfer code
 				if ( (SPDIF_IS_SILENT()) || (gpio_get_pin_value(WM8804_ZERO_PIN) == 1) ) {	// Either own SW based test and RX chip's zero detect
 //				if ( (SPDIF_IS_SILENT()) || (0)                                        ) {	// Only own SW based test
@@ -492,8 +499,18 @@ void wm8804_task(void *pvParameters) {
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
 							#ifdef HW_GEN_SPRX
-								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
-								INPUT_HOLD_START(input_select);		// 20261003: only this WM8804 input may retake for a while
+								// 20261003: hold this input only if it actually had valid audio. Otherwise scan as before
+								if (had_audio) {
+									INPUT_HOLD_START(input_select, INPUT_HOLD_PERIODS_WM);	// LED keeps showing this input, taskMoboCtrl sets no-input LED at expiry
+									print_dbg_char('H');					// 20261003: hold started
+								}
+								else if ( (INPUT_HOLD_ACTIVE()) && (input_select_preferred == input_select) ) {
+									// 20261003: a retake within our own running hold never produced audio (e.g. silent start of
+									// the next track). Let that hold continue; total protection stays bounded from the first give
+								}
+								else {
+									mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
+								}
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 							#ifdef I2S_METADATA // NOT REPORTED to terminal
@@ -530,12 +547,12 @@ void wm8804_task(void *pvParameters) {
 					uint8_t scanmode_now = scanmode;			// 20261003: scanmode itself is never changed by the hold
 					uint8_t may_scan = TRUE;
 
-					// 20261003: input select hold. A held WM8804 input is scanned FROM_PRESENT. A held USB plug means no scan at all.
+					// 20261003: input select hold. Only the held WM8804 input is scanned. A held USB plug means no scan at all.
 					// Without a hold, scanning is exactly as before
 					if (INPUT_HOLD_ACTIVE()) {
 						if (wm8804_is_input(input_select_preferred)) {
 							channel = input_select_preferred;
-							scanmode_now = WM8804_SCAN_FROM_PRESENT;
+							scanmode_now = WM8804_SCAN_ONE;		// Not FROM_PRESENT: locking other inputs would eat the hold time
 						}
 						else {
 							may_scan = FALSE;
@@ -570,6 +587,7 @@ void wm8804_task(void *pvParameters) {
 						if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take
 							if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {	// Re-take of taken semaphore returns false
 								input_select = channel;						// Owning semaphore we may write to master variable input_select and take control of hardware
+								had_audio = FALSE;							// 20261003: not yet verified for this take
 								#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'v'
 									mobo_set_i2s_metadata(0, I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 								#endif

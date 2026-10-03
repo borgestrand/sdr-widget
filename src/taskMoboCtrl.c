@@ -333,11 +333,24 @@ static void vtaskMoboCtrl( void * pcParameters )
 #ifdef HW_GEN_SPRX
 		// 20261003: input select hold countdown. Critical section so a give site's fresh
 		// INPUT_HOLD_START() can't be overwritten by a stale read-modify-write here
+		uint8_t hold_expired = FALSE;
 		taskENTER_CRITICAL();
 		if (input_select_hold != 0) {
 			input_select_hold--;
+			if (input_select_hold == 0) {
+				hold_expired = TRUE;
+			}
 		}
 		taskEXIT_CRITICAL();
+
+		// 20261003: give sites leave the LED on the held source. If the hold ran out without a retake,
+		// show the no-input indicator now (not mutex protected, accepted)
+		if (hold_expired) {
+			print_dbg_char('x');						// 20261003: input select hold expired
+			if (input_select == MOBO_SRC_NONE) {
+				mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);
+			}
+		}
 
 		// 20261003: while a USB plug holds input_select, freeze the USB-B/C mux (ignore VBUS swap detection)
 		if ( INPUT_HOLD_ACTIVE() && INPUT_PREFERRED_IS_USB() ) {

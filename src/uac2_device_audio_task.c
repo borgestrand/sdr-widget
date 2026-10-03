@@ -887,8 +887,8 @@ void uac2_device_audio_task(void *pvParameters)
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
 									#ifdef HW_GEN_SPRX
-										mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
-										INPUT_HOLD_START(INPUT_USB_PLUG_SRC());	// 20261003: only this USB plug may retake for a while
+										// mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// 20261003: LED keeps showing USB during the hold, taskMoboCtrl sets no-input LED at expiry
+										INPUT_HOLD_START(INPUT_USB_PLUG_SRC(), INPUT_HOLD_PERIODS_USB);	// 20261003: only this USB plug may retake for a while
 									#endif
 									input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 									#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'o'
@@ -951,8 +951,8 @@ void uac2_device_audio_task(void *pvParameters)
 								// Report to cpu and debug terminal
 								print_cpu_char(CPU_CHAR_IDLE);
 								#ifdef HW_GEN_SPRX
-									mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
-									INPUT_HOLD_START(INPUT_USB_PLUG_SRC());	// 20261003: only this USB plug may retake for a while
+									// mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// 20261003: LED keeps showing USB during the hold, taskMoboCtrl sets no-input LED at expiry
+									INPUT_HOLD_START(INPUT_USB_PLUG_SRC(), INPUT_HOLD_PERIODS_USB);	// 20261003: only this USB plug may retake for a while
 								#endif
 								input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 								#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'p'
@@ -1007,8 +1007,8 @@ void uac2_device_audio_task(void *pvParameters)
 							// Report to cpu and debug terminal
 							print_cpu_char(CPU_CHAR_IDLE);
 							#ifdef HW_GEN_SPRX
-								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
-								INPUT_HOLD_START(INPUT_USB_PLUG_SRC());	// 20261003: only this USB plug may retake for a while
+								// mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// 20261003: LED keeps showing USB during the hold, taskMoboCtrl sets no-input LED at expiry
+								INPUT_HOLD_START(INPUT_USB_PLUG_SRC(), INPUT_HOLD_PERIODS_USB);	// 20261003: only this USB plug may retake for a while
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 							#ifdef I2S_METADATA

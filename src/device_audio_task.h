@@ -126,12 +126,15 @@ extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio cha
 // WM8804 channel. input_select_hold is decremented by taskMoboCtrl, once per configTSK_MoboCtrl_PERIOD.
 extern volatile uint8_t input_select_preferred;
 extern volatile uint8_t input_select_hold;
-#define INPUT_HOLD_PERIODS		9				// ~100ms with configTSK_MoboCtrl_PERIOD = 120 ticks @ 10kHz
+// One period = configTSK_MoboCtrl_PERIOD = 120 ticks @ 10kHz = 12ms. uint8_t, so max 255 (~3s)
+#define INPUT_HOLD_PERIODS_USB	25				// ~300ms (was 9 = ~108ms)
+#define INPUT_HOLD_PERIODS_WM	100				// ~1.2s (tried 42 = ~500ms, 84 = ~1s, 167 = ~2s). Only used when the WM8804 input actually had valid audio. Tune per source HW
 #define INPUT_HOLD_ACTIVE()		(input_select_hold != 0)
 #define INPUT_USB_PLUG_SRC()	( (usb_ch == USB_CH_C) ? MOBO_SRC_UAC2_C : MOBO_SRC_UAC2_B )
 #define INPUT_PREFERRED_IS_USB() ( (input_select_preferred == MOBO_SRC_UAC2_B) || (input_select_preferred == MOBO_SRC_UAC2_C) )
-// Call at a give site, BEFORE input_select = MOBO_SRC_NONE
-#define INPUT_HOLD_START(src)	do { input_select_preferred = (src); input_select_hold = INPUT_HOLD_PERIODS; } while (0)
+// Call at a give site, BEFORE input_select = MOBO_SRC_NONE. The LED keeps showing the held source;
+// taskMoboCtrl sets the no-input LED when the hold expires without a retake
+#define INPUT_HOLD_START(src, periods)	do { input_select_preferred = (src); input_select_hold = (periods); } while (0)
 #endif
 
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
