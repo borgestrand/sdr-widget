@@ -88,6 +88,7 @@
 #include "usb_task.h"
 
 #include "gpio.h" // To access 'scope debug pin
+#include "taskAK5394A.h" // 20261003: EP_AUDIO_OUT_rearm_after_reset()
 
 
 //_____ M A C R O S ________________________________________________________
@@ -645,6 +646,7 @@ void usb_clear_feature(void)
           Usb_disable_stall_handshake(wIndex);
           Usb_reset_endpoint(wIndex);
           Usb_reset_data_toggle(wIndex);
+          EP_AUDIO_OUT_rearm_after_reset(wIndex);	// 20261003: reset cleared RXOUTE
         }
         Usb_ack_setup_received_free();
         Usb_ack_control_in_ready_send();
@@ -790,6 +792,7 @@ void usb_set_interface(void)
          Usb_disable_stall_handshake(u8_i);
          Usb_reset_endpoint(u8_i);
          Usb_reset_data_toggle(u8_i);
+         EP_AUDIO_OUT_rearm_after_reset(u8_i);	// 20261003: reset cleared RXOUTE
       }
    }
 

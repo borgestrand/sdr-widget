@@ -41,6 +41,8 @@ volatile uint8_t wm8804_TRANS_ERR_FAILURE = 0x1d;	// 0x1d 14 Results after 1st o
 #ifdef HW_GEN_SPRX
 volatile uint8_t usb_ch;					// Front or rear USB channel
 volatile uint8_t usb_ch_swap;				// USB channel is about to swap!
+volatile uint8_t input_select_preferred = 0;	// MOBO_SRC_NONE. 20261003: see device_audio_task.h
+volatile uint8_t input_select_hold = 0;
 #endif
 
 #if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores

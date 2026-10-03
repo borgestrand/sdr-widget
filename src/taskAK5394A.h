@@ -185,6 +185,22 @@ extern volatile bool usb_audio_out_received_flag;
 #define isr_Is_usb_out_received(ep)          (usb_audio_out_received_flag)
 #define clear_isr_Is_usb_out_received_flag() (usb_audio_out_received_flag = FALSE)
 
+// 20261003: an endpoint reset (SET_INTERFACE, CLEAR_FEATURE HALT) clears UECONn.RXOUTE and the
+// endpoint's banks. Re-arm the EP_AUDIO_OUT interrupt and drop any stale flag right after such a reset,
+// or the poller never sees another packet and EP_AUDIO_OUT is never freed
+#define EP_AUDIO_OUT_rearm_after_reset(ep) do { \
+	if ((ep) == UAC2_EP_AUDIO_OUT) { \
+		usb_audio_out_received_flag = FALSE; \
+		Usb_enable_out_received_interrupt(ep); \
+	} \
+} while (0)
+
+// 20260922: increments once per usb_general_interrupt_non_naked() firing on EP_AUDIO_OUT
+// reception (usb_task.c) - independent proof the ISR is actually running, separate from
+// whether the PA22 toggle is visibly working. Read over UART with the 'I' command in
+// device_mouse_hid_task.c.
+extern volatile uint32_t EP_AUDIO_OUT_isr_counter;
+
 // BSB 20131201 attempting improved playerstarted detection 
 extern volatile S32 usb_buffer_toggle;
 

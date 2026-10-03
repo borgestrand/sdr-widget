@@ -331,7 +331,19 @@ static void vtaskMoboCtrl( void * pcParameters )
 		
 
 #ifdef HW_GEN_SPRX
-		if (mobo_usb_detect() != usb_ch) {
+		// 20261003: input select hold countdown. Critical section so a give site's fresh
+		// INPUT_HOLD_START() can't be overwritten by a stale read-modify-write here
+		taskENTER_CRITICAL();
+		if (input_select_hold != 0) {
+			input_select_hold--;
+		}
+		taskEXIT_CRITICAL();
+
+		// 20261003: while a USB plug holds input_select, freeze the USB-B/C mux (ignore VBUS swap detection)
+		if ( INPUT_HOLD_ACTIVE() && INPUT_PREFERRED_IS_USB() ) {
+			usb_ch_counter = 0;
+		}
+		else if (mobo_usb_detect() != usb_ch) {
 			print_dbg_char('#');
 
 			if (usb_ch_counter++ > 2) {					// Different USB plug for some time:

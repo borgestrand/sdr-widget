@@ -101,6 +101,14 @@
 #define WM8804_SCAN_ONE		0x10				// Scan only one channel
 #define WM8804_SCAN_FROM_PRESENT	0x20		// Start scanning from present channel
 #define WM8804_SCAN_FROM_NEXT		0x30		// Start scanning from next channel in list
+
+// 20261003: WM8804 inputs physically present on this hardware, in scan order.
+// SPDIF1 and AESEBU0 are planned; AESEBU0 also needs a MOBO_SRC_AESEBU0 before it can be enabled
+#define WM8804_HAS_SPDIF0	1
+#define WM8804_HAS_TOSLINK1	1
+#define WM8804_HAS_TOSLINK0	1
+#define WM8804_HAS_SPDIF1	0
+#define WM8804_HAS_AESEBU0	0
 #define WM8804_MCLK_ENABLE	1					// WM8804 enables MCLK output
 #define WM8804_MCLK_DISABLE 0					// WM8804 disables MCLK output
 #define WM8804_MCLK_TEST	2					// WM8804 MCLK status is recalled
@@ -136,20 +144,24 @@ void wm8804_sleep(void);
 // Course detection of AC vs. DC on SPDIF input lines
 uint8_t wm8804_live_detect(void);
 
-// Scan inputs, start of new scanning algorithm. Doesn't detect silence
-void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode);
+// Scan inputs, one pass through the list of present inputs. Doesn't detect silence
+// mode: WM8804_SCAN_ONE, WM8804_SCAN_FROM_PRESENT or WM8804_SCAN_FROM_NEXT
+void wm8804_scan(uint8_t *channel, uint32_t *freq, uint8_t mode);
+
+// Is this source one of the WM8804 inputs present on this hardware?
+uint8_t wm8804_is_input(uint8_t src);
 
 // Select input channel of the WM8804
-uint32_t wm8804_inputnew(uint8_t input_sel);
+uint32_t wm8804_input(uint8_t input_sel);
 
 // Report link statistics
 void wm8804_linkstats(void);
 
 // Select PLL setting for the WM8804
-void wm8804_pllnew(uint8_t pll_sel);			// For manual control
+void wm8804_pll(uint8_t pll_sel);			// For manual control
 
 // Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
-uint8_t wm8804_clkdivnew(uint32_t freq);
+uint8_t wm8804_clkdiv(uint32_t freq);
 
 // Mute the WM8804 output by means of other hardware
 void wm8804_mute(void);

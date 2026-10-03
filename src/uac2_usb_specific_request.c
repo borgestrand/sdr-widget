@@ -416,7 +416,11 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 	// this is now part of the primary build, not gated. NB: EP_AUDIO_OUT itself is a local
 	// const inside uac2_device_audio_task() and not visible here - UAC2_EP_AUDIO_OUT is the
 	// actual global constant it's assigned from.
+	// 20260925: both enable levels are needed - RXOUTE (endpoint) AND EPnINTE (device).
+	// EPnINTE was missing before, so the ISR never fired on EP traffic.
+	usb_audio_out_received_flag = FALSE;
 	Usb_enable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
+	Usb_enable_endpoint_interrupt(UAC2_EP_AUDIO_OUT);
 
 	// One-time pin-mode setup for the PA22 scope signal toggled in
 	// usb_general_interrupt_non_naked() (usb_task.c) - a permanent indicator of actual

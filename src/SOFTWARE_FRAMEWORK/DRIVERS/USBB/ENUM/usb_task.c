@@ -100,6 +100,7 @@
 
 #include "usb_descriptors.h"
 #include "usb_device_task.h"
+#include "taskAK5394A.h" // 20260922: EP_AUDIO_OUT_isr_counter
 
 #if UC3C
 #include "pm_uc3c.h"
@@ -288,6 +289,30 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
 // print_dbg_char('!'); // Indicate USB interrupt .
 
 
+
+
+    // 20260922: EP_AUDIO_OUT's receive interrupt is armed unconditionally now (see
+    // uac2_usb_specific_request.c) - verified it can be enabled without disturbing USB
+    // playback. Its only job is this GPIO toggle - a permanent scope-visible indicator of
+    // actual EP_AUDIO_OUT reception timing (today ~4kHz, later ~8kHz), not gated behind a
+    // debug flag. Real handler logic (flag/DMA notification) comes back deliberately in a
+    // later, separate stage - this ISR does nothing else on purpose right now.
+    // NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task() and not visible
+    // here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
+
+	// 20260925: RXOUTI is level-sensitive, so mask it here; the poller re-enables it after
+	// Usb_ack_out_received_free(). The enable check keeps other USB events from re-setting the flag.
+    if (Is_usb_out_received(UAC2_EP_AUDIO_OUT) &&
+        Is_usb_out_received_interrupt_enabled(UAC2_EP_AUDIO_OUT))
+    {
+	    Usb_disable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
+	    usb_audio_out_received_flag = TRUE;
+	    gpio_tgl_gpio_pin(AVR32_PIN_PA22);
+	    EP_AUDIO_OUT_isr_counter++;
+    }
+
+
+
 // ---------- DEVICE events management -----------------------------------------
     // VBus state detection
     if (Is_usb_vbus_transition() && Is_usb_vbus_interrupt_enabled())
@@ -357,18 +382,6 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
       Usb_send_event(EVT_USB_RESET);
     }
 
-    // 20260922: EP_AUDIO_OUT's receive interrupt is armed unconditionally now (see
-    // uac2_usb_specific_request.c) - verified it can be enabled without disturbing USB
-    // playback. Its only job is this GPIO toggle - a permanent scope-visible indicator of
-    // actual EP_AUDIO_OUT reception timing (today ~4kHz, later ~8kHz), not gated behind a
-    // debug flag. Real handler logic (flag/DMA notification) comes back deliberately in a
-    // later, separate stage - this ISR does nothing else on purpose right now.
-    // NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task() and not visible
-    // here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
-    if (Is_usb_out_received(UAC2_EP_AUDIO_OUT))
-    {
-      gpio_tgl_gpio_pin(AVR32_PIN_PA22);
-    }
 
   return task_woken;
 }

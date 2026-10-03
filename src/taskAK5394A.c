@@ -64,6 +64,7 @@ volatile U32 spk_usb_sample_counter = 0, old_spk_usb_sample_counter = 0;
 xSemaphoreHandle mutexSpkUSB;
 
 volatile bool usb_audio_out_received_flag = FALSE;	// See taskAK5394A.h for the full story
+volatile uint32_t EP_AUDIO_OUT_isr_counter = 0;	// See taskAK5394A.h for the full story
 
 static const gpio_map_t SSC_GPIO_MAP = {
 	{SSC_RX_CLOCK, SSC_RX_CLOCK_FUNCTION},

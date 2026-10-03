@@ -503,7 +503,8 @@ void uac2_device_audio_task(void *pvParameters)
 			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
 
 				// Do minimal USB action to make Host believe Device is actually receiving
-				if (Is_usb_out_received(EP_AUDIO_OUT)) {
+				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {		// 20260925: ISR-set flag replaces polled hardware bit
+					clear_isr_Is_usb_out_received_flag();
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
 					/*
@@ -515,6 +516,7 @@ void uac2_device_audio_task(void *pvParameters)
 					*/
 
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
+					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// 20260925: re-arm, ISR masked it
 				}
 			}
 			else {
@@ -522,7 +524,8 @@ void uac2_device_audio_task(void *pvParameters)
 			if (1) {
 #endif
 
-				if (Is_usb_out_received(EP_AUDIO_OUT)) {
+				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {		// 20260925: ISR-set flag replaces polled hardware bit
+					clear_isr_Is_usb_out_received_flag();
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					temp_num_samples = Usb_byte_count(EP_AUDIO_OUT);
@@ -784,7 +787,11 @@ void uac2_device_audio_task(void *pvParameters)
 					// New site for setting playerStarted and aligning buffers
 					if (!silence_det) {		// There is actual USB audio.
 						#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) )	// For USB playback, handle semaphores
-							if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take for RT reasons
+							#ifdef HW_GEN_SPRX	// 20261003: during an input select hold, only the held USB plug may take
+								if ( (input_select == MOBO_SRC_NONE) && ( (!INPUT_HOLD_ACTIVE()) || (input_select_preferred == INPUT_USB_PLUG_SRC()) ) ) {
+							#else
+								if (input_select == MOBO_SRC_NONE) {				// Always directly preceding take for RT reasons
+							#endif
 								if (xSemaphoreTake(input_select_semphr, 10) == pdTRUE) {		// Re-take of taken semaphore returns false
 									input_select = MOBO_SRC_UAC2;				// Claim input_select ASAP so that WM won't take it
 									print_dbg_char('[');						// USB takes
@@ -852,6 +859,7 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
+					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// 20260925: re-arm, ISR masked it
 
 //					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
 					// mobodebug untested fix
@@ -879,7 +887,8 @@ void uac2_device_audio_task(void *pvParameters)
 									// Report to cpu and debug terminal
 									print_cpu_char(CPU_CHAR_IDLE);
 									#ifdef HW_GEN_SPRX
-										mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator 
+										mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
+										INPUT_HOLD_START(INPUT_USB_PLUG_SRC());	// 20261003: only this USB plug may retake for a while
 									#endif
 									input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 									#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'o'
@@ -943,6 +952,7 @@ void uac2_device_audio_task(void *pvParameters)
 								print_cpu_char(CPU_CHAR_IDLE);
 								#ifdef HW_GEN_SPRX
 									mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
+									INPUT_HOLD_START(INPUT_USB_PLUG_SRC());	// 20261003: only this USB plug may retake for a while
 								#endif
 								input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 								#ifdef I2S_METADATA // NOT REPORTED to terminal - tested OK - was 'p'
@@ -998,6 +1008,7 @@ void uac2_device_audio_task(void *pvParameters)
 							print_cpu_char(CPU_CHAR_IDLE);
 							#ifdef HW_GEN_SPRX
 								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
+								INPUT_HOLD_START(INPUT_USB_PLUG_SRC());	// 20261003: only this USB plug may retake for a while
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 							#ifdef I2S_METADATA

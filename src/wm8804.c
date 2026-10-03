@@ -136,8 +136,8 @@ uint8_t wm8804_mclk_out(uint8_t mode) {
  
 // The config task itself
 void wm8804_task(void *pvParameters) {
-	static uint8_t scanmode = WM8804_SCAN_FROM_NEXT + 0x05;		// Start scanning from next channel. Run up to 5x4 scan attempts
-//	static uint8_t scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;		// Start scanning from the last known good (?) channel. Run up to 5x4 scan attempts
+	static uint8_t scanmode = WM8804_SCAN_FROM_NEXT;		// Start scanning from next channel. One pass through present inputs
+//	static uint8_t scanmode = WM8804_SCAN_FROM_PRESENT;		// Start scanning from the last known good (?) channel. One pass through present inputs
 	uint32_t freq;
 	static uint8_t channel;	// Must be static here?
 	uint8_t wm8804_int;
@@ -230,24 +230,24 @@ void wm8804_task(void *pvParameters) {
 				case SPDIF_CMD_CLK_START:
 					temp_spdif_u32 = mobo_srd();
 					spdif_rx_status.frequency = temp_spdif_u32;
-					wm8804_clkdivnew(temp_spdif_u32);
+					wm8804_clkdiv(temp_spdif_u32);
 					// We should (have) set input_select by now or around here
 					must_init_xo = TRUE;
 				break;
 				case SPDIF_WM_PLL_ALL:		// General purpose PLL, function only overwrites if needed
-					wm8804_pllnew(WM8804_PLL_NORMAL);
+					wm8804_pll(WM8804_PLL_NORMAL);
 				break;
 				case SPDIF_WM_PLL_192:		// 192ksps PLL, function only overwrites if needed
-					wm8804_pllnew(WM8804_PLL_192);
+					wm8804_pll(WM8804_PLL_192);
 				break;
 				case SPDIF_WM_PLL_ALL_F:	// General purpose PLL, function overwrites
-					wm8804_pllnew(WM8804_PLL_NORMAL | WM8804_PLL_FORCE);
+					wm8804_pll(WM8804_PLL_NORMAL | WM8804_PLL_FORCE);
 				break;
 				case SPDIF_WM_PLL_192_F:	// 192ksps PLL, function overwrites
-					wm8804_pllnew(WM8804_PLL_192 | WM8804_PLL_FORCE);
+					wm8804_pll(WM8804_PLL_192 | WM8804_PLL_FORCE);
 				break;
 				case SPDIF_WM_PLL_TOGGLE:	// Toggle PLL status, no forcing
-					wm8804_pllnew(WM8804_PLL_TOGGLE);
+					wm8804_pll(WM8804_PLL_TOGGLE);
 				break;
 				case SPDIF_WM_SPDSTAT:
 					temp_spdif_u8 = wm8804_read_byte(0x0C);	// SPDstat register
@@ -285,7 +285,7 @@ void wm8804_task(void *pvParameters) {
 		// while playing, got interrupt. Could be loss of link (monitored faster on pin) or TRANS_ERR (only visible on interrupt)
 
 		// 		if (wm8804_read_byte(0x0B) & 0x08) {	// TRANS_ERR bit. This read clears interrupt status but WM8804 may be quick to set it again
-		// try wm8804_pllnew(WM8804_PLL_TOGGLE);
+		// try wm8804_pll(WM8804_PLL_TOGGLE);
 		// then scan inputs starting with last known good input	
 				
 		// USB has assumed control, power down WM8804 if it was on
@@ -325,7 +325,7 @@ void wm8804_task(void *pvParameters) {
 						}
 					#endif
 
-					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+					scanmode = WM8804_SCAN_FROM_NEXT;	// Start scanning from next channel. One pass through present inputs
 					mustgive = 1;
 
 					#ifdef LOOSE_SIGNAL_LED									// Indicate startup with WHITE-RED-BLUE-(WHITE)
@@ -346,7 +346,7 @@ void wm8804_task(void *pvParameters) {
 					#endif
 					
 					// Count to more than one error?
-					scanmode = WM8804_SCAN_FROM_NEXT + 0x05;	// Start scanning from next channel. Run up to 5x4 scan attempts
+					scanmode = WM8804_SCAN_FROM_NEXT;	// Start scanning from next channel. One pass through present inputs
 					mustgive = 1;
 					
 					#ifdef LOOSE_SIGNAL_LED
@@ -400,8 +400,8 @@ void wm8804_task(void *pvParameters) {
 								// Another option to consider: qualify interrupt by measuring time between interrupts
 								if (mobo_srd() != spdif_rx_status.frequency) {
 
-									wm8804_pllnew(WM8804_PLL_TOGGLE);
-									scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel. Run up to 5x4 scan attempts
+									wm8804_pll(WM8804_PLL_TOGGLE);
+									scanmode = WM8804_SCAN_FROM_PRESENT;	// Start scanning from same channel. One pass through present inputs
 									mustgive = 1;
 
 									#ifdef LOOSE_SIGNAL_LED
@@ -448,8 +448,8 @@ void wm8804_task(void *pvParameters) {
 
 					// The actual test						
 					if ( ( (freq >= FREQ_44) && (freq <= FREQ_192) ) && (freq != spdif_rx_status.frequency) ) {
-						// wm8804_pllnew(WM8804_PLL_TOGGLE);		// No PLL toggle -> quick to return to present setting
-						scanmode = WM8804_SCAN_FROM_PRESENT + 0x05;	// Start scanning from same channel to prevent consequences of false detects. Run up to 5x4 scan attempts
+						// wm8804_pll(WM8804_PLL_TOGGLE);		// No PLL toggle -> quick to return to present setting
+						scanmode = WM8804_SCAN_FROM_PRESENT;	// Start scanning from same channel to prevent consequences of false detects. One pass through present inputs
 
 						#ifdef FEATURE_SPDIF_CMD
 							print_cpu_char('f');					// Log source of mustgive
@@ -493,6 +493,7 @@ void wm8804_task(void *pvParameters) {
 							print_cpu_char(CPU_CHAR_IDLE);
 							#ifdef HW_GEN_SPRX
 								mobo_led_select(FREQ_NOCHANGE, MOBO_SRC_NONE);	// User interface NO-channel indicator
+								INPUT_HOLD_START(input_select);		// 20261003: only this WM8804 input may retake for a while
 							#endif
 							input_select = MOBO_SRC_NONE;			// Do this LATE! Indicate WM may take over control
 							#ifdef I2S_METADATA // NOT REPORTED to terminal
@@ -526,15 +527,36 @@ void wm8804_task(void *pvParameters) {
 
 				else {											// Don't start scanning immediately after power-on
 					channel = spdif_rx_status.channel;			// Use receiver scan history if it is of any use
-					
+					uint8_t scanmode_now = scanmode;			// 20261003: scanmode itself is never changed by the hold
+					uint8_t may_scan = TRUE;
+
+					// 20261003: input select hold. A held WM8804 input is scanned FROM_PRESENT. A held USB plug means no scan at all.
+					// Without a hold, scanning is exactly as before
+					if (INPUT_HOLD_ACTIVE()) {
+						if (wm8804_is_input(input_select_preferred)) {
+							channel = input_select_preferred;
+							scanmode_now = WM8804_SCAN_FROM_PRESENT;
+						}
+						else {
+							may_scan = FALSE;
+							channel = MOBO_SRC_NONE;			// Make sure the stale freq/channel can't trigger a take below
+							freq = FREQ_TIMEOUT;
+						}
+					}
+
 					#ifdef FEATURE_SPDIF_CMD
-						if (spdif_enable_state_machine) {
+						if ( (spdif_enable_state_machine) && (may_scan) ) {
 					#else
-						if (1) {
+						if (may_scan) {
 					#endif
-							wm8804_scannew(&channel, &freq, scanmode);
+							wm8804_scan(&channel, &freq, scanmode_now);
 						} // ifdef FEATURE_SPDIF_CMD .. if()
-					
+
+					// 20261003: during a hold, a lock on any other input than the held one is ignored
+					if ( (INPUT_HOLD_ACTIVE()) && (channel != input_select_preferred) ) {
+						channel = MOBO_SRC_NONE;
+					}
+
 					if ( (freq != FREQ_TIMEOUT) && (freq != FREQ_INVALID) && (channel != MOBO_SRC_NONE)) {
 						wm8804_read_byte(0x0B);					// Clear interrupts for good measure
 								
@@ -713,91 +735,115 @@ uint8_t wm8804_live_detect(void) {
 }
 
 
-// The start of a new automated input scanner. Doesn't detect silence
-void wm8804_scannew(uint8_t *channel, uint32_t *freq, uint8_t mode) {
-	uint8_t max_attempts = (mode & 0x0F) * 4;	// Up to 60 attempts before giving up
-	uint8_t program = (mode & 0xF0);			// Which scanning sequence to use
-	uint8_t program_index = 0;					// Start at the beginning of a program sequence
-	uint8_t attempts = 0;	
+// 20261003: WM8804 inputs present on this hardware, in scan order. See WM8804_HAS_* in wm8804.h
+static const uint8_t wm8804_inputs[] = {
+	#if (WM8804_HAS_SPDIF0)
+		MOBO_SRC_SPDIF0,
+	#endif
+	#if (WM8804_HAS_TOSLINK1)
+		MOBO_SRC_TOSLINK1,
+	#endif
+	#if (WM8804_HAS_TOSLINK0)
+		MOBO_SRC_TOSLINK0,
+	#endif
+	#if (WM8804_HAS_SPDIF1)
+		MOBO_SRC_SPDIF1,
+	#endif
+	#if (WM8804_HAS_AESEBU0)
+		MOBO_SRC_AESEBU0,
+	#endif
+};
+#define WM8804_NUM_INPUTS	(sizeof(wm8804_inputs) / sizeof(wm8804_inputs[0]))
+
+
+// Index of src in wm8804_inputs[], or WM8804_NUM_INPUTS if src isn't a present WM8804 input
+static uint8_t wm8804_input_index(uint8_t src) {
+	uint8_t i;
+	for (i = 0; i < WM8804_NUM_INPUTS; i++) {
+		if (wm8804_inputs[i] == src) {
+			break;
+		}
+	}
+	return i;
+}
+
+
+// Is this source one of the WM8804 inputs present on this hardware?
+uint8_t wm8804_is_input(uint8_t src) {
+	return (wm8804_input_index(src) < WM8804_NUM_INPUTS);
+}
+
+
+// Automated input scanner. Doesn't detect silence
+// 20261003: simplified to one pass through wm8804_inputs[]. Each input is tried once, with one
+// retry after a PLL toggle if it reports FREQ_PLLMISS. Replaces the old max_attempts/program scheme.
+void wm8804_scan(uint8_t *channel, uint32_t *freq, uint8_t mode) {
+	uint8_t program = (mode & 0xF0);			// Which scanning sequence to use. Lower nibble (old attempt count) is ignored
+	uint8_t start;
+	uint8_t n;
+	uint8_t i;
+	uint8_t input;
+	uint8_t pll_retried;
 	uint32_t temp_freq = FREQ_TIMEOUT;			// Valid frequency not yet detected
-	#define SCAN_PROGRAM_LENGTH	3
-	uint8_t temp_program[SCAN_PROGRAM_LENGTH];
-	
+
 	// No valid channel given, start scanning from default or user selection
-	if ( (*channel != MOBO_SRC_TOSLINK0) && (*channel != MOBO_SRC_TOSLINK1) && (*channel != MOBO_SRC_SPDIF0) ) {
+	start = wm8804_input_index(*channel);
+	if (start == WM8804_NUM_INPUTS) {
 		*channel = spdif_rx_status.preferred_channel;	// Populated with default value or user override
-	}
-	
-	// Relate to only one channel (user decision)
-	if (program == WM8804_SCAN_ONE) {
-		temp_program[0] = *channel;
-		temp_program[1] = *channel;
-		temp_program[2] = *channel;
-	}
-	// Start at specified channel, scan consecutives
-	else if (program == WM8804_SCAN_FROM_PRESENT) {
-		temp_program[0] = *channel;
-		temp_program[1] = *channel+1;
-		temp_program[2] = *channel+2;
-	}
-	// Start one channel beyond the specified one
-	else {
-		temp_program[0] = *channel+1;
-		temp_program[1] = *channel+2;
-		temp_program[2] = *channel+3;
-	}
-	
-	// Sanitize content of program memory
-	if (temp_program[0] > MOBO_SRC_HIGH) {
-		temp_program[0] = temp_program[0] - MOBO_SRC_HIGH + MOBO_SRC_LOW - 1;
-	}
-	if (temp_program[1] > MOBO_SRC_HIGH) {
-		temp_program[1] = temp_program[1] - MOBO_SRC_HIGH + MOBO_SRC_LOW - 1;
-	}
-	if (temp_program[2] > MOBO_SRC_HIGH) {
-		temp_program[2] = temp_program[2] - MOBO_SRC_HIGH + MOBO_SRC_LOW - 1;
+		start = wm8804_input_index(*channel);
+		if (start == WM8804_NUM_INPUTS) {
+			start = 0;									// Sanitize: begin at the first present input
+		}
 	}
 
-	
-	while (attempts++ < max_attempts) {			// Success causes function termination mid-loop
-		temp_freq = wm8804_inputnew(temp_program[program_index]);	// Check if selected channel from program is online
-		if ( (temp_freq != FREQ_PLLMISS) && (temp_freq != FREQ_TIMEOUT) && (temp_freq != FREQ_INVALID) ) {
-			*channel = temp_program[program_index];	// Tell calling function which channel works
-			*freq = temp_freq;					// ... and its sample rate
-			
-//			print_dbg_char_hex( (uint8_t)(temp_freq/1000) );
-			return;
-		}
-		else if (temp_freq == FREQ_PLLMISS) {	// Linkup but PLL mismatch: try same channel again after toggling PLL setting
-			
-			#ifdef FEATURE_SPDIF_CMD
-				if (spdif_enable_state_machine) {
-			#else
-				if (1) {
-			#endif
-					wm8804_pllnew(WM8804_PLL_TOGGLE);
-				} // ifdef FEATURE_SPDIF_CMD .. if()
+	if (program == WM8804_SCAN_ONE) {			// Relate to only one channel (user decision)
+		n = 1;
+	}
+	else if (program == WM8804_SCAN_FROM_PRESENT) {	// Start at specified channel, scan the others after it
+		n = WM8804_NUM_INPUTS;
+	}
+	else {										// Start one channel beyond the specified one, end with the specified one
+		start = (start + 1) % WM8804_NUM_INPUTS;
+		n = WM8804_NUM_INPUTS;
+	}
 
-		}
-		
-		else {									// Select a new channel to try
-			program_index++;
-			if (program_index == SCAN_PROGRAM_LENGTH) {
-				program_index = 0;
+	for (i = 0; i < n; i++) {
+		input = wm8804_inputs[(start + i) % WM8804_NUM_INPUTS];
+		pll_retried = 0;
+
+		while (TRUE) {
+			temp_freq = wm8804_input(input);	// Check if selected channel is online
+			if ( (temp_freq != FREQ_PLLMISS) && (temp_freq != FREQ_TIMEOUT) && (temp_freq != FREQ_INVALID) ) {
+				*channel = input;				// Tell calling function which channel works
+				*freq = temp_freq;				// ... and its sample rate
+				return;
+			}
+			else if ( (temp_freq == FREQ_PLLMISS) && (pll_retried == 0) ) {	// Linkup but PLL mismatch: try same channel again after toggling PLL setting
+				#ifdef FEATURE_SPDIF_CMD
+					if (spdif_enable_state_machine) {
+				#else
+					if (1) {
+				#endif
+						wm8804_pll(WM8804_PLL_TOGGLE);
+					} // ifdef FEATURE_SPDIF_CMD .. if()
+				pll_retried = 1;
+			}
+			else {								// Move on to the next channel
+				break;
 			}
 		}
 	}
-	
-	// while loop above didn't terminate with success, return failure	
+
+	// Loop above didn't terminate with success, return failure
 	*channel = MOBO_SRC_NONE;					// No valid channel
-	*freq = temp_freq;							// The (failing!) freq reported last by wm8804_inputnew()
-	return;	
+	*freq = temp_freq;							// The (failing!) freq reported last by wm8804_input()
+	return;
 }
 
 
 // Select input channel of the multiplexer preceding WM8804. NB: this is outside the scope of the chip itself!
 // Naming convention: TOSLINK0 on schematic is TOSLINK1 in code etc.
-uint32_t wm8804_inputnew(uint8_t input_sel) {
+uint32_t wm8804_input(uint8_t input_sel) {
 	uint8_t link_detect = 0;
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
@@ -858,7 +904,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 			
 				if (link_detect++ == wm8804_LINK_DETECTS_OK-1) {	// We have a valid link!
 					freq = mobo_srd();						// Now that we have link, measure the received sample rate
-					clkdiv_temp = wm8804_clkdivnew(freq);	// Compare to WM8804's PLL setting and frequency detector and set up clock division for MCLK export
+					clkdiv_temp = wm8804_clkdiv(freq);	// Compare to WM8804's PLL setting and frequency detector and set up clock division for MCLK export
 					
 					if (clkdiv_temp == WM8804_CLK_SUCCESS) {	
 				
@@ -885,7 +931,7 @@ uint32_t wm8804_inputnew(uint8_t input_sel) {
 					#else
 						if (1) {
 					#endif
-							wm8804_pllnew(WM8804_PLL_TOGGLE);
+							wm8804_pll(WM8804_PLL_TOGGLE);
 						} // ifdef FEATURE_SPDIF_CMD .. if()
 
 					trans_err_detect = 0;					// New try with new setting! - dependant on spdif_enable_state_machine?
@@ -918,7 +964,7 @@ void wm8804_linkstats(void) {
 
 
 // Pll setting for WM8804
-void wm8804_pllnew(uint8_t pll_sel) {
+void wm8804_pll(uint8_t pll_sel) {
 	static uint8_t pll_sel_prev = WM8804_PLL_NORMAL;	// Chip default value
 	uint8_t dev_data[5];
 	
@@ -998,7 +1044,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 
 		pll_sel_prev = pll_sel;				// Record history
 	}
-}	// wm8804_pllnew()
+}	// wm8804_pll()
 
 
 
@@ -1014,7 +1060,7 @@ void wm8804_pllnew(uint8_t pll_sel) {
 // Set up WM8804 CLKOUTDIV so that CLKOUT is in the 22-24MHz range
 // Compare expected frequency (typically measured by mobo_srd() to WM8804's internally registered frequency
 // Also verify that PLL has been configured correctly
-uint8_t wm8804_clkdivnew(uint32_t freq) {
+uint8_t wm8804_clkdiv(uint32_t freq) {
 	uint8_t temp;
 	temp = wm8804_read_byte(0x0C);		// Read SPDSTAT
 	temp = temp & 0x30;					// Consider bits 5-4

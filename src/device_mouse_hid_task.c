@@ -629,6 +629,18 @@ Arash
 			}
 
 
+			// 20260922: EP_AUDIO_OUT reception ISR call counter (usb_general_interrupt_non_naked()
+			// in usb_task.c) - proof the ISR is actually firing, independent of whether the PA22
+			// toggle is visibly working.
+			else if (a == 'I') {						// Uppercase I - ISR call counter
+				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter >> 24);	// MSB
+				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter >> 16);
+				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter >> 8);
+				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter);			// LSB
+				print_dbg_char('\n');
+			}
+
+
 #endif // HW_GEN_SPRX
 
             // Check source and rate, output to terminal

@@ -119,6 +119,21 @@ extern volatile spdif_rx_status_t spdif_rx_status;
 extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio channel selection semaphore
 #endif
 
+#ifdef HW_GEN_SPRX
+// 20261003: input select hold. After a source gives away input_select, only that source
+// (input_select_preferred) may take it again until input_select_hold counts down to zero.
+// input_select_preferred is MOBO_SRC_UAC2_B / MOBO_SRC_UAC2_C for USB (per plug), or a
+// WM8804 channel. input_select_hold is decremented by taskMoboCtrl, once per configTSK_MoboCtrl_PERIOD.
+extern volatile uint8_t input_select_preferred;
+extern volatile uint8_t input_select_hold;
+#define INPUT_HOLD_PERIODS		9				// ~100ms with configTSK_MoboCtrl_PERIOD = 120 ticks @ 10kHz
+#define INPUT_HOLD_ACTIVE()		(input_select_hold != 0)
+#define INPUT_USB_PLUG_SRC()	( (usb_ch == USB_CH_C) ? MOBO_SRC_UAC2_C : MOBO_SRC_UAC2_B )
+#define INPUT_PREFERRED_IS_USB() ( (input_select_preferred == MOBO_SRC_UAC2_B) || (input_select_preferred == MOBO_SRC_UAC2_C) )
+// Call at a give site, BEFORE input_select = MOBO_SRC_NONE
+#define INPUT_HOLD_START(src)	do { input_select_preferred = (src); input_select_hold = INPUT_HOLD_PERIODS; } while (0)
+#endif
+
 #if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
 extern volatile xSemaphoreHandle I2C_busy_semphr; 			// One semaphore covers entire I2C message, not just function calls. Not yet ported to all I2C callers
 #endif
