@@ -34,6 +34,13 @@
 // I2C functions
 #include "I2C.h"
 
+// 20261010: cpu_delay_us() for hw_version(), uac2_conf_desc_set_power() for mobo_usb_select()
+#include "cycle_counter.h"
+#include "conf_usb.h"
+#include "usb_drv.h"
+#include "usb_descriptors.h"
+#include "uac2_usb_descriptors.h"
+
 
 
 // Low-power sleep for a number of milliseconds by means of RTC
@@ -386,12 +393,14 @@ int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mo
 // Control USB multiplexer in HW_GEN_SPRX 
 void mobo_usb_select(uint8_t usb_ch) {
 	if (usb_ch == USB_CH_C) {
+		uac2_conf_desc_set_power(TRUE);					// 20261010: front USB-C advertises self-powered (phones can't power us)
 		gpio_clr_gpio_pin(USB_VBUS_B_PIN);				// NO USB B to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_clr_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB C to MCU's USB data pins
 		gpio_set_gpio_pin(USB_VBUS_C_PIN);				// Select USB C to MCU's VBUS pin
 	}
 	else if (usb_ch == USB_CH_B) {
+		uac2_conf_desc_set_power(FALSE);				// 20261010: rear USB-B advertises bus-powered, 500mA
 		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB C to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_set_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB B to MCU's USB data pins
@@ -417,6 +426,110 @@ uint8_t mobo_usb_detect(void) {
 
 	// RXMODFIX We need a USB B detect!! Can that be done by turning VBUS_B_SEL into an input for a while? It requires the R1506=100k and R1507=200k and can only be done while VBUS_CLSEL is low
 	return USB_CH_B;
+}
+
+
+// 20261010: hardware version readout, see HW_VER_* in Mobo_config.h
+// PCB_VER (PA22/AD[1]) and BOM_VER (PA19/AD[5]) each have a fixed 24k pull-up to VDD = ADVREF and a
+// 10k..100k pull-down. Code n = 1024 * Rd / (24k + Rd) at 10 bits. Thresholds are midpoints between
+// neighbouring nominal codes; worst-case margin with 1% parts is 2.3 counts (e/f), mostly 4..10.
+// See Version_code_PCB_BOM.xlsx for the resistor table.
+#define HW_VER_CODES		25		// 'a'..'y' / 0..24
+#define HW_VER_FLOAT_LIM	992		// >= ~97% FS with internal pull-up on: no divider, pin floats
+#define HW_VER_LOW_LIM		150		// < half of code 'a' (301) with pull-up off: no 24k pull-up, invalid
+
+// Upper bound of each code: value <= bound[n] gives code n. Last code takes everything above
+static const uint16_t hw_ver_bound[HW_VER_CODES - 1] = {
+	311, 331, 350, 376, 401, 424, 452, 477, 500, 527, 555, 580,
+	603, 624, 645, 667, 687, 706, 727, 747, 766, 784, 801, 818
+	// Nominal codes:  a 301  b 322  c 341  d 360  e 394  f 410  g 439  h 466  i 490  j 512  k 542  l 569
+	//                 m 593  n 614  o 634  p 657  q 678  r 696  s 717  t 738  u 757  v 776  w 792  x 810  y 826
+};
+
+// One 10-bit conversion on ADC channel ch. Minimal register-level driver, slowest sampling for
+// the ~19k source impedance. Returns 0xFFFF on timeout
+static uint16_t hw_version_adc(uint8_t ch) {
+	volatile avr32_adc_t *adc = &AVR32_ADC;
+	uint32_t timeout = 100000;
+	uint16_t val;
+
+	adc->cr = AVR32_ADC_CR_SWRST_MASK;
+	adc->mr = ( ( ((FPBA_HZ + 3999999) / 4000000) - 1) << AVR32_ADC_MR_PRESCAL_OFFSET)	// ADC clock <= 2MHz
+			| (15 << AVR32_ADC_MR_STARTUP_OFFSET)
+			| (15 << AVR32_ADC_MR_SHTIM_OFFSET);											// 10 bits (LOWRES = 0)
+	adc->cher = (1 << ch);
+	adc->cr = AVR32_ADC_CR_START_MASK;
+
+	while ( ((adc->sr & (1 << ch)) == 0) && (--timeout != 0) );	// EOCn
+	val = (timeout == 0) ? 0xFFFF : (uint16_t)( (&adc->cdr0)[ch] & AVR32_ADC_CDR0_DATA_MASK );	// Read clears EOCn
+
+	adc->chdr = (1 << ch);
+	return val;
+}
+
+// Measure one divider input. Returns code 0..24, or HW_VER_CODES (25) for float/invalid
+static uint8_t hw_version_divider(uint32_t pin, uint32_t function, uint8_t ch) {
+	uint16_t val;
+	uint8_t n;
+
+	gpio_enable_module_pin(pin, function);			// Hand pin to the ADC
+
+	// Step 1: internal pull-up on. A floating pin goes to ~full scale, a 24k/10k..100k divider doesn't
+	gpio_enable_pin_pull_up(pin);
+	cpu_delay_us(100, FCPU_HZ);
+	val = hw_version_adc(ch);
+	gpio_disable_pin_pull_up(pin);
+	if ( (val == 0xFFFF) || (val >= HW_VER_FLOAT_LIM) ) {
+		return HW_VER_CODES;
+	}
+
+	// Step 2: pull-up off, real divider reading
+	cpu_delay_us(100, FCPU_HZ);
+	val = hw_version_adc(ch);
+	if ( (val == 0xFFFF) || (val < HW_VER_LOW_LIM) ) {
+		return HW_VER_CODES;						// Timeout, or pull-down only (e.g. AB-1.x 10k on PA19)
+	}
+
+	for (n = 0; n < (HW_VER_CODES - 1); n++) {		// Clamp to nearest code
+		if (val <= hw_ver_bound[n]) {
+			return n;
+		}
+	}
+	return HW_VER_CODES - 1;
+}
+
+// Legacy binary strap: 68R to GND reads 0 (returns 1), floating reads 1 with the pull-up (returns 0)
+static uint8_t hw_version_strap(uint32_t pin) {
+	uint8_t strapped;
+
+	gpio_enable_gpio_pin(pin);						// GPIO input
+	gpio_enable_pin_pull_up(pin);
+	cpu_delay_us(100, FCPU_HZ);
+	strapped = (gpio_get_pin_value(pin) == 0) ? 1 : 0;
+	gpio_disable_pin_pull_up(pin);					// Don't keep pulling into a 68R
+	return strapped;
+}
+
+uint8_t hw_version(uint8_t what) {
+	static uint8_t measured = FALSE;
+	static uint8_t pcb, bom, boenicke, ha;
+
+	if (!measured) {								// First call at boot: measure and remember
+		pcb = hw_version_divider(AVR32_ADC_AD_1_PIN, AVR32_ADC_AD_1_FUNCTION, 1);	// PA22
+		pcb = (pcb == HW_VER_CODES) ? HW_VER_PCB_INVALID : ('a' + pcb);
+		bom = hw_version_divider(AVR32_ADC_AD_5_PIN, AVR32_ADC_AD_5_FUNCTION, 5);	// PA19
+		boenicke = hw_version_strap(AVR32_PIN_PX11);
+		ha = hw_version_strap(AVR32_PIN_PX42);
+		measured = TRUE;
+	}
+
+	switch (what) {
+		case HW_VER_PCB:		return pcb;
+		case HW_VER_BOM:		return bom;
+		case HW_VER_BOENICKE:	return boenicke;
+		case HW_VER_HA:			return ha;
+		default:				return 0xFF;
+	}
 }
 #endif
 

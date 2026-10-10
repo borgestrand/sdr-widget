@@ -68,7 +68,6 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_LOG_DEFAULT=feature_log_none \
 	-DFEATURE_FILTER_DEFAULT=feature_filter_fir \
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
-	-DVDD_SENSE \
 	-DUSB_STATE_MACHINE_GPIO \
 	-DFEATURE_HID \
 	$(BUILD_INFO_DEFS) \
@@ -89,6 +88,9 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 #	-DFEATURE_ALT2_16BIT \
 #	-DHW_GEN_AB1X \
 #	-DFEATURE_VOLUME_CTRL
+# 20261010: VDD_SENSE (PA19 digital read -> self/bus-powered descriptor) is no longer defined anywhere.
+# AB-1.x is bus-powered only. PA19 isn't connected on early HW_GEN_SPRX boards and is the BOM_VER
+# ADC input (AD[5]) on newer ones. SPRX sets bus/self-powered per USB plug, see mobo_usb_select()
 
 # Henry Audio USB DA 256 (SPRX) after "\" 
 #	-DFEATURE_PRODUCT_HA256 \

@@ -292,6 +292,8 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 	mobo_usb_select(usb_ch);								// Connect USB plug
 	usb_ch_swap = USB_CH_NOSWAP;							// No swapping detected yet
 
+	(void)hw_version(HW_VER_PCB);							// 20261010: first call measures and caches all version info, before PA19/PA22 get other uses
+
 	// Try to remove this function. It is currently empty.
 	// mobo_i2s_enable(MOBO_I2S_DISABLE);					// Disable here and enable with audio on.
 

@@ -72,6 +72,14 @@
 #define CONF_INDEX         				0
 #define CONF_ATTRIBUTES    				USB_CONFIG_BUSPOWERED  // default is bus-powered
 #define MAX_POWER          				250 // 500mA
+#define MAX_POWER_SELF					5	// 10mA when self-powered
+
+// 20261010: SPRX advertises bus-powered on rear USB-B and self-powered on front USB-C, set at
+// runtime per plug by uac2_conf_desc_set_power() from mobo_usb_select()
+#if (defined VDD_SENSE) || (defined HW_GEN_SPRX)
+	#define UAC2_CONF_DESC_WRITABLE
+	void uac2_conf_desc_set_power(uint8_t self_powered);
+#endif
 
 // IAD for Audio
 #define FIRST_INTERFACE1				0	// No config interface, bFirstInterface = 0
@@ -434,14 +442,14 @@ S_usb_user_configuration_descriptor;
 
 extern const S_usb_device_descriptor uac2_dg8saq_usb_dev_desc;
 extern const S_usb_device_descriptor uac2_audio_usb_dev_desc;
-#ifdef VDD_SENSE
+#ifdef UAC2_CONF_DESC_WRITABLE
 	extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
 #else
 	extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
 #endif
 
 #if USB_HIGH_SPEED_SUPPORT==ENABLED
-	#ifdef VDD_SENSE
+	#ifdef UAC2_CONF_DESC_WRITABLE
 		extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;
 	#else
 		extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs;

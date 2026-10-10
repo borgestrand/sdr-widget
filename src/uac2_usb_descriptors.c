@@ -101,7 +101,7 @@ const S_usb_device_descriptor uac2_audio_usb_dev_desc =
 };
 
 // usb_user_configuration_descriptor FS
-#ifndef VDD_SENSE
+#ifndef UAC2_CONF_DESC_WRITABLE
 const
 #endif
 S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
@@ -598,7 +598,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 #if (USB_HIGH_SPEED_SUPPORT==ENABLED)
 
 // usb_user_configuration_descriptor HS
-#ifndef VDD_SENSE
+#ifndef UAC2_CONF_DESC_WRITABLE
 const
 #endif
 S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
@@ -1107,6 +1107,20 @@ const S_usb_device_qualifier_descriptor uac2_usb_qualifier_desc =
   NB_CONFIGURATION,
   0
 };
+#endif
+
+
+#ifdef UAC2_CONF_DESC_WRITABLE
+// 20261010: set the advertised power mode. Call before connecting a USB plug; the host reads
+// the configuration descriptor during the enumeration that follows
+void uac2_conf_desc_set_power(uint8_t self_powered) {
+	uac2_usb_conf_desc_fs.cfg.bmAttributes = (self_powered) ? USB_CONFIG_SELFPOWERED : USB_CONFIG_BUSPOWERED;
+	uac2_usb_conf_desc_fs.cfg.MaxPower = (self_powered) ? MAX_POWER_SELF : MAX_POWER;
+	#if USB_HIGH_SPEED_SUPPORT==ENABLED
+		uac2_usb_conf_desc_hs.cfg.bmAttributes = (self_powered) ? USB_CONFIG_SELFPOWERED : USB_CONFIG_BUSPOWERED;
+		uac2_usb_conf_desc_hs.cfg.MaxPower = (self_powered) ? MAX_POWER_SELF : MAX_POWER;
+	#endif
+}
 #endif
 
 #endif  // USB_DEVICE_FEATURE == ENABLED

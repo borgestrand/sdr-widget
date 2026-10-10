@@ -159,6 +159,16 @@ void mobo_km(uint8_t enable);
 // Control USB multiplexer in HW_GEN_SPRX
 void mobo_usb_select(uint8_t usb_ch);
 
+// 20261010: hardware version readout. First call measures all four at boot and caches them;
+// every later call returns the cached value, so PA19/PA22/PX11/PX42 are free for other use afterwards
+#define HW_VER_PCB			0	// 'a'..'y' from PCB_VER on PA22/AD[1], 'z' = no divider / invalid
+#define HW_VER_BOM			1	// 0..24 from BOM_VER on PA19/AD[5], 25 = no divider / invalid
+#define HW_VER_BOENICKE		2	// 1 = PX11 68R to GND (Boenicke), 0 = floating
+#define HW_VER_HA			3	// 1 = PX42 68R to GND (DA 256 generation), 0 = floating (AB-1.2 generation)
+#define HW_VER_PCB_INVALID	'z'
+#define HW_VER_BOM_INVALID	25
+uint8_t hw_version(uint8_t what);
+
 // Quick and dirty detect of whether front USB (A) is plugged in. No debounce here!
 uint8_t mobo_usb_detect(void);
 #endif

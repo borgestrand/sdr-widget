@@ -161,7 +161,8 @@ void device_mouse_hid_task_init(U8 ep_tx) {
 
 	// Added BSB 20120718
 	print_dbg("\nHID ready\n"); // usart is ready to receive HID commands!
-	print_dbg("\n" BUILD_INFO_STRING " ");
+	// 20261010: banner wrapped in "~BOOT ... BOOT~" so simple parsers can skip it
+	print_dbg("\n~BOOT " BUILD_INFO_STRING " ");
 	// 20260920: CPU frequency, locally calculated (not a build-time -D) - reads FCPU_HZ, the same
 	// compile-time constant FEATURE_84MHz switches between 66/84MHz, and prints it in hex so a
 	// glance at the boot banner confirms which clock variant is actually running on this unit.
@@ -169,7 +170,18 @@ void device_mouse_hid_task_init(U8 ep_tx) {
 	print_dbg_char_hex((uint32_t)FCPU_HZ >> 16);
 	print_dbg_char_hex((uint32_t)FCPU_HZ >> 8);
 	print_dbg_char_hex((uint32_t)FCPU_HZ);
-	print_dbg_char('\n');
+	#ifdef HW_GEN_SPRX
+		// 20261010: hardware version: PCB letter, BOM number (decimal), Boenicke strap, HA strap
+		print_dbg_char(' ');
+		print_dbg_char(hw_version(HW_VER_PCB));
+		print_dbg_char(' ');
+		print_dbg_char('0' + hw_version(HW_VER_BOM) / 10);
+		print_dbg_char('0' + hw_version(HW_VER_BOM) % 10);
+		print_dbg_char(' ');
+		print_dbg_char('0' + hw_version(HW_VER_BOENICKE));
+		print_dbg_char('0' + hw_version(HW_VER_HA));
+	#endif
+	print_dbg(" BOOT~\n");
 	print_cpu_char(CPU_CHAR_BOOT);		// Tell CPU (when present) that CPU is booting up
 }
 
@@ -425,6 +437,16 @@ void device_mouse_hid_task(void)
 				print_cpu_char_hex(temp32 >> 16);
 				print_cpu_char_hex(temp32 >> 8);
 				print_cpu_char_hex(temp32);					// LSB in 32-bit fixed-point number
+
+				// 20261010: hardware version, same format as the boot banner
+				print_cpu_char(' ');
+				print_cpu_char(hw_version(HW_VER_PCB));
+				print_cpu_char(' ');
+				print_cpu_char('0' + hw_version(HW_VER_BOM) / 10);
+				print_cpu_char('0' + hw_version(HW_VER_BOM) % 10);
+				print_cpu_char(' ');
+				print_cpu_char('0' + hw_version(HW_VER_BOENICKE));
+				print_cpu_char('0' + hw_version(HW_VER_HA));
 				print_cpu_char('\n');
 			}
 
