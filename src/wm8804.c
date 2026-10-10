@@ -139,7 +139,7 @@ void wm8804_task(void *pvParameters) {
 	static uint8_t scanmode = WM8804_SCAN_FROM_NEXT;		// Start scanning from next channel. One pass through present inputs
 //	static uint8_t scanmode = WM8804_SCAN_FROM_PRESENT;		// Start scanning from the last known good (?) channel. One pass through present inputs
 	uint32_t freq;
-	static uint8_t channel;	// Must be static here?
+	static uint16_t channel;	// Must be static here? 20261011: MOBO_SRC_ bit
 	uint8_t wm8804_int;
 	uint8_t mustgive = 0;
 	int16_t poll_counter = 0;
@@ -173,15 +173,17 @@ void wm8804_task(void *pvParameters) {
 				case SPDIF_CMD_TOSLINK1:
 				case SPDIF_CMD_TOSLINK0:
 				case SPDIF_CMD_SPDIF1:
-					mobo_SPRX_input(spdif_cmd - 0x10);
+				case SPDIF_CMD_AESEBU0:
+					// 20261011: command codes are 0x10 + legacy source number, MOBO_SRC_ values are bits
+					mobo_SPRX_input(MOBO_SRC_FROM_LEGACY(spdif_cmd - SPDIF_CMD_NONE));
 					if (input_select == MOBO_SRC_NONE) {
-						input_select = spdif_cmd - 0x10;
+						input_select = MOBO_SRC_FROM_LEGACY(spdif_cmd - SPDIF_CMD_NONE);
 						#ifdef I2S_METADATA
 							mobo_set_i2s_metadata('t', I2S_META_VERSION_0, I2S_META_SOURCE, input_select);
 						#endif
 					}
 					print_dbg_char_char('.');
-					print_dbg_char_hex(input_select);
+					print_dbg_char_hex(MOBO_SRC_TO_LEGACY(input_select));	// Legacy number keeps the reply format
 				break;
 				case SPDIF_CMD_LINKSTATS:
 					wm8804_linkstats();
@@ -309,7 +311,7 @@ void wm8804_task(void *pvParameters) {
 		else {
 
 			// (Trying to be) playing music from WM8804 - is everything OK?
-			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
+			if (input_select & MOBO_SPDIF_PRESENT) {		// 20261011: was SPDIF0 || TOSLINK1 || TOSLINK0
 				mustgive = 0;									// Not ready to give up playing audio just yet
 
 				// 20261003: read-only observation of the silence detector. It starts at LIMIT - SCANNING on take
@@ -753,21 +755,22 @@ uint8_t wm8804_live_detect(void) {
 }
 
 
-// 20261003: WM8804 inputs present on this hardware, in scan order. See WM8804_HAS_* in wm8804.h
-static const uint8_t wm8804_inputs[] = {
-	#if (WM8804_HAS_SPDIF0)
+// 20261003: WM8804 inputs present on this hardware, in scan order.
+// 20261011: built from MOBO_SPDIF_PRESENT (taskAK5394A.h, Makefile)
+static const uint16_t wm8804_inputs[] = {
+	#if (MOBO_SPDIF_PRESENT & MOBO_SRC_SPDIF0)
 		MOBO_SRC_SPDIF0,
 	#endif
-	#if (WM8804_HAS_TOSLINK1)
+	#if (MOBO_SPDIF_PRESENT & MOBO_SRC_TOSLINK1)
 		MOBO_SRC_TOSLINK1,
 	#endif
-	#if (WM8804_HAS_TOSLINK0)
+	#if (MOBO_SPDIF_PRESENT & MOBO_SRC_TOSLINK0)
 		MOBO_SRC_TOSLINK0,
 	#endif
-	#if (WM8804_HAS_SPDIF1)
+	#if (MOBO_SPDIF_PRESENT & MOBO_SRC_SPDIF1)
 		MOBO_SRC_SPDIF1,
 	#endif
-	#if (WM8804_HAS_AESEBU0)
+	#if (MOBO_SPDIF_PRESENT & MOBO_SRC_AESEBU0)
 		MOBO_SRC_AESEBU0,
 	#endif
 };
@@ -775,7 +778,7 @@ static const uint8_t wm8804_inputs[] = {
 
 
 // Index of src in wm8804_inputs[], or WM8804_NUM_INPUTS if src isn't a present WM8804 input
-static uint8_t wm8804_input_index(uint8_t src) {
+static uint8_t wm8804_input_index(uint16_t src) {
 	uint8_t i;
 	for (i = 0; i < WM8804_NUM_INPUTS; i++) {
 		if (wm8804_inputs[i] == src) {
@@ -787,7 +790,7 @@ static uint8_t wm8804_input_index(uint8_t src) {
 
 
 // Is this source one of the WM8804 inputs present on this hardware?
-uint8_t wm8804_is_input(uint8_t src) {
+uint8_t wm8804_is_input(uint16_t src) {
 	return (wm8804_input_index(src) < WM8804_NUM_INPUTS);
 }
 
@@ -795,12 +798,12 @@ uint8_t wm8804_is_input(uint8_t src) {
 // Automated input scanner. Doesn't detect silence
 // 20261003: simplified to one pass through wm8804_inputs[]. Each input is tried once, with one
 // retry after a PLL toggle if it reports FREQ_PLLMISS. Replaces the old max_attempts/program scheme.
-void wm8804_scan(uint8_t *channel, uint32_t *freq, uint8_t mode) {
+void wm8804_scan(uint16_t *channel, uint32_t *freq, uint8_t mode) {
 	uint8_t program = (mode & 0xF0);			// Which scanning sequence to use. Lower nibble (old attempt count) is ignored
 	uint8_t start;
 	uint8_t n;
 	uint8_t i;
-	uint8_t input;
+	uint16_t input;
 	uint8_t pll_retried;
 	uint32_t temp_freq = FREQ_TIMEOUT;			// Valid frequency not yet detected
 
@@ -861,7 +864,7 @@ void wm8804_scan(uint8_t *channel, uint32_t *freq, uint8_t mode) {
 
 // Select input channel of the multiplexer preceding WM8804. NB: this is outside the scope of the chip itself!
 // Naming convention: TOSLINK0 on schematic is TOSLINK1 in code etc.
-uint32_t wm8804_input(uint8_t input_sel) {
+uint32_t wm8804_input(uint16_t input_sel) {
 	uint8_t link_detect = 0;
 	uint8_t link_attempts = 0;
 	uint8_t trans_err_detect = 0;
@@ -1119,7 +1122,7 @@ uint8_t wm8804_clkdiv(uint32_t freq) {
 // Mute the WM8804 output
 void wm8804_mute(void) {
 	// Empty outgoing buffers if owned by WM8804 code
-	if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_TOSLINK0) ) {
+	if (input_select & MOBO_SPDIF_PRESENT) {		// 20261011: was SPDIF0 || TOSLINK1 || TOSLINK0
 		mobo_clear_dac_channel();
 	}
 													// Dedicated mute pin, leaves clocks etc intact

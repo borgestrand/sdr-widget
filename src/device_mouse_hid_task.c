@@ -614,8 +614,8 @@ Arash
 
             // Check source and rate, output to LED and terminal
             else if (a == 'm') {
-	            print_dbg_char_hex(input_select);			// Is source known?
-	            print_dbg_char_hex( (uint8_t)(spk_current_freq.frequency/1000) );			// Is rate known? 
+	            print_dbg_char_hex(MOBO_SRC_TO_LEGACY(input_select));	// Is source known? 20261011: legacy number keeps the reply format
+	            print_dbg_char_hex( (uint8_t)(spk_current_freq.frequency/1000) );			// Is rate known?
 	            mobo_led_select(spk_current_freq.frequency, input_select);
             }
 			
@@ -667,7 +667,7 @@ Arash
 
             // Check source and rate, output to terminal
             else if (a == 'M') {
-	            print_dbg_char_hex(input_select);			// Is source known?
+	            print_dbg_char_hex(MOBO_SRC_TO_LEGACY(input_select));	// Is source known? 20261011: legacy number keeps the reply format
 	            print_dbg_char_hex( (uint8_t)(spk_current_freq.frequency/1000) );			// Is rate known?
             }
 

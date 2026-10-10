@@ -24,7 +24,7 @@ S16 spk_vol_usb_R = VOL_DEFAULT;			// Forced to default value
 S32 spk_vol_mult_L = 0;						// Full mute for now, re-formated in uac?_device_audio_task_init
 S32 spk_vol_mult_R = 0;
 
-volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
+volatile uint16_t input_select;				// BSB 20150501 global variable for input selector. 20261011: one bit per MOBO_SRC_
 
 #ifdef FEATURE_SPDIF_CMD
 	volatile uint8_t spdif_cmd;				// BSB 20241123 global variable for debugging SPDIF receiver
@@ -41,7 +41,7 @@ volatile uint8_t wm8804_TRANS_ERR_FAILURE = 0x1d;	// 0x1d 14 Results after 1st o
 #ifdef HW_GEN_SPRX
 volatile uint8_t usb_ch;					// Front or rear USB channel
 volatile uint8_t usb_ch_swap;				// USB channel is about to swap!
-volatile uint8_t input_select_preferred = 0;	// MOBO_SRC_NONE. 20261003: see device_audio_task.h
+volatile uint16_t input_select_preferred = 0;	// MOBO_SRC_NONE. 20261003: see device_audio_task.h
 volatile uint8_t input_select_hold = 0;
 #endif
 

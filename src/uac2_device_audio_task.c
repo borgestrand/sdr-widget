@@ -500,7 +500,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				/* SPDIF reduced */
 #ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
-			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+			if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 
 				// Do minimal USB action to make Host believe Device is actually receiving
 				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {		// 20260925: ISR-set flag replaces polled hardware bit
@@ -909,7 +909,7 @@ void uac2_device_audio_task(void *pvParameters)
 		else { // ( (usb_alternate_setting_out >= 1) && (usb_ch_swap == USB_CH_NOSWAP) )
 			/* SPDIF reduced */
 #ifdef HW_GEN_SPRX	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
-			if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+			if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 				// Do nothing at this stage
 			}
 			else {
@@ -974,7 +974,7 @@ void uac2_device_audio_task(void *pvParameters)
 			/* SPDIF reduced */
 #ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 		// On new hardware, don't do this if spdif is playing
-		if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+		if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 			// Do nothing at this stage
 		}
 		else {
@@ -1089,7 +1089,7 @@ void uac2_device_audio_task(void *pvParameters)
 						
 						#ifdef HW_GEN_SPRX 
 							// rate/channel write status
-							if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+							if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 								mobo_rate_storage(spdif_rx_status.frequency, input_select, si_pkg_direction, RATE_STORE);
 							}
 							else if (input_select == MOBO_SRC_UAC2) {	// Only applies to broken
@@ -1160,7 +1160,7 @@ void uac2_device_audio_task(void *pvParameters)
 						
 						#ifdef HW_GEN_SPRX
 							// rate/channel write status
-							if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+							if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 								mobo_rate_storage(spdif_rx_status.frequency, input_select, si_pkg_direction, RATE_STORE);
 							}
 							else if (input_select == MOBO_SRC_UAC2) {	// Only applies to broken 
@@ -1247,7 +1247,7 @@ void uac2_device_audio_task(void *pvParameters)
 			if (must_init_xo) {
 				if (!cache_holds_silence) {
 					#ifdef HW_GEN_SPRX
-						if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+						if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 							mobo_xo_select(spdif_rx_status.frequency, input_select);
 							mobo_clock_division(spdif_rx_status.frequency);
 							mobo_led_select(spdif_rx_status.frequency, input_select);
@@ -1284,7 +1284,7 @@ void uac2_device_audio_task(void *pvParameters)
 				#ifdef HW_GEN_SPRX
 					// rate/channel read status and adapt starting point in buffer
 					int8_t stored_direction = SI_NORMAL;
-					if ( (input_select == MOBO_SRC_SPDIF0) || (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) {
+					if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 						stored_direction = mobo_rate_storage(spdif_rx_status.frequency, input_select, 0, RATE_RETRIEVE);
 					}
 					else if (input_select == MOBO_SRC_UAC2) {	// Only broken feedback system ever wrote to this one

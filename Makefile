@@ -5,7 +5,7 @@
 # overwritten with defaults
 #
 # -DFEATURE_PRODUCT_AB1x		Henry Audio USB DAC 128 and QNKTC series of DACs
-# -DFEATURE_PRODUCT_HA256		Henry Audio experimental product
+# -DFEATURE_PRODUCT_DA256		Henry Audio experimental product
 # -DFEATURE_PRODUCT_BOEC1		Boenicke experimental product
 # -DFEATURE_PRODUCT_WFADC		Whisperfloor data collection device
 #
@@ -72,7 +72,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_HID \
 	$(BUILD_INFO_DEFS) \
 	\
-	-DFEATURE_PRODUCT_HA256 \
+	-DFEATURE_PRODUCT_DA256 \
 	-DFEATURE_ALT2_16BIT \
 	-DFEATURE_SPDIF_CMD \
 	-DHW_GEN_SPRX
@@ -90,15 +90,15 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 #	-DFEATURE_VOLUME_CTRL
 # 20261010: VDD_SENSE (PA19 digital read -> self/bus-powered descriptor) is no longer defined anywhere.
 # AB-1.x is bus-powered only. PA19 isn't connected on early HW_GEN_SPRX boards and is the BOM_VER
-# ADC input (AD[5]) on newer ones. SPRX sets bus/self-powered per USB plug, see mobo_usb_select()
+# ADC input (AD[5]) on newer ones. SPRX (DA 256 and onwards) sets bus/self-powered per USB plug, see mobo_usb_select()
 
 # Henry Audio USB DA 256 (SPRX) after "\" 
-#	-DFEATURE_PRODUCT_HA256 \
+#	-DFEATURE_PRODUCT_DA256 \
 #	-DFEATURE_ALT2_16BIT \
 #	-DHW_GEN_SPRX
 
 # SPRX debug after "\" 
-#	-DFEATURE_PRODUCT_HA256 \
+#	-DFEATURE_PRODUCT_DA256 \
 #	-DI2S_POLARITY_CHECK \
 # or
 #	-DI2S_METADATA \

@@ -89,7 +89,7 @@ const S_usb_device_descriptor uac1_audio_usb_dev_desc =
 	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_11),
 	#elif defined (FEATURE_PRODUCT_BOEC1)    // AUDIO_PRODUCT_ID_9 and _10
 	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_9),
-	#elif defined (FEATURE_PRODUCT_HA256)    // AUDIO_PRODUCT_ID_9 and _10
+	#elif defined (FEATURE_PRODUCT_DA256)    // AUDIO_PRODUCT_ID_9 and _10
   	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_9),
 	#elif defined (FEATURE_PRODUCT_FMADC)    // AUDIO_PRODUCT_ID_9 and _10
 	  Usb_format_mcu_to_usb_data(16, AUDIO_PRODUCT_ID_9),

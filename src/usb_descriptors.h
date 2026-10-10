@@ -181,7 +181,7 @@
     #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
     #define AUDIO_PRODUCT_ID_9    0x075c	//!  AB-1.x	UAC1 PID
     #define AUDIO_PRODUCT_ID_10   0x075d	//!  AB-1.x	UAC2 PID
-  #elif (defined(FEATURE_PRODUCT_HA256))
+  #elif (defined(FEATURE_PRODUCT_DA256))
     #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
     #define AUDIO_PRODUCT_ID_9    0x075c	//!  AB-1.x	UAC1 PID
     #define AUDIO_PRODUCT_ID_10   0x075d	//!  AB-1.x	UAC2 PID
@@ -279,7 +279,7 @@
 	Usb_unicode('B'), Usb_unicode('O'), Usb_unicode('E'), Usb_unicode('N'), Usb_unicode('I'), Usb_unicode('C'), \
 	Usb_unicode('K'), Usb_unicode('E'), Usb_unicode(' '), Usb_unicode('c'), Usb_unicode('1')\
 }
-#elif defined (FEATURE_PRODUCT_HA256)  // AUDIO_PRODUCT_ID_9 and _10
+#elif defined (FEATURE_PRODUCT_DA256)  // AUDIO_PRODUCT_ID_9 and _10
 #define USB_MN_LENGTH         18
 #define USB_MANUFACTURER_NAME {\
 	Usb_unicode('H'), Usb_unicode('e'), Usb_unicode('n'), Usb_unicode('r'), Usb_unicode('y'), Usb_unicode(' '), \
@@ -363,7 +363,7 @@
   	  Usb_unicode('B'), Usb_unicode('O'), Usb_unicode('E'), Usb_unicode('N'), Usb_unicode('I'), Usb_unicode('C'), \
 	  Usb_unicode('K'), Usb_unicode('E'), Usb_unicode(' '), Usb_unicode('c'), Usb_unicode('1')\
 	}
-#elif defined (FEATURE_PRODUCT_HA256)
+#elif defined (FEATURE_PRODUCT_DA256)
 	#define USB_PN_LENGTH         18
 	#define USB_PRODUCT_NAME {\
 		Usb_unicode('H'), Usb_unicode('e'), Usb_unicode('n'), Usb_unicode('r'), Usb_unicode('y'), Usb_unicode(' '), \

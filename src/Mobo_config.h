@@ -13,6 +13,69 @@
 #include "board.h"
 
 
+// 20261011: moved here from taskAK5394A.h
+// Available digital audio sources
+// 20261011: one bit per source (uint16_t), so groups of sources can be tested with a logical AND.
+// input_select always holds exactly one source bit, or MOBO_SRC_NONE
+#define MOBO_SRC_NONE		0x0000
+#define MOBO_SRC_UAC1		0x0001	// Obsolete, rear UAC1 plug
+#define MOBO_SRC_UAC1_B		0x0001	// Duplicate, obsolete UAC1 USB B rear, metadata only
+#define MOBO_SRC_UAC1_C		0x0002	// Duplicate, obsolete UAC1 USB C front, metadata only
+#define MOBO_SRC_UAC2		0x0004
+#define MOBO_SRC_UAC2_B		0x0004	// Duplicate, only use for I2S metadata reporting and input select hold
+#define MOBO_SRC_UAC2_C		0x0008	// Special case, only use for I2S metadata reporting and input select hold
+#define MOBO_SRC_SPDIF0		0x0010
+#define MOBO_SRC_TOSLINK1	0x0020
+#define MOBO_SRC_TOSLINK0	0x0040
+#define MOBO_SRC_SPDIF1		0x0080	// Future auxilliary SPDIF channel on computer header or for HDMI. Update I2S metatata VERSION and format before this is used!
+#define MOBO_SRC_AESEBU0	0x0100	// Future input
+
+// WM8804 inputs physically present, an OR of the bits above, selected by the product definitions in the Makefile
+#if (defined FEATURE_PRODUCT_DA256) && (defined HW_GEN_SPRX)
+	#define MOBO_SPDIF_PRESENT	(MOBO_SRC_SPDIF0 | MOBO_SRC_TOSLINK1 | MOBO_SRC_TOSLINK0)
+#elif (defined FEATURE_PRODUCT_BOEC1) && (defined HW_GEN_SPRX)
+	#define MOBO_SPDIF_PRESENT	(MOBO_SRC_SPDIF0 | MOBO_SRC_TOSLINK1 | MOBO_SRC_TOSLINK0)
+#elif (defined HW_GEN_SPRX)
+	#error HW_GEN_SPRX product without a MOBO_SPDIF_PRESENT definition in Mobo_config.h
+#else
+	#define MOBO_SPDIF_PRESENT	MOBO_SRC_NONE	// No WM8804 receiver on this hardware
+#endif
+
+// Legacy source numbers (before 20261011), still used by the I2S metadata format and the SPDIF_CMD_ codes
+#define MOBO_SRC_LEGACY_NONE		0
+#define MOBO_SRC_LEGACY_UAC1		1
+#define MOBO_SRC_LEGACY_UAC1_C		2
+#define MOBO_SRC_LEGACY_UAC2		3
+#define MOBO_SRC_LEGACY_UAC2_C		4
+#define MOBO_SRC_LEGACY_SPDIF0		5
+#define MOBO_SRC_LEGACY_TOSLINK1	6
+#define MOBO_SRC_LEGACY_TOSLINK0	7
+#define MOBO_SRC_LEGACY_SPDIF1		8
+#define MOBO_SRC_LEGACY_AESEBU0		9
+
+#define MOBO_SRC_TO_LEGACY(src) ( \
+	((src) == MOBO_SRC_UAC1)     ? MOBO_SRC_LEGACY_UAC1     : \
+	((src) == MOBO_SRC_UAC1_C)   ? MOBO_SRC_LEGACY_UAC1_C   : \
+	((src) == MOBO_SRC_UAC2)     ? MOBO_SRC_LEGACY_UAC2     : \
+	((src) == MOBO_SRC_UAC2_C)   ? MOBO_SRC_LEGACY_UAC2_C   : \
+	((src) == MOBO_SRC_SPDIF0)   ? MOBO_SRC_LEGACY_SPDIF0   : \
+	((src) == MOBO_SRC_TOSLINK1) ? MOBO_SRC_LEGACY_TOSLINK1 : \
+	((src) == MOBO_SRC_TOSLINK0) ? MOBO_SRC_LEGACY_TOSLINK0 : \
+	((src) == MOBO_SRC_SPDIF1)   ? MOBO_SRC_LEGACY_SPDIF1   : \
+	((src) == MOBO_SRC_AESEBU0)  ? MOBO_SRC_LEGACY_AESEBU0  : MOBO_SRC_LEGACY_NONE )
+
+#define MOBO_SRC_FROM_LEGACY(n) ( \
+	((n) == MOBO_SRC_LEGACY_UAC1)     ? MOBO_SRC_UAC1     : \
+	((n) == MOBO_SRC_LEGACY_UAC1_C)   ? MOBO_SRC_UAC1_C   : \
+	((n) == MOBO_SRC_LEGACY_UAC2)     ? MOBO_SRC_UAC2     : \
+	((n) == MOBO_SRC_LEGACY_UAC2_C)   ? MOBO_SRC_UAC2_C   : \
+	((n) == MOBO_SRC_LEGACY_SPDIF0)   ? MOBO_SRC_SPDIF0   : \
+	((n) == MOBO_SRC_LEGACY_TOSLINK1) ? MOBO_SRC_TOSLINK1 : \
+	((n) == MOBO_SRC_LEGACY_TOSLINK0) ? MOBO_SRC_TOSLINK0 : \
+	((n) == MOBO_SRC_LEGACY_SPDIF1)   ? MOBO_SRC_SPDIF1   : \
+	((n) == MOBO_SRC_LEGACY_AESEBU0)  ? MOBO_SRC_AESEBU0  : MOBO_SRC_NONE )
+
+
 // Hardware control functions
 
 // Low-power sleep for a number of milliseconds by means of RTC
@@ -23,7 +86,7 @@ void mobo_sleep_rtc_ms(uint16_t time_ms);
 void mobo_print_selected_frequency(U32 frequency);
 
 // Audio Widget select oscillator
-void mobo_xo_select(U32 frequency, uint8_t source);
+void mobo_xo_select(U32 frequency, uint16_t source);	// 20261011: uint16_t for MOBO_SRC_ bits
 
 // Master clock to DAC's I2S port frequency setup
 void mobo_clock_division(U32 frequency);
@@ -76,7 +139,7 @@ R: Z C C T x R R R
 	} I2S_META_VALUES;
 
 	// Updates global metadata variables based on input
-	void mobo_set_i2s_metadata(uint8_t verbose, uint8_t version, uint8_t parameter, uint8_t value);
+	void mobo_set_i2s_metadata(uint8_t verbose, uint8_t version, uint8_t parameter, uint16_t value);	// 20261011: uint16_t for MOBO_SRC_ bits
 
 	// Share selected frequency as part of I2S metadata
 	void mobo_frequency_i2s_metadata(U32 frequency);
@@ -137,7 +200,7 @@ void mobo_clear_dac_channel(void);
 #define RATE_PRINT					4
 #define RATE_INVALID				0x3F
 #define RATE_FREQUENCIES			6 // The number of relevant frequencies
-#define RATE_SOURCES				5 // The number of relevant sources
+#define RATE_SOURCES				6 // The number of relevant sources. 20261011: 5 -> 6 for AESEBU0
 
 
 #ifdef HW_GEN_SPRX
@@ -200,7 +263,7 @@ void mobo_led(uint8_t fled);
 
 #ifdef HW_GEN_SPRX
 // Store and retrieve the relative frequency shift of the source
-int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mode);
+int8_t mobo_rate_storage(U32 frequency, uint16_t source, int8_t state, uint8_t mode);
 
 // LED control
 void mobo_led(uint8_t fled0);
@@ -209,7 +272,7 @@ void mobo_led(uint8_t fled0);
 
 #if (defined  HW_GEN_SPRX)
 // RXmod SPDIF mux control
-void mobo_SPRX_input(uint8_t input_sel);
+void mobo_SPRX_input(uint16_t input_sel);
 #endif
 
 // Sample rate detection on ADC interface
@@ -229,7 +292,7 @@ void mobo_start_spdif_tc(U32 frequency);
 void mobo_stop_spdif_tc(void);
 
 // Front panel RGB LED control
-void mobo_led_select(U32 frequency, uint8_t source);
+void mobo_led_select(U32 frequency, uint16_t source);
 
 // I2S hard mute control
 void  mobo_i2s_enable(uint8_t i2s_mode);

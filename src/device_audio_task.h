@@ -95,7 +95,7 @@ extern volatile uint8_t usb_spk_mute; // This variable is written to by usb subs
 extern S16 spk_vol_usb_L, spk_vol_usb_R;			// BSB 20160320 added stereo volume control
 extern S32 spk_vol_mult_L, spk_vol_mult_R;
 
-extern volatile uint8_t input_select;				// BSB 20150501 global variable for input selector
+extern volatile uint16_t input_select;				// BSB 20150501 global variable for input selector. 20261011: one bit per MOBO_SRC_
 
 #ifdef FEATURE_SPDIF_CMD
 	extern volatile uint8_t spdif_cmd;				// BSB 20241123 global variable for debugging SPDIF receiver
@@ -124,7 +124,7 @@ extern volatile xSemaphoreHandle input_select_semphr; 	// BSB 20150626 audio cha
 // (input_select_preferred) may take it again until input_select_hold counts down to zero.
 // input_select_preferred is MOBO_SRC_UAC2_B / MOBO_SRC_UAC2_C for USB (per plug), or a
 // WM8804 channel. input_select_hold is decremented by taskMoboCtrl, once per configTSK_MoboCtrl_PERIOD.
-extern volatile uint8_t input_select_preferred;
+extern volatile uint16_t input_select_preferred;
 extern volatile uint8_t input_select_hold;
 // One period = configTSK_MoboCtrl_PERIOD = 120 ticks @ 10kHz = 12ms. uint8_t, so max 255 (~3s)
 #define INPUT_HOLD_PERIODS_USB	25				// ~300ms (was 9 = ~108ms)

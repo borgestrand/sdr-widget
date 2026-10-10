@@ -65,6 +65,7 @@ static void x_image_boot(void) {
 }
 
 static void x_image_init(void) {
+/*	
 #ifdef VDD_SENSE
     if (gpio_get_pin_value(AVR32_PIN_PA19)) {
 		uac2_usb_conf_desc_fs.cfg.bmAttributes = USB_CONFIG_SELFPOWERED;
@@ -83,6 +84,8 @@ static void x_image_init(void) {
 #endif
     }
 #endif	// VDD_SENSE
+
+*/
 }
 
 static void x_image_task_init(void) {

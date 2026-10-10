@@ -57,21 +57,7 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define USB_BUFFER_TOGGLE_LIM 4		// Changed from 2 to 4 after hassle with Sue's phone. DMA towards DAC I2S has toogled buffers too many times. 0 is ideal number
 #define USB_BUFFER_TOGGLE_PARK 10	// The error is detected in sequential code
 
-// Available digital audio sources
-#define MOBO_SRC_NONE		0
-#define MOBO_SRC_UAC1		1		// Obsolete, rear UAC1 plug
-#define MOBO_SRC_UAC1_B		1		// Duplicate, obsolete UAC1 USB B rear, metadata only
-#define MOBO_SRC_UAC1_C		2		// Duplicate, obsolete UAC1 USB C front, metadata only
-#define MOBO_SRC_UAC2		3
-#define MOBO_SRC_UAC2_B		3		// Duplicate, only use for I2S metadata reporting
-#define MOBO_SRC_UAC2_C		4		// Special case, only use for I2S metadata reporting
-#define MOBO_SRC_SPDIF0		5
-#define MOBO_SRC_TOSLINK1	6
-#define MOBO_SRC_TOSLINK0	7
-#define MOBO_SRC_SPDIF1		8		// Future auxilliary SPDIF channel on computer header or for HDMI FIX: propagate throughout code! Update I2S metatata VERSION and format before this is used!
-
-#define MOBO_SRC_LOW		MOBO_SRC_SPDIF0			// Lowest source indicator for SPDIF/TOSLINK RX
-#define MOBO_SRC_HIGH		MOBO_SRC_TOSLINK0		// Highest source indicator for SPDIF/TOSLINK RX
+// 20261011: MOBO_SRC_ source definitions moved to Mobo_config.h
 
 
 // Front led colors for RGB LEDs

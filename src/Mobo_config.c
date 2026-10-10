@@ -291,7 +291,7 @@ uint8_t mobo_fmadc_gain(uint8_t channel, uint8_t gain) {
 #ifdef HW_GEN_SPRX
 
 // Store and retrieve the relative frequency shift of the source
-int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mode) {
+int8_t mobo_rate_storage(U32 frequency, uint16_t source, int8_t state, uint8_t mode) {
 	static int8_t storage[RATE_FREQUENCIES][RATE_SOURCES];		// frequency, source
 	uint8_t a0 = RATE_INVALID;
 	uint8_t a1 = RATE_INVALID;
@@ -330,6 +330,9 @@ int8_t mobo_rate_storage(U32 frequency, uint8_t source, int8_t state, uint8_t mo
 		break;
 		case MOBO_SRC_TOSLINK1:
 			a1 = 4;
+		break;
+		case MOBO_SRC_AESEBU0:		// 20261011
+			a1 = 5;
 		break;
 	}
 	if (a1 >= RATE_SOURCES) {
@@ -576,7 +579,7 @@ void mobo_led(uint8_t fled0) {
 }
 
 // Front panel RGB LED control
-void mobo_led_select(U32 frequency, uint8_t source) {
+void mobo_led_select(U32 frequency, uint16_t source) {
 	// Don't assign BLUE, future MQA implementations may crave that one. 
 
 /*	
@@ -710,7 +713,7 @@ RATE_LED[2 1 0] = 1 1 1 TBD
 #if (defined  HW_GEN_SPRX)
 
 // RXmod SPDIF mux control
-void mobo_SPRX_input(uint8_t input_sel) {
+void mobo_SPRX_input(uint16_t input_sel) {
 	//	print_dbg_char_hex(input_sel);
 
 	taskENTER_CRITICAL();					// Don't let OS interrupt MUX control!
@@ -718,21 +721,33 @@ void mobo_SPRX_input(uint8_t input_sel) {
 	if (input_sel == MOBO_SRC_TOSLINK1) {		// Controlling MUX chip
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
+		gpio_clr_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 0 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
 	}
 	else if (input_sel == MOBO_SRC_TOSLINK0) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+		gpio_clr_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 0 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
 	}
 	else if (input_sel == MOBO_SRC_SPDIF0) {
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
+		gpio_clr_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 0 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
 	}
-	// SPDIF1 isn't yet implemented on all boards. Selecting this will disable power to actual TOS and SPDIF inputs on experimental builds of revisions E and F
+
+	// SPDIF1 isn't yet implemented on all boards
 	else if ( (input_sel == MOBO_SRC_NONE) || (input_sel == MOBO_SRC_SPDIF1) ) {
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+		gpio_clr_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 0 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
 	}
 	
+	// AESEBU0 isn't yet implemented on all boards
+	else if ( (input_sel == MOBO_SRC_AESEBU0) ) {
+		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
+		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
+		gpio_set_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 1 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
+	}
+
 	taskEXIT_CRITICAL();
 }
 
@@ -1260,7 +1275,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		bool silence_det = TRUE;		// We're looking for first non-zero audio-data. It is re-calculated for each package
 
 		// Cached if-test
-		bool we_own_cache = ( ( (input_select == MOBO_SRC_SPDIF0) ||  (input_select == MOBO_SRC_SPDIF1) || (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) ) && (dac_must_clear == DAC_READY) );
+		bool we_own_cache = ( (input_select & MOBO_SPDIF_PRESENT) && (dac_must_clear == DAC_READY) );	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 
 		// Minor time savings over writing to (*xx) every time - probably further improvements when taken inline in uac2_dat
 		U32 temp_num_samples = 0;
@@ -1378,7 +1393,7 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 
 		// Puting untested init code here....  æææ
 		// Can we 
-		if ( ( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1) || (input_select == MOBO_SRC_SPDIF0) ) ) {
+		if (input_select & MOBO_SPDIF_PRESENT) {		// 20261011: was TOSLINK0 || TOSLINK1 || SPDIF0
 			if (ADC_buf_I2S_IN == INIT_ADC_I2S_st2) {
 				ADC_buf_I2S_IN = 0;							// Disable further init
 				dac_must_clear = DAC_READY;					// Prepare to send actual data to DAC interface
@@ -1532,7 +1547,7 @@ void mobo_print_selected_frequency(U32 frequency) {
 
 
 
-void mobo_xo_select(U32 frequency, uint8_t source) {
+void mobo_xo_select(U32 frequency, uint16_t source) {
 // XO and MCLK control
 
 	#if (defined HW_GEN_AB1X)
@@ -1634,7 +1649,7 @@ void mobo_xo_select(U32 frequency, uint8_t source) {
 			regen_used = TRUE;
 			prev_frequency = FREQ_INVALID;				// Force XO pin update whenever USB is enabled
 		}
-		if ( regen_used && 	( (input_select == MOBO_SRC_TOSLINK0) || (input_select == MOBO_SRC_TOSLINK1)  || (input_select == MOBO_SRC_SPDIF0)  || (input_select == MOBO_SRC_SPDIF1) )  ) {	// Use MCLK from SPDIF RX
+		if ( regen_used && (input_select & MOBO_SPDIF_PRESENT) ) {	// Use MCLK from SPDIF RX. 20261011: was TOSLINK0 || TOSLINK1 || SPDIF0 || SPDIF1
 			// Explicitly turn on MCLK generation in SPDIF RX
 			
 			wm8804_mclk_out(WM8804_MCLK_ENABLE); // Oops! We must remember to disable it, too!
@@ -1856,7 +1871,7 @@ void mobo_clear_adc_channel(void) {
 
 #ifdef I2S_METADATA
 	// Updates global metadata variables based on input
-	void mobo_set_i2s_metadata(uint8_t verbose, uint8_t version, uint8_t parameter, uint8_t value) {
+	void mobo_set_i2s_metadata(uint8_t verbose, uint8_t version, uint8_t parameter, uint16_t value) {
 		// Only implemented for version 0 for now
 		if (version == I2S_META_VERSION_0) {
 			
@@ -1871,7 +1886,8 @@ void mobo_clear_adc_channel(void) {
 					i2s_meta_R = (i2s_meta_R & 0b11111000) | ( (value & 0b00000111) << 0); // Clear right bits 2, 1 and 0. Shift in sample rate. See I2S_META_VALUES
 				break;
 				case I2S_META_SOURCE:
-					i2s_meta_L = (i2s_meta_L & 0b11111000) | ( (value & 0b00000111) << 0); // Clear left bits 2, 1 and 0. Shift in source. See definition of MOBO_SRC_NONE and onward
+					value = MOBO_SRC_TO_LEGACY(value);	// 20261011: metadata version 0 keeps the legacy source numbers
+					i2s_meta_L = (i2s_meta_L & 0b11111000) | ( (value & 0b00000111) << 0); // Clear left bits 2, 1 and 0. Shift in source. See MOBO_SRC_LEGACY_NONE and onward
 				break;
 				case I2S_META_MUTED: // Too expensive?
 					i2s_meta_L = (i2s_meta_L & 0b11101111) | ( (value & 0b00000001) << 4); // Clear left bit 3. Shift in muted. See I2S_META_VALUES

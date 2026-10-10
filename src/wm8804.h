@@ -31,12 +31,15 @@
 #define SPDIF_CMD_MUSTACK	0xFF
 #define SPDIF_CMD_TAKE		0x01
 #define SPDIF_CMD_GIVE		0x02
-#define SPDIF_CMD_NONE		0x10 + MOBO_SRC_NONE
-#define SPDIF_CMD_UAC2		0x10 + MOBO_SRC_UAC2		// 0x12
-#define SPDIF_CMD_SPDIF0	0x10 + MOBO_SRC_SPDIF0		// 0x13
-#define SPDIF_CMD_TOSLINK1	0x10 + MOBO_SRC_TOSLINK1	// 0x14
-#define SPDIF_CMD_TOSLINK0	0x10 + MOBO_SRC_TOSLINK0	// 0x15
-#define SPDIF_CMD_SPDIF1	0x10 + MOBO_SRC_SPDIF1		// 0x16		// Future auxilliary SPDIF channel on computer header or for HDMI for now: disconnect SPDIF sources
+// 20261011: source commands keep their codes, 0x10 + legacy source number. MOBO_SRC_ values are bits now,
+// so convert with MOBO_SRC_FROM_LEGACY(cmd - SPDIF_CMD_NONE). The old hex comments below predate an earlier renumbering
+#define SPDIF_CMD_NONE		(0x10 + MOBO_SRC_LEGACY_NONE)		// 0x10
+#define SPDIF_CMD_UAC2		(0x10 + MOBO_SRC_LEGACY_UAC2)		// 0x13, was commented 0x12
+#define SPDIF_CMD_SPDIF0	(0x10 + MOBO_SRC_LEGACY_SPDIF0)		// 0x15, was commented 0x13
+#define SPDIF_CMD_TOSLINK1	(0x10 + MOBO_SRC_LEGACY_TOSLINK1)	// 0x16, was commented 0x14
+#define SPDIF_CMD_TOSLINK0	(0x10 + MOBO_SRC_LEGACY_TOSLINK0)	// 0x17, was commented 0x15
+#define SPDIF_CMD_SPDIF1	(0x10 + MOBO_SRC_LEGACY_SPDIF1)		// 0x18, was commented 0x16. Future auxilliary SPDIF channel on computer header or for HDMI
+#define SPDIF_CMD_AESEBU0	(0x10 + MOBO_SRC_LEGACY_AESEBU0)	// 0x19. 20261011: no hardware on the Boenicke implementation
 #define SPDIF_CMD_LINKSTATS	0x20
 #define SPDIF_CMD_SLEEP		0x21
 #define SPDIF_CMD_WAKE		0x22
@@ -102,13 +105,7 @@
 #define WM8804_SCAN_FROM_PRESENT	0x20		// Start scanning from present channel
 #define WM8804_SCAN_FROM_NEXT		0x30		// Start scanning from next channel in list
 
-// 20261003: WM8804 inputs physically present on this hardware, in scan order.
-// SPDIF1 and AESEBU0 are planned; AESEBU0 also needs a MOBO_SRC_AESEBU0 before it can be enabled
-#define WM8804_HAS_SPDIF0	1
-#define WM8804_HAS_TOSLINK1	1
-#define WM8804_HAS_TOSLINK0	1
-#define WM8804_HAS_SPDIF1	0
-#define WM8804_HAS_AESEBU0	0
+// 20261011: WM8804 inputs physically present on this hardware are given by MOBO_SPDIF_PRESENT (taskAK5394A.h, Makefile)
 #define WM8804_MCLK_ENABLE	1					// WM8804 enables MCLK output
 #define WM8804_MCLK_DISABLE 0					// WM8804 disables MCLK output
 #define WM8804_MCLK_TEST	2					// WM8804 MCLK status is recalled
@@ -119,8 +116,8 @@ typedef struct spdif_rx_status {				// Definition of global variable
 	uint32_t silence_SPDIF;
 	uint32_t frequency;
 	uint8_t pllmode;
-	uint8_t channel;
-	uint8_t preferred_channel;
+	uint16_t channel;			// 20261011: MOBO_SRC_ bit
+	uint16_t preferred_channel;
 } spdif_rx_status_t;
 
 // Reset the WM8804 via hardware pin
@@ -146,13 +143,13 @@ uint8_t wm8804_live_detect(void);
 
 // Scan inputs, one pass through the list of present inputs. Doesn't detect silence
 // mode: WM8804_SCAN_ONE, WM8804_SCAN_FROM_PRESENT or WM8804_SCAN_FROM_NEXT
-void wm8804_scan(uint8_t *channel, uint32_t *freq, uint8_t mode);
+void wm8804_scan(uint16_t *channel, uint32_t *freq, uint8_t mode);
 
 // Is this source one of the WM8804 inputs present on this hardware?
-uint8_t wm8804_is_input(uint8_t src);
+uint8_t wm8804_is_input(uint16_t src);
 
 // Select input channel of the WM8804
-uint32_t wm8804_input(uint8_t input_sel);
+uint32_t wm8804_input(uint16_t input_sel);
 
 // Report link statistics
 void wm8804_linkstats(void);
