@@ -233,7 +233,7 @@ void uac2_device_audio_task(void *pvParameters)
 	while (TRUE) {
 		vTaskDelayUntil(&xLastWakeTime, UAC2_configTSK_USB_DAUDIO_PERIOD);
 
-//		gpio_set_gpio_pin(AVR32_PIN_PX31); // Start of task execution
+//		gpio_set_gpio_pin(AVR32_PIN_PA22); // Start of task execution
 		
 		// Introduced into UAC2 code with mobodebug
 		// Must we clear the DAC buffer contents? 
@@ -526,6 +526,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {		// 20260925: ISR-set flag replaces polled hardware bit
 					clear_isr_Is_usb_out_received_flag();
+					gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261021: start of sequential USB packet handling, for scope timing
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					temp_num_samples = Usb_byte_count(EP_AUDIO_OUT);
@@ -586,7 +587,6 @@ void uac2_device_audio_task(void *pvParameters)
 					uint16_t usb_16_1;
 					uint16_t usb_16_2;					
 
-//					gpio_set_gpio_pin(AVR32_PIN_PX31);		// Start copying DAC data from USB OUT to cache 
 
 					si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
 					temp_si_index_low = 0;			// Location of "lowest energy", reset for each iteration
@@ -860,6 +860,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
 					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// 20260925: re-arm, ISR masked it
+					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling (bank freed)
 
 //					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
 					// mobodebug untested fix
@@ -1447,7 +1448,6 @@ void uac2_device_audio_task(void *pvParameters)
 						
 			num_samples = 0; // Write is complete. Source must set it to > 0 for next write to spk_buffer_X to happen
 
-//			gpio_clr_gpio_pin(AVR32_PIN_PX31);		// End copying DAC data from cache to spk_audio_buffer_X
 
 		} // end if num_samples > 0
 		// End writing from cache to spk_buffer

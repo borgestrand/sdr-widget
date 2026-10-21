@@ -304,10 +304,10 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
 	// Usb_ack_out_received_free(). The enable check keeps other USB events from re-setting the flag.
     if (Is_usb_out_received(UAC2_EP_AUDIO_OUT) &&
         Is_usb_out_received_interrupt_enabled(UAC2_EP_AUDIO_OUT))
-    {
+	{
 	    Usb_disable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
 	    usb_audio_out_received_flag = TRUE;
-	    gpio_tgl_gpio_pin(AVR32_PIN_PA22);
+//	    gpio_tgl_gpio_pin(AVR32_PIN_PA22);
 	    EP_AUDIO_OUT_isr_counter++;
     }
 
