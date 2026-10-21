@@ -135,6 +135,12 @@ extern volatile S32 samples_per_package_max;
 // extern volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 // extern volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
+
+// 20261021: RAM copy of one EP_AUDIO_OUT bank (max 512 bytes, Table 27-1). Step 1 of the DMA track:
+// the sequential code copies the bank here and parses from RAM. Later the USBB DMA fills it.
+// Cleared in mobo_clear_dac_channel() along with the other audio buffers
+#define EP_OUT_RAM_BYTES	512
+extern U64 ep_out_ram[EP_OUT_RAM_BYTES / 8];
 extern volatile avr32_ssc_t *ssc;
 
 // ���� old buffer ids ripe for renaming or removal

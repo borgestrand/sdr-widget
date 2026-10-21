@@ -1959,7 +1959,12 @@ void mobo_clear_dac_channel(void) {
 			cache_unified[2*i+1] = 0;
 		#endif
 	}
-#endif	
+#endif
+
+	// 20261021: RAM copy of the USB OUT bank is cleared along with the other audio buffers
+	for (i = 0; i < (EP_OUT_RAM_BYTES / 8); i++) {
+		ep_out_ram[i] = 0;
+	}
 	
 	
 

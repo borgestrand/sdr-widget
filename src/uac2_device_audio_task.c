@@ -530,7 +530,27 @@ void uac2_device_audio_task(void *pvParameters)
 
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 					temp_num_samples = Usb_byte_count(EP_AUDIO_OUT);
-					
+
+					// 20261021: step 1 of the DMA track. Copy the whole bank to RAM (64-bit FIFO reads, the USBB
+					// advances its own pointer), then parse from RAM below instead of Usb_read_endpoint_data().
+					// Bytes come in pairs (6 or 4 per stereo sample), so the tail is read 16 bits at a time
+					uint16_t *ep_out_ptr = (uint16_t *)ep_out_ram;	// 20261021: parsed 16 bits at a time below, same order as the EP FIFO reads
+					{
+						uint16_t n_bytes = min(temp_num_samples, EP_OUT_RAM_BYTES);
+						uint16_t n64 = n_bytes >> 3;
+						uint16_t j;
+						uint16_t *tail = (uint16_t *)&ep_out_ram[n64];
+
+						for (j = 0; j < n64; j++) {
+							ep_out_ram[j] = Usb_read_endpoint_data(EP_AUDIO_OUT, 64);
+						}
+						for (j = 0; j < ((n_bytes & 0x07) >> 1); j++) {
+							tail[j] = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);
+						}
+					}
+					asm volatile ("" ::: "memory");			// 20261021: compiler barrier. ep_out_ram is written as U64 above and read as U16 below,
+															// strict aliasing at -O2 must not reorder those. No instructions generated. Needed for DMA writes too
+
 					// temp_num_samples != 0 is needed for non-silence detection of first USB packet. But unless we own the output DMA channel, reset temp_num_samples to 0 and don't write to cache!
 
 					// bBitResolution
@@ -585,7 +605,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 					uint16_t usb_16_0;
 					uint16_t usb_16_1;
-					uint16_t usb_16_2;					
+					uint16_t usb_16_2;
 
 
 					si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
@@ -597,10 +617,18 @@ void uac2_device_audio_task(void *pvParameters)
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 						temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_unified, cache_L and cache_R
 						for (i = 0; i < temp_num_samples; i++) {
-							usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
-							usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
-							usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
-							
+							// Original EP code:
+							// usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
+							// usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L MSB, R LSB
+							// usb_16_2 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// R SB,  R MSB
+							// sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
+							// sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
+
+							// 20261021: same reads from the RAM copy of the bank (57us at 84MHz/192k vs 67us from the EP FIFO)
+							usb_16_0 = *ep_out_ptr++;	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
+							usb_16_1 = *ep_out_ptr++;	// L MSB, R LSB
+							usb_16_2 = *ep_out_ptr++;	// R SB,  R MSB
+
 							// Fetch the data in order to look for silence or store them to cache
 							sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
 							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
@@ -687,8 +715,15 @@ void uac2_device_audio_task(void *pvParameters)
 						else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {	// Alternate 2 16 bits/sample, 4 bytes per stereo sample
 							temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_unified, cache_L and cache_R
 							for (i = 0; i < temp_num_samples; i++) {
-								usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
-								usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, R MSB
+								// Original EP code:
+								// usb_16_0 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
+								// usb_16_1 = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);	// L LSB, R MSB
+								// sample_L = (((U32) (uint8_t)(usb_16_0) ) << 24) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 16);
+								// sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
+
+								// 20261021: same reads from the RAM copy of the bank
+								usb_16_0 = *ep_out_ptr++;	// L LSB, L MSB. Watch carefully as they are inserted into 32-bit word below!
+								usb_16_1 = *ep_out_ptr++;	// L LSB, R MSB
 
 								// Fetch the data in order to look for silence or store them to cache
 								sample_L = (((U32) (uint8_t)(usb_16_0) ) << 24) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 16);
