@@ -283,7 +283,7 @@ uint32_t mobo_wait_LRCK_TX_asm(void);
 
 #ifdef HW_GEN_SPRX
 // Process spdif and toslink inputs
-void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *num_samples, Bool *cache_holds_silence);
+void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, S32 *num_samples, Bool *cache_holds_silence);
 
 // Start the timer/counter that monitors spdif traffic
 void mobo_start_spdif_tc(U32 frequency);

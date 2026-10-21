@@ -1231,7 +1231,7 @@ void mobo_ADC_position_uni(U32 *last_pos, U32 num_remaining) {
 
 
 // Handle spdif and toslink input
-void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high, S32 *num_samples, Bool *cache_holds_silence) {
+void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, S32 *num_samples, Bool *cache_holds_silence) {	// 20261021: si_index_high removed, never used
 	
 	U32 i;								// Generic counter
 	S32 sample_L = 0;
@@ -1281,7 +1281,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 		U32 temp_num_samples = 0;
 		U32 temp_si_index_low = 0;
 		S32 temp_si_score_high = 0;
-		U32 temp_si_index_high = 0;
 		S32 si_score_low = 0x7FFFFFFF;
 
 		i = prev_last_written_ADC_pos;
@@ -1316,7 +1315,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 								
 					if (diff_sum > (temp_si_score_high)) {
 						temp_si_score_high = diff_sum;
-						temp_si_index_high = temp_num_samples;
 					}
 
 					#ifdef FEATURE_UNINVERT_LRCK
@@ -1371,7 +1369,6 @@ void mobo_handle_spdif(U32 *si_index_low, S32 *si_score_high, U32 *si_index_high
 			*num_samples = temp_num_samples;
 			*si_index_low = temp_si_index_low;
 			*si_score_high = temp_si_score_high;
-			*si_index_high = temp_si_index_high;
 			*cache_holds_silence = silence_det;		// Use this to determine how to use contents of cache
 		}
 

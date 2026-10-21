@@ -163,8 +163,6 @@ extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the c
 
 
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
-extern volatile U32 spk_usb_sample_counter, old_spk_usb_sample_counter;
-extern xSemaphoreHandle mutexSpkUSB;
 
 // 20260921: stage 1 of 8kHz USB packet rate bring-up - interrupt-driven EP_AUDIO_OUT
 // notification, replacing the polled Is_usb_out_received(EP_AUDIO_OUT) in

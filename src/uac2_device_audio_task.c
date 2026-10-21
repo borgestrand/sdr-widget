@@ -155,7 +155,6 @@ void uac2_device_audio_task(void *pvParameters)
 	U32 temp_num_samples = 0;
 	U32 temp_si_index_low = 0;
 	S32 temp_si_score_high = 0;
-	U32 temp_si_index_high = 0;
 	S32 si_score_low = 0x7FFFFFFF;
 
 	#ifdef FEATURE_ADC_EXPERIMENTAL
@@ -196,7 +195,6 @@ void uac2_device_audio_task(void *pvParameters)
 	U32 si_index_low = 0;
 	S32 si_score_high = 0;
 	static S32 prev_si_score_high = 0;
-	U32 si_index_high = 0;
 	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
 	Bool cache_holds_silence = TRUE;
 	uint16_t cache_silence_counter = 0;
@@ -565,10 +563,9 @@ void uac2_device_audio_task(void *pvParameters)
 					else
 						temp_num_samples = 0;											// Should never get here...
 
-					xSemaphoreTake( mutexSpkUSB, portMAX_DELAY ); // Isn't this horribly time consuming? 
+					// 20261021: mutexSpkUSB take/give removed - no other task took it, and a 32-bit increment by this single
+					// writer is atomic. spk_usb_sample_counter removed - never read
 					spk_usb_heart_beat++;					// indicates EP_AUDIO_OUT receiving data from host
-					spk_usb_sample_counter += temp_num_samples; 	// track the num of samples received
-					xSemaphoreGive(mutexSpkUSB);
 					
 					// æææ how much of this must be done each time this loop detect input_select == idle?
 
@@ -611,9 +608,11 @@ void uac2_device_audio_task(void *pvParameters)
 					si_score_low = 0x7FFFFFFF;		// Highest positive number, reset for each iteration
 					temp_si_index_low = 0;			// Location of "lowest energy", reset for each iteration
 					temp_si_score_high = 0;			// Lowest positive number, reset for each iteration
-					temp_si_index_high = 0;			// Location of "highest energy", reset for each iteration
 					silence_det = TRUE;				// We're looking for first non-zero audio-data, updated for each package
-					
+
+					// 20261021: evaluated once per packet instead of per sample (input_select is volatile)
+					const Bool usb_owns_cache = (input_select == MOBO_SRC_UAC2);
+
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 						temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_unified, cache_L and cache_R
 						for (i = 0; i < temp_num_samples; i++) {
@@ -643,7 +642,7 @@ void uac2_device_audio_task(void *pvParameters)
 								}
 							}
 							
-							if (input_select == MOBO_SRC_UAC2) {					// Only write to cache with the right permissions! Only care with samples when we can put them somewhere
+							if (usb_owns_cache) {					// Only write to cache with the right permissions! Only care with samples when we can put them somewhere
 								// Finding packet's point of lowest and highest "energy"
 								diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 								diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample. 
@@ -655,7 +654,6 @@ void uac2_device_audio_task(void *pvParameters)
 
 								if (diff_sum > temp_si_score_high) {
 									temp_si_score_high = diff_sum;
-									temp_si_index_high = i;
 								}
 
 								// Applying volume control to stored sample
@@ -739,7 +737,7 @@ void uac2_device_audio_task(void *pvParameters)
 									}
 								}
 	
-								if (input_select == MOBO_SRC_UAC2) {					// Only write to cache with the right permissions! Only care with samples when we can put them somewhere
+								if (usb_owns_cache) {					// Only write to cache with the right permissions! Only care with samples when we can put them somewhere
 									// Finding packet's point of lowest and highest "energy"
 									diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 									diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample. 
@@ -751,7 +749,6 @@ void uac2_device_audio_task(void *pvParameters)
 								
 									if (diff_sum > temp_si_score_high) {
 										temp_si_score_high = diff_sum;
-										temp_si_index_high = i;
 									}
 								
 									// Applying volume control to stored sample
@@ -877,7 +874,6 @@ void uac2_device_audio_task(void *pvParameters)
 						num_samples = temp_num_samples;
 						si_index_low = temp_si_index_low;
 						si_score_high = temp_si_score_high;
-						si_index_high = temp_si_index_high;
 						cache_holds_silence = silence_det;		// Use this to determine how to use contents of cache
 					}
 
@@ -1065,7 +1061,7 @@ void uac2_device_audio_task(void *pvParameters)
 		// Process digital input
 		#ifdef HW_GEN_SPRX
 			// The passed parameters are overwritten if input_select is among spdif sources
-			mobo_handle_spdif(&si_index_low, &si_score_high, &si_index_high, &num_samples, &cache_holds_silence);
+			mobo_handle_spdif(&si_index_low, &si_score_high, &num_samples, &cache_holds_silence);	// 20261021: si_index_high removed, never used
 		#endif
 
 		// Start checking gap and then writing from cache to spk_buffer
