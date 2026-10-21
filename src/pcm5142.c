@@ -36,8 +36,51 @@
 #include "taskAK5394A.h" // To signal uacX_device_audio_task to enable DMA at init
 
 
+// 20261021: number of PCM5142 chips found by pcm5142_init(). Replaces the SECONDARY_DAC build flag.
+// SPRX rev. M has a second PCM5142 at PCM5142_DEV_ADR_SECONDARY; G and K have one
+static uint8_t pcm5142_count = 1;
+
+
+// Does a chip answer at dev_adr? Write register pointer 0 and read it back, inside the usual I2C envelope.
+// Both must succeed, like '+' in the 'S' bus scan, so an address-only ACK ('?') doesn't count as a chip
+static uint8_t pcm5142_probe(uint8_t dev_adr) {
+	uint8_t dev_data[1] = {0x00};
+	uint8_t found = FALSE;
+
+	if (xSemaphoreTake(I2C_busy_semphr, 100) == pdTRUE) {	// Wait up to 10ms, a busy bus must not read as 'no DAC'
+		gpio_set_gpio_pin(AVR32_PIN_PX17);		// I2C enable for DAC
+		vTaskDelay(5);							// Wait 0.5ms
+
+		if (twi_write_out(dev_adr, dev_data, 1) == TWI_SUCCESS) {		// Does a chip answer at dev_adr? Write register pointer 0 and read it back, inside the usual I2C envelope.
+			found = (twi_read_in(dev_adr, dev_data, 1) == TWI_SUCCESS);	// Does a chip answer at dev_adr? Write register pointer 0 and read it back, inside the usual I2C envelope.
+		}
+
+		gpio_clr_gpio_pin(AVR32_PIN_PX17);		// I2C disable for DAC
+		vTaskDelay(5);							// Wait 0.5ms
+		xSemaphoreGive(I2C_busy_semphr);
+
+	}
+	else {
+		print_dbg_char('Q');
+	}
+
+	return found;
+}
+
+
+// Number of PCM5142 chips found at init, 1 or 2
+uint8_t pcm5142_dac_count(void) {
+	return pcm5142_count;
+}
+
+
 // Initiate the PCM5142
 void pcm5142_init(void) {
+	// 20261021: look for a second DAC chip before the first register write, so it gets the same setup
+	pcm5142_count = (pcm5142_probe(PCM5142_DEV_ADR_SECONDARY)) ? 2 : 1;
+	print_dbg_char('D');						// Report number of DAC chips: D1 or D2
+	print_dbg_char('0' + pcm5142_count);
+
 	// Mute is controlled in register 59 and onwards
 	pcm5142_write_byte(60, 0x01);				// Right channel follows left, this can be moved to init
 }
@@ -96,10 +139,10 @@ uint8_t pcm5142_write_byte(uint8_t int_adr, uint8_t int_data) {
 		dev_data[1] = int_data;
 		status = twi_write_out(PCM5142_DEV_ADR, dev_data, 2);
 
-		// Initially, write same content to both DAC chips if two are present
-		#ifdef SECONDARY_DAC
-			status = twi_write_out(PCM5142_DEV_ADR_SECONDARY, dev_data, 2);
-		#endif
+		// Write same content to both DAC chips if two are present. 20261021: detected at init, was SECONDARY_DAC
+		if (pcm5142_count > 1) {
+			status |= twi_write_out(PCM5142_DEV_ADR_SECONDARY, dev_data, 2);	// Nonzero if either write failed
+		}
 
 		#ifdef HW_GEN_SPRX_PATCH_02
 			gpio_clr_gpio_pin(AVR32_PIN_PX17);		// M_DAC_I2C_EN, cut off I2C noise to DAC
@@ -152,10 +195,7 @@ uint8_t pcm5142_read_byte(uint8_t int_adr) {
 		else
 			dev_data[0] = 0 ;	// Randomly chosen failure state
 			
-		// Do nothing to second DAC chip if present, placeholder for later expansion
-		#ifdef SECONDARY_DAC
-			// PCM5142_DEV_ADR_SECONDARY
-		#endif
+		// Reads come from the first DAC chip only; a second chip (if present) gets identical writes
 
 
 		#ifdef HW_GEN_SPRX_PATCH_02

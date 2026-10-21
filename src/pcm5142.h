@@ -27,12 +27,13 @@
 
 #define PCM5142_DEV_ADR					0x4C 				// 0x4C with ADR1 = ADR2 = '0'
 
-#ifdef SECONDARY_DAC
-#define PCM5142_DEV_ADR_SECONDARY		0x4E 				// 0x4E with ADR1 = '0', ADR2 = '1'
-#endif
+#define PCM5142_DEV_ADR_SECONDARY		0x4E 				// 0x4E with ADR1 = '0', ADR2 = '1'. 20261021: probed at init, SPRX rev. M
 
 // Initiate the PCM5142
 void pcm5142_init(void);
+
+// Number of PCM5142 chips found by pcm5142_init(), 1 or 2
+uint8_t pcm5142_dac_count(void);
 
 // Mute the PCM5142
 void pcm5142_mute(void);

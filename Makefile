@@ -30,7 +30,6 @@
 # -DI2S_METADATA				Send 8 bits of metadata below each 24-bit audio data sample
 # -DI2S_POLARITY_CHECK			Output SDATA in phase with LRCK for debugging. It will override -DI2S_METADATA for paused content
 
-# -DSECONDARY_DAC				Experimenting with two DAC chips on one DAC board
 # -DINDICATE_EXTREME_SI			Indication of extreme skip/insert events
 
 # PARTNAME=-mpart=uc3a3256
