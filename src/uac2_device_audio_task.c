@@ -623,7 +623,8 @@ void uac2_device_audio_task(void *pvParameters)
 							// sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
 							// sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
 
-							// 20261021: same reads from the RAM copy of the bank (57us at 84MHz/192k vs 67us from the EP FIFO)
+							// 20261021: same reads from the RAM copy of the bank (57us at 84MHz/192k vs 67us from the EP FIFO).
+							// 20261022: 8-bit reads were benchmarked and rejected, 74.2us vs 55us for these 16-bit reads
 							usb_16_0 = *ep_out_ptr++;	// L LSB, L SB. Watch carefully as they are inserted into 32-bit word below!
 							usb_16_1 = *ep_out_ptr++;	// L MSB, R LSB
 							usb_16_2 = *ep_out_ptr++;	// R SB,  R MSB
