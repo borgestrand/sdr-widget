@@ -403,7 +403,11 @@ void mobo_usb_select(uint8_t usb_ch) {
 		gpio_set_gpio_pin(USB_VBUS_C_PIN);				// Select USB C to MCU's VBUS pin
 	}
 	else if (usb_ch == USB_CH_B) {
-		uac2_conf_desc_set_power(FALSE);				// 20261010: rear USB-B advertises bus-powered, 500mA
+		#ifdef MOBO_USB_ALWAYS_SELF_POWERED
+			uac2_conf_desc_set_power(TRUE);				// 20261027: permanently self-powered product (Mobo_config.h)
+		#else
+			uac2_conf_desc_set_power(FALSE);			// 20261010: rear USB-B advertises bus-powered, 500mA
+		#endif
 		gpio_clr_gpio_pin(USB_VBUS_C_PIN);				// NO USB C to MCU's VBUS pin
 		gpio_clr_gpio_pin(USB_DATA_ENABLE_PIN_INV);		// Enable USB MUX
 		gpio_set_gpio_pin(USB_DATA_C0_B1_PIN);			// Select USB B to MCU's USB data pins

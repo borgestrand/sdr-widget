@@ -43,6 +43,12 @@
 	#define MOBO_SPDIF_PRESENT	MOBO_SRC_NONE	// No WM8804 receiver on this hardware
 #endif
 
+// 20261027: products that are permanently self-powered advertise that on every USB plug. Others are
+// bus-powered on USB-B and self-powered on USB-C, see mobo_usb_select()
+#if (defined FEATURE_PRODUCT_OEM01)
+	#define MOBO_USB_ALWAYS_SELF_POWERED
+#endif
+
 // Legacy source numbers (before 20261011), still used by the I2S metadata format and the SPDIF_CMD_ codes
 #define MOBO_SRC_LEGACY_NONE		0
 #define MOBO_SRC_LEGACY_UAC1		1
