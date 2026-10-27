@@ -722,17 +722,10 @@ void mobo_SPRX_input(uint16_t input_sel) {
 
 	taskENTER_CRITICAL();					// Don't let OS interrupt MUX control!
 
-	if (input_sel == MOBO_SRC_TOSLINK1) {	// Controlling MUX chip	 // Disable on 4:1 MUX
-/* Actual TOSLINK1 address
+	if (input_sel == MOBO_SRC_TOSLINK1) {	// Controlling MUX chip
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
 		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
 		gpio_clr_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 0 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
-*/
-// Disconnected SPDIF1 address
-		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
-		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
-		gpio_clr_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 0 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
-
 	}
 	else if (input_sel == MOBO_SRC_TOSLINK0) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
@@ -752,17 +745,11 @@ void mobo_SPRX_input(uint16_t input_sel) {
 		gpio_clr_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 0 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
 	}
 	
-	// AESEBU0 isn't yet implemented on all boards // Test case take over TOSLINK1 on 4:1 MUX
+	// AESEBU0 isn't yet implemented on all boards
 	else if ( (input_sel == MOBO_SRC_AESEBU0) ) {
-/* Actual AESEBU0 address on revision N board - untested
 		gpio_set_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 1
 		gpio_clr_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 0
 		gpio_set_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 1 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
-*/
-// TOSLINK1 address used for test case
-		gpio_clr_gpio_pin(AVR32_PIN_PX03);	// SP_SEL0 = 0
-		gpio_set_gpio_pin(AVR32_PIN_PX02);	// SP_SEL1 = 1
-		gpio_clr_gpio_pin(AVR32_PIN_PX01);	// SP_SEL2 = 0 - Not implemented on SPRX before HW revision N, pin floating on all known previous revisions
 	}
 
 	taskEXIT_CRITICAL();
