@@ -7,6 +7,7 @@
 # -DFEATURE_PRODUCT_AB1x		Henry Audio USB DAC 128 and QNKTC series of DACs
 # -DFEATURE_PRODUCT_DA256		Henry Audio experimental product
 # -DFEATURE_PRODUCT_BOEC1		Boenicke experimental product
+# -DFEATURE_PRODUCT_OEM01		OEM product on SPRX rev. N: SPDIF0, TOSLINK0/1, AESEBU0, 8:1 S/PDIF mux, version ADC. Build with make clean audio-widget OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product"
 # -DFEATURE_PRODUCT_WFADC		Whisperfloor data collection device
 #
 # -DHW_GEN_AB1X					Pure USB DAC - all marketed Henry Audio / QNKTC hardware versions
@@ -56,6 +57,7 @@ BUILD_DIRTY := $(shell git diff --quiet 2>/dev/null && git diff --cached --quiet
 
 BUILD_INFO_DEFS = -DBUILD_DATE=$(BUILD_DATE) -DBUILD_TIME=$(BUILD_TIME) -DBUILD_TZ=$(BUILD_TZ) -DBUILD_COMMIT=$(BUILD_COMMIT) -DBUILD_DIRTY=$(BUILD_DIRTY)
 
+
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_BOARD_DEFAULT=feature_board_usbi2s \
 	-DFEATURE_IMAGE_DEFAULT=feature_image_uac2_audio \
@@ -70,13 +72,40 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_GPIO \
 	-DFEATURE_HID \
 	$(BUILD_INFO_DEFS) \
+	$(PRODUCT_NAMES_DEFS) \
 	\
-	-DFEATURE_PRODUCT_DA256 \
+	-DFEATURE_PRODUCT_OEM01 \
 	-DFEATURE_ALT2_16BIT \
 	-DFEATURE_SPDIF_CMD \
 	-DUSB_PARSE_BYTES \
 	-DHW_GEN_SPRX
-	
+
+
+# 20261027: FEATURE_PRODUCT_OEM01 takes its USB manufacturer and product names from the make command line
+# only (not the environment), so they are never committed before launch:
+#   make clean audio-widget OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product"
+# make-names.sh turns them into src/product_names_local.h (ignored by git). Other products are unaffected
+ifneq (,$(findstring -DFEATURE_PRODUCT_OEM01,$(AUDIO_WIDGET_DEFAULTS)))
+  ifneq ($(MAKECMDGOALS),clean)
+    ifneq ($(origin OEM_MANUFACTURER),command line)
+      $(error FEATURE_PRODUCT_OEM01 needs OEM_MANUFACTURER and OEM_PRODUCT on the make command line, e.g. make clean audio-widget OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product")
+    endif
+    ifneq ($(origin OEM_PRODUCT),command line)
+      $(error FEATURE_PRODUCT_OEM01 needs OEM_MANUFACTURER and OEM_PRODUCT on the make command line, e.g. make clean audio-widget OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product")
+    endif
+    ifeq ($(strip $(OEM_MANUFACTURER)),)
+      $(error OEM_MANUFACTURER is empty)
+    endif
+    ifeq ($(strip $(OEM_PRODUCT)),)
+      $(error OEM_PRODUCT is empty)
+    endif
+  endif
+  PRODUCT_NAMES_DEFS = -DPRODUCT_NAMES_LOCAL
+  PRODUCT_NAMES_GEN = sh ./make-names.sh "$(OEM_MANUFACTURER)" "$(OEM_PRODUCT)" > src/product_names_local.h
+else
+  PRODUCT_NAMES_DEFS =
+  PRODUCT_NAMES_GEN = true
+endif
 
 # Floormotion after "\"
 #	-DFEATURE_PRODUCT_FMADC \
@@ -108,6 +137,12 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 #	-DBOOT_SIGNAL_LED \
 #	-DFEATURE_SPDIF_CMD
 
+# OEM01 (SPRX rev. N) after "\". Needs OEM_MANUFACTURER and OEM_PRODUCT, see above
+#	-DFEATURE_PRODUCT_OEM01 \
+#	-DFEATURE_ALT2_16BIT \
+#	-DFEATURE_SPDIF_CMD \
+#	-DHW_GEN_SPRX
+
 # Boenicke (SPRX) after "\" NB: check register 0x08 / R8 of WM8804 to enable regenerated MCLK when that is needed 
 #	-DFEATURE_PRODUCT_BOEC1 \
 #	-DI2S_POLARITY_CHECK \
@@ -120,12 +155,14 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o
+	$(PRODUCT_NAMES_GEN)
 	CFLAGS="$(AUDIO_WIDGET_DEFAULTS)" ASFLAGS="$(PARTNAME)" ./make-widget
 
 # 20260915: 84MHz CPU clock bring-up for 384kHz UAC2 work. Same defaults as audio-widget,
 # plus FEATURE_84MHz. Source-verified, NOT yet bench-verified - see checklist.
 audio-widget-84mhz::
 	rm -f Release/widget.elf Release/src/features.o
+	$(PRODUCT_NAMES_GEN)
 	CFLAGS="$(AUDIO_WIDGET_DEFAULTS) -DFEATURE_84MHz" ASFLAGS="$(PARTNAME)" ./make-widget
 
 clean::

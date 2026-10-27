@@ -33,6 +33,8 @@
 // WM8804 inputs physically present, an OR of the bits above, selected by the product definitions in the Makefile
 #if (defined FEATURE_PRODUCT_DA256) && (defined HW_GEN_SPRX)
 	#define MOBO_SPDIF_PRESENT	(MOBO_SRC_SPDIF0 | MOBO_SRC_TOSLINK1 | MOBO_SRC_TOSLINK0)
+#elif (defined FEATURE_PRODUCT_OEM01) && (defined HW_GEN_SPRX)
+	#define MOBO_SPDIF_PRESENT	(MOBO_SRC_SPDIF0 | MOBO_SRC_TOSLINK1 | MOBO_SRC_TOSLINK0 | MOBO_SRC_AESEBU0)	// 20261027: SPRX rev. N
 #elif (defined FEATURE_PRODUCT_BOEC1) && (defined HW_GEN_SPRX)
 	#define MOBO_SPDIF_PRESENT	(MOBO_SRC_SPDIF0 | MOBO_SRC_TOSLINK1 | MOBO_SRC_TOSLINK0)
 #elif (defined HW_GEN_SPRX)

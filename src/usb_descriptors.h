@@ -185,6 +185,10 @@
     #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
     #define AUDIO_PRODUCT_ID_9    0x075c	//!  AB-1.x	UAC1 PID
     #define AUDIO_PRODUCT_ID_10   0x075d	//!  AB-1.x	UAC2 PID
+  #elif (defined(FEATURE_PRODUCT_OEM01))	// 20261027: SPRX rev. N, reuses the DA 256 VID/PID
+    #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
+	#define AUDIO_PRODUCT_ID_11   0x075e	//!  QNKTC future use UAC1 PID
+	#define AUDIO_PRODUCT_ID_12   0x075f	//!  QNKTC future use UAC2 PID
   #elif (defined(FEATURE_PRODUCT_FMADC))
     #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
     #define AUDIO_PRODUCT_ID_9    0x075c	//!  AB-1.x	UAC1 PID
@@ -286,6 +290,19 @@
 	Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), \
 	Usb_unicode('D'), Usb_unicode('A'), Usb_unicode(' '), Usb_unicode('2'), Usb_unicode('5'), Usb_unicode('6') \
 }
+#elif defined (FEATURE_PRODUCT_OEM01)  // AUDIO_PRODUCT_ID_9 and _10
+	// 20261027: manufacturer and product names are kept out of the repository until launch. The Makefile
+	// generates src/product_names_local.h (ignored by git) with make-names.sh from OEM_MANUFACTURER and
+	// OEM_PRODUCT given on the make command line, and passes -DPRODUCT_NAMES_LOCAL. The placeholders below
+	// are a fallback for builds outside the Makefile only
+	#ifdef PRODUCT_NAMES_LOCAL
+		#include "product_names_local.h"	// USB_MN_LENGTH, USB_MANUFACTURER_NAME, USB_PN_LENGTH, USB_PRODUCT_NAME
+	#else
+		#define USB_MN_LENGTH         5
+		#define USB_MANUFACTURER_NAME {\
+			Usb_unicode('O'), Usb_unicode('E'), Usb_unicode('M'), Usb_unicode('0'), Usb_unicode('1') \
+		}
+	#endif
 #elif defined (FEATURE_PRODUCT_FMADC)  // AUDIO_PRODUCT_ID_9 and _10
 #define USB_MN_LENGTH         20
 #define USB_MANUFACTURER_NAME {\
@@ -370,6 +387,14 @@
 		Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), \
 		Usb_unicode('D'), Usb_unicode('A'), Usb_unicode(' '), Usb_unicode('2'), Usb_unicode('5'), Usb_unicode('6') \
 	}
+#elif defined (FEATURE_PRODUCT_OEM01)
+	#ifndef PRODUCT_NAMES_LOCAL			// Otherwise defined by product_names_local.h, included above
+		#define USB_PN_LENGTH         9
+		#define USB_PRODUCT_NAME {\
+			Usb_unicode('O'), Usb_unicode('E'), Usb_unicode('M'), Usb_unicode('0'), Usb_unicode('1'), Usb_unicode(' '), \
+			Usb_unicode('D'), Usb_unicode('A'), Usb_unicode('C') \
+		}
+	#endif
 #elif defined (FEATURE_PRODUCT_FMADC)  // AUDIO_PRODUCT_ID_9 and _10
 	#define USB_PN_LENGTH         20
 	#define USB_PRODUCT_NAME {\
@@ -551,22 +576,10 @@
 */
 
 
-#define USB_AIT_LENGTH         12
-#define USB_AIT \
-{\
-  Usb_unicode('A'),\
-  Usb_unicode('u'),\
-  Usb_unicode('d'),\
-  Usb_unicode('i'),\
-  Usb_unicode('o'),\
-  Usb_unicode('-'),\
-  Usb_unicode('w'),\
-  Usb_unicode('i'),\
-  Usb_unicode('d'),\
-  Usb_unicode('g'),\
-  Usb_unicode('e'),\
-  Usb_unicode('t')\
-}
+// String of the USB streaming Input Terminal (iTerminal, SPK_INPUT_TERMINAL_STRING_DESC). Linux may show it,
+// e.g. in ALSA mixer control names. 20261027: follows the manufacturer name, was "Audio-widget"
+#define USB_AIT_LENGTH         USB_MN_LENGTH
+#define USB_AIT                USB_MANUFACTURER_NAME
 #define USB_AOT_LENGTH         13
 #define USB_AOT \
 {\
