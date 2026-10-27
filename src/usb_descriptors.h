@@ -185,7 +185,7 @@
     #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
     #define AUDIO_PRODUCT_ID_9    0x075c	//!  AB-1.x	UAC1 PID
     #define AUDIO_PRODUCT_ID_10   0x075d	//!  AB-1.x	UAC2 PID
-  #elif (defined(FEATURE_PRODUCT_OEM01))	// 20261027: SPRX rev. N, reuses the DA 256 VID/PID
+  #elif (defined(FEATURE_PRODUCT_OEM01))	// 20261027: SPRX rev. N, own PID so hosts keep it apart from DA 256
     #define AUDIO_VENDOR_ID       0x16d0	//!  AB-1.x	VID
 	#define AUDIO_PRODUCT_ID_11   0x075e	//!  QNKTC future use UAC1 PID
 	#define AUDIO_PRODUCT_ID_12   0x075f	//!  QNKTC future use UAC2 PID
@@ -290,7 +290,7 @@
 	Usb_unicode('A'), Usb_unicode('u'), Usb_unicode('d'), Usb_unicode('i'), Usb_unicode('o'), Usb_unicode(' '), \
 	Usb_unicode('D'), Usb_unicode('A'), Usb_unicode(' '), Usb_unicode('2'), Usb_unicode('5'), Usb_unicode('6') \
 }
-#elif defined (FEATURE_PRODUCT_OEM01)  // AUDIO_PRODUCT_ID_9 and _10
+#elif defined (FEATURE_PRODUCT_OEM01)  // AUDIO_PRODUCT_ID_11 and _12
 	// 20261027: manufacturer and product names are kept out of the repository until launch. The Makefile
 	// generates src/product_names_local.h (ignored by git) with make-names.sh from OEM_MANUFACTURER and
 	// OEM_PRODUCT given on the make command line, and passes -DPRODUCT_NAMES_LOCAL. The placeholders below
