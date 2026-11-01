@@ -378,6 +378,60 @@ void uac2_freq_change_handler() {
 } // uac2_freq_change_handler
 
 
+#ifdef FEATURE_EP_OUT_DMA
+// 20261029: USBB DMA for EP_AUDIO_OUT, stage 1 of the DMA track. DMA channel n serves endpoint n.
+// See datasheet 27.8.2.19-20 (UDDMAnCONTROL / UDDMAnSTATUS)
+#define EP_OUT_DMA_INT_MASK	(AVR32_USBB_UDINT_DMA1INT_MASK << (UAC2_EP_AUDIO_OUT - 1))	// Same bit in UDINT, UDINTE, UDINTESET, UDINTECLR
+
+// Arm the channel for one packet into ep_out_ram. BUFFCLOSEINEN closes the transfer at the end of each
+// high-speed isochronous packet (PID not MDATA), so CHBYTELENGTH is only an upper limit. CHBYTELENGTH may
+// only be written while CHEN is 0, which it is after every transfer end and after ep_out_dma_stop()
+void ep_out_dma_arm(void) {
+	#ifdef EP_OUT_DMA_AUTOSW
+		// 20261030: experiment. Automatic bank switching may be what lets the DMA hand banks back by itself.
+		// Set on every arm: an endpoint reset (SET_INTERFACE) keeps only ALLOC, EPBK, EPSIZE, EPDIR, EPTYPE of UECFGn
+		Usb_enable_endpoint_bank_autoswitch(UAC2_EP_AUDIO_OUT);
+	#endif
+	AVR32_USBB_UDDMAX_addr(UAC2_EP_AUDIO_OUT) = (U32)ep_out_ram;
+	AVR32_USBB_UDDMAX_control(UAC2_EP_AUDIO_OUT) =
+		  ((U32)EP_OUT_RAM_BYTES << AVR32_USBB_UXDMAX_CONTROL_CH_BYTE_LENGTH_OFFSET)
+		| AVR32_USBB_UXDMAX_CONTROL_BUFF_CLOSE_IN_EN_MASK		// End of USB transfer closes the DMA transfer
+		| AVR32_USBB_UXDMAX_CONTROL_EOT_IRQ_EN_MASK				// Interrupt at end of USB transfer (normal case)
+		| AVR32_USBB_UXDMAX_CONTROL_EOBUFF_IRQ_EN_MASK			// Interrupt if ep_out_ram filled up (should never happen)
+		| AVR32_USBB_UXDMAX_CONTROL_CH_EN_MASK;					// Go. A bank that is already full starts the transfer at once
+	AVR32_USBB_udinteset = EP_OUT_DMA_INT_MASK;					// Device-level DMA interrupt enable
+}
+
+// Stop the channel now, and wait until it has drained (CHEN and CHACTIVE both 0)
+void ep_out_dma_stop(void) {
+	U32 timeout = 10000;
+
+	AVR32_USBB_udinteclr = EP_OUT_DMA_INT_MASK;
+	AVR32_USBB_UDDMAX_control(UAC2_EP_AUDIO_OUT) = 0;			// LDNXTCHDESCEN = 0, CHEN = 0: stop now
+	while ( (AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT) & (AVR32_USBB_UXDMAX_STATUS_CH_EN_MASK | AVR32_USBB_UXDMAX_STATUS_CH_ACTIVE_MASK))
+			&& (--timeout != 0) );
+	(void)AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT);			// Read clears EOTSTA, EOCHBUFFSTA, DESCLDSTA
+}
+
+// Called from usb_general_interrupt_non_naked() (usb_task.c) when the DMA channel interrupt is pending and enabled
+void ep_out_dma_isr(void) {
+	U32 st = AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT);		// Read clears EOTSTA, EOCHBUFFSTA, DESCLDSTA. CHBYTECNT is stable now (CHEN = 0)
+
+	AVR32_USBB_udinteclr = EP_OUT_DMA_INT_MASK;					// No further DMA interrupts until the consumer re-arms
+	ep_out_dma_len = EP_OUT_RAM_BYTES - ((st & AVR32_USBB_UXDMAX_STATUS_CH_BYTE_CNT_MASK) >> AVR32_USBB_UXDMAX_STATUS_CH_BYTE_CNT_OFFSET);
+
+	// Debug: does the DMA free the bank by itself? Read over UART with the 'I' command
+	ep_out_dma_status = st;
+	ep_out_dma_nbusybk = Usb_nb_busy_bank(UAC2_EP_AUDIO_OUT);
+	ep_out_dma_fifocon = Is_usb_fifocon(UAC2_EP_AUDIO_OUT) ? 1 : 0;
+	ep_out_dma_rxouti = Is_usb_out_received(UAC2_EP_AUDIO_OUT) ? 1 : 0;
+	ep_out_dma_count++;
+
+	ep_out_dma_flag = TRUE;
+}
+#endif
+
+
 //! @brief This function configures the endpoints of the device application.
 //! This function is called when the set configuration request has been received.
 //!
@@ -416,11 +470,18 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 	// this is now part of the primary build, not gated. NB: EP_AUDIO_OUT itself is a local
 	// const inside uac2_device_audio_task() and not visible here - UAC2_EP_AUDIO_OUT is the
 	// actual global constant it's assigned from.
+#ifdef FEATURE_EP_OUT_DMA
+	// 20261029: the USBB DMA channel copies each EP_AUDIO_OUT bank into ep_out_ram. No endpoint interrupt needed
+	ep_out_dma_stop();
+	ep_out_dma_flag = FALSE;
+	ep_out_dma_arm();
+#else
 	// 20260925: both enable levels are needed - RXOUTE (endpoint) AND EPnINTE (device).
 	// EPnINTE was missing before, so the ISR never fired on EP traffic.
 	usb_audio_out_received_flag = FALSE;
 	Usb_enable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
 	Usb_enable_endpoint_interrupt(UAC2_EP_AUDIO_OUT);
+#endif
 
 	// One-time pin-mode setup for the PA22 scope signal toggled in
 	// usb_general_interrupt_non_naked() (usb_task.c) - a permanent indicator of actual

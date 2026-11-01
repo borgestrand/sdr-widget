@@ -300,6 +300,16 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
     // NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task() and not visible
     // here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
 
+#ifdef FEATURE_EP_OUT_DMA
+	// 20261029: the DMA channel of EP_AUDIO_OUT finished one packet into ep_out_ram. The enable check keeps
+	// other USB events from entering here; ep_out_dma_isr() disables the interrupt until the consumer re-arms
+	if ( (AVR32_USBB_udint & (AVR32_USBB_UDINT_DMA1INT_MASK << (UAC2_EP_AUDIO_OUT - 1))) &&
+	     (AVR32_USBB_udinte & (AVR32_USBB_UDINTE_DMA1INTE_MASK << (UAC2_EP_AUDIO_OUT - 1))) )
+	{
+		ep_out_dma_isr();
+		EP_AUDIO_OUT_isr_counter++;
+	}
+#else
 	// 20260925: RXOUTI is level-sensitive, so mask it here; the poller re-enables it after
 	// Usb_ack_out_received_free(). The enable check keeps other USB events from re-setting the flag.
     if (Is_usb_out_received(UAC2_EP_AUDIO_OUT) &&
@@ -310,6 +320,7 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
 //	    gpio_tgl_gpio_pin(AVR32_PIN_PA22);
 	    EP_AUDIO_OUT_isr_counter++;
     }
+#endif
 
 
 

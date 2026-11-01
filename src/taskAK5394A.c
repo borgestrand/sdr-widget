@@ -101,6 +101,15 @@ volatile S32 samples_per_package_max = 0;
 // volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 U64 ep_out_ram[EP_OUT_RAM_BYTES / 8] __attribute__((aligned(8)));	// 20261021: RAM copy of one EP_AUDIO_OUT bank, see taskAK5394A.h
+#ifdef FEATURE_EP_OUT_DMA
+	volatile bool ep_out_dma_flag = FALSE;		// 20261029: see taskAK5394A.h
+	volatile U16 ep_out_dma_len = 0;
+	volatile U32 ep_out_dma_count = 0;
+	volatile U32 ep_out_dma_status = 0;
+	volatile U8 ep_out_dma_nbusybk = 0;
+	volatile U8 ep_out_dma_fifocon = 0;
+	volatile U8 ep_out_dma_rxouti = 0;
+#endif
 
 #ifdef I2S_METADATA
 	volatile uint8_t i2s_meta_L = 0b10010000;	// Version 0 encoding for muted, no source

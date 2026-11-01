@@ -659,8 +659,68 @@ Arash
 				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter >> 16);
 				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter >> 8);
 				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter);			// LSB
+
+				#ifdef FEATURE_EP_OUT_DMA
+					// 20261029: DMA stage 1 debug. Format: count length status NBUSYBK FIFOCON RXOUTI first-12-bytes
+					{
+						uint8_t k;
+						uint8_t *p = (uint8_t *)ep_out_ram;
+
+						print_dbg_char(' ');
+						print_dbg_char_hex(ep_out_dma_count >> 24);
+						print_dbg_char_hex(ep_out_dma_count >> 16);
+						print_dbg_char_hex(ep_out_dma_count >> 8);
+						print_dbg_char_hex(ep_out_dma_count);
+						print_dbg_char(' ');
+						print_dbg_char_hex(ep_out_dma_len >> 8);				// 0x0120 = 288 or 0x0126 = 294 at 192k 24-bit
+						print_dbg_char_hex(ep_out_dma_len);
+						print_dbg_char(' ');
+						print_dbg_char_hex(ep_out_dma_status >> 24);
+						print_dbg_char_hex(ep_out_dma_status >> 16);
+						print_dbg_char_hex(ep_out_dma_status >> 8);
+						print_dbg_char_hex(ep_out_dma_status);
+						print_dbg_char(' ');
+						print_dbg_char_hex(ep_out_dma_nbusybk);
+						print_dbg_char(' ');
+						print_dbg_char_hex(ep_out_dma_fifocon);
+						print_dbg_char(' ');
+						print_dbg_char_hex(ep_out_dma_rxouti);
+						print_dbg_char(' ');
+						for (k = 0; k < 12; k++) {								// USB byte order: L0 L1 L2 R0 R1 R2 ...
+							print_dbg_char_hex(p[k]);
+						}
+					}
+				#endif
 				print_dbg_char('\n');
 			}
+
+			#ifdef FEATURE_EP_OUT_DMA
+				// 20261030: live snapshot of the EP_AUDIO_OUT DMA channel and endpoint registers, 32-bit hex each:
+				// DMA CONTROL, DMA ADDR (does it advance?), UDINTE, UDINT, UECFG2 (AUTOSW = bit 9), UESTA2, UECON2,
+				// DMA STATUS last, since reading it clears EOTSTA/EOCHBUFFSTA (may swallow one DMA interrupt)
+				else if (a == 'Q') {						// Uppercase Q - USB OUT DMA register snapshot (query). 'U' is MCU_CHAR_RATEUP
+					uint32_t regs[8];
+					uint8_t k;
+
+					regs[0] = AVR32_USBB_UDDMAX_control(UAC2_EP_AUDIO_OUT);
+					regs[1] = AVR32_USBB_UDDMAX_addr(UAC2_EP_AUDIO_OUT);
+					regs[2] = AVR32_USBB_udinte;
+					regs[3] = AVR32_USBB_udint;
+					regs[4] = AVR32_USBB_uecfgx(UAC2_EP_AUDIO_OUT);
+					regs[5] = AVR32_USBB_uestax(UAC2_EP_AUDIO_OUT);
+					regs[6] = AVR32_USBB_ueconx(UAC2_EP_AUDIO_OUT);
+					regs[7] = AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT);
+
+					for (k = 0; k < 8; k++) {
+						print_dbg_char_hex(regs[k] >> 24);
+						print_dbg_char_hex(regs[k] >> 16);
+						print_dbg_char_hex(regs[k] >> 8);
+						print_dbg_char_hex(regs[k]);
+						print_dbg_char(' ');
+					}
+					print_dbg_char('\n');
+				}
+			#endif
 
 
 #endif // HW_GEN_SPRX

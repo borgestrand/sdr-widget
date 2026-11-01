@@ -141,6 +141,22 @@ extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 // Cleared in mobo_clear_dac_channel() along with the other audio buffers
 #define EP_OUT_RAM_BYTES	512
 extern U64 ep_out_ram[EP_OUT_RAM_BYTES / 8];
+
+#ifdef FEATURE_EP_OUT_DMA
+	// 20261029: stage 1 of the DMA track (method 2, one packet per buffer). The USBB DMA channel of EP_AUDIO_OUT
+	// copies each bank into ep_out_ram and frees the bank. The DMA-end interrupt sets ep_out_dma_flag and the length,
+	// the sequential code parses ep_out_ram and re-arms with ep_out_dma_arm(). Functions in uac2_usb_specific_request.c
+	extern volatile bool ep_out_dma_flag;		// Set by ep_out_dma_isr(), cleared by the consumer
+	extern volatile U16 ep_out_dma_len;			// Bytes in ep_out_ram
+	extern volatile U32 ep_out_dma_count;		// Debug: DMA-end interrupts
+	extern volatile U32 ep_out_dma_status;		// Debug: last UDDMAn STATUS
+	extern volatile U8 ep_out_dma_nbusybk;		// Debug: NBUSYBK right after DMA end. Should be 0 or 1 if the DMA frees the bank
+	extern volatile U8 ep_out_dma_fifocon;		// Debug: FIFOCON right after DMA end
+	extern volatile U8 ep_out_dma_rxouti;		// Debug: RXOUTI right after DMA end (not acked by software in stage 1)
+	void ep_out_dma_arm(void);
+	void ep_out_dma_stop(void);
+	void ep_out_dma_isr(void);
+#endif
 extern volatile avr32_ssc_t *ssc;
 
 // ���� old buffer ids ripe for renaming or removal
@@ -178,12 +194,24 @@ extern volatile bool usb_audio_out_received_flag;
 // 20261003: an endpoint reset (SET_INTERFACE, CLEAR_FEATURE HALT) clears UECONn.RXOUTE and the
 // endpoint's banks. Re-arm the EP_AUDIO_OUT interrupt and drop any stale flag right after such a reset,
 // or the poller never sees another packet and EP_AUDIO_OUT is never freed
+#ifdef FEATURE_EP_OUT_DMA
+	// 20261029: with DMA, an endpoint reset also leaves the DMA channel in an unknown state. Stop it, drop any
+	// stale flag and re-arm into ep_out_ram
+	#define EP_AUDIO_OUT_rearm_after_reset(ep) do { \
+		if ((ep) == UAC2_EP_AUDIO_OUT) { \
+			ep_out_dma_stop(); \
+			ep_out_dma_flag = FALSE; \
+			ep_out_dma_arm(); \
+		} \
+	} while (0)
+#else
 #define EP_AUDIO_OUT_rearm_after_reset(ep) do { \
 	if ((ep) == UAC2_EP_AUDIO_OUT) { \
 		usb_audio_out_received_flag = FALSE; \
 		Usb_enable_out_received_interrupt(ep); \
 	} \
 } while (0)
+#endif
 
 // 20260922: increments once per usb_general_interrupt_non_naked() firing on EP_AUDIO_OUT
 // reception (usb_task.c) - independent proof the ISR is actually running, separate from

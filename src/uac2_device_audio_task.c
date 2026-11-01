@@ -501,6 +501,12 @@ void uac2_device_audio_task(void *pvParameters)
 			if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 
 				// Do minimal USB action to make Host believe Device is actually receiving
+			#ifdef FEATURE_EP_OUT_DMA
+				if (ep_out_dma_flag) {			// 20261029: the DMA already freed the bank. Discard ep_out_ram and re-arm
+					ep_out_dma_flag = FALSE;
+					ep_out_dma_arm();
+				}
+			#else
 				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {		// 20260925: ISR-set flag replaces polled hardware bit
 					clear_isr_Is_usb_out_received_flag();
 					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
@@ -516,12 +522,22 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
 					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// 20260925: re-arm, ISR masked it
 				}
+			#endif
 			}
 			else {
 #else
 			if (1) {
 #endif
 
+			#ifdef FEATURE_EP_OUT_DMA
+				if (ep_out_dma_flag) {				// 20261029: set by the DMA-end interrupt, ep_out_ram holds one packet
+					ep_out_dma_flag = FALSE;
+					gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261021: start of sequential USB packet handling, for scope timing
+
+					temp_num_samples = ep_out_dma_len;		// Bytes, as Usb_byte_count() returned
+					uint16_t *ep_out_ptr = (uint16_t *)ep_out_ram;	// Parsed 16 bits at a time below, same byte order as the EP FIFO reads
+					asm volatile ("" ::: "memory");			// Compiler barrier: ep_out_ram was written by the DMA, which GCC can't see. Reload after the flag
+			#else
 				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {		// 20260925: ISR-set flag replaces polled hardware bit
 					clear_isr_Is_usb_out_received_flag();
 					gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261021: start of sequential USB packet handling, for scope timing
@@ -548,6 +564,7 @@ void uac2_device_audio_task(void *pvParameters)
 					}
 					asm volatile ("" ::: "memory");			// 20261021: compiler barrier. ep_out_ram is written as U64 above and read as U16 below,
 															// strict aliasing at -O2 must not reorder those. No instructions generated. Needed for DMA writes too
+			#endif
 
 					// temp_num_samples != 0 is needed for non-silence detection of first USB packet. But unless we own the output DMA channel, reset temp_num_samples to 0 and don't write to cache!
 
@@ -890,8 +907,12 @@ void uac2_device_audio_task(void *pvParameters)
 						silence_USB = SILENCE_USB_INIT;			// USB interface is not silent!
 					}
 
+				#ifdef FEATURE_EP_OUT_DMA
+					ep_out_dma_arm();						// 20261029: done with ep_out_ram, let the DMA take the next bank
+				#else
 					Usb_ack_out_received_free(EP_AUDIO_OUT);
 					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// 20260925: re-arm, ISR masked it
+				#endif
 					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling (bank freed)
 
 //					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause

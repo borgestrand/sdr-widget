@@ -23,6 +23,7 @@
 #
 # -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
 # -DFEATURE_SPDIF_CMD			Experimental disable state machine in SPDIF receiver code - only makes sense in SPRX context
+# -DFEATURE_EP_OUT_DMA			Experimental (20261029): USBB DMA copies EP_AUDIO_OUT packets into RAM. Debug readout with 'I'
 #
 # -DUSB_REDUCED_DEBUG			Reduce debug and use UART only for CPU communication
 # -DFEATURE_UNINVERT_LRCK		Reverse the effect of an inverted LRCK signal on the I2S output
@@ -78,6 +79,8 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_ALT2_16BIT \
 	-DFEATURE_SPDIF_CMD \
 	-DUSB_PARSE_BYTES \
+	-DFEATURE_EP_OUT_DMA \
+	-DEP_OUT_DMA_AUTOSW \
 	-DHW_GEN_SPRX
 
 
