@@ -501,35 +501,24 @@ void uac2_device_audio_task(void *pvParameters)
 			if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 
 				// Do minimal USB action to make Host believe Device is actually receiving
-			#ifdef FEATURE_EP_OUT_DMA
 				if (ep_out_dma_flag) {			// 20261029: the DMA already freed the bank. Discard ep_out_ram and re-arm
 					ep_out_dma_flag = FALSE;
 					ep_out_dma_arm();
 				}
-			#else
-				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {		// 20260925: ISR-set flag replaces polled hardware bit
-					clear_isr_Is_usb_out_received_flag();
-					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
 
-					/*
-					// Needed in minimal USB functionality?
-					temp_num_samples = Usb_byte_count(EP_AUDIO_OUT);
-					for (i = 0; i < temp_num_samples; i++) {
-						Usb_read_endpoint_data(EP_AUDIO_OUT, 8);
-					}
-					*/
-
-					Usb_ack_out_received_free(EP_AUDIO_OUT);
-					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// 20260925: re-arm, ISR masked it
-				}
-			#endif
+				// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
+				// if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {
+				//	clear_isr_Is_usb_out_received_flag();
+				//	Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
+				//	Usb_ack_out_received_free(EP_AUDIO_OUT);
+				//	Usb_enable_out_received_interrupt(EP_AUDIO_OUT);
+				// }
 			}
 			else {
 #else
 			if (1) {
 #endif
 
-			#ifdef FEATURE_EP_OUT_DMA
 				if (ep_out_dma_flag) {				// 20261029: set by the DMA-end interrupt, ep_out_ram holds one packet
 					ep_out_dma_flag = FALSE;
 					gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261021: start of sequential USB packet handling, for scope timing
@@ -537,34 +526,11 @@ void uac2_device_audio_task(void *pvParameters)
 					temp_num_samples = ep_out_dma_len;		// Bytes, as Usb_byte_count() returned
 					uint16_t *ep_out_ptr = (uint16_t *)ep_out_ram;	// Parsed 16 bits at a time below, same byte order as the EP FIFO reads
 					asm volatile ("" ::: "memory");			// Compiler barrier: ep_out_ram was written by the DMA, which GCC can't see. Reload after the flag
-			#else
-				if (isr_Is_usb_out_received(EP_AUDIO_OUT)) {		// 20260925: ISR-set flag replaces polled hardware bit
-					clear_isr_Is_usb_out_received_flag();
-					gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261021: start of sequential USB packet handling, for scope timing
 
-					Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT);
-					temp_num_samples = Usb_byte_count(EP_AUDIO_OUT);
+					// 20261101: legacy CPU-copy path, last present in commit fdb8ef6 (55us at 84MHz/192k, DMA path 50.3us):
+					// RXOUTI flag test, Usb_byte_count(), then the bank copied to ep_out_ram with 64-bit FIFO reads
+					// (the USBB advances its own pointer) plus a 16-bit tail
 
-					// 20261021: step 1 of the DMA track. Copy the whole bank to RAM (64-bit FIFO reads, the USBB
-					// advances its own pointer), then parse from RAM below instead of Usb_read_endpoint_data().
-					// Bytes come in pairs (6 or 4 per stereo sample), so the tail is read 16 bits at a time
-					uint16_t *ep_out_ptr = (uint16_t *)ep_out_ram;	// 20261021: parsed 16 bits at a time below, same order as the EP FIFO reads
-					{
-						uint16_t n_bytes = min(temp_num_samples, EP_OUT_RAM_BYTES);
-						uint16_t n64 = n_bytes >> 3;
-						uint16_t j;
-						uint16_t *tail = (uint16_t *)&ep_out_ram[n64];
-
-						for (j = 0; j < n64; j++) {
-							ep_out_ram[j] = Usb_read_endpoint_data(EP_AUDIO_OUT, 64);
-						}
-						for (j = 0; j < ((n_bytes & 0x07) >> 1); j++) {
-							tail[j] = Usb_read_endpoint_data(EP_AUDIO_OUT, 16);
-						}
-					}
-					asm volatile ("" ::: "memory");			// 20261021: compiler barrier. ep_out_ram is written as U64 above and read as U16 below,
-															// strict aliasing at -O2 must not reorder those. No instructions generated. Needed for DMA writes too
-			#endif
 
 					// temp_num_samples != 0 is needed for non-silence detection of first USB packet. But unless we own the output DMA channel, reset temp_num_samples to 0 and don't write to cache!
 
@@ -907,13 +873,10 @@ void uac2_device_audio_task(void *pvParameters)
 						silence_USB = SILENCE_USB_INIT;			// USB interface is not silent!
 					}
 
-				#ifdef FEATURE_EP_OUT_DMA
 					ep_out_dma_arm();						// 20261029: done with ep_out_ram, let the DMA take the next bank
-				#else
-					Usb_ack_out_received_free(EP_AUDIO_OUT);
-					Usb_enable_out_received_interrupt(EP_AUDIO_OUT);	// 20260925: re-arm, ISR masked it
-				#endif
-					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling (bank freed)
+					// Usb_ack_out_received_free(EP_AUDIO_OUT);			// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
+					// Usb_enable_out_received_interrupt(EP_AUDIO_OUT);
+					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling
 
 //					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
 					// mobodebug untested fix

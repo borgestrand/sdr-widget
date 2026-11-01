@@ -378,8 +378,7 @@ void uac2_freq_change_handler() {
 } // uac2_freq_change_handler
 
 
-#ifdef FEATURE_EP_OUT_DMA
-// 20261029: USBB DMA for EP_AUDIO_OUT, stage 1 of the DMA track. DMA channel n serves endpoint n.
+// 20261029: USBB DMA for EP_AUDIO_OUT. DMA channel n serves endpoint n.
 // See datasheet 27.8.2.19-20 (UDDMAnCONTROL / UDDMAnSTATUS)
 #define EP_OUT_DMA_INT_MASK	(AVR32_USBB_UDINT_DMA1INT_MASK << (UAC2_EP_AUDIO_OUT - 1))	// Same bit in UDINT, UDINTE, UDINTESET, UDINTECLR
 
@@ -387,11 +386,9 @@ void uac2_freq_change_handler() {
 // high-speed isochronous packet (PID not MDATA), so CHBYTELENGTH is only an upper limit. CHBYTELENGTH may
 // only be written while CHEN is 0, which it is after every transfer end and after ep_out_dma_stop()
 void ep_out_dma_arm(void) {
-	#ifdef EP_OUT_DMA_AUTOSW
-		// 20261030: experiment. Automatic bank switching may be what lets the DMA hand banks back by itself.
-		// Set on every arm: an endpoint reset (SET_INTERFACE) keeps only ALLOC, EPBK, EPSIZE, EPDIR, EPTYPE of UECFGn
-		Usb_enable_endpoint_bank_autoswitch(UAC2_EP_AUDIO_OUT);
-	#endif
+	// 20261101: automatic bank switching is required, without it the DMA never moves a byte (verified on the bench).
+	// Set on every arm: an endpoint reset (SET_INTERFACE) keeps only ALLOC, EPBK, EPSIZE, EPDIR, EPTYPE of UECFGn
+	Usb_enable_endpoint_bank_autoswitch(UAC2_EP_AUDIO_OUT);
 	AVR32_USBB_UDDMAX_addr(UAC2_EP_AUDIO_OUT) = (U32)ep_out_ram;
 	AVR32_USBB_UDDMAX_control(UAC2_EP_AUDIO_OUT) =
 		  ((U32)EP_OUT_RAM_BYTES << AVR32_USBB_UXDMAX_CONTROL_CH_BYTE_LENGTH_OFFSET)
@@ -429,7 +426,6 @@ void ep_out_dma_isr(void) {
 
 	ep_out_dma_flag = TRUE;
 }
-#endif
 
 
 //! @brief This function configures the endpoints of the device application.
@@ -466,26 +462,18 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 		// BSB 20120720 HID insert attempt end
 	}
 
-	// 20260922: verified safe with EP_AUDIO_OUT's receive interrupt permanently armed -
-	// this is now part of the primary build, not gated. NB: EP_AUDIO_OUT itself is a local
-	// const inside uac2_device_audio_task() and not visible here - UAC2_EP_AUDIO_OUT is the
-	// actual global constant it's assigned from.
-#ifdef FEATURE_EP_OUT_DMA
-	// 20261029: the USBB DMA channel copies each EP_AUDIO_OUT bank into ep_out_ram. No endpoint interrupt needed
+	// 20261029: the USBB DMA channel copies each EP_AUDIO_OUT bank into ep_out_ram. No endpoint interrupt needed.
+	// NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task(), UAC2_EP_AUDIO_OUT is the global it comes from
 	ep_out_dma_stop();
 	ep_out_dma_flag = FALSE;
 	ep_out_dma_arm();
-#else
-	// 20260925: both enable levels are needed - RXOUTE (endpoint) AND EPnINTE (device).
-	// EPnINTE was missing before, so the ISR never fired on EP traffic.
+	/* 20261101: legacy CPU-copy path, last present in commit fdb8ef6. Both enable levels were needed, RXOUTE and EPnINTE
 	usb_audio_out_received_flag = FALSE;
 	Usb_enable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
 	Usb_enable_endpoint_interrupt(UAC2_EP_AUDIO_OUT);
-#endif
+	*/
 
-	// One-time pin-mode setup for the PA22 scope signal toggled in
-	// usb_general_interrupt_non_naked() (usb_task.c) - a permanent indicator of actual
-	// EP_AUDIO_OUT reception timing, not gated behind a debug flag.
+	// Pin-mode setup for the PA22 scope signal, high while uac2_device_audio_task() processes one USB packet
 	gpio_enable_gpio_pin(AVR32_PIN_PA22);
 }
 

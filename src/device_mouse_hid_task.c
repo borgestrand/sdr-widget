@@ -660,8 +660,7 @@ Arash
 				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter >> 8);
 				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter);			// LSB
 
-				#ifdef FEATURE_EP_OUT_DMA
-					// 20261029: DMA stage 1 debug. Format: count length status NBUSYBK FIFOCON RXOUTI first-12-bytes
+					// 20261029: USB OUT DMA debug. Format: count length status NBUSYBK FIFOCON RXOUTI first-12-bytes
 					{
 						uint8_t k;
 						uint8_t *p = (uint8_t *)ep_out_ram;
@@ -690,11 +689,9 @@ Arash
 							print_dbg_char_hex(p[k]);
 						}
 					}
-				#endif
 				print_dbg_char('\n');
 			}
 
-			#ifdef FEATURE_EP_OUT_DMA
 				// 20261030: live snapshot of the EP_AUDIO_OUT DMA channel and endpoint registers, 32-bit hex each:
 				// DMA CONTROL, DMA ADDR (does it advance?), UDINTE, UDINT, UECFG2 (AUTOSW = bit 9), UESTA2, UECON2,
 				// DMA STATUS last, since reading it clears EOTSTA/EOCHBUFFSTA (may swallow one DMA interrupt)
@@ -720,7 +717,6 @@ Arash
 					}
 					print_dbg_char('\n');
 				}
-			#endif
 
 
 #endif // HW_GEN_SPRX

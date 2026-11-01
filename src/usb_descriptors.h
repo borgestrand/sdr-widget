@@ -494,6 +494,22 @@
 } //
 #else
 */
+// 20261101: the serial number carries the build date and time, YYYYMMDDHHMM followed by "BSB", generated from
+// BUILD_DATE and BUILD_HHMM_NUM passed by the Makefile. That identifies the build from the host (e.g. USBView,
+// lsusb -v, System Information) without a serial port. BUILD_HHMM_NUM is 1HHMM: the leading 1 keeps a time like
+// 0915 from being read as an (invalid) octal constant. Builds without these fall back to the fixed string below
+#if (defined BUILD_DATE) && (defined BUILD_HHMM_NUM)
+	#define USB_SN_DIGIT(n, p)	Usb_unicode('0' + (((n) / (p)) % 10))
+	#define USB_SN_LENGTH		15
+	#define USB_SERIAL_NUMBER {\
+		USB_SN_DIGIT(BUILD_DATE, 10000000), USB_SN_DIGIT(BUILD_DATE, 1000000), USB_SN_DIGIT(BUILD_DATE, 100000), \
+		USB_SN_DIGIT(BUILD_DATE, 10000), USB_SN_DIGIT(BUILD_DATE, 1000), USB_SN_DIGIT(BUILD_DATE, 100), \
+		USB_SN_DIGIT(BUILD_DATE, 10), USB_SN_DIGIT(BUILD_DATE, 1), \
+		USB_SN_DIGIT(BUILD_HHMM_NUM, 1000), USB_SN_DIGIT(BUILD_HHMM_NUM, 100), USB_SN_DIGIT(BUILD_HHMM_NUM, 10), \
+		USB_SN_DIGIT(BUILD_HHMM_NUM, 1), \
+		Usb_unicode('B'), Usb_unicode('S'), Usb_unicode('B') \
+	}
+#else
 #define USB_SN_LENGTH		13		// Encode the build date and user prefix
 #define USB_SERIAL_NUMBER \
 {\
@@ -511,7 +527,8 @@
   Usb_unicode('S'),\
   Usb_unicode('B') \
 }
-//#endif 
+#endif	// BUILD_DATE && BUILD_HHMM_NUM
+//#endif
 
 
 #define USB_CS1_LENGTH         7

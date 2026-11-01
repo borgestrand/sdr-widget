@@ -136,27 +136,26 @@ extern volatile S32 samples_per_package_max;
 // extern volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 
-// 20261021: RAM copy of one EP_AUDIO_OUT bank (max 512 bytes, Table 27-1). Step 1 of the DMA track:
-// the sequential code copies the bank here and parses from RAM. Later the USBB DMA fills it.
-// Cleared in mobo_clear_dac_channel() along with the other audio buffers
+// 20261021: RAM copy of one EP_AUDIO_OUT bank (max 512 bytes, Table 27-1).
+// 20261029: filled by the USBB DMA. Cleared in mobo_clear_dac_channel() along with the other audio buffers
 #define EP_OUT_RAM_BYTES	512
 extern U64 ep_out_ram[EP_OUT_RAM_BYTES / 8];
 
-#ifdef FEATURE_EP_OUT_DMA
-	// 20261029: stage 1 of the DMA track (method 2, one packet per buffer). The USBB DMA channel of EP_AUDIO_OUT
-	// copies each bank into ep_out_ram and frees the bank. The DMA-end interrupt sets ep_out_dma_flag and the length,
-	// the sequential code parses ep_out_ram and re-arms with ep_out_dma_arm(). Functions in uac2_usb_specific_request.c
-	extern volatile bool ep_out_dma_flag;		// Set by ep_out_dma_isr(), cleared by the consumer
-	extern volatile U16 ep_out_dma_len;			// Bytes in ep_out_ram
-	extern volatile U32 ep_out_dma_count;		// Debug: DMA-end interrupts
-	extern volatile U32 ep_out_dma_status;		// Debug: last UDDMAn STATUS
-	extern volatile U8 ep_out_dma_nbusybk;		// Debug: NBUSYBK right after DMA end. Should be 0 or 1 if the DMA frees the bank
-	extern volatile U8 ep_out_dma_fifocon;		// Debug: FIFOCON right after DMA end
-	extern volatile U8 ep_out_dma_rxouti;		// Debug: RXOUTI right after DMA end (not acked by software in stage 1)
-	void ep_out_dma_arm(void);
-	void ep_out_dma_stop(void);
-	void ep_out_dma_isr(void);
-#endif
+// 20261029: USB OUT reception by DMA (method 2, one packet per buffer so far). The USBB DMA channel of EP_AUDIO_OUT
+// copies each bank into ep_out_ram and frees the bank (needs UECFGn.AUTOSW). The DMA-end interrupt sets ep_out_dma_flag
+// and the length, the sequential code parses ep_out_ram and re-arms with ep_out_dma_arm(). Functions in
+// uac2_usb_specific_request.c. First music 20261101. The earlier CPU-copy path (RXOUTI interrupt, flag, FIFO reads)
+// is commented out below and in the files that used it; it was last present in commit fdb8ef6 (20261101)
+extern volatile bool ep_out_dma_flag;		// Set by ep_out_dma_isr(), cleared by the consumer
+extern volatile U16 ep_out_dma_len;			// Bytes in ep_out_ram
+extern volatile U32 ep_out_dma_count;		// Debug: DMA-end interrupts
+extern volatile U32 ep_out_dma_status;		// Debug: last UDDMAn STATUS
+extern volatile U8 ep_out_dma_nbusybk;		// Debug: NBUSYBK right after DMA end. 0 when the DMA freed the bank
+extern volatile U8 ep_out_dma_fifocon;		// Debug: FIFOCON right after DMA end
+extern volatile U8 ep_out_dma_rxouti;		// Debug: RXOUTI right after DMA end (never acked by software, harmless)
+void ep_out_dma_arm(void);
+void ep_out_dma_stop(void);
+void ep_out_dma_isr(void);
 extern volatile avr32_ssc_t *ssc;
 
 // ���� old buffer ids ripe for renaming or removal
@@ -180,38 +179,22 @@ extern volatile int dac_must_clear;	// uacX_device_audio_task.c must clear the c
 
 extern volatile U32 spk_usb_heart_beat, old_spk_usb_heart_beat;
 
-// 20260921: stage 1 of 8kHz USB packet rate bring-up - interrupt-driven EP_AUDIO_OUT
-// notification, replacing the polled Is_usb_out_received(EP_AUDIO_OUT) in
-// uac2_device_audio_task.c. Set (only) by usb_general_interrupt_non_naked() in usb_task.c,
-// after disabling the interrupt so it can't re-fire until the poller re-enables it post-
-// processing - that disable/enable pairing is what keeps this race-free with a single flag,
-// no two-way protocol needed. Cleared (only) by the poller. See the two call sites in
-// uac2_device_audio_task.c (the SPDIF/TOSLINK "empty round" and the main USB audio path).
+/* 20261101: legacy RXOUTI-interrupt flag of the CPU-copy path, last present in commit fdb8ef6 (20261101)
 extern volatile bool usb_audio_out_received_flag;
 #define isr_Is_usb_out_received(ep)          (usb_audio_out_received_flag)
 #define clear_isr_Is_usb_out_received_flag() (usb_audio_out_received_flag = FALSE)
+*/
 
-// 20261003: an endpoint reset (SET_INTERFACE, CLEAR_FEATURE HALT) clears UECONn.RXOUTE and the
-// endpoint's banks. Re-arm the EP_AUDIO_OUT interrupt and drop any stale flag right after such a reset,
-// or the poller never sees another packet and EP_AUDIO_OUT is never freed
-#ifdef FEATURE_EP_OUT_DMA
-	// 20261029: with DMA, an endpoint reset also leaves the DMA channel in an unknown state. Stop it, drop any
-	// stale flag and re-arm into ep_out_ram
-	#define EP_AUDIO_OUT_rearm_after_reset(ep) do { \
-		if ((ep) == UAC2_EP_AUDIO_OUT) { \
-			ep_out_dma_stop(); \
-			ep_out_dma_flag = FALSE; \
-			ep_out_dma_arm(); \
-		} \
-	} while (0)
-#else
+// 20261003: an endpoint reset (SET_INTERFACE, CLEAR_FEATURE HALT) resets the endpoint registers and banks.
+// 20261029: it also leaves the DMA channel in an unknown state. Stop it, drop any stale flag and re-arm into ep_out_ram,
+// or EP_AUDIO_OUT is never read again
 #define EP_AUDIO_OUT_rearm_after_reset(ep) do { \
 	if ((ep) == UAC2_EP_AUDIO_OUT) { \
-		usb_audio_out_received_flag = FALSE; \
-		Usb_enable_out_received_interrupt(ep); \
+		ep_out_dma_stop(); \
+		ep_out_dma_flag = FALSE; \
+		ep_out_dma_arm(); \
 	} \
 } while (0)
-#endif
 
 // 20260922: increments once per usb_general_interrupt_non_naked() firing on EP_AUDIO_OUT
 // reception (usb_task.c) - independent proof the ISR is actually running, separate from

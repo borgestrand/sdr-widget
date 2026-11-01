@@ -291,36 +291,26 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
 
 
 
-    // 20260922: EP_AUDIO_OUT's receive interrupt is armed unconditionally now (see
-    // uac2_usb_specific_request.c) - verified it can be enabled without disturbing USB
-    // playback. Its only job is this GPIO toggle - a permanent scope-visible indicator of
-    // actual EP_AUDIO_OUT reception timing (today ~4kHz, later ~8kHz), not gated behind a
-    // debug flag. Real handler logic (flag/DMA notification) comes back deliberately in a
-    // later, separate stage - this ISR does nothing else on purpose right now.
-    // NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task() and not visible
-    // here - UAC2_EP_AUDIO_OUT is the actual global constant it's assigned from.
-
-#ifdef FEATURE_EP_OUT_DMA
 	// 20261029: the DMA channel of EP_AUDIO_OUT finished one packet into ep_out_ram. The enable check keeps
-	// other USB events from entering here; ep_out_dma_isr() disables the interrupt until the consumer re-arms
+	// other USB events from entering here; ep_out_dma_isr() disables the interrupt until the consumer re-arms.
+	// NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task(), UAC2_EP_AUDIO_OUT is the global it comes from
 	if ( (AVR32_USBB_udint & (AVR32_USBB_UDINT_DMA1INT_MASK << (UAC2_EP_AUDIO_OUT - 1))) &&
 	     (AVR32_USBB_udinte & (AVR32_USBB_UDINTE_DMA1INTE_MASK << (UAC2_EP_AUDIO_OUT - 1))) )
 	{
 		ep_out_dma_isr();
 		EP_AUDIO_OUT_isr_counter++;
 	}
-#else
-	// 20260925: RXOUTI is level-sensitive, so mask it here; the poller re-enables it after
-	// Usb_ack_out_received_free(). The enable check keeps other USB events from re-setting the flag.
+
+	/* 20261101: legacy CPU-copy path, last present in commit fdb8ef6. RXOUTI is level-sensitive, so it was masked
+	   here and re-enabled by the poller after Usb_ack_out_received_free()
     if (Is_usb_out_received(UAC2_EP_AUDIO_OUT) &&
         Is_usb_out_received_interrupt_enabled(UAC2_EP_AUDIO_OUT))
 	{
 	    Usb_disable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
 	    usb_audio_out_received_flag = TRUE;
-//	    gpio_tgl_gpio_pin(AVR32_PIN_PA22);
 	    EP_AUDIO_OUT_isr_counter++;
     }
-#endif
+	*/
 
 
 

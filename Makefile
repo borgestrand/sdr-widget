@@ -8,12 +8,11 @@
 # -DFEATURE_PRODUCT_DA256		Henry Audio experimental product
 # -DFEATURE_PRODUCT_BOEC1		Boenicke experimental product
 # -DFEATURE_PRODUCT_OEM01		OEM product on SPRX rev. N: SPDIF0, TOSLINK0/1, AESEBU0, 8:1 S/PDIF mux, version ADC. Build with make clean audio-widget OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product"
-# -DFEATURE_PRODUCT_WFADC		Whisperfloor data collection device
+# -DFEATURE_PRODUCT_FMADC		Floormotion data collection device
 #
 # -DHW_GEN_AB1X					Pure USB DAC - all marketed Henry Audio / QNKTC hardware versions
-# -DHW_GEN_WFADC				Whisperfloor ADC data collection based on old USB module
+# -DHW_GEN_FMADC				Floormotion ADC data collection based on old USB module
 # -DHW_GEN_SPRX					Latest revision of SPDIF receiver
-# -DHW_GEN_SPRX_PATCH_01		Hardware development, simplification of RXmod_t1_A nr. 1 and 2. Possibly applicable to RXmod_T1_C boards as well
 # -DHW_GEN_SPRX_PATCH_02		Hardware development, RXmod_T1_C boards
 #
 # -DFEATURE_HID					USB HID functions AND debug development system - FIX: split them in two... 
@@ -23,7 +22,6 @@
 #
 # -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
 # -DFEATURE_SPDIF_CMD			Experimental disable state machine in SPDIF receiver code - only makes sense in SPRX context
-# -DFEATURE_EP_OUT_DMA			Experimental (20261029): USBB DMA copies EP_AUDIO_OUT packets into RAM. Debug readout with 'I'
 #
 # -DUSB_REDUCED_DEBUG			Reduce debug and use UART only for CPU communication
 # -DFEATURE_UNINVERT_LRCK		Reverse the effect of an inverted LRCK signal on the I2S output
@@ -56,7 +54,10 @@ BUILD_TZ := $(shell date '+%Z')
 BUILD_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo unknown)
 BUILD_DIRTY := $(shell git diff --quiet 2>/dev/null && git diff --cached --quiet 2>/dev/null && echo clean || echo dirty)
 
-BUILD_INFO_DEFS = -DBUILD_DATE=$(BUILD_DATE) -DBUILD_TIME=$(BUILD_TIME) -DBUILD_TZ=$(BUILD_TZ) -DBUILD_COMMIT=$(BUILD_COMMIT) -DBUILD_DIRTY=$(BUILD_DIRTY)
+BUILD_INFO_DEFS = -DBUILD_DATE=$(BUILD_DATE) -DBUILD_TIME=$(BUILD_TIME) -DBUILD_TZ=$(BUILD_TZ) -DBUILD_COMMIT=$(BUILD_COMMIT) -DBUILD_DIRTY=$(BUILD_DIRTY) \
+	-DBUILD_HHMM_NUM=1$(BUILD_TIME)
+# 20261101: BUILD_HHMM_NUM = 1HHMM for arithmetic use (USB serial number in usb_descriptors.h). The leading 1 keeps
+# a time like 0915 from being an invalid octal constant in C
 
 
 AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
@@ -74,13 +75,9 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_HID \
 	$(BUILD_INFO_DEFS) \
 	$(PRODUCT_NAMES_DEFS) \
-	\
 	-DFEATURE_PRODUCT_OEM01 \
 	-DFEATURE_ALT2_16BIT \
 	-DFEATURE_SPDIF_CMD \
-	-DUSB_PARSE_BYTES \
-	-DFEATURE_EP_OUT_DMA \
-	-DEP_OUT_DMA_AUTOSW \
 	-DHW_GEN_SPRX
 
 
