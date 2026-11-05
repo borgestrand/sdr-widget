@@ -31,6 +31,7 @@
 # -DI2S_POLARITY_CHECK			Output SDATA in phase with LRCK for debugging. It will override -DI2S_METADATA for paused content
 
 # -DINDICATE_EXTREME_SI			Indication of extreme skip/insert events
+# -DFEATURE_PRIME_CHECK			Bit-exact USB test: prints '<' or '>' when audio breaks the prime sequence of tools/make_test_wavs.py. Off at boot, debug command 'O' turns it on and off
 
 # PARTNAME=-mpart=uc3a3256
 # Use "prog128.bat". The command "prog.bat" has been updated to tell you it is obsolete
@@ -73,6 +74,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
 	-DUSB_STATE_MACHINE_GPIO \
 	-DFEATURE_HID \
+	-DFEATURE_PRIME_CHECK \
 	$(BUILD_INFO_DEFS) \
 	$(PRODUCT_NAMES_DEFS) \
 	-DFEATURE_PRODUCT_OEM01 \
@@ -84,7 +86,8 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 # 20261027: FEATURE_PRODUCT_OEM01 takes its USB manufacturer and product names from the make command line
 # only (not the environment), so they are never committed before launch:
 #   make clean audio-widget OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product"
-# make-names.sh turns them into src/product_names_local.h (ignored by git). Other products are unaffected
+# make-names.sh turns them into src/product_names_local.h, and after the build back into "Manufacturer" "Product",
+# so the header in git only holds generic names (20261105). Other products are unaffected
 ifneq (,$(findstring -DFEATURE_PRODUCT_OEM01,$(AUDIO_WIDGET_DEFAULTS)))
   ifneq ($(MAKECMDGOALS),clean)
     ifneq ($(origin OEM_MANUFACTURER),command line)
@@ -102,9 +105,12 @@ ifneq (,$(findstring -DFEATURE_PRODUCT_OEM01,$(AUDIO_WIDGET_DEFAULTS)))
   endif
   PRODUCT_NAMES_DEFS = -DPRODUCT_NAMES_LOCAL
   PRODUCT_NAMES_GEN = sh ./make-names.sh "$(OEM_MANUFACTURER)" "$(OEM_PRODUCT)" > src/product_names_local.h
+  # 20261105: src/product_names_local.h is in git. Reset it to generic names after the build, failed or not
+  PRODUCT_NAMES_RESET = sh ./make-names.sh "Manufacturer" "Product" > src/product_names_local.h
 else
   PRODUCT_NAMES_DEFS =
   PRODUCT_NAMES_GEN = true
+  PRODUCT_NAMES_RESET = true
 endif
 
 # Floormotion after "\"
@@ -156,14 +162,14 @@ endif
 audio-widget::
 	rm -f Release/widget.elf Release/src/features.o
 	$(PRODUCT_NAMES_GEN)
-	CFLAGS="$(AUDIO_WIDGET_DEFAULTS)" ASFLAGS="$(PARTNAME)" ./make-widget
+	CFLAGS="$(AUDIO_WIDGET_DEFAULTS)" ASFLAGS="$(PARTNAME)" ./make-widget; status=$$?; $(PRODUCT_NAMES_RESET); exit $$status
 
 # 20260915: 84MHz CPU clock bring-up for 384kHz UAC2 work. Same defaults as audio-widget,
 # plus FEATURE_84MHz. Source-verified, NOT yet bench-verified - see checklist.
 audio-widget-84mhz::
 	rm -f Release/widget.elf Release/src/features.o
 	$(PRODUCT_NAMES_GEN)
-	CFLAGS="$(AUDIO_WIDGET_DEFAULTS) -DFEATURE_84MHz" ASFLAGS="$(PARTNAME)" ./make-widget
+	CFLAGS="$(AUDIO_WIDGET_DEFAULTS) -DFEATURE_84MHz" ASFLAGS="$(PARTNAME)" ./make-widget; status=$$?; $(PRODUCT_NAMES_RESET); exit $$status
 
 clean::
 	rm -f widget-control widget-control.exe

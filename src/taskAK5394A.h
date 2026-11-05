@@ -153,6 +153,11 @@ extern volatile U32 ep_out_dma_status;		// Debug: last UDDMAn STATUS
 extern volatile U8 ep_out_dma_nbusybk;		// Debug: NBUSYBK right after DMA end. 0 when the DMA freed the bank
 extern volatile U8 ep_out_dma_fifocon;		// Debug: FIFOCON right after DMA end
 extern volatile U8 ep_out_dma_rxouti;		// Debug: RXOUTI right after DMA end (never acked by software, harmless)
+// 20261105: debug 'Z' sets this. The USB audio task then writes 0 into L and R of one frame of spk_buffer and clears it,
+// to show a known single-sample error on the scope
+extern volatile bool spk_zero_frame;
+// 20261105: debug 'O' turns the prime check on and off (FEATURE_PRIME_CHECK in uac2_device_audio_task.c). Off at boot
+extern volatile bool prime_check_on;
 void ep_out_dma_arm(void);
 void ep_out_dma_stop(void);
 void ep_out_dma_isr(void);

@@ -108,6 +108,8 @@ volatile U32 ep_out_dma_status = 0;
 volatile U8 ep_out_dma_nbusybk = 0;
 volatile U8 ep_out_dma_fifocon = 0;
 volatile U8 ep_out_dma_rxouti = 0;
+volatile bool spk_zero_frame = FALSE;		// 20261105: debug 'Z', see taskAK5394A.h
+volatile bool prime_check_on = FALSE;		// 20261105: debug 'O', see taskAK5394A.h
 
 #ifdef I2S_METADATA
 	volatile uint8_t i2s_meta_L = 0b10010000;	// Version 0 encoding for muted, no source

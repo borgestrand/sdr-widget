@@ -199,6 +199,25 @@ void uac2_device_audio_task(void *pvParameters)
 	Bool cache_holds_silence = TRUE;
 	uint16_t cache_silence_counter = 0;
 
+	#ifdef FEATURE_PRIME_CHECK
+		// 20261104: bit-exact test of the USB path. The test files from tools/make_test_wavs.py count each channel up by
+		// a fixed prime per frame, modulo 2^bits, starting at one prime. Any other step is reported with one character per
+		// packet, printed after the DMA re-arm: '<' when the first frame of a packet breaks (frames lost or repeated between
+		// packets), '>' when a break is inside a packet. All-zero frames are taken as silence and restart the check.
+		// File loops and track starts give one expected break each. Music gives breaks all the time, so the check is off
+		// by default. 20261105: debug command 'O' turns it on and off (prime_check_on), sampled once per packet.
+		// Keep these primes equal to those in tools/make_test_wavs.py
+		#define PRIME_L_16	251			// 8-bit primes for 16-bit audio: all bits move within ~260 frames
+		#define PRIME_R_16	241
+		#define PRIME_L_24	65521		// 16-bit and 17-bit primes for 24-bit audio: same pace as for 16-bit
+		#define PRIME_R_24	65537
+		static U32 prime_last_L = 0;	// Previous frame as assembled, left aligned in 32 bits
+		static U32 prime_last_R = 0;
+		static Bool prime_synced = FALSE;
+		char prime_break = 0;			// Character to report for this packet, 0 for none
+		Bool prime_active = FALSE;		// prime_check_on as sampled for this packet
+	#endif
+
 	// New code for adaptive USB fallback using skip / insert s/i
 	#define SI_PKG_RESOLUTION	1000 // 2000			// Apply 1/2 IIR filter. Resolution: once every 1000 packets at 250µs packet rate
 	#define SI_PKG_RESOLUTION_H	1100 // 2200			// Apply 1/1 IIR filter
@@ -559,6 +578,9 @@ void uac2_device_audio_task(void *pvParameters)
 //						old_gap = DAC_BUFFER_UNI / 2;		// Assumed and tested OK
 						usb_buffer_toggle = 0;				// BSB 20131201 Attempting improved playerstarted detection
 						dac_must_clear = DAC_READY;			// Prepare to send actual data to DAC interface
+						#ifdef FEATURE_PRIME_CHECK
+							prime_synced = FALSE;			// 20261104: a new stream may start anywhere in a test file
+						#endif
 
 // Moved to spk_index normalization after gap calculation
 // Updated skip/insert system init apply to spdif playback as well! That happens without Is_usb_out_received()
@@ -596,6 +618,14 @@ void uac2_device_audio_task(void *pvParameters)
 					// 20261021: evaluated once per packet instead of per sample (input_select is volatile)
 					const Bool usb_owns_cache = (input_select == MOBO_SRC_UAC2);
 
+					#ifdef FEATURE_PRIME_CHECK
+						prime_break = 0;
+						prime_active = prime_check_on;
+						if (!prime_active) {
+							prime_synced = FALSE;		// Turning the check on starts a fresh sequence
+						}
+					#endif
+
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 						temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_unified, cache_L and cache_R
 						for (i = 0; i < temp_num_samples; i++) {
@@ -615,6 +645,25 @@ void uac2_device_audio_task(void *pvParameters)
 							// Fetch the data in order to look for silence or store them to cache
 							sample_L = (((U32) (uint8_t)(usb_16_1 >> 8) ) << 24) + (((U32) (uint8_t)(usb_16_0) ) << 16) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 8); //  + sample_HSB; // bBitResolution
 							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
+
+							#ifdef FEATURE_PRIME_CHECK	// 24-bit samples sit in bits 31:8, so a step of one prime is (prime << 8)
+								if (!prime_active) {
+									// Check is off
+								}
+								else if ( (sample_L == 0) && (sample_R == 0) ) {
+									prime_synced = FALSE;
+								}
+								else {
+									if ( (prime_synced) && (prime_break == 0) &&
+										 ( ((U32)sample_L - prime_last_L != ((U32)PRIME_L_24 << 8)) ||
+										   ((U32)sample_R - prime_last_R != ((U32)PRIME_R_24 << 8)) ) ) {
+										prime_break = (i == 0) ? '<' : '>';
+									}
+									prime_last_L = (U32)sample_L;
+									prime_last_R = (U32)sample_R;
+									prime_synced = TRUE;
+								}
+							#endif
 
 							// Non-differential silence detector v.5, only fully parse non-zero packets
 							if (silence_det) {
@@ -710,6 +759,25 @@ void uac2_device_audio_task(void *pvParameters)
 								// Fetch the data in order to look for silence or store them to cache
 								sample_L = (((U32) (uint8_t)(usb_16_0) ) << 24) + (((U32) (uint8_t)(usb_16_0 >> 8) ) << 16);
 								sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
+
+								#ifdef FEATURE_PRIME_CHECK	// 16-bit samples sit in bits 31:16, so a step of one prime is (prime << 16)
+									if (!prime_active) {
+										// Check is off
+									}
+									else if ( (sample_L == 0) && (sample_R == 0) ) {
+										prime_synced = FALSE;
+									}
+									else {
+										if ( (prime_synced) && (prime_break == 0) &&
+											 ( ((U32)sample_L - prime_last_L != ((U32)PRIME_L_16 << 16)) ||
+											   ((U32)sample_R - prime_last_R != ((U32)PRIME_R_16 << 16)) ) ) {
+											prime_break = (i == 0) ? '<' : '>';
+										}
+										prime_last_L = (U32)sample_L;
+										prime_last_R = (U32)sample_R;
+										prime_synced = TRUE;
+									}
+								#endif
 
 								// Non-differential silence detector v.5, only fully parse non-zero packets
 								if (silence_det) {
@@ -877,6 +945,12 @@ void uac2_device_audio_task(void *pvParameters)
 					// Usb_ack_out_received_free(EP_AUDIO_OUT);			// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
 					// Usb_enable_out_received_interrupt(EP_AUDIO_OUT);
 					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling
+
+					#ifdef FEATURE_PRIME_CHECK
+						if (prime_break != 0) {				// 20261104: after the re-arm, so a waiting UART can't delay the DMA
+							print_dbg_char(prime_break);
+						}
+					#endif
 
 //					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
 					// mobodebug untested fix
@@ -1461,7 +1535,16 @@ void uac2_device_audio_task(void *pvParameters)
 
 				i++;
 			} // end while i - after skip/insert
-						
+
+			// 20261105: debug 'Z'. Write 0 into L and R of the last frame written above, once. The I2S DMA reads about
+			// half a buffer behind, so this frame hasn't been played yet
+			if (spk_zero_frame) {
+				S32 zero_index = (spk_index >= 2) ? (spk_index - 2) : (DAC_BUFFER_UNI - 2);
+				spk_buffer[zero_index] = 0;
+				spk_buffer[zero_index + 1] = 0;
+				spk_zero_frame = FALSE;
+			}
+
 			num_samples = 0; // Write is complete. Source must set it to > 0 for next write to spk_buffer_X to happen
 
 

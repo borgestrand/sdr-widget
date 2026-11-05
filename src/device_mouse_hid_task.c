@@ -718,6 +718,22 @@ Arash
 					print_dbg_char('\n');
 				}
 
+				// 20261105: one stereo frame of 0 in L and R during USB playback, a known single-sample error for the scope
+				else if (a == 'Z') {						// Uppercase Z - zero one frame, see spk_zero_frame in taskAK5394A.h
+					spk_zero_frame = TRUE;
+				}
+
+				// 20261105: prime check on/off. Replies 1 (on) or 0 (off). Needs a build with FEATURE_PRIME_CHECK
+				else if (a == 'O') {						// Uppercase O - toggle prime check, see prime_check_on in taskAK5394A.h
+					#ifdef FEATURE_PRIME_CHECK
+						prime_check_on = !prime_check_on;
+						print_dbg_char(prime_check_on ? '1' : '0');
+					#else
+						print_dbg_char('-');				// Not built in
+					#endif
+					print_dbg_char('\n');
+				}
+
 
 #endif // HW_GEN_SPRX
 
