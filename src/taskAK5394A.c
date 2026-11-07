@@ -110,6 +110,12 @@ volatile U8 ep_out_dma_fifocon = 0;
 volatile U8 ep_out_dma_rxouti = 0;
 volatile bool spk_zero_frame = FALSE;		// 20261105: debug 'Z', see taskAK5394A.h
 volatile bool prime_check_on = FALSE;		// 20261105: debug 'O', see taskAK5394A.h
+#ifdef FEATURE_PRIME_CHECK
+	volatile U32 prime_log[PRIME_LOG_EVENTS * PRIME_LOG_WORDS] =	// 20261106: prime break log, see taskAK5394A.h
+		{ [0 ... (PRIME_LOG_EVENTS * PRIME_LOG_WORDS - 1)] = 0xDEADBEEF };	// Unused (GCC range initializer)
+	volatile U8 prime_log_count = 0;
+	volatile bool prime_log_frozen = FALSE;
+#endif
 
 #ifdef I2S_METADATA
 	volatile uint8_t i2s_meta_L = 0b10010000;	// Version 0 encoding for muted, no source

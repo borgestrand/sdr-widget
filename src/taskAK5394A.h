@@ -158,6 +158,21 @@ extern volatile U8 ep_out_dma_rxouti;		// Debug: RXOUTI right after DMA end (nev
 extern volatile bool spk_zero_frame;
 // 20261105: debug 'O' turns the prime check on and off (FEATURE_PRIME_CHECK in uac2_device_audio_task.c). Off at boot
 extern volatile bool prime_check_on;
+#ifdef FEATURE_PRIME_CHECK
+	// 20261106: log of prime breaks, written by the USB audio task, printed and emptied by debug 'E'. The log fills up and
+	// then keeps its contents until printed. 'E' prints the whole log. Unused words hold DEADBEEF, at boot and after each 'E'.
+	// One record per break ('<' and '>' alike), PRIME_LOG_WORDS words, all hex in the 'E' dump:
+	// [0] FFFFFFFF marker. It is never a sample: 24-bit samples have bits 7:0 = 0, 16-bit samples bits 15:0 = 0
+	// [1] break character ('<' or '>') in bits 31:24, frame index in the packet in bits 23:16, packet length in bytes in bits 15:0
+	// [2] previous packet's length in bytes in bits 31:16, packets since the previous break in bits 15:0 (saturates at FFFF)
+	// [3] [4] previous frame L, R   [5] [6] the breaking frame L, R   [7] [8] next frame L, R (may be in the next packet)
+	// Samples are left aligned in 32 bits, as assembled from USB
+	#define PRIME_LOG_EVENTS	32
+	#define PRIME_LOG_WORDS		9
+	extern volatile U32 prime_log[PRIME_LOG_EVENTS * PRIME_LOG_WORDS];
+	extern volatile U8 prime_log_count;			// Complete records in prime_log
+	extern volatile bool prime_log_frozen;		// Set by 'E' while printing: no new records are started
+#endif
 void ep_out_dma_arm(void);
 void ep_out_dma_stop(void);
 void ep_out_dma_isr(void);

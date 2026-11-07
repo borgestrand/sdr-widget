@@ -107,6 +107,75 @@ static S16 old_gap = DAC_BUFFER_UNI / 2; // Assumed to be OK...
 
 static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 
+#ifdef FEATURE_PRIME_CHECK
+	// 20261104: bit-exact test of the USB path. The test files from tools/make_test_wavs.py count each channel up by
+	// a fixed prime per frame, modulo 2^bits, starting at one prime. Any other step is reported with one character per
+	// packet, printed after the DMA re-arm: '<' when the first frame of a packet breaks (frames lost or repeated between
+	// packets), '>' when a break is inside a packet. All-zero frames are taken as silence and restart the check.
+	// File loops and track starts give one expected break each. Music gives breaks all the time, so the check is off
+	// by default. 20261105: debug command 'O' turns it on and off (prime_check_on), sampled once per packet.
+	// 20261106: each break is also logged with its neighbour frames, see prime_log in taskAK5394A.h and debug 'E'.
+	// The check must match the player's output format (ALT setting), not the file: a mismatch gives '<' on every packet.
+	// Keep these primes equal to those in tools/make_test_wavs.py
+	#define PRIME_L_16	251			// 8-bit primes for 16-bit audio: all bits move within ~260 frames
+	#define PRIME_R_16	241
+	#define PRIME_L_24	65521		// 16-bit and 17-bit primes for 24-bit audio: same pace as for 16-bit
+	#define PRIME_R_24	65537
+
+	static U32 prime_last_L = 0;	// Previous frame as assembled, left aligned in 32 bits
+	static U32 prime_last_R = 0;
+	static Bool prime_synced = FALSE;
+	static char prime_break = 0;	// Character to report for this packet, 0 for none
+	static U16 prime_len = 0;		// This packet's length in bytes
+	static U16 prime_prev_len = 0;	// Previous packet's length in bytes
+	static U16 prime_packets = 0;	// Packets since the previous break, saturating
+	static Bool prime_log_pending = FALSE;	// A record waits for its next frame
+	static U8 prime_log_slot = 0;	// The record that waits
+
+	// Check one frame. step_L and step_R are the primes shifted to the sample's bit position
+	static void prime_check_frame(U32 sample_L, U32 sample_R, U32 step_L, U32 step_R, U8 i) {
+		volatile U32 *rec;
+
+		if (prime_log_pending) {	// This frame is the next frame of the last logged break
+			rec = &prime_log[prime_log_slot * PRIME_LOG_WORDS];
+			rec[7] = sample_L;
+			rec[8] = sample_R;
+			if (prime_log_count == prime_log_slot) {	// Not emptied by 'E' meanwhile: the record is complete
+				prime_log_count = prime_log_slot + 1;
+			}
+			prime_log_pending = FALSE;
+		}
+
+		if ( (sample_L == 0) && (sample_R == 0) ) {		// Silence restarts the check
+			prime_synced = FALSE;
+			return;
+		}
+
+		if ( (prime_synced) && (prime_break == 0) &&
+			 ( (sample_L - prime_last_L != step_L) || (sample_R - prime_last_R != step_R) ) ) {
+			prime_break = (i == 0) ? '<' : '>';
+
+			if ( (!prime_log_frozen) && (prime_log_count < PRIME_LOG_EVENTS) ) {	// Full log waits for 'E'
+				prime_log_slot = prime_log_count;
+				rec = &prime_log[prime_log_slot * PRIME_LOG_WORDS];
+				rec[0] = 0xFFFFFFFF;
+				rec[1] = ((U32)prime_break << 24) | ((U32)i << 16) | prime_len;
+				rec[2] = ((U32)prime_prev_len << 16) | prime_packets;
+				rec[3] = prime_last_L;
+				rec[4] = prime_last_R;
+				rec[5] = sample_L;
+				rec[6] = sample_R;
+				prime_log_pending = TRUE;			// Counted when the next frame arrives
+			}
+			prime_packets = 0;
+		}
+
+		prime_last_L = sample_L;
+		prime_last_R = sample_R;
+		prime_synced = TRUE;
+	}
+#endif
+
 //!
 //! @brief This function initializes the hardware/software resources
 //! required for device Audio task.
@@ -200,22 +269,7 @@ void uac2_device_audio_task(void *pvParameters)
 	uint16_t cache_silence_counter = 0;
 
 	#ifdef FEATURE_PRIME_CHECK
-		// 20261104: bit-exact test of the USB path. The test files from tools/make_test_wavs.py count each channel up by
-		// a fixed prime per frame, modulo 2^bits, starting at one prime. Any other step is reported with one character per
-		// packet, printed after the DMA re-arm: '<' when the first frame of a packet breaks (frames lost or repeated between
-		// packets), '>' when a break is inside a packet. All-zero frames are taken as silence and restart the check.
-		// File loops and track starts give one expected break each. Music gives breaks all the time, so the check is off
-		// by default. 20261105: debug command 'O' turns it on and off (prime_check_on), sampled once per packet.
-		// Keep these primes equal to those in tools/make_test_wavs.py
-		#define PRIME_L_16	251			// 8-bit primes for 16-bit audio: all bits move within ~260 frames
-		#define PRIME_R_16	241
-		#define PRIME_L_24	65521		// 16-bit and 17-bit primes for 24-bit audio: same pace as for 16-bit
-		#define PRIME_R_24	65537
-		static U32 prime_last_L = 0;	// Previous frame as assembled, left aligned in 32 bits
-		static U32 prime_last_R = 0;
-		static Bool prime_synced = FALSE;
-		char prime_break = 0;			// Character to report for this packet, 0 for none
-		Bool prime_active = FALSE;		// prime_check_on as sampled for this packet
+		Bool prime_active = FALSE;		// prime_check_on as sampled for this packet, see prime_check_frame()
 	#endif
 
 	// New code for adaptive USB fallback using skip / insert s/i
@@ -623,6 +677,12 @@ void uac2_device_audio_task(void *pvParameters)
 						prime_active = prime_check_on;
 						if (!prime_active) {
 							prime_synced = FALSE;		// Turning the check on starts a fresh sequence
+							prime_log_pending = FALSE;	// and drops a record that waits for its next frame
+						}
+						prime_prev_len = prime_len;
+						prime_len = ep_out_dma_len;
+						if (prime_packets < 0xFFFF) {
+							prime_packets++;
 						}
 					#endif
 
@@ -647,21 +707,8 @@ void uac2_device_audio_task(void *pvParameters)
 							sample_R = (((U32) (uint8_t)(usb_16_2) ) << 24) + (((U32) (uint8_t)(usb_16_2 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_1)) << 8); // + sample_HSB; // bBitResolution
 
 							#ifdef FEATURE_PRIME_CHECK	// 24-bit samples sit in bits 31:8, so a step of one prime is (prime << 8)
-								if (!prime_active) {
-									// Check is off
-								}
-								else if ( (sample_L == 0) && (sample_R == 0) ) {
-									prime_synced = FALSE;
-								}
-								else {
-									if ( (prime_synced) && (prime_break == 0) &&
-										 ( ((U32)sample_L - prime_last_L != ((U32)PRIME_L_24 << 8)) ||
-										   ((U32)sample_R - prime_last_R != ((U32)PRIME_R_24 << 8)) ) ) {
-										prime_break = (i == 0) ? '<' : '>';
-									}
-									prime_last_L = (U32)sample_L;
-									prime_last_R = (U32)sample_R;
-									prime_synced = TRUE;
+								if (prime_active) {
+									prime_check_frame((U32)sample_L, (U32)sample_R, (U32)PRIME_L_24 << 8, (U32)PRIME_R_24 << 8, i);
 								}
 							#endif
 
@@ -761,21 +808,8 @@ void uac2_device_audio_task(void *pvParameters)
 								sample_R = (((U32) (uint8_t)(usb_16_1)) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8)) << 16);
 
 								#ifdef FEATURE_PRIME_CHECK	// 16-bit samples sit in bits 31:16, so a step of one prime is (prime << 16)
-									if (!prime_active) {
-										// Check is off
-									}
-									else if ( (sample_L == 0) && (sample_R == 0) ) {
-										prime_synced = FALSE;
-									}
-									else {
-										if ( (prime_synced) && (prime_break == 0) &&
-											 ( ((U32)sample_L - prime_last_L != ((U32)PRIME_L_16 << 16)) ||
-											   ((U32)sample_R - prime_last_R != ((U32)PRIME_R_16 << 16)) ) ) {
-											prime_break = (i == 0) ? '<' : '>';
-										}
-										prime_last_L = (U32)sample_L;
-										prime_last_R = (U32)sample_R;
-										prime_synced = TRUE;
+									if (prime_active) {
+										prime_check_frame((U32)sample_L, (U32)sample_R, (U32)PRIME_L_16 << 16, (U32)PRIME_R_16 << 16, i);
 									}
 								#endif
 
@@ -1536,15 +1570,13 @@ void uac2_device_audio_task(void *pvParameters)
 				i++;
 			} // end while i - after skip/insert
 
-			// 20261105: debug 'Z'. Write 0 into L and R of the last frame written above, once. The I2S DMA reads about
-			// half a buffer behind, so this frame hasn't been played yet
-			if (spk_zero_frame) {
-				S32 zero_index = (spk_index >= 2) ? (spk_index - 2) : (DAC_BUFFER_UNI - 2);
-				spk_buffer[zero_index] = 0;
-				spk_buffer[zero_index + 1] = 0;
+			// 20261105: debug 'Z'. Write 0 into L and R of the last frame written to the ring buffer
+			if ( (spk_zero_frame) && (spk_index >= 2) ) {
+				spk_buffer[spk_index-2] = 0;
+				spk_buffer[spk_index-1] = 0;
 				spk_zero_frame = FALSE;
 			}
-
+			
 			num_samples = 0; // Write is complete. Source must set it to > 0 for next write to spk_buffer_X to happen
 
 

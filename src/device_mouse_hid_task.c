@@ -734,6 +734,33 @@ Arash
 					print_dbg_char('\n');
 				}
 
+				// 20261106: print and empty the prime break log, see prime_log in taskAK5394A.h. The whole log is printed,
+				// one record per line, unused words show DEADBEEF. One byte at a time with 2ms pauses, so the dump can't
+				// disturb playback. Each word is set to DEADBEEF once printed
+				else if (a == 'E') {						// Uppercase E - errors
+					#ifdef FEATURE_PRIME_CHECK
+						#define PRIME_LOG_PRINT_DELAY	20	// 2ms, in 100us RTOS ticks
+						uint16_t j;
+						int8_t b;
+
+						prime_log_frozen = TRUE;			// No new records while printing
+						print_dbg_char('\n');
+						for (j = 0; j < (PRIME_LOG_EVENTS * PRIME_LOG_WORDS); j++) {
+							for (b = 24; b >= 0; b -= 8) {
+								print_dbg_char_hex(prime_log[j] >> b);
+								vTaskDelay(PRIME_LOG_PRINT_DELAY);
+							}
+							prime_log[j] = 0xDEADBEEF;
+							print_dbg_char( ((j % PRIME_LOG_WORDS) == (PRIME_LOG_WORDS - 1)) ? '\n' : ' ' );
+						}
+						prime_log_count = 0;				// Empty, ready for new records
+						prime_log_frozen = FALSE;
+					#else
+						print_dbg_char('-');				// Not built in
+						print_dbg_char('\n');
+					#endif
+				}
+
 
 #endif // HW_GEN_SPRX
 
