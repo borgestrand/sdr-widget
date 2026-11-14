@@ -598,7 +598,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				if (ep_out_dma_flag) {				// 20261029: set by the DMA-end interrupt, ep_out_ram holds one packet
 					ep_out_dma_flag = FALSE;
-					// gpio_set_gpio_pin(AVR32_PIN_PA22);	// 20261021: start of sequential USB packet handling. 20261113: PA22 now follows the USB OUT DMA, see ep_out_dma_arm()
+					gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261021: start of sequential USB packet handling, for scope timing
 
 					temp_num_samples = ep_out_dma_len;		// Bytes, as Usb_byte_count() returned
 					uint16_t *ep_out_ptr = (uint16_t *)ep_out_ram;	// Parsed 16 bits at a time below, same byte order as the EP FIFO reads
@@ -1004,7 +1004,7 @@ void uac2_device_audio_task(void *pvParameters)
 					ep_out_dma_arm();						// 20261029: done with ep_out_ram, let the DMA take the next bank
 					// Usb_ack_out_received_free(EP_AUDIO_OUT);			// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
 					// Usb_enable_out_received_interrupt(EP_AUDIO_OUT);
-					// gpio_clr_gpio_pin(AVR32_PIN_PA22);	// 20261021: end of sequential USB packet handling. 20261113: see ep_out_dma_arm()
+					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling
 
 					#ifdef FEATURE_PRIME_CHECK
 						if (prime_break != 0) {				// 20261104: after the re-arm, so a waiting UART can't delay the DMA
@@ -1629,12 +1629,14 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 			#endif
 
-			// 20261105: debug 'Z'. Write 0 into L and R of the last frame written to the ring buffer
-			if ( (spk_zero_frame) && (spk_index >= 2) ) {
-				spk_buffer[spk_index-2] = 0;
-				spk_buffer[spk_index-1] = 0;
-				spk_zero_frame = FALSE;
-			}
+			#ifdef FEATURE_PRIME_CHECK
+				// 20261105: debug 'Z'. Write 0 into L and R of the last frame written to the ring buffer
+				if ( (spk_zero_frame) && (spk_index >= 2) ) {
+					spk_buffer[spk_index-2] = 0;
+					spk_buffer[spk_index-1] = 0;
+					spk_zero_frame = FALSE;
+				}
+			#endif
 			
 			num_samples = 0; // Write is complete. Source must set it to > 0 for next write to spk_buffer_X to happen
 

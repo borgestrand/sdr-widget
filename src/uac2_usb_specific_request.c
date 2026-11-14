@@ -396,7 +396,6 @@ void ep_out_dma_arm(void) {
 		| AVR32_USBB_UXDMAX_CONTROL_EOT_IRQ_EN_MASK				// Interrupt at end of USB transfer (normal case)
 		| AVR32_USBB_UXDMAX_CONTROL_EOBUFF_IRQ_EN_MASK			// Interrupt if ep_out_ram filled up (should never happen)
 		| AVR32_USBB_UXDMAX_CONTROL_CH_EN_MASK;					// Go. A bank that is already full starts the transfer at once
-	gpio_set_gpio_pin(AVR32_PIN_PA22);							// 20261113: scope signal, the DMA may move data from now on
 	AVR32_USBB_udinteset = EP_OUT_DMA_INT_MASK;					// Device-level DMA interrupt enable
 }
 
@@ -409,7 +408,6 @@ void ep_out_dma_stop(void) {
 	while ( (AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT) & (AVR32_USBB_UXDMAX_STATUS_CH_EN_MASK | AVR32_USBB_UXDMAX_STATUS_CH_ACTIVE_MASK))
 			&& (--timeout != 0) );
 	(void)AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT);			// Read clears EOTSTA, EOCHBUFFSTA, DESCLDSTA
-	gpio_clr_gpio_pin(AVR32_PIN_PA22);							// 20261113: scope signal, the channel is stopped
 }
 
 // Called from usb_general_interrupt_non_naked() (usb_task.c) when the DMA channel interrupt is pending and enabled
@@ -427,7 +425,6 @@ void ep_out_dma_isr(void) {
 	ep_out_dma_count++;
 
 	ep_out_dma_flag = TRUE;
-	gpio_clr_gpio_pin(AVR32_PIN_PA22);							// 20261113: scope signal, the DMA and its interrupt handling are done
 }
 
 
@@ -476,9 +473,8 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 	Usb_enable_endpoint_interrupt(UAC2_EP_AUDIO_OUT);
 	*/
 
-	// Pin-mode setup for the PA22 scope signal. 20261113: high from ep_out_dma_arm() until ep_out_dma_isr() is done, so the
-	// USB OUT DMA moves data somewhere inside the high time, and the falling edge marks the end of the DMA and its interrupt.
-	// It was high while uac2_device_audio_task() processed one USB packet
+	// Pin-mode setup for the PA22 scope signal, high while uac2_device_audio_task() processes one USB packet.
+	// 20261114: from bb2bcf1 it briefly followed the USB OUT DMA (ep_out_dma_arm() to the end of ep_out_dma_isr())
 	gpio_enable_gpio_pin(AVR32_PIN_PA22);
 }
 

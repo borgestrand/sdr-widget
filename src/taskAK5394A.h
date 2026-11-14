@@ -159,6 +159,9 @@ extern volatile U32 ep_out_dma_status;		// Debug: last UDDMAn STATUS
 extern volatile U8 ep_out_dma_nbusybk;		// Debug: NBUSYBK right after DMA end. 0 when the DMA freed the bank
 extern volatile U8 ep_out_dma_fifocon;		// Debug: FIFOCON right after DMA end
 extern volatile U8 ep_out_dma_rxouti;		// Debug: RXOUTI right after DMA end (never acked by software, harmless)
+#ifdef FEATURE_PRIME_CHECK
+// 20261114: all debug tools of the I2S zero-word hunt (Z, O, E, H, !) are built in with FEATURE_PRIME_CHECK only.
+// Without it, their commands reply '-'
 // 20261105: debug 'Z' sets this. The USB audio task then writes 0 into L and R of one frame of spk_buffer and clears it,
 // to show a known single-sample error on the scope
 extern volatile bool spk_zero_frame;
@@ -178,7 +181,6 @@ void hmatrix_i2s_priority(bool on);
 #define PRIME_MODE_CHECK	0x01
 #define PRIME_MODE_PULSE	0x02
 extern volatile U8 prime_mode;
-#ifdef FEATURE_PRIME_CHECK
 	// 20261106: log of prime breaks, written by the USB audio task, printed and emptied by debug 'E'. The log fills up and
 	// then keeps its contents until printed. 'E' prints the whole log. Unused words hold DEADBEEF, at boot and after each 'E'.
 	// One record per break ('<' and '>' alike), PRIME_LOG_WORDS words, all hex in the 'E' dump:

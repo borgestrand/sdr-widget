@@ -720,7 +720,12 @@ Arash
 
 				// 20261105: one stereo frame of 0 in L and R during USB playback, a known single-sample error for the scope
 				else if (a == 'Z') {						// Uppercase Z - zero one frame, see spk_zero_frame in taskAK5394A.h
-					spk_zero_frame = TRUE;
+					#ifdef FEATURE_PRIME_CHECK
+						spk_zero_frame = TRUE;
+					#else
+						print_dbg_char('-');				// Not built in
+						print_dbg_char('\n');
+					#endif
 				}
 
 				// 20261105: prime analysis mode. 20261113: steps 0 -> 1 -> 2 -> 3 -> 0 and replies with the new mode.
@@ -765,21 +770,25 @@ Arash
 				// 20261114: bus matrix priority for the I2S DMA on/off, see hmatrix_i2s_first in taskAK5394A.h. Replies 1 (on) or
 				// 0 (off), then the SRAM slave's SCFG and PRAS and the USB DMA's MCFG as read back, in hex
 				else if (a == 'H') {						// Uppercase H - HMATRIX
-					U32 hm[3];
-					uint8_t k;
-					int8_t b;
+					#ifdef FEATURE_PRIME_CHECK
+						U32 hm[3];
+						uint8_t k;
+						int8_t b;
 
-					hmatrix_i2s_priority(!hmatrix_i2s_first);
-					print_dbg_char(hmatrix_i2s_first ? '1' : '0');
-					hm[0] = AVR32_HMATRIX.scfg[AVR32_HMATRIX_SLAVE_SRAM];
-					hm[1] = AVR32_HMATRIX.prs[AVR32_HMATRIX_SLAVE_SRAM].pras;
-					hm[2] = AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_USBB_DMA];
-					for (k = 0; k < 3; k++) {
-						print_dbg_char(' ');
-						for (b = 24; b >= 0; b -= 8) {
-							print_dbg_char_hex(hm[k] >> b);
+						hmatrix_i2s_priority(!hmatrix_i2s_first);
+						print_dbg_char(hmatrix_i2s_first ? '1' : '0');
+						hm[0] = AVR32_HMATRIX.scfg[AVR32_HMATRIX_SLAVE_SRAM];
+						hm[1] = AVR32_HMATRIX.prs[AVR32_HMATRIX_SLAVE_SRAM].pras;
+						hm[2] = AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_USBB_DMA];
+						for (k = 0; k < 3; k++) {
+							print_dbg_char(' ');
+							for (b = 24; b >= 0; b -= 8) {
+								print_dbg_char_hex(hm[k] >> b);
+							}
 						}
-					}
+					#else
+						print_dbg_char('-');				// Not built in
+					#endif
 					print_dbg_char('\n');
 				}
 

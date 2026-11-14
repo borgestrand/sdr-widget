@@ -32,10 +32,12 @@
 
 # -DINDICATE_EXTREME_SI			Indication of extreme skip/insert events
 # -DFEATURE_PRIME_CHECK			Bit-exact USB test: prints '<' or '>' when audio breaks the prime sequence of tools/make_test_wavs.py. Off at boot, debug command 'O' turns it on and off
-# -DFEATURE_EP_OUT_HSBRAM		Experiment: USB OUT DMA buffer ep_out_ram in HSB SRAM bank 0 instead of the CPU SRAM that holds spk_buffer
+# -DFEATURE_EP_OUT_HSBRAM		USB OUT DMA buffer ep_out_ram in HSB SRAM bank 0 instead of the CPU SRAM that holds spk_buffer.
+#								20261114: in the defaults, it removed the I2S zero words on the bench (commit bb2bcf1)
 #
-# 20261114: EXPERIMENT on the make command line adds defines to any target, without editing this file, e.g.
-#   make clean audio-widget-84mhz OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product" EXPERIMENT=-DFEATURE_EP_OUT_HSBRAM
+# 20261114: EXPERIMENT on the make command line adds defines to any target, without editing this file. FEATURE_PRIME_CHECK
+# (all I2S debug tools: 'Z', 'O' modes, '!', 'E', 'H') is out of the defaults for listening tests. Build it in again with e.g.
+#   make clean audio-widget-84mhz OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product" EXPERIMENT=-DFEATURE_PRIME_CHECK
 
 # PARTNAME=-mpart=uc3a3256
 # Use "prog128.bat". The command "prog.bat" has been updated to tell you it is obsolete
@@ -78,7 +80,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_QUIRK_DEFAULT=feature_quirk_none \
 	-DUSB_STATE_MACHINE_GPIO \
 	-DFEATURE_HID \
-	-DFEATURE_PRIME_CHECK \
+	-DFEATURE_EP_OUT_HSBRAM \
 	$(BUILD_INFO_DEFS) \
 	$(PRODUCT_NAMES_DEFS) \
 	$(EXPERIMENT) \

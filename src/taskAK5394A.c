@@ -112,9 +112,9 @@ volatile U32 ep_out_dma_status = 0;
 volatile U8 ep_out_dma_nbusybk = 0;
 volatile U8 ep_out_dma_fifocon = 0;
 volatile U8 ep_out_dma_rxouti = 0;
-volatile bool spk_zero_frame = FALSE;		// 20261105: debug 'Z', see taskAK5394A.h
-volatile U8 prime_mode = 0;				// 20261105: debug 'O', see taskAK5394A.h
 #ifdef FEATURE_PRIME_CHECK
+	volatile bool spk_zero_frame = FALSE;	// 20261105: debug 'Z', see taskAK5394A.h
+	volatile U8 prime_mode = 0;				// 20261105: debug 'O', see taskAK5394A.h
 	volatile U32 prime_log[PRIME_LOG_EVENTS * PRIME_LOG_WORDS] =	// 20261106: prime break log, see taskAK5394A.h
 		{ [0 ... (PRIME_LOG_EVENTS * PRIME_LOG_WORDS - 1)] = 0xDEADBEEF };	// Unused (GCC range initializer)
 	volatile U8 prime_log_count = 0;
@@ -191,6 +191,7 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 }
 
 
+#ifdef FEATURE_PRIME_CHECK
 // 20261114: debug 'H', see taskAK5394A.h. Bus matrix settings that put the I2S DMA (PDCA) first
 volatile bool hmatrix_i2s_first = FALSE;
 static U32 hmatrix_boot_scfg[AVR32_HMATRIX_SLAVE_NUM];
@@ -231,6 +232,7 @@ void hmatrix_i2s_priority(bool on) {
 
 	hmatrix_i2s_first = on;
 }
+#endif
 
 
 #ifdef HW_GEN_SPRX
