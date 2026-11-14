@@ -100,7 +100,11 @@ volatile S32 samples_per_package_max = 0;
 // volatile S32 cache_L[SPK_CACHE_MAX_SAMPLES];	// This shouldn't need to be global, it only exists in uac2_dat2.c and whatever it calls
 // volatile S32 cache_R[SPK_CACHE_MAX_SAMPLES];
 volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
-U64 ep_out_ram[EP_OUT_RAM_BYTES / 8] __attribute__((aligned(8)));	// 20261021: RAM copy of one EP_AUDIO_OUT bank, see taskAK5394A.h
+#ifdef FEATURE_EP_OUT_HSBRAM
+	U64 * const ep_out_ram = (U64 *)AVR32_INTRAM0_ADDRESS;				// 20261114: HSB SRAM bank 0, see taskAK5394A.h
+#else
+	U64 ep_out_ram[EP_OUT_RAM_BYTES / 8] __attribute__((aligned(8)));	// 20261021: RAM copy of one EP_AUDIO_OUT bank, see taskAK5394A.h
+#endif
 volatile bool ep_out_dma_flag = FALSE;		// 20261029: USB OUT reception by DMA, see taskAK5394A.h
 volatile U16 ep_out_dma_len = 0;
 volatile U32 ep_out_dma_count = 0;
@@ -109,7 +113,7 @@ volatile U8 ep_out_dma_nbusybk = 0;
 volatile U8 ep_out_dma_fifocon = 0;
 volatile U8 ep_out_dma_rxouti = 0;
 volatile bool spk_zero_frame = FALSE;		// 20261105: debug 'Z', see taskAK5394A.h
-volatile bool prime_check_on = FALSE;		// 20261105: debug 'O', see taskAK5394A.h
+volatile U8 prime_mode = 0;				// 20261105: debug 'O', see taskAK5394A.h
 #ifdef FEATURE_PRIME_CHECK
 	volatile U32 prime_log[PRIME_LOG_EVENTS * PRIME_LOG_WORDS] =	// 20261106: prime break log, see taskAK5394A.h
 		{ [0 ... (PRIME_LOG_EVENTS * PRIME_LOG_WORDS - 1)] = 0xDEADBEEF };	// Unused (GCC range initializer)
@@ -184,6 +188,48 @@ __attribute__((__interrupt__)) static void spk_pdca_int_handler(void) {
 	// BSB 20131201 attempting improved playerstarted detection, FIX: move to seq. code!
 	if (usb_buffer_toggle < USB_BUFFER_TOGGLE_LIM)
 		usb_buffer_toggle++;
+}
+
+
+// 20261114: debug 'H', see taskAK5394A.h. Bus matrix settings that put the I2S DMA (PDCA) first
+volatile bool hmatrix_i2s_first = FALSE;
+static U32 hmatrix_boot_scfg[AVR32_HMATRIX_SLAVE_NUM];
+static U32 hmatrix_boot_pras[AVR32_HMATRIX_SLAVE_NUM];
+static U32 hmatrix_boot_mcfg_usb;
+static bool hmatrix_boot_saved = FALSE;
+
+void hmatrix_i2s_priority(bool on) {
+	U8 s;
+
+	if (!hmatrix_boot_saved) {			// Keep the values found at boot, to go back to
+		for (s = 0; s < AVR32_HMATRIX_SLAVE_NUM; s++) {
+			hmatrix_boot_scfg[s] = AVR32_HMATRIX.scfg[s];
+			hmatrix_boot_pras[s] = AVR32_HMATRIX.prs[s].pras;
+		}
+		hmatrix_boot_mcfg_usb = AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_USBB_DMA];
+		hmatrix_boot_saved = TRUE;
+	}
+
+	for (s = 0; s < AVR32_HMATRIX_SLAVE_NUM; s++) {
+		if (on) {						// Fixed priority, PDCA highest (3), all other masters 0. All slaves, to be sure to
+										// cover the SRAM that holds spk_buffer and the peripheral bus bridge to the SSC
+			AVR32_HMATRIX.prs[s].pras = (3UL << AVR32_HMATRIX_M3PR_OFFSET);
+			AVR32_HMATRIX.scfg[s] = hmatrix_boot_scfg[s] | AVR32_HMATRIX_ARBT_MASK;
+		}
+		else {
+			AVR32_HMATRIX.scfg[s] = hmatrix_boot_scfg[s];
+			AVR32_HMATRIX.prs[s].pras = hmatrix_boot_pras[s];
+		}
+	}
+
+	if (on) {							// The USB DMA re-arbitrates on every access instead of holding a slave for a burst
+		AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_USBB_DMA] = AVR32_HMATRIX_MCFG0_ULBT_SINGLE;
+	}
+	else {
+		AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_USBB_DMA] = hmatrix_boot_mcfg_usb;
+	}
+
+	hmatrix_i2s_first = on;
 }
 
 

@@ -270,6 +270,10 @@ int main(void)
 #endif
 
 
+#ifdef FEATURE_EP_OUT_HSBRAM
+	pm_enable_module(&AVR32_PM, AVR32_HRAMC0_CLK_HSB);		// 20261114: clock for HSB SRAM bank 0, which holds ep_out_ram
+#endif
+
 #ifdef HW_GEN_SPRX
 //	mobo_led_select(FREQ_44, input_select);					// Front RGB LED
 // print_dbg_char('j');

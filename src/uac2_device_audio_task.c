@@ -113,7 +113,9 @@ static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 	// packet, printed after the DMA re-arm: '<' when the first frame of a packet breaks (frames lost or repeated between
 	// packets), '>' when a break is inside a packet. All-zero frames are taken as silence and restart the check.
 	// File loops and track starts give one expected break each. Music gives breaks all the time, so the check is off
-	// by default. 20261105: debug command 'O' turns it on and off (prime_check_on), sampled once per packet.
+	// by default. 20261105: debug command 'O' turns it on and off (PRIME_MODE_CHECK in prime_mode), sampled once per packet.
+	// 20261113: 'O' also steps through the I2S pulse pattern (PRIME_MODE_PULSE), written over each USB frame right after
+	// the prime check in the parse below.
 	// 20261106: each break is also logged with its neighbour frames, see prime_log in taskAK5394A.h and debug 'E'.
 	// The check must match the player's output format (ALT setting), not the file: a mismatch gives '<' on every packet.
 	// Keep these primes equal to those in tools/make_test_wavs.py
@@ -269,7 +271,9 @@ void uac2_device_audio_task(void *pvParameters)
 	uint16_t cache_silence_counter = 0;
 
 	#ifdef FEATURE_PRIME_CHECK
-		Bool prime_active = FALSE;		// prime_check_on as sampled for this packet, see prime_check_frame()
+		Bool prime_active = FALSE;		// PRIME_MODE_CHECK as sampled for this packet, see prime_check_frame()
+		S32 pulse_word = 0;				// 20261113: I2S pulse pattern for this packet, 0 when off. See PRIME_MODE_PULSE in taskAK5394A.h
+		S32 ram_check_pos = -1;			// 20261114: next spk_buffer word for the RAM check, -1 when not running
 	#endif
 
 	// New code for adaptive USB fallback using skip / insert s/i
@@ -594,7 +598,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				if (ep_out_dma_flag) {				// 20261029: set by the DMA-end interrupt, ep_out_ram holds one packet
 					ep_out_dma_flag = FALSE;
-					gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261021: start of sequential USB packet handling, for scope timing
+					// gpio_set_gpio_pin(AVR32_PIN_PA22);	// 20261021: start of sequential USB packet handling. 20261113: PA22 now follows the USB OUT DMA, see ep_out_dma_arm()
 
 					temp_num_samples = ep_out_dma_len;		// Bytes, as Usb_byte_count() returned
 					uint16_t *ep_out_ptr = (uint16_t *)ep_out_ram;	// Parsed 16 bits at a time below, same byte order as the EP FIFO reads
@@ -674,7 +678,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 					#ifdef FEATURE_PRIME_CHECK
 						prime_break = 0;
-						prime_active = prime_check_on;
+						prime_active = ( (prime_mode & PRIME_MODE_CHECK) != 0 );
 						if (!prime_active) {
 							prime_synced = FALSE;		// Turning the check on starts a fresh sequence
 							prime_log_pending = FALSE;	// and drops a record that waits for its next frame
@@ -683,6 +687,20 @@ void uac2_device_audio_task(void *pvParameters)
 						prime_len = ep_out_dma_len;
 						if (prime_packets < 0xFFFF) {
 							prime_packets++;
+						}
+
+						// 20261113: I2S pulse pattern, chosen by sample rate for about 0.33us SDATA pulses at all rates
+						pulse_word = 0;
+						if (prime_mode & PRIME_MODE_PULSE) {
+							if (spk_current_freq.frequency < 60000) {
+								pulse_word = 0x55555555;		// 1-bit pulses at 44.1k and 48k
+							}
+							else if (spk_current_freq.frequency < 120000) {
+								pulse_word = 0x33333333;		// 2-bit pulses at 88.2k and 96k
+							}
+							else {
+								pulse_word = 0x0F0F0F0F;		// 4-bit pulses at 176.4k and 192k
+							}
 						}
 					#endif
 
@@ -709,6 +727,10 @@ void uac2_device_audio_task(void *pvParameters)
 							#ifdef FEATURE_PRIME_CHECK	// 24-bit samples sit in bits 31:8, so a step of one prime is (prime << 8)
 								if (prime_active) {
 									prime_check_frame((U32)sample_L, (U32)sample_R, (U32)PRIME_L_24 << 8, (U32)PRIME_R_24 << 8, i);
+								}
+								if (pulse_word != 0) {		// 20261113: after the prime check, which sees the real samples
+									sample_L = pulse_word;
+									sample_R = pulse_word;
 								}
 							#endif
 
@@ -810,6 +832,10 @@ void uac2_device_audio_task(void *pvParameters)
 								#ifdef FEATURE_PRIME_CHECK	// 16-bit samples sit in bits 31:16, so a step of one prime is (prime << 16)
 									if (prime_active) {
 										prime_check_frame((U32)sample_L, (U32)sample_R, (U32)PRIME_L_16 << 16, (U32)PRIME_R_16 << 16, i);
+									}
+									if (pulse_word != 0) {		// 20261113: after the prime check, which sees the real samples
+										sample_L = pulse_word;
+										sample_R = pulse_word;
 									}
 								#endif
 
@@ -978,7 +1004,7 @@ void uac2_device_audio_task(void *pvParameters)
 					ep_out_dma_arm();						// 20261029: done with ep_out_ram, let the DMA take the next bank
 					// Usb_ack_out_received_free(EP_AUDIO_OUT);			// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
 					// Usb_enable_out_received_interrupt(EP_AUDIO_OUT);
-					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling
+					// gpio_clr_gpio_pin(AVR32_PIN_PA22);	// 20261021: end of sequential USB packet handling. 20261113: see ep_out_dma_arm()
 
 					#ifdef FEATURE_PRIME_CHECK
 						if (prime_break != 0) {				// 20261104: after the re-arm, so a waiting UART can't delay the DMA
@@ -1569,6 +1595,39 @@ void uac2_device_audio_task(void *pvParameters)
 
 				i++;
 			} // end while i - after skip/insert
+
+			#ifdef FEATURE_PRIME_CHECK
+				// 20261114: RAM check of the I2S pulse pattern. Every spk_buffer word the I2S DMA has read since the last
+				// packet must hold the pattern. The writer is half a buffer ahead, so these words are still what the DMA sent.
+				// '!' for a packet with any other word: a zero here means software wrote it, a zero only on SDATA means the
+				// DMA or SSC dropped it. 'Z' gives one '!' half a buffer later. Old data gives '!' for one buffer lap after
+				// the mode is turned on
+				if ( (pulse_word != 0) && (input_select == MOBO_SRC_UAC2) ) {
+					S32 dma_pos = DAC_BUFFER_UNI - spk_pdca_channel->tcr;		// Next word the DMA reads
+					if (dma_pos >= DAC_BUFFER_UNI) {
+						dma_pos -= DAC_BUFFER_UNI;
+					}
+					Bool ram_bad = FALSE;
+					if (ram_check_pos >= 0) {
+						while (ram_check_pos != dma_pos) {
+							if (spk_buffer[ram_check_pos] != pulse_word) {
+								ram_bad = TRUE;
+							}
+							ram_check_pos++;
+							if (ram_check_pos >= DAC_BUFFER_UNI) {
+								ram_check_pos = 0;
+							}
+						}
+					}
+					ram_check_pos = dma_pos;
+					if (ram_bad) {
+						print_dbg_char('!');
+					}
+				}
+				else {
+					ram_check_pos = -1;
+				}
+			#endif
 
 			// 20261105: debug 'Z'. Write 0 into L and R of the last frame written to the ring buffer
 			if ( (spk_zero_frame) && (spk_index >= 2) ) {

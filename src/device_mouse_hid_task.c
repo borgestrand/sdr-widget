@@ -723,11 +723,12 @@ Arash
 					spk_zero_frame = TRUE;
 				}
 
-				// 20261105: prime check on/off. Replies 1 (on) or 0 (off). Needs a build with FEATURE_PRIME_CHECK
-				else if (a == 'O') {						// Uppercase O - toggle prime check, see prime_check_on in taskAK5394A.h
+				// 20261105: prime analysis mode. 20261113: steps 0 -> 1 -> 2 -> 3 -> 0 and replies with the new mode.
+				// 0 off, 1 prime check, 2 I2S pulse pattern, 3 both. Needs a build with FEATURE_PRIME_CHECK
+				else if (a == 'O') {						// Uppercase O - next prime mode, see prime_mode in taskAK5394A.h
 					#ifdef FEATURE_PRIME_CHECK
-						prime_check_on = !prime_check_on;
-						print_dbg_char(prime_check_on ? '1' : '0');
+						prime_mode = (prime_mode + 1) & (PRIME_MODE_CHECK | PRIME_MODE_PULSE);
+						print_dbg_char('0' + prime_mode);
 					#else
 						print_dbg_char('-');				// Not built in
 					#endif
@@ -759,6 +760,27 @@ Arash
 						print_dbg_char('-');				// Not built in
 						print_dbg_char('\n');
 					#endif
+				}
+
+				// 20261114: bus matrix priority for the I2S DMA on/off, see hmatrix_i2s_first in taskAK5394A.h. Replies 1 (on) or
+				// 0 (off), then the SRAM slave's SCFG and PRAS and the USB DMA's MCFG as read back, in hex
+				else if (a == 'H') {						// Uppercase H - HMATRIX
+					U32 hm[3];
+					uint8_t k;
+					int8_t b;
+
+					hmatrix_i2s_priority(!hmatrix_i2s_first);
+					print_dbg_char(hmatrix_i2s_first ? '1' : '0');
+					hm[0] = AVR32_HMATRIX.scfg[AVR32_HMATRIX_SLAVE_SRAM];
+					hm[1] = AVR32_HMATRIX.prs[AVR32_HMATRIX_SLAVE_SRAM].pras;
+					hm[2] = AVR32_HMATRIX.mcfg[AVR32_HMATRIX_MASTER_USBB_DMA];
+					for (k = 0; k < 3; k++) {
+						print_dbg_char(' ');
+						for (b = 24; b >= 0; b -= 8) {
+							print_dbg_char_hex(hm[k] >> b);
+						}
+					}
+					print_dbg_char('\n');
 				}
 
 

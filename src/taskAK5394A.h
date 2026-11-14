@@ -139,7 +139,13 @@ extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 // 20261021: RAM copy of one EP_AUDIO_OUT bank (max 512 bytes, Table 27-1).
 // 20261029: filled by the USBB DMA. Cleared in mobo_clear_dac_channel() along with the other audio buffers
 #define EP_OUT_RAM_BYTES	512
-extern U64 ep_out_ram[EP_OUT_RAM_BYTES / 8];
+#ifdef FEATURE_EP_OUT_HSBRAM
+	// 20261114: ep_out_ram at the start of HSB SRAM bank 0 (INTRAM0, its own bus matrix slave), so the USB DMA never meets
+	// the I2S DMA at the CPU SRAM that holds spk_buffer. Nothing else is placed there. The HRAMC0 clock is enabled in main()
+	extern U64 * const ep_out_ram;
+#else
+	extern U64 ep_out_ram[EP_OUT_RAM_BYTES / 8];
+#endif
 
 // 20261029: USB OUT reception by DMA (method 2, one packet per buffer so far). The USBB DMA channel of EP_AUDIO_OUT
 // copies each bank into ep_out_ram and frees the bank (needs UECFGn.AUTOSW). The DMA-end interrupt sets ep_out_dma_flag
@@ -156,8 +162,22 @@ extern volatile U8 ep_out_dma_rxouti;		// Debug: RXOUTI right after DMA end (nev
 // 20261105: debug 'Z' sets this. The USB audio task then writes 0 into L and R of one frame of spk_buffer and clears it,
 // to show a known single-sample error on the scope
 extern volatile bool spk_zero_frame;
-// 20261105: debug 'O' turns the prime check on and off (FEATURE_PRIME_CHECK in uac2_device_audio_task.c). Off at boot
-extern volatile bool prime_check_on;
+// 20261105: debug 'O' steps through the prime analysis modes (FEATURE_PRIME_CHECK in uac2_device_audio_task.c). 0 at boot.
+// 20261113: four modes, one bit per feature. 'O' steps 0 -> 1 -> 2 -> 3 -> 0 and prints the new mode
+//   PRIME_MODE_CHECK: the USB prime check, as before
+//   PRIME_MODE_PULSE: known I2S pulse width, USB playback only. The parse overwrites L and R of every USB frame with a
+//   fixed bit pattern, right after the prime check, chosen by sample rate so that SDATA pulses are about 0.33us wide at
+//   all rates: 0x55555555 (1 bit) at 44.1/48k, 0x33333333 (2 bits) at 88.2/96k, 0x0F0F0F0F (4 bits) at 176.4/192k.
+//   A zero word shows on the scope as SDATA low for 32 bit clocks. Debug 'Z' still zeros its frame. I2S metadata, if
+//   built in, still replaces bits 7:0
+// 20261114: debug 'H' turns the bus matrix priority for the I2S DMA on and off (hmatrix_i2s_priority() in taskAK5394A.c).
+// On: every bus matrix slave uses fixed priority with the PDCA highest, and the USB DMA re-arbitrates on every access
+// (ULBT single). Off: the values found before the first 'H'. Off at boot
+extern volatile bool hmatrix_i2s_first;
+void hmatrix_i2s_priority(bool on);
+#define PRIME_MODE_CHECK	0x01
+#define PRIME_MODE_PULSE	0x02
+extern volatile U8 prime_mode;
 #ifdef FEATURE_PRIME_CHECK
 	// 20261106: log of prime breaks, written by the USB audio task, printed and emptied by debug 'E'. The log fills up and
 	// then keeps its contents until printed. 'E' prints the whole log. Unused words hold DEADBEEF, at boot and after each 'E'.

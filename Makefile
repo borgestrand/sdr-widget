@@ -32,6 +32,10 @@
 
 # -DINDICATE_EXTREME_SI			Indication of extreme skip/insert events
 # -DFEATURE_PRIME_CHECK			Bit-exact USB test: prints '<' or '>' when audio breaks the prime sequence of tools/make_test_wavs.py. Off at boot, debug command 'O' turns it on and off
+# -DFEATURE_EP_OUT_HSBRAM		Experiment: USB OUT DMA buffer ep_out_ram in HSB SRAM bank 0 instead of the CPU SRAM that holds spk_buffer
+#
+# 20261114: EXPERIMENT on the make command line adds defines to any target, without editing this file, e.g.
+#   make clean audio-widget-84mhz OEM_MANUFACTURER="Manufacturer" OEM_PRODUCT="Product" EXPERIMENT=-DFEATURE_EP_OUT_HSBRAM
 
 # PARTNAME=-mpart=uc3a3256
 # Use "prog128.bat". The command "prog.bat" has been updated to tell you it is obsolete
@@ -77,6 +81,7 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DFEATURE_PRIME_CHECK \
 	$(BUILD_INFO_DEFS) \
 	$(PRODUCT_NAMES_DEFS) \
+	$(EXPERIMENT) \
 	-DFEATURE_PRODUCT_OEM01 \
 	-DFEATURE_ALT2_16BIT \
 	-DFEATURE_SPDIF_CMD \
