@@ -123,6 +123,8 @@ static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
 	#define PRIME_R_16	241
 	#define PRIME_L_24	65521		// 16-bit and 17-bit primes for 24-bit audio: same pace as for 16-bit
 	#define PRIME_R_24	65537
+	#define PRIME_L_32	16777213	// 20261114: 2^24-3 and 2^24+43 for 32-bit audio: the same pace again
+	#define PRIME_R_32	16777259
 
 	static U32 prime_last_L = 0;	// Previous frame as assembled, left aligned in 32 bits
 	static U32 prime_last_R = 0;
@@ -274,6 +276,15 @@ void uac2_device_audio_task(void *pvParameters)
 		Bool prime_active = FALSE;		// PRIME_MODE_CHECK as sampled for this packet, see prime_check_frame()
 		S32 pulse_word = 0;				// 20261113: I2S pulse pattern for this packet, 0 when off. See PRIME_MODE_PULSE in taskAK5394A.h
 		S32 ram_check_pos = -1;			// 20261114: next spk_buffer word for the RAM check, -1 when not running
+	#endif
+
+	#ifdef FEATURE_PULSING_ZERO_PAD
+		// 20261121: test build only (Makefile). The bits below the host's resolution are filled with the pulse pattern
+		// of this packet's rate instead of zeros: bits 15:0 at 16 bit, bits 7:0 at 24 bit, none at 32 bit. With
+		// tools/play_test.py signal 'pulse' the I2S word is then the whole pattern at any resolution, so a scope
+		// trigger on SDATA pulse width checks the whole chain from the host. Keep the words equal to PULSE_WORDS in
+		// tools/play_test.py. The fill comes after the prime check, which still sees the host's samples
+		S32 pad_word = 0;
 	#endif
 
 	// New code for adaptive USB fallback using skip / insert s/i
@@ -498,6 +509,7 @@ void uac2_device_audio_task(void *pvParameters)
 				Usb_ack_in_ready(EP_AUDIO_OUT_FB);	// acknowledge in ready
 				Usb_reset_endpoint_fifo_access(EP_AUDIO_OUT_FB);
 
+				#ifdef untested_legacy_uac2_fs_code		// 20261114, see uac2_usb_descriptors.h
 				if (Is_usb_full_speed_mode()) {
 					// FB rate is 3 bytes in 10.14 format
 
@@ -520,7 +532,9 @@ void uac2_device_audio_task(void *pvParameters)
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_SB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
 				}
-				else {
+				else
+				#endif // untested_legacy_uac2_fs_code
+				{
 					// HS mode
 					// HS mode, FB rate is 4 bytes in 16.16 format per 125µs.
 					// Internal format is 18.14 samples per 1µs = 16.16 per 250µs
@@ -620,6 +634,11 @@ void uac2_device_audio_task(void *pvParameters)
 							temp_num_samples = temp_num_samples / 4;
 						}
 					#endif
+					#ifdef FEATURE_ALT3_32BIT // 20261114: UAC2 ALT 3 for 32-bit audio
+						else if (usb_alternate_setting_out == ALT3_AS_INTERFACE_INDEX) { // Alternate 3 32 bits/sample, 8 bytes per stereo sample
+							temp_num_samples = temp_num_samples / 8;
+						}
+					#endif
 					else
 						temp_num_samples = 0;											// Should never get here...
 
@@ -704,6 +723,21 @@ void uac2_device_audio_task(void *pvParameters)
 						}
 					#endif
 
+					#ifdef FEATURE_PULSING_ZERO_PAD		// 20261121: pattern for this packet's rate, see pad_word above
+						if (spk_current_freq.frequency < 60000) {
+							pad_word = 0x55555555;			// 1-bit pulses at 44.1k and 48k
+						}
+						else if (spk_current_freq.frequency < 120000) {
+							pad_word = 0x33333333;			// 2-bit pulses at 88.2k and 96k
+						}
+						else if (spk_current_freq.frequency < 240000) {
+							pad_word = 0x0F0F0F0F;			// 4-bit pulses at 176.4k and 192k
+						}
+						else {
+							pad_word = 0x3FC03FC0;			// 8-bit pulses at 352.8k and 384k, off the byte boundaries
+						}
+					#endif
+
 					if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {		// Alternate 1 24 bits/sample, 8 bytes per stereo sample
 						temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_unified, cache_L and cache_R
 						for (i = 0; i < temp_num_samples; i++) {
@@ -732,6 +766,10 @@ void uac2_device_audio_task(void *pvParameters)
 									sample_L = pulse_word;
 									sample_R = pulse_word;
 								}
+							#endif
+							#ifdef FEATURE_PULSING_ZERO_PAD			// 20261121: fill bits 7:0, see pad_word
+								sample_L |= (pad_word & 0x000000FF);
+								sample_R |= (pad_word & 0x000000FF);
 							#endif
 
 							// Non-differential silence detector v.5, only fully parse non-zero packets
@@ -838,6 +876,10 @@ void uac2_device_audio_task(void *pvParameters)
 										sample_R = pulse_word;
 									}
 								#endif
+								#ifdef FEATURE_PULSING_ZERO_PAD			// 20261121: fill bits 15:0, see pad_word
+									sample_L |= (pad_word & 0x0000FFFF);
+									sample_R |= (pad_word & 0x0000FFFF);
+								#endif
 
 								// Non-differential silence detector v.5, only fully parse non-zero packets
 								if (silence_det) {
@@ -915,7 +957,97 @@ void uac2_device_audio_task(void *pvParameters)
 								} // End input_select == MOBO_SRC_UAC2
 							} // end for temp_num_samples
 						} // end if alt setting 2
-					#endif // UAC2 ALT 2 for 16-bit audio						
+					#endif // UAC2 ALT 2 for 16-bit audio
+
+					#ifdef FEATURE_ALT3_32BIT // 20261114: UAC2 ALT 3 for 32-bit audio
+						else if (usb_alternate_setting_out == ALT3_AS_INTERFACE_INDEX) {	// Alternate 3 32 bits/sample, 8 bytes per stereo sample
+							temp_num_samples = min(temp_num_samples, SPK_CACHE_MAX_SAMPLES);			// prevent overshoot of cache_unified
+							for (i = 0; i < temp_num_samples; i++) {
+								// Each sample is 4 bytes, LSB first. A 16-bit read gives the earlier byte in bits 15:8.
+								// usb_16_0 and usb_16_1 are reused for R once L is assembled, to keep the live variables down
+								usb_16_0 = *ep_out_ptr++;	// L LSB, L SB2
+								usb_16_1 = *ep_out_ptr++;	// L SB1, L MSB
+								sample_L = (((U32) (uint8_t)(usb_16_1) ) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_0) ) << 8) + ((U32) (uint8_t)(usb_16_0 >> 8));
+								usb_16_0 = *ep_out_ptr++;	// R LSB, R SB2
+								usb_16_1 = *ep_out_ptr++;	// R SB1, R MSB
+								sample_R = (((U32) (uint8_t)(usb_16_1) ) << 24) + (((U32) (uint8_t)(usb_16_1 >> 8) ) << 16) + (((U32) (uint8_t)(usb_16_0) ) << 8) + ((U32) (uint8_t)(usb_16_0 >> 8));
+
+								#ifdef FEATURE_PRIME_CHECK	// 32-bit samples use all bits, so a step of one prime is the prime itself
+									if (prime_active) {
+										prime_check_frame((U32)sample_L, (U32)sample_R, (U32)PRIME_L_32, (U32)PRIME_R_32, i);
+									}
+									if (pulse_word != 0) {		// After the prime check, which sees the real samples
+										sample_L = pulse_word;
+										sample_R = pulse_word;
+									}
+								#endif
+
+								// Non-differential silence detector v.5, only fully parse non-zero packets
+								if (silence_det) {
+									if (abs(sample_L) >= 0x00020000) {			// Greater than or equal to 2 16-bit LSBs
+										silence_det = FALSE;
+									}
+									else if (abs(sample_R) >= 0x00020000) {		// Greater than or equal to 2 16-bit LSBs
+										silence_det = FALSE;
+									}
+								}
+
+								if (usb_owns_cache) {					// Only write to cache with the right permissions! Only care with samples when we can put them somewhere
+									// Finding packet's point of lowest and highest "energy"
+									diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
+									diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
+
+									if (diff_sum < si_score_low) {
+										si_score_low = diff_sum;
+										temp_si_index_low = i;
+									}
+
+									if (diff_sum > temp_si_score_high) {
+										temp_si_score_high = diff_sum;
+									}
+
+									// Applying volume control to stored sample
+									#ifdef FEATURE_VOLUME_CTRL
+									if (usb_spk_mute != 0) {	// usb_spk_mute is heeded as part of volume control subsystem
+										prev_sample_L = 0;
+										prev_sample_R = 0;
+										#ifdef FEATURE_UNINVERT_LRCK
+											prev_prev_sample_L = 0;
+											prev_prev_sample_R = 0;
+										#endif
+									}
+									else {
+										if (spk_vol_mult_L != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+											prev_sample_L = (S32)( (int64_t)( (int64_t)(prev_sample_L) * (int64_t)spk_vol_mult_L ) >> VOL_MULT_SHIFT) ;
+										}
+										if (spk_vol_mult_R != VOL_MULT_UNITY) {	// Only touch gain-controlled samples
+											prev_sample_R = (S32)( (int64_t)( (int64_t)(prev_sample_R) * (int64_t)spk_vol_mult_R ) >> VOL_MULT_SHIFT) ;
+										}
+									}
+									#endif
+
+									#ifdef FEATURE_UNINVERT_LRCK
+										cache_unified[2*i] = prev_prev_sample_R;
+										cache_unified[2*i+1] = prev_sample_L;
+									#else
+										cache_unified[2*i] = prev_sample_L;
+										cache_unified[2*i+1] = prev_sample_R;
+									#endif
+
+									// Establish history
+									prev_sample_L = sample_L;
+									prev_sample_R = sample_R;
+
+									#ifdef FEATURE_UNINVERT_LRCK
+										prev_prev_sample_L = prev_sample_L;
+										prev_prev_sample_R = prev_sample_R;
+									#endif
+
+									prev_diff_value = diff_value;
+								} // End input_select == MOBO_SRC_UAC2
+							} // end for temp_num_samples
+						} // end if alt setting 3
+					#endif // UAC2 ALT 3 for 32-bit audio
 
 /*
 					// Potential replacement of above code: Non-differential silence detector v.5, only fully parse non-zero packets
@@ -1412,6 +1544,22 @@ void uac2_device_audio_task(void *pvParameters)
 							#ifdef HW_GEN_SPRX
 								mobo_led_select(spk_current_freq.frequency, input_select); // Not used in non-sprx hardware
 							#endif
+
+							// 20261114: the USB resolution after the sample rate digit (1-6), debug terminal only, so the
+							// protocol of an attached CPU is unchanged: ",16" ",24" ",32", or ",00" for an unknown ALT
+							U8 usb_bits = 0;
+							if (usb_alternate_setting_out == ALT1_AS_INTERFACE_INDEX) {
+								usb_bits = 24;
+							}
+							else if (usb_alternate_setting_out == ALT2_AS_INTERFACE_INDEX) {
+								usb_bits = 16;
+							}
+							else if (usb_alternate_setting_out == ALT3_AS_INTERFACE_INDEX) {
+								usb_bits = 32;
+							}
+							print_dbg_char(',');
+							print_dbg_char('0' + (usb_bits / 10));
+							print_dbg_char('0' + (usb_bits % 10));
 						}
 
 					must_init_xo = FALSE;

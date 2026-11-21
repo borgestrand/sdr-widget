@@ -30,6 +30,16 @@ Square files (scope test of the time domain):
   on the period boundary, so half level to half level is exactly the
   high or low count.
 
+Pulse files (scope test of the I2S output, 32-bit only, 20261114):
+  Every sample in L and R is one fixed word, chosen by rate so that SDATA
+  pulses are about 0.33 us wide at all rates: 0x55555555 (1-bit pulses) at
+  44.1/48k, 0x33333333 (2-bit) at 88.2/96k, 0x0F0F0F0F (4-bit) at
+  176.4/192k. A scope trigger on SDATA low for more than ~0.5 us then
+  catches any zero word. Play in the 32-bit ALT: at 16 or 24 bits the zero
+  low bits would break the pattern. These are the words of the firmware's
+  pulse mode ('O' mode 2, PRIME_MODE_PULSE). WARNING: a large DC level at
+  the DAC output. Amplifier off.
+
 Usage:
   python tools/make_test_wavs.py [output_dir]      (default: test_wavs)
 """
@@ -40,12 +50,17 @@ import struct
 import sys
 
 RATES = [44100, 48000, 88200, 96000, 176400, 192000]
-BITS = [16, 24]
+BITS = [16, 24, 32]
 
-# (L, R) per resolution. Keep equal to PRIME_*_16 and PRIME_*_24 in src/uac2_device_audio_task.c
-PRIMES = {16: (251, 241), 24: (65521, 65537)}
+# (L, R) per resolution. Keep equal to PRIME_*_16, PRIME_*_24 and PRIME_*_32 in src/uac2_device_audio_task.c
+# 32 bit (20261114): the largest prime below 2^24 and the smallest above, the same pace as the 24-bit pair
+PRIMES = {16: (251, 241), 24: (65521, 65537), 32: (16777213, 16777259)}
 
 PRIME_SECONDS = 20
+PULSE_SECONDS = 20
+# Keep equal to the pulse words in src/uac2_device_audio_task.c (PRIME_MODE_PULSE)
+PULSE_WORDS = {44100: 0x55555555, 48000: 0x55555555, 88200: 0x33333333, 96000: 0x33333333,
+               176400: 0x0F0F0F0F, 192000: 0x0F0F0F0F}
 SINE_SECONDS = 40
 SINE_L = (0.4, 0.1, 999.0)      # DC, amplitude, frequency, all relative to full scale
 SINE_R = (-0.7, 0.15, 1001.0)
@@ -69,7 +84,7 @@ def is_prime(n):
 
 
 def wav_header(rate, bits, frames):
-    """RIFF header for 2-channel PCM. 24-bit uses WAVE_FORMAT_EXTENSIBLE, as the spec asks for more than 16 bits."""
+    """RIFF header for 2-channel PCM. 24 and 32 bit use WAVE_FORMAT_EXTENSIBLE, as the spec asks for more than 16 bits."""
     channels = 2
     block = channels * bits // 8
     data_bytes = frames * block
@@ -157,6 +172,14 @@ def write_square(path, rate, bits):
         f.write(data)
 
 
+def write_pulse(path, rate):
+    word = PULSE_WORDS[rate].to_bytes(4, 'little')
+    frames = rate * PULSE_SECONDS
+    with open(path, 'wb') as f:
+        f.write(wav_header(rate, 32, frames))
+        f.write(word * (2 * frames))
+
+
 def main():
     out = sys.argv[1] if len(sys.argv) > 1 else 'test_wavs'
     os.makedirs(out, exist_ok=True)
@@ -180,6 +203,11 @@ def main():
             name = os.path.join(out, 'square_%02dbit_%d.wav' % (bits, rate))
             print(name)
             write_square(name, rate, bits)
+
+    for rate in RATES:
+        name = os.path.join(out, 'pulse_32bit_%d.wav' % rate)
+        print(name)
+        write_pulse(name, rate)
 
 
 if __name__ == '__main__':

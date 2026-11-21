@@ -161,6 +161,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 		0x00,0x77,0x01,0x00,	//96k Max
 		0x00,0x00,0x00,0x00,	// 0 Res
 	};
+	#ifdef untested_legacy_uac2_fs_code		// 20261114, see uac2_usb_descriptors.h
 	const U8 Speedx_fs[14] = {
 		0x01, 0x00, // Number of sample rate triplets with UAC2 over USB 1.1 (not very well tested!)
 
@@ -168,6 +169,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 		0x00,0x77,0x01,0x00,	//96k Max
 		0x00,0x00,0x00,0x00,	// 0 Res
 	};
+	#endif
 #else // Conventional sample rates for UAC2
 	const U8 Speedx_hs[74] = {
 		0x06, 0x00, // Number of sample rate tripl|ets with UAC2 over USB 2.0
@@ -197,6 +199,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 		0x00,0x00,0x00,0x00,	// 0 Res
 	};
 
+	#ifdef untested_legacy_uac2_fs_code		// 20261114, see uac2_usb_descriptors.h
 	const U8 Speedx_fs[26] = {
 		0x02, 0x00, // Number of sample rate triplets with UAC2 over USB 1.1 (not very well tested!)
 
@@ -208,6 +211,7 @@ void send_descriptor(U16 wLength, Bool zlp) {
 		0x80,0xbb,0x00,0x00,	//48k Max
 		0x00,0x00,0x00,0x00,	// 0 Res
 	};
+	#endif
 #endif // End of sample rate definitions for UAC2
 
 
@@ -432,6 +436,7 @@ void ep_out_dma_isr(void) {
 //! This function is called when the set configuration request has been received.
 //!
 void uac2_user_endpoint_init(U8 conf_nb) {
+#ifdef untested_legacy_uac2_fs_code		// 20261114, see uac2_usb_descriptors.h
 	if (Is_usb_full_speed_mode()) {
 		(void) Usb_configure_endpoint(UAC2_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_FS, DOUBLE_BANK, 0);
 		(void) Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_FS, DOUBLE_BANK, 0);
@@ -446,7 +451,10 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 //			(void) Usb_configure_endpoint(UAC2_EP_HID_RX, EP_ATTRIBUTES_5, DIRECTION_OUT, EP_SIZE_5_FS, SINGLE_BANK, 0);
 		#endif
 		// BSB 20120720 HID insert attempt end
-	} else {
+	} else
+#endif // untested_legacy_uac2_fs_code
+	{
+		// 20261114: EP_SIZE_2_HS (392) rounds up to a 512-byte bank, which also holds ALT3's 464-byte packets
 		(void) Usb_configure_endpoint(UAC2_EP_AUDIO_OUT_FB, EP_ATTRIBUTES_3, DIRECTION_IN, EP_SIZE_3_HS, DOUBLE_BANK, 0);
 		(void) Usb_configure_endpoint(UAC2_EP_AUDIO_OUT, EP_ATTRIBUTES_2, DIRECTION_OUT, EP_SIZE_2_HS, DOUBLE_BANK, 0);
 
@@ -523,11 +531,12 @@ static Bool uac2_user_get_interface_descriptor() {
 	case HID_DESCRIPTOR:
 
 		if (wInterface == DSC_INTERFACE_HID) {
-#if (USB_HIGH_SPEED_SUPPORT==DISABLED)
+#ifdef untested_legacy_uac2_fs_code		// 20261114, see uac2_usb_descriptors.h
+	#if (USB_HIGH_SPEED_SUPPORT==DISABLED)
 			data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
 			pbuffer = (const U8*)&uac2_usb_conf_desc_fs.hid;
 			break;
-#else
+	#else
 			if (Is_usb_full_speed_mode()) {
 				data_to_transfer = sizeof(uac2_usb_conf_desc_fs.hid);
 				pbuffer = (const U8*) &uac2_usb_conf_desc_fs.hid;
@@ -535,6 +544,11 @@ static Bool uac2_user_get_interface_descriptor() {
 				data_to_transfer = sizeof(uac2_usb_conf_desc_hs.hid);
 				pbuffer = (const U8*) &uac2_usb_conf_desc_hs.hid;
 			}
+			break;
+	#endif
+#else
+			data_to_transfer = sizeof(uac2_usb_conf_desc_hs.hid);
+			pbuffer = (const U8*) &uac2_usb_conf_desc_hs.hid;
 			break;
 #endif
 		}
@@ -939,12 +953,15 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
+						#ifdef untested_legacy_uac2_fs_code		// 20261114, see uac2_usb_descriptors.h
 						if (Is_usb_full_speed_mode()) { // UAC2 over USB 1.1 Not tested
 							data_to_transfer = sizeof(Speedx_fs);
 							pbuffer = (const U8*)Speedx_fs;
 							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 						}
-						else { // UAC2 over USB 2.0
+						else
+						#endif
+						{ // UAC2 over USB 2.0
 							data_to_transfer = sizeof(Speedx_hs);
 							pbuffer = (const U8*)Speedx_hs;
 							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
@@ -996,12 +1013,15 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						Usb_ack_setup_received_free();
 						Usb_reset_endpoint_fifo_access(EP_CONTROL);
 
+						#ifdef untested_legacy_uac2_fs_code		// 20261114, see uac2_usb_descriptors.h
 						if (Is_usb_full_speed_mode()) { // UAC2 over USB 1.1 Not tested
 							data_to_transfer = sizeof(Speedx_fs);
 							pbuffer = (const U8*)Speedx_fs;
 							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 						}
-						else { // UAC2 over USB 2.0
+						else
+						#endif
+						{ // UAC2 over USB 2.0
 							data_to_transfer = sizeof(Speedx_hs);
 							pbuffer = (const U8*)Speedx_hs;
 							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code

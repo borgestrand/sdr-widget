@@ -19,6 +19,8 @@
 # -DFEATURE_VOLUME_CTRL			Software volume control in DAC
 # -DFEATURE_CLOCK_SELECTOR		Clock selector, don't enable unless you wish to experiment with different clocks for ADC and DAC
 # -DFEATURE_ALT2_16BIT			UAC2 has both ALT1 (24 bit) and ALT2 (16 bit). Applies to both ADC and DAC code in UAC2. Does NOT! apply to UAC1
+# -DFEATURE_ALT3_32BIT			20261114: UAC2 ALT3 (32 bit) for USB playback, high speed only, needs FEATURE_ALT2_16BIT. Sets the PCM5142 to
+#								32-bit words. Left out with a warning when I2S_METADATA is on, see below
 #
 # -DFEATURE_ADC_EXPERIMENTAL	Experimental ADC support
 # -DFEATURE_SPDIF_CMD			Experimental disable state machine in SPDIF receiver code - only makes sense in SPRX context
@@ -34,6 +36,9 @@
 # -DFEATURE_PRIME_CHECK			Bit-exact USB test: prints '<' or '>' when audio breaks the prime sequence of tools/make_test_wavs.py. Off at boot, debug command 'O' turns it on and off
 # -DFEATURE_EP_OUT_HSBRAM		USB OUT DMA buffer ep_out_ram in HSB SRAM bank 0 instead of the CPU SRAM that holds spk_buffer.
 #								20261114: in the defaults, it removed the I2S zero words on the bench (commit bb2bcf1)
+# -DFEATURE_PULSING_ZERO_PAD			20261121: TEST BUILDS ONLY. USB samples get the pulse pattern of their rate in the bits below the host's
+#								resolution instead of zeros (bits 15:0 at 16 bit, 7:0 at 24 bit), for tools/play_test.py signal 'pulse'
+#								and the scope. Not bit-exact for music: take it out of the defaults for listening and release builds
 #
 # 20261114: EXPERIMENT on the make command line adds defines to any target, without editing this file. FEATURE_PRIME_CHECK
 # (all I2S debug tools: 'Z', 'O' modes, '!', 'E', 'H') is out of the defaults for listening tests. Build it in again with e.g.
@@ -81,11 +86,13 @@ AUDIO_WIDGET_DEFAULTS=$(PARTNAME)\
 	-DUSB_STATE_MACHINE_GPIO \
 	-DFEATURE_HID \
 	-DFEATURE_EP_OUT_HSBRAM \
+	-DFEATURE_PULSING_ZERO_PAD \
 	$(BUILD_INFO_DEFS) \
 	$(PRODUCT_NAMES_DEFS) \
 	$(EXPERIMENT) \
 	-DFEATURE_PRODUCT_OEM01 \
 	-DFEATURE_ALT2_16BIT \
+	-DFEATURE_ALT3_32BIT \
 	-DFEATURE_SPDIF_CMD \
 	-DHW_GEN_SPRX
 
@@ -118,6 +125,23 @@ else
   PRODUCT_NAMES_DEFS =
   PRODUCT_NAMES_GEN = true
   PRODUCT_NAMES_RESET = true
+endif
+
+# 20261114: I2S metadata uses bits 7:0 of every sample, so a 32-bit USB ALT can't be built with it. Drop
+# FEATURE_ALT3_32BIT from the defaults and from EXPERIMENT, with one warning per build. I2S metadata is only kept
+# for the Boenicke firmware, which may come back one day
+ifneq (,$(findstring -DI2S_METADATA,$(AUDIO_WIDGET_DEFAULTS) $(EXPERIMENT)))
+  ifneq (,$(findstring -DFEATURE_ALT3_32BIT,$(AUDIO_WIDGET_DEFAULTS) $(EXPERIMENT)))
+    $(warning FEATURE_ALT3_32BIT is left out of this build: I2S_METADATA uses bits 7:0 of every sample)
+    AUDIO_WIDGET_DEFAULTS := $(filter-out -DFEATURE_ALT3_32BIT,$(AUDIO_WIDGET_DEFAULTS))
+    override EXPERIMENT := $(filter-out -DFEATURE_ALT3_32BIT,$(EXPERIMENT))
+  endif
+  # 20261121: the same goes for the test fill of the low bits
+  ifneq (,$(findstring -DFEATURE_PULSING_ZERO_PAD,$(AUDIO_WIDGET_DEFAULTS) $(EXPERIMENT)))
+    $(warning FEATURE_PULSING_ZERO_PAD is left out of this build: I2S_METADATA uses bits 7:0 of every sample)
+    AUDIO_WIDGET_DEFAULTS := $(filter-out -DFEATURE_PULSING_ZERO_PAD,$(AUDIO_WIDGET_DEFAULTS))
+    override EXPERIMENT := $(filter-out -DFEATURE_PULSING_ZERO_PAD,$(EXPERIMENT))
+  endif
 endif
 
 # Floormotion after "\"

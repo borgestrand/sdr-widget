@@ -102,6 +102,8 @@ const S_usb_device_descriptor uac2_audio_usb_dev_desc =
   NB_CONFIGURATION
 };
 
+// 20261114: UAC2 at full speed was never properly tested, see uac2_usb_descriptors.h
+#ifdef untested_legacy_uac2_fs_code
 // usb_user_configuration_descriptor FS
 #ifndef UAC2_CONF_DESC_WRITABLE
 const
@@ -595,6 +597,7 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs =
 #endif
 // BSB 20120720 Insert EP 4 and 5, HID TX and RX end
 };
+#endif // untested_legacy_uac2_fs_code
 
 
 #if (USB_HIGH_SPEED_SUPPORT==ENABLED)
@@ -1046,6 +1049,66 @@ S_usb_user_configuration_descriptor uac2_usb_conf_desc_hs =
 		,
 
 #endif // ALT 2 mic
+
+  // 20261114: speaker ALT3 is for 32-bit audio streaming, otherwise identical to ALT1 except for wMaxPacketSize
+#ifdef FEATURE_ALT3_32BIT
+      {  sizeof(S_usb_as_interface_descriptor)
+      ,  INTERFACE_DESCRIPTOR
+      ,  STD_AS_INTERFACE_OUT
+      ,  ALT3_AS_INTERFACE_INDEX
+      ,  ALT3_AS_NB_ENDPOINT_OUT
+      ,  ALT3_AS_INTERFACE_CLASS
+      ,  ALT3_AS_INTERFACE_SUB_CLASS
+      ,  ALT3_AS_INTERFACE_PROTOCOL
+      ,  0x00
+      }
+   ,
+      {  sizeof(S_usb_as_g_interface_descriptor_2)
+      ,  CS_INTERFACE
+      ,  GENERAL_SUB_TYPE
+      ,  SPK_INPUT_TERMINAL_ID
+      ,  AS_CONTROLS
+      ,  AS_FORMAT_TYPE
+      ,  Usb_format_mcu_to_usb_data(32, AS_FORMATS)
+      ,  AS_NB_CHANNELS
+      ,  Usb_format_mcu_to_usb_data(32, AS_CHAN_CONFIG)
+      ,  SPK_INPUT_TERMINAL_CH_NAME_ID
+      }
+   ,
+      {  sizeof(S_usb_format_type_2)
+      ,  CS_INTERFACE
+      ,  FORMAT_SUB_TYPE
+      ,  FORMAT_TYPE_3
+      ,  FORMAT_SUBSLOT_SIZE_3
+      ,  FORMAT_BIT_RESOLUTION_3
+      }
+   ,
+      {   sizeof(S_usb_endpoint_audio_descriptor_2)
+      ,   ENDPOINT_DESCRIPTOR
+      ,   ENDPOINT_NB_2
+      ,   EP_ATTRIBUTES_2
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_2_HS_ALT3)
+      ,   EP_INTERVAL_2_HS
+      }
+   ,
+      {  sizeof(S_usb_endpoint_audio_specific_2)
+      ,  CS_ENDPOINT
+      ,  GENERAL_SUB_TYPE
+      ,  AUDIO_EP_ATRIBUTES
+      ,  AUDIO_EP_CONTROLS
+      ,  AUDIO_EP_DELAY_UNIT
+      ,  Usb_format_mcu_to_usb_data(16, AUDIO_EP_LOCK_DELAY)
+      }
+   ,
+      {   sizeof(S_usb_endpoint_audio_descriptor_2)
+      ,   ENDPOINT_DESCRIPTOR
+      ,   ENDPOINT_NB_3
+      ,   EP_ATTRIBUTES_3
+      ,   Usb_format_mcu_to_usb_data(16, EP_SIZE_3_HS)
+      ,   EP_INTERVAL_3_HS
+      }
+   ,
+#endif // ALT 3
 // End of audio streaming interface and its ALTs 
 
 // BSB 20120720 Insert EP 4 and 5, HID TX and RX begin
@@ -1116,8 +1179,10 @@ const S_usb_device_qualifier_descriptor uac2_usb_qualifier_desc =
 // 20261010: set the advertised power mode. Call before connecting a USB plug; the host reads
 // the configuration descriptor during the enumeration that follows
 void uac2_conf_desc_set_power(uint8_t self_powered) {
-	uac2_usb_conf_desc_fs.cfg.bmAttributes = (self_powered) ? USB_CONFIG_SELFPOWERED : USB_CONFIG_BUSPOWERED;
-	uac2_usb_conf_desc_fs.cfg.MaxPower = (self_powered) ? MAX_POWER_SELF : MAX_POWER;
+	#ifdef untested_legacy_uac2_fs_code
+		uac2_usb_conf_desc_fs.cfg.bmAttributes = (self_powered) ? USB_CONFIG_SELFPOWERED : USB_CONFIG_BUSPOWERED;
+		uac2_usb_conf_desc_fs.cfg.MaxPower = (self_powered) ? MAX_POWER_SELF : MAX_POWER;
+	#endif
 	#if USB_HIGH_SPEED_SUPPORT==ENABLED
 		uac2_usb_conf_desc_hs.cfg.bmAttributes = (self_powered) ? USB_CONFIG_SELFPOWERED : USB_CONFIG_BUSPOWERED;
 		uac2_usb_conf_desc_hs.cfg.MaxPower = (self_powered) ? MAX_POWER_SELF : MAX_POWER;

@@ -180,6 +180,11 @@
 #define EP_SIZE_2_HS        			EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2_FS				0x01			 // one packet per frame
 #define EP_INTERVAL_2_HS    			0x02			 // One packet per 2 uframe
+// 20261114: wMaxPacketSize of ALT3 (32 bit). 192k at one packet per 250us is 48 frames * 8 = 384 bytes, plus about
+// 20% for the host's rate adjustments: 58 frames * 8 = 464 bytes. The hardware bank is 512 bytes (EP_SIZE_2_HS rounds
+// up to a power of 2), and so is ep_out_ram. The same 464 bytes covers 384k at one packet per 125us
+#define EP_OUT_LENGTH_2_HS_ALT3			464
+#define EP_SIZE_2_HS_ALT3				EP_OUT_LENGTH_2_HS_ALT3
 
 // USB Endpoint 3 descriptor
 #define ENDPOINT_NB_3       			( UAC2_EP_AUDIO_OUT_FB | MSK_EP_DIR )		// 0x81
@@ -317,6 +322,24 @@
 #define ALT2_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streaming sub class
 #define ALT2_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
 
+// 20261114: Alternate 3 Audio Streaming (AS) interface descriptor, 32-bit audio. Speaker (USB OUT) only, high speed only.
+// The Makefile drops FEATURE_ALT3_32BIT with a warning when I2S_METADATA is on. These checks catch other builds
+#ifdef FEATURE_ALT3_32BIT
+	#ifdef I2S_METADATA
+		#error "FEATURE_ALT3_32BIT can't be built with I2S_METADATA: metadata uses bits 7:0 of every sample"
+	#endif
+	#ifndef FEATURE_ALT2_16BIT
+		#error "FEATURE_ALT3_32BIT needs FEATURE_ALT2_16BIT: alternate settings must be numbered without gaps"
+	#endif
+	#ifdef untested_legacy_uac2_fs_code
+		#error "FEATURE_ALT3_32BIT has no full-speed descriptor: build without untested_legacy_uac2_fs_code"
+	#endif
+#endif
+#define ALT3_AS_INTERFACE_INDEX			0x03   // Index of Std AS interface Alt3
+#define ALT3_AS_INTERFACE_CLASS			0x01   // Audio class
+#define ALT3_AS_INTERFACE_SUB_CLASS 	0x02   // Audio streaming sub class
+#define ALT3_AS_INTERFACE_PROTOCOL		IP_VERSION_02_00
+
 //Class Specific AS (general) Interface descriptor
 #define AS_TERMINAL_LINK				OUTPUT_TERMINAL_ID		// Unit Id of the output terminal
 #define AS_DELAY						0x01		// Interface delay
@@ -336,6 +359,11 @@
 #define FORMAT_SUBSLOT_SIZE_2			0x02	// Number of bytes per subslot
 #define FORMAT_BIT_RESOLUTION_2			0x10	// 16 bits per sample
 
+// 20261114: format type for ALT3
+#define FORMAT_TYPE_3					0x01	// Format TypeI
+#define FORMAT_SUBSLOT_SIZE_3			0x04	// Number of bytes per subslot
+#define FORMAT_BIT_RESOLUTION_3			0x20	// 32 bits per sample
+
 //Audio endpoint specific descriptor field
 #define AUDIO_EP_ATRIBUTES				0b00000000	 	// No sampling freq, no pitch, no pading
 #define AUDIO_EP_CONTROLS				0b00000000
@@ -345,6 +373,7 @@
 //For playback
 #define ALT1_AS_NB_ENDPOINT_OUT			0x02   // two EP,  OUT and OUT_FB
 #define ALT2_AS_NB_ENDPOINT_OUT			0x02   // two EP,  OUT and OUT_FB
+#define ALT3_AS_NB_ENDPOINT_OUT			0x02   // two EP,  OUT and OUT_FB
 #define AS_TERMINAL_LINK_OUT		    SPK_INPUT_TERMINAL_ID
 
 //! Usb Class-Specific AS Isochronous Feedback Endpoint Descriptors pp 4.10.2.2 (none)
@@ -428,6 +457,16 @@ __attribute__((__packed__))
 		S_usb_endpoint_audio_descriptor_2 	ep3_alt2;
 	#endif // Spk ALT 2
 
+	// 20261114: speaker alt3 for 32-bit audio streaming
+	#ifdef FEATURE_ALT3_32BIT
+		S_usb_as_interface_descriptor	 	spk_as_alt3;
+		S_usb_as_g_interface_descriptor_2	spk_g_as_alt3;
+		S_usb_format_type_2					spk_format_type_alt3;
+		S_usb_endpoint_audio_descriptor_2 	ep2_alt3;
+		S_usb_endpoint_audio_specific_2		ep2_s_alt3;
+		S_usb_endpoint_audio_descriptor_2 	ep3_alt3;
+	#endif // Spk ALT 3
+
 	// BSB 20120720 Added, reduced to ONE TX endpoint
 #ifdef FEATURE_HID
 	S_usb_interface_descriptor				ifc3;
@@ -442,10 +481,14 @@ S_usb_user_configuration_descriptor;
 
 extern const S_usb_device_descriptor uac2_dg8saq_usb_dev_desc;
 extern const S_usb_device_descriptor uac2_audio_usb_dev_desc;
-#ifdef UAC2_CONF_DESC_WRITABLE
-	extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
-#else
-	extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
+// 20261114: UAC2 at full speed was never properly tested. Its code is kept behind untested_legacy_uac2_fs_code (never
+// defined in the Makefile). Without it, the full-speed descriptor accessors hand out the high-speed descriptor
+#ifdef untested_legacy_uac2_fs_code
+	#ifdef UAC2_CONF_DESC_WRITABLE
+		extern S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
+	#else
+		extern const S_usb_user_configuration_descriptor uac2_usb_conf_desc_fs;
+	#endif
 #endif
 
 #if USB_HIGH_SPEED_SUPPORT==ENABLED

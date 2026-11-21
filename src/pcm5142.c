@@ -83,6 +83,16 @@ void pcm5142_init(void) {
 
 	// Mute is controlled in register 59 and onwards
 	pcm5142_write_byte(60, 0x01);				// Right channel follows left, this can be moved to init
+
+	#ifdef FEATURE_ALT3_32BIT
+		// 20261114: I2S word length 32 bits, P0-R40 (0x28) AFMT = 00 (I2S), ALEN = 11 (32 bits). The reset value is
+		// 24 bits, which ignores bits 7:0 of each 32-bit slot. I2S_METADATA builds (no ALT3) stay at 24 bits, so the
+		// metadata in bits 7:0 never reaches the analog output. Written in standby, like the filter in pcm5142_filter()
+		pcm5142_write_byte(0x00, 0x00);			// Page 0
+		pcm5142_write_byte(0x02, 0x10);			// P00 A02 Standby request
+		pcm5142_write_byte(0x28, 0x03);			// P00 A28 I2S, 32 bits
+		pcm5142_write_byte(0x02, 0x00);			// P00 A02 Exit standby
+	#endif
 }
 
 

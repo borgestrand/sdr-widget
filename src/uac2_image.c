@@ -128,17 +128,26 @@ static uint8_t *x_dg8saq_get_dev_desc_pointer(void) {
 static uint16_t x_dg8saq_get_dev_desc_length(void) {
 	return (uint16_t)sizeof(uac2_dg8saq_usb_dev_desc);
 }
+// 20261114: UAC2 at full speed was never properly tested, see uac2_usb_descriptors.h. Without
+// untested_legacy_uac2_fs_code there is no full-speed descriptor, and the full-speed accessors return the high-speed
+// one. A high-speed host asking for the other-speed configuration then gets the high-speed layout. At full speed the
+// device isn't supported
+#ifdef untested_legacy_uac2_fs_code
+	#define UAC2_CONF_DESC_FS	uac2_usb_conf_desc_fs
+#else
+	#define UAC2_CONF_DESC_FS	uac2_usb_conf_desc_hs
+#endif
 static uint8_t *x_image_get_conf_desc_pointer(void) {
-	return (uint8_t *)&uac2_usb_conf_desc_fs;
+	return (uint8_t *)&UAC2_CONF_DESC_FS;
 }
 static uint16_t x_image_get_conf_desc_length(void) {
-	return sizeof(uac2_usb_conf_desc_fs);
+	return sizeof(UAC2_CONF_DESC_FS);
 }
 static uint8_t *x_image_get_conf_desc_fs_pointer(void) {
-	return (uint8_t *)&uac2_usb_conf_desc_fs;
+	return (uint8_t *)&UAC2_CONF_DESC_FS;
 }
 static uint16_t x_image_get_conf_desc_fs_length(void) {
-	return sizeof(uac2_usb_conf_desc_fs);
+	return sizeof(UAC2_CONF_DESC_FS);
 }
 #if USB_HIGH_SPEED_SUPPORT==ENABLED
 static uint8_t *x_image_get_conf_desc_hs_pointer(void) {
