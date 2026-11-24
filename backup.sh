@@ -1,7 +1,7 @@
 #!/bin/bash
 # Back up the sdr-widget tree to Google Drive as a time-stamped .tgz
 # Usage, from Cygwin: sh ./backup.sh
-# Excluded: git history, build output and .wav test files (tools/make_test_wavs.py makes them again)
+# Excluded: git history, build output and .wav/.flac test files (tools/make_test_wavs.py makes them again)
 
 SRC_PARENT=/cygdrive/e/kitten/avr32/github
 DEST_DIR="/cygdrive/g/My Drive/sdr-widget-backup"
@@ -16,6 +16,8 @@ tar cvzf "$DEST" \
 	--exclude='*.d' \
 	--exclude='*.wav' \
 	--exclude='*.WAV' \
+	--exclude='*.flac' \
+	--exclude='*.FLAC' \
 	--exclude='sdr-widget/Debug' \
 	--exclude='sdr-widget/Release' \
 	sdr-widget || exit 1

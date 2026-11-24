@@ -36,7 +36,7 @@
 # -DFEATURE_PRIME_CHECK			Bit-exact USB test: prints '<' or '>' when audio breaks the prime sequence of tools/make_test_wavs.py. Off at boot, debug command 'O' turns it on and off
 # -DFEATURE_EP_OUT_HSBRAM		USB OUT DMA buffer ep_out_ram in HSB SRAM bank 0 instead of the CPU SRAM that holds spk_buffer.
 #								20261114: in the defaults, it removed the I2S zero words on the bench (commit bb2bcf1)
-# -DFEATURE_PULSING_ZERO_PAD			20261121: TEST BUILDS ONLY. USB samples get the pulse pattern of their rate in the bits below the host's
+# -DFEATURE_PULSING_ZERO_PAD	20261121: TEST BUILDS ONLY. USB samples get the pulse pattern of their rate in the bits below the host's
 #								resolution instead of zeros (bits 15:0 at 16 bit, 7:0 at 24 bit), for tools/play_test.py signal 'pulse'
 #								and the scope. Not bit-exact for music: take it out of the defaults for listening and release builds
 #
