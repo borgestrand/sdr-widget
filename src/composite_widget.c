@@ -194,6 +194,10 @@
 #include "pcm5142.h"
 #endif
 
+#ifdef FEATURE_DXD_TEST
+#include "dxd_test.c"					// 20261124: minimal DXD clock tree test, main() calls dxd_test() and never gets further
+#endif
+
 
 xSemaphoreHandle mutexEP_IN;
 
@@ -338,6 +342,10 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 		cpu_delay_ms(1, FCPU_HZ_SLOW);
 	}
 */
+
+	#ifdef FEATURE_DXD_TEST
+		dxd_test();								// 20261124: never returns. No FreeRTOS, no USB, see dxd_test.c
+	#endif
 
 #endif
 

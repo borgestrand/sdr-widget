@@ -368,6 +368,12 @@ int8_t mobo_rate_storage(U32 frequency, uint16_t source, int8_t state, uint8_t m
 		case FREQ_192:
 			a0 = 5;
 		break;
+		case FREQ_352:			// 20261124
+			a0 = 6;
+		break;
+		case FREQ_384:
+			a0 = 7;
+		break;
 	}
 	if (a0 >= RATE_FREQUENCIES) {
 		return RATE_INVALID;	// Faulty frequency
@@ -519,7 +525,7 @@ static uint8_t hw_version_strap(uint32_t pin) {
 
 uint8_t hw_version(uint8_t what) {
 	static uint8_t measured = FALSE;
-	static uint8_t pcb, bom, boenicke, ha;
+	static uint8_t pcb, bom, boenicke, ha, ext_div2;
 
 	if (!measured) {								// First call at boot: measure and remember
 		pcb = hw_version_divider(AVR32_ADC_AD_1_PIN, AVR32_ADC_AD_1_FUNCTION, 1);	// PA22
@@ -527,6 +533,7 @@ uint8_t hw_version(uint8_t what) {
 		bom = hw_version_divider(AVR32_ADC_AD_5_PIN, AVR32_ADC_AD_5_FUNCTION, 5);	// PA19
 		boenicke = hw_version_strap(AVR32_PIN_PX11);
 		ha = hw_version_strap(AVR32_PIN_PX42);
+		ext_div2 = hw_version_strap(AVR32_PIN_PA03);	// 20261124: until now read by mobo_clock_division() at every rate change
 		measured = TRUE;
 	}
 
@@ -535,6 +542,7 @@ uint8_t hw_version(uint8_t what) {
 		case HW_VER_BOM:		return bom;
 		case HW_VER_BOENICKE:	return boenicke;
 		case HW_VER_HA:			return ha;
+		case HW_VER_EXT_DIV2:	return ext_div2;
 		default:				return 0xFF;
 	}
 }
@@ -669,8 +677,8 @@ RATE_LED[2 1 0] = 0 1 0 88.2
 RATE_LED[2 1 0] = 0 1 1 96
 RATE_LED[2 1 0] = 1 0 0 176.4
 RATE_LED[2 1 0] = 1 0 1 192
-RATE_LED[2 1 0] = 1 1 0 TBD
-RATE_LED[2 1 0] = 1 1 1 TBD
+RATE_LED[2 1 0] = 1 1 0 352.8 (20261124)
+RATE_LED[2 1 0] = 1 1 1 384 (20261124)
 
 */
 
@@ -709,6 +717,18 @@ RATE_LED[2 1 0] = 1 1 1 TBD
 		case FREQ_192:
 			    gpio_set_gpio_pin(AVR32_PIN_PA01);
 			  gpio_clr_gpio_pin(AVR32_PIN_PA00);
+			gpio_set_gpio_pin(AVR32_PIN_PA26);
+		break;
+
+		case FREQ_352:			// 20261124
+			    gpio_clr_gpio_pin(AVR32_PIN_PA01);
+			  gpio_set_gpio_pin(AVR32_PIN_PA00);
+			gpio_set_gpio_pin(AVR32_PIN_PA26);
+		break;
+
+		case FREQ_384:			// 20261124
+			    gpio_set_gpio_pin(AVR32_PIN_PA01);
+			  gpio_set_gpio_pin(AVR32_PIN_PA00);
 			gpio_set_gpio_pin(AVR32_PIN_PA26);
 		break;
 	}
@@ -1513,6 +1533,12 @@ void mobo_print_selected_frequency(U32 frequency) {
 		case FREQ_192:
 			print_cpu_char(CPU_CHAR_192); // Inform CPU (when present)
 		break;
+		case FREQ_352:
+			print_cpu_char(CPU_CHAR_352); // 20261124: Inform CPU (when present)
+		break;
+		case FREQ_384:
+			print_cpu_char(CPU_CHAR_384); // 20261124: Inform CPU (when present)
+		break;
 		default:
 			print_cpu_char(CPU_CHAR_RATE_DEF); // Inform CPU (when present)
 		break;
@@ -1640,7 +1666,8 @@ void mobo_xo_select(U32 frequency, uint16_t source) {
 		static U32 xo_frequency = FREQ_INVALID;
 		static bool	regen_used = FALSE;					// Default setting is to run on XOs
 		
-		if ( (frequency == FREQ_44) || (frequency == FREQ_48) || (frequency == FREQ_88) || (frequency == FREQ_96) || (frequency == FREQ_176) || (frequency == FREQ_192) ) {
+		if ( (frequency == FREQ_44) || (frequency == FREQ_48) || (frequency == FREQ_88) || (frequency == FREQ_96) || (frequency == FREQ_176) || (frequency == FREQ_192) ||
+			 (frequency == FREQ_352) || (frequency == FREQ_384) ) {		// 20261124: 352.8k and 384k
 			xo_frequency = frequency;					// Which XO should be used? Good to know if we're running on regenerated clock for a while
 			mobo_print_selected_frequency(frequency);	// Always show which (among valid rates) is desired by source
 			#ifdef I2S_METADATA
@@ -1678,8 +1705,9 @@ void mobo_xo_select(U32 frequency, uint16_t source) {
 		// Select desired XO - only run at startup or when things change
 		// Using regenerated clock is not applied to USB
 		if ( (!regen_used) || (source == MOBO_SRC_UAC2) ) {
-			if ( ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) ) &&
-					( (prev_frequency == FREQ_48) || (prev_frequency == FREQ_96) || (prev_frequency == FREQ_192) || (prev_frequency == FREQ_INVALID) )
+			// 20261124: 352.8k runs on the 44.1k XO and 384k on the 48k XO
+			if ( ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) || (frequency == FREQ_352) ) &&
+					( (prev_frequency == FREQ_48) || (prev_frequency == FREQ_96) || (prev_frequency == FREQ_192) || (prev_frequency == FREQ_384) || (prev_frequency == FREQ_INVALID) )
 				) {
 				gpio_set_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
 				gpio_clr_gpio_pin(AVR32_PIN_PA21); 		// 48 control
@@ -1690,8 +1718,8 @@ void mobo_xo_select(U32 frequency, uint16_t source) {
 				#endif
 			}
 			// FREQ_INVALID defaults to 48kHz domain? Is that consistent in code?
-			else if ( ( (frequency == FREQ_48) || (frequency == FREQ_96) || (frequency == FREQ_192) ) &&
-					( (prev_frequency == FREQ_44) || (prev_frequency == FREQ_88) || (prev_frequency == FREQ_176) || (prev_frequency == FREQ_INVALID) )
+			else if ( ( (frequency == FREQ_48) || (frequency == FREQ_96) || (frequency == FREQ_192) || (frequency == FREQ_384) ) &&
+					( (prev_frequency == FREQ_44) || (prev_frequency == FREQ_88) || (prev_frequency == FREQ_176) || (prev_frequency == FREQ_352) || (prev_frequency == FREQ_INVALID) )
 				) {
 				gpio_set_gpio_pin(AVR32_PIN_PA21); 		// 48 control
 				gpio_clr_gpio_pin(AVR32_PIN_PA23); 		// 44.1 control
@@ -1726,11 +1754,16 @@ void mobo_clock_division(U32 frequency) {
 		
 /* 20230930: Clock division option re-introduced in HW_GEN_SPRX. NBNBNB Detect pin polarity is the opposite from that of AB-1.2 series. FMADC has no division!*/
 		
-		gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
-	
+		#ifndef HW_GEN_SPRX						// 20261124: SPRX reads PA03 once at boot, see hw_version()
+			gpio_enable_pin_pull_up(AVR32_PIN_PA03);	// Floating: stock AW with external /2. GND: modded AW with no ext. /2
+		#endif
+
 		pm_gc_disable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
-		#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC)
+		#if (defined HW_GEN_SPRX)
+			// RXMOD: Pulling down PA03 indicates division. Floating indicates NO division.
+			if (hw_version(HW_VER_EXT_DIV2)) {
+		#elif (defined HW_GEN_FMADC)
 			// RXMOD: Pulling down PA03 indicates division. Floating indicates NO division.
 			if (gpio_get_pin_value(AVR32_PIN_PA03) == 0) {
 		#else
@@ -1794,6 +1827,16 @@ void mobo_clock_division(U32 frequency) {
 		// No external /2 variety
 		else {
 			switch (frequency) {
+				// 20261124: 384k and 352.8k run on the undivided XO, a bit clock of 24.576 / 22.5792 MHz. Works on the bench
+				// at 84 MHz (peripheral bus 42 MHz) as well as 66 MHz. NB: Atmel's SSC docs give TK max = peripheral clock / 2
+				case FREQ_384 :
+				case FREQ_352 :
+					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
+								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
+								1,                  // pll_osc: select Osc0/PLL0 or Osc1/PLL1
+								0,                  // diven - disabled
+								0);                 // not divided
+				break;
 				case FREQ_192 :
 					pm_gc_setup(&AVR32_PM, AVR32_PM_GCLK_GCLK1, // gc
 								0,                  // osc_or_pll: use Osc (if 0) or PLL (if 1)
@@ -1846,7 +1889,9 @@ void mobo_clock_division(U32 frequency) {
 			}
 		}
 
-		gpio_disable_pin_pull_up(AVR32_PIN_PA03);	// Free up the pin again
+		#ifndef HW_GEN_SPRX
+			gpio_disable_pin_pull_up(AVR32_PIN_PA03);	// Free up the pin again
+		#endif
 
 		pm_gc_enable(&AVR32_PM, AVR32_PM_GCLK_GCLK1);
 
@@ -1967,7 +2012,7 @@ void mobo_clear_dac_channel(void) {
 #endif
 
 	// 20261021: RAM copy of the USB OUT bank is cleared along with the other audio buffers
-	for (i = 0; i < (EP_OUT_RAM_BYTES / 8); i++) {
+	for (i = 0; i < (EP_OUT_ALL_BYTES / 8); i++) {		// 20261124: both A and B
 		ep_out_ram[i] = 0;
 	}
 	

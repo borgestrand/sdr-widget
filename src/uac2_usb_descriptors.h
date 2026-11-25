@@ -179,7 +179,7 @@
 #define EP_SIZE_2_FS					EP_OUT_LENGTH_2_FS
 #define EP_SIZE_2_HS        			EP_OUT_LENGTH_2_HS
 #define EP_INTERVAL_2_FS				0x01			 // one packet per frame
-#define EP_INTERVAL_2_HS    			0x02			 // One packet per 2 uframe
+#define EP_INTERVAL_2_HS    			0x01			 // 20261124: one packet per uframe (8 kHz), was 0x02 (4 kHz) until 60d574c. See EP_OUT_PACKETS_PER_BUF
 // 20261114: wMaxPacketSize of ALT3 (32 bit). 192k at one packet per 250us is 48 frames * 8 = 384 bytes, plus about
 // 20% for the host's rate adjustments: 58 frames * 8 = 464 bytes. The hardware bank is 512 bytes (EP_SIZE_2_HS rounds
 // up to a power of 2), and so is ep_out_ram. The same 464 bytes covers 384k at one packet per 125us

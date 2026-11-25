@@ -189,7 +189,6 @@ static void vtaskMoboCtrl( void * pcParameters )
 		//-------------------------------------------
    		// Routines accessed every 0.5s on 115kHz timer
    		//-------------------------------------------
-		static uint8_t btn_poll_temp=0;
 		static uint32_t btn_poll_lastIteration=0, btn_poll_Timerval; // Counters to keep track of time
 
 /*	// Only needed with working flash writes, see below

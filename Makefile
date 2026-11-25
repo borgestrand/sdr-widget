@@ -39,6 +39,8 @@
 # -DFEATURE_PULSING_ZERO_PAD	20261121: TEST BUILDS ONLY. USB samples get the pulse pattern of their rate in the bits below the host's
 #								resolution instead of zeros (bits 15:0 at 16 bit, 7:0 at 24 bit), for tools/play_test.py signal 'pulse'
 #								and the scope. Not bit-exact for music: take it out of the defaults for listening and release builds
+# -DFEATURE_LEGACY_LINUX_ASYNC_FB	20261124: very old Linux workaround. At 88.2k and 96k the feedback starts at 99k and is set back to
+#								nominal once playback runs. Off: the feedback starts at the nominal rate set by the host
 #
 # 20261114: EXPERIMENT on the make command line adds defines to any target, without editing this file. FEATURE_PRIME_CHECK
 # (all I2S debug tools: 'Z', 'O' modes, '!', 'E', 'H') is out of the defaults for listening tests. Build it in again with e.g.

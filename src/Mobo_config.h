@@ -207,7 +207,7 @@ void mobo_clear_dac_channel(void);
 #define RATE_CH_INIT				3
 #define RATE_PRINT					4
 #define RATE_INVALID				0x3F
-#define RATE_FREQUENCIES			6 // The number of relevant frequencies
+#define RATE_FREQUENCIES			8 // The number of relevant frequencies. 20261124: 6 -> 8 with 352.8k and 384k
 #define RATE_SOURCES				6 // The number of relevant sources. 20261011: 5 -> 6 for AESEBU0
 
 
@@ -236,6 +236,8 @@ void mobo_usb_select(uint8_t usb_ch);
 #define HW_VER_BOM			1	// 0..24 from BOM_VER on PA19/AD[5], 25 = no divider / invalid
 #define HW_VER_BOENICKE		2	// 1 = PX11 68R to GND (Boenicke), 0 = floating
 #define HW_VER_HA			3	// 1 = PX42 68R to GND (DA 256 generation), 0 = floating (AB-1.2 generation)
+#define HW_VER_EXT_DIV2		4	// 20261124: 1 = PA03 to GND, external MCLK /2 fitted. 0 = floating, no external /2:
+								// the board runs MCLK at 24.576 MHz and enumerates 352.8k and 384k too
 #define HW_VER_PCB_INVALID	'z'
 #define HW_VER_BOM_INVALID	25
 uint8_t hw_version(uint8_t what);

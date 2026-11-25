@@ -103,10 +103,12 @@ volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 #ifdef FEATURE_EP_OUT_HSBRAM
 	U64 * const ep_out_ram = (U64 *)AVR32_INTRAM0_ADDRESS;				// 20261114: HSB SRAM bank 0, see taskAK5394A.h
 #else
-	U64 ep_out_ram[EP_OUT_RAM_BYTES / 8] __attribute__((aligned(8)));	// 20261021: RAM copy of one EP_AUDIO_OUT bank, see taskAK5394A.h
+	U64 ep_out_ram[EP_OUT_ALL_BYTES / 8] __attribute__((aligned(8)));	// 20261021: RAM copy of EP_AUDIO_OUT banks, see taskAK5394A.h
 #endif
-volatile bool ep_out_dma_flag = FALSE;		// 20261029: USB OUT reception by DMA, see taskAK5394A.h
-volatile U16 ep_out_dma_len = 0;
+volatile bool ep_out_buf_ready[EP_OUT_BUFS] = {FALSE, FALSE};	// 20261124: A/B receive buffers, see taskAK5394A.h
+volatile U16 ep_out_buf_len[EP_OUT_BUFS] = {0, 0};
+volatile U8 ep_out_parse_buf = 0;
+volatile U32 ep_out_dma_overruns = 0;
 volatile U32 ep_out_dma_count = 0;
 volatile U32 ep_out_dma_status = 0;
 volatile U8 ep_out_dma_nbusybk = 0;
@@ -379,7 +381,8 @@ void AK5394A_pdca_tx_enable(U32 frequency) {
 
 	if ( (frequency == FREQ_44) || (frequency == FREQ_48) ||
 		 (frequency == FREQ_88) || (frequency == FREQ_96) ||
-		 (frequency == FREQ_176) || (frequency == FREQ_192) ) {
+		 (frequency == FREQ_176) || (frequency == FREQ_192) ||
+		 (frequency == FREQ_352) || (frequency == FREQ_384) ) {		// 20261124
 		mobo_wait_LRCK_TX_asm(); // Wait for some well-defined action on LRCK pin
 		
 		// Is this always perfect? I2S_POLARITY_CHECK
@@ -414,7 +417,7 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_enable_pin_glitch_filter(SSC_RX_CLOCK);
 	gpio_enable_pin_glitch_filter(SSC_RX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_RX_FRAME_SYNC);
-	gpio_enable_pin_glitch_filter(SSC_TX_CLOCK);
+//	gpio_enable_pin_glitch_filter(SSC_TX_CLOCK);
 	gpio_enable_pin_glitch_filter(SSC_TX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 

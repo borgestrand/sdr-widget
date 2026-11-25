@@ -106,6 +106,7 @@ static S16 old_gap = DAC_BUFFER_UNI / 2; // Assumed to be OK...
 												// to the USB and reading from USB
 
 static U8 ep_audio_in, ep_audio_out, ep_audio_out_fb;
+static U32 ep_out_overruns_seen = 0;	// 20261124: ep_out_dma_overruns at the last '?', see A/B buffers in taskAK5394A.h
 
 #ifdef FEATURE_PRIME_CHECK
 	// 20261104: bit-exact test of the USB path. The test files from tools/make_test_wavs.py count each channel up by
@@ -248,7 +249,6 @@ void uac2_device_audio_task(void *pvParameters)
 	S32 sample_L = 0;
 	S32 sample_R = 0; // BSB 20131102 Expanded for skip/insert, 20160322 changed to S32
 	
-	const U8 EP_AUDIO_OUT = ep_audio_out;
 	const U8 EP_AUDIO_OUT_FB = ep_audio_out_fb;
 	uint32_t silence_USB = SILENCE_USB_LIMIT;	// BSB 20150621: detect silence in USB channel, initially assume silence
 	Bool silence_det = FALSE;
@@ -268,7 +268,9 @@ void uac2_device_audio_task(void *pvParameters)
 	U32 si_index_low = 0;
 	S32 si_score_high = 0;
 	static S32 prev_si_score_high = 0;
-	static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
+	#ifndef FEATURE_PRIME_CHECK		// 20261124: only the energy search uses it
+		static S32 prev_diff_value = 0;	// Initiated to 0, new value survives to next iteration
+	#endif
 	Bool cache_holds_silence = TRUE;
 	uint16_t cache_silence_counter = 0;
 
@@ -543,22 +545,24 @@ void uac2_device_audio_task(void *pvParameters)
 
 
 	//#ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
+					U32 fb_value;		// 20261124: the value sent, 16.16 samples per packet
 	#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
 					if (input_select != MOBO_SRC_UAC2) {
 	#else // Probably redundant now
 					if (0) {
 	#endif
-						sample_LSB = FB_rate_nominal;
-						sample_SB = FB_rate_nominal >> 8;
-						sample_MSB = FB_rate_nominal >> 16;
-						sample_HSB = FB_rate_nominal >> 24;
+						fb_value = FB_rate_nominal;
 					}
 					else {
-						sample_LSB = FB_rate;
-						sample_SB = FB_rate >> 8;
-						sample_MSB = FB_rate >> 16;
-						sample_HSB = FB_rate >> 24;
+						fb_value = FB_rate;
 					}
+					// 20261124: FB_rate is 16.16 samples per 250us, as the comment above says. With one packet per 125us
+					// (EP_INTERVAL_2_HS = 1) the host expects samples per packet, so send half of it
+					fb_value = fb_value >> 1;
+					sample_LSB = fb_value;
+					sample_SB = fb_value >> 8;
+					sample_MSB = fb_value >> 16;
+					sample_HSB = fb_value >> 24;
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_LSB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_SB);
 					Usb_write_endpoint_data(EP_AUDIO_OUT_FB, 8, sample_MSB);
@@ -566,6 +570,7 @@ void uac2_device_audio_task(void *pvParameters)
 				}
 
 
+				#ifdef FEATURE_LEGACY_LINUX_ASYNC_FB	// 20261124: very old Linux workaround, see uac2_freq_change_handler()
 				if (playerStarted) {
 // 					Original Linux quirk replacement code
 //					if (((spk_current_freq.frequency == FREQ_88) && (FB_rate > ((88 << 14) + (7 << 14)/10))) ||
@@ -582,6 +587,7 @@ void uac2_device_audio_task(void *pvParameters)
 						FB_rate = FB_rate_nominal;			// BSB 20131115 restore saved nominal feedback rate
 					}
 				}
+				#endif
 
 				Usb_send_in(EP_AUDIO_OUT_FB);
 			} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
@@ -592,9 +598,9 @@ void uac2_device_audio_task(void *pvParameters)
 			if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
 
 				// Do minimal USB action to make Host believe Device is actually receiving
-				if (ep_out_dma_flag) {			// 20261029: the DMA already freed the bank. Discard ep_out_ram and re-arm
-					ep_out_dma_flag = FALSE;
-					ep_out_dma_arm();
+				if (ep_out_buf_ready[ep_out_parse_buf]) {	// 20261029: the DMA already freed the bank. 20261124: discard the buffer
+					ep_out_buf_ready[ep_out_parse_buf] = FALSE;
+					ep_out_parse_buf ^= 1;
 				}
 
 				// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
@@ -610,12 +616,12 @@ void uac2_device_audio_task(void *pvParameters)
 			if (1) {
 #endif
 
-				if (ep_out_dma_flag) {				// 20261029: set by the DMA-end interrupt, ep_out_ram holds one packet
-					ep_out_dma_flag = FALSE;
+				if (ep_out_buf_ready[ep_out_parse_buf]) {	// 20261124: set by the DMA-end interrupt, see A/B buffers in taskAK5394A.h
 					gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261021: start of sequential USB packet handling, for scope timing
 
-					temp_num_samples = ep_out_dma_len;		// Bytes, as Usb_byte_count() returned
-					uint16_t *ep_out_ptr = (uint16_t *)ep_out_ram;	// Parsed 16 bits at a time below, same byte order as the EP FIFO reads
+					const U8 ep_out_buf = ep_out_parse_buf;	// 20261124: the buffer parsed in this pass, 0 = A, 1 = B
+					temp_num_samples = ep_out_buf_len[ep_out_buf];	// Bytes, as Usb_byte_count() returned
+					uint16_t *ep_out_ptr = (uint16_t *)((U8 *)ep_out_ram + ep_out_buf * EP_OUT_BUF_BYTES);	// Parsed 16 bits at a time below, same byte order as the EP FIFO reads
 					asm volatile ("" ::: "memory");			// Compiler barrier: ep_out_ram was written by the DMA, which GCC can't see. Reload after the flag
 
 					// 20261101: legacy CPU-copy path, last present in commit fdb8ef6 (55us at 84MHz/192k, DMA path 50.3us):
@@ -703,7 +709,7 @@ void uac2_device_audio_task(void *pvParameters)
 							prime_log_pending = FALSE;	// and drops a record that waits for its next frame
 						}
 						prime_prev_len = prime_len;
-						prime_len = ep_out_dma_len;
+						prime_len = ep_out_buf_len[ep_out_buf];
 						if (prime_packets < 0xFFFF) {
 							prime_packets++;
 						}
@@ -783,6 +789,8 @@ void uac2_device_audio_task(void *pvParameters)
 							}
 							
 							if (usb_owns_cache) {					// Only write to cache with the right permissions! Only care with samples when we can put them somewhere
+								#ifndef FEATURE_PRIME_CHECK	// 20261124: verification builds skip the energy search. temp_si_index_low stays 0 (first
+															// sample) and the energy stays 0, so skip/insert waits for the forced one (SI_PKG_RESOLUTION_F)
 								// Finding packet's point of lowest and highest "energy"
 								diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 								diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample. 
@@ -795,6 +803,8 @@ void uac2_device_audio_task(void *pvParameters)
 								if (diff_sum > temp_si_score_high) {
 									temp_si_score_high = diff_sum;
 								}
+								prev_diff_value = diff_value;		// 20261124: moved up from the end of the loop, into the #ifndef
+								#endif
 
 								// Applying volume control to stored sample
 								#ifdef FEATURE_VOLUME_CTRL
@@ -844,7 +854,6 @@ void uac2_device_audio_task(void *pvParameters)
 									prev_prev_sample_R = prev_sample_R; 
 								#endif
 								
-								prev_diff_value = diff_value;
 							} // end input_select == MOBO_SRC_UAC2 (in which case we touch samples instead of just look for silence)
 						} // end for temp_num_samples
 					} // end if alt setting 1
@@ -892,6 +901,8 @@ void uac2_device_audio_task(void *pvParameters)
 								}
 	
 								if (usb_owns_cache) {					// Only write to cache with the right permissions! Only care with samples when we can put them somewhere
+									#ifndef FEATURE_PRIME_CHECK	// 20261124: verification builds skip the energy search. temp_si_index_low stays 0 (first
+																// sample) and the energy stays 0, so skip/insert waits for the forced one (SI_PKG_RESOLUTION_F)
 									// Finding packet's point of lowest and highest "energy"
 									diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 									diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample. 
@@ -904,6 +915,8 @@ void uac2_device_audio_task(void *pvParameters)
 									if (diff_sum > temp_si_score_high) {
 										temp_si_score_high = diff_sum;
 									}
+									prev_diff_value = diff_value;		// 20261124: moved up from the end of the loop, into the #ifndef
+									#endif
 								
 									// Applying volume control to stored sample
 									#ifdef FEATURE_VOLUME_CTRL
@@ -953,7 +966,6 @@ void uac2_device_audio_task(void *pvParameters)
 										prev_prev_sample_R = prev_sample_R;
 									#endif
 
-									prev_diff_value = diff_value;
 								} // End input_select == MOBO_SRC_UAC2
 							} // end for temp_num_samples
 						} // end if alt setting 2
@@ -993,6 +1005,8 @@ void uac2_device_audio_task(void *pvParameters)
 								}
 
 								if (usb_owns_cache) {					// Only write to cache with the right permissions! Only care with samples when we can put them somewhere
+									#ifndef FEATURE_PRIME_CHECK	// 20261124: verification builds skip the energy search. temp_si_index_low stays 0 (first
+																// sample) and the energy stays 0, so skip/insert waits for the forced one (SI_PKG_RESOLUTION_F)
 									// Finding packet's point of lowest and highest "energy"
 									diff_value = abs( (sample_L >> 8) - (prev_sample_L >> 8) ) + abs( (sample_R >> 8) - (prev_sample_R >> 8) ); // The "energy" going from prev_sample to sample
 									diff_sum = diff_value + prev_diff_value; // Add the energy going from prev_prev_sample to prev_sample.
@@ -1005,6 +1019,8 @@ void uac2_device_audio_task(void *pvParameters)
 									if (diff_sum > temp_si_score_high) {
 										temp_si_score_high = diff_sum;
 									}
+									prev_diff_value = diff_value;		// 20261124: moved up from the end of the loop, into the #ifndef
+									#endif
 
 									// Applying volume control to stored sample
 									#ifdef FEATURE_VOLUME_CTRL
@@ -1043,7 +1059,6 @@ void uac2_device_audio_task(void *pvParameters)
 										prev_prev_sample_R = prev_sample_R;
 									#endif
 
-									prev_diff_value = diff_value;
 								} // End input_select == MOBO_SRC_UAC2
 							} // end for temp_num_samples
 						} // end if alt setting 3
@@ -1133,16 +1148,22 @@ void uac2_device_audio_task(void *pvParameters)
 						silence_USB = SILENCE_USB_INIT;			// USB interface is not silent!
 					}
 
-					ep_out_dma_arm();						// 20261029: done with ep_out_ram, let the DMA take the next bank
+					// 20261124: done with this buffer, hand it back to the DMA. Until 60d574c the DMA was re-armed here
+					ep_out_buf_ready[ep_out_buf] = FALSE;
+					ep_out_parse_buf = ep_out_buf ^ 1;
 					// Usb_ack_out_received_free(EP_AUDIO_OUT);			// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
 					// Usb_enable_out_received_interrupt(EP_AUDIO_OUT);
 					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling
 
 					#ifdef FEATURE_PRIME_CHECK
-						if (prime_break != 0) {				// 20261104: after the re-arm, so a waiting UART can't delay the DMA
+						if (prime_break != 0) {				// 20261104: after the parse, so a waiting UART can't delay it
 							print_dbg_char(prime_break);
 						}
 					#endif
+					if (ep_out_dma_overruns != ep_out_overruns_seen) {	// 20261124: the DMA wrote into a buffer before its parse
+						ep_out_overruns_seen = ep_out_dma_overruns;
+						print_dbg_char('?');
+					}
 
 //					if ( (USB_IS_SILENT()) && (input_select == MOBO_SRC_UAC2) ) { // Oops, we just went silent, probably from pause
 					// mobodebug untested fix

@@ -199,6 +199,46 @@ void send_descriptor(U16 wLength, Bool zlp) {
 		0x00,0x00,0x00,0x00,	// 0 Res
 	};
 
+	#ifdef HW_GEN_SPRX
+	// 20261124: the same list plus 352.8k and 384k, for boards without the external MCLK /2 (PA03 floating, read at
+	// boot). The host reads the list with a RANGE request, so the choice needs no descriptor change; see uac2_hs_rates()
+	const U8 Speedx_hs_384[98] = {
+		0x08, 0x00, // Number of sample rate triplets with UAC2 over USB 2.0
+
+		0x44,0xac,0x00,0x00,	//44.1k Min
+		0x44,0xac,0x00,0x00,	//44.1k Max
+		0x00,0x00,0x00,0x00,	// 0 Res
+
+		0x80,0xbb,0x00,0x00,	//48k Min
+		0x80,0xbb,0x00,0x00,	//48k Max
+		0x00,0x00,0x00,0x00,	// 0 Res
+
+		0x88,0x58,0x01,0x00,	//88.2k Min
+		0x88,0x58,0x01,0x00,	//88.2k Max
+		0x00,0x00,0x00,0x00,	// 0 Res
+
+		0x00,0x77,0x01,0x00,	//96k Min
+		0x00,0x77,0x01,0x00,	//96k Max
+		0x00,0x00,0x00,0x00,	// 0 Res
+
+		0x10,0xb1,0x02,0x00,	//176.4k Min
+		0x10,0xb1,0x02,0x00,	//176.4k Max
+		0x00,0x00,0x00,0x00,	// 0 Res
+
+		0x00,0xee,0x02,0x00,	//192k Min
+		0x00,0xee,0x02,0x00,	//192k Max
+		0x00,0x00,0x00,0x00,	// 0 Res
+
+		0x20,0x62,0x05,0x00,	//352.8k Min
+		0x20,0x62,0x05,0x00,	//352.8k Max
+		0x00,0x00,0x00,0x00,	// 0 Res
+
+		0x00,0xdc,0x05,0x00,	//384k Min
+		0x00,0xdc,0x05,0x00,	//384k Max
+		0x00,0x00,0x00,0x00,	// 0 Res
+	};
+	#endif
+
 	#ifdef untested_legacy_uac2_fs_code		// 20261114, see uac2_usb_descriptors.h
 	const U8 Speedx_fs[26] = {
 		0x02, 0x00, // Number of sample rate triplets with UAC2 over USB 1.1 (not very well tested!)
@@ -238,6 +278,20 @@ const U8 Speedx[38] = {
 
 
 //_____ D E C L A R A T I O N S ____________________________________________
+
+// 20261124: point pbuffer at the high-speed sample rate list for a RANGE request. Boards without the external
+// MCLK /2 (hw_version(HW_VER_EXT_DIV2) == 0, PA03 read at boot) also list 352.8k and 384k
+static void uac2_hs_rates(void) {
+	#ifdef HW_GEN_SPRX
+		if (!hw_version(HW_VER_EXT_DIV2)) {
+			data_to_transfer = sizeof(Speedx_hs_384);
+			pbuffer = (const U8*)Speedx_hs_384;
+			return;
+		}
+	#endif
+	data_to_transfer = sizeof(Speedx_hs);
+	pbuffer = (const U8*)Speedx_hs;
+}
 
 
 void uac2_freq_change_handler() {
@@ -290,8 +344,11 @@ void uac2_freq_change_handler() {
 			else
 			*/
 
-		//				FB_rate = (96) << 14; // Generic OS, supported by linux OS patch...
-		FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement, in initial, not in nominal
+		#ifdef FEATURE_LEGACY_LINUX_ASYNC_FB	// 20261124: very old Linux workaround, start at 99k. See uac2_device_audio_task.c
+			FB_rate = (99) << 14; // Needed by Linux, linux-quirk replacement, in initial, not in nominal
+		#else
+			FB_rate = (96) << 14; // 20261124: start at the nominal rate set by the host
+		#endif
 		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
 		FB_rate_nominal = ((96) << 14) + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system
 	}
@@ -311,8 +368,11 @@ void uac2_freq_change_handler() {
 			else
 			*/
 
-		//				FB_rate = (88 << 14) + (1<<14)/5; // Generic code, supported by linux OS patch
-		FB_rate = (99 << 14); // Needed by Linux, Linux-quirk replacement, in initial, not in nominal
+		#ifdef FEATURE_LEGACY_LINUX_ASYNC_FB	// 20261124: very old Linux workaround, start at 99k. See uac2_device_audio_task.c
+			FB_rate = (99 << 14); // Needed by Linux, Linux-quirk replacement, in initial, not in nominal
+		#else
+			FB_rate = (88 << 14) + (1 << 14) / 5; // 20261124: start at the nominal rate set by the host
+		#endif
 		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
 		FB_rate_nominal = ((88 << 14) + (1 << 14) / 5) + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system
 	}
@@ -329,6 +389,34 @@ void uac2_freq_change_handler() {
 		FB_rate = (176 << 14) + ((1 << 14) * 4) / 10;
 		FB_rate_initial = FB_rate; // BSB 20131031 Record FB_rate as it was set by control system
 		FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET; // BSB 20131115 Record FB_rate as it was set by control system;
+	}
+
+	else if (spk_current_freq.frequency == FREQ_384) {		// 20261124: boards without the external MCLK /2 only
+
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
+		// Avoid when using SSC_RX for SPDIF buffering?
+#else
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_disable(PDCA_CHANNEL_SSC_RX);
+#endif
+
+		FB_rate = (384) << 14;
+		FB_rate_initial = FB_rate;
+		FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;
+	}
+
+	else if (spk_current_freq.frequency == FREQ_352) {		// 20261124: boards without the external MCLK /2 only
+
+#if (defined HW_GEN_SPRX) || (defined HW_GEN_FMADC) // FMADC_site
+		// Avoid when using SSC_RX for SPDIF buffering?
+#else
+		pdca_disable_interrupt_reload_counter_zero(PDCA_CHANNEL_SSC_RX);
+		pdca_disable(PDCA_CHANNEL_SSC_RX);
+#endif
+
+		FB_rate = (352 << 14) + ((1 << 14) * 8) / 10;
+		FB_rate_initial = FB_rate;
+		FB_rate_nominal = FB_rate + FB_NOMINAL_OFFSET;
 	}
 
 	else if (spk_current_freq.frequency == FREQ_192) {
@@ -386,14 +474,20 @@ void uac2_freq_change_handler() {
 // See datasheet 27.8.2.19-20 (UDDMAnCONTROL / UDDMAnSTATUS)
 #define EP_OUT_DMA_INT_MASK	(AVR32_USBB_UDINT_DMA1INT_MASK << (UAC2_EP_AUDIO_OUT - 1))	// Same bit in UDINT, UDINTE, UDINTESET, UDINTECLR
 
+// 20261124: where the DMA writes, A/B buffers in ep_out_ram. Written by ep_out_dma_isr() and ep_out_dma_restart() only
+static U8 ep_out_dma_buf = 0;		// Buffer being filled, 0 = A, 1 = B
+static U8 ep_out_dma_pkt = 0;		// Packets already in it
+static U16 ep_out_dma_fill = 0;		// Bytes already in it
+
 // Arm the channel for one packet into ep_out_ram. BUFFCLOSEINEN closes the transfer at the end of each
 // high-speed isochronous packet (PID not MDATA), so CHBYTELENGTH is only an upper limit. CHBYTELENGTH may
 // only be written while CHEN is 0, which it is after every transfer end and after ep_out_dma_stop()
-void ep_out_dma_arm(void) {
+// 20261124: the packet goes to the current buffer, right after the bytes already in it
+static void ep_out_dma_arm(void) {
 	// 20261101: automatic bank switching is required, without it the DMA never moves a byte (verified on the bench).
 	// Set on every arm: an endpoint reset (SET_INTERFACE) keeps only ALLOC, EPBK, EPSIZE, EPDIR, EPTYPE of UECFGn
 	Usb_enable_endpoint_bank_autoswitch(UAC2_EP_AUDIO_OUT);
-	AVR32_USBB_UDDMAX_addr(UAC2_EP_AUDIO_OUT) = (U32)ep_out_ram;
+	AVR32_USBB_UDDMAX_addr(UAC2_EP_AUDIO_OUT) = (U32)ep_out_ram + (ep_out_dma_buf * EP_OUT_BUF_BYTES) + ep_out_dma_fill;
 	AVR32_USBB_UDDMAX_control(UAC2_EP_AUDIO_OUT) =
 		  ((U32)EP_OUT_RAM_BYTES << AVR32_USBB_UXDMAX_CONTROL_CH_BYTE_LENGTH_OFFSET)
 		| AVR32_USBB_UXDMAX_CONTROL_BUFF_CLOSE_IN_EN_MASK		// End of USB transfer closes the DMA transfer
@@ -414,12 +508,25 @@ void ep_out_dma_stop(void) {
 	(void)AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT);			// Read clears EOTSTA, EOCHBUFFSTA, DESCLDSTA
 }
 
+// 20261124: stop the channel, forget both buffers and start again with the next packet at the start of A.
+// Used at endpoint configuration and after an endpoint reset
+void ep_out_dma_restart(void) {
+	ep_out_dma_stop();
+	ep_out_buf_ready[0] = FALSE;
+	ep_out_buf_ready[1] = FALSE;
+	ep_out_parse_buf = 0;
+	ep_out_dma_buf = 0;
+	ep_out_dma_pkt = 0;
+	ep_out_dma_fill = 0;
+	ep_out_dma_arm();
+}
+
 // Called from usb_general_interrupt_non_naked() (usb_task.c) when the DMA channel interrupt is pending and enabled
+// 20261124: re-arms at once for the next packet, see A/B buffers in taskAK5394A.h
 void ep_out_dma_isr(void) {
 	U32 st = AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT);		// Read clears EOTSTA, EOCHBUFFSTA, DESCLDSTA. CHBYTECNT is stable now (CHEN = 0)
 
-	AVR32_USBB_udinteclr = EP_OUT_DMA_INT_MASK;					// No further DMA interrupts until the consumer re-arms
-	ep_out_dma_len = EP_OUT_RAM_BYTES - ((st & AVR32_USBB_UXDMAX_STATUS_CH_BYTE_CNT_MASK) >> AVR32_USBB_UXDMAX_STATUS_CH_BYTE_CNT_OFFSET);
+	ep_out_dma_fill += EP_OUT_RAM_BYTES - ((st & AVR32_USBB_UXDMAX_STATUS_CH_BYTE_CNT_MASK) >> AVR32_USBB_UXDMAX_STATUS_CH_BYTE_CNT_OFFSET);
 
 	// Debug: does the DMA free the bank by itself? Read over UART with the 'I' command
 	ep_out_dma_status = st;
@@ -428,7 +535,19 @@ void ep_out_dma_isr(void) {
 	ep_out_dma_rxouti = Is_usb_out_received(UAC2_EP_AUDIO_OUT) ? 1 : 0;
 	ep_out_dma_count++;
 
-	ep_out_dma_flag = TRUE;
+	ep_out_dma_pkt++;
+	if (ep_out_dma_pkt >= EP_OUT_PACKETS_PER_BUF) {				// Buffer full: hand it over, move to the other one
+		ep_out_buf_len[ep_out_dma_buf] = ep_out_dma_fill;
+		ep_out_buf_ready[ep_out_dma_buf] = TRUE;
+		ep_out_dma_buf ^= 1;
+		ep_out_dma_pkt = 0;
+		ep_out_dma_fill = 0;
+		if (ep_out_buf_ready[ep_out_dma_buf]) {					// Not parsed yet. Written over anyway, the data is late
+			ep_out_dma_overruns++;
+		}
+	}
+
+	ep_out_dma_arm();											// Also enables the DMA interrupt again
 }
 
 
@@ -472,9 +591,7 @@ void uac2_user_endpoint_init(U8 conf_nb) {
 
 	// 20261029: the USBB DMA channel copies each EP_AUDIO_OUT bank into ep_out_ram. No endpoint interrupt needed.
 	// NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task(), UAC2_EP_AUDIO_OUT is the global it comes from
-	ep_out_dma_stop();
-	ep_out_dma_flag = FALSE;
-	ep_out_dma_arm();
+	ep_out_dma_restart();
 	/* 20261101: legacy CPU-copy path, last present in commit fdb8ef6. Both enable levels were needed, RXOUTE and EPnINTE
 	usb_audio_out_received_flag = FALSE;
 	Usb_enable_out_received_interrupt(UAC2_EP_AUDIO_OUT);
@@ -648,8 +765,6 @@ void uac2_usb_hid_get_idle(U8 u8_report_id) { // BSB 20120710 prefix "uac2_" add
 //!
 Bool uac2_user_read_request(U8 type, U8 request) {
 	int i;
-	uint8_t temp1 = 0;
-	uint8_t temp2 = 0;
 
 	// BSB 20120720 added
 	// this should vector to specified interface handler
@@ -962,8 +1077,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						else
 						#endif
 						{ // UAC2 over USB 2.0
-							data_to_transfer = sizeof(Speedx_hs);
-							pbuffer = (const U8*)Speedx_hs;
+							uac2_hs_rates();		// 20261124: 6 or 8 rates, see there
 							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 						}
 
@@ -1022,8 +1136,7 @@ Bool uac2_user_read_request(U8 type, U8 request) {
 						else
 						#endif
 						{ // UAC2 over USB 2.0
-							data_to_transfer = sizeof(Speedx_hs);
-							pbuffer = (const U8*)Speedx_hs;
+							uac2_hs_rates();		// 20261124: 6 or 8 rates, see there
 							send_descriptor(wLength, FALSE); // Send the descriptor. pbuffer and data_to_transfer are global variables which must be set up by code
 						}
 

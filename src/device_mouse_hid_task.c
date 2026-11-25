@@ -166,10 +166,10 @@ void device_mouse_hid_task_init(U8 ep_tx) {
 	// 20260920: CPU frequency, locally calculated (not a build-time -D) - reads FCPU_HZ, the same
 	// compile-time constant FEATURE_84MHz switches between 66/84MHz, and prints it in hex so a
 	// glance at the boot banner confirms which clock variant is actually running on this unit.
-	print_dbg_char_hex((uint32_t)FCPU_HZ >> 24);
-	print_dbg_char_hex((uint32_t)FCPU_HZ >> 16);
-	print_dbg_char_hex((uint32_t)FCPU_HZ >> 8);
-	print_dbg_char_hex((uint32_t)FCPU_HZ);
+	print_dbg_char_hex((uint8_t)((uint32_t)FCPU_HZ >> 24));	// 20261124: (uint8_t) casts silence "large integer implicitly truncated"
+	print_dbg_char_hex((uint8_t)((uint32_t)FCPU_HZ >> 16));
+	print_dbg_char_hex((uint8_t)((uint32_t)FCPU_HZ >> 8));
+	print_dbg_char_hex((uint8_t)FCPU_HZ);
 	#ifdef HW_GEN_SPRX
 		// 20261010: hardware version: PCB letter, BOM number (decimal), Boenicke strap, HA strap
 		print_dbg_char(' ');
@@ -661,6 +661,7 @@ Arash
 				print_dbg_char_hex(EP_AUDIO_OUT_isr_counter);			// LSB
 
 					// 20261029: USB OUT DMA debug. Format: count length status NBUSYBK FIFOCON RXOUTI first-12-bytes
+					// 20261124: length is buffer A's, then the overrun count ('?') follows RXOUTI
 					{
 						uint8_t k;
 						uint8_t *p = (uint8_t *)ep_out_ram;
@@ -671,8 +672,8 @@ Arash
 						print_dbg_char_hex(ep_out_dma_count >> 8);
 						print_dbg_char_hex(ep_out_dma_count);
 						print_dbg_char(' ');
-						print_dbg_char_hex(ep_out_dma_len >> 8);				// 0x0120 = 288 or 0x0126 = 294 at 192k 24-bit
-						print_dbg_char_hex(ep_out_dma_len);
+						print_dbg_char_hex(ep_out_buf_len[0] >> 8);			// 0x0120 = 288 or 0x0126 = 294 at 192k 24-bit
+						print_dbg_char_hex(ep_out_buf_len[0]);
 						print_dbg_char(' ');
 						print_dbg_char_hex(ep_out_dma_status >> 24);
 						print_dbg_char_hex(ep_out_dma_status >> 16);
@@ -684,6 +685,11 @@ Arash
 						print_dbg_char_hex(ep_out_dma_fifocon);
 						print_dbg_char(' ');
 						print_dbg_char_hex(ep_out_dma_rxouti);
+						print_dbg_char(' ');
+						print_dbg_char_hex(ep_out_dma_overruns >> 24);
+						print_dbg_char_hex(ep_out_dma_overruns >> 16);
+						print_dbg_char_hex(ep_out_dma_overruns >> 8);
+						print_dbg_char_hex(ep_out_dma_overruns);
 						print_dbg_char(' ');
 						for (k = 0; k < 12; k++) {								// USB byte order: L0 L1 L2 R0 R1 R2 ...
 							print_dbg_char_hex(p[k]);
@@ -750,6 +756,10 @@ Arash
 						int8_t b;
 
 						prime_log_frozen = TRUE;			// No new records while printing
+						print_dbg_char('\n');
+						for (b = 24; b >= 0; b -= 8) {		// 20261124: DMA overruns ('?') first, then the log
+							print_dbg_char_hex(ep_out_dma_overruns >> b);
+						}
 						print_dbg_char('\n');
 						for (j = 0; j < (PRIME_LOG_EVENTS * PRIME_LOG_WORDS); j++) {
 							for (b = 24; b >= 0; b -= 8) {
@@ -824,7 +834,6 @@ Arash
 		// Establish PRG_BUTTON history with software debounce and edge detect
 		Button_history = Button_history << 1;
 		
-		static uint8_t button_filter_counter = 0;
 
     	if ( (gpio_get_pin_value(PRG_BUTTON) == 0) ) {		// Check if Prog button is pushed down
 			Button_history |= 0x01;							// Button presses stored as '1'

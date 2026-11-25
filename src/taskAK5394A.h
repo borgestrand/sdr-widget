@@ -95,6 +95,8 @@ Short buffers give less system latency and poorer synch state machine performanc
 #define	FREQ_96				96000
 #define	FREQ_176			176400
 #define	FREQ_192			192000
+#define	FREQ_352			352800	// 20261124: boards without the external MCLK /2 only, see HW_VER_EXT_DIV2
+#define	FREQ_384			384000
 #define DAC_MUST_CLEAR		1		// Immediately clear the content of outgoing DAC buffers
 #define DAC_CLEARED			2		// Outgoing DAC buffers are cleared, don't write to DAC buffers
 #define DAC_READY			3		// Outgoing DAC buffers are ready to be written to
@@ -138,22 +140,36 @@ extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 
 // 20261021: RAM copy of one EP_AUDIO_OUT bank (max 512 bytes, Table 27-1).
 // 20261029: filled by the USBB DMA. Cleared in mobo_clear_dac_channel() along with the other audio buffers
-#define EP_OUT_RAM_BYTES	512
+// 20261124: two receive buffers, A and B, back to back in ep_out_ram. Each holds EP_OUT_PACKETS_PER_BUF packets,
+// written back to back by the DMA (UDDMAnADDR takes any byte address, datasheet 27.8.2.18). One DMA transfer may
+// take up to EP_OUT_RAM_BYTES, so a buffer is EP_OUT_PACKETS_PER_BUF * EP_OUT_RAM_BYTES long.
+// Stage 1: one packet per buffer, host at 4 kHz packets. Stage 2: two packets per buffer, host at 8 kHz packets
+#define EP_OUT_RAM_BYTES		512		// Upper limit of one DMA transfer = one USB packet
+#define EP_OUT_PACKETS_PER_BUF	2		// 20261124: stage 2, with EP_INTERVAL_2_HS = 1 (8 kHz packets)
+#define EP_OUT_BUF_BYTES		(EP_OUT_PACKETS_PER_BUF * EP_OUT_RAM_BYTES)
+#define EP_OUT_BUFS				2		// A and B
+#define EP_OUT_ALL_BYTES		(EP_OUT_BUFS * EP_OUT_BUF_BYTES)
 #ifdef FEATURE_EP_OUT_HSBRAM
 	// 20261114: ep_out_ram at the start of HSB SRAM bank 0 (INTRAM0, its own bus matrix slave), so the USB DMA never meets
 	// the I2S DMA at the CPU SRAM that holds spk_buffer. Nothing else is placed there. The HRAMC0 clock is enabled in main()
 	extern U64 * const ep_out_ram;
 #else
-	extern U64 ep_out_ram[EP_OUT_RAM_BYTES / 8];
+	extern U64 ep_out_ram[EP_OUT_ALL_BYTES / 8];
 #endif
 
-// 20261029: USB OUT reception by DMA (method 2, one packet per buffer so far). The USBB DMA channel of EP_AUDIO_OUT
-// copies each bank into ep_out_ram and frees the bank (needs UECFGn.AUTOSW). The DMA-end interrupt sets ep_out_dma_flag
-// and the length, the sequential code parses ep_out_ram and re-arms with ep_out_dma_arm(). Functions in
-// uac2_usb_specific_request.c. First music 20261101. The earlier CPU-copy path (RXOUTI interrupt, flag, FIFO reads)
-// is commented out below and in the files that used it; it was last present in commit fdb8ef6 (20261101)
-extern volatile bool ep_out_dma_flag;		// Set by ep_out_dma_isr(), cleared by the consumer
-extern volatile U16 ep_out_dma_len;			// Bytes in ep_out_ram
+// 20261029: USB OUT reception by DMA. The USBB DMA channel of EP_AUDIO_OUT copies each bank into ep_out_ram and frees
+// the bank (needs UECFGn.AUTOSW). Functions in uac2_usb_specific_request.c. First music 20261101. The earlier CPU-copy
+// path (RXOUTI interrupt, flag, FIFO reads) is commented out below and in the files that used it; it was last present in
+// commit fdb8ef6 (20261101)
+// 20261124: A/B buffers. ep_out_dma_isr() re-arms the DMA itself after every packet, so the USB side never waits for the
+// sequential code. When a buffer is full it sets ep_out_buf_ready[] and ep_out_buf_len[] and moves on to the other
+// buffer. The sequential code parses the buffers in turn (ep_out_parse_buf) and clears ep_out_buf_ready[] when done.
+// If the DMA must move into a buffer that is still ready (not parsed yet), it counts ep_out_dma_overruns and writes
+// anyway; the sequential code prints '?'. Until 60d574c the DMA filled one buffer and the sequential code re-armed it
+extern volatile bool ep_out_buf_ready[EP_OUT_BUFS];	// Set by ep_out_dma_isr(), cleared by the consumer after the parse
+extern volatile U16 ep_out_buf_len[EP_OUT_BUFS];	// Bytes in each buffer, valid while ready
+extern volatile U8 ep_out_parse_buf;				// Next buffer to parse. Written by the consumer and ep_out_dma_restart()
+extern volatile U32 ep_out_dma_overruns;			// DMA moved into a buffer that was not parsed yet
 extern volatile U32 ep_out_dma_count;		// Debug: DMA-end interrupts
 extern volatile U32 ep_out_dma_status;		// Debug: last UDDMAn STATUS
 extern volatile U8 ep_out_dma_nbusybk;		// Debug: NBUSYBK right after DMA end. 0 when the DMA freed the bank
@@ -195,8 +211,8 @@ extern volatile U8 prime_mode;
 	extern volatile U8 prime_log_count;			// Complete records in prime_log
 	extern volatile bool prime_log_frozen;		// Set by 'E' while printing: no new records are started
 #endif
-void ep_out_dma_arm(void);
 void ep_out_dma_stop(void);
+void ep_out_dma_restart(void);
 void ep_out_dma_isr(void);
 extern volatile avr32_ssc_t *ssc;
 
@@ -229,12 +245,10 @@ extern volatile bool usb_audio_out_received_flag;
 
 // 20261003: an endpoint reset (SET_INTERFACE, CLEAR_FEATURE HALT) resets the endpoint registers and banks.
 // 20261029: it also leaves the DMA channel in an unknown state. Stop it, drop any stale flag and re-arm into ep_out_ram,
-// or EP_AUDIO_OUT is never read again
+// or EP_AUDIO_OUT is never read again. 20261124: ep_out_dma_restart() does all of it and starts again at buffer A
 #define EP_AUDIO_OUT_rearm_after_reset(ep) do { \
 	if ((ep) == UAC2_EP_AUDIO_OUT) { \
-		ep_out_dma_stop(); \
-		ep_out_dma_flag = FALSE; \
-		ep_out_dma_arm(); \
+		ep_out_dma_restart(); \
 	} \
 } while (0)
 

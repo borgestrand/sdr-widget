@@ -292,7 +292,7 @@ static portBASE_TYPE usb_general_interrupt_non_naked(void) {
 
 
 	// 20261029: the DMA channel of EP_AUDIO_OUT finished one packet into ep_out_ram. The enable check keeps
-	// other USB events from entering here; ep_out_dma_isr() disables the interrupt until the consumer re-arms.
+	// other USB events from entering here. 20261124: ep_out_dma_isr() re-arms at once, into the A/B buffers.
 	// NB: EP_AUDIO_OUT is a local const inside uac2_device_audio_task(), UAC2_EP_AUDIO_OUT is the global it comes from
 	if ( (AVR32_USBB_udint & (AVR32_USBB_UDINT_DMA1INT_MASK << (UAC2_EP_AUDIO_OUT - 1))) &&
 	     (AVR32_USBB_udinte & (AVR32_USBB_UDINTE_DMA1INTE_MASK << (UAC2_EP_AUDIO_OUT - 1))) )
