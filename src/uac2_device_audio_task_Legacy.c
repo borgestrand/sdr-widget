@@ -597,9 +597,19 @@ void uac2_device_audio_task(void *pvParameters)
 			// the parser waits on the buffer the DMA is filling. Then every buffer overruns, for good (one '?' per
 			// parse). ep_out_dma_restart() (SET_INTERFACE) during a parse leads there: the parse ends with
 			// ep_out_parse_buf = ep_out_buf ^ 1 after the restart set it to 0. Follow the DMA instead
-			if ( (!ep_out_buf_ready[ep_out_parse_buf]) && (ep_out_buf_ready[ep_out_parse_buf ^ 1]) ) {
-				ep_out_parse_buf ^= 1;
-				print_dbg_char('~');
+			// 20261126: ring of EP_OUT_BUFS. Ready buffers normally start at ep_out_parse_buf, so if that one isn't
+			// ready, none is. Otherwise jump to the first ready one after it
+			if (!ep_out_buf_ready[ep_out_parse_buf]) {
+				U8 b = ep_out_parse_buf;
+				U8 k;
+				for (k = 1; k < EP_OUT_BUFS; k++) {
+					b = EP_OUT_BUF_NEXT(b);
+					if (ep_out_buf_ready[b]) {
+						ep_out_parse_buf = b;
+						print_dbg_char('~');
+						break;
+					}
+				}
 			}
 
 				/* SPDIF reduced */
@@ -609,7 +619,7 @@ void uac2_device_audio_task(void *pvParameters)
 				// Do minimal USB action to make Host believe Device is actually receiving
 				if (ep_out_buf_ready[ep_out_parse_buf]) {	// 20261029: the DMA already freed the bank. 20261124: discard the buffer
 					ep_out_buf_ready[ep_out_parse_buf] = FALSE;
-					ep_out_parse_buf ^= 1;
+					ep_out_parse_buf = EP_OUT_BUF_NEXT(ep_out_parse_buf);	// 20261126: was ^= 1
 				}
 
 				// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
@@ -1159,10 +1169,11 @@ void uac2_device_audio_task(void *pvParameters)
 
 					// 20261124: done with this buffer, hand it back to the DMA. Until 60d574c the DMA was re-armed here
 					ep_out_buf_ready[ep_out_buf] = FALSE;
-					ep_out_parse_buf = ep_out_buf ^ 1;
+					ep_out_parse_buf = EP_OUT_BUF_NEXT(ep_out_buf);	// 20261126: was ep_out_buf ^ 1
 					// Usb_ack_out_received_free(EP_AUDIO_OUT);			// 20261101: legacy CPU-copy path, last present in commit fdb8ef6
 					// Usb_enable_out_received_interrupt(EP_AUDIO_OUT);
-					gpio_clr_gpio_pin(AVR32_PIN_PA22);		// 20261021: end of sequential USB packet handling
+					// gpio_clr_gpio_pin(AVR32_PIN_PA22);	// 20261021: end of sequential USB packet handling. 20261126: moved to
+															// the end of the cache to spk_buffer copy, so PA22 covers all sample handling
 
 					#ifdef FEATURE_PRIME_CHECK
 						if (prime_break != 0) {				// 20261104: after the parse, so a waiting UART can't delay it
@@ -1345,6 +1356,9 @@ void uac2_device_audio_task(void *pvParameters)
 		// Process digital input
 		#ifdef HW_GEN_SPRX
 			// The passed parameters are overwritten if input_select is among spdif sources
+			if (input_select & MOBO_SPDIF_PRESENT) {
+				gpio_set_gpio_pin(AVR32_PIN_PA22);		// 20261126: PA22 covers all sample handling, S/PDIF too
+			}
 			mobo_handle_spdif(&si_index_low, &si_score_high, &num_samples, &cache_holds_silence);	// 20261021: si_index_high removed, never used
 		#endif
 
@@ -1833,6 +1847,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 		} // end if num_samples > 0
 		// End writing from cache to spk_buffer
+		gpio_clr_gpio_pin(AVR32_PIN_PA22);				// 20261126: end of all sample handling in this pass, USB or S/PDIF
 
 //		gpio_clr_gpio_pin(AVR32_PIN_PX31); // End of task execution
 

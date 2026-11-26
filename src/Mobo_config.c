@@ -1655,18 +1655,26 @@ U32 mobo_mcu_clock(U32 frequency) {
 		if (MCU_CLOCKS[i].hz == frequency)
 			next = &MCU_CLOCKS[i];
 	}
-	if (next == NULL)
+	// 20261126: refusals print a letter before the caller's 'a': 'U' unknown speed, 'X' its XO is off, 'L' no lock
+	if (next == NULL) {
+		print_dbg_char('U');
 		return current;
+	}
 
-	if ( (frequency == MCU_FREQ_44) && (!gpio_get_gpio_pin_output_value(AVR32_PIN_PA23)) )
+	if ( (frequency == MCU_FREQ_44) && (!gpio_get_gpio_pin_output_value(AVR32_PIN_PA23)) ) {
+		print_dbg_char('X');
 		return current;
-	if ( (frequency == MCU_FREQ_49) && (!gpio_get_gpio_pin_output_value(AVR32_PIN_PA21)) )
+	}
+	if ( (frequency == MCU_FREQ_49) && (!gpio_get_gpio_pin_output_value(AVR32_PIN_PA21)) ) {
+		print_dbg_char('X');
 		return current;
+	}
 
 	// 1. PLL1 scouts at the current speed
 	if (frequency != MCU_FREQ_12) {
 		if (!mobo_pll_start(1, next)) {
 			pm_pll_disable(&AVR32_PM, 1);
+			print_dbg_char('L');
 			return current;
 		}
 	}
@@ -1708,14 +1716,16 @@ U32 mobo_mcu_clock(U32 frequency) {
 // the CPU on PLL0 from the same XO, CPU, PBA and the SSC's TK are all derived from one crystal: no drift
 // between the bus that samples TK and TK itself. The SSC stays a slave on TK, so nothing else changes.
 // PBA = CPU, so TK at 192k (12.288 MHz) is PBA / 4. 20261126: up to 192k, and the boot default.
-// Above 192k, and in MCU_MODE_ASYNC, USB plays at the default speed as before
+// In MCU_MODE_ASYNC, USB plays at the default speed as before
+// 20261126 evening: 352.8k and 384k too, as a test. TK is then PBA / 2 (22.5792 / 24.576 MHz), the SSC slave's
+// upper limit, but locked to PBA. If that doesn't hold, the SSC has to be master at those rates
 U8 mcu_clock_mode = MCU_MODE_MCLK;
 
 U32 mobo_mcu_clock_for(U32 frequency) {
 	if (mcu_clock_mode == MCU_MODE_MCLK) {
-		if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) )
+		if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) || (frequency == FREQ_352) )
 			return MCU_FREQ_44;
-		if ( (frequency == FREQ_48) || (frequency == FREQ_96) || (frequency == FREQ_192) )
+		if ( (frequency == FREQ_48) || (frequency == FREQ_96) || (frequency == FREQ_192) || (frequency == FREQ_384) )
 			return MCU_FREQ_49;
 	}
 	return MCU_FREQ_DEFAULT;

@@ -147,7 +147,8 @@ extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 #define EP_OUT_RAM_BYTES		512		// Upper limit of one DMA transfer = one USB packet
 #define EP_OUT_PACKETS_PER_BUF	2		// 20261124: stage 2, with EP_INTERVAL_2_HS = 1 (8 kHz packets)
 #define EP_OUT_BUF_BYTES		(EP_OUT_PACKETS_PER_BUF * EP_OUT_RAM_BYTES)
-#define EP_OUT_BUFS				2		// A and B
+#define EP_OUT_BUFS				4		// 20261126: a ring of 4, was A and B. Power of 2
+#define EP_OUT_BUF_NEXT(b)		( ((b) + 1) & (EP_OUT_BUFS - 1) )
 #define EP_OUT_ALL_BYTES		(EP_OUT_BUFS * EP_OUT_BUF_BYTES)
 #ifdef FEATURE_EP_OUT_HSBRAM
 	// 20261114: ep_out_ram at the start of HSB SRAM bank 0 (INTRAM0, its own bus matrix slave), so the USB DMA never meets
@@ -166,6 +167,8 @@ extern volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 // buffer. The sequential code parses the buffers in turn (ep_out_parse_buf) and clears ep_out_buf_ready[] when done.
 // If the DMA must move into a buffer that is still ready (not parsed yet), it counts ep_out_dma_overruns and writes
 // anyway; the sequential code prints '?'. Until 60d574c the DMA filled one buffer and the sequential code re-armed it
+// 20261126: a ring of EP_OUT_BUFS buffers instead of A/B. The parse may now lag the DMA by EP_OUT_BUFS - 1 buffers
+// (750us with 4) instead of one (250us) before '?'. Latency grows, throughput needs are unchanged
 extern volatile bool ep_out_buf_ready[EP_OUT_BUFS];	// Set by ep_out_dma_isr(), cleared by the consumer after the parse
 extern volatile U16 ep_out_buf_len[EP_OUT_BUFS];	// Bytes in each buffer, valid while ready
 extern volatile U8 ep_out_parse_buf;				// Next buffer to parse. Written by the consumer and ep_out_dma_restart()

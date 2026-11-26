@@ -105,8 +105,8 @@ volatile S32 cache_unified[2*SPK_CACHE_MAX_SAMPLES];
 #else
 	U64 ep_out_ram[EP_OUT_ALL_BYTES / 8] __attribute__((aligned(8)));	// 20261021: RAM copy of EP_AUDIO_OUT banks, see taskAK5394A.h
 #endif
-volatile bool ep_out_buf_ready[EP_OUT_BUFS] = {FALSE, FALSE};	// 20261124: A/B receive buffers, see taskAK5394A.h
-volatile U16 ep_out_buf_len[EP_OUT_BUFS] = {0, 0};
+volatile bool ep_out_buf_ready[EP_OUT_BUFS] = {FALSE};	// 20261124: A/B receive buffers, 20261126: a ring of 4, see taskAK5394A.h
+volatile U16 ep_out_buf_len[EP_OUT_BUFS] = {0};
 volatile U8 ep_out_parse_buf = 0;
 volatile U32 ep_out_dma_overruns = 0;
 volatile U32 ep_out_dma_count = 0;

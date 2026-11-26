@@ -142,7 +142,11 @@ static void vtaskMoboCtrl( void * pcParameters )
 			// FIX: Why must this code be here and not in device_mouse_hid_task.c:device_mouse_hid_task_init ?
 //			print_dbg_char('p');
 //			wm8804_init();							// Start up the WM8805 in a fairly dead mode
-			wm8804_task_init();
+			#ifdef FEATURE_UAC2_TASK_V2
+				wm8804_init();						// 20261126: V2 is USB only, no WM8804 task scans or takes the inputs
+			#else
+				wm8804_task_init();
+			#endif
 			wm8804_sleep();
 //			print_dbg_char('r'); // Skipping 'q'
 		#endif

@@ -475,7 +475,8 @@ void uac2_freq_change_handler() {
 #define EP_OUT_DMA_INT_MASK	(AVR32_USBB_UDINT_DMA1INT_MASK << (UAC2_EP_AUDIO_OUT - 1))	// Same bit in UDINT, UDINTE, UDINTESET, UDINTECLR
 
 // 20261124: where the DMA writes, A/B buffers in ep_out_ram. Written by ep_out_dma_isr() and ep_out_dma_restart() only
-static U8 ep_out_dma_buf = 0;		// Buffer being filled, 0 = A, 1 = B
+// 20261126: a ring of EP_OUT_BUFS buffers instead of A/B
+static U8 ep_out_dma_buf = 0;		// Buffer being filled, 0 .. EP_OUT_BUFS - 1
 static U8 ep_out_dma_pkt = 0;		// Packets already in it
 static U16 ep_out_dma_fill = 0;		// Bytes already in it
 
@@ -508,12 +509,15 @@ void ep_out_dma_stop(void) {
 	(void)AVR32_USBB_UDDMAX_status(UAC2_EP_AUDIO_OUT);			// Read clears EOTSTA, EOCHBUFFSTA, DESCLDSTA
 }
 
-// 20261124: stop the channel, forget both buffers and start again with the next packet at the start of A.
+// 20261124: stop the channel, forget all buffers and start again with the next packet at the start of buffer 0.
 // Used at endpoint configuration and after an endpoint reset
 void ep_out_dma_restart(void) {
+	U8 b;
+
 	ep_out_dma_stop();
-	ep_out_buf_ready[0] = FALSE;
-	ep_out_buf_ready[1] = FALSE;
+	for (b = 0; b < EP_OUT_BUFS; b++) {
+		ep_out_buf_ready[b] = FALSE;
+	}
 	ep_out_parse_buf = 0;
 	ep_out_dma_buf = 0;
 	ep_out_dma_pkt = 0;
@@ -536,10 +540,10 @@ void ep_out_dma_isr(void) {
 	ep_out_dma_count++;
 
 	ep_out_dma_pkt++;
-	if (ep_out_dma_pkt >= EP_OUT_PACKETS_PER_BUF) {				// Buffer full: hand it over, move to the other one
+	if (ep_out_dma_pkt >= EP_OUT_PACKETS_PER_BUF) {				// Buffer full: hand it over, move to the next one
 		ep_out_buf_len[ep_out_dma_buf] = ep_out_dma_fill;
 		ep_out_buf_ready[ep_out_dma_buf] = TRUE;
-		ep_out_dma_buf ^= 1;
+		ep_out_dma_buf = EP_OUT_BUF_NEXT(ep_out_dma_buf);
 		ep_out_dma_pkt = 0;
 		ep_out_dma_fill = 0;
 		if (ep_out_buf_ready[ep_out_dma_buf]) {					// Not parsed yet. Written over anyway, the data is late
