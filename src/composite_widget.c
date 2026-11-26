@@ -198,6 +198,10 @@
 #include "dxd_test.c"					// 20261124: minimal DXD clock tree test, main() calls dxd_test() and never gets further
 #endif
 
+#ifdef FEATURE_CLOCK_TEST
+#include "clock_test.c"					// 20261125: MCU clock switching test 66/45/66/49, main() calls clock_test() and never gets further
+#endif
+
 
 xSemaphoreHandle mutexEP_IN;
 
@@ -345,6 +349,9 @@ wm8804_reset(WM8804_RESET_START);							// Early hardware reset of WM8805 becaus
 
 	#ifdef FEATURE_DXD_TEST
 		dxd_test();								// 20261124: never returns. No FreeRTOS, no USB, see dxd_test.c
+	#endif
+	#ifdef FEATURE_CLOCK_TEST
+		clock_test();							// 20261125: never returns. No FreeRTOS, no USB, see clock_test.c
 	#endif
 
 #endif

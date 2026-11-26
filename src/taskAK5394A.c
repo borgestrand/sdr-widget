@@ -417,7 +417,7 @@ void AK5394A_task_init(const Bool uac1) {
 	gpio_enable_pin_glitch_filter(SSC_RX_CLOCK);
 	gpio_enable_pin_glitch_filter(SSC_RX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_RX_FRAME_SYNC);
-//	gpio_enable_pin_glitch_filter(SSC_TX_CLOCK);
+	gpio_enable_pin_glitch_filter(SSC_TX_CLOCK);
 	gpio_enable_pin_glitch_filter(SSC_TX_DATA);
 	gpio_enable_pin_glitch_filter(SSC_TX_FRAME_SYNC);
 
