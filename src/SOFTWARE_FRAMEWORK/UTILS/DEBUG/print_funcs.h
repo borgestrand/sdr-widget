@@ -271,6 +271,11 @@ extern char read_dbg_char_hex(char echo, char rtos_delay); // char or int? exter
  */
 void print_dbg_char_char(int c);
 
+/*! \brief 20261126: DBG_USART output is buffered. Moves what the UART takes now, without waiting.
+ * Called once per round of device_mouse_hid_task. Output is unbuffered until the first call
+ */
+void dbg_tx_flush(void);
+
 
 /////////////////////////////////////////////////////
 // BSB 20110128-20120717 End of insertion

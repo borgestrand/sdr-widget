@@ -258,6 +258,7 @@ void device_mouse_hid_task(void)
     gotcmd = 0;												// No HID button change recorded yet
 
     while (gotcmd == 0) {
+		dbg_tx_flush();										// 20261126: debug UART output, 2 characters per 12ms round
 
 		#ifdef FEATURE_SPDIF_CMD
 		// spdif debug ack - This file records command -> some handler executes on it and sets it to ack -> this file acks and resets to idle
@@ -737,7 +738,7 @@ Arash
 				// 20261105: prime analysis mode. 20261113: steps 0 -> 1 -> 2 -> 3 -> 0 and replies with the new mode.
 				// 0 off, 1 prime check, 2 I2S pulse pattern, 3 both. Needs a build with FEATURE_PRIME_CHECK
 				// 20261126: without FEATURE_PRIME_CHECK, 'O' toggles the USB playback clock mode: 'a' 66 always, 'm' MCU
-				// locked to MCLK up to 96k. Used at the next playback start.
+				// locked to MCLK up to 192k (boot default). Used at the next playback start.
 				// Reply: the new mode, then the MCU speed now in Hz
 				else if (a == 'O') {						// Uppercase O - next prime mode, see prime_mode in taskAK5394A.h
 					#ifdef FEATURE_PRIME_CHECK

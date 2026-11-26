@@ -85,6 +85,68 @@
 //! ASCII representation of hexadecimal digits.
 static const char HEX_DIGITS[16] = "0123456789ABCDEF";
 
+
+// 20261126: DBG_USART output goes to a ring buffer, so printing no longer waits for the UART in timing critical
+// code. device_mouse_hid_task calls dbg_tx_flush() once per round, which moves what the UART takes right away
+// (2 characters: holding and shift register). Until that task starts, and whenever the ring is full, output
+// waits for the UART as before, so nothing is lost and the order is kept
+#define DBG_TX_BUF_LEN	1024						// Power of 2
+static volatile char dbg_tx_buf[DBG_TX_BUF_LEN];
+static volatile U16 dbg_tx_head = 0;				// Next write
+static volatile U16 dbg_tx_tail = 0;				// Next read
+static volatile Bool dbg_tx_buffered = FALSE;		// Set by dbg_tx_flush()
+
+// Moves one character from the ring to the UART if both have one. TRUE if it moved one
+static Bool dbg_tx_move(void)
+{
+	Bool moved = FALSE;
+	Bool irq_enabled = Is_global_interrupt_enabled();
+
+	Disable_global_interrupt();
+	if ( (dbg_tx_tail != dbg_tx_head) && (usart_tx_ready(DBG_USART)) ) {
+		DBG_USART->thr = (dbg_tx_buf[dbg_tx_tail] << AVR32_USART_THR_TXCHR_OFFSET) & AVR32_USART_THR_TXCHR_MASK;
+		dbg_tx_tail = (dbg_tx_tail + 1) & (DBG_TX_BUF_LEN - 1);
+		moved = TRUE;
+	}
+	if (irq_enabled)
+		Enable_global_interrupt();
+	return moved;
+}
+
+// One character into the ring. Tasks and ISRs both print, hence the masked interrupts
+static void dbg_tx_put(char c)
+{
+	Bool irq_enabled;
+	U16 next;
+
+	if (!dbg_tx_buffered) {							// Boot: straight to the UART as before
+		usart_bw_write_char(DBG_USART, c);
+		return;
+	}
+
+	while (TRUE) {
+		irq_enabled = Is_global_interrupt_enabled();
+		Disable_global_interrupt();
+		next = (dbg_tx_head + 1) & (DBG_TX_BUF_LEN - 1);
+		if (next != dbg_tx_tail) {
+			dbg_tx_buf[dbg_tx_head] = c;
+			dbg_tx_head = next;
+			if (irq_enabled)
+				Enable_global_interrupt();
+			return;
+		}
+		if (irq_enabled)
+			Enable_global_interrupt();
+		dbg_tx_move();								// Full: wait for the UART as before
+	}
+}
+
+void dbg_tx_flush(void)
+{
+	dbg_tx_buffered = TRUE;
+	while (dbg_tx_move());
+}
+
 /////////////////////////////////////////////
 // BSB 20110127-20120717 Added read functions
 /////////////////////////////////////////////
@@ -112,13 +174,15 @@ char read_dbg_char(char echo, char rtos_delay, char checksum_mode)
 		// Redirection to the debug USART.
 
 		if (rtos_delay == RTOS_WAIT) {			// Wait for uart RX register to fill.
-			while (!usart_test_hit(DBG_USART))
+			while (!usart_test_hit(DBG_USART)) {
 				  vTaskDelay(120);				// Giving 12ms to RTOS all the while
+				  dbg_tx_flush();				// 20261126: output keeps flowing while a command waits
+			}
 		}
 
 		read_data = usart_getchar(DBG_USART); // returns int
 	  	if (echo == DBG_ECHO)
-	  		usart_putchar(DBG_USART, read_data);
+	  		print_dbg_char_char(read_data);		// 20261126: via the ring, in order
 		dbg_checksum += read_data;	// Checksum function is addition...
 		dbg_checksum &= 0xFF;		// ... of which we save 8 lsbs. Redundant code line?
 		return read_data;
@@ -158,7 +222,7 @@ char read_dbg_char_hex(char echo, char rtos_delay)
 void print_dbg_char_char(int c)
 {
 	// Redirection to the debug USART.
-	usart_putchar(DBG_USART, c);
+	print_char(DBG_USART, c);		// 20261126: was usart_putchar(), now via the ring
 }
 
 /////////////////////////////////////////////
@@ -308,6 +372,16 @@ void print_dbg_hex(unsigned long n)
 
 void print(volatile avr32_usart_t *usart, const char *str)
 {
+  // 20261126: DBG_USART via the ring, '\n' as "\r\n" like usart_putchar()
+  if (usart == DBG_USART) {
+    while (*str != '\0') {
+      if (*str == '\n')
+        dbg_tx_put('\r');
+      dbg_tx_put(*str++);
+    }
+    return;
+  }
+
   // Invoke the USART driver to transmit the input string with the given USART.
   usart_write_line(usart, str);
 }

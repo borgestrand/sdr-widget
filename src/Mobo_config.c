@@ -1706,15 +1706,16 @@ U32 mobo_mcu_clock(U32 frequency) {
 
 // 20261126: MCLK-locked USB playback. GCLK1, the I2S bit clock, already divides the running XO (OSC1). With
 // the CPU on PLL0 from the same XO, CPU, PBA and the SSC's TK are all derived from one crystal: no drift
-// between the bus that samples TK and TK itself. The SSC stays a slave on TK up to 96k, so nothing else changes.
-// Above 96k, and in MCU_MODE_ASYNC, USB plays at the default speed as before
-U8 mcu_clock_mode = MCU_MODE_ASYNC;
+// between the bus that samples TK and TK itself. The SSC stays a slave on TK, so nothing else changes.
+// PBA = CPU, so TK at 192k (12.288 MHz) is PBA / 4. 20261126: up to 192k, and the boot default.
+// Above 192k, and in MCU_MODE_ASYNC, USB plays at the default speed as before
+U8 mcu_clock_mode = MCU_MODE_MCLK;
 
 U32 mobo_mcu_clock_for(U32 frequency) {
 	if (mcu_clock_mode == MCU_MODE_MCLK) {
-		if ( (frequency == FREQ_44) || (frequency == FREQ_88) )
+		if ( (frequency == FREQ_44) || (frequency == FREQ_88) || (frequency == FREQ_176) )
 			return MCU_FREQ_44;
-		if ( (frequency == FREQ_48) || (frequency == FREQ_96) )
+		if ( (frequency == FREQ_48) || (frequency == FREQ_96) || (frequency == FREQ_192) )
 			return MCU_FREQ_49;
 	}
 	return MCU_FREQ_DEFAULT;
