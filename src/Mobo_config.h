@@ -105,6 +105,14 @@ void mobo_print_selected_frequency(U32 frequency);
 // Set (or with MCU_FREQ_REPORT report) the MCU speed, returns the speed afterwards
 U32 mobo_mcu_clock(U32 frequency);
 
+// 20261126: USB playback clock mode, set by the 'O' command, used at the next USB playback start
+#define MCU_MODE_ASYNC		'a'				// 66 always (default)
+#define MCU_MODE_MCLK		'm'				// MCU locked to MCLK (44 / 49) during USB playback up to 96k
+extern U8 mcu_clock_mode;
+
+// The MCU speed for USB playback at this sample rate in the present mcu_clock_mode
+U32 mobo_mcu_clock_for(U32 frequency);
+
 // Audio Widget select oscillator
 void mobo_xo_select(U32 frequency, uint16_t source);	// 20261011: uint16_t for MOBO_SRC_ bits
 

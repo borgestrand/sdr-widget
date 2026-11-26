@@ -736,12 +736,22 @@ Arash
 
 				// 20261105: prime analysis mode. 20261113: steps 0 -> 1 -> 2 -> 3 -> 0 and replies with the new mode.
 				// 0 off, 1 prime check, 2 I2S pulse pattern, 3 both. Needs a build with FEATURE_PRIME_CHECK
+				// 20261126: without FEATURE_PRIME_CHECK, 'O' toggles the USB playback clock mode: 'a' 66 always, 'm' MCU
+				// locked to MCLK up to 96k. Used at the next playback start.
+				// Reply: the new mode, then the MCU speed now in Hz
 				else if (a == 'O') {						// Uppercase O - next prime mode, see prime_mode in taskAK5394A.h
 					#ifdef FEATURE_PRIME_CHECK
 						prime_mode = (prime_mode + 1) & (PRIME_MODE_CHECK | PRIME_MODE_PULSE);
 						print_dbg_char('0' + prime_mode);
 					#else
-						print_dbg_char('-');				// Not built in
+						if (mcu_clock_mode == MCU_MODE_MCLK)
+							mcu_clock_mode = MCU_MODE_ASYNC;
+						else
+							mcu_clock_mode = MCU_MODE_MCLK;
+						print_dbg_char(' ');
+						print_dbg_char(mcu_clock_mode);
+						print_dbg_char(' ');
+						print_dbg_ulong(mobo_mcu_clock(MCU_FREQ_REPORT));
 					#endif
 					print_dbg_char('\n');
 				}

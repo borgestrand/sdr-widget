@@ -17,6 +17,7 @@
 
 // Power module and clock control
 #include "pm.h"
+#include "usart.h"		// 20261126: usart_tx_empty() in mobo_mcu_clock()
 
 // Timer/counter control
 #include "tc.h"
@@ -1672,6 +1673,8 @@ U32 mobo_mcu_clock(U32 frequency) {
 
 	// 2. The gap. No I2C transfer may run across it
 	xSemaphoreTake(I2C_busy_semphr, portMAX_DELAY);
+	// Characters still being sent would be lost at the switch, among them the CPU's source and rate letters
+	while (!usart_tx_empty(DBG_USART));
 	irq_enabled = Is_global_interrupt_enabled();
 	Disable_global_interrupt();
 
@@ -1698,6 +1701,23 @@ U32 mobo_mcu_clock(U32 frequency) {
 	xSemaphoreGive(I2C_busy_semphr);
 
 	return current;
+}
+
+
+// 20261126: MCLK-locked USB playback. GCLK1, the I2S bit clock, already divides the running XO (OSC1). With
+// the CPU on PLL0 from the same XO, CPU, PBA and the SSC's TK are all derived from one crystal: no drift
+// between the bus that samples TK and TK itself. The SSC stays a slave on TK up to 96k, so nothing else changes.
+// Above 96k, and in MCU_MODE_ASYNC, USB plays at the default speed as before
+U8 mcu_clock_mode = MCU_MODE_ASYNC;
+
+U32 mobo_mcu_clock_for(U32 frequency) {
+	if (mcu_clock_mode == MCU_MODE_MCLK) {
+		if ( (frequency == FREQ_44) || (frequency == FREQ_88) )
+			return MCU_FREQ_44;
+		if ( (frequency == FREQ_48) || (frequency == FREQ_96) )
+			return MCU_FREQ_49;
+	}
+	return MCU_FREQ_DEFAULT;
 }
 
 

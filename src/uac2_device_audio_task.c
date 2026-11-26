@@ -1572,7 +1572,16 @@ void uac2_device_audio_task(void *pvParameters)
 					#else
 						if (1) {
 					#endif
-							mobo_xo_select(spk_current_freq.frequency, input_select);
+							mobo_xo_select(spk_current_freq.frequency, input_select);	// At the default speed (its own guard)
+							#ifdef HW_GEN_SPRX
+								// 20261126: 44 / 49 only here, while UAC2 owns input_select. Every give returns to the default
+								if (mobo_mcu_clock(mobo_mcu_clock_for(spk_current_freq.frequency)) != MCU_FREQ_DEFAULT) {
+									print_dbg_char(MCU_MODE_MCLK);	// 'm' MCU locked to MCLK
+								}
+								else {
+									print_dbg_char(MCU_MODE_ASYNC);	// 'a' MCU at the default speed
+								}
+							#endif
 							mobo_clock_division(spk_current_freq.frequency);
 							#ifdef HW_GEN_SPRX
 								mobo_led_select(spk_current_freq.frequency, input_select); // Not used in non-sprx hardware
