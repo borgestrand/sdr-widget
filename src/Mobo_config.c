@@ -1578,8 +1578,136 @@ void mobo_print_selected_frequency(U32 frequency) {
 
 
 
+// 20261126: MCU clock switching, the method bench-proven in clock_test.c (f9ae544 and later).
+// 44 and 49 may only be used between the xSemaphoreTake(input_select_semphr) and xSemaphoreGive(input_select_semphr)
+// of a USB session in uac2_device_audio_task.c. Every give site calls mobo_mcu_clock(MCU_FREQ_DEFAULT) first.
+// Only PLL0 can clock the CPU, and PLL0 can't change while the CPU runs on it. So:
+//   1. At the current speed: PLL1 scouts with the next speed's settings and must lock. No lock: no change
+//   2. Gap at 12 (bench: about 30 us), interrupts masked: PLL0 gets the same settings, wait for LOCK0, CPU to PLL0
+//   3. FreeRTOS tick and UART set up for the new speed. PLL1 off
+// CPU = HSB = PBA = PBB, except that an 84 MHz build keeps its PBA at CPU / 2.
+// Not re-initialised: TWI. Its divider was calculated for FOSC0 (I2C.c) and measures 387 kHz at 66, so it runs
+// at about 265 / 288 kHz at 44 / 49. Slower, not faster.
+// Not yet adapted to 44 / 49: mobo_srd() and cpu_delay_*() calls that use FCPU_HZ.
+typedef struct {
+	U32 hz;				// CPU speed
+	U8 osc;				// PLL reference: 0 = OSC0 (12), 1 = OSC1 (the running XO)
+	U8 mul;				// PLLMUL field, multiplier - 1
+	U8 div;				// PLLDIV field
+} mcu_clock_t;
+
+static const mcu_clock_t MCU_CLOCKS[] = {
+	{MCU_FREQ_12, 0,  0, 0},		// OSC0 directly, no PLL
+	{MCU_FREQ_44, 1,  7, 2},		// 22.5792 x 8/2 = 90.3168 MHz VCO, /2. Needs the 22 running (PA23 high)
+	{MCU_FREQ_49, 1,  7, 2},		// 24.576 x 8/2 = 98.304 MHz VCO, /2. Needs the 24 running (PA21 high)
+	{MCU_FREQ_66, 0, 10, 1},		// 12 x 11/1 = 132 MHz VCO, /2
+	{MCU_FREQ_84, 0, 13, 1}			// 12 x 14/1 = 168 MHz VCO, /2
+};
+#define MCU_CLOCKS_LEN		(sizeof(MCU_CLOCKS) / sizeof(MCU_CLOCKS[0]))
+#define MCU_PLLCOUNT		0			// Bench 2026-11-26: LOCKn is real, PLLCOUNT only adds an RC-clocked wait (about 9.3 us per count)
+#define MCU_LOCK_TIMEOUT	1000000		// Polling loops before giving up on LOCKn, 20 ms or more at any speed
+
+
+// Write the settings with the PLL off, make sure LOCKn has dropped (no stale lock), then enable and wait
+// for LOCKn. Returns 0 on timeout. Same as clk_pll_start() in clock_test.c
+static U8 mobo_pll_start(U8 pll, const mcu_clock_t *speed) {
+	const U32 lock_mask = (pll == 0) ? AVR32_PM_POSCSR_LOCK0_MASK : AVR32_PM_POSCSR_LOCK1_MASK;
+	U32 timeout = MCU_LOCK_TIMEOUT;
+
+	pm_pll_setup(&AVR32_PM, pll, speed->mul, speed->div, speed->osc, MCU_PLLCOUNT);	// Writes PLLEN = 0 as well
+	pm_pll_set_option(&AVR32_PM, pll,
+		1,						// pll_freq: VCO range 80-180 MHz
+		1,						// pll_div2
+		0);						// pll_wbwdisable
+
+	while (AVR32_PM.poscsr & lock_mask) {
+		if (--timeout == 0)
+			return 0;
+	}
+
+	pm_pll_enable(&AVR32_PM, pll);
+
+	timeout = MCU_LOCK_TIMEOUT;
+	while (!(AVR32_PM.poscsr & lock_mask)) {
+		if (--timeout == 0)
+			return 0;
+	}
+	return 1;
+}
+
+
+// Set the MCU speed (an MCU_FREQ_ value) or report it (MCU_FREQ_REPORT). Returns the speed the MCU runs at
+// afterwards. Asking for the present speed changes nothing. Refused, with the speed unchanged: an unknown
+// value, 44 / 49 without their XO running, or a PLL1 that doesn't lock. That also stops 44 <-> 49 directly:
+// the XO change in between must happen at 66 (mobo_xo_select() makes sure of it).
+// Call from a task only, never from an ISR or before the scheduler runs: it takes I2C_busy_semphr
+U32 mobo_mcu_clock(U32 frequency) {
+	static U32 current = MCU_FREQ_DEFAULT;		// main() set it with pm_configure_clocks() before any task runs
+	const mcu_clock_t *next = NULL;
+	Bool irq_enabled;
+	U8 i;
+
+	if ( (frequency == MCU_FREQ_REPORT) || (frequency == current) )
+		return current;
+
+	for (i = 0; i < MCU_CLOCKS_LEN; i++) {
+		if (MCU_CLOCKS[i].hz == frequency)
+			next = &MCU_CLOCKS[i];
+	}
+	if (next == NULL)
+		return current;
+
+	if ( (frequency == MCU_FREQ_44) && (!gpio_get_gpio_pin_output_value(AVR32_PIN_PA23)) )
+		return current;
+	if ( (frequency == MCU_FREQ_49) && (!gpio_get_gpio_pin_output_value(AVR32_PIN_PA21)) )
+		return current;
+
+	// 1. PLL1 scouts at the current speed
+	if (frequency != MCU_FREQ_12) {
+		if (!mobo_pll_start(1, next)) {
+			pm_pll_disable(&AVR32_PM, 1);
+			return current;
+		}
+	}
+
+	// 2. The gap. No I2C transfer may run across it
+	xSemaphoreTake(I2C_busy_semphr, portMAX_DELAY);
+	irq_enabled = Is_global_interrupt_enabled();
+	Disable_global_interrupt();
+
+	pm_switch_to_clock(&AVR32_PM, AVR32_PM_MCSEL_OSC0);
+	if (frequency == MCU_FREQ_12)
+		current = MCU_FREQ_12;
+	else if (mobo_pll_start(0, next)) {
+		pm_switch_to_clock(&AVR32_PM, AVR32_PM_MCCTRL_MCSEL_PLL0);
+		current = next->hz;
+	}
+	else
+		current = MCU_FREQ_12;					// PLL0 failed where PLL1 locked: stay alive at 12
+
+	// 3. FreeRTOS tick (port.c prvScheduleFirstTick()). A match clears COUNT, and COUNT may already be past a
+	// lower COMPARE, so clear it here too. The tick in progress gets a little longer
+	Set_system_register(AVR32_COMPARE, current / configTICK_RATE_HZ);
+	Set_system_register(AVR32_COUNT, 0);
+
+	if (irq_enabled)
+		Enable_global_interrupt();
+
+	pm_pll_disable(&AVR32_PM, 1);				// Scout off
+	init_dbg_rs232(current / (FCPU_HZ / FPBA_HZ));	// Resets the receiver: a key in flight is lost
+	xSemaphoreGive(I2C_busy_semphr);
+
+	return current;
+}
+
+
 void mobo_xo_select(U32 frequency, uint16_t source) {
 // XO and MCLK control
+
+	// 20261126: an XO change under a CPU that runs on it would stop the CPU. Only reached by mistake: 44 / 49
+	// end at every USB give, before anyone else may call this
+	if (mobo_mcu_clock(MCU_FREQ_REPORT) != MCU_FREQ_DEFAULT)
+		mobo_mcu_clock(MCU_FREQ_DEFAULT);
 
 	#if (defined HW_GEN_AB1X)
 		static U32 prev_frequency = FREQ_INVALID;

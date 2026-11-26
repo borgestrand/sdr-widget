@@ -93,6 +93,18 @@ void mobo_sleep_rtc_ms(uint16_t time_ms);
 // Print the frequency
 void mobo_print_selected_frequency(U32 frequency);
 
+// 20261126: MCU speeds for mobo_mcu_clock(), in Hz. 44 is named after its 44.1 family, it runs at 45.1584 MHz
+#define MCU_FREQ_REPORT		0
+#define MCU_FREQ_12			12000000		// OSC0, no PLL
+#define MCU_FREQ_44			45158400		// 2 x 22.5792 MCLK, needs the 22 XO
+#define MCU_FREQ_49			49152000		// 2 x 24.576 MCLK, needs the 24 XO
+#define MCU_FREQ_66			66000000
+#define MCU_FREQ_84			84000000
+#define MCU_FREQ_DEFAULT	FCPU_HZ			// 66, or 84 with FEATURE_84MHz
+
+// Set (or with MCU_FREQ_REPORT report) the MCU speed, returns the speed afterwards
+U32 mobo_mcu_clock(U32 frequency);
+
 // Audio Widget select oscillator
 void mobo_xo_select(U32 frequency, uint16_t source);	// 20261011: uint16_t for MOBO_SRC_ bits
 

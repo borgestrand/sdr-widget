@@ -29,6 +29,7 @@
 #ifdef FEATURE_CLOCK_TEST
 
 #include "flashc.h"
+#include "usart.h"
 
 #define CLK_HZ_PER_TICK		10000		// Delay count per PA22 half period = Hz / 10000: 6600 at 66, 1200 at 12
 #ifndef CLK_XO_SETTLE_MS
@@ -189,6 +190,32 @@ static void clk_lock_pretest(void) {
 #endif
 
 
+// Stage B: the UART is set up again for every speed, then one line: switch count and speed in Hz.
+// Garbled text at one speed means its baud setup is wrong. Takes about 2 ms at 57600 baud, which adds to
+// the low half period at each switch
+static void clk_uart_report(const clk_speed_t *speed, U32 switches) {
+	init_dbg_rs232(speed->hz);
+	print_dbg_ulong(switches);
+	print_dbg_char(' ');
+	print_dbg_ulong(speed->hz);
+	print_dbg_char('\n');
+}
+
+
+// 'P' puts the board in programming mode, as in device_mouse_hid_task.c: PROG low, 10 ms (there
+// vTaskDelay(100) at a 10 kHz tick), then reset. Checked once per speed, just before the switch, so it answers within about 1 s
+static void clk_check_p(U32 hz) {
+	if (readkey()) {
+		if (usart_getchar(DBG_USART) == 'P') {
+			gpio_clr_gpio_pin(AVR32_PIN_PB10);		// PROG button
+			cpu_delay_ms(10, hz);
+			gpio_clr_gpio_pin(AVR32_PIN_PA25);		// RESET_N / NSRST = 0
+			while (1);
+		}
+	}
+}
+
+
 static void clock_test(void) {
 	const clk_speed_t *current_clock_source = &CLK_START;	// Still at 12 on OSC0 from pm_configure_clocks(&pm_freq_param_slow)
 	const clk_speed_t *next_clock_source;
@@ -196,6 +223,7 @@ static void clock_test(void) {
 	U32 m = 1000;
 	U32 n = ticks(current_clock_source->hz);
 	U32 n_reset_value = n;
+	U32 switches = 0;
 
 	// BCLK net: GCLK1 is never enabled here, keep PX35 a GPIO input. RX recovered MCLK off
 	gpio_enable_gpio_pin(GCLK1);
@@ -228,6 +256,8 @@ static void clock_test(void) {
 	gpio_clr_gpio_pin(AVR32_PIN_PA22);
 	gpio_clr_gpio_pin(AVR32_PIN_PX33);
 
+	clk_uart_report(current_clock_source, switches);
+
 	while (1) {
 		next_clock_source = &CLK_SEQUENCE[next];
 		next = (next + 1) % CLK_SEQUENCE_LEN;
@@ -244,11 +274,15 @@ static void clock_test(void) {
 		}
 		m = 1000;									// 500 full periods, always starting with 0
 
+		clk_check_p(current_clock_source->hz);		// Before the switch: init_dbg_rs232() resets the receiver and loses the key
+
 		if (pll_is_stable(current_clock_source, next_clock_source)) {
 			reconfigure_mcu_clock_source(next_clock_source);
 			current_clock_source = next_clock_source;
 			n_reset_value = ticks(current_clock_source->hz);
-			n = n_reset_value;		
+			n = n_reset_value;
+			switches++;
+			clk_uart_report(current_clock_source, switches);
 		}
 		else {
 			error();

@@ -593,6 +593,15 @@ void uac2_device_audio_task(void *pvParameters)
 			} // end if (Is_usb_in_ready(EP_AUDIO_OUT_FB)) // Endpoint buffer free ?
 
 
+			// 20261126: '?' storm fix. The buffer to parse can only be not ready while the other one is ready when
+			// the parser waits on the buffer the DMA is filling. Then every buffer overruns, for good (one '?' per
+			// parse). ep_out_dma_restart() (SET_INTERFACE) during a parse leads there: the parse ends with
+			// ep_out_parse_buf = ep_out_buf ^ 1 after the restart set it to 0. Follow the DMA instead
+			if ( (!ep_out_buf_ready[ep_out_parse_buf]) && (ep_out_buf_ready[ep_out_parse_buf ^ 1]) ) {
+				ep_out_parse_buf ^= 1;
+				print_dbg_char('~');
+			}
+
 				/* SPDIF reduced */
 #ifdef HW_GEN_SPRX 	// With WM8805/WM8804 input, USB subsystem will be running off a completely wacko MCLK!
 			if (input_select & MOBO_SPDIF_PRESENT) {	// 20261011: was SPDIF0 || SPDIF1 || TOSLINK0 || TOSLINK1
@@ -1182,6 +1191,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 //						#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 						#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
+							mobo_mcu_clock(MCU_FREQ_DEFAULT);			// 20261126: 44 / 49 end before any give
 							if (input_select != MOBO_SRC_NONE) {		// Always directly preceding give for RT reasons
 								if( xSemaphoreGive(input_select_semphr) == pdTRUE ) {
 									mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
@@ -1246,7 +1256,8 @@ void uac2_device_audio_task(void *pvParameters)
 
 //					#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
 					#if ( (defined HW_GEN_SPRX) || (defined HW_GEN_AB1X) ) // For USB playback, handle semaphores
-						if (input_select != MOBO_SRC_NONE) {		// Always directly preceding give for RT reasons						
+						mobo_mcu_clock(MCU_FREQ_DEFAULT);			// 20261126: 44 / 49 end before any give
+						if (input_select != MOBO_SRC_NONE) {		// Always directly preceding give for RT reasons
 							if (xSemaphoreGive(input_select_semphr) == pdTRUE) {
 								mobo_clear_dac_channel();				// Leave the DAC buffer empty as we check out
 								print_dbg_char(62); // '>'				// USB gives after silence
@@ -1300,6 +1311,7 @@ void uac2_device_audio_task(void *pvParameters)
 
 				silence_USB = SILENCE_USB_LIMIT;				// Indicate USB silence NB, it was recently introduced here for completeness, not for a particular need
 				
+				mobo_mcu_clock(MCU_FREQ_DEFAULT);				// 20261126: 44 / 49 end before any give
 				if (input_select == MOBO_SRC_UAC2) {			// We must own input_select before we can give it away!
 					// If playing from USB on new hardware, give away control at this stage to permit toslink scanning
 //					#ifdef HW_GEN_SPRX		// With WM8805/WM8804 present, handle semaphores
