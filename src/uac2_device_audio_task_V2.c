@@ -14,7 +14,7 @@
  * with nothing else running. V2 aims at 15-20 cycles per frame at 32 bit.
  * 20261126 bench, V2 PA22 per buffer: 32/384 at 66 MHz 39us (about 27 cycles per frame, all included),
  * 16/44.1 at 45.16 MHz 6.8us (11 frames, mostly fixed cost). Locked to MCLK ('m'), 32/384 at 49.152 MHz plays
- * clean with PA22 up to 69us, SSC still a slave
+ * clean with PA22 up to 69us
  *
  * SCOPE: bit-perfect USB playback, feedback and the slow (buffered) debug UART. Nothing else, until the speed is
  * there. Then features come back one at a time, each with its PA22 cost measured.
@@ -168,6 +168,182 @@ static inline __attribute__((always_inline)) void v2_usb_put(const U8 bytes, con
 	asm volatile ("" ::: "memory");				// The I2S DMA reads spk_buffer, GCC can't see that
 }
 
+#ifdef FEATURE_PRIME_CHECK
+	// 20261126: Legacy's bit-exact test tools (FEATURE_PRIME_CHECK, debug 'O' 'E' 'Z'), as a separate pass over the
+	// frames just written to spk_buffer. The copy loop stays as fast as without them, and the check sees what the
+	// I2S DMA will send. Inside PA22, so their cost shows. See Legacy for the full description. In short:
+	// PRIME_MODE_CHECK: each channel must step by its prime per frame (tools/make_test_wavs.py). '<' when the first
+	//   frame of a buffer breaks, '>' when a later one does. All-zero frames restart the check. Logged for 'E'.
+	// PRIME_MODE_PULSE: the frames are overwritten with a fixed pattern of about 0.33us SDATA pulses. '!' when a word
+	//   the I2S DMA read since the last buffer doesn't hold the pattern
+	// 'O' steps prime_mode 0 1 2 3 in these builds, so the clock mode stays at the boot default 'm'.
+	// Keep these primes equal to those in tools/make_test_wavs.py
+	#define PRIME_L_16	251
+	#define PRIME_R_16	241
+	#define PRIME_L_24	65521
+	#define PRIME_R_24	65537
+	#define PRIME_L_32	16777213
+	#define PRIME_R_32	16777259
+
+	static U32 prime_last_L = 0;	// Previous frame, left aligned in 32 bits
+	static U32 prime_last_R = 0;
+	static Bool prime_synced = FALSE;
+	static char prime_break = 0;	// Character to report for this buffer, 0 for none
+	static U16 prime_len = 0;		// This buffer's length in bytes
+	static U16 prime_prev_len = 0;	// Previous buffer's length in bytes
+	static U16 prime_packets = 0;	// Buffers since the previous break, saturating
+	static Bool prime_log_pending = FALSE;	// A record waits for its next frame
+	static U8 prime_log_slot = 0;	// The record that waits
+	static S32 ram_check_pos = -1;	// Next spk_buffer word to check against the pulse pattern, -1 for none
+
+	// Check one frame, as Legacy. step_L and step_R are the primes shifted to the sample's bit position
+	static void prime_check_frame(U32 sample_L, U32 sample_R, U32 step_L, U32 step_R, U8 i) {
+		volatile U32 *rec;
+
+		if (prime_log_pending) {	// This frame is the next frame of the last logged break
+			rec = &prime_log[prime_log_slot * PRIME_LOG_WORDS];
+			rec[7] = sample_L;
+			rec[8] = sample_R;
+			if (prime_log_count == prime_log_slot) {	// Not emptied by 'E' meanwhile: the record is complete
+				prime_log_count = prime_log_slot + 1;
+			}
+			prime_log_pending = FALSE;
+		}
+
+		if ( (sample_L == 0) && (sample_R == 0) ) {		// Silence restarts the check
+			prime_synced = FALSE;
+			return;
+		}
+
+		if ( (prime_synced) && (prime_break == 0) &&
+			 ( (sample_L - prime_last_L != step_L) || (sample_R - prime_last_R != step_R) ) ) {
+			prime_break = (i == 0) ? '<' : '>';
+
+			if ( (!prime_log_frozen) && (prime_log_count < PRIME_LOG_EVENTS) ) {	// Full log waits for 'E'
+				prime_log_slot = prime_log_count;
+				rec = &prime_log[prime_log_slot * PRIME_LOG_WORDS];
+				rec[0] = 0xFFFFFFFF;
+				rec[1] = ((U32)prime_break << 24) | ((U32)i << 16) | prime_len;
+				rec[2] = ((U32)prime_prev_len << 16) | prime_packets;
+				rec[3] = prime_last_L;
+				rec[4] = prime_last_R;
+				rec[5] = sample_L;
+				rec[6] = sample_R;
+				prime_log_pending = TRUE;			// Counted when the next frame arrives
+			}
+			prime_packets = 0;
+		}
+
+		prime_last_L = sample_L;
+		prime_last_R = sample_R;
+		prime_synced = TRUE;
+	}
+
+	// The test tools on the frames just written: from spk_buffer[first], frames long, may wrap
+	static void v2_prime_buffer(S32 first, U32 frames, U32 len, U8 bytes) {
+		const U8 mode = prime_mode;					// Sampled once per buffer
+		S32 k;
+		U32 i;
+
+		prime_break = 0;
+		prime_prev_len = prime_len;
+		prime_len = len;
+		if (prime_packets < 0xFFFF) {
+			prime_packets++;
+		}
+
+		if (mode & PRIME_MODE_CHECK) {
+			U32 step_L = PRIME_L_32;				// 32-bit samples use all bits
+			U32 step_R = PRIME_R_32;
+			if (bytes == V2_BYTES_24) {				// 24-bit samples sit in bits 31:8
+				step_L = (U32)PRIME_L_24 << 8;
+				step_R = (U32)PRIME_R_24 << 8;
+			}
+			else if (bytes == V2_BYTES_16) {		// 16-bit samples sit in bits 31:16
+				step_L = (U32)PRIME_L_16 << 16;
+				step_R = (U32)PRIME_R_16 << 16;
+			}
+			k = first;
+			for (i = 0; i < frames; i++) {
+				prime_check_frame((U32)spk_buffer[k], (U32)spk_buffer[k + 1], step_L, step_R, (U8)i);
+				k += 2;
+				if (k >= DAC_BUFFER_UNI) {
+					k = 0;
+				}
+			}
+		}
+		else {
+			prime_synced = FALSE;					// Turning the check on starts a fresh sequence
+			prime_log_pending = FALSE;				// and drops a record that waits for its next frame
+		}
+
+		if (mode & PRIME_MODE_PULSE) {
+			S32 pulse_word;
+			if (spk_current_freq.frequency < 60000) {
+				pulse_word = 0x55555555;			// 1-bit pulses at 44.1k and 48k
+			}
+			else if (spk_current_freq.frequency < 120000) {
+				pulse_word = 0x33333333;			// 2-bit pulses at 88.2k and 96k
+			}
+			else if (spk_current_freq.frequency < 240000) {
+				pulse_word = 0x0F0F0F0F;			// 4-bit pulses at 176.4k and 192k
+			}
+			else {
+				pulse_word = 0x3FC03FC0;			// 8-bit pulses at 352.8k and 384k, off the byte boundaries
+			}
+
+			k = first;
+			for (i = 0; i < frames; i++) {
+				spk_buffer[k] = pulse_word;
+				spk_buffer[k + 1] = pulse_word;
+				k += 2;
+				if (k >= DAC_BUFFER_UNI) {
+					k = 0;
+				}
+			}
+
+			// RAM check, as Legacy: every word the I2S DMA read since the last buffer must hold the pattern. The writer
+			// is half a buffer ahead, so those words are still what the DMA sent. Old data gives '!' for one buffer lap
+			// after the mode is turned on
+			S32 dma_pos = DAC_BUFFER_UNI - spk_pdca_channel->tcr;	// Next word the DMA reads
+			Bool ram_bad = FALSE;
+			if (dma_pos >= DAC_BUFFER_UNI) {
+				dma_pos -= DAC_BUFFER_UNI;
+			}
+			if (ram_check_pos >= 0) {
+				while (ram_check_pos != dma_pos) {
+					if (spk_buffer[ram_check_pos] != pulse_word) {
+						ram_bad = TRUE;
+					}
+					ram_check_pos++;
+					if (ram_check_pos >= DAC_BUFFER_UNI) {
+						ram_check_pos = 0;
+					}
+				}
+			}
+			ram_check_pos = dma_pos;
+			if (ram_bad) {
+				print_dbg_char('!');
+			}
+		}
+		else {
+			ram_check_pos = -1;
+		}
+
+		// Debug 'Z': 0 into L and R of the last frame written
+		if (spk_zero_frame) {
+			k = spk_index - 2;
+			if (k < 0) {
+				k += DAC_BUFFER_UNI;
+			}
+			spk_buffer[k] = 0;
+			spk_buffer[k + 1] = 0;
+			spk_zero_frame = FALSE;
+		}
+	}
+#endif
+
+
 // spk_index half a buffer away from the I2S DMA's read head
 static void v2_init_spk_index(void) {
 	spk_index = DAC_BUFFER_UNI - (spk_pdca_channel->tcr) + DAC_BUFFER_UNI / 2;
@@ -295,6 +471,9 @@ static void v2_usb_take(U8 bytes) {
 	print_dbg_char('0' + (bytes * 8) % 10);
 
 	v2_init_spk_index();						// After the clocks, which take milliseconds
+	#ifdef FEATURE_PRIME_CHECK
+		prime_synced = FALSE;					// A new stream may start anywhere in a test file
+	#endif
 }
 
 // Give input_select back. The MCU goes back to the default speed first
@@ -346,12 +525,18 @@ static void v2_usb_buffer(U8 buf) {
 	}
 
 	if ( (input_select == MOBO_SRC_UAC2) && (frames != 0) ) {
+		#ifdef FEATURE_PRIME_CHECK
+			S32 first = spk_index;				// Where this buffer's frames start
+		#endif
 		v2_gap();								// Before the parse: needs only spk_index and the DMA's tcr
 		switch (bytes) {
 			case V2_BYTES_32: v2_usb_put(V2_BYTES_32, src, frames); break;
 			case V2_BYTES_24: v2_usb_put(V2_BYTES_24, src, frames); break;
 			default:          v2_usb_put(V2_BYTES_16, src, frames); break;
 		}
+		#ifdef FEATURE_PRIME_CHECK
+			v2_prime_buffer(first, frames, len, bytes);
+		#endif
 	}
 
 	// Done with this buffer, hand it back to the DMA
@@ -363,6 +548,13 @@ static void v2_usb_buffer(U8 buf) {
 		ep_out_overruns_seen = ep_out_dma_overruns;
 		print_dbg_char('?');
 	}
+
+	#ifdef FEATURE_PRIME_CHECK
+		if (prime_break != 0) {					// After PA22, so a waiting UART can't delay the parse
+			print_dbg_char(prime_break);
+			prime_break = 0;
+		}
+	#endif
 }
 
 

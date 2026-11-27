@@ -1714,11 +1714,11 @@ U32 mobo_mcu_clock(U32 frequency) {
 
 // 20261126: MCLK-locked USB playback. GCLK1, the I2S bit clock, already divides the running XO (OSC1). With
 // the CPU on PLL0 from the same XO, CPU, PBA and the SSC's TK are all derived from one crystal: no drift
-// between the bus that samples TK and TK itself. The SSC stays a slave on TK, so nothing else changes.
+// between the bus that samples TK and TK itself. The SSC setup is unchanged: bit clock in on TK, LRCK out on TF.
 // PBA = CPU, so TK at 192k (12.288 MHz) is PBA / 4. 20261126: up to 192k, and the boot default.
 // In MCU_MODE_ASYNC, USB plays at the default speed as before
-// 20261126 evening: 352.8k and 384k too, as a test. TK is then PBA / 2 (22.5792 / 24.576 MHz), the SSC slave's
-// upper limit, but locked to PBA. If that doesn't hold, the SSC has to be master at those rates
+// 20261126 evening: 352.8k and 384k too. TK is then PBA / 2 (22.5792 / 24.576 MHz), locked to PBA. 32/384 bench:
+// clean, where 66 MHz with an unlocked TK gave heavy noise
 U8 mcu_clock_mode = MCU_MODE_MCLK;
 
 U32 mobo_mcu_clock_for(U32 frequency) {
@@ -1929,6 +1929,11 @@ void mobo_clock_division(U32 frequency) {
 			// AB-1.2, USB DAC 128: Pulling down PA03 indicates NO division. Floating indicates division.
 			if (gpio_get_pin_value(AVR32_PIN_PA03) == 1) {
 		#endif
+
+				// 20261127: no 352.8k / 384k with the external /2: OSC1 is 11.2896 / 12.288 MHz, too slow for their
+				// 22.5792 / 24.576 MHz bit clock. uac2_hs_rates() doesn't list them. A way out if EMC or an unstable PLL
+				// ever forces it: in 'm', GCLK1 from PLL0 / 2 (osc_or_pll = 1, pll_osc = 0, diven = 1, div = 0), still
+				// locked to the XO but with PLL jitter on the bit clock. Stop GCLK1 before the give moves PLL0 back to 66
 		
 				switch (frequency) {
 					case FREQ_192 :
