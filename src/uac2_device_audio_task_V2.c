@@ -239,6 +239,45 @@ static inline __attribute__((always_inline)) void v2_usb_put(const U8 bytes, con
 		prime_synced = TRUE;
 	}
 
+	// 20261127: the prime check over one run of n frames without a wrap, i = the run's first frame in the buffer.
+	// 352.8k overran with prime_check_frame() on every frame. Here a tight loop only compares and moves on; any
+	// other frame (a break, silence, the first after a restart, the frame a log record waits for) goes through
+	// prime_check_frame() as before, one at a time
+	static void v2_prime_run(const S32 *p, U32 n, U32 i, const U32 step_L, const U32 step_R) {
+		U32 last_L = prime_last_L;
+		U32 last_R = prime_last_R;
+
+		while (n != 0) {
+			if ( (prime_synced) && (!prime_log_pending) ) {
+				while (n != 0) {						// Fast: both channels step by their prime
+					U32 sample_L = (U32)p[0];
+					U32 sample_R = (U32)p[1];
+					if ( (sample_L - last_L != step_L) || (sample_R - last_R != step_R) ) {
+						break;
+					}
+					last_L = sample_L;
+					last_R = sample_R;
+					p += 2;
+					i++;
+					n--;
+				}
+				if (n == 0) {
+					break;
+				}
+			}
+			prime_last_L = last_L;						// Slow: one frame the full way
+			prime_last_R = last_R;
+			prime_check_frame((U32)p[0], (U32)p[1], step_L, step_R, (U8)i);
+			last_L = prime_last_L;
+			last_R = prime_last_R;
+			p += 2;
+			i++;
+			n--;
+		}
+		prime_last_L = last_L;
+		prime_last_R = last_R;
+	}
+
 	// The test tools on the frames just written: from spk_buffer[first], frames long, may wrap
 	static void v2_prime_buffer(S32 first, U32 frames, U32 len, U8 bytes) {
 		const U8 mode = prime_mode;					// Sampled once per buffer
@@ -263,13 +302,13 @@ static inline __attribute__((always_inline)) void v2_usb_put(const U8 bytes, con
 				step_L = (U32)PRIME_L_16 << 16;
 				step_R = (U32)PRIME_R_16 << 16;
 			}
-			k = first;
-			for (i = 0; i < frames; i++) {
-				prime_check_frame((U32)spk_buffer[k], (U32)spk_buffer[k + 1], step_L, step_R, (U8)i);
-				k += 2;
-				if (k >= DAC_BUFFER_UNI) {
-					k = 0;
-				}
+			i = (DAC_BUFFER_UNI - first) >> 1;		// Frames before the wrap
+			if (i > frames) {
+				i = frames;
+			}
+			v2_prime_run((const S32 *)&spk_buffer[first], i, 0, step_L, step_R);
+			if (frames > i) {
+				v2_prime_run((const S32 *)&spk_buffer[0], frames - i, i, step_L, step_R);
 			}
 		}
 		else {
