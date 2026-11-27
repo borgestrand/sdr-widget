@@ -173,7 +173,8 @@ static inline __attribute__((always_inline)) void v2_usb_put(const U8 bytes, con
 	// frames just written to spk_buffer. The copy loop stays as fast as without them, and the check sees what the
 	// I2S DMA will send. Inside PA22, so their cost shows. See Legacy for the full description. In short:
 	// PRIME_MODE_CHECK: each channel must step by its prime per frame (tools/make_test_wavs.py). '<' when the first
-	//   frame of a buffer breaks, '>' when a later one does. All-zero frames restart the check. Logged for 'E'.
+	//   frame of a buffer breaks, '>' when a later one does. PRIME_ZERO_RESTART zero frames in a row restart the
+	//   check, fewer break it. Logged for 'E'.
 	// PRIME_MODE_PULSE: the frames are overwritten with a fixed pattern of about 0.33us SDATA pulses. '!' when a word
 	//   the I2S DMA read since the last buffer doesn't hold the pattern
 	// 'O' steps prime_mode 0 1 2 3 in these builds, so the clock mode stays at the boot default 'm'.
@@ -195,6 +196,8 @@ static inline __attribute__((always_inline)) void v2_usb_put(const U8 bytes, con
 	static Bool prime_log_pending = FALSE;	// A record waits for its next frame
 	static U8 prime_log_slot = 0;	// The record that waits
 	static S32 ram_check_pos = -1;	// Next spk_buffer word to check against the pulse pattern, -1 for none
+	#define PRIME_ZERO_RESTART	1024	// Zero frames in a row that count as silence: 23 ms at 44.1k, 2.7 ms at 384k
+	static U16 prime_zero_run = 0;	// Zero frames in a row while synced
 
 	// Check one frame, as Legacy. step_L and step_R are the primes shifted to the sample's bit position
 	static void prime_check_frame(U32 sample_L, U32 sample_R, U32 step_L, U32 step_R, U8 i) {
@@ -210,9 +213,19 @@ static inline __attribute__((always_inline)) void v2_usb_put(const U8 bytes, con
 			prime_log_pending = FALSE;
 		}
 
-		if ( (sample_L == 0) && (sample_R == 0) ) {		// Silence restarts the check
-			prime_synced = FALSE;
-			return;
+		// 20261127: only a long run of zero frames is silence and restarts the check. A shorter one in a synced stream
+		// is a dropout and breaks like any wrong frame. The test files have no zero frames
+		if ( (sample_L == 0) && (sample_R == 0) ) {
+			if (!prime_synced) {						// Silence before the sequence (re)starts
+				return;
+			}
+			if (++prime_zero_run >= PRIME_ZERO_RESTART) {
+				prime_synced = FALSE;
+				return;
+			}
+		}
+		else {
+			prime_zero_run = 0;
 		}
 
 		if ( (prime_synced) && (prime_break == 0) &&
@@ -289,6 +302,18 @@ static inline __attribute__((always_inline)) void v2_usb_put(const U8 bytes, con
 		prime_len = len;
 		if (prime_packets < 0xFFFF) {
 			prime_packets++;
+		}
+
+		// Debug 'Z': 0 into L and R of the last frame written. 20261127: before the prime check, so it sees the zero
+		// ('>', then '<' at the next buffer), and again after the pulses below for the RAM check
+		const Bool zero_frame = spk_zero_frame;
+		S32 zero_k = spk_index - 2;
+		if (zero_k < 0) {
+			zero_k += DAC_BUFFER_UNI;
+		}
+		if (zero_frame) {
+			spk_buffer[zero_k] = 0;
+			spk_buffer[zero_k + 1] = 0;
 		}
 
 		if (mode & PRIME_MODE_CHECK) {
@@ -369,14 +394,9 @@ static inline __attribute__((always_inline)) void v2_usb_put(const U8 bytes, con
 			ram_check_pos = -1;
 		}
 
-		// Debug 'Z': 0 into L and R of the last frame written
-		if (spk_zero_frame) {
-			k = spk_index - 2;
-			if (k < 0) {
-				k += DAC_BUFFER_UNI;
-			}
-			spk_buffer[k] = 0;
-			spk_buffer[k + 1] = 0;
+		if (zero_frame) {							// 'Z' again, the pulses wrote over it
+			spk_buffer[zero_k] = 0;
+			spk_buffer[zero_k + 1] = 0;
 			spk_zero_frame = FALSE;
 		}
 	}
